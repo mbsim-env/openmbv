@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<measurement xmlns="http://www.amm.mw.tu-muenchen.de/XXX/measurement"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/XXX/measurement measurement.xsd">
+  <measure name="nounit" SIunit="">
+    <unit name="">value</unit>
+  </measure>
+  <measure name="length" SIunit="m">
+    <unit name="mum">value*1e-6</unit>
+    <unit name="mm">value*1e-3</unit>
+    <unit name="cm">value*1e-2</unit>
+    <unit name="dm">value*1e-1</unit>
+    <unit name="m">value</unit>
+    <unit name="km">value*1e3</unit>
+  </measure>
+  <measure name="mass" SIunit="kg">
+    <unit name="mg">value*1e-6</unit>
+    <unit name="g">value*1e-3</unit>
+    <unit name="kg">value</unit>
+    <unit name="t">value*1e3</unit>
+  </measure>
+  <measure name="time" SIunit="s">
+    <unit name="mus">value*1e-6</unit>
+    <unit name="ms">value*1e-3</unit>
+    <unit name="s">value</unit>
+    <unit name="min">value*60</unit>
+    <unit name="h">value*3600</unit>
+    <unit name="d">value*86400</unit>
+  </measure>
+</measurement>

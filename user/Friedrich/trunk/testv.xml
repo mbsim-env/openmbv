@@ -1,0 +1,7 @@
+<xmlVector xmlns="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable physicalvariable.xsd">
+  <ele>2.6</ele>
+  <ele>2.7</ele>
+  <ele>2.9999+1</ele>
+</xmlVector>
