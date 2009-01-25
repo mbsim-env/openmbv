@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
 
   <xsl:output method="xml" version="1.0" indent="yes"/>
 
@@ -20,50 +20,50 @@
 
 
 
-  <!-- dereference ty:xmlVector|ty:xmlMatrix -->
+  <!-- dereference pv:xmlVector|pv:xmlMatrix -->
 
-  <xsl:template match="ty:xmlVector|ty:xmlMatrix">
+  <xsl:template match="pv:xmlVector|pv:xmlMatrix">
     <xsl:apply-templates mode="XML" select=".."/>
   </xsl:template>
 
   <xsl:template mode="XML" match="*">
-    [ <xsl:apply-templates mode="XML" select="ty:xmlMatrix/ty:row"/>
-      <xsl:apply-templates mode="XML" select="ty:xmlVector/ty:ele"/> ]
+    [ <xsl:apply-templates mode="XML" select="pv:xmlMatrix/pv:row"/>
+      <xsl:apply-templates mode="XML" select="pv:xmlVector/pv:ele"/> ]
   </xsl:template>
 
-  <xsl:template mode="XML" match="ty:xmlMatrix/ty:row">
-    <xsl:apply-templates mode="XML" select="ty:ele"/>
+  <xsl:template mode="XML" match="pv:xmlMatrix/pv:row">
+    <xsl:apply-templates mode="XML" select="pv:ele"/>
     <xsl:if test="position()!=last()">; </xsl:if>
   </xsl:template>
 
-  <xsl:template mode="XML" match="ty:xmlMatrix/ty:row/ty:ele">
+  <xsl:template mode="XML" match="pv:xmlMatrix/pv:row/pv:ele">
     <xsl:value-of select="replace(.,' ','')"/> <!-- not not allow space in scalar value -->
     <xsl:if test="position()!=last()">, </xsl:if>
   </xsl:template>
 
-  <xsl:template mode="XML" match="ty:xmlVector/ty:ele">
+  <xsl:template mode="XML" match="pv:xmlVector/pv:ele">
     <xsl:value-of select="replace(.,' ','')"/> <!-- not not allow space in scalar value -->
     <xsl:if test="position()!=last()">; </xsl:if>
   </xsl:template>
 
 
 
-  <!-- dereference ty:xmlMatrixRef|ty:xmlVectorRef -->
+  <!-- dereference pv:xmlMatrixRef|pv:xmlVectorRef -->
 
-  <xsl:template match="ty:xmlVectorRef|ty:xmlMatrixRef">
+  <xsl:template match="pv:xmlVectorRef|pv:xmlMatrixRef">
     <xsl:apply-templates mode="XMLREF" select=".."/>
   </xsl:template>
 
   <xsl:template mode="XMLREF" match="*">
-    [ <xsl:apply-templates mode="XML" select="document(ty:xmlMatrixRef/@href)/ty:xmlMatrix/ty:row"/>
-      <xsl:apply-templates mode="XML" select="document(ty:xmlVectorRef/@href)/ty:xmlVector/ty:ele"/> ]
+    [ <xsl:apply-templates mode="XML" select="document(pv:xmlMatrixRef/@href)/pv:xmlMatrix/pv:row"/>
+      <xsl:apply-templates mode="XML" select="document(pv:xmlVectorRef/@href)/pv:xmlVector/pv:ele"/> ]
   </xsl:template>
 
 
 
-  <!-- dereference ty:asciiMatrixRef|ty:asciiVectorRef -->
+  <!-- dereference pv:asciiMatrixRef|pv:asciiVectorRef -->
 
-  <xsl:template match="ty:asciiScalarRef|ty:asciiVectorRef|ty:asciiMatrixRef">
+  <xsl:template match="pv:asciiScalarRef|pv:asciiVectorRef|pv:asciiMatrixRef">
     <xsl:apply-templates mode="ASCIIREF" select=".."/>
   </xsl:template>
 
@@ -74,9 +74,9 @@
     <xsl:variable name="EXP" select="replace($EXP,';( *;)+',';')"/> <!-- replace sequence of ';' with ';' -->
     <xsl:variable name="EXP" select="replace($EXP,'^ *;','')"/> <!-- delete leading ';' -->
     <xsl:variable name="EXP" select="replace($EXP,'; *$','')"/> <!-- delete trailing ';' -->
-    <xsl:if test="not(ty:asciiScalarRef)">[ </xsl:if>
+    <xsl:if test="not(pv:asciiScalarRef)">[ </xsl:if>
     <xsl:value-of select="$EXP"/>
-    <xsl:if test="not(ty:asciiScalarRef)"> ]</xsl:if>
+    <xsl:if test="not(pv:asciiScalarRef)"> ]</xsl:if>
   </xsl:template>
 
 </xsl:stylesheet>

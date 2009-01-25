@@ -1,50 +1,50 @@
 <test xmlns="http://www.amm.mw.tu-muenchen.de/YYY"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/YYY test.xsd">
   <vt0 unit="ms">
     [1;2;3]
   </vt0>
   <vt1 unit="ms">
-    <ty:asciiVectorRef href="testv.asc"/>
+    <pv:asciiVectorRef href="testv.asc"/>
   </vt1>
   <vt2 unit="ms">
-    <ty:xmlVectorRef href="testv.xml"/>
+    <pv:xmlVectorRef href="testv.xml"/>
   </vt2>
   <vt3 unit="ms">
-    <ty:xmlVector>
-      <ty:ele>2.6</ty:ele>
-      <ty:ele>2.7</ty:ele>
-      <ty:ele>2.4*7</ty:ele>
-    </ty:xmlVector>
+    <pv:xmlVector>
+      <pv:ele>2.6</pv:ele>
+      <pv:ele>2.7</pv:ele>
+      <pv:ele>2.4*7</pv:ele>
+    </pv:xmlVector>
   </vt3>
   <mt0 unit="s">
     [0 1;1,3;2 4]
   </mt0>
   <mt1 unit="s">
-    <ty:asciiMatrixRef href="testm.asc"/>
+    <pv:asciiMatrixRef href="testm.asc"/>
   </mt1>
   <mt2 unit="s">
-    <ty:xmlMatrixRef href="testm.xml"/>
+    <pv:xmlMatrixRef href="testm.xml"/>
   </mt2>
   <mt3 unit="g">
-    <ty:xmlMatrix>
-      <ty:row>
-        <ty:ele>2.6</ty:ele>
-        <ty:ele>2.7</ty:ele>
-        <ty:ele>2.1</ty:ele>
-      </ty:row>
-      <ty:row>
-        <ty:ele>sin(2)</ty:ele>
-        <ty:ele> 2.7</ty:ele>
-        <ty:ele>2.1-5+myp1*myp3</ty:ele>
-      </ty:row>
-    </ty:xmlMatrix>
+    <pv:xmlMatrix>
+      <pv:row>
+        <pv:ele>2.6</pv:ele>
+        <pv:ele>2.7</pv:ele>
+        <pv:ele>2.1</pv:ele>
+      </pv:row>
+      <pv:row>
+        <pv:ele>sin(2)</pv:ele>
+        <pv:ele> 2.7</pv:ele>
+        <pv:ele>2.1-5+myp1*myp3</pv:ele>
+      </pv:row>
+    </pv:xmlMatrix>
   </mt3>
   <st0 unit="min">
     1
   </st0>
   <st1 unit="h">
-    <ty:asciiScalarRef href="tests.asc"/>
+    <pv:asciiScalarRef href="tests.asc"/>
   </st1>
 </test>

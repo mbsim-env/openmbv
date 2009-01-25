@@ -3,7 +3,7 @@
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
   xmlns="http://www.amm.mw.tu-muenchen.de/XXX/parameter"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:import namespace="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
@@ -15,7 +15,7 @@
         <xs:element name="scalarParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="ty:nounitScalar">
+              <xs:extension base="pv:nounitScalar">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:ID">
@@ -30,7 +30,7 @@
         <xs:element name="vectorParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="ty:nounitVector">
+              <xs:extension base="pv:nounitVector">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:ID">
@@ -45,7 +45,7 @@
         <xs:element name="matrixParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="ty:nounitMatrix">
+              <xs:extension base="pv:nounitMatrix">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:ID">

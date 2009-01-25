@@ -3,7 +3,7 @@
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
   xmlns="http://www.amm.mw.tu-muenchen.de/YYY"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:import namespace="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
@@ -12,16 +12,16 @@
   <xs:element name="test">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="vt0" type="ty:timeVector"/>
-        <xs:element name="vt1" type="ty:timeVector"/>
-        <xs:element name="vt2" type="ty:timeVector"/>
-        <xs:element name="vt3" type="ty:timeVector"/>
-        <xs:element name="mt0" type="ty:timeMatrix"/>
-        <xs:element name="mt1" type="ty:timeMatrix"/>
-        <xs:element name="mt2" type="ty:timeMatrix"/>
-        <xs:element name="mt3" type="ty:massMatrix"/>
-        <xs:element name="st0" type="ty:timeScalar"/>
-        <xs:element name="st1" type="ty:timeScalar"/>
+        <xs:element name="vt0" type="pv:timeVector"/>
+        <xs:element name="vt1" type="pv:timeVector"/>
+        <xs:element name="vt2" type="pv:timeVector"/>
+        <xs:element name="vt3" type="pv:timeVector"/>
+        <xs:element name="mt0" type="pv:timeMatrix"/>
+        <xs:element name="mt1" type="pv:timeMatrix"/>
+        <xs:element name="mt2" type="pv:timeMatrix"/>
+        <xs:element name="mt3" type="pv:massMatrix"/>
+        <xs:element name="st0" type="pv:timeScalar"/>
+        <xs:element name="st1" type="pv:timeScalar"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

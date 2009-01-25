@@ -2,7 +2,7 @@
 <xsl:stylesheet version="2.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:pa="http://www.amm.mw.tu-muenchen.de/XXX/parameter"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
 
   <xsl:output method="xml" version="1.0" indent="yes"/>
 
@@ -25,7 +25,7 @@
 
   <xsl:import-schema namespace="@NAMESPACE@" schema-location="@NAMESPACELOCATION@"/>
 
-  <xsl:template match="element(*,ty:scalar)|element(*,ty:vector)|element(*,ty:matrix)">
+  <xsl:template match="element(*,pv:scalar)|element(*,pv:vector)|element(*,pv:matrix)">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <!-- call deparam template with initial expresion of the text node;

@@ -1,5 +1,5 @@
 <parameter xmlns="http://www.amm.mw.tu-muenchen.de/XXX/parameter"
-  xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/XXX/parameter parameter.xsd">
   <scalarParameter name="myp1">

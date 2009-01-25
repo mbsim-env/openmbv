@@ -16,7 +16,7 @@
     </xsl:comment>
 
     <xslo:stylesheet version="2.0"
-      xmlns:ty="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
+      xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
     
       <xslo:output method="xml" version="1.0" indent="yes"/>
     
@@ -54,7 +54,7 @@
 
   <xsl:template match="/mm:measurement/mm:measure">
     <xslo:template>
-      <xsl:attribute name="match">element(*,ty:<xsl:value-of select="@name"/>Scalar)|element(*,ty:<xsl:value-of select="@name"/>Vector)|element(*,ty:<xsl:value-of select="@name"/>Matrix)</xsl:attribute>
+      <xsl:attribute name="match">element(*,pv:<xsl:value-of select="@name"/>Scalar)|element(*,pv:<xsl:value-of select="@name"/>Vector)|element(*,pv:<xsl:value-of select="@name"/>Matrix)</xsl:attribute>
       <xslo:copy>
         <xslo:apply-templates mode="UNIT">
           <xsl:attribute name="select">document('measurement.xml')/mm:measurement/mm:measure[@name='<xsl:value-of select="@name"/>']/mm:unit</xsl:attribute>
