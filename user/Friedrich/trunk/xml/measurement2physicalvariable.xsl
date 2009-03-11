@@ -22,29 +22,19 @@
       xmlns="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-      <!-- add unit types -->
-      <xsl:apply-templates mode="UNIT" select="mm:measure"/>
+      <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
+      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
 
-      <!-- add matrix type -->
-      <xs:element name="xmlMatrix">
+      <!-- ################################ -->
+      <xs:element name="embed">
         <xs:complexType>
-          <xs:sequence>
-            <xs:element name="row" maxOccurs="unbounded">
-              <xs:complexType>
-                <xs:sequence>
-                  <xs:element name="ele" maxOccurs="unbounded">
-                    <xs:simpleType>
-                      <xs:restriction base="xs:string">
-                        <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                      </xs:restriction>
-                    </xs:simpleType>
-                  </xs:element>
-                </xs:sequence>
-              </xs:complexType>
-            </xs:element>
-          </xs:sequence>
+          <xs:attribute name="href" type="xs:anyURI" use="required"/>
+          <xs:attribute name="count" type="xs:integer" use="required"/>
         </xs:complexType>
       </xs:element>
+      <!-- ################################ -->
+      <!-- add unit types -->
+      <xsl:apply-templates mode="UNIT" select="mm:measure"/>
 
       <xs:complexType mixed="true" name="matrix">
         <xs:annotation>
@@ -63,10 +53,24 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
-          <xs:element ref="xmlMatrix"/>
-          <xs:element name="xmlMatrixRef">
+          <xs:element name="xmlMatrix">
             <xs:complexType>
-              <xs:attribute name="href" type="xs:anyURI" use="required"/>
+              <xs:sequence>
+                <xs:element name="row" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="ele" maxOccurs="unbounded">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
           <xs:element name="asciiMatrixRef">
@@ -79,21 +83,6 @@
 
       <!-- add matrix units -->
       <xsl:apply-templates mode="MATRIX" select="/mm:measurement/mm:measure"/>
-
-      <!-- add vector type -->
-      <xs:element name="xmlVector">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element name="ele" maxOccurs="unbounded">
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:element>
-          </xs:sequence>
-        </xs:complexType>
-      </xs:element>
 
       <xs:complexType mixed="true" name="vector">
         <xs:annotation>
@@ -112,10 +101,18 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
-          <xs:element ref="xmlVector"/>
-          <xs:element name="xmlVectorRef">
+          <xs:element name="xmlVector">
             <xs:complexType>
-              <xs:attribute name="href" type="xs:anyURI" use="required"/>
+              <xs:sequence>
+                <xs:element name="ele" maxOccurs="unbounded">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
           <xs:element name="asciiVectorRef">

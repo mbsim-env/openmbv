@@ -1,0 +1,14 @@
+<RigidBody xmlns="http://www.amm.mw.tu-muenchen.de/YYY"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/YYY test.xsd"
+  name="body1_@number@">
+  <mass unit="g">6+sin(number)*myp1+1</mass>
+  <x0 unit="ms">
+    <pv:xmlVector xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable">
+      <pv:ele>9.9</pv:ele>
+      <pv:ele>8.8+myp1</pv:ele>
+      <pv:ele>myp2(number+1)</pv:ele>
+    </pv:xmlVector>
+  </x0>
+</RigidBody>
+

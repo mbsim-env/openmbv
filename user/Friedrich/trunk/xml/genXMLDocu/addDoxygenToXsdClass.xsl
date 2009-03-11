@@ -101,7 +101,7 @@
   </xsl:template>
 
   <xsl:template match="xs:element">
-    <xsl:param name="FUNCTIONNAME" select="@name"/>
+    <xsl:param name="FUNCTIONNAME" select="@name"/><!-- XXXXXXXXX set correct case of first character -->
     <xsl:param name="CLASSNAME"/>
     <xsl:copy>
       <xsl:apply-templates select="@*"/>

@@ -20,7 +20,6 @@
 
 
 
-  <!-- for all direct root child elements (classes) -->
   <xsl:template match="/">
     <!-- html header -->
     <html xml:lang="en" lang="en"><head><title><xsl:value-of select="$PROJECT"/> - XML Documentation</title></head><body>

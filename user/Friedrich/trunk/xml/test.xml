@@ -1,5 +1,6 @@
 <test xmlns="http://www.amm.mw.tu-muenchen.de/YYY"
   xmlns:pv="http://www.amm.mw.tu-muenchen.de/XXX/physicalvariable"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.amm.mw.tu-muenchen.de/YYY test.xsd">
   <vt0 unit="ms">
@@ -9,7 +10,7 @@
     <pv:asciiVectorRef href="testv.asc"/>
   </vt1>
   <vt2 unit="ms">
-    <pv:xmlVectorRef href="testv.xml"/>
+    <xi:include href="testv.xml"/>
   </vt2>
   <vt3 unit="ms">
     <pv:xmlVector>
@@ -25,7 +26,7 @@
     <pv:asciiMatrixRef href="testm.asc"/>
   </mt1>
   <mt2 unit="s">
-    <pv:xmlMatrixRef href="testm.xml"/>
+    <xi:include href="testm.xml"/>
   </mt2>
   <mt3 unit="g">
     <pv:xmlMatrix>
@@ -47,4 +48,11 @@
   <st1 unit="h">
     <pv:asciiScalarRef href="tests.asc"/>
   </st1>
+  <!-- ################################ -->
+  <RigidBody name="body1">
+    <mass>6</mass>
+    <x0>6</x0>
+  </RigidBody>
+  <pv:embed href="embed.xml" count="3"/>
+  <!-- ################################ -->
 </test>

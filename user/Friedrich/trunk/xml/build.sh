@@ -36,23 +36,22 @@ echo DONE
 
 ####### TODO: test for root element
 echo "Validate $FILE"
-/home/mbsim/local/bin/xmlutils-parse $FILE || exit
+wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /validate $FILE /schema test.xsd || exit
 echo DONE
 
-####### TODO: export files to check from $FILE; test for root element in files
-echo "Validate testm.xml, testv.xml"
-/home/mbsim/local/bin/xmlutils-parse testm.xml || exit
-/home/mbsim/local/bin/xmlutils-parse testv.xml || exit
+#################################
+###### TODO: validate all embeded files or/and validate output file !!!!!!!!!!!!
+echo "EMBED"
+wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 embed.xsl /in $FILE /out .$BASENAME.embeded.xml || exit
 echo DONE
-
-
+#################################
 
 echo "Rewrite all physical variables as octave-string in parameter.xml using physicalvariable2octavestring.xsl generating .parameter.octavestring.xml"
 wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 physicalvariable2octavestring.xsl /in parameter.xml /out .parameter.octavestring.xml || exit
 echo DONE
 
-echo "Rewrite all physical variables as octave-string in $FILE using physicalvariable2octavestring.xsl generating .$BASENAME.octavestring.xml"
-wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 physicalvariable2octavestring.xsl /in $FILE /out .$BASENAME.octavestring.xml || exit
+echo "Rewrite all physical variables as octave-string in .$BASENAME.embeded.xml using physicalvariable2octavestring.xsl generating .$BASENAME.octavestring.xml"
+wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 physicalvariable2octavestring.xsl /in .$BASENAME.embeded.xml /out .$BASENAME.octavestring.xml || exit
 echo DONE
 
 echo "Resubstitute parameter using resubstitute.xsl generating .$BASENAME.resubstitute.xml (first generate resubstitute.xsl with proper namespace)"
@@ -60,7 +59,6 @@ wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 se
 wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 .resubstitute.test.xsl /in .$BASENAME.octavestring.xml /out .$BASENAME.resubstitute.xml || exit
 echo DONE
 
-# TODO: test only for units of specific measure and not for all units
 echo "Convert physical variables to SI units using convert2SIunit.xsl generating .$BASENAME.siunit.xml (first generate convert2SIunit.xsl with proper namespace)"
 wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 setNamespace.xsl /in convert2SIunit.xsl /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$NAMESPACELOCATION'" /out .convert2SIunit.test.xsl || exit
 wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /xslt2 .convert2SIunit.test.xsl /in .$BASENAME.resubstitute.xml /out .$BASENAME.siunit.xml || exit

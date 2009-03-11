@@ -53,7 +53,7 @@
          set changed flag to true if a subst has occured -->
     <xsl:if test="$NODE">
       <xsl:call-template name="PARAM">
-        <xsl:with-param name="EXPRESSION" select="replace($EXPRESSION,concat('([^a-zA-Z0-9_])',$NODE/@name,'([^a-zA-Z0-9_])'),concat('$1(',normalize-space($NODE),')$2'))"/>
+        <xsl:with-param name="EXPRESSION" select="replace($EXPRESSION,concat('([^a-zA-Z0-9_]|^)',$NODE/@name,'([^a-zA-Z0-9_]|$)'),concat('$1(',normalize-space($NODE),')$2'))"/>
         <xsl:with-param name="NODE" select="$NODE/following-sibling::*[1]"/>
         <xsl:with-param name="CHANGED" select="$CHANGED or matches($EXPRESSION,concat('([^a-zA-Z0-9_])',$NODE/@name,'([^a-zA-Z0-9_])'))"/>
         <xsl:with-param name="RECURSIONLEVEL" select="$RECURSIONLEVEL"/>

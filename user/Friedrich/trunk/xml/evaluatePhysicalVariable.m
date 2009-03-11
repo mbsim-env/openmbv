@@ -1,4 +1,13 @@
-FILENAME=argv{1};
+% check octave version
+myversion=version;
+if str2double(myversion(1:index(myversion,'.')-1)) <= 2
+  octave2=1;
+else
+  octave2=0;
+end
+
+myargv=argv;
+FILENAME=myargv{1};
 % open file
 f=fopen(FILENAME,'rt');
 nr=0;
@@ -6,13 +15,25 @@ while(1)
   % read on line of file
   line=fgetl(f);
   nr=nr+1;
-  match=regexp('@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@',line);
-  if size(match)==[0,0]
+  if octave2
+    match=regexp('@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@',line);
+  else
+    match=regexp(line, '@(SCALAR|VECTOR|MATRIX)EXPRESSION\{@');
+  end
+  if size(match)(1)==0 | size(match)(2)==0
     % if nothing to evaluate, print line
     printf('%s\n',line);
   else
     % get expression to evaluate (and pre, post-expression)
-    [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@(.*)@\\}@(.*)',line);
+    if octave2
+      [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@(.*)@\\}@(.*)',line);
+    else
+      [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\{@(.*)@\}@(.*)');
+      preexp=ee{1}{1};
+      type=ee{1}{2};
+      exp=ee{1}{3};
+      postexp=ee{1}{4};
+    end
     % evaluate expression
     val=eval(exp);
     if type=='SCALAR'
