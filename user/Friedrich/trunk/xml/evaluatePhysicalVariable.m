@@ -18,7 +18,7 @@ while(1)
   if octave2
     match=regexp('@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@',line);
   else
-    match=regexp(line, '@(SCALAR|VECTOR|MATRIX)EXPRESSION\{@');
+    match=regexp(line, '@(SCALAR|VECTOR|MATRIX)EXPRESSION{@');
   end
   if size(match)(1)==0 | size(match)(2)==0
     % if nothing to evaluate, print line
@@ -28,7 +28,7 @@ while(1)
     if octave2
       [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@(.*)@\\}@(.*)',line);
     else
-      [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\{@(.*)@\}@(.*)');
+      [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION{@(.*)@}@(.*)');
       preexp=ee{1}{1};
       type=ee{1}{2};
       exp=ee{1}{3};
