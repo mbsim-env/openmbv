@@ -12,6 +12,7 @@
   <xsl:template match="*">
     <xsl:param name="NUMBER"/>
     <xsl:param name="COUNT"/>
+    <xsl:param name="COUNTERNAME"/>
     <xsl:param name="HREF"/>
     <xsl:copy>
       <xsl:if test="$HREF">
@@ -22,16 +23,14 @@
       <xsl:apply-templates select="@*">
         <xsl:with-param name="NUMBER" select="$NUMBER"/>
         <xsl:with-param name="COUNT" select="$COUNT"/>
+        <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
       </xsl:apply-templates>
       <xsl:apply-templates>
         <xsl:with-param name="NUMBER" select="$NUMBER"/>
         <xsl:with-param name="COUNT" select="$COUNT"/>
+        <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
       </xsl:apply-templates>
     </xsl:copy>
-  </xsl:template>
-
-  <xsl:template match="@*">
-    <xsl:copy/>
   </xsl:template>
 
   <!-- TODO: fix double inclusion of xsi:schemaLocation of the same namespace !!!!!!!!!!!!!!!!! -->
@@ -48,6 +47,7 @@
     <xsl:call-template name="EMBED">
       <xsl:with-param name="NUMBER" select="0"/>
       <xsl:with-param name="COUNT" select="@count"/>
+      <xsl:with-param name="COUNTERNAME" select="@counterName"/>
       <xsl:with-param name="HREF" select="@href"/>
     </xsl:call-template>
   </xsl:template>
@@ -56,16 +56,19 @@
   <xsl:template name="EMBED">
    <xsl:param name="NUMBER"/>
    <xsl:param name="COUNT"/>
+   <xsl:param name="COUNTERNAME"/>
    <xsl:param name="HREF"/>
    <xsl:if test="$NUMBER &lt; $COUNT">
      <xsl:apply-templates select="document($HREF)">
        <xsl:with-param name="NUMBER" select="$NUMBER"/>
        <xsl:with-param name="COUNT" select="$COUNT"/>
+       <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
        <xsl:with-param name="HREF" select="$HREF"/>
      </xsl:apply-templates>
      <xsl:call-template name="EMBED">
        <xsl:with-param name="NUMBER" select="$NUMBER+1"/>
        <xsl:with-param name="COUNT" select="$COUNT"/>
+       <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
        <xsl:with-param name="HREF" select="$HREF"/>
      </xsl:call-template>
    </xsl:if>
@@ -75,35 +78,44 @@
   <xsl:template match="element(*,pv:scalar)|element(*,pv:vector)|element(*,pv:matrix)">
     <xsl:param name="NUMBER"/>
     <xsl:param name="COUNT"/>
+    <xsl:param name="COUNTERNAME"/>
     <xsl:apply-templates mode="PV" select=".">
       <xsl:with-param name="NUMBER" select="$NUMBER"/>
       <xsl:with-param name="COUNT" select="$COUNT"/>
+      <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
     </xsl:apply-templates>
   </xsl:template>
 
-  <!-- resubstitute number and count in text node -->
+  <!-- resubstitute number and count in text nodes -->
   <xsl:template mode="PV" match="*">
     <xsl:param name="NUMBER"/>
     <xsl:param name="COUNT"/>
+    <xsl:param name="COUNTERNAME"/>
     <xsl:copy>
-      <xsl:apply-templates select="@*"/>
+      <xsl:apply-templates select="@*">
+        <xsl:with-param name="NUMBER" select="$NUMBER"/>
+        <xsl:with-param name="COUNT" select="$COUNT"/>
+        <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
+      </xsl:apply-templates>
       <xsl:if test="child::*">
         <xsl:apply-templates mode="PV" select="child::*">
           <xsl:with-param name="NUMBER" select="$NUMBER"/>
           <xsl:with-param name="COUNT" select="$COUNT"/>
+          <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
         </xsl:apply-templates>
       </xsl:if>
       <xsl:if test="not(child::*) and text()">
-        <xsl:value-of select="replace(replace(.,'([^a-zA-Z0-9_]|^)number([^a-zA-Z0-9_]|$)',concat('$1(',string($NUMBER),')$2')),'([^a-zA-Z0-9_]|^)count([^a-zA-Z0-9_]|$)',concat('$1(',string($COUNT),')$2'))"/>
+        <xsl:value-of select="replace(replace(.,concat('@',$COUNTERNAME,'@'),string($NUMBER)),concat('@',$COUNTERNAME,'MAX@'),string($COUNT))"/>
       </xsl:if>
     </xsl:copy>
   </xsl:template>
   
-  <!-- resubstitute number and count in name attribute -->
-  <xsl:template match="@name">
+  <!-- resubstitute number and count in attributes -->
+  <xsl:template match="@*">
     <xsl:param name="NUMBER"/>
     <xsl:param name="COUNT"/>
-    <xsl:attribute name="name"><xsl:value-of select="replace(.,'@number@',string($NUMBER))"/></xsl:attribute>
+    <xsl:param name="COUNTERNAME"/>
+    <xsl:attribute name="{name()}"><xsl:value-of select="replace(.,concat('@',$COUNTERNAME,'@'),string($NUMBER))"/></xsl:attribute>
   </xsl:template>
 
 </xsl:stylesheet>

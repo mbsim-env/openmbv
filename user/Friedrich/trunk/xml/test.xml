@@ -53,6 +53,6 @@
     <mass>6</mass>
     <x0>6</x0>
   </RigidBody>
-  <pv:embed href="embed.xml" count="3"/>
+  <pv:embed href="embed.xml" count="3" counterName="mygrp"/>
   <!-- ################################ -->
 </test>

@@ -30,6 +30,7 @@
         <xs:complexType>
           <xs:attribute name="href" type="xs:anyURI" use="required"/>
           <xs:attribute name="count" type="xs:integer" use="required"/>
+          <xs:attribute name="counterName" type="xs:token" use="required"/>
         </xs:complexType>
       </xs:element>
       <!-- ################################ -->
