@@ -16,5 +16,5 @@ string Object::getFullName() {
   if(parent)
     return parent->getFullName()+"/"+name;
   else
-    return "";
+    return name;
 }

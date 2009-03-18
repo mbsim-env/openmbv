@@ -12,6 +12,7 @@ int main() {
     g.addObject(&c2);
 
     Group subg("mysubgrp");
+    subg.setSeparateFile(true);
     g.addObject(&subg);
 
       Cuboid cX("mycubeX");
@@ -22,7 +23,7 @@ int main() {
       subg.addObject(&c);
 
       Cuboid cZ("mycubeZ");
-      cZ.setHDF5Link(&c2);
+      cZ.setHDF5Link(&cX);
       subg.addObject(&cZ);
 
     Cuboid c3("mycube3");
@@ -30,11 +31,11 @@ int main() {
     g.addObject(&c3);
 
     
-    g.initialize();
+  g.initialize();
 
-    vector<double> row(8);
-    for(int i=0; i<10; i++) {
-      c2.append(row);
-      cX.append(row);
-    }
+  vector<double> row(8);
+  for(int i=0; i<10; i++) {
+    c2.append(row);
+    cX.append(row);
+  }
 }
