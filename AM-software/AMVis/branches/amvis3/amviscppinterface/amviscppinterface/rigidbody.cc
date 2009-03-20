@@ -7,7 +7,7 @@
 using namespace std;
 using namespace AMVis;
 
-RigidBody::RigidBody(const string& name_) : Body(name_),
+RigidBody::RigidBody() : Body(),
   initialTranslation(3, 0),
   initialRotation(3, 0),
   scaleFactor(1),

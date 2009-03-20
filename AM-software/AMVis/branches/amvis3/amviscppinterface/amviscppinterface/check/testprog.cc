@@ -6,28 +6,35 @@ using namespace AMVis;
 using namespace std;
 
 int main() {
-  Group g("mygrp");
+  Group g;
+  g.setName("mygrp");
 
-    Cuboid c2("mycube");
+    Cuboid c2;
+    c2.setName("mycube");
     g.addObject(&c2);
 
-    Group subg("mysubgrp");
+    Group subg;
+    subg.setName("mysubgrp");
     subg.setSeparateFile(true);
     g.addObject(&subg);
 
-      Cuboid cX("mycubeX");
+      Cuboid cX;
+      cX.setName("mycubeX");
       subg.addObject(&cX);
 
-      Cuboid c("mycube");
-      c.setHDF5Link(&cX);
+      Cuboid c;
+      c.setName("mycube");
+      c.setHDF5LinkTarget(&cX);
       subg.addObject(&c);
 
-      Cuboid cZ("mycubeZ");
-      cZ.setHDF5Link(&cX);
+      Cuboid cZ;
+      cZ.setName("mycubeZ");
+      cZ.setHDF5LinkTarget(&cX);
       subg.addObject(&cZ);
 
-    Cuboid c3("mycube3");
-    c3.setHDF5Link(&cX);
+    Cuboid c3;
+    c3.setName("mycube3");
+    c3.setHDF5LinkTarget(&cX);
     g.addObject(&c3);
 
     

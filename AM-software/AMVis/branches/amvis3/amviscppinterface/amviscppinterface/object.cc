@@ -5,7 +5,7 @@
 using namespace std;
 using namespace AMVis;
 
-Object::Object(const string& name_) : name(name_), parent(0), hdf5Group(0) {
+Object::Object() : name(""), parent(0), hdf5Group(0) {
 }
 
 Object::~Object() {

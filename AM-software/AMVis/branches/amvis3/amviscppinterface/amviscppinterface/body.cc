@@ -7,7 +7,7 @@
 using namespace std;
 using namespace AMVis;
 
-Body::Body(const string& name_) : Object(name_),
+Body::Body() : Object(),
   hdf5LinkBody(0) {
 }
 
@@ -27,7 +27,7 @@ std::string Body::getRelPathTo(Body* destBody) {
   // create relative path to destination
   string dest=destBody->getFullName();
   string src=getFullName();
-  string reldest="../";
+  string reldest="";
   while(dest.substr(0,dest.find('/',1))==src.substr(0,src.find('/',1)))  {
     dest=dest.substr(dest.find('/',1));
     src=src.substr(src.find('/',1));

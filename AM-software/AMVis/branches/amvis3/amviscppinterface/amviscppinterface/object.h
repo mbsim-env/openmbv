@@ -1,5 +1,5 @@
-#ifndef _OBJECT_H_
-#define _OBJECT_H_
+#ifndef _AMVIS_OBJECT_H_
+#define _AMVIS_OBJECT_H_
 
 #include <string>
 #include <H5Cpp.h>
@@ -17,8 +17,9 @@ namespace AMVis {
       virtual void createHDF5File()=0;
       H5::Group *hdf5Group;
     public:
-      Object(const std::string& name_);
-      ~Object();
+      Object();
+      virtual ~Object();
+      void setName(const std::string& name_) { name=name_; }
       std::string getFullName();
   };
 

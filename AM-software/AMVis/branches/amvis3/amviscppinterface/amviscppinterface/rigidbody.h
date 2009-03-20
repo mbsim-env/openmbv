@@ -1,5 +1,5 @@
-#ifndef _RIGIDBODY_H_
-#define _RIGIDBODY_H_
+#ifndef _AMVIS_RIGIDBODY_H_
+#define _AMVIS_RIGIDBODY_H_
 
 #include <amviscppinterface/body.h>
 #include <vector>
@@ -17,7 +17,7 @@ namespace AMVis {
       void createHDF5File();
       H5::VectorSerie<double>* data;
     public:
-      RigidBody(const std::string& name_);
+      RigidBody();
       ~RigidBody();
       void setInitialTranslation(const std::vector<double>& initTrans) {
         assert(initTrans.size()==3);

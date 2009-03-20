@@ -10,10 +10,12 @@ libamviscppinterface_la_SOURCES = object.cc \
   body.cc \
   group.cc \
   rigidbody.cc \
+  frame.cc \
   cuboid.cc
 
 libamviscppinterface_la_HEADERS = object.h \
   body.h \
   group.h \
   rigidbody.h \
+  frame.h \
   cuboid.h

@@ -1,5 +1,5 @@
-#ifndef _GROUP_H_
-#define _GROUP_H_
+#ifndef _AMVIS_GROUP_H_
+#define _AMVIS_GROUP_H_
 
 #include <amviscppinterface/object.h>
 #include <vector>
@@ -15,7 +15,7 @@ namespace AMVis {
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
     public:
-      Group(const std::string& name_);
+      Group();
       void addObject(Object* object);
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
       void initialize();

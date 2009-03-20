@@ -8,3 +8,8 @@ INCLUDES = $(HDF5SERIE_CFLAGS)
 
 testprog_LDFLAGS = -L..
 testprog_LDADD = -lamviscppinterface $(HDF5SERIE_LIBS)
+
+
+###################
+bin_SCRIPTS = amvis2oldformat.sh amvis2oldformat.xsl
+###################

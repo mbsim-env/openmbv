@@ -5,7 +5,7 @@
 using namespace std;
 using namespace AMVis;
 
-Cuboid::Cuboid(const string& name_) : RigidBody(name_),
+Cuboid::Cuboid() : RigidBody(),
   length(3, 1) {
 }
 
