@@ -104,8 +104,11 @@
           <xsl:with-param name="COUNTERNAME" select="$COUNTERNAME"/>
         </xsl:apply-templates>
       </xsl:if>
-      <xsl:if test="not(child::*) and text()">
-        <xsl:value-of select="replace(replace(.,concat('@',$COUNTERNAME,'@'),string($NUMBER)),concat('@',$COUNTERNAME,'MAX@'),string($COUNT))"/>
+      <xsl:if test="not(child::*) and text() and $COUNTERNAME!=''">
+        <xsl:value-of select="replace(replace(.,concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'([^a-zA-Z0-9_]|$)'),concat('$1(',$NUMBER,')$2')),concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'MAX','([^a-zA-Z0-9_]|$)'),concat('$1(',$COUNT,')$2'))"/>
+      </xsl:if>
+      <xsl:if test="not(child::*) and text() and $COUNTERNAME=''">
+        <xsl:value-of select="."/>
       </xsl:if>
     </xsl:copy>
   </xsl:template>
@@ -115,7 +118,14 @@
     <xsl:param name="NUMBER"/>
     <xsl:param name="COUNT"/>
     <xsl:param name="COUNTERNAME"/>
-    <xsl:attribute name="{name()}"><xsl:value-of select="replace(.,concat('@',$COUNTERNAME,'@'),string($NUMBER))"/></xsl:attribute>
+    <xsl:attribute name="{name()}">
+      <xsl:if test="$COUNTERNAME!='' and (name()='name' or name()='ref')">
+        <xsl:value-of select="replace(replace(.,concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'([^a-zA-Z0-9_]|$)'),concat('$1(',$NUMBER,')$2')),concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'MAX','([^a-zA-Z0-9_]|$)'),concat('$1(',$COUNT,')$2'))"/>
+      </xsl:if>
+      <xsl:if test="$COUNTERNAME='' or (name()!='name' and name()!='ref')">
+        <xsl:value-of select="."/>
+      </xsl:if>
+    </xsl:attribute>
   </xsl:template>
 
 </xsl:stylesheet>

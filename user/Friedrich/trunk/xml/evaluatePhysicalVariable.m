@@ -16,9 +16,9 @@ while(1)
   line=fgetl(f);
   nr=nr+1;
   if octave2
-    match=regexp('@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@',line);
+    match=regexp('@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@',line);
   else
-    match=regexp(line, '@(SCALAR|VECTOR|MATRIX)EXPRESSION{@');
+    match=regexp(line, '@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION{@');
   end
   if size(match)(1)==0 | size(match)(2)==0
     % if nothing to evaluate, print line
@@ -26,9 +26,9 @@ while(1)
   else
     % get expression to evaluate (and pre, post-expression)
     if octave2
-      [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION\\{@(.*)@\\}@(.*)',line);
+      [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)',line);
     else
-      [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX)EXPRESSION{@(.*)@}@(.*)');
+      [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION{@(.*)@}@(.*)');
       preexp=ee{1}{1};
       type=ee{1}{2};
       exp=ee{1}{3};
@@ -36,17 +36,26 @@ while(1)
     end
     % evaluate expression
     val=eval(exp);
-    if type=='SCALAR'
+    if strcmp(type,'SCALAR')==1 || strcmp(type,'SCALARINTEGER')==1
       % if scalar, check size
       if sum(size(val)!=[1,1])
         printf('%s:%d: ERROR: Scalar expected, but got value of size %dx%d\n',FILENAME,nr,size(val));
         exit;
       end
+      % if scalarinteger, check for integer
+      if strcmp(type,'SCALARINTEGER')==1 && round(val)!=val
+        printf('%s:%d: ERROR: Scalar integer expected, but got %e\n',FILENAME,nr,val);
+        exit;
+      end
       % if scalar print evaluated line
-      printf('%s%.15e%s\n', preexp, val, postexp);
+      if strcmp(type,'SCALARINTEGER')!=1
+        printf('%s%.15e%s\n', preexp, val, postexp);
+      else
+        printf('%s%d%s\n', preexp, val, postexp);
+      end
     else
       % if vector, check size
-      if type=='VECTOR' && size(val,2)!=1
+      if strcmp(type,'VECTOR')==1 && size(val,2)!=1
         printf('%s:%d: ERROR: Column vector expected, but got value of size %dx%d\n',FILENAME,nr,size(val));
         exit;
       end

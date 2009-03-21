@@ -6,7 +6,7 @@ echo "RUN BY CONFIGURE"
 echo
 
 echo "Validate measurement.xml"
-/home/mbsim/local/bin/xmlutils-parse measurement.xml || exit
+wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /validate measurement.xml || exit
 echo DONE
 
 echo "Generate physicalvariable.xsd by measurement.xml using measurement2physicalvariable.xsl"
@@ -31,7 +31,7 @@ NAMESPACELOCATION=test.xsd
 BASENAME=$(basename $FILE .xml)
 
 echo "Validate parameter.xml"
-/home/mbsim/local/bin/xmlutils-parse parameter.xml || exit
+wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe /validate parameter.xml || exit
 echo DONE
 
 ####### TODO: test for root element

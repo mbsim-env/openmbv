@@ -49,7 +49,7 @@
     <pv:asciiScalarRef href="tests.asc"/>
   </st1>
   <!-- ################################ -->
-  <RigidBody name="body1">
+  <RigidBody name="body1X">
     <mass>6</mass>
     <x0>6</x0>
   </RigidBody>
