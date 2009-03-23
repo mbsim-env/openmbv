@@ -5,13 +5,13 @@ FILE=$1.amvis
 rm -f *.body
 rm -f *.pos
 
-xsltproc $(dirname $0)/amvis2oldformat.xsl $FILE.xml | sed -re "s/\[//g;s/]//g;s/;/ /g;/^\{/s/ /\n/g" | sed -re "s/\{//g;s/\}//g" > out.dat
+xsltproc --xinclude $(dirname $0)/amvis2oldformat.xsl $FILE.xml | sed -re "s/\[//g;s/]//g;s/;/ /g;/^\{/s/ /\n/g" | sed -re "s/\{//g;s/\}//g" > out.dat
 
 DATA=$(grep "FILENAME:" out.dat | sed -re "s/^FILENAME: \.(.*)$/\1/;s|\.|/|g")
 for D in $DATA; do
   POSFILE=$(echo $FILE.h5/$D | sed -re "s|/|\.|g").0001.pos
   echo "Create pos-file: $POSFILE"
-  ../../../local/bin/h5dumpserie -s $FILE.h5/$D > $POSFILE.2
+  $(dirname $0)/h5dumpserie -s $FILE.h5/$D > $POSFILE.2
   MAXCOLS=$(wc -L $POSFILE.2 | cut -d' ' -f1)
   MAXLINE=$(wc -l $POSFILE.2 | cut -d' ' -f1)
   sed -re "s/^(.*)$/\1                                                                                                                                                                                                                                                                                         /;s/^(.{$MAXCOLS}).*$/\1/" $POSFILE.2 > $POSFILE

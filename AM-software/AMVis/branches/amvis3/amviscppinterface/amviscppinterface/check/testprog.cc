@@ -8,6 +8,8 @@
 #include <amviscppinterface/extrusion.h>
 #include <amviscppinterface/rotation.h>
 #include <amviscppinterface/invisiblebody.h>
+#include <amviscppinterface/coilspring.h>
+#include <amviscppinterface/objobject.h>
 #include <iostream>
 
 using namespace AMVis;
@@ -87,6 +89,14 @@ int main() {
     InvisibleBody invisiblebody;
     invisiblebody.setName("myinvisiblebody");
     g.addObject(&invisiblebody);
+    
+    CoilSpring coilspring;
+    coilspring.setName("mycoilspring");
+    g.addObject(&coilspring);
+    
+    ObjObject objobject;
+    objobject.setName("myobjobject");
+    g.addObject(&objobject);
 
   g.initialize();
 
@@ -102,5 +112,7 @@ int main() {
     extrusion.append(row);
     rotation.append(row);
     invisiblebody.append(row);
+    coilspring.append(row);
+    objobject.append(row);
   }
 }

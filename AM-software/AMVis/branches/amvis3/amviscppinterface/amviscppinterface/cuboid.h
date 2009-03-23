@@ -15,6 +15,13 @@ namespace AMVis {
         assert(length_.size()==3);
         length=length_;
       } 
+      void setLength(double x, double y, double z) {
+        std::vector<double> length_;
+        length_.push_back(x);
+        length_.push_back(y);
+        length_.push_back(z);
+        length=length_;
+      } 
   };
 
 }

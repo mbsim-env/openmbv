@@ -23,8 +23,22 @@ namespace AMVis {
         assert(initTrans.size()==3);
         initialTranslation=initTrans;
       }
+      void setInitialTranslation(double x, double y, double z) {
+        std::vector<double> initTrans;
+        initTrans.push_back(x);
+        initTrans.push_back(y);
+        initTrans.push_back(z);
+        initialTranslation=initTrans;
+      }
       void setInitialRotation(const std::vector<double>& initRot) {
         assert(initRot.size()==3);
+        initialRotation=initRot;
+      }
+      void setInitialRotation(double a, double b, double g) {
+        std::vector<double> initRot;
+        initRot.push_back(a);
+        initRot.push_back(b);
+        initRot.push_back(g);
         initialRotation=initRot;
       }
       void setScaleFactor(const double scale) {

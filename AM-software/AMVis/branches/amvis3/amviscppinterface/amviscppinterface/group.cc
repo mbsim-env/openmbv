@@ -1,4 +1,5 @@
 #include <amviscppinterface/group.h>
+#include <hdf5serie/fileserie.h>
 #include <assert.h>
 #include <iostream>
 #include <fstream>
@@ -56,7 +57,7 @@ void Group::createHDF5File() {
                        parent->hdf5Group->getId(), name.c_str(),
                        H5P_DEFAULT, H5P_DEFAULT);
     // create new h5 file land write to in till now
-    hdf5Group=(H5::Group*)new H5::H5File(fullName+".amvis.h5", H5F_ACC_TRUNC);
+    hdf5Group=(H5::Group*)new H5::FileSerie(fullName+".amvis.h5", H5F_ACC_TRUNC);
     for(int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
   }
@@ -72,7 +73,7 @@ void Group::initialize() {
   xmlFile<<"</Group>"<<endl;
   xmlFile.close();
 
-  hdf5Group=(H5::Group*)new H5::H5File(name+".amvis.h5", H5F_ACC_TRUNC);
+  hdf5Group=(H5::Group*)new H5::FileSerie(name+".amvis.h5", H5F_ACC_TRUNC);
   for(int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
   hdf5Group->flush(H5F_SCOPE_GLOBAL);

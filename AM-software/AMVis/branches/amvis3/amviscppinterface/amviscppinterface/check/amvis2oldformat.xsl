@@ -147,4 +147,55 @@ Sphere
 </xsl:text>
   </xsl:template>
 
+  <xsl:template match="av:CoilSpring">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+CoilSpring
+1
+0
+<xsl:value-of select="av:numberOfCoils"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:springRadius"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:crossSectionRadius"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="av:ObjObject">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+ObjObject
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:objFileName"/>
+1
+1
+0
+<xsl:value-of select="av:epsVertex"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:epsNormal"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:smoothBarrier"/>
+0
+</xsl:template>
+
+  <xsl:template match="av:InvisibleBody">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+InvisibleBody
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+</xsl:template>
+
 </xsl:stylesheet>

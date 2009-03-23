@@ -17,7 +17,9 @@ libamviscppinterface_la_SOURCES = object.cc \
   rotation.cc \
   invisiblebody.cc \
   arrow.cc \
+  coilspring.cc \
   cube.cc \
+  objobject.cc \
   cuboid.cc
 
 libamviscppinterface_la_HEADERS = object.h \
@@ -32,5 +34,7 @@ libamviscppinterface_la_HEADERS = object.h \
   invisiblebody.h \
   polygonpoint.h \
   arrow.h \
+  coilspring.h \
   cube.h \
+  objobject.h \
   cuboid.h

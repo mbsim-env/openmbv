@@ -9,8 +9,8 @@ Cylinder::Cylinder() : RigidBody(),
   baseRadius(1),
   topRadius(1),
   height(2),
-  innerBaseRadius(-1),
-  innerTopRadius(-1) {
+  innerBaseRadius(0),
+  innerTopRadius(0) {
 }
 
 void Cylinder::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
