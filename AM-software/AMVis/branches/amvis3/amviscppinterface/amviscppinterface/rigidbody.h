@@ -31,7 +31,7 @@ namespace AMVis {
         scaleFactor=scale;
       }
       void append(const std::vector<double>& row) {
-        assert(data!=0);
+        assert(data!=0 && row.size()==8);
         data->append(row);
       }
   };

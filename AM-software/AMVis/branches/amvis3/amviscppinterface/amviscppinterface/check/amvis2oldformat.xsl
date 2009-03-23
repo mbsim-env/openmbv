@@ -48,4 +48,103 @@ Kos
 <xsl:value-of select="av:offset"/><xsl:text>
 </xsl:text></xsl:template>
 
+  <xsl:template match="av:Arrow">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Arrow
+1
+0
+<xsl:value-of select="av:diameter"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:headDiameter"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:headLength"/><xsl:text>
+</xsl:text>1<xsl:text>
+</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="av:Cube">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Cube
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:length"/><xsl:text>
+</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="av:Cylinder">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Cylinder
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:baseRadius"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:topRadius"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:height"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:innerBaseRadius"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:innerTopRadius"/><xsl:text>
+</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="av:Extrusion">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Extrusion
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:windingRule"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:height"/><xsl:text>
+</xsl:text><xsl:apply-templates select="av:contour"/>0 0 -1
+</xsl:template>
+  <xsl:template match="av:contour"><xsl:value-of select="."/>0 0 -2
+</xsl:template>
+
+  <xsl:template match="av:Rotation">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Rotation
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text><xsl:apply-templates select="av:contour"/>0 0 -1
+</xsl:template>
+
+  <xsl:template match="av:Sphere">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Sphere
+1
+0
+<xsl:value-of select="av:initialTranslation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:initialRotation"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:scaleFactor"/><xsl:text>
+</xsl:text>
+<xsl:value-of select="av:radius"/><xsl:text>
+</xsl:text>
+  </xsl:template>
+
 </xsl:stylesheet>

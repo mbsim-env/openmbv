@@ -11,6 +11,13 @@ libamviscppinterface_la_SOURCES = object.cc \
   group.cc \
   rigidbody.cc \
   frame.cc \
+  cylinder.cc \
+  sphere.cc \
+  extrusion.cc \
+  rotation.cc \
+  invisiblebody.cc \
+  arrow.cc \
+  cube.cc \
   cuboid.cc
 
 libamviscppinterface_la_HEADERS = object.h \
@@ -18,4 +25,12 @@ libamviscppinterface_la_HEADERS = object.h \
   group.h \
   rigidbody.h \
   frame.h \
+  cylinder.h \
+  sphere.h \
+  extrusion.h \
+  rotation.h \
+  invisiblebody.h \
+  polygonpoint.h \
+  arrow.h \
+  cube.h \
   cuboid.h
