@@ -198,4 +198,13 @@ InvisibleBody
 </xsl:text>
 </xsl:template>
 
+  <xsl:template match="av:Path">
+    <xsl:param name="FULLNAME"/>FILENAME: <xsl:value-of select="concat($FULLNAME,'.',@name)"/>.data
+Path
+1
+0
+<xsl:value-of select="av:color"/><xsl:text>
+</xsl:text>
+</xsl:template>
+
 </xsl:stylesheet>
