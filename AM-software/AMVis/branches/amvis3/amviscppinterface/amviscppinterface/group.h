@@ -19,6 +19,7 @@ namespace AMVis {
       void addObject(Object* object);
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
       void initialize();
+      void terminate();
   };
 
 }

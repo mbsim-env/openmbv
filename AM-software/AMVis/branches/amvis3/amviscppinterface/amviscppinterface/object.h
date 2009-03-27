@@ -16,6 +16,7 @@ namespace AMVis {
       virtual void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="")=0;
       virtual void createHDF5File()=0;
       H5::Group *hdf5Group;
+      virtual void terminate()=0;
     public:
       Object();
       virtual ~Object();

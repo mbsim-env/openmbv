@@ -39,3 +39,6 @@ std::string Body::getRelPathTo(Body* destBody) {
   reldest=reldest+dest.substr(1);
   return reldest;
 }
+
+void Body::terminate() {
+}

@@ -78,3 +78,13 @@ void Group::initialize() {
     object[i]->createHDF5File();
   hdf5Group->flush(H5F_SCOPE_GLOBAL);
 }
+
+void Group::terminate() {
+  for(int i=0; i<object.size(); i++)
+    object[i]->terminate();
+  if(!separateFile)
+    delete hdf5Group;
+  else
+    delete (H5::FileSerie*)hdf5Group;
+  hdf5Group=0;
+}

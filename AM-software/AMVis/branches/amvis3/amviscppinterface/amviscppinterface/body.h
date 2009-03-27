@@ -13,6 +13,7 @@ namespace AMVis {
       Body* hdf5LinkBody;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
+      void terminate();
     public:
       Body();
       void setHDF5LinkTarget(Body* dest) { hdf5LinkBody=dest; }
