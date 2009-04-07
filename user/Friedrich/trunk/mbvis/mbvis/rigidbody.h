@@ -7,6 +7,8 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <H5Cpp.h>
+#include <hdf5serie/vectorserie.h>
 
 class RigidBody : public Body {
   Q_OBJECT
@@ -17,8 +19,9 @@ class RigidBody : public Body {
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoTranslation *translation;
     SoBaseColor *color;
+    H5::VectorSerie<double> *h5Data;
   public:
-    RigidBody(TiXmlElement* element);
+    RigidBody(TiXmlElement* element, H5::Group *h5Parent);
     virtual QMenu* createMenu();
   public slots:
     void localFrameSlot();

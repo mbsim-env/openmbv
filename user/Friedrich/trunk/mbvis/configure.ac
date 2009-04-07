@@ -41,6 +41,9 @@ AC_SUBST([SOQT_CFLAGS])
 AC_SUBST([SOQT_LDFLAGS])
 AC_SUBST([SOQT_LIBS])
 
+dnl HDF5Serie
+PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
+
 AC_CONFIG_FILES([Makefile tinyxml/Makefile mbvis/Makefile])
 
 AC_OUTPUT

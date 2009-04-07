@@ -4,11 +4,12 @@
 #include "rigidbody.h"
 #include <string>
 #include "tinyxml.h"
+#include <H5Cpp.h>
 
 class Cuboid : public RigidBody {
   Q_OBJECT
   public:
-    Cuboid(TiXmlElement* element);
+    Cuboid(TiXmlElement* element, H5::Group *h5Parent);
 };
 
 #endif

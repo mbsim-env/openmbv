@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource>
+    <file>cuboid.svg</file>
+    <file>frame.svg</file>
+    <file>group.svg</file>
+    <file>h5file.svg</file>
+  </qresource>
+</RCC>

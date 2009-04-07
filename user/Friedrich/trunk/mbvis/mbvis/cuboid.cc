@@ -1,11 +1,12 @@
 #include "cuboid.h"
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
 
 using namespace std;
 
-Cuboid::Cuboid(TiXmlElement *element) : RigidBody(element) {
-  setIcon(0, QIcon("cuboid.svg"));
+Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
+  setIcon(0, QIcon(":/cuboid.svg"));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(MBVISNS"length");
@@ -13,8 +14,12 @@ Cuboid::Cuboid(TiXmlElement *element) : RigidBody(element) {
 
   // create so
   SoCube *cuboid=new SoCube;
-  cuboid->width=length[0];
-  cuboid->height=length[1];
-  cuboid->depth=length[2];
+  cuboid->width.setValue(length[0]);
+  cuboid->height.setValue(length[1]);
+  cuboid->depth.setValue(length[2]);
   soSep->addChild(cuboid);
+
+  // outline
+  soSep->addChild(soOutLineSwitch);
+  soOutLineSep->addChild(cuboid);
 }

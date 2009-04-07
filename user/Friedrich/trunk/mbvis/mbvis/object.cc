@@ -6,11 +6,14 @@
 
 using namespace std;
 
-SoSFUInt32 *Object::frame;
+map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(TiXmlElement* element) : QTreeWidgetItem(), drawThisPath(true) {
-  // initialize global frame field
-  frame=(SoSFUInt32*)SoDB::createGlobalField("frame",SoSFUInt32::getClassTypeId());
+Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), drawThisPath(true) {
+  // h5 group
+  if(element->Parent()->Type()==TiXmlNode::DOCUMENT)
+    h5Group=h5Parent;
+  else
+    h5Group=new H5::Group(h5Parent->openGroup(element->Attribute("name")));
 
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
@@ -18,6 +21,9 @@ Object::Object(TiXmlElement* element) : QTreeWidgetItem(), drawThisPath(true) {
   soSwitch->whichChild.setValue(SO_SWITCH_ALL);
   soSep=new SoSeparator;
   soSwitch->addChild(soSep);
+
+  // add to map for finding this object by the soSep SoNode
+  objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
   setText(0, element->Attribute("name"));
 
@@ -93,10 +99,9 @@ SoSeparator* Object::soFrame(double size, double offset) {
 
 QMenu* Object::createMenu() {
   QMenu *menu=new QMenu("Object Menu");
-  QAction *type=new QAction(QString("Class: ")+metaObject()->className(), menu);
+  QAction *type=new QAction("Properties from: Object", menu);
   type->setEnabled(false);
   menu->addAction(type);
-  menu->addSeparator();
   menu->addAction(draw);
   return menu;
 }

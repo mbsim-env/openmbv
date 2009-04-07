@@ -1,3 +1,10 @@
+/*
+ * This file is NOT part of TinyXML. Is was added by Markus
+ * Friedrich to attach minimal namespace awareness to TinyXML.
+ *
+ * This File is Public Domain. Do what ever you want with it.
+*/
+
 #ifndef _TINYNAMESPACE_H_
 #define _TINYNAMESPACE_H_
 

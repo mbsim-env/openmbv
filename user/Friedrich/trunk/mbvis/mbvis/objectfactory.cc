@@ -7,13 +7,13 @@
 
 using namespace std;
 
-Object *ObjectFactory(TiXmlElement *element) {
+Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent) {
   if(element->ValueStr()==MBVISNS"Group")
-    return new Group(element);
+    return new Group(element, h5Parent);
   else if(element->ValueStr()==MBVISNS"Cuboid")
-    return new Cuboid(element);
+    return new Cuboid(element, h5Parent);
   else if(element->ValueStr()==MBVISNS"Frame")
-    return new Frame(element);
+    return new Frame(element, h5Parent);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;
   assert(0);
 }
