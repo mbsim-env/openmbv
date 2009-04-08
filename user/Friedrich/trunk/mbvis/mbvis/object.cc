@@ -99,9 +99,10 @@ SoSeparator* Object::soFrame(double size, double offset) {
 
 QMenu* Object::createMenu() {
   QMenu *menu=new QMenu("Object Menu");
-  QAction *type=new QAction("Properties from: Object", menu);
-  type->setEnabled(false);
-  menu->addAction(type);
+  QAction *dummy=new QAction("",menu);
+  dummy->setEnabled(false);
+  menu->addAction(dummy);
+  menu->addSeparator()->setText("Properties form: Object");
   menu->addAction(draw);
   return menu;
 }
@@ -131,4 +132,16 @@ void Object::setEnableRecursive(bool enable) {
     for(int i=0; i<childCount(); i++)
       ((Object*)child(i))->setEnableRecursive(enable);
   }
+}
+
+string Object::getPath() {
+  if(QTreeWidgetItem::parent())
+    return ((Object*)(QTreeWidgetItem::parent()))->getPath()+"/"+text(0).toStdString();
+  else
+    return text(0).toStdString();
+}
+
+QString Object::getInfo() {
+  return QString("<b>Path:</b> %1<br/>").arg(getPath().c_str())+
+         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2<br/>").arg(iconFile.c_str()).arg(metaObject()->className());
 }

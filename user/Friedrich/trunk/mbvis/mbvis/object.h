@@ -29,6 +29,9 @@ class Object : public QObject, public QTreeWidgetItem {
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     static std::map<SoNode*,Object*> objectMap;
+    std::string getPath();
+    virtual QString getInfo();
+    std::string iconFile;
   public slots:
     void drawSlot();
 };

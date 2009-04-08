@@ -6,7 +6,8 @@
 using namespace std;
 
 Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
-  setIcon(0, QIcon(":/cuboid.svg"));
+  iconFile=":/cuboid.svg";
+  setIcon(0, QIcon(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(MBVISNS"length");

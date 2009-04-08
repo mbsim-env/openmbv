@@ -12,6 +12,7 @@ class Group : public Object {
     virtual void update() {}
   public:
     Group(TiXmlElement *element, H5::Group *h5parent);
+    virtual QString getInfo();
 };
 
 #endif

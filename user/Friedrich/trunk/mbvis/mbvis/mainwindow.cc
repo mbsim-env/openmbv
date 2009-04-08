@@ -10,6 +10,10 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoEventCallback.h>
+#include <Inventor/events/SoMouseButtonEvent.h>
+#include <Inventor/events/SoLocation2Event.h>
+#include <Inventor/sensors/SoFieldSensor.h>
 #include "object.h"
 #include "cuboid.h"
 #include "group.h"
@@ -17,14 +21,15 @@
 #include "tinynamespace.h"
 #include "objectfactory.h"
 #include <string>
+#include <set>
 #include <hdf5serie/fileserie.h>
-  //////////////
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/actions/SoRayPickAction.h>
 #include <Inventor/SoPickedPoint.h>
-  //////////////
 
 using namespace std;
+
+MainWindow::Mode MainWindow::mode;
 
 MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   setWindowTitle("MBVis - Multi Body Visualisation");
@@ -68,6 +73,19 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   objectList->setHeaderHidden(true);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
 
+  // object info dock widget
+  QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
+  QWidget *objectInfoWG=new QWidget;
+  QGridLayout *objectInfoLO=new QGridLayout;
+  objectInfoWG->setLayout(objectInfoLO);
+  objectInfoDW->setWidget(objectInfoWG);
+  addDockWidget(Qt::LeftDockWidgetArea,objectInfoDW);
+  objectInfo = new QTextEdit(objectInfoDW);
+  objectInfoLO->addWidget(objectInfo, 0,0);
+  objectInfo->setReadOnly(true);
+  objectInfo->setLineWrapMode(QTextEdit::NoWrap);
+  connect(objectList,SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),this,SLOT(setObjectInfo(QTreeWidgetItem*)));
+
   // menu bar
   QMenuBar *menuBar=new QMenuBar(this);
   setMenuBar(menuBar);
@@ -82,7 +100,7 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   // view menu
   QMenu *viewMenu=new QMenu("View", menuBar);
   viewMenu->addAction("View All", this, SLOT(viewAllSlot()));
-  viewMenu->addSeparator();
+  viewMenu->addSeparator()->setText("Parallel View");
   viewMenu->addAction("Top-View", this, SLOT(viewTopSlot()));
   viewMenu->addAction("Bottom-View", this, SLOT(viewBottomSlot()));
   viewMenu->addAction("Front-View", this, SLOT(viewFrontSlot()));
@@ -96,6 +114,7 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   // dock menu
   QMenu *dockMenu=new QMenu("Docks", menuBar);
   dockMenu->addAction(objectListDW->toggleViewAction());
+  dockMenu->addAction(objectInfoDW->toggleViewAction());
   menuBar->addMenu(dockMenu);
 
   // help menu
@@ -103,6 +122,10 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   QMenu *helpMenu=new QMenu("Help", menuBar);
   helpMenu->addAction("About MBVis...", this, SLOT(aboutMBVis()));
   menuBar->addMenu(helpMenu);
+  
+  // register callback function on frame change
+  SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
+  sensor->attach(Body::frame);
 
   // read XML files
   for(int i=1; i<argc; i++)
@@ -121,7 +144,8 @@ void MainWindow::openFile(string fileName) {
   incorporateNamespace(doc.FirstChildElement());
   Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent);
   object->setText(0, fileName.c_str());
-  object->setIcon(0, QIcon(":/h5file.svg"));
+  object->iconFile=":/h5file.svg";
+  object->setIcon(0, QIcon(object->iconFile.c_str()));
   objectList->addTopLevelItem(object);
   sceneRoot->addChild(object->getSoSwitch());
   objectList->expandAll();
@@ -137,27 +161,6 @@ void MainWindow::openFileDialog() {
 }
 
 void MainWindow::objectListClicked() {
-  //////////////
-  SbViewportRegion vpr=glViewer->getViewportRegion();
-  SoRayPickAction *rpa=new SoRayPickAction(vpr);
-  rpa->setPoint(SbVec2s(0,0));
-  rpa->setRadius(3.0);
-  rpa->apply(glViewer->getSceneManager()->getSceneGraph());
-  SoPickedPoint *pp=rpa->getPickedPoint();
-  if(pp) {
-    float x, y, z;
-    pp->getPoint().getValue(x,y,z);
-    printf("XXX %f %f %f\n", x, y, z);
-    SoPath *p=pp->getPath();
-    for(int i=p->getLength()-1; i>=0; i--) {
-      map<SoNode*,Object*>::iterator it=Object::objectMap.find(p->getNode(i));
-      if(it!=Object::objectMap.end()) {
-        it->second->setSelected(true);//use objectList->setCurrentItem(...)
-        break;
-      }
-    }
-  }
-  //////////////
   if(QApplication::mouseButtons()==Qt::RightButton) {
     Object *object=(Object*)objectList->currentItem();
     QMenu* menu=object->createMenu();
@@ -192,15 +195,126 @@ void MainWindow::aboutMBVis() {
   );
 }
 
-void MainWindow::viewParallel(int i) {
-  switch(i) {
-    case 0: glViewer->getCamera()->position.setValue(0,0,1); break;
-    case 1: glViewer->getCamera()->position.setValue(0,0,-1); break;
-    case 2: glViewer->getCamera()->position.setValue(0,-1,0); break;
-    case 3: glViewer->getCamera()->position.setValue(0,1,0); break;
-    case 4: glViewer->getCamera()->position.setValue(1,0,0); break;
-    case 5: glViewer->getCamera()->position.setValue(-1,0,0); break;
+void MainWindow::viewParallel(ViewSide side) {
+  switch(side) {
+    case top:    glViewer->getCamera()->position.setValue(0,0,+1); break;
+    case bottom: glViewer->getCamera()->position.setValue(0,0,-1); break;
+    case front:  glViewer->getCamera()->position.setValue(0,-1,0); break;
+    case back:   glViewer->getCamera()->position.setValue(0,+1,0); break;
+    case right:  glViewer->getCamera()->position.setValue(+1,0,0); break;
+    case left:   glViewer->getCamera()->position.setValue(-1,0,0); break;
   }
   glViewer->getCamera()->pointAt(SbVec3f(0,0,0));
   glViewer->viewAll();
+}
+
+bool MainWindow::soQtEventCB(const SoEvent *const event) {
+  // if mouse button event
+  if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
+    SoMouseButtonEvent *ev=(SoMouseButtonEvent*)event;
+    // if Ctrl + Button1|Button2 + Pressed: pick object
+    if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
+       (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
+        ev->getButton()==SoMouseButtonEvent::BUTTON2)) {
+      // get picked points by ray
+      SoRayPickAction *pickAction=new SoRayPickAction(glViewer->getViewportRegion());
+      pickAction->setPoint(ev->getPosition());
+      pickAction->setRadius(3.0);
+      pickAction->setPickAll(true);
+      pickAction->apply(glViewer->getSceneManager()->getSceneGraph());
+      SoPickedPointList pickedPoints=pickAction->getPickedPointList();
+      // get objects by point/path
+      set<Object*> pickedObject;
+      float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
+      cout<<"Clicked points:"<<endl;
+      for(int i=0; pickedPoints[i] && (i<1 || ev->getButton()==SoMouseButtonEvent::BUTTON2); i++) {
+        SoPath *path=pickedPoints[i]->getPath();
+        for(int j=path->getLength()-1; j>=0; j--) {
+          map<SoNode*,Object*>::iterator it=Object::objectMap.find(path->getNode(j));
+          if(it!=Object::objectMap.end()) {
+            pickedObject.insert(it->second);
+            break;
+          }
+        }
+        xOld=x; yOld=y; zOld=z;
+        pickedPoints[i]->getPoint().getValue(x,y,z);
+        if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7)
+          cout<<"Point on: "<<(*(--pickedObject.end()))->getPath()<<": "<<x<<" "<<y<<" "<<z<<endl;
+      }
+      if(pickedObject.size()>0) {
+        // if Button2 show menu of picked objects
+        if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+          QMenu *menu=new QMenu(this);
+          int ind=0;
+          set<Object*>::iterator it;
+          for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
+            QAction *action=new QAction((*it)->icon(0),(*it)->getPath().c_str(),menu);
+            action->setData(QVariant(ind++));
+            menu->addAction(action);
+          }
+          QAction *action=menu->exec(QCursor::pos());
+          if(action==0) return true;
+          ind=action->data().toInt();
+          it=pickedObject.begin();
+          for(int i=0; i<ind; i++, it++);
+          objectList->setCurrentItem(*it);
+          delete menu;
+        }
+        // if Button1 select picked object
+        else
+          objectList->setCurrentItem(*pickedObject.begin());
+      }
+      return true; // event applied
+    }
+    // if released: set mode=no
+    if(ev->getState()==SoButtonEvent::UP) {
+      if(mode==no); // release from no
+      if(mode==zoom) { // release from zoom
+        ev->setButton(SoMouseButtonEvent::BUTTON3);
+        ev->setCtrlDown(true);
+      }
+      if(mode==rotate) // release from rotate
+        ev->setButton(SoMouseButtonEvent::BUTTON1);
+      if(mode==translate) // release from translate
+        ev->setButton(SoMouseButtonEvent::BUTTON3);
+      mode=no;
+      return false; // pass event to base class
+    }
+    // if Button3 pressed: enter zoom
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && ev->getState()==SoButtonEvent::DOWN) {
+      ev->setButton(SoMouseButtonEvent::BUTTON3);
+      ev->setCtrlDown(true);
+      mode=zoom;
+      return false; // pass event to base class
+    }
+    // if Button1 pressed: enter rotate
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON1 && ev->getState()==SoButtonEvent::DOWN) {
+      ev->setButton(SoMouseButtonEvent::BUTTON1);
+      mode=rotate;
+      return false; // pass event to base class
+    }
+    // if Button2 pressed: enter tranlate
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON2 && ev->getState()==SoButtonEvent::DOWN) {
+      ev->setButton(SoMouseButtonEvent::BUTTON3);
+      mode=translate;
+      return false; // pass event to base class
+    }
+  }
+  // if mouse move event
+  if(event->isOfType(SoLocation2Event::getClassTypeId())) {
+    SoLocation2Event *ev=(SoLocation2Event*)event;
+    if(mode==zoom)
+      ev->setCtrlDown(true);
+    return false; // pass event to base class
+  }
+  // if keyboard event
+  if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {
+    return true; // no nothing
+  }
+  return false; // pass event to base class
+}
+
+void MainWindow::frameSensorCB(void *data, SoSensor*) {
+  MainWindow *me=(MainWindow*)data;
+  me->setObjectInfo(me->objectList->currentItem());
 }

@@ -3,7 +3,6 @@
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoDrawStyle.h>
 #include <QtGui/QMenu>
 
 using namespace std;
@@ -32,11 +31,29 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Paren
   style->style.setValue(SoDrawStyle::LINES);
   soOutLineSep->addChild(style);
 
+  // draw method
+  drawStyle=new SoDrawStyle;
+  soSep->addChild(drawStyle);
+
   // GUI
+  // draw outline action
   outLine=new QAction("Draw Out-Line", 0);
   outLine->setCheckable(true);
   outLine->setChecked(true);
   connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
+  // draw method action
+  drawMethod=new QActionGroup(this);
+  drawMethodPolygon=new QAction("Draw Style: Filled", drawMethod);
+  drawMethodLine=new QAction("Draw Style: Lines", drawMethod);
+  drawMethodPoint=new QAction("Draw Style: Points", drawMethod);
+  drawMethodPolygon->setCheckable(true);
+  drawMethodPolygon->setData(QVariant(filled));
+  drawMethodLine->setCheckable(true);
+  drawMethodLine->setData(QVariant(lines));
+  drawMethodPoint->setCheckable(true);
+  drawMethodPoint->setData(QVariant(points));
+  drawMethodPolygon->setChecked(true);
+  connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
@@ -47,11 +64,11 @@ void Body::frameSensorCB(void *data, SoSensor*) {
 
 QMenu* Body::createMenu() {
   QMenu* menu=Object::createMenu();
-  menu->addSeparator();
-  QAction *type=new QAction("Properties from: Body", menu);
-  type->setEnabled(false);
-  menu->addAction(type);
+  menu->addSeparator()->setText("Properties from: Body");
   menu->addAction(outLine);
+  menu->addAction(drawMethodPolygon);
+  menu->addAction(drawMethodLine);
+  menu->addAction(drawMethodPoint);
   return menu;
 }
 
@@ -60,4 +77,14 @@ void Body::outLineSlot() {
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_NONE);
+}
+
+void Body::drawMethodSlot(QAction* action) {
+  DrawStyle ds=(DrawStyle)action->data().toInt();
+  if(ds==filled)
+    drawStyle->style.setValue(SoDrawStyle::FILLED);
+  else if(ds==lines)
+    drawStyle->style.setValue(SoDrawStyle::LINES);
+  else
+    drawStyle->style.setValue(SoDrawStyle::POINTS);
 }

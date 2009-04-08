@@ -4,7 +4,8 @@
 #include <Inventor/nodes/SoBaseColor.h>
 
 Frame::Frame(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
-  setIcon(0, QIcon(":/frame.svg"));
+  iconFile=":/frame.svg";
+  setIcon(0, QIcon(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(MBVISNS"size");

@@ -23,6 +23,7 @@ class RigidBody : public Body {
   public:
     RigidBody(TiXmlElement* element, H5::Group *h5Parent);
     virtual QMenu* createMenu();
+    virtual QString getInfo();
   public slots:
     void localFrameSlot();
     void referenceFrameSlot();

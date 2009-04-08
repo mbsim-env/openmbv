@@ -3,21 +3,28 @@
 
 #include <QtGui/QMainWindow>
 #include <QtGui/QTreeWidget>
+#include <QtGui/QTextEdit>
 #include <string>
 #include "body.h"
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoEventCallback.h>
 //#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include "SoQtMyViewer.h"
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
+  private:
+    enum ViewSide { top, bottom, front, back, right, left };
+    enum Mode { no, rotate, translate, zoom };
+    static Mode mode;
   protected:
     QTreeWidget *objectList;
+    QTextEdit *objectInfo;
     SoSeparator *sceneRoot;
     void openFile(std::string fileName);
     //SoQtExaminerViewer *glViewer;
     SoQtMyViewer *glViewer;
-    void viewParallel(int i);
+    void viewParallel(ViewSide side);
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -25,14 +32,17 @@ class MainWindow : public QMainWindow {
     void updateFrame(int frame) { Body::frame->setValue(frame); }
     void viewAllSlot() { glViewer->viewAll(); }
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
-    void viewTopSlot() { viewParallel(0); }
-    void viewBottomSlot() { viewParallel(1); }
-    void viewFrontSlot() { viewParallel(2); }
-    void viewBackSlot() { viewParallel(3); }
-    void viewRightSlot() { viewParallel(4); }
-    void viewLeftSlot() { viewParallel(5); }
+    void viewTopSlot() { viewParallel(top); }
+    void viewBottomSlot() { viewParallel(bottom); }
+    void viewFrontSlot() { viewParallel(front); }
+    void viewBackSlot() { viewParallel(back); }
+    void viewRightSlot() { viewParallel(right); }
+    void viewLeftSlot() { viewParallel(left); }
+    void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
   public:
     MainWindow(int argc, char *argv[]);
+    bool soQtEventCB(const SoEvent *const event);
+    static void frameSensorCB(void *data, SoSensor*);
 };
 
 #endif

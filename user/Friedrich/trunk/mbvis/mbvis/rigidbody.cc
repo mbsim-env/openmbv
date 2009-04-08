@@ -85,10 +85,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
 
 QMenu* RigidBody::createMenu() {
   QMenu* menu=Body::createMenu();
-  menu->addSeparator();
-  QAction *type=new QAction("Properties from: RigidBody", menu);
-  type->setEnabled(false);
-  menu->addAction(type);
+  menu->addSeparator()->setText("Properties from: RigidBody");
   menu->addAction(localFrame);
   menu->addAction(referenceFrame);
   return menu;
@@ -119,4 +116,15 @@ void RigidBody::update() {
   rotationGamma->angle.setValue(data[6]);
   color->rgb.setHSVValue((1-data[7])*2/3,1,1);
   color->rgb.setHSVValue((1-1)*2/3,1,1);
+}
+
+QString RigidBody::getInfo() {
+  float x, y, z;
+  translation->translation.getValue().getValue(x,y,z);
+  return Body::getInfo()+
+         QString("-----<br/>")+
+         QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
+         QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(rotationAlpha->angle.getValue())
+                                                    .arg(rotationAlpha->angle.getValue())
+                                                    .arg(rotationAlpha->angle.getValue());
 }
