@@ -9,7 +9,7 @@
 #include <QtGui/QMessageBox>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
-#include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
@@ -30,6 +30,7 @@
 using namespace std;
 
 MainWindow::Mode MainWindow::mode;
+SoSeparator *MainWindow::sceneRootBBox;
 
 MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   setWindowTitle("MBVis - Multi Body Visualisation");
@@ -53,6 +54,14 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
+  sceneRootBBox=new SoSeparator;
+  sceneRoot->addChild(sceneRootBBox);
+  SoBaseColor *color=new SoBaseColor;
+  color->rgb.setValue(0,1,0);
+  sceneRootBBox->addChild(color);
+  SoDrawStyle *style=new SoDrawStyle;
+  style->style.setValue(SoDrawStyle::LINES);
+  sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
   // time slider
   QSlider *timeSlider=new QSlider(Qt::Vertical, this);
@@ -212,7 +221,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
   // if mouse button event
   if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
     SoMouseButtonEvent *ev=(SoMouseButtonEvent*)event;
-    // if Ctrl + Button1|Button2 + Pressed: pick object
+    // if Ctrl|Ctrl+Shift + Button1|Button2 + Pressed: select object (show list if Shift)
     if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
         ev->getButton()==SoMouseButtonEvent::BUTTON2)) {
@@ -227,23 +236,28 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       set<Object*> pickedObject;
       float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
       cout<<"Clicked points:"<<endl;
-      for(int i=0; pickedPoints[i] && (i<1 || ev->getButton()==SoMouseButtonEvent::BUTTON2); i++) {
+      //for(int i=0; pickedPoints[i] && (i<1 || ev->wasShiftDown()); i++) {
+      for(int i=0; pickedPoints[i]; i++) {
         SoPath *path=pickedPoints[i]->getPath();
+        bool found=false;
         for(int j=path->getLength()-1; j>=0; j--) {
           map<SoNode*,Object*>::iterator it=Object::objectMap.find(path->getNode(j));
           if(it!=Object::objectMap.end()) {
             pickedObject.insert(it->second);
+            found=true;
             break;
           }
         }
+        if(!found) continue;
         xOld=x; yOld=y; zOld=z;
         pickedPoints[i]->getPoint().getValue(x,y,z);
         if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7)
           cout<<"Point on: "<<(*(--pickedObject.end()))->getPath()<<": "<<x<<" "<<y<<" "<<z<<endl;
+        if(!ev->wasShiftDown()) break;
       }
       if(pickedObject.size()>0) {
         // if Button2 show menu of picked objects
-        if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+        if(ev->wasShiftDown()) {
           QMenu *menu=new QMenu(this);
           int ind=0;
           set<Object*>::iterator it;
@@ -263,6 +277,13 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         // if Button1 select picked object
         else
           objectList->setCurrentItem(*pickedObject.begin());
+        // if Button2 show property menu
+        if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+          Object *object=(Object*)(objectList->currentItem());
+          QMenu* menu=object->createMenu();
+          menu->exec(QCursor::pos());
+          delete menu;
+        }
       }
       return true; // event applied
     }

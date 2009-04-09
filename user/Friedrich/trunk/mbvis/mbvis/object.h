@@ -7,9 +7,12 @@
 #include "tinyxml.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
+#include <Inventor/nodes/SoCube.h>
 #include <Inventor/fields/SoSFUInt32.h>
 #include <H5Cpp.h>
 #include <map>
+#include <Inventor/sensors/SoNodeSensor.h>
+#include <Inventor/nodes/SoTranslation.h>
 
 #define MBVISNS "{http://www.amm.mw.tum.de/AMVis}"
 
@@ -21,6 +24,11 @@ class Object : public QObject, public QTreeWidgetItem {
     QAction *draw;
     bool drawThisPath;
     H5::Group *h5Group;
+    SoSwitch *soBBoxSwitch;
+    SoSeparator *soBBoxSep;
+    SoTranslation *soBBoxTrans;
+    SoCube *soBBox;
+    QAction *bbox;
   public:
     Object(TiXmlElement* element, H5::Group *h5Parent);
     SoSwitch* getSoSwitch() { return soSwitch; }
@@ -32,8 +40,10 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string getPath();
     virtual QString getInfo();
     std::string iconFile;
+    static void nodeSensorCB(void *data, SoSensor*);
   public slots:
     void drawSlot();
+    void bboxSlot();
 };
 
 #endif

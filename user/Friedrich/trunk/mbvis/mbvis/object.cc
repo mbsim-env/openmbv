@@ -3,6 +3,9 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoDrawStyle.h>
+#include <Inventor/actions/SoGetBoundingBoxAction.h>
+#include "mainwindow.h"
 
 using namespace std;
 
@@ -22,16 +25,34 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), 
   soSep=new SoSeparator;
   soSwitch->addChild(soSep);
 
+  // switch for bounding box
+  soBBoxSwitch=new SoSwitch;
+  MainWindow::sceneRootBBox->addChild(soBBoxSwitch);
+  soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  soBBoxSep=new SoSeparator;
+  soBBoxSwitch->addChild(soBBoxSep);
+  soBBoxTrans=new SoTranslation;
+  soBBoxSep->addChild(soBBoxTrans);
+  soBBox=new SoCube;
+  soBBoxSep->addChild(soBBox);
+  // register callback function on node change
+  SoNodeSensor *sensor=new SoNodeSensor(nodeSensorCB, this);
+  sensor->attach(soSep);
+
   // add to map for finding this object by the soSep SoNode
   objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
   setText(0, element->Attribute("name"));
 
-  // GUI
+  // GUI draw action
   draw=new QAction("Draw Object", 0);
   draw->setCheckable(true);
   draw->setChecked(true);
   connect(draw,SIGNAL(changed()),this,SLOT(drawSlot()));
+  // GUI bbox action
+  bbox=new QAction("Show Bounding Box", 0);
+  bbox->setCheckable(true);
+  connect(bbox,SIGNAL(changed()),this,SLOT(bboxSlot()));
 }
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
@@ -104,6 +125,7 @@ QMenu* Object::createMenu() {
   menu->addAction(dummy);
   menu->addSeparator()->setText("Properties form: Object");
   menu->addAction(draw);
+  menu->addAction(bbox);
   return menu;
 }
 
@@ -116,6 +138,15 @@ void Object::drawSlot() {
     soSwitch->whichChild.setValue(SO_SWITCH_NONE);
     setEnableRecursive(false);
   }
+}
+
+void Object::bboxSlot() {
+  if(bbox->isChecked()) {
+    soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    soSep->touch(); // force an update
+  }
+  else
+    soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
 // set drawThisPath recursivly and colorisze the font
@@ -144,4 +175,18 @@ string Object::getPath() {
 QString Object::getInfo() {
   return QString("<b>Path:</b> %1<br/>").arg(getPath().c_str())+
          QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2<br/>").arg(iconFile.c_str()).arg(metaObject()->className());
+}
+
+void Object::nodeSensorCB(void *data, SoSensor*) {
+  Object *object=(Object*)data;
+  if(object->bbox->isChecked()) {
+    static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
+    bboxAction->apply(object->soSep);
+    float x1,y1,z1,x2,y2,z2;
+    bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
+    object->soBBox->width.setValue(x2-x1);
+    object->soBBox->height.setValue(y2-y1);
+    object->soBBox->depth.setValue(z2-z1);
+    object->soBBoxTrans->translation.setValue((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
+  }
 }

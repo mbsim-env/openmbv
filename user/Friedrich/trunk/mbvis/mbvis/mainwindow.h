@@ -8,7 +8,6 @@
 #include "body.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
-//#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include "SoQtMyViewer.h"
 
 class MainWindow : public QMainWindow {
@@ -17,14 +16,14 @@ class MainWindow : public QMainWindow {
     enum ViewSide { top, bottom, front, back, right, left };
     enum Mode { no, rotate, translate, zoom };
     static Mode mode;
+    SoGetBoundingBoxAction *bboxAction;
   protected:
     QTreeWidget *objectList;
     QTextEdit *objectInfo;
-    SoSeparator *sceneRoot;
     void openFile(std::string fileName);
-    //SoQtExaminerViewer *glViewer;
     SoQtMyViewer *glViewer;
     void viewParallel(ViewSide side);
+    SoSeparator *sceneRoot;
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -43,6 +42,7 @@ class MainWindow : public QMainWindow {
     MainWindow(int argc, char *argv[]);
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
+    static SoSeparator *sceneRootBBox;
 };
 
 #endif
