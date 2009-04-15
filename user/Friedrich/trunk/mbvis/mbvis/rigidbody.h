@@ -1,6 +1,7 @@
 #ifndef _RIGIDBODY_H_
 #define _RIGIDBODY_H_
 
+#include "config.h"
 #include "body.h"
 #include "tinyxml.h"
 #include <Inventor/nodes/SoSwitch.h>

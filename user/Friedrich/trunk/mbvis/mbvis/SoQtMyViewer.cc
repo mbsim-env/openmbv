@@ -1,3 +1,4 @@
+#include "config.h"
 #include "SoQtMyViewer.h"
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/events/SoMouseButtonEvent.h>

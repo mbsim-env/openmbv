@@ -1,3 +1,4 @@
+#include "config.h"
 #include "object.h"
 #include "tinyxml.h"
 #include <H5Cpp.h>

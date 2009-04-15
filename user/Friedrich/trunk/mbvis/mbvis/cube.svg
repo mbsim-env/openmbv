@@ -13,7 +13,7 @@
    id="svg2383"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="cuboid.svg"
+   sodipodi:docname="cube.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2385">
@@ -91,24 +91,24 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
     <g
-       id="g3169"
-       transform="translate(-0.1911289,2.0387079)">
+       id="g2391"
+       transform="translate(2.0600386,-1.5867195)">
       <path
          sodipodi:nodetypes="cccc"
          id="path3174"
-         d="M 15.004214,1.3753356 L 15,7.0701347 L 10.421344,11.0021 L 10.222089,4.7838553"
-         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.30225933;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         d="M 10.822593,5.914162 L 10.819123,11.108335 L 7.05,14.694645 L 6.8859745,9.0230411"
+         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.12841201;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <path
          id="path3193"
-         d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
-         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.97995555px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+         d="M 0.92264688,8.4878255 L 3.9157219,5.8606692 L 10.808865,5.8606692 L 7.2715938,8.4878255"
+         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.27699292px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
       <rect
-         y="6.6527371"
-         x="1.2531623"
-         height="4.3839965"
-         width="9.1448717"
+         y="8.6454897"
+         x="1.0160773"
+         height="5.9412298"
+         width="5.9238839"
          id="rect3191"
-         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.45782304;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.36591077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     </g>
   </g>
 </svg>

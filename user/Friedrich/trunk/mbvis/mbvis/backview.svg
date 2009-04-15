@@ -13,7 +13,7 @@
    id="svg2383"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="cuboid.svg"
+   sodipodi:docname="backview.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2385">
@@ -92,23 +92,52 @@
      inkscape:groupmode="layer">
     <g
        id="g3169"
-       transform="translate(-0.1911289,2.0387079)">
-      <path
-         sodipodi:nodetypes="cccc"
-         id="path3174"
-         d="M 15.004214,1.3753356 L 15,7.0701347 L 10.421344,11.0021 L 10.222089,4.7838553"
-         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.30225933;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       transform="matrix(1.4659007,0,0,1.5416906,-4.7903026,-3.0809621)">
+      <rect
+         y="7.4883118"
+         x="4.0810528"
+         height="4.217742"
+         width="4.4725809"
+         id="rect3191"
+         style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#4f4f4f;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <path
          id="path3193"
-         d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
-         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.97995555px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-      <rect
-         y="6.6527371"
-         x="1.2531623"
-         height="4.3839965"
-         width="9.1448717"
-         id="rect3191"
-         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.45782304;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         d="M 4.0556516,7.4629107 L 6.1580691,5.1693644 L 11,5.1693644 L 8.5153251,7.4629107"
+         style="fill:none;fill-rule:evenodd;stroke:#4f4f4f;stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="ccc"
+         id="path3195"
+         d="M 8.5790347,11.604036 L 10.936291,9.5653282 L 10.872581,5.233074"
+         style="fill:none;fill-rule:evenodd;stroke:#4f4f4f;stroke-width:1px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
+      <path
+         id="path3204"
+         d="M 4,11.604036 L 9.9387009,11.604036"
+         style="fill:none;fill-rule:evenodd;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path3206"
+         d="M 3.9499965,6.1887183 L 4,11.604036"
+         style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path3208"
+         d="M 5.7975756,9.947586 L 4.0774158,11.540326"
+         style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+    <g
+       id="g3701"
+       transform="matrix(0.7071068,0.7071068,-0.7071068,0.7071068,8.4679982,-5.0093244)">
+      <g
+         id="g3697">
+        <path
+           style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker-end:none;stroke-opacity:1"
+           d="M 8.4733796,-0.43467185 L 8.4733796,5.1080653"
+           id="path3210"
+           sodipodi:nodetypes="cc" />
+        <path
+           style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 10.958055,2.7483984 L 8.4096702,5.1056545 L 6,2.6846888"
+           id="path3695"
+           sodipodi:nodetypes="ccc" />
+      </g>
     </g>
   </g>
 </svg>

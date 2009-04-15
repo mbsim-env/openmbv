@@ -1,3 +1,4 @@
+#include "config.h"
 #include "rigidbody.h"
 #include <Inventor/nodes/SoScale.h>
 #include <QtGui/QMenu>
@@ -8,6 +9,11 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   h5Data->open(*h5Group, "data");
+
+  int rows=h5Data->getRows();
+  double dt;
+  if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
   
   // read XML
   TiXmlElement *e=element->FirstChildElement(MBVISNS"initialTranslation");
@@ -75,10 +81,10 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   soSep->addChild(scale);
 
   // GUI
-  localFrame=new QAction("Draw Local Frame", 0);
+  localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", 0);
   localFrame->setCheckable(true);
   connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-  referenceFrame=new QAction("Draw Reference Frame", 0);
+  referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", 0);
   referenceFrame->setCheckable(true);
   connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
 }
@@ -115,7 +121,6 @@ void RigidBody::update() {
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
   color->rgb.setHSVValue((1-data[7])*2/3,1,1);
-  color->rgb.setHSVValue((1-1)*2/3,1,1);
 }
 
 QString RigidBody::getInfo() {

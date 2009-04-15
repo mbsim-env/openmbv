@@ -1,3 +1,4 @@
+#include "config.h"
 #include "mainwindow.h"
 #include <Inventor/Qt/SoQt.h>
 #include <QtGui/QDockWidget>
@@ -7,6 +8,9 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
+#include <QtGui/QToolBar>
+#include <QtGui/QLabel>
+#include <QtGui/QDoubleSpinBox>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -31,6 +35,8 @@ using namespace std;
 
 MainWindow::Mode MainWindow::mode;
 SoSeparator *MainWindow::sceneRootBBox;
+QSlider *MainWindow::timeSlider;
+double MainWindow::deltaTime;
 
 MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   setWindowTitle("MBVis - Multi Body Visualisation");
@@ -49,7 +55,6 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   mainWG->setLayout(mainLO);
   // gl viewer
   QWidget *glViewerWG=new QWidget(this);
-  //glViewer=new SoQtExaminerViewer(glViewerWG);
   glViewer=new SoQtMyViewer(glViewerWG);
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
@@ -64,10 +69,9 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
   // time slider
-  QSlider *timeSlider=new QSlider(Qt::Vertical, this);
+  timeSlider=new QSlider(Qt::Vertical, this);
   mainLO->addWidget(timeSlider, 0, 1);
   timeSlider->setMinimum(0);
-  timeSlider->setMaximum(4000); //TODO set by max hdf5
   connect(timeSlider, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
 
   // object list dock widget
@@ -101,23 +105,42 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
 
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar);
-  fileMenu->addAction("Add File...", this, SLOT(openFileDialog()));
+  QAction *addFileAct=fileMenu->addAction(QIcon(":/addfile.svg"), "Add File...", this, SLOT(openFileDialog()));
   fileMenu->addSeparator();
-  fileMenu->addAction("Exit", qApp, SLOT(quit()));
+  fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
   menuBar->addMenu(fileMenu);
+
+  // animation menu
+  animGroup=new QActionGroup(this);
+  QAction *stopAct=new QAction(QIcon(":/stop.svg"), "Stop", animGroup);
+  QAction *lastFrameAct=new QAction(QIcon(":/lastframe.svg"), "Last Frame", animGroup);
+  QAction *playAct=new QAction(QIcon(":/play.svg"), "Play", animGroup);
+  stopAct->setCheckable(true);
+  stopAct->setData(QVariant(stop));
+  playAct->setCheckable(true);
+  playAct->setData(QVariant(play));
+  lastFrameAct->setCheckable(true);
+  lastFrameAct->setData(QVariant(lastFrame));
+  stopAct->setChecked(true);
+  QMenu *animationMenu=new QMenu("Animation", menuBar);
+  animationMenu->addAction(stopAct);
+  animationMenu->addAction(lastFrameAct);
+  animationMenu->addAction(playAct);
+  menuBar->addMenu(animationMenu);
+  connect(animGroup,SIGNAL(triggered(QAction*)),this,SLOT(animationButtonSlot(QAction*)));
 
   // view menu
   QMenu *viewMenu=new QMenu("View", menuBar);
-  viewMenu->addAction("View All", this, SLOT(viewAllSlot()));
+  QAction *viewAllAct=viewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()));
   viewMenu->addSeparator()->setText("Parallel View");
-  viewMenu->addAction("Top-View", this, SLOT(viewTopSlot()));
-  viewMenu->addAction("Bottom-View", this, SLOT(viewBottomSlot()));
-  viewMenu->addAction("Front-View", this, SLOT(viewFrontSlot()));
-  viewMenu->addAction("Back-View", this, SLOT(viewBackSlot()));
-  viewMenu->addAction("Right-View", this, SLOT(viewRightSlot()));
-  viewMenu->addAction("Left-View", this, SLOT(viewLeftSlot()));
+  QAction *topViewAct=viewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()));
+  QAction *bottomViewAct=viewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()));
+  QAction *frontViewAct=viewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()));
+  QAction *backViewAct=viewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()));
+  QAction *rightViewAct=viewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()));
+  QAction *leftViewAct=viewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()));
   viewMenu->addSeparator();
-  viewMenu->addAction("Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()));
+  QAction *cameraAct=viewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()));
   menuBar->addMenu(viewMenu);
 
   // dock menu
@@ -126,21 +149,109 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   dockMenu->addAction(objectInfoDW->toggleViewAction());
   menuBar->addMenu(dockMenu);
 
+  // file toolbar
+  QToolBar *fileTB=new QToolBar("FileToolBar", this);
+  addToolBar(Qt::TopToolBarArea, fileTB);
+  fileTB->addAction(addFileAct);
+
+  // view toolbar
+  QToolBar *viewTB=new QToolBar("ViewToolBar", this);
+  addToolBar(Qt::TopToolBarArea, viewTB);
+  viewTB->addAction(viewAllAct);
+  viewTB->addSeparator();
+  viewTB->addAction(topViewAct);
+  viewTB->addAction(bottomViewAct);
+  viewTB->addAction(frontViewAct);
+  viewTB->addAction(backViewAct);
+  viewTB->addAction(rightViewAct);
+  viewTB->addAction(leftViewAct);
+  viewTB->addSeparator();
+  viewTB->addAction(cameraAct);
+
+  // animation toolbar
+  QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
+  addToolBar(Qt::TopToolBarArea, animationTB);
+  // stop button
+  animationTB->addAction(stopAct);
+  // last frame button
+  animationTB->addSeparator();
+  animationTB->addAction(lastFrameAct);
+  // play button
+  animationTB->addSeparator();
+  animationTB->addAction(playAct);
+  // speed spin box
+  speedSB=new QDoubleSpinBox;
+  speedSB->setRange(1e-30, 1e30);
+  speedSB->setMaximumSize(50, 1000);
+  speedSB->setDecimals(3);
+  speedSB->setButtonSymbols(QDoubleSpinBox::NoButtons);
+  speedSB->setValue(1.0);
+  connect(speedSB, SIGNAL(valueChanged(double)), this, SLOT(speedChanged(double)));
+  QWidget *speedWG=new QWidget(this);
+  QGridLayout *speedLO=new QGridLayout(speedWG);
+  speedLO->setSpacing(0);
+  speedLO->setContentsMargins(0,0,0,0);
+  speedWG->setLayout(speedLO);
+  QLabel *speedL=new QLabel("Speed:", this);
+  speedLO->addWidget(speedL, 0, 0);
+  speedLO->addWidget(speedSB, 1, 0);
+#ifdef HAVE_QWT5_QWT_WHEEL_H
+  speedWheel=new QwtWheel(this);
+  speedWheel->setWheelWidth(10);
+  speedWheel->setOrientation(Qt::Vertical);
+  speedWheel->setRange(-2, 2, 0.0001);
+  speedWheel->setTotalAngle(360*15);
+  connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChanged(double)));
+  connect(speedWheel, SIGNAL(sliderPressed()), this, SLOT(speedWheelPressed()));
+  connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
+  speedLO->addWidget(speedWheel, 0, 1, 2, 1);
+#endif
+  animationTB->addWidget(speedWG);
+  // frame spin box
+  animationTB->addSeparator();
+  frameSB=new QSpinBox;
+  frameSB->setMinimumSize(55,0);
+  QWidget *frameWG=new QWidget(this);
+  QGridLayout *frameLO=new QGridLayout(frameWG);
+  frameLO->setSpacing(0);
+  frameLO->setContentsMargins(0,0,0,0);
+  frameWG->setLayout(frameLO);
+  QLabel *frameL=new QLabel("Frame:", this);
+  frameLO->addWidget(frameL, 0, 0);
+  frameLO->addWidget(frameSB, 1, 0);
+  animationTB->addWidget(frameWG);
+  connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
+  connect(timeSlider, SIGNAL(valueChanged(int)), frameSB, SLOT(setValue(int)));
+  connect(timeSlider, SIGNAL(rangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
+
+  // tool menu
+  QMenu *toolMenu=new QMenu("Tools", menuBar);
+  toolMenu->addAction(fileTB->toggleViewAction());
+  toolMenu->addAction(viewTB->toggleViewAction());
+  toolMenu->addAction(animationTB->toggleViewAction());
+  menuBar->addMenu(toolMenu);
+
   // help menu
   menuBar->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar);
   helpMenu->addAction("About MBVis...", this, SLOT(aboutMBVis()));
   menuBar->addMenu(helpMenu);
-  
+
   // register callback function on frame change
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
   sensor->attach(Body::frame);
+
+  // animation timer
+  animTimer=new QTimer(this);
+  connect(animTimer, SIGNAL(timeout()), this, SLOT(heavyWorkSlot()));
+  time=new QTime;
 
   // read XML files
   for(int i=1; i<argc; i++)
     openFile(argv[i]);
 
   glViewer->viewAll();
+  resize(640,480);
 }
 
 void MainWindow::openFile(string fileName) {
@@ -196,8 +307,6 @@ void MainWindow::aboutMBVis() {
     "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://hdf5serie.berlios.de</tt> (License: LGPL)</li>"
     "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
     "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
-    "  <li>'AutoTools - Build System' by Free Software Foundation from <tt>http://www.gnu.org</tt> (Licence: GPL)</li>"
-    "  <li>'AutoTroll - Build Qt apps with the autotools (Autoconf/Automake)' by Benoid Sigoure from <tt>http://www.tsunanet.net/autotroll</tt> (Licence: GPL)</li>"
     "  <li>...</li>"
     "</ul>"
     "<p>A special thanks to all authors of this projects.</p>"
@@ -221,7 +330,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
   // if mouse button event
   if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
     SoMouseButtonEvent *ev=(SoMouseButtonEvent*)event;
-    // if Ctrl|Ctrl+Shift + Button1|Button2 + Pressed: select object (show list if Shift)
+    // if Ctrl|Ctrl+Alt + Button1|Button2 + Pressed: select object (show list if Alt)
     if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
         ev->getButton()==SoMouseButtonEvent::BUTTON2)) {
@@ -236,7 +345,6 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       set<Object*> pickedObject;
       float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
       cout<<"Clicked points:"<<endl;
-      //for(int i=0; pickedPoints[i] && (i<1 || ev->wasShiftDown()); i++) {
       for(int i=0; pickedPoints[i]; i++) {
         SoPath *path=pickedPoints[i]->getPath();
         bool found=false;
@@ -253,11 +361,11 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         pickedPoints[i]->getPoint().getValue(x,y,z);
         if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7)
           cout<<"Point on: "<<(*(--pickedObject.end()))->getPath()<<": "<<x<<" "<<y<<" "<<z<<endl;
-        if(!ev->wasShiftDown()) break;
+        if(!ev->wasAltDown()) break;
       }
       if(pickedObject.size()>0) {
         // if Button2 show menu of picked objects
-        if(ev->wasShiftDown()) {
+        if(ev->wasAltDown()) {
           QMenu *menu=new QMenu(this);
           int ind=0;
           set<Object*>::iterator it;
@@ -338,4 +446,59 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
   MainWindow *me=(MainWindow*)data;
   me->setObjectInfo(me->objectList->currentItem());
+  me->timeSlider->setValue(Body::frame->getValue());
+}
+
+void MainWindow::animationButtonSlot(QAction* act) {
+  if(act->data().toInt()==stop)
+    animTimer->stop();
+  else if(act->data().toInt()==lastFrame) {
+    printf("Not implemented yet\n");
+    animTimer->stop();
+  }
+  else {
+    animStartFrame=Body::frame->getValue();
+    time->restart();
+    animTimer->start();
+  }
+}
+
+void MainWindow::speedChanged(double value) {
+  if(animGroup->checkedAction()->data().toInt()==play) {
+    // emulate anim stop click
+    animTimer->stop();
+    // emulate anim play click
+    animStartFrame=Body::frame->getValue();
+    time->restart();
+    animTimer->start();
+  }
+}
+
+void MainWindow::heavyWorkSlot() {
+  if(animGroup->checkedAction()->data().toInt()==play) {
+    double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
+    int dframe=(int)(dT/deltaTime);// frame increment since play click
+    int frame=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
+    Body::frame->setValue(frame); // set frame => update scene
+  }
+}
+
+void MainWindow::speedWheelChanged(double value) {
+#ifdef HAVE_QWT5_QWT_WHEEL_H
+  printf("XXX %f\n", pow(10,value));
+  speedSB->setValue(oldSpeed*pow(10,value));
+#endif
+}
+
+void MainWindow::speedWheelPressed() {
+#ifdef HAVE_QWT5_QWT_WHEEL_H
+  oldSpeed=speedSB->value();
+#endif
+}
+
+void MainWindow::speedWheelReleased() {
+#ifdef HAVE_QWT5_QWT_WHEEL_H
+  oldSpeed=speedSB->value();
+  speedWheel->setValue(0);
+#endif
 }

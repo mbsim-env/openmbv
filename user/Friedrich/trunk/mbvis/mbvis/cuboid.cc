@@ -1,3 +1,4 @@
+#include "config.h"
 #include "cuboid.h"
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoDrawStyle.h>

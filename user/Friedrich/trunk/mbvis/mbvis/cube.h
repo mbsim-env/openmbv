@@ -1,5 +1,5 @@
-#ifndef _CUBOID_H_
-#define _CUBOID_H_
+#ifndef _CUBE_H_
+#define _CUBE_H_
 
 #include "config.h"
 #include "rigidbody.h"
@@ -7,10 +7,10 @@
 #include "tinyxml.h"
 #include <H5Cpp.h>
 
-class Cuboid : public RigidBody {
+class Cube : public RigidBody {
   Q_OBJECT
   public:
-    Cuboid(TiXmlElement* element, H5::Group *h5Parent);
+    Cube(TiXmlElement* element, H5::Group *h5Parent);
 };
 
 #endif

@@ -41,20 +41,7 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> prefixns) {
   }
 
   if(e->ValueStr()=="{http://www.w3.org/2001/XInclude}include") {
-    // fix relative path name of file to be included (will hopefully work also on windows)
-    string oldFile=e->GetDocument()->ValueStr(); // old file name
-    string newFile=e->Attribute("href"); // new file name (to be included)
-    // if new file has a relative path
-    if(!( newFile[0]=='/' ||
-         (((newFile[0]>='a' && newFile[0]<='z') || (newFile[0]>='a' && newFile[0]<='z')) && newFile[1]==':') ||
-         (newFile[0]=='\\' && newFile[1]=='\\'))) {
-      // find last slash or backslash of old file
-      int i=oldFile.find_last_of('/');
-      int i2=oldFile.find_last_of('\\');
-      i=(i>i2)?i:i2;
-      // if old file has a path, prefix new file with this path
-      if(i>=0) newFile=oldFile.substr(0,i)+"/"+newFile;
-    }
+    string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
     // for a xi:include element include the href file in the tree
     TiXmlDocument docInclude;
     docInclude.LoadFile(newFile);
@@ -106,4 +93,20 @@ int unIncorporateNamespace(TiXmlElement *e, map<string,string>& nsprefix, bool f
   }
 
   return ret;
+}
+
+string fixPath(string oldFile, string newFile) {
+  // fix relative path name of file to be included (will hopefully work also on windows)
+  // if new file has a relative path
+  if(!( newFile[0]=='/' ||
+       (((newFile[0]>='a' && newFile[0]<='z') || (newFile[0]>='a' && newFile[0]<='z')) && newFile[1]==':') ||
+       (newFile[0]=='\\' && newFile[1]=='\\'))) {
+    // find last slash or backslash of old file
+    int i=oldFile.find_last_of('/');
+    int i2=oldFile.find_last_of('\\');
+    i=(i>i2)?i:i2;
+    // if old file has a path, prefix new file with this path
+    if(i>=0) newFile=oldFile.substr(0,i)+"/"+newFile;
+  }
+  return newFile;
 }

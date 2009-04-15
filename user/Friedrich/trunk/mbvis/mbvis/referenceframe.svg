@@ -13,7 +13,7 @@
    id="svg2383"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="cuboid.svg"
+   sodipodi:docname="referenceframe.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2385">
@@ -90,25 +90,31 @@
      id="layer1"
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
+    <path
+       sodipodi:type="arc"
+       style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000100;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path3188"
+       sodipodi:cx="7.262897"
+       sodipodi:cy="8.7689581"
+       sodipodi:rx="6.9443488"
+       sodipodi:ry="3.8544321"
+       d="M 14.207246,8.7689581 A 6.9443488,3.8544321 0 1 1 0.3185482,8.7689581 A 6.9443488,3.8544321 0 1 1 14.207246,8.7689581 z"
+       transform="matrix(0.9316228,0,0,0.9759816,2.1530669,-2.7964869)" />
     <g
-       id="g3169"
-       transform="translate(-0.1911289,2.0387079)">
+       id="g3183"
+       transform="translate(-2.3442079,-1.3270914)">
       <path
-         sodipodi:nodetypes="cccc"
-         id="path3174"
-         d="M 15.004214,1.3753356 L 15,7.0701347 L 10.421344,11.0021 L 10.222089,4.7838553"
-         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.30225933;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         id="path3204"
+         d="M 3.2426982,15 L 11.948244,15"
+         style="fill:none;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.50331807px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
       <path
-         id="path3193"
-         d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
-         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.97995555px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-      <rect
-         y="6.6527371"
-         x="1.2531623"
-         height="4.3839965"
-         width="9.1448717"
-         id="rect3191"
-         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.45782304;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+         id="path3206"
+         d="M 3.169398,6.6512556 L 3.2426982,15"
+         style="fill:none;fill-rule:evenodd;stroke:#0000ff;stroke-width:1.50331807px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path3208"
+         d="M 8.6933942,9.6306383 L 3.4711959,14.786765"
+         style="fill:none;fill-rule:evenodd;stroke:#00ff00;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
   </g>
 </svg>

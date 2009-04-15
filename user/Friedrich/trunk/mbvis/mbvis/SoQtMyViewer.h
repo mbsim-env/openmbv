@@ -1,6 +1,7 @@
 #ifndef _SOQTMYVIEWER_H_
 #define _SOQTMYVIEWER_H_
 
+#include "config.h"
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <QEvent>
 

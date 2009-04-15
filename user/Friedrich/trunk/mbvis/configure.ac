@@ -44,6 +44,24 @@ AC_SUBST([SOQT_LIBS])
 dnl HDF5Serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
+dnl qwt >= 5
+AC_ARG_WITH(qwt_prefix,
+  [  --with-qwt-prefix=PFX  Prefix where qwt is installed],
+  [QWT_CFLAGS="-I$withval/include"
+   QWT_LDFLAGS_="-L$withval/lib"
+   QWT_LIBS="-lqwt"],
+  [QWT_CFLAGS="-I$prefix/include"
+   QWT_LDFLAGS_="-L$prefix/lib"
+   QWT_LIBS="-lqwt"])
+OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CPPFLAGS"
+AC_CHECK_HEADERS([qwt5/qwt_wheel.h], [QWT=yes],
+  [AC_MSG_WARN([Can not find qwt >= 5! Some functionality will not work!]); QWT=no])
+CPPFLAGS=$OLD
+AC_SUBST([QWT_CFLAGS])
+AC_SUBST([QWT_LDFLAGS_])
+AC_SUBST([QWT_LIBS])
+AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
+
 AC_CONFIG_FILES([Makefile tinyxml/Makefile mbvis/Makefile])
 
 AC_OUTPUT

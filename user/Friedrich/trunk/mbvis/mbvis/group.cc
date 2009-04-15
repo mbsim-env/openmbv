@@ -1,3 +1,4 @@
+#include "config.h"
 #include "group.h"
 #include "objectfactory.h"
 
@@ -15,8 +16,10 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent) : Object(element, h5Par
   TiXmlElement *e=element->FirstChildElement();
   while(e!=0) {
     Object *object=ObjectFactory(e, h5Group);
-    addChild(object);
-    soSep->addChild(object->getSoSwitch());
+    if(object) {
+      addChild(object);
+      soSep->addChild(object->getSoSwitch());
+    }
     e=e->NextSiblingElement();
   }
 }

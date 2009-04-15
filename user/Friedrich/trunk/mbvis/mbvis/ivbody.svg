@@ -6,6 +6,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="16px"
@@ -13,10 +14,21 @@
    id="svg2383"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="cuboid.svg"
+   sodipodi:docname="ivbody.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2385">
+    <linearGradient
+       id="linearGradient3174">
+      <stop
+         style="stop-color:#00ff00;stop-opacity:1;"
+         offset="0"
+         id="stop3176" />
+      <stop
+         style="stop-color:#ffff00;stop-opacity:1;"
+         offset="1"
+         id="stop3178" />
+    </linearGradient>
     <marker
        inkscape:stockid="TriangleOutL"
        orient="auto"
@@ -50,6 +62,15 @@
        inkscape:vp_z="305.54875 : 362.05044 : 1"
        inkscape:persp3d-origin="8 : 5.3333333 : 1"
        id="perspective2391" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3174"
+       id="linearGradient3180"
+       x1="1.876587"
+       y1="8.0695457"
+       x2="14.434204"
+       y2="8.0695457"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -90,25 +111,17 @@
      id="layer1"
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
-    <g
-       id="g3169"
-       transform="translate(-0.1911289,2.0387079)">
-      <path
-         sodipodi:nodetypes="cccc"
-         id="path3174"
-         d="M 15.004214,1.3753356 L 15,7.0701347 L 10.421344,11.0021 L 10.222089,4.7838553"
-         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.30225933;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <path
-         id="path3193"
-         d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
-         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.97995555px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-      <rect
-         y="6.6527371"
-         x="1.2531623"
-         height="4.3839965"
-         width="9.1448717"
-         id="rect3191"
-         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.45782304;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient3180);fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       x="0.70080572"
+       y="13.387905"
+       id="text2388"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2390"
+         x="0.70080572"
+         y="13.387905"
+         style="fill-opacity:1;fill:url(#linearGradient3180)">iv</tspan></text>
   </g>
 </svg>

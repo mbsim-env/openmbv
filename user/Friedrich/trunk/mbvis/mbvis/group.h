@@ -1,6 +1,7 @@
 #ifndef _GROUP_H_
 #define _GROUP_H_
 
+#include "config.h"
 #include "object.h"
 #include <string>
 #include "tinyxml.h"

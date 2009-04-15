@@ -37,4 +37,9 @@ void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> pre
  */
 int unIncorporateNamespace(TiXmlElement *e, std::map<std::string,std::string>& nsprefix, bool firstCall=true);
 
+/* appends the path of oldFile to newFile if newFile has not
+ * an absoulute path
+ */
+std::string fixPath(std::string oldFile, std::string newFile);
+
 #endif

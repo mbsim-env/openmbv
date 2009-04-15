@@ -1,6 +1,7 @@
 #ifndef _OBJECT_H_
 #define _OBJECT_H_
 
+#include "config.h"
 #include <QtGui/QTreeWidgetItem>
 #include <string>
 #include <vector>
@@ -32,8 +33,6 @@ class Object : public QObject, public QTreeWidgetItem {
   public:
     Object(TiXmlElement* element, H5::Group *h5Parent);
     SoSwitch* getSoSwitch() { return soSwitch; }
-    static std::vector<double> toVector(std::string str); // convenience
-    static SoSeparator* soFrame(double size, double offset); // convenience
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     static std::map<SoNode*,Object*> objectMap;

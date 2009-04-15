@@ -1,7 +1,6 @@
+#include "config.h"
 #include "object.h"
 #include <QtGui/QMenu>
-#include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
@@ -45,77 +44,14 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), 
   setText(0, element->Attribute("name"));
 
   // GUI draw action
-  draw=new QAction("Draw Object", 0);
+  draw=new QAction(QIcon(":/drawobject.svg"),"Draw Object", this);
   draw->setCheckable(true);
   draw->setChecked(true);
   connect(draw,SIGNAL(changed()),this,SLOT(drawSlot()));
   // GUI bbox action
-  bbox=new QAction("Show Bounding Box", 0);
+  bbox=new QAction(QIcon(":/bbox.svg"),"Show Bounding Box", this);
   bbox->setCheckable(true);
   connect(bbox,SIGNAL(changed()),this,SLOT(bboxSlot()));
-}
-
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
-vector<double> Object::toVector(string str) {
-  for(int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
-  stringstream stream(str);
-  double d;
-  vector<double> ret;
-  while(1) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
-  return ret;
-}
-
-// convenience: create frame so
-SoSeparator* Object::soFrame(double size, double offset) {
-  SoSeparator *sep=new SoSeparator;
-  sep->ref();
-
-  SoBaseColor *col;
-  SoLineSet *line;
-
-  // coordinates
-  SoCoordinate3 *coord=new SoCoordinate3;
-  sep->addChild(coord);
-  coord->point.set1Value(0, -size/2+offset*size/2, 0, 0);
-  coord->point.set1Value(1, +size/2+offset*size/2, 0, 0);
-  coord->point.set1Value(2, 0, -size/2+offset*size/2, 0);
-  coord->point.set1Value(3, 0, +size/2+offset*size/2, 0);
-  coord->point.set1Value(4, 0, 0, -size/2+offset*size/2);
-  coord->point.set1Value(5, 0, 0, +size/2+offset*size/2);
-
-  // x-axis
-  col=new SoBaseColor;
-  col->rgb=SbColor(1, 0, 0);
-  sep->addChild(col);
-  line=new SoLineSet;
-  line->startIndex.setValue(0);
-  line->numVertices.setValue(2);
-  sep->addChild(line);
-
-  // y-axis
-  col=new SoBaseColor;
-  col->rgb=SbColor(0, 1, 0);
-  sep->addChild(col);
-  line=new SoLineSet;
-  line->startIndex.setValue(2);
-  line->numVertices.setValue(2);
-  sep->addChild(line);
-
-  // z-axis
-  col=new SoBaseColor;
-  col->rgb=SbColor(0, 0, 1);
-  sep->addChild(col);
-  line=new SoLineSet;
-  line->startIndex.setValue(4);
-  line->numVertices.setValue(2);
-  sep->addChild(line);
-
-  return sep;
 }
 
 QMenu* Object::createMenu() {

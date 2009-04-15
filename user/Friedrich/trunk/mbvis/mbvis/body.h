@@ -1,6 +1,7 @@
 #ifndef _BODY_H_
 #define _BODY_H_
 
+#include "config.h"
 #include "object.h"
 #include "tinyxml.h"
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -13,6 +14,7 @@ class Body : public Object {
   private:
     enum DrawStyle { filled, lines, points };
     SoDrawStyle *drawStyle;
+    static bool existFiles;
   protected:
     virtual void update()=0;
     SoSwitch *soOutLineSwitch;
@@ -20,6 +22,7 @@ class Body : public Object {
     QAction *outLine;
     QActionGroup *drawMethod;
     QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
+    void resetAnimRange(int numOfRows, double dt);
   protected slots:
     void drawMethodSlot(QAction* action);
   public:
@@ -27,6 +30,8 @@ class Body : public Object {
     static SoSFUInt32 *frame;
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
+    static std::vector<double> toVector(std::string str); // convenience
+    static SoSeparator* soFrame(double size, double offset); // convenience
   public slots:
     void outLineSlot();
 };

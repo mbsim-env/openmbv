@@ -13,7 +13,7 @@
    id="svg2383"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="cuboid.svg"
+   sodipodi:docname="filled.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs2385">
@@ -90,25 +90,20 @@
      id="layer1"
      inkscape:label="Layer 1"
      inkscape:groupmode="layer">
-    <g
-       id="g3169"
-       transform="translate(-0.1911289,2.0387079)">
-      <path
-         sodipodi:nodetypes="cccc"
-         id="path3174"
-         d="M 15.004214,1.3753356 L 15,7.0701347 L 10.421344,11.0021 L 10.222089,4.7838553"
-         style="fill:#00007f;fill-opacity:1;fill-rule:evenodd;stroke:#00007f;stroke-width:1.30225933;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-      <path
-         id="path3193"
-         d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
-         style="fill:#005aff;fill-opacity:1;fill-rule:evenodd;stroke:#005aff;stroke-width:1.97995555px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-      <rect
-         y="6.6527371"
-         x="1.2531623"
-         height="4.3839965"
-         width="9.1448717"
-         id="rect3191"
-         style="fill:#0000ff;fill-opacity:1;fill-rule:nonzero;stroke:#0000ff;stroke-width:1.45782304;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-    </g>
+    <path
+       style="fill:#8c0000;fill-rule:evenodd;stroke:#8c0000;stroke-width:1.50000000000000000;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 14.908052,1.474206 L 14.971761,10.584682 L 10.512088,14.789517 L 10.320959,6.1887181"
+       id="path3174" />
+    <path
+       style="fill:#ff4600;fill-rule:evenodd;stroke:#ff4600;stroke-width:1.97995554999999990px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;fill-opacity:1"
+       d="M 1.4652571,6.0976363 L 5.5185321,1.4339289 L 14.853347,1.4339289 L 10.063113,6.0976363"
+       id="path3193" />
+    <rect
+       style="fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:#ff0000;stroke-width:1.90656519000000002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect3191"
+       width="8.6961298"
+       height="7.885251"
+       x="1.4775333"
+       y="6.8771081" />
   </g>
 </svg>

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "frame.h"
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
