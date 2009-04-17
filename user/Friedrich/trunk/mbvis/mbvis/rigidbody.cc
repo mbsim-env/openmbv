@@ -1,5 +1,6 @@
 #include "config.h"
 #include "rigidbody.h"
+#include "mainwindow.h"
 #include <Inventor/nodes/SoScale.h>
 #include <QtGui/QMenu>
 
@@ -113,7 +114,7 @@ void RigidBody::referenceFrameSlot() {
 
 void RigidBody::update() {
   // read from hdf5
-  vector<double> data=h5Data->getRow(frame->getValue());
+  vector<double> data=h5Data->getRow(MainWindow::getInstance()->getFrame()->getValue());
   
   // set scene values
   translation->translation.setValue(data[1], data[2], data[3]);

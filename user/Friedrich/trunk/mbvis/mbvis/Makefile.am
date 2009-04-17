@@ -21,6 +21,7 @@ mbvis_SOURCES = body.cc\
   group.cc\
   main.cc\
   mainwindow.cc\
+  exportdialog.cc\
   object.cc\
   objectfactory.cc\
   rigidbody.cc
@@ -30,6 +31,7 @@ nodist_mbvis_SOURCES=$(BUILT_SOURCES)
 # C++ source file to build automatically (e.g. abc.moc.cc by abc.h)
 BUILT_SOURCES = mbvis.qrc.cc\
   mainwindow.moc.cc\
+  exportdialog.moc.cc\
   object.moc.cc\
   rigidbody.moc.cc\
   cuboid.moc.cc\
@@ -47,6 +49,7 @@ noinst_HEADERS = mbvis.qrc\
   mainwindow.h\
   object.h\
   rigidbody.h\
+  exportdialog.h\
   cuboid.h\
   cube.h\
   sphere.h\

@@ -11,7 +11,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
 }
 
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
-  if(((MainWindow*)(getParentWidget()->parentWidget()->parentWidget()))->soQtEventCB(event))
+  if(MainWindow::getInstance()->soQtEventCB(event))
     return true;
   else
     return SoQtExaminerViewer::processSoEvent(event);

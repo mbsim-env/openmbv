@@ -31,5 +31,7 @@
     <file>play.svg</file>
     <file>lastframe.svg</file>
     <file>stop.svg</file>
+    <file>exportimgsequence.svg</file>
+    <file>exportimg.svg</file>
   </qresource>
 </RCC>

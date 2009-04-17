@@ -26,7 +26,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), 
 
   // switch for bounding box
   soBBoxSwitch=new SoSwitch;
-  MainWindow::sceneRootBBox->addChild(soBBoxSwitch);
+  MainWindow::getInstance()->getSceneRootBBox()->addChild(soBBoxSwitch);
   soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
   soBBoxSep=new SoSeparator;
   soBBoxSwitch->addChild(soBBoxSep);

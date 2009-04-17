@@ -9,8 +9,8 @@
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 #include <QtGui/QToolBar>
-#include <QtGui/QLabel>
 #include <QtGui/QDoubleSpinBox>
+#include <QtGui/QStatusBar>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -18,6 +18,7 @@
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
+#include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
 #include "group.h"
@@ -33,20 +34,23 @@
 
 using namespace std;
 
-MainWindow::Mode MainWindow::mode;
-SoSeparator *MainWindow::sceneRootBBox;
-QSlider *MainWindow::timeSlider;
-double MainWindow::deltaTime;
+MainWindow *MainWindow::instance=0;
 
 MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
+  if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
+  instance=this;
+
   setWindowTitle("MBVis - Multi Body Visualisation");
 
   // init SoQt and Inventor
   SoQt::init(this);
+  // init realtime
+  SoDB::enableRealTimeSensor(false);
+  SoSceneManager::enableRealTimeUpdate(false);
 
   // initialize global frame field
-  Body::frame=(SoSFUInt32*)SoDB::createGlobalField("frame",SoSFUInt32::getClassTypeId());
-  Body::frame->setValue(0);
+  frame=(SoSFUInt32*)SoDB::createGlobalField("frame",SoSFUInt32::getClassTypeId());
+  frame->setValue(0);
 
   // main widget
   QWidget *mainWG=new QWidget(this);
@@ -106,6 +110,9 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar);
   QAction *addFileAct=fileMenu->addAction(QIcon(":/addfile.svg"), "Add File...", this, SLOT(openFileDialog()));
+  fileMenu->addSeparator();
+  fileMenu->addAction(QIcon(":/exportimg.svg"), "Export PNG (current frame)...", this, SLOT(exportCurrentAsPNG()));
+  fileMenu->addAction(QIcon(":/exportimgsequence.svg"), "Export PNG sequence...", this, SLOT(exportSequenceAsPNG()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
   menuBar->addMenu(fileMenu);
@@ -237,9 +244,16 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   helpMenu->addAction("About MBVis...", this, SLOT(aboutMBVis()));
   menuBar->addMenu(helpMenu);
 
+  // status bar
+  statusBar=new QStatusBar(this);
+  fps=new QLabel("FPS: -");
+  fpsTime=new QTime;
+  statusBar->addPermanentWidget(fps);
+  setStatusBar(statusBar);
+
   // register callback function on frame change
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
-  sensor->attach(Body::frame);
+  sensor->attach(frame);
 
   // animation timer
   animTimer=new QTimer(this);
@@ -264,14 +278,14 @@ void MainWindow::openFile(string fileName) {
   incorporateNamespace(doc.FirstChildElement());
   Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent);
   object->setText(0, fileName.c_str());
-  object->iconFile=":/h5file.svg";
-  object->setIcon(0, QIcon(object->iconFile.c_str()));
+  object->getIconFile()=":/h5file.svg";
+  object->setIcon(0, QIcon(object->getIconFile().c_str()));
   objectList->addTopLevelItem(object);
   sceneRoot->addChild(object->getSoSwitch());
   objectList->expandAll();
 
   // force a update
-  Body::frame->touch();
+  frame->touch();
 }
 
 void MainWindow::openFileDialog() {
@@ -307,6 +321,9 @@ void MainWindow::aboutMBVis() {
     "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://hdf5serie.berlios.de</tt> (License: LGPL)</li>"
     "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
     "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
+#ifdef HAVE_QWT5_QWT_WHEEL_H
+    "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"
+#endif
     "  <li>...</li>"
     "</ul>"
     "<p>A special thanks to all authors of this projects.</p>"
@@ -349,8 +366,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         SoPath *path=pickedPoints[i]->getPath();
         bool found=false;
         for(int j=path->getLength()-1; j>=0; j--) {
-          map<SoNode*,Object*>::iterator it=Object::objectMap.find(path->getNode(j));
-          if(it!=Object::objectMap.end()) {
+          map<SoNode*,Object*>::iterator it=Object::getObjectMap().find(path->getNode(j));
+          if(it!=Object::getObjectMap().end()) {
             pickedObject.insert(it->second);
             found=true;
             break;
@@ -359,8 +376,10 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         if(!found) continue;
         xOld=x; yOld=y; zOld=z;
         pickedPoints[i]->getPoint().getValue(x,y,z);
-        if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7)
+        if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7) {
           cout<<"Point on: "<<(*(--pickedObject.end()))->getPath()<<": "<<x<<" "<<y<<" "<<z<<endl;
+          statusBar->showMessage(QString("Point on: %1: %2,%3,%4").arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z), 2000);
+        }
         if(!ev->wasAltDown()) break;
       }
       if(pickedObject.size()>0) {
@@ -446,18 +465,21 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
   MainWindow *me=(MainWindow*)data;
   me->setObjectInfo(me->objectList->currentItem());
-  me->timeSlider->setValue(Body::frame->getValue());
+  me->timeSlider->setValue(MainWindow::instance->getFrame()->getValue());
 }
 
 void MainWindow::animationButtonSlot(QAction* act) {
-  if(act->data().toInt()==stop)
+  if(act->data().toInt()==stop) {
     animTimer->stop();
+    fps->setText("FPS: -");
+  }
   else if(act->data().toInt()==lastFrame) {
-    printf("Not implemented yet\n");
+    printf("Not implemented yet!!!!!!!!!!!!!!\n"); //TODO
     animTimer->stop();
+    fps->setText("FPS: -");
   }
   else {
-    animStartFrame=Body::frame->getValue();
+    animStartFrame=frame->getValue();
     time->restart();
     animTimer->start();
   }
@@ -467,8 +489,9 @@ void MainWindow::speedChanged(double value) {
   if(animGroup->checkedAction()->data().toInt()==play) {
     // emulate anim stop click
     animTimer->stop();
+    fps->setText("FPS: -");
     // emulate anim play click
-    animStartFrame=Body::frame->getValue();
+    animStartFrame=frame->getValue();
     time->restart();
     animTimer->start();
   }
@@ -478,14 +501,20 @@ void MainWindow::heavyWorkSlot() {
   if(animGroup->checkedAction()->data().toInt()==play) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     int dframe=(int)(dT/deltaTime);// frame increment since play click
-    int frame=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
-    Body::frame->setValue(frame); // set frame => update scene
+    int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
+    frame->setValue(frame_); // set frame => update scene
+    glViewer->render(); // force rendering
+
+    float T=0.5; // PT1 time constant
+    float fps_=1000.0/fpsTime->restart(); // current fps
+    static float fpsOut=0;
+    fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
+    fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
   }
 }
 
 void MainWindow::speedWheelChanged(double value) {
 #ifdef HAVE_QWT5_QWT_WHEEL_H
-  printf("XXX %f\n", pow(10,value));
   speedSB->setValue(oldSpeed*pow(10,value));
 #endif
 }
@@ -501,4 +530,86 @@ void MainWindow::speedWheelReleased() {
   oldSpeed=speedSB->value();
   speedWheel->setValue(0);
 #endif
+}
+
+void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileName, bool transparent, float red, float green, float blue) {
+  if(transparent)
+    myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
+  else
+    myRenderer.setBackgroundColor(SbColor(red,green,blue));
+  myRenderer.render(glViewer->getSceneManager()->getSceneGraph());
+  short width, height;
+  myRenderer.getViewportRegion().getWindowSize().getValue(width, height);
+  if(transparent) {
+    for(int i=0; i<width*height*4; i+=4) {
+      unsigned char r=myRenderer.getBuffer()[i+0];
+      unsigned char g=myRenderer.getBuffer()[i+1];
+      unsigned char b=myRenderer.getBuffer()[i+2];
+      unsigned char a=myRenderer.getBuffer()[i+3];
+      myRenderer.getBuffer()[i+0]=b;
+      myRenderer.getBuffer()[i+1]=g;
+      myRenderer.getBuffer()[i+2]=r;
+      myRenderer.getBuffer()[i+3]=a;
+    }
+    QImage image(myRenderer.getBuffer(), width, height, QImage::Format_ARGB32);
+    image.save(fileName.c_str(), "png");
+  }
+  else {
+    QImage image(myRenderer.getBuffer(), width, height, QImage::Format_RGB888);
+    image.save(fileName.c_str(), "png");
+  }
+}
+
+void MainWindow::exportCurrentAsPNG() {
+  ExportDialog dialog(this, false);
+  dialog.exec();
+  if(dialog.result()==QDialog::Rejected) return;
+
+  statusBar->showMessage("Exporting current frame, please wait!");
+  QColor c=dialog.getColor();
+  SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
+  short width, height; size.getValue(width, height);
+  SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
+  exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent(), c.red()/255.0, c.green()/255.0, c.blue()/255.0);
+  statusBar->showMessage("Done", 2000);
+}
+
+void MainWindow::exportSequenceAsPNG() {
+  ExportDialog dialog(this, true);
+  dialog.exec();
+  if(dialog.result()==QDialog::Rejected) return;
+  double scale=dialog.getScale();
+  bool transparent=dialog.getTransparent();
+  QColor c=dialog.getColor();
+  float red=c.red()/255.0, green=c.green()/255.0, blue=c.blue()/255.0;
+  QString fileName=dialog.getFileName();
+  if(!fileName.toUpper().endsWith(".PNG")) return;
+  fileName=fileName.remove(fileName.length()-4,4);
+  double speed=dialog.getSpeed();
+  int startFrame=dialog.getStartFrame();
+  int endFrame=dialog.getEndFrame();
+  double fps=dialog.getFPS();
+
+  if(speed/deltaTime/fps<1) {
+    int ret=QMessageBox::warning(this, "Export PNG sequence",
+      "Some video-frames would contain the same data,\n"
+      "because the animation speed is to slow,\n"
+      "and/or the framerate is to high\n"
+      "and/or the time-intervall of the data files is to high.\n"
+      "\n"
+      "Continue anyway?", QMessageBox::Yes, QMessageBox::No);
+    if(ret==QMessageBox::No) return;
+  }
+  int videoFrame=0;
+  int lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
+  SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
+  short width, height; size.getValue(width, height);
+  SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
+int xx=0;
+  for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
+    statusBar->showMessage(QString("Exporting frame sequence, please wait! (%1\%)").arg(100.0*videoFrame/lastVideoFrame,0,'f',1));
+    frame->setValue(frame_);
+    exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent, red, green, blue);
+  }
+  statusBar->showMessage("Done", 2000);
 }

@@ -30,16 +30,18 @@ class Object : public QObject, public QTreeWidgetItem {
     SoTranslation *soBBoxTrans;
     SoCube *soBBox;
     QAction *bbox;
+    std::string iconFile;
+    static std::map<SoNode*,Object*> objectMap;
   public:
     Object(TiXmlElement* element, H5::Group *h5Parent);
     SoSwitch* getSoSwitch() { return soSwitch; }
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
-    static std::map<SoNode*,Object*> objectMap;
     std::string getPath();
+    std::string &getIconFile() { return iconFile; }
     virtual QString getInfo();
-    std::string iconFile;
     static void nodeSensorCB(void *data, SoSensor*);
+    static std::map<SoNode*,Object*>& getObjectMap() { return objectMap; }
   public slots:
     void drawSlot();
     void bboxSlot();

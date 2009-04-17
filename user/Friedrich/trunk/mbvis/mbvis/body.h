@@ -15,7 +15,7 @@ class Body : public Object {
     enum DrawStyle { filled, lines, points };
     SoDrawStyle *drawStyle;
     static bool existFiles;
-  protected:
+  public:
     virtual void update()=0;
     SoSwitch *soOutLineSwitch;
     SoSeparator *soOutLineSep;
@@ -27,7 +27,6 @@ class Body : public Object {
     void drawMethodSlot(QAction* action);
   public:
     Body(TiXmlElement* element, H5::Group *h5Parent);
-    static SoSFUInt32 *frame;
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     static std::vector<double> toVector(std::string str); // convenience

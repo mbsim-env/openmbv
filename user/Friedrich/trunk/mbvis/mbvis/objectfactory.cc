@@ -9,6 +9,7 @@
 #include "frustum.h"
 #include "ivbody.h"
 #include "frame.h"
+#include "mainwindow.h"
 #include <string>
 
 using namespace std;
@@ -30,6 +31,7 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent) {
     return new IvBody(element, h5Parent);
   else if(element->ValueStr()==MBVISNS"Frame")
     return new Frame(element, h5Parent);
+  MainWindow::getInstance()->getStatusBar()->showMessage(QString("ERROR: Unknown element: %1").arg(element->Value()), 2000);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;
   return 0;
 }

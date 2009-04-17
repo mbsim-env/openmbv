@@ -14,7 +14,6 @@
 
 using namespace std;
 
-SoSFUInt32 *Body::frame;
 bool Body::existFiles=false;
 
 Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Parent) {
@@ -24,7 +23,8 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Paren
 
   // register callback function on frame change
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
-  sensor->attach(frame);
+  sensor->attach(MainWindow::getInstance()->getFrame());
+  sensor->setPriority(0);
 
   // switch for outline
   soOutLineSwitch=new SoSwitch;
@@ -100,15 +100,19 @@ void Body::drawMethodSlot(QAction* action) {
 
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {
-  if(numOfRows-1<MainWindow::timeSlider->maximum() || !existFiles) {
-    MainWindow::timeSlider->setMaximum(numOfRows-1);
-    if(existFiles)
+  if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
+    MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
+    if(existFiles) {
+      MainWindow::getInstance()->getStatusBar()->showMessage("WARNING! Resetting maximal frame number!", 2000);
       cout<<"WARNING! Resetting maximal frame number!"<<endl;
+    }
   }
-  if(MainWindow::deltaTime!=dt || !existFiles) {
-    MainWindow::deltaTime=dt;
-    if(existFiles)
+  if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
+    MainWindow::getInstance()->getDeltaTime()=dt;
+    if(existFiles) {
+      MainWindow::getInstance()->getStatusBar()->showMessage("WARNING! dt in HDF5 datas are not the same!", 2000);
       cout<<"WARNING! dt in HDF5 datas are not the same!"<<endl;
+    }
   }
   existFiles=true;
 }

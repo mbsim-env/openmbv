@@ -5,6 +5,7 @@
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <QEvent>
 
+
 class SoQtMyViewer : public SoQtExaminerViewer {
   public:
     SoQtMyViewer(QWidget *parent);
