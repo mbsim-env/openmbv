@@ -11,7 +11,7 @@ Cube::Cube(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Pa
   setIcon(0, QIcon(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(MBVISNS"length");
+  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"length");
   double length=toVector(e->GetText())[0];
 
   // create so

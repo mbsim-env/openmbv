@@ -16,7 +16,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, 
   setIcon(0, QIcon(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(MBVISNS"fileName");
+  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"fileName");
   string fileName=e->GetText();
 
   // fix relative path name of file to be included (will hopefully work also on windows)

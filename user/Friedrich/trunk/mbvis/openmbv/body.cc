@@ -18,7 +18,7 @@ bool Body::existFiles=false;
 
 Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Parent) {
   // read XML
-  TiXmlElement *e=element->FirstChildElement(MBVISNS"hdf5Link");
+  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"hdf5Link");
   if(e); // hdf6Link
 
   // register callback function on frame change

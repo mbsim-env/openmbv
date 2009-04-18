@@ -17,7 +17,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   resetAnimRange(rows, dt);
   
   // read XML
-  TiXmlElement *e=element->FirstChildElement(MBVISNS"initialTranslation");
+  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   vector<double> initTransValue=toVector(e->GetText());
   e=e->NextSiblingElement();
   vector<double> initRotValue=toVector(e->GetText());

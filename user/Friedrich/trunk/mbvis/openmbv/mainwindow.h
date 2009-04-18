@@ -57,7 +57,7 @@ class MainWindow : public QMainWindow {
   protected slots:
     void objectListClicked();
     void openFileDialog();
-    void aboutMBVis();
+    void aboutOpenMBV();
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
@@ -83,6 +83,8 @@ class MainWindow : public QMainWindow {
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
+    static void fpsSensorCBS(void *data, SoSensor*) { MainWindow::getInstance()->fpsSensorCB(); }
+    void fpsSensorCB();
     SoSeparator *getSceneRootBBox() { return sceneRootBBox; }
     QSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }

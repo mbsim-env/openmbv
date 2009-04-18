@@ -40,7 +40,8 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
-  setWindowTitle("MBVis - Multi Body Visualisation");
+  setWindowTitle("OpenMBV - Open Multi Body Visualisation");
+  setWindowIcon(QIcon(":/openmbv.svg"));
 
   // init SoQt and Inventor
   SoQt::init(this);
@@ -72,11 +73,16 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   style->style.setValue(SoDrawStyle::LINES);
   sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
+  // sensor for frames per second
+  SoNodeSensor *sensor2=new SoNodeSensor(fpsSensorCBS, this);
+  sensor2->attach(glViewer->getSceneManager()->getSceneGraph());
+  sensor2->setPriority(0);
+  
   // time slider
   timeSlider=new QSlider(Qt::Vertical, this);
   mainLO->addWidget(timeSlider, 0, 1);
   timeSlider->setMinimum(0);
-  connect(timeSlider, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
+  connect(timeSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateFrame(int)));
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
@@ -228,7 +234,6 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   frameLO->addWidget(frameSB, 1, 0);
   animationTB->addWidget(frameWG);
   connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
-  connect(timeSlider, SIGNAL(valueChanged(int)), frameSB, SLOT(setValue(int)));
   connect(timeSlider, SIGNAL(rangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
 
   // tool menu
@@ -241,7 +246,7 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   // help menu
   menuBar->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar);
-  helpMenu->addAction("About MBVis...", this, SLOT(aboutMBVis()));
+  helpMenu->addAction(QIcon(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
   menuBar->addMenu(helpMenu);
 
   // status bar
@@ -270,7 +275,7 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
 
 void MainWindow::openFile(string fileName) {
   // open HDF5
-  H5::FileSerie *h5File=new H5::FileSerie(fileName.substr(0,fileName.length()-string(".amvis.xml").length())+".amvis.h5", H5F_ACC_RDONLY);
+  H5::FileSerie *h5File=new H5::FileSerie(fileName.substr(0,fileName.length()-string(".ombv.xml").length())+".ombv.h5", H5F_ACC_RDONLY);
   H5::Group *h5Parent=(H5::Group*)h5File;
   // read XML
   TiXmlDocument doc;
@@ -289,7 +294,7 @@ void MainWindow::openFile(string fileName) {
 }
 
 void MainWindow::openFileDialog() {
-  QStringList files=QFileDialog::getOpenFileNames(0, "Open AMVis Files", ".", "AMVis Files (*.amvis.xml)");
+  QStringList files=QFileDialog::getOpenFileNames(0, "Open OpenMBV Files", ".", "OpenMBV Files (*.ombv.xml)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
 }
@@ -303,9 +308,9 @@ void MainWindow::objectListClicked() {
   }
 }
 
-void MainWindow::aboutMBVis() {
-  QMessageBox::about(this, "About MBVis",
-    "<h1>MBVis - Multi Body Visualisation</h1>"
+void MainWindow::aboutOpenMBV() {
+  QMessageBox::about(this, "About OpenMBV",
+    "<h1>OpenMBV - Open Multi Body Visualisation</h1>"
     "<p>Copyright &copy; Markus Friedrich <tt>&lt;mafriedrich@user.berlios.de&gt;</tt><p/>"
     "<p>Licensed under the General Public License (see file COPYING).</p>"
     "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"
@@ -466,17 +471,34 @@ void MainWindow::frameSensorCB(void *data, SoSensor*) {
   MainWindow *me=(MainWindow*)data;
   me->setObjectInfo(me->objectList->currentItem());
   me->timeSlider->setValue(MainWindow::instance->getFrame()->getValue());
+  me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
+}
+
+void MainWindow::fpsSensorCB() {
+  static int count=1;
+
+  int dt=fpsTime->restart();
+  if(dt==0) {
+    count++;
+    return;
+  }
+
+  float T=0.5; // PT1 time constant
+  float fps_=1000.0/dt*count; // current fps
+  static float fpsOut=0;
+  fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
+  fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
+
+  count=1;
 }
 
 void MainWindow::animationButtonSlot(QAction* act) {
   if(act->data().toInt()==stop) {
     animTimer->stop();
-    fps->setText("FPS: -");
   }
   else if(act->data().toInt()==lastFrame) {
     printf("Not implemented yet!!!!!!!!!!!!!!\n"); //TODO
     animTimer->stop();
-    fps->setText("FPS: -");
   }
   else {
     animStartFrame=frame->getValue();
@@ -489,7 +511,6 @@ void MainWindow::speedChanged(double value) {
   if(animGroup->checkedAction()->data().toInt()==play) {
     // emulate anim stop click
     animTimer->stop();
-    fps->setText("FPS: -");
     // emulate anim play click
     animStartFrame=frame->getValue();
     time->restart();
@@ -504,12 +525,6 @@ void MainWindow::heavyWorkSlot() {
     int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
     frame->setValue(frame_); // set frame => update scene
     glViewer->render(); // force rendering
-
-    float T=0.5; // PT1 time constant
-    float fps_=1000.0/fpsTime->restart(); // current fps
-    static float fpsOut=0;
-    fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
-    fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
   }
 }
 

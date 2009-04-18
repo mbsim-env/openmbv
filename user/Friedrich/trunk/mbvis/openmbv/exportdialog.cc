@@ -61,7 +61,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   row++;
   fileNameL.setText("File:");
   dialogLO.addWidget(&fileNameL, row, 0);
-  fileName.setText("mbvis.png");
+  fileName.setText("openmbv.png");
   dialogLO.addWidget(&fileName, row, 1);
   fileNameButton.setText("Browse...");
   connect(&fileNameButton, SIGNAL(clicked(bool)), this, SLOT(fileBrowser()));

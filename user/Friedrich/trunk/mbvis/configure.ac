@@ -1,9 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([mbvis],[3.0.0],[mafriedrich@users.berlios.de])
+AC_INIT([openmbv],[3.0.0],[mafriedrich@users.berlios.de])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([mbvis/object.h])
+AC_CONFIG_SRCDIR([openmbv/object.h])
 AC_PROG_LIBTOOL
 AC_PROG_CXX
 AC_PROG_CXXCPP
@@ -62,6 +62,6 @@ AC_SUBST([QWT_LDFLAGS_])
 AC_SUBST([QWT_LIBS])
 AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
 
-AC_CONFIG_FILES([Makefile tinyxml/Makefile mbvis/Makefile])
+AC_CONFIG_FILES([Makefile tinyxml/Makefile openmbv/Makefile])
 
 AC_OUTPUT

@@ -15,21 +15,21 @@
 using namespace std;
 
 Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent) {
-  if(element->ValueStr()==MBVISNS"Group")
+  if(element->ValueStr()==OPENMBVNS"Group")
     return new Group(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"Cuboid")
+  else if(element->ValueStr()==OPENMBVNS"Cuboid")
     return new Cuboid(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"Cube")
+  else if(element->ValueStr()==OPENMBVNS"Cube")
     return new Cube(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"Sphere")
+  else if(element->ValueStr()==OPENMBVNS"Sphere")
     return new Sphere(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"InvisibleBody")
+  else if(element->ValueStr()==OPENMBVNS"InvisibleBody")
     return new InvisibleBody(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"Frustum")
+  else if(element->ValueStr()==OPENMBVNS"Frustum")
     return new Frustum(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"IvBody")
+  else if(element->ValueStr()==OPENMBVNS"IvBody")
     return new IvBody(element, h5Parent);
-  else if(element->ValueStr()==MBVISNS"Frame")
+  else if(element->ValueStr()==OPENMBVNS"Frame")
     return new Frame(element, h5Parent);
   MainWindow::getInstance()->getStatusBar()->showMessage(QString("ERROR: Unknown element: %1").arg(element->Value()), 2000);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;

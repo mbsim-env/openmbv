@@ -1,1 +1,1 @@
-SUBDIRS = tinyxml mbvis
+SUBDIRS = tinyxml openmbv
