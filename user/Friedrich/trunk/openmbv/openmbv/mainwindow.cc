@@ -210,7 +210,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QLabel *speedL=new QLabel("Speed:", this);
   speedLO->addWidget(speedL, 0, 0);
   speedLO->addWidget(speedSB, 1, 0);
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(10);
   speedWheel->setOrientation(Qt::Vertical);
@@ -368,7 +368,7 @@ void MainWindow::aboutOpenMBV() {
     "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://hdf5serie.berlios.de</tt> (License: LGPL)</li>"
     "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
     "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
     "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"
 #endif
     "  <li>...</li>"
@@ -571,19 +571,19 @@ void MainWindow::heavyWorkSlot() {
 }
 
 void MainWindow::speedWheelChanged(double value) {
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
   speedSB->setValue(oldSpeed*pow(10,value));
 #endif
 }
 
 void MainWindow::speedWheelPressed() {
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
   oldSpeed=speedSB->value();
 #endif
 }
 
 void MainWindow::speedWheelReleased() {
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
   oldSpeed=speedSB->value();
   speedWheel->setValue(0);
 #endif

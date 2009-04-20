@@ -45,16 +45,18 @@ dnl HDF5Serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
 dnl qwt >= 5
-AC_ARG_WITH(qwt_prefix,
-  [  --with-qwt-prefix=PFX  Prefix where qwt is installed],
-  [QWT_CFLAGS="-I$withval/include"
-   QWT_LDFLAGS_="-L$withval/lib"
+AC_ARG_WITH(qwt_inc_prefix,
+  [  --with-qwt-inc-prefix=PFX  Prefix where qwt headers are installed],
+  [QWT_CFLAGS="-I$withval"],
+  [QWT_CFLAGS="-I$prefix/include"])
+AC_ARG_WITH(qwt_lib_prefix,
+  [  --with-qwt-lib-prefix=PFX  Prefix where qwt library is installed],
+  [QWT_LDFLAGS_="-L$withval"
    QWT_LIBS="-lqwt"],
-  [QWT_CFLAGS="-I$prefix/include"
-   QWT_LDFLAGS_="-L$prefix/lib"
+  [QWT_LDFLAGS_="-L$prefix/lib"
    QWT_LIBS="-lqwt"])
 OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CPPFLAGS"
-AC_CHECK_HEADERS([qwt5/qwt_wheel.h], [QWT=yes],
+AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes],
   [AC_MSG_WARN([Can not find qwt >= 5! Some functionality will not work!]); QWT=no])
 CPPFLAGS=$OLD
 AC_SUBST([QWT_CFLAGS])

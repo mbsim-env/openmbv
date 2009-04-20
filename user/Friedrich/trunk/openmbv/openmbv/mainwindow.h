@@ -17,8 +17,8 @@
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
-#ifdef HAVE_QWT5_QWT_WHEEL_H
-#  include <qwt5/qwt_wheel.h>
+#ifdef HAVE_QWT_WHEEL_H
+#  include <qwt_wheel.h>
 #endif
 
 class MainWindow : public QMainWindow {
@@ -51,7 +51,7 @@ class MainWindow : public QMainWindow {
     QStatusBar *statusBar;
     QLabel *fps;
     QTime *fpsTime;
-#ifdef HAVE_QWT5_QWT_WHEEL_H
+#ifdef HAVE_QWT_WHEEL_H
     QwtWheel *speedWheel;
     double oldSpeed;
 #endif
