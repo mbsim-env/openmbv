@@ -8,15 +8,20 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoLineSet.h>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
 class RigidBody : public Body {
   Q_OBJECT
   protected:
-    QAction *localFrame, *referenceFrame;
-    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch;
-    virtual void update();
+    QAction *localFrame, *referenceFrame, *path;
+    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch;
+    SoCoordinate3 *pathCoord;
+    SoLineSet *pathLine;
+    int pathMaxFrameRead;
+    virtual double update();
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoTranslation *translation;
     SoBaseColor *color;
@@ -28,6 +33,7 @@ class RigidBody : public Body {
   public slots:
     void localFrameSlot();
     void referenceFrameSlot();
+    void pathSlot();
 };
 
 #endif

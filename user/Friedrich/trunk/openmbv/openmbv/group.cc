@@ -1,6 +1,7 @@
 #include "config.h"
 #include "group.h"
 #include "objectfactory.h"
+#include "mainwindow.h"
 
 Group::Group(TiXmlElement* element, H5::Group *h5Parent) : Object(element, h5Parent) {
   iconFile=":/group.svg";

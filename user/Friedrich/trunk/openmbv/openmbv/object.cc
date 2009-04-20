@@ -12,7 +12,7 @@ map<SoNode*,Object*> Object::objectMap;
 
 Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), drawThisPath(true) {
   // h5 group
-  if(element->Parent()->Type()==TiXmlNode::DOCUMENT)
+  if(element->Parent()->Type()==TiXmlNode::DOCUMENT || h5Parent==0)
     h5Group=h5Parent;
   else
     h5Group=new H5::Group(h5Parent->openGroup(element->Attribute("name")));

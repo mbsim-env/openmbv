@@ -15,8 +15,9 @@ class Body : public Object {
     enum DrawStyle { filled, lines, points };
     SoDrawStyle *drawStyle;
     static bool existFiles;
+    static Body *timeUpdater; // the body who updates the time string in the scene window
   public:
-    virtual void update()=0;
+    virtual double update()=0; // return the current time
     SoSwitch *soOutLineSwitch;
     SoSeparator *soOutLineSep;
     QAction *outLine;

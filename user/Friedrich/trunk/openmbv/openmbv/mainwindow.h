@@ -30,6 +30,7 @@ class MainWindow : public QMainWindow {
     enum Animation { stop, play, lastFrame };
     Mode mode;
     SoGetBoundingBoxAction *bboxAction;
+    SoText2 *timeString;
   protected:
     SoSeparator *sceneRootBBox;
     QTreeWidget *objectList;
@@ -79,7 +80,7 @@ class MainWindow : public QMainWindow {
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
   public:
-    MainWindow(int argc, char *argv[]);
+    MainWindow(std::list<std::string>& arg);
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
@@ -91,6 +92,7 @@ class MainWindow : public QMainWindow {
     double getSpeed() { return speedSB->value(); }
     QStatusBar *getStatusBar() { return statusBar; }
     SoSFUInt32 *getFrame() { return frame; }
+    void setTime(double t) { timeString->string.setValue(QString("Time: %2").arg(t,0,'f',5).toStdString().c_str()); }
 };
 
 #endif

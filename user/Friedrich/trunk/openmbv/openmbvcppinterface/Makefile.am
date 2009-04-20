@@ -1,4 +1,4 @@
-SUBDIRS = amviscppinterface
+SUBDIRS = openmbvcppinterface
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = amviscppinterface.pc
+pkgconfig_DATA = openmbvcppinterface.pc

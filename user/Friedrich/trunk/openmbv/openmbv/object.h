@@ -15,7 +15,7 @@
 #include <Inventor/sensors/SoNodeSensor.h>
 #include <Inventor/nodes/SoTranslation.h>
 
-#define OPENMBVNS "{http://openmbv.berlios.de/openmbv}"
+#define OPENMBVNS "{http://openmbv.berlios.de/OpenMBV}"
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT

@@ -15,6 +15,7 @@
 using namespace std;
 
 bool Body::existFiles=false;
+Body *Body::timeUpdater=0;
 
 Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Parent) {
   // read XML
@@ -66,8 +67,11 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Paren
 
 void Body::frameSensorCB(void *data, SoSensor*) {
   Body* me=(Body*)data;
+  double time;
   if(me->drawThisPath) 
-    me->update();
+    time=me->update();
+  if(timeUpdater==me)
+    MainWindow::getInstance()->setTime(time);
 }
 
 QMenu* Body::createMenu() {
@@ -114,6 +118,7 @@ void Body::resetAnimRange(int numOfRows, double dt) {
       cout<<"WARNING! dt in HDF5 datas are not the same!"<<endl;
     }
   }
+  timeUpdater=this;
   existFiles=true;
 }
 

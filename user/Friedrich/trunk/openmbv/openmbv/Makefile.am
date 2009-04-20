@@ -23,6 +23,9 @@ openmbv_SOURCES = body.cc\
   mainwindow.cc\
   exportdialog.cc\
   object.cc\
+  path.cc\
+  arrow.cc\
+  objbody.cc\
   objectfactory.cc\
   rigidbody.cc
 
@@ -33,6 +36,9 @@ BUILT_SOURCES = openmbv.qrc.cc\
   mainwindow.moc.cc\
   exportdialog.moc.cc\
   object.moc.cc\
+  path.moc.cc\
+  arrow.moc.cc\
+  objbody.moc.cc\
   rigidbody.moc.cc\
   cuboid.moc.cc\
   cube.moc.cc\
@@ -48,6 +54,9 @@ BUILT_SOURCES = openmbv.qrc.cc\
 noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
   object.h\
+  path.h\
+  arrow.h\
+  objbody.h\
   rigidbody.h\
   exportdialog.h\
   cuboid.h\

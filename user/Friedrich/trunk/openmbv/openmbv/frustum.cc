@@ -33,11 +33,11 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element
   soSep->addChild(coord);
   for(int i=0; i<N; i++) {
     double phi=2*M_PI/N*i;
-    coord->point.set1Value(i+0, baseRadius*cos(phi), baseRadius*sin(phi), 0);
-    coord->point.set1Value(i+N, topRadius*cos(phi), topRadius*sin(phi), height);
+    coord->point.set1Value(i+0, baseRadius*cos(phi), baseRadius*sin(phi), -height);
+    coord->point.set1Value(i+N, topRadius*cos(phi), topRadius*sin(phi), 0);
     if(innerBaseRadius>0 || innerTopRadius>0) {
-      coord->point.set1Value(i+2*N, innerBaseRadius*cos(phi), innerBaseRadius*sin(phi), 0);
-      coord->point.set1Value(i+3*N, innerTopRadius*cos(phi), innerTopRadius*sin(phi), height);
+      coord->point.set1Value(i+2*N, innerBaseRadius*cos(phi), innerBaseRadius*sin(phi), -height);
+      coord->point.set1Value(i+3*N, innerTopRadius*cos(phi), innerTopRadius*sin(phi), 0);
     }
   }
   // normals

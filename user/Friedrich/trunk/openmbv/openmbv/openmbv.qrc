@@ -34,5 +34,8 @@
     <file>stop.svg</file>
     <file>exportimgsequence.svg</file>
     <file>exportimg.svg</file>
+    <file>path.svg</file>
+    <file>arrow.svg</file>
+    <file>objbody.svg</file>
   </qresource>
 </RCC>

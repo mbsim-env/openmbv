@@ -36,11 +36,11 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0) {
   if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
-  setWindowTitle("OpenMBV - Open Multi Body Visualisation");
+  setWindowTitle("OpenMBV - Open Multi Body Viewer");
   setWindowIcon(QIcon(":/openmbv.svg"));
 
   // init SoQt and Inventor
@@ -60,7 +60,9 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   mainWG->setLayout(mainLO);
   // gl viewer
   QWidget *glViewerWG=new QWidget(this);
-  glViewer=new SoQtMyViewer(glViewerWG);
+  timeString=new SoText2;
+  timeString->ref();
+  glViewer=new SoQtMyViewer(glViewerWG, timeString);
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
@@ -266,17 +268,54 @@ MainWindow::MainWindow(int argc, char* argv[]) : QMainWindow() {
   time=new QTime;
 
   // read XML files
-  for(int i=1; i<argc; i++)
-    openFile(argv[i]);
+  if(arg.empty()) arg.push_back("."); // if calles without argument loat current dir
+  QDir dir;
+  QStringList filter;
+  filter<<"*.ombv.xml";
+  filter<<"*.ombv.env.xml";
+  dir.setNameFilters(filter);
+  dir.setFilter(QDir::Files);
+  list<string>::iterator i=arg.begin(), i2;
+  while(i!=arg.end()) {
+    dir.setPath(i->c_str());
+    if(dir.exists()) { // if directory
+      // open all *.ombv.xml *.ombv.env.xml files in arg[i]
+      QStringList file=dir.entryList();
+      for(int j=0; j<file.size(); j++)
+        openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+      i2=i; i++; arg.erase(i2);
+      continue;
+    }
+    if(QFile::exists(i->c_str())) {
+      openFile(*i);
+      i2=i; i++; arg.erase(i2);
+      continue;
+    }
+    i++;
+  }
 
   glViewer->viewAll();
   resize(640,480);
 }
 
 void MainWindow::openFile(string fileName) {
-  // open HDF5
-  H5::FileSerie *h5File=new H5::FileSerie(fileName.substr(0,fileName.length()-string(".ombv.xml").length())+".ombv.h5", H5F_ACC_RDONLY);
-  H5::Group *h5Parent=(H5::Group*)h5File;
+  // check file type
+  bool env;
+  if(fileName.length()>string(".ombv.xml").length() && fileName.substr(fileName.length()-string(".ombv.xml").length())==".ombv.xml")
+    env=false;
+  else if(fileName.length()>string(".ombv.env.xml").length() && fileName.substr(fileName.length()-string(".ombv.env.xml").length())==".ombv.env.xml")
+    env=true;
+  else {
+    statusBar->showMessage(QString("Unknown file type: %1!").arg(fileName.c_str()), 2000);
+    return;
+  }
+
+  H5::Group *h5Parent=0;
+  if(!env) {
+    // open HDF5
+    H5::FileSerie *h5File=new H5::FileSerie(fileName.substr(0,fileName.length()-string(".ombv.xml").length())+".ombv.h5", H5F_ACC_RDONLY);
+    h5Parent=(H5::Group*)h5File;
+  }
   // read XML
   TiXmlDocument doc;
   doc.LoadFile(fileName);
@@ -294,7 +333,10 @@ void MainWindow::openFile(string fileName) {
 }
 
 void MainWindow::openFileDialog() {
-  QStringList files=QFileDialog::getOpenFileNames(0, "Open OpenMBV Files", ".", "OpenMBV Files (*.ombv.xml)");
+  QStringList files=QFileDialog::getOpenFileNames(0, "OpenMBV Files", ".",
+    "OpenMBV Files (*.ombv.xml *.ombv.env.xml);;"
+    "OpenMBV Animation Files (*.ombv.xml);;"
+    "OpenMBV Environment Files (*.ombv.env.xml)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
 }
@@ -310,7 +352,7 @@ void MainWindow::objectListClicked() {
 
 void MainWindow::aboutOpenMBV() {
   QMessageBox::about(this, "About OpenMBV",
-    "<h1>OpenMBV - Open Multi Body Visualisation</h1>"
+    "<h1>OpenMBV - Open Multi Body Viewer</h1>"
     "<p>Copyright &copy; Markus Friedrich <tt>&lt;mafriedrich@user.berlios.de&gt;</tt><p/>"
     "<p>Licensed under the General Public License (see file COPYING).</p>"
     "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"

@@ -9,6 +9,9 @@
 #include "frustum.h"
 #include "ivbody.h"
 #include "frame.h"
+#include "path.h"
+#include "arrow.h"
+#include "objbody.h"
 #include "mainwindow.h"
 #include <string>
 
@@ -31,6 +34,12 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent) {
     return new IvBody(element, h5Parent);
   else if(element->ValueStr()==OPENMBVNS"Frame")
     return new Frame(element, h5Parent);
+  else if(element->ValueStr()==OPENMBVNS"Path")
+    return new Path(element, h5Parent);
+  else if(element->ValueStr()==OPENMBVNS"Arrow")
+    return new Arrow(element, h5Parent);
+  else if(element->ValueStr()==OPENMBVNS"ObjBody")
+    return new ObjBody(element, h5Parent);
   MainWindow::getInstance()->getStatusBar()->showMessage(QString("ERROR: Unknown element: %1").arg(element->Value()), 2000);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;
   return 0;

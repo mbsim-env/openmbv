@@ -9,12 +9,13 @@ using namespace std;
 RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element, h5Parent) {
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
-  h5Data->open(*h5Group, "data");
-
-  int rows=h5Data->getRows();
-  double dt;
-  if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-  resetAnimRange(rows, dt);
+  if(h5Group) {
+    h5Data->open(*h5Group, "data");
+    int rows=h5Data->getRows();
+    double dt;
+    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
+    resetAnimRange(rows, dt);
+  }
   
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"initialTranslation");
@@ -25,6 +26,22 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   double scaleValue=toVector(e->GetText())[0];
 
   // create so
+
+  // path
+  soPathSwitch=new SoSwitch;
+  soSep->addChild(soPathSwitch);
+  SoSeparator *pathSep=new SoSeparator;
+  soPathSwitch->addChild(pathSep);
+  SoBaseColor *col=new SoBaseColor;
+  col->rgb.setValue(0, 1, 0);
+  pathSep->addChild(col);
+  pathCoord=new SoCoordinate3;
+  pathSep->addChild(pathCoord);
+  pathLine=new SoLineSet;
+  pathSep->addChild(pathLine);
+  soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  pathMaxFrameRead=-1;
+
   // translation (from hdf5)
   translation=new SoTranslation;
   soSep->addChild(translation);
@@ -43,7 +60,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   // reference frame
   soReferenceFrameSwitch=new SoSwitch;
   soSep->addChild(soReferenceFrameSwitch);
-  soReferenceFrameSwitch->addChild(soFrame(1,0));
+  soReferenceFrameSwitch->addChild(soFrame(1,1));
   soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 
   // initial translation
@@ -69,7 +86,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   // local frame
   soLocalFrameSwitch=new SoSwitch;
   soSep->addChild(soLocalFrameSwitch);
-  soLocalFrameSwitch->addChild(soFrame(1,0));
+  soLocalFrameSwitch->addChild(soFrame(1,1));
   soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 
   // color (from hdf5)
@@ -88,6 +105,9 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", 0);
   referenceFrame->setCheckable(true);
   connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
+  path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", 0);
+  path->setCheckable(true);
+  connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
 }
 
 QMenu* RigidBody::createMenu() {
@@ -95,6 +115,8 @@ QMenu* RigidBody::createMenu() {
   menu->addSeparator()->setText("Properties from: RigidBody");
   menu->addAction(localFrame);
   menu->addAction(referenceFrame);
+  menu->addSeparator();
+  menu->addAction(path);
   return menu;
 }
 
@@ -112,9 +134,20 @@ void RigidBody::referenceFrameSlot() {
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
-void RigidBody::update() {
+void RigidBody::pathSlot() {
+  if(path->isChecked()) {
+    soPathSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    update();
+  }
+  else
+    soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+}
+
+double RigidBody::update() {
+  if(h5Group==0) return 0;
   // read from hdf5
-  vector<double> data=h5Data->getRow(MainWindow::getInstance()->getFrame()->getValue());
+  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  vector<double> data=h5Data->getRow(frame);
   
   // set scene values
   translation->translation.setValue(data[1], data[2], data[3]);
@@ -122,6 +155,18 @@ void RigidBody::update() {
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
   color->rgb.setHSVValue((1-data[7])*2/3,1,1);
+
+  // path
+  if(path->isChecked()) {
+    for(int i=pathMaxFrameRead+1; i<=frame; i++) {
+      vector<double> data=h5Data->getRow(i);
+      pathCoord->point.set1Value(i, data[1], data[2], data[3]);
+    }
+    pathMaxFrameRead=frame;
+    pathLine->numVertices.setValue(1+frame);
+  }
+
+  return data[0];
 }
 
 QString RigidBody::getInfo() {
@@ -131,6 +176,9 @@ QString RigidBody::getInfo() {
          QString("-----<br/>")+
          QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(rotationAlpha->angle.getValue())
-                                                    .arg(rotationAlpha->angle.getValue())
-                                                    .arg(rotationAlpha->angle.getValue());
+                                                    .arg(rotationBeta->angle.getValue())
+                                                    .arg(rotationGamma->angle.getValue())+
+         QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;<br/>").arg(rotationAlpha->angle.getValue()*180/M_PI)
+                                                    .arg(rotationBeta->angle.getValue()*180/M_PI)
+                                                    .arg(rotationGamma->angle.getValue()*180/M_PI);
 }

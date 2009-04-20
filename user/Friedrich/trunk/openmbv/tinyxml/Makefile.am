@@ -5,3 +5,5 @@ libtinyxml_la_SOURCES = tinynamespace.cpp \
   tinyxml.cpp \
   tinyxmlerror.cpp \
   tinyxmlparser.cpp
+
+EXTRA_DIST = readme.txt changes.txt
