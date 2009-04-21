@@ -2,13 +2,12 @@ include $(top_srcdir)/qt.mk
 
 if COND_QWT
   MAYBE_QWT_CFLAGS = $(QWT_CFLAGS)
-  MAYBE_QWT_LDFLAGS_ = $(QWT_LDFLAGS_)
   MAYBE_QWT_LIBS = $(QWT_LIBS)
 endif
 
 bin_PROGRAMS = openmbv
 openmbv_CPPFLAGS = $(QT_CFLAGS) -I../tinyxml $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
-openmbv_LDFLAGS  = -L../tinyxml $(COIN_LDFLAGS) $(QT_LDFLAGS) $(SOQT_LDFALGS) $(HDF5SERIE_LDFLAGS) $(MAYBE_QWT_LDFLAGS_)
+openmbv_LDFLAGS  = -L../tinyxml
 openmbv_LDADD    = -ltinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = body.cc\
   cuboid.cc\
