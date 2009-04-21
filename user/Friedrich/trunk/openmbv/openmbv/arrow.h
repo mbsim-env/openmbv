@@ -4,7 +4,7 @@
 #include "config.h"
 #include "body.h"
 #include "tinyxml.h"
-#include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoScale.h>
@@ -27,7 +27,7 @@ class Arrow : public Body {
     SoSwitch *soPathSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
-    SoBaseColor *color;
+    SoMaterial *mat;
     SoTranslation *toPoint;
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;

@@ -8,6 +8,7 @@
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <QtGui/QMenu>
 #include "mainwindow.h"
 #include <GL/gl.h>
@@ -33,9 +34,12 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Paren
   soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
+  SoLightModel *lm=new SoLightModel;
+  soOutLineSep->addChild(lm);
+  lm->model.setValue(SoLightModel::BASE_COLOR);
   SoBaseColor *color=new SoBaseColor;
-  color->rgb.setValue(0,0,0);
   soOutLineSep->addChild(color);
+  color->rgb.setValue(0,0,0);
   SoDrawStyle *style=new SoDrawStyle;
   style->style.setValue(SoDrawStyle::LINES);
   soOutLineSep->addChild(style);

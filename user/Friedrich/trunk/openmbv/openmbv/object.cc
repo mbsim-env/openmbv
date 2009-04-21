@@ -1,7 +1,6 @@
 #include "config.h"
 #include "object.h"
 #include <QtGui/QMenu>
-#include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include "mainwindow.h"

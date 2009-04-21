@@ -15,6 +15,7 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoEventCallback.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -68,9 +69,12 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   sceneRoot->ref();
   sceneRootBBox=new SoSeparator;
   sceneRoot->addChild(sceneRootBBox);
+  SoLightModel *lm=new SoLightModel;
+  sceneRootBBox->addChild(lm);
+  lm->model.setValue(SoLightModel::BASE_COLOR);
   SoBaseColor *color=new SoBaseColor;
-  color->rgb.setValue(0,1,0);
   sceneRootBBox->addChild(color);
+  color->rgb.setValue(0,1,0);
   SoDrawStyle *style=new SoDrawStyle;
   style->style.setValue(SoDrawStyle::LINES);
   sceneRootBBox->addChild(style);

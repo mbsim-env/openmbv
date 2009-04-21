@@ -4,7 +4,6 @@
 #include "config.h"
 #include "body.h"
 #include "tinyxml.h"
-#include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <H5Cpp.h>

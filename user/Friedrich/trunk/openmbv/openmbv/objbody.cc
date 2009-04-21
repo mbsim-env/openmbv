@@ -7,7 +7,7 @@
 
 using namespace std;
 
-double ObjBody::epsVertex=0;
+double ObjBody::eps;
 
 ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
   iconFile=":/objbody.svg";
@@ -30,11 +30,11 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element
   else if(normals_=="smooth") normals=smooth;
   else normals=smoothIfLessBarrier;
   e=e->NextSiblingElement();
-  epsVertex=toVector(e->GetText())[0];
+  double epsVertex=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
   double epsNormal=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double smoothBarrier=toVector(e->GetText())[0];
+  smoothBarrier=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
   string outline_=e->GetText();
   Outline outline;
@@ -55,7 +55,6 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element
   QRegExp vRE("[ \t]*v[ \t].*");
   QRegExp vnRE("[ \t]*vn[ \t].*");
   QRegExp fRE("[ \t]*f[ \t].*");
-  //QRegExp fSplitRE("^([0-9]+)/([0-9]*)/([0-9]*)$");
   QRegExp fSplitRE("^([0-9]+)(?:/([0-9]*)(?:/([0-9]*))?)?$");
   while(!objFile.atEnd()) {
     QByteArray line=objFile.readLine();
@@ -117,32 +116,61 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element
     if(epsVertex>0) { // combine vertex
       SoMFVec3f newvv;
       SoMFInt32 newvi;
+      eps=epsVertex;
       combine(i->second.v->point, newvv, newvi);
       convertIndex(i->second.f->coordIndex, newvi);
       i->second.v->point.copyFrom(newvv);
     }
     soSep->addChild(i->second.v);
-    if(i->second.hasNormal) // if hasNormal draw with normals
+    if(normals==flat) {
+      SoNormalBinding *nb=new SoNormalBinding;
+      nb->value.setValue(SoNormalBinding::PER_FACE);
+    }
+    else if(normals==smooth || normals==smoothIfLessBarrier) {
+      if(normals==smooth) smoothBarrier=M_PI;
+      SoMFInt32 fni;
+      SoMFVec3f n;
+      SoMFInt32 oli;
+      computeNormals(i->second.f->coordIndex, i->second.v->point, fni, n, oli);
+      i->second.f->normalIndex.copyFrom(fni);
+      i->second.n->vector.copyFrom(n);
       soSep->addChild(i->second.n);
-    else { // it !hasNormal draw with automatic normals by Inventor and not backface culled and two-sided lighting
-      SoShapeHints *sh=new SoShapeHints;
-      soSep->addChild(sh);
-      sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
-      sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
+      i->second.l->coordIndex.copyFrom(oli);
+    }
+    else {
+      if(i->second.hasNormal || normals==fromObjFile) // if hasNormal draw with normals
+        soSep->addChild(i->second.n);
+      else { // it !hasNormal draw with automatic normals by Inventor and not backface culled and two-sided lighting
+        SoShapeHints *sh=new SoShapeHints;
+        soSep->addChild(sh);
+        sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
+        sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
+      }
+    }
+    if(epsNormal>0) { // combine normal
+      SoMFVec3f newnv;
+      SoMFInt32 newni;
+      eps=epsNormal;
+      combine(i->second.n->vector, newnv, newni);
+      convertIndex(i->second.f->normalIndex, newni);
+      i->second.n->vector.copyFrom(newnv);
     }
     soSep->addChild(i->second.f);
   }
 
   // outline
-  //soSep->addChild(soOutLineSwitch);
-  //soOutLineSep->addChild(cube);
+  soSep->addChild(soOutLineSwitch);
+  for(i=group.begin(); i!=group.end(); i++) {
+    if(i->second.l->coordIndex.getNum()>0) soOutLineSep->addChild(i->second.v);
+    if(i->second.l->coordIndex.getNum()>0) soOutLineSep->addChild(i->second.l);
+  }
 }
 
-/////////////////////////////
 ObjBody::ObjGroup::ObjGroup() {
   v=new SoCoordinate3; v->ref(); v->point.deleteValues(0);
   n=new SoNormal; n->ref(); n->vector.deleteValues(0);
   f=new SoIndexedFaceSet; f->ref(); f->coordIndex.deleteValues(0); f->normalIndex.deleteValues(0);
+  l=new SoIndexedLineSet; l->ref(); l->coordIndex.deleteValues(0);
   hasNormal=true;
 }
 
@@ -150,14 +178,14 @@ bool ObjBody::SbVec3fHash::operator()(const SbVec3f& v1, const SbVec3f& v2) cons
   float x1,y1,z1,x2,y2,z2;
   v1.getValue(x1,y1,z1);
   v2.getValue(x2,y2,z2);
-  if(x1<x2-epsVertex) return true;
-  else if(x1>x2+epsVertex) return false;
+  if(x1<x2-eps) return true;
+  else if(x1>x2+eps) return false;
   else
-    if(y1<y2-epsVertex) return true;
-    else if(y1>y2+epsVertex) return false;
+    if(y1<y2-eps) return true;
+    else if(y1>y2+eps) return false;
     else
-      if(z1<z2-epsVertex) return true;
-      else if(z1>z2+epsVertex) return false;
+      if(z1<z2-eps) return true;
+      else if(z1>z2+eps) return false;
       else return false;
 };
 
@@ -195,43 +223,68 @@ bool ObjBody::TwoIndexHash::operator()(const TwoIndex& l1, const TwoIndex& l2) c
     else return false;
 }
 
-void ObjBody::computeNormals(const SoMFInt32& fv, const SoMFVec3f &vv, SoMFVec3f& nv) {
-//  map<TwoIndex, vector<int>, TwoIndexHash> linem;
-//
-//  for(int i=0; i<fv.size(); i++) {
-//    // set face normals
-//    Normal n, t, b;
-//    // tangent 1
-//    t.x=nv[fv[i].vi2].x-nv[fv[i].vi1].x;
-//    t.y=nv[fv[i].vi2].y-nv[fv[i].vi1].y;
-//    t.z=nv[fv[i].vi2].z-nv[fv[i].vi1].z;
-//    // tagent 2
-//    b.x=nv[fv[i].vi3].x-nv[fv[i].vi1].x;
-//    b.y=nv[fv[i].vi3].y-nv[fv[i].vi1].y;
-//    b.z=nv[fv[i].vi3].z-nv[fv[i].vi1].z;
-//    // normal
-//    n.x=t.y*b.z-t.z*b.y;
-//    n.y=t.z*b.x-t.x*b.z;
-//    n.z=t.x*b.y-t.y*b.x;
-//    // set normal of all 3 face vertex
-//    nv[3*i+0].x=n.x; nv[3*i+0].y=n.y; nv[3*i+0].z=n.z;
-//    nv[3*i+1].x=n.x; nv[3*i+1].y=n.y; nv[3*i+1].z=n.z;
-//    nv[3*i+2].x=n.x; nv[3*i+2].y=n.y; nv[3*i+2].z=n.z;
-//
-//    // store all face indexies of each line in a map
-//    TwoIndex line;
-//    line.vi1=fv[i].vi1; line.vi2=fv[i].vi2;
-//    if(line.vi1>line.vi2) { int dummy=line.vi2; line.vi1=line.vi2; line.vi2=dummy; }
-//    linem[line].push_back(i);
-//    line.vi1=fv[i].vi2; line.vi2=fv[i].vi3;
-//    if(line.vi1>line.vi2) { int dummy=line.vi2; line.vi1=line.vi2; line.vi2=dummy; }
-//    linem[line].push_back(i);
-//    line.vi1=fv[i].vi3; line.vi2=fv[i].vi1;
-//    if(line.vi1>line.vi2) { int dummy=line.vi2; line.vi1=line.vi2; line.vi2=dummy; }
-//    linem[line].push_back(i);
-//  }
-//  map<TwoIndex, vector<int>, TwoIndexHash>::iterator i;
-//  for(i=linem.begin(); i!=linem.end(); i++) {
-//  }
+void ObjBody::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& fni, SoMFVec3f& n, SoMFInt32& oli) {
+  map<TwoIndex, vector<XXX>, TwoIndexHash> lfi; // line face index = index der faces welche, die line angrenzen
+
+  for(int i=0; i<fvi.getNum(); i+=4) {
+    // set face normals fn
+    SbVec3f fn, ft, fb;
+    ft=v[fvi[i+1]]-v[fvi[i+0]];
+    fb=v[fvi[i+2]]-v[fvi[i+0]];
+    fn=ft.cross(fb);
+    fni.set1Value(i+0, i+0);
+    fni.set1Value(i+1, i+1);
+    fni.set1Value(i+2, i+2);
+    fni.set1Value(i+3, -1);
+    n.set1Value(i+0, fn);
+    n.set1Value(i+1, fn);
+    n.set1Value(i+2, fn);
+
+    // store all face indexies of each line in a map
+    TwoIndex l;
+    XXX xxx;
+    l.vi1=fvi[i+0]; l.vi2=fvi[i+1];
+    xxx.ni1=i+0; xxx.ni2=i+1;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lfi[l].push_back(xxx);
+    l.vi1=fvi[i+1]; l.vi2=fvi[i+2];
+    xxx.ni1=i+1; xxx.ni2=i+2;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lfi[l].push_back(xxx);
+    l.vi1=fvi[i+2]; l.vi2=fvi[i+0];
+    xxx.ni1=i+2; xxx.ni2=i+0;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lfi[l].push_back(xxx);
+  }
+  map<TwoIndex, vector<XXX>, TwoIndexHash>::iterator i;
+  int ni1, ni2;
+  SbVec3f nNew;
+  for(i=lfi.begin(); i!=lfi.end(); i++) {
+    if(i->second.size()!=2) continue;
+    bool smooth=false;
+    ni1=i->second[0].ni1; ni2=i->second[1].ni1;
+    if(acos(n[fni[ni1]].dot(n[fni[ni2]])/n[fni[ni1]].length()/n[fni[ni2]].length())<smoothBarrier) {
+      smooth=true;
+      nNew=n[fni[ni1]]+n[fni[ni2]];
+      n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2], nNew);
+      for(int k=0; k<fni.getNum(); k++) // TODO speedup
+        if(fni[k]==fni[ni2]) fni.set1Value(k, fni[ni1]);
+    }
+    ni1=i->second[0].ni2; ni2=i->second[1].ni2;
+    if(acos(n[fni[ni1]].dot(n[fni[ni2]])/n[fni[ni1]].length()/n[fni[ni2]].length())<smoothBarrier) {
+      smooth=true;
+      nNew=n[fni[ni1]]+n[fni[ni2]];
+      n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2] ,nNew);
+      for(int k=0; k<fni.getNum(); k++) // TODO speedup
+        if(fni[k]==fni[ni2]) fni.set1Value(k, fni[ni1]);
+    }
+    if(!smooth) {
+      oli.set1Value(oli.getNum(), fvi[i->second[0].ni1]);
+      oli.set1Value(oli.getNum(), fvi[i->second[0].ni2]);
+      oli.set1Value(oli.getNum(), -1);
+    }
+  }
 }
-/////////////////////////////

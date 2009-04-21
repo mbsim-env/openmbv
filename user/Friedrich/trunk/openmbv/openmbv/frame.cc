@@ -2,7 +2,6 @@
 #include "frame.h"
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoBaseColor.h>
 
 Frame::Frame(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
   iconFile=":/frame.svg";

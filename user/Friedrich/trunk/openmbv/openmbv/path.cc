@@ -1,6 +1,7 @@
 #include "config.h"
 #include "path.h"
 #include "mainwindow.h"
+#include <Inventor/nodes/SoBaseColor.h>
 
 using namespace std;
 

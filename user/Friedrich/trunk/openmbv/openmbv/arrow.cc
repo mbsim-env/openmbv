@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoBaseColor.h>
 
 using namespace std;
 
@@ -54,9 +55,9 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent) : Body(element, h5Paren
   pathMaxFrameRead=-1;
 
   // Arrow
-  // color
-  color=new SoBaseColor;
-  soSep->addChild(color);
+  // mat
+  mat=new SoMaterial;
+  soSep->addChild(mat);
   // translate to To-Point
   toPoint=new SoTranslation;
   soSep->addChild(toPoint);
@@ -145,8 +146,9 @@ double Arrow::update() {
   // rotation to dx,dy,dz
   rotation1->rotation.setValue(SbVec3f(0, 0, 1), -atan2(dx,dy));
   rotation2->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
-  // color
-  color->rgb.setHSVValue((1-data[7])*2/3,1,1);
+  // mat
+  mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
+  mat->specularColor.setHSVValue((1-data[7])*2/3,0.7,1);
 
   // path
   if(path->isChecked()) {

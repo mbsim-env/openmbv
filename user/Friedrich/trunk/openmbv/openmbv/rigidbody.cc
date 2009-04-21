@@ -2,6 +2,7 @@
 #include "rigidbody.h"
 #include "mainwindow.h"
 #include <Inventor/nodes/SoScale.h>
+#include <Inventor/nodes/SoBaseColor.h>
 #include <QtGui/QMenu>
 
 using namespace std;
@@ -89,9 +90,10 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   soLocalFrameSwitch->addChild(soFrame(1,1));
   soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 
-  // color (from hdf5)
-  color=new SoBaseColor;
-  soSep->addChild(color);
+  // mat (from hdf5)
+  mat=new SoMaterial;
+  soSep->addChild(mat);
+  mat->shininess.setValue(0.9);
 
   // initial scale
   SoScale *scale=new SoScale;
@@ -154,7 +156,8 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  color->rgb.setHSVValue((1-data[7])*2/3,1,1);
+  mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
+  mat->specularColor.setHSVValue((1-data[7])*2/3,0.7,1);
 
   // path
   if(path->isChecked()) {

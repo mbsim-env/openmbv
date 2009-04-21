@@ -26,10 +26,13 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, 
   SoFile *file=new SoFile;
   soSep->addChild(file);
   file->name.setValue(fileName.c_str());
-  // connect object BASECOLOR in file to hdf5 color if it is of type SoBaseColor
+  // connect object OMBVMATERIAL in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("BASECOLOR");
-  if(ref && ref->getTypeId()==SoBaseColor::getClassTypeId())
-    ((SoBaseColor*)ref)->rgb.connectFrom(&color->rgb);
+  if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
+    ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
+    ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
+    ((SoMaterial*)ref)->shininess.connectFrom(&mat->shininess);
+  }
 
   // outline
 }

@@ -7,7 +7,7 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
-#include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <H5Cpp.h>
@@ -24,7 +24,7 @@ class RigidBody : public Body {
     virtual double update();
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoTranslation *translation;
-    SoBaseColor *color;
+    SoMaterial *mat;
     H5::VectorSerie<double> *h5Data;
   public:
     RigidBody(TiXmlElement* element, H5::Group *h5Parent);
