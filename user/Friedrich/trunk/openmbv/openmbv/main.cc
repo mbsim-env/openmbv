@@ -1,11 +1,16 @@
 #include "config.h"
 #include <QtGui/QApplication>
+#include <QtPlugin>
 #include "mainwindow.h"
 #include <list>
 #include <string>
 #include <algorithm>
 
 using namespace std;
+
+#ifdef STATICQSVGPLUGIN
+  Q_IMPORT_PLUGIN(qsvg)
+#endif
 
 int main(int argc, char *argv[])
 {

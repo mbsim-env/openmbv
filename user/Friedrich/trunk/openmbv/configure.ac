@@ -19,7 +19,11 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 dnl Qt
-AT_WITH_QT
+PKG_CHECK_MODULES(QT, [QtCore >= 4.3 QtGui >= 4.3 QtSvg >= 4.3])
+dnl check for static qsvg imageformat plugin
+#AC_CHECK_FILE([plugins/imageformats/libqsvg.a], 
+AC_CHECK_FILE([$(pkg-config --variable libdir QtCore)/plugins/imageformats/libqsvg.a], 
+  AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin]))
 
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin)
@@ -33,7 +37,7 @@ AC_ARG_WITH(soqt_prefix,
   [SOQT_CFLAGS="-I$prefix/include"
    SOQT_LDFLAGS="-L$prefix/lib"
    SOQT_LIBS="-lSoQt"])
-OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $SOQT_CFLAGS $QT_CPPFLAGS"
+OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $SOQT_CFLAGS $QT_CFLAGS"
 AC_CHECK_HEADERS([Inventor/Qt/SoQt.h], [],
   [AC_MSG_ERROR([Can not find SoQt c++ header Inventor/Qt/SoQt.h])])
 CPPFLAGS=$OLD
@@ -55,7 +59,7 @@ AC_ARG_WITH(qwt_lib_prefix,
    QWT_LIBS="-lqwt"],
   [QWT_LDFLAGS_="-L$prefix/lib"
    QWT_LIBS="-lqwt"])
-OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CPPFLAGS"
+OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
 AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes],
   [AC_MSG_WARN([Can not find qwt >= 5! Some functionality will not work!]); QWT=no])
 CPPFLAGS=$OLD

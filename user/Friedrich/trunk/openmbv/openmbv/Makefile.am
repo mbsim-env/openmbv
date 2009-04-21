@@ -1,4 +1,4 @@
-include $(top_srcdir)/autotroll.mk
+include $(top_srcdir)/qt.mk
 
 if COND_QWT
   MAYBE_QWT_CFLAGS = $(QWT_CFLAGS)
@@ -7,7 +7,7 @@ if COND_QWT
 endif
 
 bin_PROGRAMS = openmbv
-openmbv_CPPFLAGS = $(QT_CPPFLAGS) -I../tinyxml $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+openmbv_CPPFLAGS = $(QT_CFLAGS) -I../tinyxml $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
 openmbv_LDFLAGS  = -L../tinyxml $(COIN_LDFLAGS) $(QT_LDFLAGS) $(SOQT_LDFALGS) $(HDF5SERIE_LDFLAGS) $(MAYBE_QWT_LDFLAGS_)
 openmbv_LDADD    = -ltinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = body.cc\
@@ -29,10 +29,10 @@ openmbv_SOURCES = body.cc\
   objectfactory.cc\
   rigidbody.cc
 
-nodist_openmbv_SOURCES=$(BUILT_SOURCES)
+nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
 # C++ source file to build automatically (e.g. abc.moc.cc by abc.h)
-BUILT_SOURCES = openmbv.qrc.cc\
+QT_BUILT_SOURCES = openmbv.qrc.cc\
   mainwindow.moc.cc\
   exportdialog.moc.cc\
   object.moc.cc\
