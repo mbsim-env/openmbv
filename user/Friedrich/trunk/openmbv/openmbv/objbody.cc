@@ -224,7 +224,8 @@ bool ObjBody::TwoIndexHash::operator()(const TwoIndex& l1, const TwoIndex& l2) c
 }
 
 void ObjBody::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& fni, SoMFVec3f& n, SoMFInt32& oli) {
-  map<TwoIndex, vector<XXX>, TwoIndexHash> lfi; // line face index = index der faces welche, die line angrenzen
+  map<TwoIndex, vector<XXX>, TwoIndexHash> lni; // line normal index = index of normal of start/end point
+  map<int, vector<int> > vni;
 
   for(int i=0; i<fvi.getNum(); i+=4) {
     // set face normals fn
@@ -247,22 +248,27 @@ void ObjBody::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32
     xxx.ni1=i+0; xxx.ni2=i+1;
     if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
                           dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
-    lfi[l].push_back(xxx);
+    lni[l].push_back(xxx);
     l.vi1=fvi[i+1]; l.vi2=fvi[i+2];
     xxx.ni1=i+1; xxx.ni2=i+2;
     if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
                           dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
-    lfi[l].push_back(xxx);
+    lni[l].push_back(xxx);
     l.vi1=fvi[i+2]; l.vi2=fvi[i+0];
     xxx.ni1=i+2; xxx.ni2=i+0;
     if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
                           dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
-    lfi[l].push_back(xxx);
+    lni[l].push_back(xxx);
+
+    // vni
+    vni[fvi[i+0]].push_back(i+0);
+    vni[fvi[i+1]].push_back(i+1);
+    vni[fvi[i+2]].push_back(i+2);
   }
   map<TwoIndex, vector<XXX>, TwoIndexHash>::iterator i;
   int ni1, ni2;
   SbVec3f nNew;
-  for(i=lfi.begin(); i!=lfi.end(); i++) {
+  for(i=lni.begin(); i!=lni.end(); i++) {
     if(i->second.size()!=2) continue;
     bool smooth=false;
     ni1=i->second[0].ni1; ni2=i->second[1].ni1;
@@ -270,16 +276,18 @@ void ObjBody::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32
       smooth=true;
       nNew=n[fni[ni1]]+n[fni[ni2]];
       n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2], nNew);
-      for(int k=0; k<fni.getNum(); k++) // TODO speedup
-        if(fni[k]==fni[ni2]) fni.set1Value(k, fni[ni1]);
+      vector<int> vvv=vni[i->first.vi1];
+      for(int k=0; k<vvv.size(); k++)
+        if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
     }
     ni1=i->second[0].ni2; ni2=i->second[1].ni2;
     if(acos(n[fni[ni1]].dot(n[fni[ni2]])/n[fni[ni1]].length()/n[fni[ni2]].length())<smoothBarrier) {
       smooth=true;
       nNew=n[fni[ni1]]+n[fni[ni2]];
       n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2] ,nNew);
-      for(int k=0; k<fni.getNum(); k++) // TODO speedup
-        if(fni[k]==fni[ni2]) fni.set1Value(k, fni[ni1]);
+      vector<int> vvv=vni[i->first.vi1];
+      for(int k=0; k<vvv.size(); k++)
+        if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
     }
     if(!smooth) {
       oli.set1Value(oli.getNum(), fvi[i->second[0].ni1]);
