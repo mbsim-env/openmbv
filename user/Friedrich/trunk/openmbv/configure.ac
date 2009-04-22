@@ -20,12 +20,26 @@ AC_TYPE_SIZE_T
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.3 QtGui >= 4.3 QtSvg >= 4.3])
-dnl check for static qsvg imageformat plugin
+dnl get moc, uic and rcc
+MOC=$(pkg-config --variable moc_location QtCore)
+UIC=$(pkg-config --variable uic_location QtCore)
+RCC=${MOC%*/*}/rcc
+AC_SUBST([MOC])
+AC_SUBST([UIC])
+AC_SUBST([RCC])
+dnl check for static qsvg imageformats plugin
 qsvg=0
 AC_CHECK_FILE([$(pkg-config --variable libdir QtCore)/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$(pkg-config --variable libdir QtCore)/plugins/imageformats -lqsvg $QT_LIBS"])
 AC_CHECK_FILE([$(pkg-config --variable prefix QtCore)/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$(pkg-config --variable prefix QtCore)/plugins/imageformats -lqsvg $QT_LIBS"])
 if test $qsvg -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
+fi
+dnl check for static qsvgicon iconengines plugin
+qsvgicon=0
+AC_CHECK_FILE([$(pkg-config --variable libdir QtCore)/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$(pkg-config --variable libdir QtCore)/plugins/iconengines -lqsvgicon $QT_LIBS"])
+AC_CHECK_FILE([$(pkg-config --variable prefix QtCore)/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$(pkg-config --variable prefix QtCore)/plugins/iconengines -lqsvgicon $QT_LIBS"])
+if test $qsvgicon -eq 1; then
+  AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
 fi
 
 dnl Coin

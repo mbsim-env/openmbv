@@ -11,6 +11,9 @@ using namespace std;
 #ifdef STATICQSVGPLUGIN
   Q_IMPORT_PLUGIN(qsvg)
 #endif
+#ifdef STATICQSVGICONPLUGIN
+  Q_IMPORT_PLUGIN(qsvgicon)
+#endif
 
 int main(int argc, char *argv[])
 {

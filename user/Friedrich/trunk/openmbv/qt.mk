@@ -49,4 +49,4 @@ SUFFIXES=.moc.cc .moc.cpp .moc.cxx .moc.C\
 .qrc.qrc.C:
 	$(RCC) -name $$(echo "$<" | sed 's/\.qrc$$//') $< -o $@
 
-DISTCLEANFILES = $(QT_BUILT_SOURCES)
+CLEANFILES = $(QT_BUILT_SOURCES)

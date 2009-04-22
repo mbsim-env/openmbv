@@ -26,7 +26,8 @@ openmbv_SOURCES = body.cc\
   arrow.cc\
   objbody.cc\
   objectfactory.cc\
-  rigidbody.cc
+  rigidbody.cc\
+  SoQtMyViewer.cc
 
 nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
@@ -47,8 +48,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   ivbody.moc.cc\
   frame.moc.cc\
   group.moc.cc\
-  body.moc.cc\
-  SoQtMyViewer.cc
+  body.moc.cc
 
 noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
