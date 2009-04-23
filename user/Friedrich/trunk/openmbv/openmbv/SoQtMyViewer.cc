@@ -7,10 +7,21 @@
 #include <QApplication>
 #include "mainwindow.h"
 
-SoQtMyViewer::SoQtMyViewer(QWidget *parent, SoText2 *timeString_) : SoQtExaminerViewer(parent) {
+SoQtMyViewer::SoQtMyViewer(QWidget *parent, SoText2 *timeString) : SoQtExaminerViewer(parent) {
   setCameraType(SoOrthographicCamera::getClassTypeId());
   setDecoration(false);
-  timeString=timeString_;
+  setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+
+  fgSep=new SoSeparator;
+  fgSep->ref();
+  timeTrans=new SoTranslation;
+  fgSep->addChild(timeTrans);
+  fgSep->addChild(timeString);
+  ombvTrans=new SoTranslation;
+  fgSep->addChild(ombvTrans);
+  SoText2 *text2=new SoText2;
+  fgSep->addChild(text2);
+  text2->string.setValue("OpenMBV [http://openmbv.berlios.de]");
 }
 
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
@@ -28,17 +39,7 @@ void SoQtMyViewer::actualRedraw(void) {
   glClear(GL_DEPTH_BUFFER_BIT);
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
-  SoSeparator *fg=new SoSeparator;
-  fg->ref();
-  SoTranslation *t=new SoTranslation;
-  fg->addChild(t);
-  t->translation.setValue(-1+2.0/x*3,1-2.0/y*15,0);
-  fg->addChild(timeString);
-  SoTranslation *t2=new SoTranslation;
-  fg->addChild(t2);
-  t2->translation.setValue(0,-1+2.0/y*15 -1+2.0/y*3,0);
-  SoText2 *text2=new SoText2;
-  fg->addChild(text2);
-  text2->string.setValue("OpenMBV [http://openmbv.berlios.de]");
-  getGLRenderAction()->apply(fg);
+  timeTrans->translation.setValue(-1+2.0/x*3,1-2.0/y*15,0);
+  ombvTrans->translation.setValue(0,-1+2.0/y*15 -1+2.0/y*3,0);
+  getGLRenderAction()->apply(fgSep);
 }

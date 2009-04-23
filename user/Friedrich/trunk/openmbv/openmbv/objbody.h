@@ -9,6 +9,8 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <H5Cpp.h>
 
 class ObjBody : public RigidBody {
@@ -25,17 +27,22 @@ class ObjBody : public RigidBody {
       calculate,
       fromFile
     };
-    class ObjGroup {
+    SoCoordinate3 *v;
+    SoTextureCoordinate2 *t;
+    SoNormal *n;
+    class MtlMapGroup {
       public:
-        ObjGroup();
-        SoCoordinate3 *v;
-        SoNormal *n;
-        bool hasNormal;
+        MtlMapGroup();
         SoIndexedFaceSet *f;
-        SoIndexedLineSet *l;
+        SoIndexedLineSet *ol;
+        SoNormal *n;
+        SoMaterial *mat;
+        SoTexture2 *map;
     };
     static double eps;
     double smoothBarrier;
+    void readMtlLib(const std::string& mtlFile, std::map<QString, SoMaterial*>& material);
+    void readMapLib(const std::string& mtlFile, std::map<QString, SoTexture2*>& map_);
 
     // compares an Vertex like an alphanumeric string
     class SbVec3fHash {

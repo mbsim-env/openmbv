@@ -403,12 +403,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
         ev->getButton()==SoMouseButtonEvent::BUTTON2)) {
       // get picked points by ray
-      SoRayPickAction *pickAction=new SoRayPickAction(glViewer->getViewportRegion());
-      pickAction->setPoint(ev->getPosition());
-      pickAction->setRadius(3.0);
-      pickAction->setPickAll(true);
-      pickAction->apply(glViewer->getSceneManager()->getSceneGraph());
-      SoPickedPointList pickedPoints=pickAction->getPickedPointList();
+      SoRayPickAction pickAction(glViewer->getViewportRegion());
+      pickAction.setPoint(ev->getPosition());
+      pickAction.setRadius(3.0);
+      pickAction.setPickAll(true);
+      pickAction.apply(glViewer->getSceneManager()->getSceneGraph());
+      SoPickedPointList pickedPoints=pickAction.getPickedPointList();
       // get objects by point/path
       set<Object*> pickedObject;
       float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
@@ -445,12 +445,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
             menu->addAction(action);
           }
           QAction *action=menu->exec(QCursor::pos());
+          delete menu;
           if(action==0) return true;
           ind=action->data().toInt();
           it=pickedObject.begin();
           for(int i=0; i<ind; i++, it++);
           objectList->setCurrentItem(*it);
-          delete menu;
         }
         // if Button1 select picked object
         else
