@@ -324,13 +324,10 @@ void MainWindow::openFile(string fileName) {
   TiXmlDocument doc;
   doc.LoadFile(fileName);
   incorporateNamespace(doc.FirstChildElement());
-  Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent);
+  Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent, objectList->invisibleRootItem(), sceneRoot);
   object->setText(0, fileName.c_str());
   object->getIconFile()=":/h5file.svg";
   object->setIcon(0, QIcon(object->getIconFile().c_str()));
-  objectList->addTopLevelItem(object);
-  sceneRoot->addChild(object->getSoSwitch());
-  objectList->expandAll();
 
   // force a update
   frame->touch();

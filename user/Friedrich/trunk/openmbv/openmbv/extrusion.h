@@ -10,7 +10,7 @@
 class Extrusion : public RigidBody {
   Q_OBJECT
   public:
-    Extrusion(TiXmlElement* element, H5::Group *h5Parent);
+    Extrusion(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

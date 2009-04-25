@@ -12,7 +12,7 @@ class Group : public Object {
   protected:
     virtual void update() {}
   public:
-    Group(TiXmlElement *element, H5::Group *h5parent);
+    Group(TiXmlElement *element, H5::Group *h5parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
 };
 

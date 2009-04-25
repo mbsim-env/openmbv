@@ -5,7 +5,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-Object::Object() : name(""), parent(0), hdf5Group(0) {
+Object::Object() : name(""), expandStr("true"), parent(0), hdf5Group(0) {
 }
 
 Object::~Object() {

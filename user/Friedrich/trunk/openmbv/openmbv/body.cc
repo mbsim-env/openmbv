@@ -27,7 +27,7 @@ SoTriangleStripSet *Body::tessTriangleStrip;
 SoIndexedFaceSet *Body::tessTriangleFan;
 SoCoordinate3 *Body::tessCoord;
 
-Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Parent) {
+Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
   // tess
   if(tessCBInit==false) {
     gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (GLvoid (*)())tessBeginCB);

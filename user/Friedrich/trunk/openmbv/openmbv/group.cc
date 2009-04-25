@@ -3,7 +3,7 @@
 #include "objectfactory.h"
 #include "mainwindow.h"
 
-Group::Group(TiXmlElement* element, H5::Group *h5Parent) : Object(element, h5Parent) {
+Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
   iconFile=":/group.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 
@@ -16,11 +16,7 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent) : Object(element, h5Par
   // read XML
   TiXmlElement *e=element->FirstChildElement();
   while(e!=0) {
-    Object *object=ObjectFactory(e, h5Group);
-    if(object) {
-      addChild(object);
-      soSep->addChild(object->getSoSwitch());
-    }
+    Object *object=ObjectFactory(e, h5Group, this, soSep);
     e=e->NextSiblingElement();
   }
 }

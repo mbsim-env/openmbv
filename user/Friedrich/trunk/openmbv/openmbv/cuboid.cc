@@ -6,7 +6,7 @@
 
 using namespace std;
 
-Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
+Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/cuboid.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 

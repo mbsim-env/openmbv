@@ -43,7 +43,7 @@ class ObjBody : public RigidBody {
     void readMtlLib(const std::string& mtlFile, std::map<QString, SoMaterial*>& material);
     void readMapLib(const std::string& mtlFile, std::map<QString, SoTexture2*>& map_);
   public:
-    ObjBody(TiXmlElement* element, H5::Group *h5Parent);
+    ObjBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

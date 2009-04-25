@@ -9,7 +9,18 @@ using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), drawThisPath(true) {
+Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
+  // parent item
+  parentItem->addChild(this);
+  // expand or collapse
+  if(element->Attribute("expand")==0)
+    setExpanded(true);
+  else
+    if(element->Attribute("expand")==string("true"))
+      setExpanded(true);
+    else
+      setExpanded(false);
+  
   // h5 group
   if(element->Parent()->Type()==TiXmlNode::DOCUMENT || h5Parent==0)
     h5Group=h5Parent;
@@ -18,6 +29,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent) : QTreeWidgetItem(), 
 
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
+  soParent->addChild(soSwitch); // parent so
   soSwitch->ref();
   soSwitch->whichChild.setValue(SO_SWITCH_ALL);
   soSep=new SoSeparator;

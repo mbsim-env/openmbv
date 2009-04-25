@@ -7,7 +7,7 @@
 
 using namespace std;
 
-RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element, h5Parent) {
+RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   if(h5Group) {

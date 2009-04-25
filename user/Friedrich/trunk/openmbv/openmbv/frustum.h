@@ -10,7 +10,7 @@
 class Frustum : public RigidBody {
   Q_OBJECT
   public:
-    Frustum(TiXmlElement* element, H5::Group *h5Parent);
+    Frustum(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

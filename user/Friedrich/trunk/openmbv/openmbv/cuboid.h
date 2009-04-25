@@ -10,7 +10,7 @@
 class Cuboid : public RigidBody {
   Q_OBJECT
   public:
-    Cuboid(TiXmlElement* element, H5::Group *h5Parent);
+    Cuboid(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

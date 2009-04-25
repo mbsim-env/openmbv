@@ -33,8 +33,7 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string iconFile;
     static std::map<SoNode*,Object*> objectMap;
   public:
-    Object(TiXmlElement* element, H5::Group *h5Parent);
-    SoSwitch* getSoSwitch() { return soSwitch; }
+    Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     std::string getPath();

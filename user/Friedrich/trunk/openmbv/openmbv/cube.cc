@@ -6,7 +6,7 @@
 
 using namespace std;
 
-Cube::Cube(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
+Cube::Cube(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/cube.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 

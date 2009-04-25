@@ -10,7 +10,7 @@
 
 using namespace std;
 
-Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
+Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/extrusion.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 

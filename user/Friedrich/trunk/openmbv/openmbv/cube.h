@@ -10,7 +10,7 @@
 class Cube : public RigidBody {
   Q_OBJECT
   public:
-    Cube(TiXmlElement* element, H5::Group *h5Parent);
+    Cube(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

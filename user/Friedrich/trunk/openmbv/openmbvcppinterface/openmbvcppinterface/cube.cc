@@ -10,7 +10,7 @@ Cube::Cube() : RigidBody(),
 }
 
 void Cube::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Cube name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<Cube name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <length>"<<length<<"</length>"<<endl;
   xmlFile<<indent<<"</Cube>"<<endl;

@@ -28,7 +28,7 @@ class RigidBody : public Body {
     H5::VectorSerie<double> *h5Data;
     SoScale *refFrameScale, *localFrameScale;
   public:
-    RigidBody(TiXmlElement* element, H5::Group *h5Parent);
+    RigidBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:

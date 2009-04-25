@@ -9,7 +9,7 @@
 class Frame : public RigidBody {
   Q_OBJECT
   public:
-    Frame(TiXmlElement* element, H5::Group *h5Parent);
+    Frame(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

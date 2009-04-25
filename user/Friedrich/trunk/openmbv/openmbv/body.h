@@ -21,7 +21,7 @@ class Body : public Object {
     static bool existFiles;
     static Body *timeUpdater; // the body who updates the time string in the scene window
   public:
-    Body(TiXmlElement* element, H5::Group *h5Parent);
+    Body(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     virtual double update()=0; // return the current time

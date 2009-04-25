@@ -38,7 +38,7 @@ class Arrow : public Body {
     std::vector<double> data;
     double length, scaleLength;
   public:
-    Arrow(TiXmlElement* element, H5::Group *h5Parent);
+    Arrow(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
     QMenu* createMenu();
   public slots:

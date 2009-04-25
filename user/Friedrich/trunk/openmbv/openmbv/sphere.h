@@ -10,7 +10,7 @@
 class Sphere : public RigidBody {
   Q_OBJECT
   public:
-    Sphere(TiXmlElement* element, H5::Group *h5Parent);
+    Sphere(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

@@ -3,7 +3,7 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 
-Frame::Frame(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5Parent) {
+Frame::Frame(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/frame.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 

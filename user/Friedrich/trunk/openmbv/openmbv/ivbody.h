@@ -10,7 +10,7 @@
 class IvBody : public RigidBody {
   Q_OBJECT
   public:
-    IvBody(TiXmlElement* element, H5::Group *h5Parent);
+    IvBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

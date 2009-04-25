@@ -14,6 +14,7 @@ namespace OpenMBV {
     friend class Group;
     protected:
       std::string name;
+      std::string expandStr;
       Group* parent;
       virtual void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="")=0;
       virtual void createHDF5File()=0;
@@ -23,6 +24,7 @@ namespace OpenMBV {
       Object();
       virtual ~Object();
       void setName(const std::string& name_) { name=name_; }
+      void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
       std::string getFullName();
   };
 

@@ -18,7 +18,7 @@ class Path : public Body {
     SoLineSet *line;
     int maxFrameRead;
   public:
-    Path(TiXmlElement* element, H5::Group *h5Parent);
+    Path(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
 };
 

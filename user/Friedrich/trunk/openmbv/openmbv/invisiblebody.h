@@ -10,7 +10,7 @@
 class InvisibleBody : public RigidBody {
   Q_OBJECT
   public:
-    InvisibleBody(TiXmlElement* element, H5::Group *h5Parent);
+    InvisibleBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif
