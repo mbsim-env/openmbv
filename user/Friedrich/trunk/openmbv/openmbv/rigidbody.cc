@@ -61,7 +61,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   // reference frame
   soReferenceFrameSwitch=new SoSwitch;
   soSep->addChild(soReferenceFrameSwitch);
-  soReferenceFrameSwitch->addChild(soFrame(1,1));
+  soReferenceFrameSwitch->addChild(soFrame(1,1,refFrameScale));
   soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 
   // initial translation
@@ -87,7 +87,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent) : Body(element,
   // local frame
   soLocalFrameSwitch=new SoSwitch;
   soSep->addChild(soLocalFrameSwitch);
-  soLocalFrameSwitch->addChild(soFrame(1,1));
+  soLocalFrameSwitch->addChild(soFrame(1,1,localFrameScale));
   soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 
   // mat (from hdf5)

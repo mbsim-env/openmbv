@@ -26,6 +26,7 @@ class RigidBody : public Body {
     SoTranslation *translation;
     SoMaterial *mat;
     H5::VectorSerie<double> *h5Data;
+    SoScale *refFrameScale, *localFrameScale;
   public:
     RigidBody(TiXmlElement* element, H5::Group *h5Parent);
     virtual QMenu* createMenu();

@@ -12,6 +12,7 @@
 #include "path.h"
 #include "arrow.h"
 #include "objbody.h"
+#include "extrusion.h"
 #include "mainwindow.h"
 #include <string>
 
@@ -40,6 +41,8 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent) {
     return new Arrow(element, h5Parent);
   else if(element->ValueStr()==OPENMBVNS"ObjBody")
     return new ObjBody(element, h5Parent);
+  else if(element->ValueStr()==OPENMBVNS"Extrusion")
+    return new Extrusion(element, h5Parent);
   MainWindow::getInstance()->getStatusBar()->showMessage(QString("ERROR: Unknown element: %1").arg(element->Value()), 2000);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;
   return 0;

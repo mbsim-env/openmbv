@@ -120,6 +120,10 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element
       innerFace->normalIndex.set1Value(nr, i+2+N);
     }
   }
+  // scale ref/localFrame
+  double size=min(2*max(baseRadius,topRadius),height);
+  refFrameScale->scaleFactor.setValue(size,size,size);
+  localFrameScale->scaleFactor.setValue(size,size,size);
   
   // outline
   SoIndexedLineSet *outLine=new SoIndexedLineSet;

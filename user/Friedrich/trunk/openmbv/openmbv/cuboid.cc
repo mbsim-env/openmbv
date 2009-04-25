@@ -20,6 +20,10 @@ Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, 
   cuboid->height.setValue(length[1]);
   cuboid->depth.setValue(length[2]);
   soSep->addChild(cuboid);
+  // scale ref/localFrame
+  double size=min(length[0],min(length[1],length[2]));
+  refFrameScale->scaleFactor.setValue(size,size,size);
+  localFrameScale->scaleFactor.setValue(size,size,size);
 
   // outline
   soSep->addChild(soOutLineSwitch);

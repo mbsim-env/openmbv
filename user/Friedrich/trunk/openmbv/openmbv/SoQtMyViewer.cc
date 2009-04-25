@@ -42,4 +42,7 @@ void SoQtMyViewer::actualRedraw(void) {
   timeTrans->translation.setValue(-1+2.0/x*3,1-2.0/y*15,0);
   ombvTrans->translation.setValue(0,-1+2.0/y*15 -1+2.0/y*3,0);
   getGLRenderAction()->apply(fgSep);
+
+  // update fps
+  MainWindow::getInstance()->fpsCB();
 }

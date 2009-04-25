@@ -6,7 +6,6 @@
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
-#include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <QtGui/QMenu>
@@ -17,8 +16,26 @@ using namespace std;
 
 bool Body::existFiles=false;
 Body *Body::timeUpdater=0;
+double Body::eps;
+
+// for tess
+GLUtesselator *Body::tess=gluNewTess();
+GLenum Body::tessType;
+int Body::tessNumVertices;
+bool Body::tessCBInit=false;
+SoTriangleStripSet *Body::tessTriangleStrip;
+SoIndexedFaceSet *Body::tessTriangleFan;
+SoCoordinate3 *Body::tessCoord;
 
 Body::Body(TiXmlElement *element, H5::Group *h5Parent) : Object(element, h5Parent) {
+  // tess
+  if(tessCBInit==false) {
+    gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (GLvoid (*)())tessBeginCB);
+    gluTessCallback(tess, GLU_TESS_VERTEX, (GLvoid (*)())tessVertexCB);
+    gluTessCallback(tess, GLU_TESS_END, (GLvoid (*)())tessEndCB);
+    tessCBInit=true;
+  }
+
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"hdf5Link");
   if(e); // hdf6Link
@@ -141,8 +158,23 @@ vector<double> Body::toVector(string str) {
   return ret;
 }
 
+// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
+vector<vector<double> > Body::toMatrix(string str) {
+  vector<vector<double> > ret;
+  for(int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  bool br=false;
+  while(1) {
+    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
+    ret.push_back(toVector(str.substr(0,end)));
+    if(br) break;
+    str=str.substr(end+1);
+  }
+  return ret;
+}
+
 // convenience: create frame so
-SoSeparator* Body::soFrame(double size, double offset) {
+SoSeparator* Body::soFrame(double size, double offset, SoScale *&scale) {
   SoSeparator *sep=new SoSeparator;
   sep->ref();
 
@@ -150,14 +182,17 @@ SoSeparator* Body::soFrame(double size, double offset) {
   SoLineSet *line;
 
   // coordinates
+  scale=new SoScale;
+  sep->addChild(scale);
+  scale->scaleFactor.setValue(size, size, size);
   SoCoordinate3 *coord=new SoCoordinate3;
   sep->addChild(coord);
-  coord->point.set1Value(0, -size/2+offset*size/2, 0, 0);
-  coord->point.set1Value(1, +size/2+offset*size/2, 0, 0);
-  coord->point.set1Value(2, 0, -size/2+offset*size/2, 0);
-  coord->point.set1Value(3, 0, +size/2+offset*size/2, 0);
-  coord->point.set1Value(4, 0, 0, -size/2+offset*size/2);
-  coord->point.set1Value(5, 0, 0, +size/2+offset*size/2);
+  coord->point.set1Value(0, -1.0/2+offset*1.0/2, 0, 0);
+  coord->point.set1Value(1, +1.0/2+offset*1.0/2, 0, 0);
+  coord->point.set1Value(2, 0, -1.0/2+offset*1.0/2, 0);
+  coord->point.set1Value(3, 0, +1.0/2+offset*1.0/2, 0);
+  coord->point.set1Value(4, 0, 0, -1.0/2+offset*1.0/2);
+  coord->point.set1Value(5, 0, 0, +1.0/2+offset*1.0/2);
 
   // x-axis
   col=new SoBaseColor;
@@ -190,18 +225,8 @@ SoSeparator* Body::soFrame(double size, double offset) {
 }
 
 
-
-
-
-
-
-GLenum tessType;
-int tessNumVertices;
-SoTriangleStripSet *tessTriangleStrip;
-SoIndexedFaceSet *tessTriangleFan;
-SoCoordinate3 *tessCoord;
-
-void tessBeginCB(GLenum type, void *data) {
+// tess
+void Body::tessBeginCB(GLenum type, void *data) {
   SoGroup *parent=(SoGroup*)data;
   tessType=type;
   tessNumVertices=0;
@@ -217,11 +242,11 @@ void tessBeginCB(GLenum type, void *data) {
   }
 }
 
-void tessVertexCB(GLdouble *vertex) {
+void Body::tessVertexCB(GLdouble *vertex) {
   tessCoord->point.set1Value(tessNumVertices++, vertex[0], vertex[1], vertex[2]);
 }
 
-void tessEndCB(void) {
+void Body::tessEndCB(void) {
   if(tessType==GL_TRIANGLES)
     for(int i=0; i<tessNumVertices/3; i++)
       tessTriangleStrip->numVertices.set1Value(i, 3);
@@ -234,6 +259,133 @@ void tessEndCB(void) {
       tessTriangleFan->coordIndex.set1Value(j++, i+1);
       tessTriangleFan->coordIndex.set1Value(j++, i+2);
       tessTriangleFan->coordIndex.set1Value(j++, -1);
+    }
+  }
+}
+
+
+
+// combine, calcaulate vertex/normal
+
+bool Body::SbVec3fHash::operator()(const SbVec3f& v1, const SbVec3f& v2) const {
+  float x1,y1,z1,x2,y2,z2;
+  v1.getValue(x1,y1,z1);
+  v2.getValue(x2,y2,z2);
+  if(x1<x2-eps) return true;
+  else if(x1>x2+eps) return false;
+  else
+    if(y1<y2-eps) return true;
+    else if(y1>y2+eps) return false;
+    else
+      if(z1<z2-eps) return true;
+      else if(z1>z2+eps) return false;
+      else return false;
+};
+
+void Body::combine(const SoMFVec3f& v, SoMFVec3f& newv, SoMFInt32& newvi) {
+  map<SbVec3f, int, SbVec3fHash> hash;
+  for(int i=0; i<v.getNum(); i++) {
+    int &r=hash[*(v.getValues(i))]; // add vertex to a hash map
+    // if vertex not exist in hash map copy it to newvv,
+    // set corospondenting newvi,
+    // and set hash map value to the index of this vertex
+    if(r==0) {
+      newv.set1Value(newv.getNum(), *v.getValues(i));
+      newvi.set1Value(i, newv.getNum()-1);
+      r=newv.getNum()-1+1;
+    }
+    // if vertix exist in hash map,
+    // set corrospondenting newvi to the value in the hash map
+    else
+      newvi.set1Value(i, r-1);
+  }
+}
+
+void Body::convertIndex(SoMFInt32& fvi, const SoMFInt32& newvi) {
+  for(int i=0; i<fvi.getNum(); i++)
+    if(fvi[i]>=0) fvi.set1Value(i, newvi[fvi[i]]);
+}
+
+// complexibility: ?
+bool Body::TwoIndexHash::operator()(const TwoIndex& l1, const TwoIndex& l2) const {
+  if(l1.vi1<l2.vi1) return true;
+  else if(l1.vi1>l2.vi1) return false;
+  else
+    if(l1.vi2<l2.vi2) return true;
+    else if(l1.vi2>l2.vi2) return false;
+    else return false;
+}
+
+void Body::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& fni, SoMFVec3f& n, SoMFInt32& oli, double smoothBarrier) {
+  map<TwoIndex, vector<XXX>, TwoIndexHash> lni; // line normal index = index of normal of start/end point
+  map<int, vector<int> > vni;
+
+  for(int i=0; i<fvi.getNum(); i+=4) {
+    // set face normals fn
+    SbVec3f fn, ft, fb;
+    ft=v[fvi[i+1]]-v[fvi[i+0]];
+    fb=v[fvi[i+2]]-v[fvi[i+0]];
+    fn=ft.cross(fb);
+    fni.set1Value(i+0, i+0);
+    fni.set1Value(i+1, i+1);
+    fni.set1Value(i+2, i+2);
+    fni.set1Value(i+3, -1);
+    n.set1Value(i+0, fn);
+    n.set1Value(i+1, fn);
+    n.set1Value(i+2, fn);
+
+    // store all face indexies of each line in a map
+    TwoIndex l;
+    XXX xxx;
+    l.vi1=fvi[i+0]; l.vi2=fvi[i+1];
+    xxx.ni1=i+0; xxx.ni2=i+1;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lni[l].push_back(xxx);
+    l.vi1=fvi[i+1]; l.vi2=fvi[i+2];
+    xxx.ni1=i+1; xxx.ni2=i+2;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lni[l].push_back(xxx);
+    l.vi1=fvi[i+2]; l.vi2=fvi[i+0];
+    xxx.ni1=i+2; xxx.ni2=i+0;
+    if(l.vi1>l.vi2) { int dummy=l.vi1; l.vi1=l.vi2; l.vi2=dummy;
+                          dummy=xxx.ni1; xxx.ni1=xxx.ni2; xxx.ni2=dummy; }
+    lni[l].push_back(xxx);
+
+    // vni
+    vni[fvi[i+0]].push_back(i+0);
+    vni[fvi[i+1]].push_back(i+1);
+    vni[fvi[i+2]].push_back(i+2);
+  }
+  map<TwoIndex, vector<XXX>, TwoIndexHash>::iterator i;
+  int ni1, ni2;
+  SbVec3f nNew;
+  for(i=lni.begin(); i!=lni.end(); i++) {
+    if(i->second.size()!=2) continue;
+    bool smooth=false;
+    ni1=i->second[0].ni1; ni2=i->second[1].ni1;
+    if(acos(n[fni[ni1]].dot(n[fni[ni2]])/n[fni[ni1]].length()/n[fni[ni2]].length())<smoothBarrier) {
+      smooth=true;
+      nNew=n[fni[ni1]]+n[fni[ni2]];
+      n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2], nNew);
+      vector<int> vvv=vni[i->first.vi1];
+      for(int k=0; k<vvv.size(); k++)
+        if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
+    }
+    ni1=i->second[0].ni2; ni2=i->second[1].ni2;
+    if(acos(n[fni[ni1]].dot(n[fni[ni2]])/n[fni[ni1]].length()/n[fni[ni2]].length())<smoothBarrier) {
+      smooth=true;
+      nNew=n[fni[ni1]]+n[fni[ni2]];
+      n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2] ,nNew);
+      vector<int> vvv=vni[i->first.vi1];
+      for(int k=0; k<vvv.size(); k++)
+        if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
+    }
+    if(!smooth) {
+      oli.set1Value(oli.getNum(), fvi[i->second[0].ni1]);
+      oli.set1Value(oli.getNum(), fvi[i->second[0].ni2]);
+      oli.set1Value(oli.getNum(), -1);
     }
   }
 }

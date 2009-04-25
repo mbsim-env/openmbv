@@ -37,7 +37,7 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1) {
   if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
@@ -79,10 +79,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   style->style.setValue(SoDrawStyle::LINES);
   sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
-  // sensor for frames per second
-  SoNodeSensor *sensor2=new SoNodeSensor(fpsSensorCBS, this);
-  sensor2->attach(glViewer->getSceneManager()->getSceneGraph());
-  sensor2->setPriority(0);
   
   // time slider
   timeSlider=new QSlider(Qt::Vertical, this);
@@ -217,14 +213,18 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 #ifdef HAVE_QWT_WHEEL_H
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(10);
-  speedWheel->setOrientation(Qt::Vertical);
-  speedWheel->setRange(-2, 2, 0.0001);
   speedWheel->setTotalAngle(360*15);
-  connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChanged(double)));
+  connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChangedD(double)));
+#else
+  speedWheel=new QSlider(this);
+  speedWheel->setMaximumSize(15, 35);
+  connect(speedWheel, SIGNAL(sliderMoved(int)), this, SLOT(speedWheelChanged(int)));
+#endif
+  speedWheel->setRange(-20000, 20000);
+  speedWheel->setOrientation(Qt::Vertical);
   connect(speedWheel, SIGNAL(sliderPressed()), this, SLOT(speedWheelPressed()));
   connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
-#endif
   animationTB->addWidget(speedWG);
   // frame spin box
   animationTB->addSeparator();
@@ -445,9 +445,9 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
             menu->addAction(action);
           }
           QAction *action=menu->exec(QCursor::pos());
-          delete menu;
           if(action==0) return true;
           ind=action->data().toInt();
+          delete menu;
           it=pickedObject.begin();
           for(int i=0; i<ind; i++, it++);
           objectList->setCurrentItem(*it);
@@ -520,7 +520,7 @@ void MainWindow::frameSensorCB(void *data, SoSensor*) {
   me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
 }
 
-void MainWindow::fpsSensorCB() {
+void MainWindow::fpsCB() {
   static int count=1;
 
   int dt=fpsTime->restart();
@@ -533,7 +533,10 @@ void MainWindow::fpsSensorCB() {
   float fps_=1000.0/dt*count; // current fps
   static float fpsOut=0;
   fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
-  fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
+  if(fpsMax>1e-15 && fpsOut>0.9*fpsMax)
+    fps->setText(QString("FPS: >25(max)"));
+  else
+    fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
 
   count=1;
 }
@@ -549,7 +552,10 @@ void MainWindow::animationButtonSlot(QAction* act) {
   else {
     animStartFrame=frame->getValue();
     time->restart();
-    animTimer->start();
+    if(fpsMax<1e-15)
+      animTimer->start();
+    else
+      animTimer->start((int)(1000/fpsMax));
   }
 }
 
@@ -560,7 +566,10 @@ void MainWindow::speedChanged(double value) {
     // emulate anim play click
     animStartFrame=frame->getValue();
     time->restart();
-    animTimer->start();
+    if(fpsMax<1e-15)
+      animTimer->start();
+    else
+      animTimer->start((int)(1000/fpsMax));
   }
 }
 
@@ -570,27 +579,21 @@ void MainWindow::heavyWorkSlot() {
     int dframe=(int)(dT/deltaTime);// frame increment since play click
     int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
     frame->setValue(frame_); // set frame => update scene
-    glViewer->render(); // force rendering
+    //glViewer->render(); // force rendering
   }
 }
 
-void MainWindow::speedWheelChanged(double value) {
-#ifdef HAVE_QWT_WHEEL_H
-  speedSB->setValue(oldSpeed*pow(10,value));
-#endif
+void MainWindow::speedWheelChanged(int value) {
+  speedSB->setValue(oldSpeed*pow(10,value/10000.0));
 }
 
 void MainWindow::speedWheelPressed() {
-#ifdef HAVE_QWT_WHEEL_H
   oldSpeed=speedSB->value();
-#endif
 }
 
 void MainWindow::speedWheelReleased() {
-#ifdef HAVE_QWT_WHEEL_H
   oldSpeed=speedSB->value();
   speedWheel->setValue(0);
-#endif
 }
 
 void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileName, bool transparent, float red, float green, float blue) {

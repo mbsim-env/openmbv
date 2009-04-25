@@ -19,6 +19,8 @@
 #include "SoQtMyViewer.h"
 #ifdef HAVE_QWT_WHEEL_H
 #  include <qwt_wheel.h>
+#else
+#  include <QtGui/QSlider>
 #endif
 
 class MainWindow : public QMainWindow {
@@ -31,6 +33,7 @@ class MainWindow : public QMainWindow {
     Mode mode;
     SoGetBoundingBoxAction *bboxAction;
     SoText2 *timeString;
+    double fpsMax;
   protected:
     SoSeparator *sceneRootBBox;
     QTreeWidget *objectList;
@@ -53,8 +56,10 @@ class MainWindow : public QMainWindow {
     QTime *fpsTime;
 #ifdef HAVE_QWT_WHEEL_H
     QwtWheel *speedWheel;
-    double oldSpeed;
+#else
+    QSlider *speedWheel;
 #endif
+    double oldSpeed;
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -73,7 +78,8 @@ class MainWindow : public QMainWindow {
     void animationButtonSlot(QAction* act);
     void heavyWorkSlot();
     void speedChanged(double value);
-    void speedWheelChanged(double value);
+    void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
+    void speedWheelChanged(int value);
     void speedWheelPressed();
     void speedWheelReleased();
     void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent, float red, float green, float blue);
@@ -84,8 +90,7 @@ class MainWindow : public QMainWindow {
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
-    static void fpsSensorCBS(void *data, SoSensor*) { MainWindow::getInstance()->fpsSensorCB(); }
-    void fpsSensorCB();
+    void fpsCB();
     SoSeparator *getSceneRootBBox() { return sceneRootBBox; }
     QSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }

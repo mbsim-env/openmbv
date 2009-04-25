@@ -12,6 +12,7 @@ openmbv_LDADD    = -ltinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LI
 openmbv_SOURCES = body.cc\
   cuboid.cc\
   cube.cc\
+  extrusion.cc\
   sphere.cc\
   invisiblebody.cc\
   frustum.cc\
@@ -42,6 +43,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   rigidbody.moc.cc\
   cuboid.moc.cc\
   cube.moc.cc\
+  extrusion.moc.cc\
   sphere.moc.cc\
   invisiblebody.moc.cc\
   frustum.moc.cc\
@@ -60,6 +62,7 @@ noinst_HEADERS = openmbv.qrc\
   exportdialog.h\
   cuboid.h\
   cube.h\
+  extrusion.h\
   sphere.h\
   invisiblebody.h\
   frustum.h\

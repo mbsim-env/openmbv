@@ -15,4 +15,7 @@ Frame::Frame(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, h5
 
   // create so
   soSep->addChild(soFrame(size, offset));
+  // scale ref/localFrame
+  refFrameScale->scaleFactor.setValue(size,size,size);
+  localFrameScale->scaleFactor.setValue(size,size,size);
 }

@@ -6,6 +6,7 @@
 
 #include <Inventor/fields/SoMFColor.h>
 #include <Inventor/actions/SoWriteAction.h>
+#include <Inventor/actions/SoGetBoundingBoxAction.h>
 
 #include <vector>
 
@@ -33,6 +34,15 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent) : RigidBody(element, 
     ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
     ((SoMaterial*)ref)->shininess.connectFrom(&mat->shininess);
   }
+
+  // scale ref/localFrame
+  SoGetBoundingBoxAction bboxAction(SbViewportRegion(0,0));
+  bboxAction.apply(soSep);
+  float x1,y1,z1,x2,y2,z2;
+  bboxAction.getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
+  double size=min(x2-x1,min(y2-y1,z2-z1));
+  refFrameScale->scaleFactor.setValue(size,size,size);
+  localFrameScale->scaleFactor.setValue(size,size,size);
 
   // outline
 }
