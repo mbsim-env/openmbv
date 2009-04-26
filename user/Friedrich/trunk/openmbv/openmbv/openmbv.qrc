@@ -38,5 +38,6 @@
     <file>path.svg</file>
     <file>arrow.svg</file>
     <file>objbody.svg</file>
+    <file>help.svg</file>
   </qresource>
 </RCC>

@@ -63,6 +63,7 @@ class MainWindow : public QMainWindow {
   protected slots:
     void objectListClicked();
     void openFileDialog();
+    void guiHelp();
     void aboutOpenMBV();
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }

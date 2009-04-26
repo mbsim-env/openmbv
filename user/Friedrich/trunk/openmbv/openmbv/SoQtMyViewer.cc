@@ -11,6 +11,8 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, SoText2 *timeString) : SoQtExaminerV
   setCameraType(SoOrthographicCamera::getClassTypeId());
   setDecoration(false);
   setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+  setAnimationEnabled(false);
+  setSeekTime(1);
 
   fgSep=new SoSeparator;
   fgSep->ref();

@@ -252,6 +252,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   // help menu
   menuBar->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar);
+  helpMenu->addAction(QIcon(":/help.svg"), "GUI Help...", this, SLOT(guiHelp()));
   helpMenu->addAction(QIcon(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
   menuBar->addMenu(helpMenu);
 
@@ -351,6 +352,22 @@ void MainWindow::objectListClicked() {
   }
 }
 
+void MainWindow::guiHelp() {
+  QMessageBox::information(this, "GUI Help", 
+    "<h1>GUI Help</h1>"
+    "<h2>Mouse Interaction</h2>"
+    "<ul>"
+    "  <dt>Left-Button</dt><dd> Rotate the entiry scene</dd>"
+    "  <dt>Right-Button</dt><dd> Translate the entiry scene</dd>"
+    "  <dt>Middle-Button</dt><dd> Zoom the entiry scene</dd>"
+    "  <dt>Ctrl+Left-Button</dt><dd> Selects the body under the cursor.</dd>"
+    "  <dt>Crtl+Right-Button</dt><dd> Shows the property menu of body under the cursor.</dd>"
+    "  <dt>Crtl+Alt+Left-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects this body.</dd>"
+    "  <dt>Crtl+Alt+Right-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu enety, shows the proptery menu of this body.</dd>"
+    "  <dt>Crtl+Middle-Button</dt><dd> Seeks the focal point of the camera to the point on the shape under the cursor.</dd>"
+    "</ul>");
+}
+
 void MainWindow::aboutOpenMBV() {
   QMessageBox::about(this, "About OpenMBV",
     "<h1>OpenMBV - Open Multi Body Viewer</h1>"
@@ -398,7 +415,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
     // if Ctrl|Ctrl+Alt + Button1|Button2 + Pressed: select object (show list if Alt)
     if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
-        ev->getButton()==SoMouseButtonEvent::BUTTON2)) {
+        ev->getButton()==SoMouseButtonEvent::BUTTON2 ||
+        ev->getButton()==SoMouseButtonEvent::BUTTON3)) {
       // get picked points by ray
       SoRayPickAction pickAction(glViewer->getViewportRegion());
       pickAction.setPoint(ev->getPosition());
@@ -406,6 +424,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       pickAction.setPickAll(true);
       pickAction.apply(glViewer->getSceneManager()->getSceneGraph());
       SoPickedPointList pickedPoints=pickAction.getPickedPointList();
+      if(ev->getButton()==SoMouseButtonEvent::BUTTON3) { // seek to clicked point
+        if(pickedPoints[0]==0) return true;
+        glViewer->setSeekMode(true);
+        glViewer->seekToPoint(pickedPoints[0]->getPoint());
+        return true;
+      }
       // get objects by point/path
       set<Object*> pickedObject;
       float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
