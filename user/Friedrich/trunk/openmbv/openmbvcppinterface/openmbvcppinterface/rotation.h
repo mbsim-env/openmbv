@@ -13,7 +13,12 @@ namespace OpenMBV {
       std::vector<PolygonPoint*> *contour;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
+      /** Default constructor */
       Rotation();
+
+      /** Set cross section area of the rotation.
+       * The cross section is rotation around the local y-axis
+       */
       void setContour(std::vector<PolygonPoint*> *contour_) {
         contour=contour_;
       }

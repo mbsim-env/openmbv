@@ -11,7 +11,10 @@ namespace OpenMBV {
       double length;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
+      /** Default constructor */
       Cube();
+
+      /** Set the length of the cube (x, y and z)*/
       void setLength(double length_) {
         length=length_;
       } 

@@ -30,13 +30,23 @@ namespace OpenMBV {
         data->append(row);
       }
 
-      /** Set the \p diameter and \p length of the arrow head (which is a cone) */
+      /** Convenience; see setHeadDiameter and setHeadLength */
       void setArrowHead(float diameter, float length) {
         headDiameter=diameter;
         headLength=length;
       }
 
-      /** Set the \p diameter_ of the arrow (which is a cylinder) */
+      /** Set the diameter of the arrow head (which is a cone) */
+      void setHeadDiameter(float diameter) {
+        headDiameter=diameter;
+      }
+
+      /** Set the length of the arrow head (which is a cone) */
+      void setHeadLength(float length) {
+        headLength=length;
+      }
+
+      /** Set the diameter of the arrow (which is a cylinder) */
       void setDiameter(float diameter_) {
         diameter=diameter_;
       }
@@ -51,7 +61,7 @@ namespace OpenMBV {
         type=type_;
       }
 
-      /** Scale the length of the arrow by \p scale */
+      /** Scale the length of the arrow */
       void setScaleLength(double scale) {
         scaleLength=scale;
       }

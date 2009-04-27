@@ -16,8 +16,13 @@ namespace OpenMBV {
       void createHDF5File();
       void terminate();
     public:
+      /** Default constructor */
       Body();
+
+      /** Link this body with dest in the HDF5 file */
       void setHDF5LinkTarget(Body* dest) { hdf5LinkBody=dest; }
+
+      /** Returns if this body is linked to another */
       bool isHDF5Link() { return hdf5LinkBody!=0; }
   };
 

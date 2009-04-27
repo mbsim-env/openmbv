@@ -10,6 +10,7 @@ namespace OpenMBV {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
+      /** Default constructor */
       InvisibleBody();
   };
 

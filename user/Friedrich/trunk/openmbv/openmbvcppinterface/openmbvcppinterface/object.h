@@ -22,10 +22,19 @@ namespace OpenMBV {
       H5::Group *hdf5Group;
       virtual void terminate()=0;
     public:
+      /** Default constructor */
       Object();
+
+      /** Virtual destructor */
       virtual ~Object();
+
+      /** Set the name of this object */
       void setName(const std::string& name_) { name=name_; }
+
+      /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
+
+      /** Returns the full name (path) of the object */
       std::string getFullName();
   };
 

@@ -47,8 +47,8 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
-          <xs:element name="initialTranslation" type="xs:token"/>
-          <xs:element name="initialRotation" type="xs:token"/>
+          <xs:element name="initialTranslation" type="pv:lengthVector"/>
+          <xs:element name="initialRotation" type="pv:angleVector"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
@@ -60,7 +60,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="length" type="xs:double"/>
+          <xs:element name="length" type="pv:lengthScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -71,7 +71,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="length" type="xs:token"/>
+          <xs:element name="length" type="pv:lengthVector"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -82,11 +82,11 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="baseRadius" type="xs:double"/>
-          <xs:element name="topRadius" type="xs:double"/>
-          <xs:element name="height" type="xs:double"/>
-          <xs:element name="innerBaseRadius" type="xs:double"/>
-          <xs:element name="innerTopRadius" type="xs:double"/>
+          <xs:element name="baseRadius" type="pv:lengthScalar"/>
+          <xs:element name="topRadius" type="pv:lengthScalar"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
+          <xs:element name="innerBaseRadius" type="pv:lengthScalar"/>
+          <xs:element name="innerTopRadius" type="pv:lengthScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -97,8 +97,8 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="size" type="xs:double"/>
-          <xs:element name="offset" type="xs:double"/>
+          <xs:element name="size" type="pv:lengthScalar"/>
+          <xs:element name="offset" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -133,9 +133,9 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
-          <xs:element name="epsVertex" type="xs:double"/>
-          <xs:element name="epsNormal" type="xs:double"/>
-          <xs:element name="smoothBarrier" type="xs:double"/>
+          <xs:element name="epsVertex" type="pv:lengthScalar"/>
+          <xs:element name="epsNormal" type="pv:lengthScalar"/>
+          <xs:element name="smoothBarrier" type="pv:angleScalar"/>
           <xs:element name="outline">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -155,7 +155,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="contour" type="xs:token"/>
+          <xs:element name="contour" type="pv:lengthMatrix"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -166,7 +166,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="radius" type="xs:double"/>
+          <xs:element name="radius" type="pv:lengthScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -195,7 +195,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
-          <xs:element name="height" type="xs:double"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
           <xs:element name="contour" maxOccurs="unbounded" type="xs:token"/>
         </xs:sequence> 
       </xs:extension>
@@ -218,9 +218,9 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
-          <xs:element name="diameter" type="xs:double"/>
-          <xs:element name="headDiameter" type="xs:double"/>
-          <xs:element name="headLength" type="xs:double"/>
+          <xs:element name="diameter" type="pv:lengthScalar"/>
+          <xs:element name="headDiameter" type="pv:lengthScalar"/>
+          <xs:element name="headLength" type="pv:lengthScalar"/>
           <xs:element name="type">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -232,7 +232,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
-          <xs:element name="scaleLength" type="xs:double"/>
+          <xs:element name="scaleLength" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -243,7 +243,7 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
-          <xs:element name="color" type="xs:token"/>
+          <xs:element name="color" type="pv:nounitVector"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -254,10 +254,10 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
-          <xs:element name="numberOfCoils" type="xs:double"/>
-          <xs:element name="springRadius" type="xs:double"/>
-          <xs:element name="crossSectionRadius" type="xs:double"/>
-          <xs:element name="scaleFactor" type="xs:double"/>
+          <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
+          <xs:element name="springRadius" type="pv:lengthScalar"/>
+          <xs:element name="crossSectionRadius" type="pv:lengthScalar"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

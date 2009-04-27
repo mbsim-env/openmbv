@@ -9,7 +9,10 @@ namespace OpenMBV {
   /** A body defines by a Open Inventor file or a VRML file */
   class IvBody : public RigidBody {
     public:
+      /** Default constructor */
       IvBody();
+
+      /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
     protected:
       std::string ivFileName;

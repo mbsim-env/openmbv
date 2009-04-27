@@ -19,12 +19,18 @@ namespace OpenMBV {
       void createHDF5File();
       H5::VectorSerie<double>* data;
     public:
+      /** Default constructor */
       RigidBody();
+
       ~RigidBody();
+
+      /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(const std::vector<double>& initTrans) {
         assert(initTrans.size()==3);
         initialTranslation=initTrans;
       }
+
+      /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(double x, double y, double z) {
         std::vector<double> initTrans;
         initTrans.push_back(x);
@@ -32,10 +38,18 @@ namespace OpenMBV {
         initTrans.push_back(z);
         initialTranslation=initTrans;
       }
+
+      /** Set initial rotation between the local frame of the body and the reference frame.
+       * Use cardan angles to represent the transformation matrix
+       */
       void setInitialRotation(const std::vector<double>& initRot) {
         assert(initRot.size()==3);
         initialRotation=initRot;
       }
+
+      /** Set initial rotation between the local frame of the body and the reference frame.
+       * Use cardan angles to represent the transformation matrix
+       */
       void setInitialRotation(double a, double b, double g) {
         std::vector<double> initRot;
         initRot.push_back(a);
@@ -43,9 +57,13 @@ namespace OpenMBV {
         initRot.push_back(g);
         initialRotation=initRot;
       }
+
+      /** Set the scale factor of the body */
       void setScaleFactor(const double scale) {
         scaleFactor=scale;
       }
+
+      /** Append a data vector the the h5 datsset */
       void append(const std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
         data->append(row);

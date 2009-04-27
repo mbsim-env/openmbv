@@ -12,7 +12,10 @@ namespace OpenMBV {
       std::vector<RigidBody*> rigidBody;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
+      /** Default constructor */
       CompoundRigidBody();
+
+      /** Add a RigidBody to this compound */
       void addRigidBody(RigidBody* rigidBody_) {
         rigidBody.push_back(rigidBody_);
       }

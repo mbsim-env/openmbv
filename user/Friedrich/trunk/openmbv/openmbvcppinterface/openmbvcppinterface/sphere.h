@@ -11,7 +11,10 @@ namespace OpenMBV {
       double radius;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
+      /** Default constructor */
       Sphere();
+
+      /** Set the radius of the shpere */
       void setRadius(double radius_) {
         radius=radius_;
       } 
