@@ -11,7 +11,7 @@ Extrusion::Extrusion() : RigidBody(),
 }
 
 void Extrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Extrusion name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Extrusion name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     string windingRuleStr;
     switch(windingRule) {

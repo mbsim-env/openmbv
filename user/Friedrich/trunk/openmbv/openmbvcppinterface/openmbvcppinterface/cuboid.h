@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A cuboid */
   class Cuboid : public RigidBody {
     protected:
       std::vector<double> length;

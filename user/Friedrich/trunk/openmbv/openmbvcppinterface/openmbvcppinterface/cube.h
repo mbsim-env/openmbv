@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A cube */
   class Cube : public RigidBody {
     protected:
       double length;

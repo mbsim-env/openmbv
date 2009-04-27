@@ -8,7 +8,9 @@
 
 namespace OpenMBV {
 
+  /** Abstract base class for all rigid bodies */
   class RigidBody : public Body {
+    friend class CompoundRigidBody;
     protected:
       std::vector<double> initialTranslation;
       std::vector<double> initialRotation;

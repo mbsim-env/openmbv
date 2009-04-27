@@ -10,7 +10,7 @@ Rotation::Rotation() : RigidBody(),
 }
 
 void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Rotation name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Rotation name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     if(contour) {
       xmlFile<<indent<<"  <contour>"<<endl;

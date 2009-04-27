@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A frame; A coordinate system */
   class Frame : public RigidBody {
     protected:
       double size;

@@ -3,13 +3,14 @@
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/frame.h>
 #include <openmbvcppinterface/arrow.h>
-#include <openmbvcppinterface/cylinder.h>
+#include <openmbvcppinterface/frustum.h>
 #include <openmbvcppinterface/sphere.h>
 #include <openmbvcppinterface/extrusion.h>
 #include <openmbvcppinterface/rotation.h>
 #include <openmbvcppinterface/invisiblebody.h>
 #include <openmbvcppinterface/coilspring.h>
-#include <openmbvcppinterface/objobject.h>
+#include <openmbvcppinterface/objbody.h>
+#include <openmbvcppinterface/compoundrigidbody.h>
 #include <iostream>
 
 using namespace OpenMBV;
@@ -59,7 +60,7 @@ int main() {
     arrow.setName("myarrow");
     g.addObject(&arrow);
 
-    Cylinder cylinder;
+    Frustum cylinder;
     cylinder.setName("mycylinder");
     g.addObject(&cylinder);
     
@@ -94,9 +95,16 @@ int main() {
     coilspring.setName("mycoilspring");
     g.addObject(&coilspring);
     
-    ObjObject objobject;
+    ObjBody objobject;
     objobject.setName("myobjobject");
     g.addObject(&objobject);
+    
+    CompoundRigidBody crg;
+    crg.setName("mycrg");
+    crg.addRigidBody(&objobject);
+    crg.addRigidBody(&rotation);
+    g.addObject(&crg);
+
 
   g.initialize();
 

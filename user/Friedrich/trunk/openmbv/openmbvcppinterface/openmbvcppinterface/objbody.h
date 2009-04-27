@@ -6,6 +6,7 @@
 
 namespace OpenMBV {
 
+  /** A body defined by a Wavefront Obj file*/
   class ObjBody : public RigidBody {
     public:
       enum Normals {

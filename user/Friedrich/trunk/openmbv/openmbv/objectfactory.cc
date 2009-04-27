@@ -13,6 +13,7 @@
 #include "arrow.h"
 #include "objbody.h"
 #include "extrusion.h"
+#include "compoundrigidbody.h"
 #include "mainwindow.h"
 #include <string>
 
@@ -43,6 +44,8 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIte
     return new ObjBody(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Extrusion")
     return new Extrusion(element, h5Parent, parentItem, soParent);
+  else if(element->ValueStr()==OPENMBVNS"CompoundRigidBody")
+    return new CompoundRigidBody(element, h5Parent, parentItem, soParent);
   MainWindow::getInstance()->getStatusBar()->showMessage(QString("ERROR: Unknown element: %1").arg(element->Value()), 2000);
   cout<<"ERROR: Unknown element: "<<element->ValueStr()<<endl;
   return 0;

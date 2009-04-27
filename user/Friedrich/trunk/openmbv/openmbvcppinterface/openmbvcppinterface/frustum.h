@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A frustum (with a frustum hole) */
   class Frustum : public RigidBody {
     protected:
       double baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;

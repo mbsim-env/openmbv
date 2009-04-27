@@ -10,7 +10,7 @@ Sphere::Sphere() : RigidBody(),
 }
 
 void Sphere::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Sphere name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Sphere name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <radius>"<<radius<<"</radius>"<<endl;
   xmlFile<<indent<<"</Sphere>"<<endl;

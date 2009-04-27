@@ -10,6 +10,7 @@ namespace OpenMBV {
 
   class Group;
 
+  /** Abstract base class */
   class Object {
     friend class Group;
     protected:

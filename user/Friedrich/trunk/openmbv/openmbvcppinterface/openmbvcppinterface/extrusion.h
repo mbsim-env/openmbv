@@ -7,6 +7,7 @@
 
 namespace OpenMBV {
 
+  /** A extrusion of a cross section area (with holes) */
   class Extrusion : public RigidBody {
     protected:
       enum WindingRule {

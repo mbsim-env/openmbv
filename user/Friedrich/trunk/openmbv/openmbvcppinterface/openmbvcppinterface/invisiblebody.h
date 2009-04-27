@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A invisible body */
   class InvisibleBody : public RigidBody {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

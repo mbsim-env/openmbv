@@ -6,6 +6,7 @@
 
 namespace OpenMBV {
 
+  /** A coil spring */
   class CoilSpring : public Body {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

@@ -8,14 +8,16 @@
 using namespace std;
 
 RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
-  //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
+  if(h5Parent) {
+    //h5 dataset
+    h5Data=new H5::VectorSerie<double>;
+    if(h5Group) {
+      h5Data->open(*h5Group, "data");
+      int rows=h5Data->getRows();
+      double dt;
+      if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
+      resetAnimRange(rows, dt);
+    }
   }
   
   // read XML
@@ -28,41 +30,47 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   // create so
 
-  // path
-  soPathSwitch=new SoSwitch;
-  soSep->addChild(soPathSwitch);
-  SoSeparator *pathSep=new SoSeparator;
-  soPathSwitch->addChild(pathSep);
-  SoBaseColor *col=new SoBaseColor;
-  col->rgb.setValue(0, 1, 0);
-  pathSep->addChild(col);
-  pathCoord=new SoCoordinate3;
-  pathSep->addChild(pathCoord);
-  pathLine=new SoLineSet;
-  pathSep->addChild(pathLine);
-  soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  pathMaxFrameRead=-1;
-
-  // translation (from hdf5)
-  translation=new SoTranslation;
-  soSep->addChild(translation);
-
-  // rotation (from hdf5)
-  rotationAlpha=new SoRotationXYZ;
-  rotationAlpha->axis=SoRotationXYZ::X;
-  soSep->addChild(rotationAlpha);
-  rotationBeta=new SoRotationXYZ;
-  rotationBeta->axis=SoRotationXYZ::Y;
-  soSep->addChild(rotationBeta);
-  rotationGamma=new SoRotationXYZ;
-  rotationGamma->axis=SoRotationXYZ::Z;
-  soSep->addChild(rotationGamma);
-
-  // reference frame
-  soReferenceFrameSwitch=new SoSwitch;
-  soSep->addChild(soReferenceFrameSwitch);
-  soReferenceFrameSwitch->addChild(soFrame(1,1,refFrameScale));
-  soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  if(h5Parent) {
+    // path
+    soPathSwitch=new SoSwitch;
+    soSep->addChild(soPathSwitch);
+    SoSeparator *pathSep=new SoSeparator;
+    soPathSwitch->addChild(pathSep);
+    SoBaseColor *col=new SoBaseColor;
+    col->rgb.setValue(0, 1, 0);
+    pathSep->addChild(col);
+    pathCoord=new SoCoordinate3;
+    pathSep->addChild(pathCoord);
+    pathLine=new SoLineSet;
+    pathSep->addChild(pathLine);
+    soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    pathMaxFrameRead=-1;
+  
+    // translation (from hdf5)
+    translation=new SoTranslation;
+    soSep->addChild(translation);
+  
+    // rotation (from hdf5)
+    rotationAlpha=new SoRotationXYZ;
+    rotationAlpha->axis=SoRotationXYZ::X;
+    soSep->addChild(rotationAlpha);
+    rotationBeta=new SoRotationXYZ;
+    rotationBeta->axis=SoRotationXYZ::Y;
+    soSep->addChild(rotationBeta);
+    rotationGamma=new SoRotationXYZ;
+    rotationGamma->axis=SoRotationXYZ::Z;
+    soSep->addChild(rotationGamma);
+  
+    // reference frame
+    soReferenceFrameSwitch=new SoSwitch;
+    soSep->addChild(soReferenceFrameSwitch);
+    soReferenceFrameSwitch->addChild(soFrame(1,1,refFrameScale));
+    soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  }
+  else { // a dummmy refFrameScale
+    refFrameScale=new SoScale;
+    refFrameScale->ref();
+  }
 
   // initial translation
   SoTranslation *initTrans=new SoTranslation;
@@ -84,32 +92,40 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   initRot->angle.setValue(initRotValue[2]);
   soSep->addChild(initRot);
 
-  // local frame
-  soLocalFrameSwitch=new SoSwitch;
-  soSep->addChild(soLocalFrameSwitch);
-  soLocalFrameSwitch->addChild(soFrame(1,1,localFrameScale));
-  soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-
-  // mat (from hdf5)
-  mat=new SoMaterial;
-  soSep->addChild(mat);
-  mat->shininess.setValue(0.9);
+  if(h5Parent) {
+    // local frame
+    soLocalFrameSwitch=new SoSwitch;
+    soSep->addChild(soLocalFrameSwitch);
+    soLocalFrameSwitch->addChild(soFrame(1,1,localFrameScale));
+    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  
+    // mat (from hdf5)
+    mat=new SoMaterial;
+    soSep->addChild(mat);
+    mat->shininess.setValue(0.9);
+  }
+  else { // a dummmy localFrameScale
+    localFrameScale=new SoScale;
+    localFrameScale->ref();
+  }
 
   // initial scale
   SoScale *scale=new SoScale;
   scale->scaleFactor.setValue(scaleValue,scaleValue,scaleValue);
   soSep->addChild(scale);
 
-  // GUI
-  localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", 0);
-  localFrame->setCheckable(true);
-  connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-  referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", 0);
-  referenceFrame->setCheckable(true);
-  connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
-  path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", 0);
-  path->setCheckable(true);
-  connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
+  if(h5Parent) {
+    // GUI
+    localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", 0);
+    localFrame->setCheckable(true);
+    connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
+    referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", 0);
+    referenceFrame->setCheckable(true);
+    connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
+    path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", 0);
+    path->setCheckable(true);
+    connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
+  }
 }
 
 QMenu* RigidBody::createMenu() {

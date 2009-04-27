@@ -36,19 +36,24 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     tessCBInit=true;
   }
 
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"hdf5Link");
-  if(e); // hdf6Link
+  if(h5Parent) {
+    // read XML
+    TiXmlElement *e=element->FirstChildElement(OPENMBVNS"hdf5Link");
+    if(e); // hdf5Link
 
-  // register callback function on frame change
-  SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
-  sensor->attach(MainWindow::getInstance()->getFrame());
-  sensor->setPriority(0);
+    // register callback function on frame change
+    SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
+    sensor->attach(MainWindow::getInstance()->getFrame());
+    sensor->setPriority(0);
+  }
 
   // switch for outline
   soOutLineSwitch=new SoSwitch;
   soOutLineSwitch->ref(); // add to scene must be done by derived class
-  soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  if(h5Parent)
+    soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  else
+    soOutLineSwitch->whichChild.connectFrom(&((Body*)parentItem)->soOutLineSwitch->whichChild);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
   SoLightModel *lm=new SoLightModel;
@@ -61,29 +66,31 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   style->style.setValue(SoDrawStyle::LINES);
   soOutLineSep->addChild(style);
 
-  // draw method
-  drawStyle=new SoDrawStyle;
-  soSep->addChild(drawStyle);
-
-  // GUI
-  // draw outline action
-  outLine=new QAction(QIcon(":/outline.svg"),"Draw Out-Line", 0);
-  outLine->setCheckable(true);
-  outLine->setChecked(true);
-  connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
-  // draw method action
-  drawMethod=new QActionGroup(this);
-  drawMethodPolygon=new QAction(QIcon(":/filled.svg"),"Draw Style: Filled", drawMethod);
-  drawMethodLine=new QAction(QIcon(":/lines.svg"),"Draw Style: Lines", drawMethod);
-  drawMethodPoint=new QAction(QIcon(":/points.svg"),"Draw Style: Points", drawMethod);
-  drawMethodPolygon->setCheckable(true);
-  drawMethodPolygon->setData(QVariant(filled));
-  drawMethodLine->setCheckable(true);
-  drawMethodLine->setData(QVariant(lines));
-  drawMethodPoint->setCheckable(true);
-  drawMethodPoint->setData(QVariant(points));
-  drawMethodPolygon->setChecked(true);
-  connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
+  if(h5Parent) {
+    // draw method
+    drawStyle=new SoDrawStyle;
+    soSep->addChild(drawStyle);
+  
+    // GUI
+    // draw outline action
+    outLine=new QAction(QIcon(":/outline.svg"),"Draw Out-Line", 0);
+    outLine->setCheckable(true);
+    outLine->setChecked(true);
+    connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
+    // draw method action
+    drawMethod=new QActionGroup(this);
+    drawMethodPolygon=new QAction(QIcon(":/filled.svg"),"Draw Style: Filled", drawMethod);
+    drawMethodLine=new QAction(QIcon(":/lines.svg"),"Draw Style: Lines", drawMethod);
+    drawMethodPoint=new QAction(QIcon(":/points.svg"),"Draw Style: Points", drawMethod);
+    drawMethodPolygon->setCheckable(true);
+    drawMethodPolygon->setData(QVariant(filled));
+    drawMethodLine->setCheckable(true);
+    drawMethodLine->setData(QVariant(lines));
+    drawMethodPoint->setCheckable(true);
+    drawMethodPoint->setData(QVariant(points));
+    drawMethodPolygon->setChecked(true);
+    connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
+  }
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {

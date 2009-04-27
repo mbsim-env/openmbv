@@ -7,6 +7,7 @@
 
 namespace OpenMBV {
 
+  /** Rotation of a cross section area */
   class Rotation : public RigidBody {
     protected:
       std::vector<PolygonPoint*> *contour;

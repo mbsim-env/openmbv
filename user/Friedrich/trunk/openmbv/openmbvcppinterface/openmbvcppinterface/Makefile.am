@@ -10,6 +10,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   body.cc \
   group.cc \
   rigidbody.cc \
+  compoundrigidbody.cc \
   frame.cc \
   frustum.cc \
   sphere.cc \
@@ -28,6 +29,7 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   body.h \
   group.h \
   rigidbody.h \
+  compoundrigidbody.h \
   frame.h \
   frustum.h \
   sphere.h \

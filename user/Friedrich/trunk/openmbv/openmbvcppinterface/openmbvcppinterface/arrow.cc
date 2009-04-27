@@ -14,7 +14,7 @@ Arrow::Arrow() : Body(),
 }
 
 void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Arrow name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Arrow name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
     Body::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <diameter>"<<diameter<<"</diameter>"<<endl;
     xmlFile<<indent<<"  <headDiameter>"<<headDiameter<<"</headDiameter>"<<endl;

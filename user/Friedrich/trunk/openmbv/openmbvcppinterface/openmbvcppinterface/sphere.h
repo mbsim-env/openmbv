@@ -5,6 +5,7 @@
 
 namespace OpenMBV {
 
+  /** A spehere */
   class Sphere : public RigidBody {
     protected:
       double radius;

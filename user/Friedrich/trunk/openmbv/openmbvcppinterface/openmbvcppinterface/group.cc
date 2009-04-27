@@ -21,7 +21,7 @@ void Group::addObject(Object* newObject) {
 
 void Group::writeXMLFile(ofstream& xmlFile, const string& indent) {
   if(!separateFile) {
-    xmlFile<<indent<<"<Group name=\""<<name<<"\" name=\""<<expandStr<<"\">"<<endl;
+    xmlFile<<indent<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
       for(int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"</Group>"<<endl;

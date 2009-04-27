@@ -6,6 +6,7 @@
 
 namespace OpenMBV {
 
+  /** A body defines by a Open Inventor file or a VRML file */
   class IvBody : public RigidBody {
     public:
       IvBody();

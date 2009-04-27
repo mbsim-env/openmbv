@@ -7,6 +7,7 @@
 
 namespace OpenMBV {
 
+  /** Draw a path of a reference point */
   class Path : public Body {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

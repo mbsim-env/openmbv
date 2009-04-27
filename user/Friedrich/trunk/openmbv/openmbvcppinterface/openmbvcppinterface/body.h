@@ -6,6 +6,7 @@
 
 namespace OpenMBV {
 
+  /** Abstract base class for all bodies */
   class Body : public Object {
     private:
       std::string getRelPathTo(Body* destBody);

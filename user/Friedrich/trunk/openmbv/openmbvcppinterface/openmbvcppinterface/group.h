@@ -7,6 +7,7 @@
 
 namespace OpenMBV {
 
+  /** A container for bodies */
   class Group : public Object {
     friend class Body;
     protected:

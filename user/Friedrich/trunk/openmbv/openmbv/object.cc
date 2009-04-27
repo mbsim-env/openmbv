@@ -10,16 +10,18 @@ using namespace std;
 map<SoNode*,Object*> Object::objectMap;
 
 Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
-  // parent item
-  parentItem->addChild(this);
-  // expand or collapse
-  if(element->Attribute("expand")==0)
-    setExpanded(true);
-  else
-    if(element->Attribute("expand")==string("true"))
+  if(h5Parent) {
+    // parent item
+    parentItem->addChild(this);
+    // expand or collapse
+    if(element->Attribute("expand")==0)
       setExpanded(true);
     else
-      setExpanded(false);
+      if(element->Attribute("expand")==string("true"))
+        setExpanded(true);
+      else
+        setExpanded(false);
+  }
   
   // h5 group
   if(element->Parent()->Type()==TiXmlNode::DOCUMENT || h5Parent==0)
@@ -50,7 +52,8 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   sensor->attach(soSep);
 
   // add to map for finding this object by the soSep SoNode
-  objectMap.insert(pair<SoNode*, Object*>(soSep,this));
+  if(h5Parent)
+    objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
   setText(0, element->Attribute("name"));
 
