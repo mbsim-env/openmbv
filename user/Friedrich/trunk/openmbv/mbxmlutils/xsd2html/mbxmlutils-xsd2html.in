@@ -1,0 +1,53 @@
+#! /bin/sh
+
+if [ $# -ne 4 ]; then
+  echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <ProjectName> <DocygenPrefix>"
+  echo "  InXsdFile: Input xsd file which should be converted to html"
+  echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
+  echo "                   corrospondending documentation"
+  echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
+  echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
+  exit
+fi
+
+FILE=$1 #"/home/markus/project/MBSim/openmbv/schema/openmbv.xsd"
+DOXYGENDOCDIR=$2 #"/home/markus/project/MBSim/openmbv/doc_/xml"
+PROJECT=$3 #"OpenMBV"
+DOXYGENCLASSPREFIX=$4 #"OpenMBV::"
+
+
+
+DOXYGENFUNCTIONPREFIX1="set"
+DOXYGENFUNCTIONPREFIX2="get"
+BASENAME=$(basename $FILE .xsd)
+prefix=@prefix@
+
+echo "Combine Doxygen XML documentation"
+echo "In file: $DOXYGENDOCDIR/index.xml"
+echo "XSL file: $DOXYGENDOCDIR/combine.xslt"
+echo "Out file: .$PROJECT.doxygen.xml"
+@WINEALTOVAXML@ /xslt2 $(winepath -w $DOXYGENDOCDIR/combine.xslt) /in $(winepath -w $DOXYGENDOCDIR/index.xml) /out .$PROJECT.doxygen.xml
+echo "DONE"
+
+echo "Add Doxygen class and element function documentation to XML Schema"
+echo "In file: $FILE"
+echo "XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
+echo "Out file: $BASENAME.doxygen.xsd"
+ln -sf $FILE .test.xml # AltavoXML.exe can not handle .xsd file as /in parameter !!!!!!
+@WINEALTOVAXML@ /xslt2 z:@datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl /in .test.xml \
+   /param DOXYGENDOC="'$(pwd)/.$PROJECT.doxygen.xml'" \
+   /param DOXYGENCLASSPREFIX="'$DOXYGENCLASSPREFIX'" \
+   /param DOXYGENFUNCTIONPREFIX1="'$DOXYGENFUNCTIONPREFIX1'" \
+   /param DOXYGENFUNCTIONPREFIX2="'$DOXYGENFUNCTIONPREFIX2'" \
+   /out $BASENAME.doxygen.xsd
+echo DONE
+
+echo "Generate HTML documentation"
+echo "In file: $BASENAME.doxygen.xsd"
+echo "XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
+echo "Out file: $BASENAME.html"
+@WINEALTOVAXML@ /xslt2 z:@datadir@/@PACKAGE@/xsl/xsdToHtml.xsl /in $BASENAME.doxygen.xsd \
+  /param PROJECT="'$PROJECT'" \
+  /param PHYSICALVARIABLEHTMLDOC="'@datadir@/@PACKAGE@/doc/measurement.html'"\
+  /out $BASENAME.html
+echo DONE

@@ -3,7 +3,12 @@
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
   xmlns="http://openmbv.berlios.de/OpenMBV"
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+    schemaLocation="@MBXMLUTILSSCHEMA@/physicalvariable.xsd"/>
+
 
   <xs:element name="Object" abstract="true" type="ObjectType"/>
   <xs:complexType name="ObjectType">
@@ -44,7 +49,7 @@
         <xs:sequence>
           <xs:element name="initialTranslation" type="xs:token"/>
           <xs:element name="initialRotation" type="xs:token"/>
-          <xs:element name="scaleFactor" type="xs:double"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

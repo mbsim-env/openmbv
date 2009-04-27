@@ -79,6 +79,13 @@ AC_SUBST([QWT_CFLAGS])
 AC_SUBST([QWT_LIBS])
 AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
 
-AC_CONFIG_FILES([Makefile tinyxml/Makefile openmbv/Makefile])
+dnl XML
+PKG_CHECK_MODULES(MBXMLUTILS, [mbxmlutils >= 1.0.0], [HAVE_MBXMLUTILS=yes], [HAVE_MBXMLUTILS=no])
+AM_CONDITIONAL([COND_MBXMLUTILS], [test "_$HAVE_MBXMLUTILS" = "_yes"])
+if test "_$HAVE_MBXMLUTILS" = "_yes"; then
+  AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
+fi
+
+AC_CONFIG_FILES([Makefile tinyxml/Makefile openmbv/Makefile schema/Makefile schema/openmbv.xsd doc/Makefile])
 
 AC_OUTPUT
