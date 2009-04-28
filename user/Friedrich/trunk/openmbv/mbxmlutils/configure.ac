@@ -13,8 +13,14 @@ if test $? -ne 1; then
   AC_MSG_ERROR([No xslt 2.0 found; Command failed: $WINEALTOVAXML]);
 fi
 AC_SUBST([WINEALTOVAXML])
+DATADIR="$(eval echo $(eval echo $datadir))"
+AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
+AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
+AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
+AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 
 AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutils/Makefile mbxmlutils/measurement.xml mbxmlutils.pc])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
+AC_CONFIG_FILES([mbxmlutils/mbxmlutils-simplifyxml],[chmod +x mbxmlutils/mbxmlutils-simplifyxml])
 
 AC_OUTPUT

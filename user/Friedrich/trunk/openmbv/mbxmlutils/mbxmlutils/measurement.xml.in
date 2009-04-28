@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<measurement xmlns="http://openmbv.berlios.de/MBXMLUtils/measurement"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://openmbv.berlios.de/MBXMLUtils/measurement @DATADIR@/@PACKAGE@/schema/measurement.xsd">
+<measurement xmlns="http://openmbv.berlios.de/MBXMLUtils/measurement">
   <measure name="nounit" SIunit="">
     <unit name="">value</unit>
   </measure>
