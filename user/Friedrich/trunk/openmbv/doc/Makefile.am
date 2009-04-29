@@ -4,6 +4,7 @@ dist_doc_DATA = openmbv.html
 openmbv.html: ../schema/openmbv.xsd ../openmbvcppinterface/openmbvcppinterface/*.h
 	doxygen
 	$$(pkg-config mbxmlutils --variable BINDIR)/mbxmlutils-xsd2html ../schema/openmbv.xsd xml OpenMBV OpenMBV::
+	sed -re "s|$$(pkg-config mbxmlutils --variable DOCDIR)/measurement.html|qrc:measurement.html|" ../doc/openmbv.html > openmbv.qt.html
 
 
 

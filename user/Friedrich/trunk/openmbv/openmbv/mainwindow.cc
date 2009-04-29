@@ -11,6 +11,7 @@
 #include <QtGui/QToolBar>
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QStatusBar>
+#include <QWebHistory>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -37,7 +38,7 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1), helpViewer(0) {
   if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
@@ -253,6 +254,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   menuBar->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar);
   helpMenu->addAction(QIcon(":/help.svg"), "GUI Help...", this, SLOT(guiHelp()));
+  helpMenu->addAction(QIcon(":/help.svg"), "XML Help...", this, SLOT(xmlHelp()));
   helpMenu->addAction(QIcon(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
   menuBar->addMenu(helpMenu);
 
@@ -353,7 +355,7 @@ void MainWindow::objectListClicked() {
 }
 
 void MainWindow::guiHelp() {
-  QMessageBox::information(this, "GUI Help", 
+  QMessageBox::information(this, "OpenMBV - GUI Help", 
     "<h1>GUI Help</h1>"
     "<h2>Mouse Interaction</h2>"
     "<ul>"
@@ -366,6 +368,37 @@ void MainWindow::guiHelp() {
     "  <dt>Crtl+Alt+Right-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu enety, shows the proptery menu of this body.</dd>"
     "  <dt>Crtl+Middle-Button</dt><dd> Seeks the focal point of the camera to the point on the shape under the cursor.</dd>"
     "</ul>");
+}
+
+void MainWindow::xmlHelp() {
+  static QDialog *helpDialog=0;
+  if(!helpDialog) {
+    helpDialog=new QDialog(this);
+    helpDialog->setWindowIcon(QIcon(":/help.svg"));
+    helpDialog->setWindowTitle("OpenMBV - XML Help");
+    QGridLayout *layout=new QGridLayout(helpDialog);
+    helpDialog->setLayout(layout);
+    QPushButton *home=new QPushButton("Home",helpDialog);
+    layout->addWidget(home,0,0);
+    QPushButton *helpBackward=new QPushButton("Backward",helpDialog);
+    layout->addWidget(helpBackward,0,1);
+    QPushButton *helpForward=new QPushButton("Forward",helpDialog);
+    layout->addWidget(helpForward,0,2);
+    helpViewer=new QWebView(helpDialog);
+    layout->addWidget(helpViewer,1,0,1,3);
+    connect(home, SIGNAL(clicked()), this, SLOT(helpHome()));
+    connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
+    connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
+    helpViewer->load(QUrl("qrc:openmbv.html"));
+  }
+  helpDialog->show();
+  helpDialog->raise();
+  helpDialog->activateWindow();
+  helpDialog->resize(700,500);
+}
+
+void MainWindow::helpHome() {
+  helpViewer->load(QUrl("qrc:openmbv.html"));
 }
 
 void MainWindow::aboutOpenMBV() {

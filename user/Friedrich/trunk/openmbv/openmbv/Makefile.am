@@ -74,3 +74,11 @@ noinst_HEADERS = openmbv.qrc\
   group.h\
   body.h\
   SoQtMyViewer.h
+
+# some dependencies for openmbv.qrc.cc
+openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html ../mbxmlutils/mbxmlutils/measurement.html
+# generate dummy documentation if not exist
+../doc/openmbv.qt.html:
+	touch -r ../schema/openmbv.xsd ../doc/openmbv.qt.html
+../mbxmlutils/mbxmlutils/measurement.html:
+	touch -r ../mbxmlutils/mbxmlutils/measurement.xml ../mbxmlutils/mbxmlutils/measurement.html

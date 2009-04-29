@@ -9,6 +9,7 @@
 #include <QtGui/QActionGroup>
 #include <QtGui/QLabel>
 #include <QtGui/QStatusBar>
+#include <QWebView>
 #include <QTimer>
 #include <QTime>
 #include <string>
@@ -34,6 +35,7 @@ class MainWindow : public QMainWindow {
     SoGetBoundingBoxAction *bboxAction;
     SoText2 *timeString;
     double fpsMax;
+    QWebView *helpViewer;
   protected:
     SoSeparator *sceneRootBBox;
     QTreeWidget *objectList;
@@ -64,6 +66,7 @@ class MainWindow : public QMainWindow {
     void objectListClicked();
     void openFileDialog();
     void guiHelp();
+    void xmlHelp();
     void aboutOpenMBV();
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }
@@ -86,6 +89,7 @@ class MainWindow : public QMainWindow {
     void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent, float red, float green, float blue);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
+    void helpHome();
   public:
     MainWindow(std::list<std::string>& arg);
     static MainWindow*const getInstance() { return instance; }
