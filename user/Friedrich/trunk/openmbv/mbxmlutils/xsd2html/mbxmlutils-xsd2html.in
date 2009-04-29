@@ -35,7 +35,7 @@ echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
 echo "  Out file: $BASENAME.doxygen.xsd"
 ln -sf $FILE .test.xml # AltavoXML.exe can not handle .xsd file as /in parameter !!!!!!
 @WINEALTOVAXML@ /xslt2 z:@datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl /in .test.xml \
-   /param DOXYGENDOC="'$(pwd)/.$PROJECT.doxygen.xml'" \
+   /param DOXYGENDOC="'z:$(pwd)/.$PROJECT.doxygen.xml'" \
    /param DOXYGENCLASSPREFIX="'$DOXYGENCLASSPREFIX'" \
    /param DOXYGENFUNCTIONPREFIX1="'$DOXYGENFUNCTIONPREFIX1'" \
    /param DOXYGENFUNCTIONPREFIX2="'$DOXYGENFUNCTIONPREFIX2'" \

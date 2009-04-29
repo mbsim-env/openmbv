@@ -309,7 +309,7 @@
         <xsl:if test="namespace-uri-from-QName(resolve-QName(@type,.))='http://openmbv.berlios.de/MBXMLUtils/physicalvariable'">
           (Type: <a style="font-family:monospace">
              <!-- set href to $PHYSICALVARIABLEHTMLDOC#[scalartype|vectortype|matrixtype] -->
-            <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:value-of select="replace(replace(replace(local-name-from-QName(@type),'^.*Scalar$','scalartype'),'^.*Vector$','vectortype'),'^.*Matrix$','matrixtype')"/></xsl:attribute>
+            <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:value-of select="replace(replace(replace(@type,'^.*Scalar$','scalartype'),'^.*Vector$','vectortype'),'^.*Matrix$','matrixtype')"/></xsl:attribute>
             <xsl:value-of select="@type"/>
           </a>)
         </xsl:if>
