@@ -10,7 +10,7 @@
 SoQtMyViewer::SoQtMyViewer(QWidget *parent, SoText2 *timeString) : SoQtExaminerViewer(parent) {
   setCameraType(SoOrthographicCamera::getClassTypeId());
   setDecoration(false);
-  setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+  setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
   setAnimationEnabled(false);
   setSeekTime(1);
 

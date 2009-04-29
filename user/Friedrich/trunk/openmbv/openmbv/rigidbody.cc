@@ -30,7 +30,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   if(e)
     maximalColorValue=toVector(e->GetText())[0];
   else
-    maximalColorValue=0;
+    maximalColorValue=1;
 
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   vector<double> initTransValue=toVector(e->GetText());
