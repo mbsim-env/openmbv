@@ -53,6 +53,8 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
+          <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="initialTranslation" type="pv:lengthVector"/>
           <xs:element name="initialRotation" type="pv:angleVector"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>

@@ -28,11 +28,10 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   soSep->addChild(file);
   file->name.setValue(fileName.c_str());
   // connect object OMBVMATERIAL in file to hdf5 mat if it is of type SoMaterial
-  SoBase *ref=SoNode::getByName("BASECOLOR");
+  SoBase *ref=SoNode::getByName("OMBVMATERIAL");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
     ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
     ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
-    ((SoMaterial*)ref)->shininess.connectFrom(&mat->shininess);
   }
 
   // scale ref/localFrame

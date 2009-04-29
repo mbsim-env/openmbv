@@ -21,7 +21,18 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   }
   
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"initialTranslation");
+  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
+  if(e)
+    minimalColorValue=toVector(e->GetText())[0];
+  else
+    minimalColorValue=0;
+  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
+  if(e)
+    maximalColorValue=toVector(e->GetText())[0];
+  else
+    maximalColorValue=0;
+
+  e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   vector<double> initTransValue=toVector(e->GetText());
   e=e->NextSiblingElement();
   vector<double> initRotValue=toVector(e->GetText());
@@ -172,8 +183,12 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
-  mat->specularColor.setHSVValue((1-data[7])*2/3,0.7,1);
+  // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
+  double col=data[7];
+  double m=1/(maximalColorValue-minimalColorValue);
+  col=m*col-m*minimalColorValue;
+  mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
+  mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
 
   // path
   if(path->isChecked()) {

@@ -11,7 +11,8 @@ RigidBody::RigidBody() : Body(),
   initialTranslation(3, 0),
   initialRotation(3, 0),
   scaleFactor(1),
-  data(0) {
+  data(0),
+  staticColor(-1) {
 }
 
 RigidBody::~RigidBody() {
@@ -20,6 +21,8 @@ RigidBody::~RigidBody() {
 
 void RigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   Body::writeXMLFile(xmlFile, indent);
+  xmlFile<<indent<<"<minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
+  xmlFile<<indent<<"<maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
   xmlFile<<indent<<"<initialTranslation>["<<initialTranslation[0]<<";"
                                        <<initialTranslation[1]<<";"
                                        <<initialTranslation[2]<<"]</initialTranslation>"<<endl;
