@@ -8,6 +8,7 @@
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLightModel.h>
+#include "SoSpecial.h"
 #include <QtGui/QMenu>
 #include "mainwindow.h"
 #include <GL/gl.h>
@@ -182,7 +183,7 @@ vector<vector<double> > Body::toMatrix(string str) {
 
 // convenience: create frame so
 SoSeparator* Body::soFrame(double size, double offset, SoScale *&scale) {
-  SoSeparator *sep=new SoSeparator;
+  SoSeparator *sep=new SoSepNoPickNoBBox;
   sep->ref();
 
   SoBaseColor *col;

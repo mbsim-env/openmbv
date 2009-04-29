@@ -73,6 +73,7 @@ noinst_HEADERS = openmbv.qrc\
   frame.h\
   group.h\
   body.h\
+  SoSpecial.h\
   SoQtMyViewer.h
 
 # some dependencies for openmbv.qrc.cc

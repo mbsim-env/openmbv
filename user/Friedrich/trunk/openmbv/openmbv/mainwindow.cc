@@ -277,19 +277,17 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   // read XML files
   if(arg.empty()) arg.push_back("."); // if calles without argument loat current dir
   QDir dir;
-  QStringList filter;
-  filter<<"*.ombv.xml";
-  filter<<"*.ombv.env.xml";
-  dir.setNameFilters(filter);
+  QRegExp filterRE("([^.]+\\.ombv.xml|[^.]+\\.ombv.env.xml)");
   dir.setFilter(QDir::Files);
   list<string>::iterator i=arg.begin(), i2;
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
-      // open all *.ombv.xml *.ombv.env.xml files in arg[i]
+      // open all [^.]+\.ombv.xml or [^.]+\.ombv.env.xml files
       QStringList file=dir.entryList();
       for(int j=0; j<file.size(); j++)
-        openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+        if(filterRE.exactMatch(file[j]))
+          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
       i2=i; i++; arg.erase(i2);
       continue;
     }

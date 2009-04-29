@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         <<"Calling 'openmbv' without arguments is the same as calling 'openmbv .'"<<endl
         <<""<<endl
         <<"-h|--help  Shows this help"<<endl
-        <<"<dir>      Open/Load all *.ombv.xml and *.obmv.env.xml files in <dir>"<<endl
+        <<"<dir>      Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files in <dir>"<<endl
         <<"<file>     Open/Load <file>"<<endl;
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
