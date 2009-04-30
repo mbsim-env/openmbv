@@ -19,7 +19,7 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 dnl Qt
-PKG_CHECK_MODULES(QT, [QtCore >= 4.3 QtGui >= 4.3 QtSvg >= 4.3 QtWebKit >= 4.3])
+PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc
 MOC=$(pkg-config --variable moc_location QtCore)
 UIC=$(pkg-config --variable uic_location QtCore)

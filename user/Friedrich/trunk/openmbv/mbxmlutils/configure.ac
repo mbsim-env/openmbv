@@ -10,7 +10,12 @@ dnl Check for xslt-2.0 (currently only wine + AltovaXML with fixed path)
 WINEALTOVAXML="wine ~/.wine/drive_c/Program\ Files/Altova/AltovaXML2008/AltovaXML.exe"
 eval $WINEALTOVAXML >& /dev/null
 if test $? -ne 1; then
-  AC_MSG_ERROR([No xslt 2.0 found; Command failed: $WINEALTOVAXML]);
+  AC_MSG_WARN([No xslt 2.0 found; Command failed: $WINEALTOVAXML]);
+  WINEALTOVAXML="wine z:/home/OpenMBV/AltovaXML/AltovaXML.exe"
+  eval $WINEALTOVAXML >& /dev/null
+  if test $? -ne 1; then
+    AC_MSG_ERROR([No xslt 2.0 found; Command failed: $WINEALTOVAXML]);
+  fi
 fi
 AC_SUBST([WINEALTOVAXML])
 DATADIR="$(eval echo $(eval echo $datadir))"
