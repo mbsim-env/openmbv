@@ -1,3 +1,22 @@
+/*
+    OpenMBV - Open Multi Body Viewer.
+    Copyright (C) 2009 Markus Friedrich
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #ifndef _MAINWINDOW_H_
 #define _MAINWINDOW_H_
 
@@ -14,6 +33,7 @@
 #include <QTime>
 #include <string>
 #include "body.h"
+#include "SoSpecial.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/SoOffscreenRenderer.h>
@@ -31,17 +51,18 @@ class MainWindow : public QMainWindow {
     enum ViewSide { top, bottom, front, back, right, left };
     enum Mode { no, rotate, translate, zoom };
     enum Animation { stop, play, lastFrame };
+    struct Geometry { int width, height, x, y; };
     Mode mode;
     SoGetBoundingBoxAction *bboxAction;
     SoText2 *timeString;
     double fpsMax;
     QWebView *helpViewer;
   protected:
-    SoSeparator *sceneRootBBox;
+    SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
     QTextEdit *objectInfo;
     QSpinBox *frameSB;
-    void openFile(std::string fileName);
+    bool openFile(std::string fileName);
     SoQtMyViewer *glViewer;
     void viewParallel(ViewSide side);
     SoSeparator *sceneRoot;
@@ -62,6 +83,8 @@ class MainWindow : public QMainWindow {
     QSlider *speedWheel;
 #endif
     double oldSpeed;
+    QAction *stopAct, *lastFrameAct, *playAct;
+    SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -89,20 +112,35 @@ class MainWindow : public QMainWindow {
     void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent, float red, float green, float blue);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
+    void exportCurrentAsIV();
     void helpHome();
+    void lastFrameSCSlot();
+    void playSCSlot();
+    void speedUpSlot();
+    void speedDownSlot();
+    void topBGColor();
+    void bottomBGColor();
+    void loadWindowState(std::string filename="");
+    void saveWindowState();
+    void loadCamera(std::string filename="");
+    void saveCamera();
   public:
     MainWindow(std::list<std::string>& arg);
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
-    SoSeparator *getSceneRootBBox() { return sceneRootBBox; }
+    SoSepNoPickNoBBox *getSceneRootBBox() { return sceneRootBBox; }
     QSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }
     double getSpeed() { return speedSB->value(); }
     QStatusBar *getStatusBar() { return statusBar; }
     SoSFUInt32 *getFrame() { return frame; }
     void setTime(double t) { timeString->string.setValue(QString("Time: %2").arg(t,0,'f',5).toStdString().c_str()); }
+    SoText2 *getTimeString() { return timeString; }
+    SoMFColor *getBgColor() { return bgColor; }
+    SoMFColor *getFgColorTop() { return fgColorTop; }
+    SoMFColor *getFgColorBottom() { return fgColorBottom; }
 };
 
 #endif

@@ -1,3 +1,22 @@
+/*
+    OpenMBV - Open Multi Body Viewer.
+    Copyright (C) 2009 Markus Friedrich
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "config.h"
 #include "body.h"
 #include <Inventor/nodes/SoTranslation.h>
@@ -136,15 +155,17 @@ void Body::resetAnimRange(int numOfRows, double dt) {
   if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
     MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
     if(existFiles) {
-      MainWindow::getInstance()->getStatusBar()->showMessage("WARNING! Resetting maximal frame number!", 2000);
-      cout<<"WARNING! Resetting maximal frame number!"<<endl;
+      QString str("WARNING! Resetting maximal frame number!");
+      MainWindow::getInstance()->getStatusBar()->showMessage(str, 10000);
+      cout<<str.toStdString()<<endl;
     }
   }
   if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
     MainWindow::getInstance()->getDeltaTime()=dt;
     if(existFiles) {
-      MainWindow::getInstance()->getStatusBar()->showMessage("WARNING! dt in HDF5 datas are not the same!", 2000);
-      cout<<"WARNING! dt in HDF5 datas are not the same!"<<endl;
+      QString str("WARNING! dt in HDF5 datas are not the same!");
+      MainWindow::getInstance()->getStatusBar()->showMessage(str, 10000);
+      cout<<str.toStdString()<<endl;
     }
   }
   timeUpdater=this;
@@ -182,8 +203,12 @@ vector<vector<double> > Body::toMatrix(string str) {
 }
 
 // convenience: create frame so
-SoSeparator* Body::soFrame(double size, double offset, SoScale *&scale) {
-  SoSeparator *sep=new SoSepNoPickNoBBox;
+SoSeparator* Body::soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale) {
+  SoSeparator *sep;
+  if(pickBBoxAble)
+    sep=new SoSeparator;
+  else
+    sep=new SoSepNoPickNoBBox;
   sep->ref();
 
   SoBaseColor *col;
@@ -396,4 +421,46 @@ void Body::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& f
       oli.set1Value(oli.getNum(), -1);
     }
   }
+}
+
+SbRotation Body::cardan2Rotation(const SbVec3f &c) {
+  float a, b, g;
+  c.getValue(a,b,g);
+  return SbRotation(SbMatrix(
+    cos(b)*cos(g),
+    -cos(b)*sin(g),
+    sin(b),
+    0.0,
+
+    cos(a)*sin(g)+sin(a)*sin(b)*cos(g),
+    cos(a)*cos(g)-sin(a)*sin(b)*sin(g),
+    -sin(a)*cos(b),
+    0.0,
+
+    sin(a)*sin(g)-cos(a)*sin(b)*cos(g),
+    sin(a)*cos(g)+cos(a)*sin(b)*sin(g),
+    cos(a)*cos(b),
+    0.0,
+
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ));
+}
+
+SbVec3f Body::rotation2Cardan(const SbRotation& R) {
+  SbMatrix M;
+  R.getValue(M);
+  float a, b, g;    
+  b=asin(M[0][2]);
+  double nenner=cos(b);
+  if (nenner>1e-10) {
+    a=atan2(-M[1][2],M[2][2]);
+    g=atan2(-M[0][1],M[0][0]);
+  } else {
+    a=0;
+    g=atan2(M[1][0],M[1][1]);
+  }
+  return SbVec3f(a,b,g);
 }

@@ -1,3 +1,22 @@
+/*
+    OpenMBV - Open Multi Body Viewer.
+    Copyright (C) 2009 Markus Friedrich
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "config.h"
 #include "objbody.h"
 #include <QFile>
@@ -164,6 +183,7 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
 
   // create so
   map<QString, MtlMapGroup>::iterator i;
+  // vertex
   if(epsVertex>0) { // combine vertex
    SoMFVec3f newvv;
    SoMFInt32 newvi;
@@ -174,7 +194,14 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
      convertIndex(i->second.f->coordIndex, newvi);
   }
   soSep->addChild(v);
+  // texture points
   if(textureFromFile) soSep->addChild(t);
+  // no backface culling; two side lithning
+  SoShapeHints *sh=new SoShapeHints;
+  soSep->addChild(sh);
+  sh->vertexOrdering.setValue(SoShapeHints::UNKNOWN_ORDERING);
+  sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
+  // normals and shape
   if(normals==flat) { // flat normals
     SoNormalBinding *nb=new SoNormalBinding;
     soSep->addChild(nb);
@@ -329,20 +356,20 @@ void ObjBody::readMapLib(const std::string& mapFile_, std::map<QString, SoTextur
     }
     if(KdRE.exactMatch(line)) { // set Kd
       QTextStream stream(line);
-      double r, g, b;
       stream>>dummyStr>>dummyStr;
       string imgName=fixPath(mapFile_, dummyStr.toStdString());
       QImage img(imgName.c_str());
-      unsigned char *buf=new unsigned char[img.height()*img.width()*3];
+      unsigned char *buf=new unsigned char[img.width()*img.height()*4];
       for(int y=0; y<img.height(); y++)
         for(int x=0; x<img.width(); x++) {
-          int o=((img.height()-y-1)+img.height()*(img.width()-x-1))*3;
+          int o=((img.height()-y-1)*img.width()+x)*4;
           QRgb rgba=img.pixel(x,y);
           buf[o+0]=qRed(rgba);
           buf[o+1]=qGreen(rgba);
           buf[o+2]=qBlue(rgba);
+          buf[o+3]=qAlpha(rgba);
         }
-      curMap->image.setValue(SbVec2s(img.height(),img.width()),3,buf);
+      curMap->image.setValue(SbVec2s(img.height(),img.width()),4,buf);
       delete[]buf;
       continue;
     }

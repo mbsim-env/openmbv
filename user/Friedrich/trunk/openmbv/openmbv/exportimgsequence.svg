@@ -92,7 +92,7 @@
     </g>
     <g
        id="g2390"
-       transform="translate(-7.5814451,0.3185481)">
+       transform="translate(0.5733866,-7.262897)">
       <rect
          y="8.1000071"
          x="8.2185411"
@@ -181,6 +181,18 @@
          width="4.3322544"
          id="rect2424"
          style="opacity:1;fill:#ff0000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    </g>
+    <g
+       id="g3386"
+       transform="translate(2.020776,0.1592744)">
+      <path
+         id="path3382"
+         d="M 1.7201598,13.451615 L 6.243543,13.451615"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path3384"
+         d="M 5.3299438,11.687533 L 6.8527935,13.443561 L 4.9891378,15.279406"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
   </g>
 </svg>

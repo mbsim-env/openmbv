@@ -1,8 +1,32 @@
+/*
+    OpenMBV - Open Multi Body Viewer.
+    Copyright (C) 2009 Markus Friedrich
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "config.h"
 #include "rigidbody.h"
 #include "mainwindow.h"
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoSurroundScale.h>
+#include <Inventor/nodes/SoAntiSquish.h>
+#include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoMatrixTransform.h>
+#include <Inventor/draggers/SoCenterballDragger.h>
 #include <QtGui/QMenu>
 
 using namespace std;
@@ -75,7 +99,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     // reference frame
     soReferenceFrameSwitch=new SoSwitch;
     soSep->addChild(soReferenceFrameSwitch);
-    soReferenceFrameSwitch->addChild(soFrame(1,1,refFrameScale));
+    soReferenceFrameSwitch->addChild(soFrame(1,1,false,refFrameScale));
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
@@ -83,31 +107,42 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     refFrameScale->ref();
   }
 
+  // dragger for initial translation and rotation
+  SoGroup *grp=new SoGroup;
+  soSep->addChild(grp);
+  soDraggerSwitch=new SoSwitch;
+  grp->addChild(soDraggerSwitch);
+  soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  SoCenterballDragger *soDragger=new SoCenterballDragger;
+  soDraggerSwitch->addChild(soDragger);
+  soDragger->addMotionCallback(draggerMoveCB, this);
+  soDragger->addFinishCallback(draggerFinishCB, this);
+  // initial translation from XML
+  soDragger->center.setValue(initTransValue[0],initTransValue[1],initTransValue[2]);
+  // initial rotation from XML
+  soDragger->rotation.setValue(cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert());
+  // scale of the dragger
+  SoSurroundScale *draggerScale=new SoSurroundScale;
+  draggerScale->setDoingTranslations(false);//TODO?
+  draggerScale->numNodesUpToContainer.setValue(5);
+  draggerScale->numNodesUpToReset.setValue(4);
+  soDragger->setPart("surroundScale", draggerScale);
+
   // initial translation
   SoTranslation *initTrans=new SoTranslation;
-  initTrans->translation.setValue(initTransValue[0],initTransValue[1],initTransValue[2]);
-  soSep->addChild(initTrans);
+  grp->addChild(initTrans);
+  initTrans->translation.connectFrom(&soDragger->center);
 
   // initial rotation
-  SoRotationXYZ *initRot;
-  initRot=new SoRotationXYZ;
-  initRot->axis=SoRotationXYZ::X;
-  initRot->angle.setValue(initRotValue[0]);
-  soSep->addChild(initRot);
-  initRot=new SoRotationXYZ;
-  initRot->axis=SoRotationXYZ::Y;
-  initRot->angle.setValue(initRotValue[1]);
-  soSep->addChild(initRot);
-  initRot=new SoRotationXYZ;
-  initRot->axis=SoRotationXYZ::Z;
-  initRot->angle.setValue(initRotValue[2]);
-  soSep->addChild(initRot);
+  SoRotation *initRot=new SoRotation;
+  grp->addChild(initRot);
+  initRot->rotation.connectFrom(&soDragger->rotation);
 
   if(h5Parent) {
     // local frame
     soLocalFrameSwitch=new SoSwitch;
     soSep->addChild(soLocalFrameSwitch);
-    soLocalFrameSwitch->addChild(soFrame(1,1,localFrameScale));
+    soLocalFrameSwitch->addChild(soFrame(1,1,false,localFrameScale));
     soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   
     // mat (from hdf5)
@@ -136,6 +171,9 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", 0);
     path->setCheckable(true);
     connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
+    dragger=new QAction(QIcon(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", 0);
+    dragger->setCheckable(true);
+    connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
   }
 }
 
@@ -146,6 +184,7 @@ QMenu* RigidBody::createMenu() {
   menu->addAction(referenceFrame);
   menu->addSeparator();
   menu->addAction(path);
+  menu->addAction(dragger);
   return menu;
 }
 
@@ -170,6 +209,13 @@ void RigidBody::pathSlot() {
   }
   else
     soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+}
+
+void RigidBody::draggerSlot() {
+  if(dragger->isChecked())
+    soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  else
+    soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
 double RigidBody::update() {
@@ -215,4 +261,27 @@ QString RigidBody::getInfo() {
          QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;<br/>").arg(rotationAlpha->angle.getValue()*180/M_PI)
                                                     .arg(rotationBeta->angle.getValue()*180/M_PI)
                                                     .arg(rotationGamma->angle.getValue()*180/M_PI);
+}
+
+void RigidBody::draggerMoveCB(void *, SoDragger *dragger_) {
+  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
+  float x,y,z;
+  dragger->center.getValue().getValue(x,y,z);
+  float a, b, g;
+  rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
+  MainWindow::getInstance()->getStatusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
+    arg(x,0,'f',6).arg(y,0,'f',6).arg(z,0,'f',6).
+    arg(a,0,'f',6).arg(b,0,'f',6).arg(g,0,'f',6));
+}
+
+void RigidBody::draggerFinishCB(void *me_, SoDragger *dragger_) {
+  RigidBody* me=(RigidBody*)me_;
+  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
+  float x,y,z;
+  dragger->center.getValue().getValue(x,y,z);
+  float a, b, g;
+  rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
+  cout<<"New initial translation/rotation for: "<<me->getPath()<<endl
+      <<"Translation: ["<<x<<", "<<y<<", "<<z<<"]"<<endl
+      <<"Rotation: ["<<a<<", "<<b<<", "<<g<<"]"<<endl;
 }

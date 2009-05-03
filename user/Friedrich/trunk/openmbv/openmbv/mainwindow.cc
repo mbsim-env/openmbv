@@ -1,5 +1,25 @@
+/*
+    OpenMBV - Open Multi Body Viewer.
+    Copyright (C) 2009 Markus Friedrich
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "config.h"
 #include "mainwindow.h"
+#include <algorithm>
 #include <Inventor/Qt/SoQt.h>
 #include <QtGui/QDockWidget>
 #include <QtGui/QMenuBar>
@@ -11,7 +31,9 @@
 #include <QtGui/QToolBar>
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QStatusBar>
+#include <QtGui/QColorDialog>
 #include <QWebHistory>
+#include <QShortcut>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -20,6 +42,7 @@
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
+#include <Inventor/actions/SoWriteAction.h>
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -39,8 +62,10 @@ using namespace std;
 MainWindow *MainWindow::instance=0;
 
 MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1), helpViewer(0) {
-  if(instance) { cout<<"The class MainWindow is a singleton class!"<<endl; _exit(1); }
+  if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
+
+  list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
   setWindowIcon(QIcon(":/openmbv.svg"));
@@ -64,11 +89,21 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QWidget *glViewerWG=new QWidget(this);
   timeString=new SoText2;
   timeString->ref();
-  glViewer=new SoQtMyViewer(glViewerWG, timeString);
+  bgColor=new SoMFColor;
+  bgColor->set1Value(0, 0.35,0.35,0.6);
+  bgColor->set1Value(1, 0.35,0.35,0.6);
+  bgColor->set1Value(2, 0.83,0.83,1.0);
+  bgColor->set1Value(3, 0.83,0.83,1.0);
+  fgColorTop=new SoMFColor;
+  fgColorTop->set1Value(0, 0,0,0);
+  fgColorBottom=new SoMFColor;
+  fgColorBottom->set1Value(0, 1,1,1);
+  glViewer=new SoQtMyViewer(glViewerWG);
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
-  sceneRootBBox=new SoSeparator;
+  sceneRoot->addChild(new SoOrthographicCamera); // child nr 0 of sceneRoot
+  sceneRootBBox=new SoSepNoPickNoBBox;
   sceneRoot->addChild(sceneRootBBox);
   SoLightModel *lm=new SoLightModel;
   sceneRootBBox->addChild(lm);
@@ -89,6 +124,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
+  objectListDW->setObjectName("Objects");
   QWidget *objectListWG=new QWidget;
   QGridLayout *objectListLO=new QGridLayout;
   objectListWG->setLayout(objectListLO);
@@ -101,6 +137,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
+  objectInfoDW->setObjectName("Object Info");
   QWidget *objectInfoWG=new QWidget;
   QGridLayout *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
@@ -120,17 +157,24 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QMenu *fileMenu=new QMenu("File", menuBar);
   QAction *addFileAct=fileMenu->addAction(QIcon(":/addfile.svg"), "Add File...", this, SLOT(openFileDialog()));
   fileMenu->addSeparator();
-  fileMenu->addAction(QIcon(":/exportimg.svg"), "Export PNG (current frame)...", this, SLOT(exportCurrentAsPNG()));
-  fileMenu->addAction(QIcon(":/exportimgsequence.svg"), "Export PNG sequence...", this, SLOT(exportSequenceAsPNG()));
+  fileMenu->addAction(QIcon(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()));
+  fileMenu->addAction(QIcon(":/exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()));
+  fileMenu->addAction(QIcon(":/exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
+  fileMenu->addSeparator();
+  fileMenu->addAction(QIcon(":/loadwst.svg"), "Load Window State...", this, SLOT(loadWindowState()));
+  fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()));
+  fileMenu->addAction(QIcon(":/loadcamera.svg"), "Load Camera...", this, SLOT(loadCamera()));
+  fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
   menuBar->addMenu(fileMenu);
 
   // animation menu
   animGroup=new QActionGroup(this);
-  QAction *stopAct=new QAction(QIcon(":/stop.svg"), "Stop", animGroup);
-  QAction *lastFrameAct=new QAction(QIcon(":/lastframe.svg"), "Last Frame", animGroup);
-  QAction *playAct=new QAction(QIcon(":/play.svg"), "Play", animGroup);
+  stopAct=new QAction(QIcon(":/stop.svg"), "Stop", animGroup);
+  stopAct->setShortcut(QKeySequence("S"));
+  lastFrameAct=new QAction(QIcon(":/lastframe.svg"), "Last Frame   L", animGroup);
+  playAct=new QAction(QIcon(":/play.svg"),           "Play         P", animGroup);
   stopAct->setCheckable(true);
   stopAct->setData(QVariant(stop));
   playAct->setCheckable(true);
@@ -144,19 +188,24 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   animationMenu->addAction(playAct);
   menuBar->addMenu(animationMenu);
   connect(animGroup,SIGNAL(triggered(QAction*)),this,SLOT(animationButtonSlot(QAction*)));
+  connect(new QShortcut(QKeySequence("L"),this), SIGNAL(activated()), this, SLOT(lastFrameSCSlot()));
+  connect(new QShortcut(QKeySequence("P"),this), SIGNAL(activated()), this, SLOT(playSCSlot()));
 
   // view menu
   QMenu *viewMenu=new QMenu("View", menuBar);
-  QAction *viewAllAct=viewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()));
+  QAction *viewAllAct=viewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()), QKeySequence("A"));
   viewMenu->addSeparator()->setText("Parallel View");
-  QAction *topViewAct=viewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()));
-  QAction *bottomViewAct=viewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()));
-  QAction *frontViewAct=viewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()));
-  QAction *backViewAct=viewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()));
-  QAction *rightViewAct=viewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()));
-  QAction *leftViewAct=viewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()));
+  QAction *topViewAct=viewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  QAction *bottomViewAct=viewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  QAction *frontViewAct=viewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  QAction *backViewAct=viewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  QAction *rightViewAct=viewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  QAction *leftViewAct=viewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
   viewMenu->addSeparator();
-  QAction *cameraAct=viewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()));
+  QAction *cameraAct=viewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  viewMenu->addSeparator();
+  viewMenu->addAction(QIcon(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
+  viewMenu->addAction(QIcon(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
   menuBar->addMenu(viewMenu);
 
   // dock menu
@@ -167,11 +216,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
+  fileTB->setObjectName("FileToolBar");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
   QToolBar *viewTB=new QToolBar("ViewToolBar", this);
+  viewTB->setObjectName("ViewToolBar");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
   viewTB->addSeparator();
@@ -186,6 +237,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 
   // animation toolbar
   QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
+  animationTB->setObjectName("AnimationToolBar");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
   animationTB->addAction(stopAct);
@@ -227,6 +279,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
   animationTB->addWidget(speedWG);
+  connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), SIGNAL(activated()), this, SLOT(speedUpSlot()));
+  connect(new QShortcut(QKeySequence(Qt::Key_PageDown),this), SIGNAL(activated()), this, SLOT(speedDownSlot()));
   // frame spin box
   animationTB->addSeparator();
   frameSB=new QSpinBox;
@@ -242,6 +296,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   animationTB->addWidget(frameWG);
   connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
   connect(timeSlider, SIGNAL(rangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
+  connect(new QShortcut(QKeySequence(Qt::Key_Up),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
+  connect(new QShortcut(QKeySequence(Qt::Key_Down),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
+  connect(new QShortcut(QKeySequence(Qt::Key_J),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
+  connect(new QShortcut(QKeySequence(Qt::Key_K),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
 
   // tool menu
   QMenu *toolMenu=new QMenu("Tools", menuBar);
@@ -274,12 +332,72 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   connect(animTimer, SIGNAL(timeout()), this, SLOT(heavyWorkSlot()));
   time=new QTime;
 
+  // react on parameters
+
+  // background color
+  if((i=std::find(arg.begin(), arg.end(), "--topbgcolor"))!=arg.end()) {
+    i2=i; i2++;
+    QColor color(i2->c_str());
+    if(color.isValid()) {
+      QRgb rgb=color.rgb();
+      bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    }
+    arg.erase(i); arg.erase(i2);
+  }
+  if((i=std::find(arg.begin(), arg.end(), "--bottombgcolor"))!=arg.end()) {
+    i2=i; i2++;
+    QColor color(i2->c_str());
+    if(color.isValid()) {
+      QRgb rgb=color.rgb();
+      bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    }
+    arg.erase(i); arg.erase(i2);
+  }
+
+  // close all docks and toolbars
+  if((i=std::find(arg.begin(), arg.end(), "--closeall"))!=arg.end()) {
+    objectListDW->close();
+    objectInfoDW->close();
+    fileTB->close();
+    viewTB->close();
+    animationTB->close();
+    arg.erase(i);
+  }
+
+  // load the window state file
+  if((i=std::find(arg.begin(), arg.end(), "--wst"))!=arg.end()) {
+    i2=i; i2++;
+    loadWindowState(*i2);
+    arg.erase(i); arg.erase(i2);
+  }
+  else
+    resize(630,460);
+  
+  // play/lastframe
+  bool playArg=false, lastframeArg=false;
+  if((i=std::find(arg.begin(), arg.end(), "--play"))!=arg.end())
+    { playArg=true; arg.erase(i); }
+  else if((i=std::find(arg.begin(), arg.end(), "--lastframe"))!=arg.end())
+    { lastframeArg=true; arg.erase(i); }
+
+  // camera position
+  string cameraFile="";
+  if((i=std::find(arg.begin(), arg.end(), "--camera"))!=arg.end()) {
+    i2=i; i2++;
+    cameraFile=*i2;
+    arg.erase(i); arg.erase(i2);
+  }
+
   // read XML files
   if(arg.empty()) arg.push_back("."); // if calles without argument loat current dir
   QDir dir;
   QRegExp filterRE("([^.]+\\.ombv.xml|[^.]+\\.ombv.env.xml)");
   dir.setFilter(QDir::Files);
-  list<string>::iterator i=arg.begin(), i2;
+  i=arg.begin();
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
@@ -292,18 +410,33 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
       continue;
     }
     if(QFile::exists(i->c_str())) {
-      openFile(*i);
-      i2=i; i++; arg.erase(i2);
+      if(openFile(*i)) {
+        i2=i; i++; arg.erase(i2);
+      }
+      else
+        i++;
       continue;
     }
     i++;
   }
 
-  glViewer->viewAll();
-  resize(640,480);
+  // arg commands after load all files
+  
+  // camera
+  if(cameraFile!="") {
+    loadCamera(cameraFile);
+  }
+  else
+    glViewer->viewAll();
+
+  // play
+  if(playArg) playAct->trigger();
+
+  // lastframe
+  if(lastframeArg) lastFrameAct->trigger();
 }
 
-void MainWindow::openFile(string fileName) {
+bool MainWindow::openFile(string fileName) {
   // check file type
   bool env;
   if(fileName.length()>string(".ombv.xml").length() && fileName.substr(fileName.length()-string(".ombv.xml").length())==".ombv.xml")
@@ -311,8 +444,10 @@ void MainWindow::openFile(string fileName) {
   else if(fileName.length()>string(".ombv.env.xml").length() && fileName.substr(fileName.length()-string(".ombv.env.xml").length())==".ombv.env.xml")
     env=true;
   else {
-    statusBar->showMessage(QString("Unknown file type: %1!").arg(fileName.c_str()), 2000);
-    return;
+    QString str("Unknown file type: %1!"); str=str.arg(fileName.c_str());
+    statusBar->showMessage(str, 10000);
+    cout<<str.toStdString()<<endl;
+    return false;
   }
 
   H5::Group *h5Parent=0;
@@ -332,6 +467,8 @@ void MainWindow::openFile(string fileName) {
 
   // force a update
   frame->touch();
+
+  return true;
 }
 
 void MainWindow::openFileDialog() {
@@ -355,11 +492,20 @@ void MainWindow::objectListClicked() {
 void MainWindow::guiHelp() {
   QMessageBox::information(this, "OpenMBV - GUI Help", 
     "<h1>GUI Help</h1>"
+    "<h2>Keyboard Interaction</h2>"
+    "<ul>"
+    "  <dt>Up or J</dt><dd> Go one frame up</dd>"
+    "  <dt>Down or K</dt><dd> Go one frame down</dd>"
+    "  <dt>Page-Up</dt><dd> Increase animation speed by 10%</dd>"
+    "  <dt>Page-Down</dt><dd> Decrease animation speed by 10%</dd>"
+    "</ul>"
     "<h2>Mouse Interaction</h2>"
     "<ul>"
-    "  <dt>Left-Button</dt><dd> Rotate the entiry scene</dd>"
-    "  <dt>Right-Button</dt><dd> Translate the entiry scene</dd>"
-    "  <dt>Middle-Button</dt><dd> Zoom the entiry scene</dd>"
+    "  <dt>Left-Button + Move</dt><dd> Rotate the entiry scene</dd>"
+    "  <dt>Right-Button + Move</dt><dd> Translate the entiry scene</dd>"
+    "  <dt>Middle-Button + Move</dt><dd> Zoom the entiry scene</dd>"
+    "  <dt>X-Down + Left-Button + Move</dt><dd> Manipulate a dragger. The dragger must be enabled using the property menu of the body before</dd>"
+    "  <dt>X-Down + Shift-Down + Left-Button + Move</dt><dd> Manipulate a dragger in constraint motion. The dragger must be enabled using the property menu of the body before</dd>"
     "  <dt>Ctrl+Left-Button</dt><dd> Selects the body under the cursor.</dd>"
     "  <dt>Crtl+Right-Button</dt><dd> Shows the property menu of body under the cursor.</dd>"
     "  <dt>Crtl+Alt+Left-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects this body.</dd>"
@@ -480,8 +626,10 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         xOld=x; yOld=y; zOld=z;
         pickedPoints[i]->getPoint().getValue(x,y,z);
         if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7) {
-          cout<<"Point on: "<<(*(--pickedObject.end()))->getPath()<<": "<<x<<" "<<y<<" "<<z<<endl;
-          statusBar->showMessage(QString("Point on: %1: %2,%3,%4").arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z), 2000);
+          QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
+          statusBar->showMessage(str);
+          str="Point on: %1: [%2, %3, %4]"; str=str.arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z);
+          cout<<str.toStdString()<<endl;
         }
         if(!ev->wasAltDown()) break;
       }
@@ -681,13 +829,17 @@ void MainWindow::exportCurrentAsPNG() {
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
 
-  statusBar->showMessage("Exporting current frame, please wait!");
+  QString str("Exporting current frame, please wait!");
+  statusBar->showMessage(str);
+  cout<<str.toStdString()<<endl;
   QColor c=dialog.getColor();
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
   exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent(), c.red()/255.0, c.green()/255.0, c.blue()/255.0);
-  statusBar->showMessage("Done", 2000);
+  str="Done";
+  statusBar->showMessage(str, 10000);
+  cout<<str.toStdString()<<endl;
 }
 
 void MainWindow::exportSequenceAsPNG() {
@@ -723,9 +875,127 @@ void MainWindow::exportSequenceAsPNG() {
   SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
 int xx=0;
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
-    statusBar->showMessage(QString("Exporting frame sequence, please wait! (%1\%)").arg(100.0*videoFrame/lastVideoFrame,0,'f',1));
+    QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
+    statusBar->showMessage(str);
+    cout<<str.toStdString()<<endl;
     frame->setValue(frame_);
     exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent, red, green, blue);
   }
-  statusBar->showMessage("Done", 2000);
+  QString str("Done");
+  statusBar->showMessage(str, 10000);
+  cout<<str.toStdString()<<endl;
+}
+
+void MainWindow::lastFrameSCSlot() {
+  if(lastFrameAct->isChecked())
+    stopAct->trigger();
+  else
+    lastFrameAct->trigger();
+}
+
+void MainWindow::playSCSlot() {
+  if(playAct->isChecked())
+    stopAct->trigger();
+  else
+    playAct->trigger();
+}
+
+void MainWindow::speedUpSlot() {
+  speedSB->setValue(speedSB->value()*1.1);
+}
+
+void MainWindow::speedDownSlot() {
+  speedSB->setValue(speedSB->value()/1.1);
+}
+
+void MainWindow::topBGColor() {
+  float r,g,b;
+  (*bgColor)[2].getValue(r,g,b);
+  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
+  if(!color.isValid()) return;
+  QRgb rgb=color.rgb();
+  bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+}
+
+void MainWindow::bottomBGColor() {
+  float r,g,b;
+  (*bgColor)[0].getValue(r,g,b);
+  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
+  if(!color.isValid()) return;
+  QRgb rgb=color.rgb();
+  bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+}
+
+void MainWindow::loadWindowState(string filename) {
+  if(filename=="")
+    filename=QFileDialog::getOpenFileName(0, "Load Window State", ".", "*.ombv.wst").toStdString();
+  // load
+  QFile stateFile(filename.c_str());
+  stateFile.open(QIODevice::ReadOnly);
+  Geometry geometry;
+  stateFile.read((char*)&geometry, sizeof(Geometry));
+  QByteArray windowState=stateFile.readAll();
+  stateFile.close();
+  // geometry
+  resize(geometry.width, geometry.height);
+  move(geometry.x, geometry.y);
+  // window state
+  restoreState(windowState);
+}
+
+void MainWindow::saveWindowState() {
+  QString filename=QFileDialog::getSaveFileName(0, "Save Window State", ".", "*.ombv.wst");
+  if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
+    filename=filename+".ombv.wst";
+  // geometry
+  Geometry geometry;
+  geometry.width=size().width();
+  geometry.height=size().height();
+  geometry.x=pos().x();
+  geometry.y=pos().y();
+  QByteArray data((char*)&geometry, sizeof(Geometry));
+  // window state
+  QByteArray windowState=saveState();
+  data.append(windowState);
+  // save
+  QFile stateFile(filename);
+  stateFile.open(QIODevice::WriteOnly);
+  stateFile.write(data);
+  stateFile.close();
+}
+
+void MainWindow::loadCamera(string filename) {
+  if(filename=="")
+    filename=QFileDialog::getOpenFileName(0, "Load Camera", ".", "*.camera.iv").toStdString();
+  SoInput input;
+  input.openFile(filename.c_str());
+  SoSeparator *sep=SoDB::readAll(&input);
+  if(sep->getChild(0)->isOfType(SoCamera::getClassTypeId())) {
+    sceneRoot->replaceChild(0, sep->getChild(0));
+    glViewer->setCamera((SoCamera*)(sep->getChild(0)));
+  }
+}
+
+void MainWindow::saveCamera() {
+  QString filename=QFileDialog::getSaveFileName(0, "Save Camera", ".", "*.camera.iv");
+  if(!filename.endsWith(".camera.iv",Qt::CaseInsensitive))
+    filename=filename+".camera.iv";
+  SoOutput output;
+  output.openFile(filename.toStdString().c_str());
+  SoWriteAction wa(&output);
+  wa.apply(glViewer->getCamera());
+}
+
+void MainWindow::exportCurrentAsIV() {
+  QString filename=QFileDialog::getSaveFileName(0, "Save Current Frame as iv", ".", "*.iv");
+  if(!filename.endsWith(".iv",Qt::CaseInsensitive))
+    filename=filename+".iv";
+  SoOutput output;
+  output.openFile(filename.toStdString().c_str());
+  SoWriteAction wa(&output);
+  wa.apply(sceneRoot);
 }
