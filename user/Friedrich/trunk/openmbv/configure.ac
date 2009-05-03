@@ -12,6 +12,8 @@ AC_LANG([C++])
 dnl By autoscan
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr])
+AC_CHECK_FUNCS([pow])
+AC_CHECK_FUNCS([sqrt])
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
