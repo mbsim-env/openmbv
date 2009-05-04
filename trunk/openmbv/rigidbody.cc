@@ -269,7 +269,7 @@ void RigidBody::draggerMoveCB(void *, SoDragger *dragger_) {
   dragger->center.getValue().getValue(x,y,z);
   float a, b, g;
   rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
-  MainWindow::getInstance()->getStatusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
+  MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
     arg(x,0,'f',6).arg(y,0,'f',6).arg(z,0,'f',6).
     arg(a,0,'f',6).arg(b,0,'f',6).arg(g,0,'f',6));
 }

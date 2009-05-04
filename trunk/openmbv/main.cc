@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--topbgcolor #XXXXXX]"<<endl
         <<"               [--bottombgcolor #XXXXXX] [--closeall] [--wst <file>]"<<endl
-        <<"               [--camera <file>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"               [--camera <file>] [--fullscreen] [--geometry WIDTHxHEIGHT+X+Y]"<<endl
+        <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
@@ -66,9 +67,11 @@ int main(int argc, char *argv[])
         <<"--topbgcolor     The color on the top of the background (red, green, blue value"<<endl
         <<"                 in hex)"<<endl
         <<"--bottombgcolor  The color on the bottom (see also --topbgcolor)"<<endl
-        <<"--closeall       Start with closed docks and toolbars"<<endl
+        <<"--closeall       Start with all widgets closed exapt scene widget"<<endl
         <<"--wst            Load the given (main)window state file"<<endl
         <<"--camera         Load the given camera file"<<endl
+        <<"--fullscreen     Start in full screen mode"<<endl
+        <<"--geometry       Set the main(window) geometry"<<endl
         <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                 in <dir>"<<endl
         <<"<file>           Open/Load <file>"<<endl;
@@ -78,6 +81,7 @@ int main(int argc, char *argv[])
 
   MainWindow mainWindow(arg);
   mainWindow.show();
+  if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
 
   return app.exec();
 }
