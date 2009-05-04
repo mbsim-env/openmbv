@@ -66,7 +66,7 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIte
   else if(element->ValueStr()==OPENMBVNS"CompoundRigidBody")
     return new CompoundRigidBody(element, h5Parent, parentItem, soParent);
   QString str("ERROR: Unknown element: %1"); str=str.arg(element->Value());
-  MainWindow::getInstance()->getStatusBar()->showMessage(str, 10000);
+  MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;
   return 0;
 }

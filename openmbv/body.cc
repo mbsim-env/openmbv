@@ -156,7 +156,7 @@ void Body::resetAnimRange(int numOfRows, double dt) {
     MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
     if(existFiles) {
       QString str("WARNING! Resetting maximal frame number!");
-      MainWindow::getInstance()->getStatusBar()->showMessage(str, 10000);
+      MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
       cout<<str.toStdString()<<endl;
     }
   }
@@ -164,7 +164,7 @@ void Body::resetAnimRange(int numOfRows, double dt) {
     MainWindow::getInstance()->getDeltaTime()=dt;
     if(existFiles) {
       QString str("WARNING! dt in HDF5 datas are not the same!");
-      MainWindow::getInstance()->getStatusBar()->showMessage(str, 10000);
+      MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
       cout<<str.toStdString()<<endl;
     }
   }

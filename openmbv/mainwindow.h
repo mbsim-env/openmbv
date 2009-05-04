@@ -51,12 +51,13 @@ class MainWindow : public QMainWindow {
     enum ViewSide { top, bottom, front, back, right, left };
     enum Mode { no, rotate, translate, zoom };
     enum Animation { stop, play, lastFrame };
-    struct Geometry { int width, height, x, y; };
+    struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     Mode mode;
     SoGetBoundingBoxAction *bboxAction;
     SoText2 *timeString;
     double fpsMax;
     QWebView *helpViewer;
+    bool enableFullScreen;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
@@ -74,7 +75,6 @@ class MainWindow : public QMainWindow {
     QSlider *timeSlider;
     double deltaTime;
     SoSFUInt32 *frame;
-    QStatusBar *statusBar;
     QLabel *fps;
     QTime *fpsTime;
 #ifdef HAVE_QWT_WHEEL_H
@@ -83,7 +83,7 @@ class MainWindow : public QMainWindow {
     QSlider *speedWheel;
 #endif
     double oldSpeed;
-    QAction *stopAct, *lastFrameAct, *playAct;
+    QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
   protected slots:
     void objectListClicked();
@@ -102,7 +102,6 @@ class MainWindow : public QMainWindow {
     void viewLeftSlot() { viewParallel(left); }
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
-    void animationButtonSlot(QAction* act);
     void heavyWorkSlot();
     void speedChanged(double value);
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
@@ -114,6 +113,7 @@ class MainWindow : public QMainWindow {
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
     void helpHome();
+    void stopSCSlot();
     void lastFrameSCSlot();
     void playSCSlot();
     void speedUpSlot();
@@ -124,6 +124,10 @@ class MainWindow : public QMainWindow {
     void saveWindowState();
     void loadCamera(std::string filename="");
     void saveCamera();
+    void toggleMenuBarSlot();
+    void toggleStatusBarSlot();
+    void toggleFrameSliderSlot();
+    void toggleFullScreenSlot();
   public:
     MainWindow(std::list<std::string>& arg);
     static MainWindow*const getInstance() { return instance; }
@@ -134,13 +138,13 @@ class MainWindow : public QMainWindow {
     QSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }
     double getSpeed() { return speedSB->value(); }
-    QStatusBar *getStatusBar() { return statusBar; }
     SoSFUInt32 *getFrame() { return frame; }
     void setTime(double t) { timeString->string.setValue(QString("Time: %2").arg(t,0,'f',5).toStdString().c_str()); }
     SoText2 *getTimeString() { return timeString; }
     SoMFColor *getBgColor() { return bgColor; }
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
+    bool getEnableFullScreen() { return enableFullScreen; }
 };
 
 #endif

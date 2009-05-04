@@ -61,7 +61,7 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1), helpViewer(0) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1), helpViewer(0), enableFullScreen(false) {
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
@@ -84,6 +84,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QWidget *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
   QGridLayout *mainLO=new QGridLayout();
+  mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
   // gl viewer
   QWidget *glViewerWG=new QWidget(this);
@@ -150,11 +151,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   connect(objectList,SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),this,SLOT(setObjectInfo(QTreeWidgetItem*)));
 
   // menu bar
-  QMenuBar *menuBar=new QMenuBar(this);
-  setMenuBar(menuBar);
+  QMenuBar *mb=new QMenuBar(this);
+  setMenuBar(mb);
 
   // file menu
-  QMenu *fileMenu=new QMenu("File", menuBar);
+  QMenu *fileMenu=new QMenu("File", menuBar());
   QAction *addFileAct=fileMenu->addAction(QIcon(":/addfile.svg"), "Add File...", this, SLOT(openFileDialog()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()));
@@ -162,19 +163,23 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   fileMenu->addAction(QIcon(":/exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/loadwst.svg"), "Load Window State...", this, SLOT(loadWindowState()));
-  fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()));
+  QAction *act=fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()));
   fileMenu->addAction(QIcon(":/loadcamera.svg"), "Load Camera...", this, SLOT(loadCamera()));
   fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
-  menuBar->addMenu(fileMenu);
+  menuBar()->addMenu(fileMenu);
 
   // animation menu
-  animGroup=new QActionGroup(this);
-  stopAct=new QAction(QIcon(":/stop.svg"), "Stop", animGroup);
+  stopAct=new QAction(QIcon(":/stop.svg"), "Stop", this);
+  addAction(stopAct); // must work also if menu bar is invisible
   stopAct->setShortcut(QKeySequence("S"));
-  lastFrameAct=new QAction(QIcon(":/lastframe.svg"), "Last Frame   L", animGroup);
-  playAct=new QAction(QIcon(":/play.svg"),           "Play         P", animGroup);
+  lastFrameAct=new QAction(QIcon(":/lastframe.svg"), "Last Frame", this);
+  addAction(lastFrameAct); // must work also if menu bar is invisible
+  lastFrameAct->setShortcut(QKeySequence("L"));
+  playAct=new QAction(QIcon(":/play.svg"),           "Play", this);
+  addAction(playAct); // must work also if menu bar is invisible
+  playAct->setShortcut(QKeySequence("P"));
   stopAct->setCheckable(true);
   stopAct->setData(QVariant(stop));
   playAct->setCheckable(true);
@@ -182,37 +187,60 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   lastFrameAct->setCheckable(true);
   lastFrameAct->setData(QVariant(lastFrame));
   stopAct->setChecked(true);
-  QMenu *animationMenu=new QMenu("Animation", menuBar);
+  QMenu *animationMenu=new QMenu("Animation", menuBar());
   animationMenu->addAction(stopAct);
   animationMenu->addAction(lastFrameAct);
   animationMenu->addAction(playAct);
-  menuBar->addMenu(animationMenu);
-  connect(animGroup,SIGNAL(triggered(QAction*)),this,SLOT(animationButtonSlot(QAction*)));
-  connect(new QShortcut(QKeySequence("L"),this), SIGNAL(activated()), this, SLOT(lastFrameSCSlot()));
-  connect(new QShortcut(QKeySequence("P"),this), SIGNAL(activated()), this, SLOT(playSCSlot()));
+  menuBar()->addMenu(animationMenu);
+  connect(stopAct, SIGNAL(triggered()), this, SLOT(stopSCSlot()));
+  connect(lastFrameAct, SIGNAL(triggered()), this, SLOT(lastFrameSCSlot()));
+  connect(playAct, SIGNAL(triggered()), this, SLOT(playSCSlot()));
+
 
   // view menu
-  QMenu *viewMenu=new QMenu("View", menuBar);
+  QMenu *viewMenu=new QMenu("View", menuBar());
   QAction *viewAllAct=viewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()), QKeySequence("A"));
+  addAction(viewAllAct); // must work also if menu bar is invisible
   viewMenu->addSeparator()->setText("Parallel View");
   QAction *topViewAct=viewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  addAction(topViewAct); // must work also if menu bar is invisible
   QAction *bottomViewAct=viewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  addAction(bottomViewAct); // must work also if menu bar is invisible
   QAction *frontViewAct=viewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  addAction(frontViewAct); // must work also if menu bar is invisible
   QAction *backViewAct=viewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  addAction(backViewAct); // must work also if menu bar is invisible
   QAction *rightViewAct=viewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  addAction(rightViewAct); // must work also if menu bar is invisible
   QAction *leftViewAct=viewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
+  addAction(leftViewAct); // must work also if menu bar is invisible
   viewMenu->addSeparator();
   QAction *cameraAct=viewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  addAction(cameraAct); // must work also if menu bar is invisible
   viewMenu->addSeparator();
   viewMenu->addAction(QIcon(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
   viewMenu->addAction(QIcon(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
-  menuBar->addMenu(viewMenu);
+  viewMenu->addSeparator();
+  toggleMenuBar=viewMenu->addAction("Menu Bar", this, SLOT(toggleMenuBarSlot()), QKeySequence("F10"));
+  addAction(toggleMenuBar); // must work also if menu bar is invisible
+  toggleMenuBar->setCheckable(true);
+  toggleMenuBar->setChecked(true);
+  toggleStatusBar=viewMenu->addAction("Status Bar", this, SLOT(toggleStatusBarSlot()));
+  toggleStatusBar->setCheckable(true);
+  toggleStatusBar->setChecked(true);
+  toggleFrameSlider=viewMenu->addAction("Frame/Time Slider", this, SLOT(toggleFrameSliderSlot()));
+  toggleFrameSlider->setCheckable(true);
+  toggleFrameSlider->setChecked(true);
+  QAction *toggleFullScreen=viewMenu->addAction("Full Screen", this, SLOT(toggleFullScreenSlot()), QKeySequence("F5"));
+  addAction(toggleFullScreen); // must work also if menu bar is invisible
+  toggleFullScreen->setCheckable(true);
+  menuBar()->addMenu(viewMenu);
 
   // dock menu
-  QMenu *dockMenu=new QMenu("Docks", menuBar);
+  QMenu *dockMenu=new QMenu("Docks", menuBar());
   dockMenu->addAction(objectListDW->toggleViewAction());
   dockMenu->addAction(objectInfoDW->toggleViewAction());
-  menuBar->addMenu(dockMenu);
+  menuBar()->addMenu(dockMenu);
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
@@ -302,26 +330,26 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   connect(new QShortcut(QKeySequence(Qt::Key_K),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
 
   // tool menu
-  QMenu *toolMenu=new QMenu("Tools", menuBar);
+  QMenu *toolMenu=new QMenu("Tools", menuBar());
   toolMenu->addAction(fileTB->toggleViewAction());
   toolMenu->addAction(viewTB->toggleViewAction());
   toolMenu->addAction(animationTB->toggleViewAction());
-  menuBar->addMenu(toolMenu);
+  menuBar()->addMenu(toolMenu);
 
   // help menu
-  menuBar->addSeparator();
-  QMenu *helpMenu=new QMenu("Help", menuBar);
+  menuBar()->addSeparator();
+  QMenu *helpMenu=new QMenu("Help", menuBar());
   helpMenu->addAction(QIcon(":/help.svg"), "GUI Help...", this, SLOT(guiHelp()));
   helpMenu->addAction(QIcon(":/help.svg"), "XML Help...", this, SLOT(xmlHelp()));
   helpMenu->addAction(QIcon(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
-  menuBar->addMenu(helpMenu);
+  menuBar()->addMenu(helpMenu);
 
   // status bar
-  statusBar=new QStatusBar(this);
+  QStatusBar *sb=new QStatusBar(this);
   fps=new QLabel("FPS: -");
   fpsTime=new QTime;
-  statusBar->addPermanentWidget(fps);
-  setStatusBar(statusBar);
+  sb->addPermanentWidget(fps);
+  setStatusBar(sb);
 
   // register callback function on frame change
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
@@ -365,7 +393,27 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     fileTB->close();
     viewTB->close();
     animationTB->close();
+    menuBar()->setVisible(false);
+    statusBar()->setVisible(false);
+    timeSlider->setVisible(false);
+    toggleMenuBar->setChecked(false);
+    toggleStatusBar->setChecked(false);
+    toggleFrameSlider->setChecked(false);
     arg.erase(i);
+  }
+
+  // geometry
+  if((i=std::find(arg.begin(), arg.end(), "--geometry"))!=arg.end()) {
+    i2=i; i2++;
+    QRegExp re("^([0-9]+)x([0-9]+)(?:\\+([0-9]+))?(?:\\+([0-9]+))?$");
+    re.indexIn(i2->c_str());
+    resize(re.cap(1).toInt(), re.cap(2).toInt());
+    bool xok, yok;
+    int x=re.cap(3).toInt(&xok);
+    int y=re.cap(4).toInt(&yok);
+    if(xok) move(x, pos().y());
+    if(xok && yok) move(x, y);
+    arg.erase(i); arg.erase(i2);
   }
 
   // load the window state file
@@ -390,6 +438,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     i2=i; i2++;
     cameraFile=*i2;
     arg.erase(i); arg.erase(i2);
+  }
+
+  // fullscreen
+  if((i=std::find(arg.begin(), arg.end(), "--fullscreen"))!=arg.end()) {
+    enableFullScreen=true;
+    toggleFullScreen->setChecked(true);
+    arg.erase(i);
   }
 
   // read XML files
@@ -445,7 +500,7 @@ bool MainWindow::openFile(string fileName) {
     env=true;
   else {
     QString str("Unknown file type: %1!"); str=str.arg(fileName.c_str());
-    statusBar->showMessage(str, 10000);
+    statusBar()->showMessage(str, 10000);
     cout<<str.toStdString()<<endl;
     return false;
   }
@@ -627,7 +682,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         pickedPoints[i]->getPoint().getValue(x,y,z);
         if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7) {
           QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
-          statusBar->showMessage(str);
+          statusBar()->showMessage(str);
           str="Point on: %1: [%2, %3, %4]"; str=str.arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z);
           cout<<str.toStdString()<<endl;
         }
@@ -741,26 +796,8 @@ void MainWindow::fpsCB() {
   count=1;
 }
 
-void MainWindow::animationButtonSlot(QAction* act) {
-  if(act->data().toInt()==stop) {
-    animTimer->stop();
-  }
-  else if(act->data().toInt()==lastFrame) {
-    printf("Not implemented yet!!!!!!!!!!!!!!\n"); //TODO
-    animTimer->stop();
-  }
-  else {
-    animStartFrame=frame->getValue();
-    time->restart();
-    if(fpsMax<1e-15)
-      animTimer->start();
-    else
-      animTimer->start((int)(1000/fpsMax));
-  }
-}
-
 void MainWindow::speedChanged(double value) {
-  if(animGroup->checkedAction()->data().toInt()==play) {
+  if(playAct->isChecked()) {
     // emulate anim stop click
     animTimer->stop();
     // emulate anim play click
@@ -774,7 +811,7 @@ void MainWindow::speedChanged(double value) {
 }
 
 void MainWindow::heavyWorkSlot() {
-  if(animGroup->checkedAction()->data().toInt()==play) {
+  if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     int dframe=(int)(dT/deltaTime);// frame increment since play click
     int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
@@ -830,7 +867,7 @@ void MainWindow::exportCurrentAsPNG() {
   if(dialog.result()==QDialog::Rejected) return;
 
   QString str("Exporting current frame, please wait!");
-  statusBar->showMessage(str);
+  statusBar()->showMessage(str);
   cout<<str.toStdString()<<endl;
   QColor c=dialog.getColor();
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
@@ -838,7 +875,7 @@ void MainWindow::exportCurrentAsPNG() {
   SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
   exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent(), c.red()/255.0, c.green()/255.0, c.blue()/255.0);
   str="Done";
-  statusBar->showMessage(str, 10000);
+  statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;
 }
 
@@ -876,28 +913,51 @@ void MainWindow::exportSequenceAsPNG() {
 int xx=0;
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
-    statusBar->showMessage(str);
+    statusBar()->showMessage(str);
     cout<<str.toStdString()<<endl;
     frame->setValue(frame_);
     exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent, red, green, blue);
   }
   QString str("Done");
-  statusBar->showMessage(str, 10000);
+  statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;
 }
 
+void MainWindow::stopSCSlot() {
+  animTimer->stop();
+  stopAct->setChecked(true);
+  lastFrameAct->setChecked(false);
+  playAct->setChecked(false);
+}
+
 void MainWindow::lastFrameSCSlot() {
-  if(lastFrameAct->isChecked())
-    stopAct->trigger();
-  else
-    lastFrameAct->trigger();
+  if(!lastFrameAct->isChecked()) {
+    stopAct->setChecked(true);
+    animTimer->stop();
+    return;
+  }
+
+  printf("Not implemented yet!!!!!!!!!!!!!!\n"); //TODO
+  stopAct->setChecked(false);
+  playAct->setChecked(false);
+  animTimer->stop();
 }
 
 void MainWindow::playSCSlot() {
-  if(playAct->isChecked())
-    stopAct->trigger();
+  if(!playAct->isChecked()) {
+    stopAct->setChecked(true);
+    animTimer->stop();
+    return;
+  }
+
+  stopAct->setChecked(false);
+  lastFrameAct->setChecked(false);
+  animStartFrame=frame->getValue();
+  time->restart();
+  if(fpsMax<1e-15)
+    animTimer->start();
   else
-    playAct->trigger();
+    animTimer->start((int)(1000/fpsMax));
 }
 
 void MainWindow::speedUpSlot() {
@@ -936,31 +996,39 @@ void MainWindow::loadWindowState(string filename) {
   // load
   QFile stateFile(filename.c_str());
   stateFile.open(QIODevice::ReadOnly);
-  Geometry geometry;
-  stateFile.read((char*)&geometry, sizeof(Geometry));
-  QByteArray windowState=stateFile.readAll();
+  WindowState windowState;
+  stateFile.read((char*)&windowState, sizeof(WindowState));
+  QByteArray wst=stateFile.readAll();
   stateFile.close();
   // geometry
-  resize(geometry.width, geometry.height);
-  move(geometry.x, geometry.y);
+//resize(windowState.width, windowState.height);
+//move(windowState.x, windowState.y);
+  if(!windowState.hasMenuBar) toggleMenuBar->trigger();
+  if(!windowState.hasStatusBar) toggleStatusBar->trigger();
+  if(!windowState.hasFrameSlider) toggleFrameSlider->trigger();
   // window state
-  restoreState(windowState);
+  restoreState(wst);
 }
 
 void MainWindow::saveWindowState() {
+  QString str("--geometry %1x%2+%3+%4");
+  str=str.arg(size().width()).arg(size().height()).
+          arg(pos().x()).arg(pos().y());
+  statusBar()->showMessage(str, 10000);
+  cout<<str.toStdString()<<endl;
+
   QString filename=QFileDialog::getSaveFileName(0, "Save Window State", ".", "*.ombv.wst");
   if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
     filename=filename+".ombv.wst";
   // geometry
-  Geometry geometry;
-  geometry.width=size().width();
-  geometry.height=size().height();
-  geometry.x=pos().x();
-  geometry.y=pos().y();
-  QByteArray data((char*)&geometry, sizeof(Geometry));
+  WindowState windowState;
+  windowState.hasMenuBar=toggleMenuBar->isChecked();
+  windowState.hasStatusBar=toggleStatusBar->isChecked();
+  windowState.hasFrameSlider=toggleFrameSlider->isChecked();
+  QByteArray data((char*)&windowState, sizeof(WindowState));
   // window state
-  QByteArray windowState=saveState();
-  data.append(windowState);
+  QByteArray wst=saveState();
+  data.append(wst);
   // save
   QFile stateFile(filename);
   stateFile.open(QIODevice::WriteOnly);
@@ -998,4 +1066,32 @@ void MainWindow::exportCurrentAsIV() {
   output.openFile(filename.toStdString().c_str());
   SoWriteAction wa(&output);
   wa.apply(sceneRoot);
+}
+
+void MainWindow::toggleMenuBarSlot() {
+  if(toggleMenuBar->isChecked())
+    menuBar()->setVisible(true);
+  else
+    menuBar()->setVisible(false);
+}
+
+void MainWindow::toggleStatusBarSlot() {
+  if(toggleStatusBar->isChecked())
+    statusBar()->setVisible(true);
+  else
+    statusBar()->setVisible(false);
+}
+
+void MainWindow::toggleFrameSliderSlot() {
+  if(toggleFrameSlider->isChecked())
+    timeSlider->setVisible(true);
+  else
+    timeSlider->setVisible(false);
+}
+
+void MainWindow::toggleFullScreenSlot() {
+  if(isFullScreen())
+    showNormal();
+  else
+    showFullScreen();
 }
