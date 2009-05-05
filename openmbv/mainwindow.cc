@@ -163,9 +163,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   fileMenu->addAction(QIcon(":/exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/loadwst.svg"), "Load Window State...", this, SLOT(loadWindowState()));
-  QAction *act=fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()));
+  QAction *act=fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
+  addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(QIcon(":/loadcamera.svg"), "Load Camera...", this, SLOT(loadCamera()));
-  fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()));
+  act=fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
+  addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
   menuBar()->addMenu(fileMenu);
@@ -234,6 +236,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QAction *toggleFullScreen=viewMenu->addAction("Full Screen", this, SLOT(toggleFullScreenSlot()), QKeySequence("F5"));
   addAction(toggleFullScreen); // must work also if menu bar is invisible
   toggleFullScreen->setCheckable(true);
+  toggleDecoration=viewMenu->addAction("Window Decoration", this, SLOT(toggleDecorationSlot()));
+  toggleDecoration->setCheckable(true);
+  toggleDecoration->setChecked(true);
   menuBar()->addMenu(viewMenu);
 
   // dock menu
@@ -402,6 +407,21 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     arg.erase(i);
   }
 
+  // fullscreen
+  if((i=std::find(arg.begin(), arg.end(), "--fullscreen"))!=arg.end()) {
+    enableFullScreen=true;
+    toggleFullScreen->setChecked(true);
+    arg.erase(i);
+  }
+
+  // decoratoin
+  if((i=std::find(arg.begin(), arg.end(), "--nodecoration"))!=arg.end()) {
+    toggleDecoration->setChecked(false);
+    setWindowFlags(Qt::FramelessWindowHint);
+    show();
+    arg.erase(i);
+  }
+
   // geometry
   if((i=std::find(arg.begin(), arg.end(), "--geometry"))!=arg.end()) {
     i2=i; i2++;
@@ -438,13 +458,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     i2=i; i2++;
     cameraFile=*i2;
     arg.erase(i); arg.erase(i2);
-  }
-
-  // fullscreen
-  if((i=std::find(arg.begin(), arg.end(), "--fullscreen"))!=arg.end()) {
-    enableFullScreen=true;
-    toggleFullScreen->setChecked(true);
-    arg.erase(i);
   }
 
   // read XML files
@@ -991,8 +1004,11 @@ void MainWindow::bottomBGColor() {
 }
 
 void MainWindow::loadWindowState(string filename) {
-  if(filename=="")
-    filename=QFileDialog::getOpenFileName(0, "Load Window State", ".", "*.ombv.wst").toStdString();
+  if(filename=="") {
+    QString fn=QFileDialog::getOpenFileName(0, "Load Window State", ".", "*.ombv.wst");
+    if(fn.isNull()) return;
+    filename=fn.toStdString();
+  }
   // load
   QFile stateFile(filename.c_str());
   stateFile.open(QIODevice::ReadOnly);
@@ -1001,8 +1017,6 @@ void MainWindow::loadWindowState(string filename) {
   QByteArray wst=stateFile.readAll();
   stateFile.close();
   // geometry
-//resize(windowState.width, windowState.height);
-//move(windowState.x, windowState.y);
   if(!windowState.hasMenuBar) toggleMenuBar->trigger();
   if(!windowState.hasStatusBar) toggleStatusBar->trigger();
   if(!windowState.hasFrameSlider) toggleFrameSlider->trigger();
@@ -1018,6 +1032,7 @@ void MainWindow::saveWindowState() {
   cout<<str.toStdString()<<endl;
 
   QString filename=QFileDialog::getSaveFileName(0, "Save Window State", ".", "*.ombv.wst");
+  if(filename.isNull()) return;
   if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
     filename=filename+".ombv.wst";
   // geometry
@@ -1037,8 +1052,11 @@ void MainWindow::saveWindowState() {
 }
 
 void MainWindow::loadCamera(string filename) {
-  if(filename=="")
-    filename=QFileDialog::getOpenFileName(0, "Load Camera", ".", "*.camera.iv").toStdString();
+  if(filename=="") {
+    QString fn=QFileDialog::getOpenFileName(0, "Load Camera", ".", "*.camera.iv");
+    if(fn.isNull()) return;
+    filename=fn.toStdString();
+  }
   SoInput input;
   input.openFile(filename.c_str());
   SoSeparator *sep=SoDB::readAll(&input);
@@ -1050,6 +1068,7 @@ void MainWindow::loadCamera(string filename) {
 
 void MainWindow::saveCamera() {
   QString filename=QFileDialog::getSaveFileName(0, "Save Camera", ".", "*.camera.iv");
+  if(filename.isNull()) return;
   if(!filename.endsWith(".camera.iv",Qt::CaseInsensitive))
     filename=filename+".camera.iv";
   SoOutput output;
@@ -1060,6 +1079,7 @@ void MainWindow::saveCamera() {
 
 void MainWindow::exportCurrentAsIV() {
   QString filename=QFileDialog::getSaveFileName(0, "Save Current Frame as iv", ".", "*.iv");
+  if(filename.isNull()) return;
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
   SoOutput output;
@@ -1094,4 +1114,12 @@ void MainWindow::toggleFullScreenSlot() {
     showNormal();
   else
     showFullScreen();
+}
+
+void MainWindow::toggleDecorationSlot() {
+  if(toggleDecoration->isChecked())
+    setWindowFlags(Qt::Window);
+  else
+    setWindowFlags(Qt::FramelessWindowHint);
+  show();
 }

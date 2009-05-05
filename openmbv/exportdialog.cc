@@ -101,6 +101,7 @@ void ExportDialog::colorToggled(bool enabled) {
 
 void ExportDialog::colorButtonClicked() {
   color=QColorDialog::getColor(color);
+  if(!color.isValid()) return;
   QPixmap pixmap(30,15);
   pixmap.fill(color);
   colorButton.setIcon(QIcon(pixmap));
@@ -108,6 +109,6 @@ void ExportDialog::colorButtonClicked() {
 
 void ExportDialog::fileBrowser() {
   QString name=QFileDialog::getSaveFileName(this, "Save to file", fileName.text(), "PNG-Image (*.png)");
-  if(name.length()>0)
-    fileName.setText(name);
+  if(name.isNull()) return;
+  fileName.setText(name);
 }

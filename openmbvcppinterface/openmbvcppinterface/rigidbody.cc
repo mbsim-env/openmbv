@@ -27,6 +27,8 @@ using namespace std;
 using namespace OpenMBV;
 
 RigidBody::RigidBody() : Body(),
+  minimalColorValue(0),
+  maximalColorValue(1),
   initialTranslation(3, 0),
   initialRotation(3, 0),
   scaleFactor(1),
