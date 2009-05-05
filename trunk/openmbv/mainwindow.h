@@ -83,7 +83,7 @@ class MainWindow : public QMainWindow {
     QSlider *speedWheel;
 #endif
     double oldSpeed;
-    QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen;
+    QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
   protected slots:
     void objectListClicked();
@@ -128,6 +128,7 @@ class MainWindow : public QMainWindow {
     void toggleStatusBarSlot();
     void toggleFrameSliderSlot();
     void toggleFullScreenSlot();
+    void toggleDecorationSlot();
   public:
     MainWindow(std::list<std::string>& arg);
     static MainWindow*const getInstance() { return instance; }
