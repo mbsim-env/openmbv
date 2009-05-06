@@ -50,9 +50,12 @@ SoCoordinate3 *Body::tessCoord;
 Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
   // tess
   if(tessCBInit==false) {
-    gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (GLvoid (*)())tessBeginCB);
-    gluTessCallback(tess, GLU_TESS_VERTEX, (GLvoid (*)())tessVertexCB);
-    gluTessCallback(tess, GLU_TESS_END, (GLvoid (*)())tessEndCB);
+#   ifndef WIN32
+#     define __stdcall
+#   endif
+    gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (void (__stdcall *)())tessBeginCB);
+    gluTessCallback(tess, GLU_TESS_VERTEX, (void (__stdcall *)())tessVertexCB);
+    gluTessCallback(tess, GLU_TESS_END, (void (__stdcall *)())tessEndCB);
     tessCBInit=true;
   }
 

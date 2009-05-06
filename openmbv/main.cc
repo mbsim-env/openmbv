@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
   MainWindow mainWindow(arg);
   mainWindow.show();
   if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
+  mainWindow.updateScene(); // must be called after mainWindow.show()
 
   return app.exec();
 }
