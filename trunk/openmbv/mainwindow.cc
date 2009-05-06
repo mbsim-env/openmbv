@@ -422,6 +422,15 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     arg.erase(i);
   }
 
+  // load the window state file
+  if((i=std::find(arg.begin(), arg.end(), "--wst"))!=arg.end()) {
+    i2=i; i2++;
+    loadWindowState(*i2);
+    arg.erase(i); arg.erase(i2);
+  }
+  else
+    resize(780,560);
+  
   // geometry
   if((i=std::find(arg.begin(), arg.end(), "--geometry"))!=arg.end()) {
     i2=i; i2++;
@@ -436,15 +445,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     arg.erase(i); arg.erase(i2);
   }
 
-  // load the window state file
-  if((i=std::find(arg.begin(), arg.end(), "--wst"))!=arg.end()) {
-    i2=i; i2++;
-    loadWindowState(*i2);
-    arg.erase(i); arg.erase(i2);
-  }
-  else
-    resize(630,460);
-  
   // play/lastframe
   bool playArg=false, lastframeArg=false;
   if((i=std::find(arg.begin(), arg.end(), "--play"))!=arg.end())

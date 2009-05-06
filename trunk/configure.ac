@@ -29,17 +29,19 @@ RCC=${MOC%*/*}/rcc
 AC_SUBST([MOC])
 AC_SUBST([UIC])
 AC_SUBST([RCC])
+DIR1=$(pkg-config --variable libdir QtCore)
+DIR2=$(pkg-config --variable prefix QtCore)
 dnl check for static qsvg imageformats plugin
 qsvg=0
-AC_CHECK_FILE([$(pkg-config --variable libdir QtCore)/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$(pkg-config --variable libdir QtCore)/plugins/imageformats -lqsvg $QT_LIBS"])
-AC_CHECK_FILE([$(pkg-config --variable prefix QtCore)/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$(pkg-config --variable prefix QtCore)/plugins/imageformats -lqsvg $QT_LIBS"])
+AC_CHECK_FILE([$DIR1/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$DIR1/plugins/imageformats -lqsvg $QT_LIBS"])
+AC_CHECK_FILE([$DIR2/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$DIR2/plugins/imageformats -lqsvg $QT_LIBS"])
 if test $qsvg -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
 fi
 dnl check for static qsvgicon iconengines plugin
 qsvgicon=0
-AC_CHECK_FILE([$(pkg-config --variable libdir QtCore)/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$(pkg-config --variable libdir QtCore)/plugins/iconengines -lqsvgicon $QT_LIBS"])
-AC_CHECK_FILE([$(pkg-config --variable prefix QtCore)/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$(pkg-config --variable prefix QtCore)/plugins/iconengines -lqsvgicon $QT_LIBS"])
+AC_CHECK_FILE([$DIR1/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$DIR1/plugins/iconengines -lqsvgicon $QT_LIBS"])
+AC_CHECK_FILE([$DIR2/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$DIR2/plugins/iconengines -lqsvgicon $QT_LIBS"])
 if test $qsvgicon -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
 fi

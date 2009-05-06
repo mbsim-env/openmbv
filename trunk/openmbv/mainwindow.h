@@ -131,6 +131,7 @@ class MainWindow : public QMainWindow {
     void toggleDecorationSlot();
   public:
     MainWindow(std::list<std::string>& arg);
+    void updateScene() { glViewer->getSceneManager()->render(); }
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
