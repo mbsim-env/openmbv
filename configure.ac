@@ -22,7 +22,7 @@ AC_TYPE_SIZE_T
 
 dnl check host
 AC_CANONICAL_HOST
-if test "_$host_os" = "_win32"; then
+if test "_$host_os" = "_mingw32"; then
   LDFLAGS="-mwindows $LDFLAGS"
   WIN32=yes
 fi
