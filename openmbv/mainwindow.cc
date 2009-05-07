@@ -169,7 +169,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   act=fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
-  fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()));
+  act=fileMenu->addAction(QIcon(":/quit.svg"), "Exit", qApp, SLOT(quit()), QKeySequence("ESC"));
+  addAction(act); // must work also if menu bar is invisible
   menuBar()->addMenu(fileMenu);
 
   // animation menu
