@@ -20,6 +20,14 @@ AC_C_INLINE
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
+dnl check host
+AC_CANONICAL_HOST
+if test "_$host_os" = "_win32"; then
+  LDFLAGS="-mwindows $LDFLAGS"
+  WIN32=yes
+fi
+AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
+
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc
