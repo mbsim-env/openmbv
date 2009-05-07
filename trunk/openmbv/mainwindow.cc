@@ -429,7 +429,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
     loadWindowState(*i2);
     arg.erase(i); arg.erase(i2);
   }
-  else
+
+  // resize if no --wst and no --geometry option is given
+  if(std::find(arg.begin(), arg.end(), "--wst")==arg.end() &&
+     std::find(arg.begin(), arg.end(), "--geometry")==arg.end())
     resize(780,560);
   
   // geometry
