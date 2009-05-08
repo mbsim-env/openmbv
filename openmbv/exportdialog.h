@@ -34,9 +34,8 @@ class ExportDialog : public QDialog {
   protected:
     QDoubleSpinBox scale, speed, fps;
     QSpinBox startFrame, endFrame;
-    QPushButton colorButton, fileNameButton, ok, abort;
+    QPushButton fileNameButton, ok, abort;
     QLineEdit fileName;
-    QColor color;
     QGridLayout dialogLO;
     QRadioButton transparentRB, colorRB;
     QLabel scaleL, backgroundL, fileNameL, speedL, fpsL, frameRangeL;
@@ -44,15 +43,12 @@ class ExportDialog : public QDialog {
     ExportDialog(QWidget *parent, bool sequence);
     double getScale() { return scale.value(); }
     bool getTransparent() { return transparentRB.isChecked(); }
-    QColor getColor() { return color; }
     QString getFileName() { return fileName.text(); }
     double getFPS() { return fps.value(); }
     double getSpeed() { return speed.value(); }
     int getStartFrame() { return startFrame.value(); }
     int getEndFrame() { return endFrame.value(); }
   protected slots:
-    void colorToggled(bool enabled);
-    void colorButtonClicked();
     void fileBrowser();
 };
 

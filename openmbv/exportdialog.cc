@@ -19,13 +19,11 @@
 
 #include "config.h"
 #include "exportdialog.h"
-#include <QtGui/QColorDialog>
 #include <QtGui/QFileDialog>
 #include "mainwindow.h"
 
 ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   int row=-1;
-  color=Qt::white;
   setWindowTitle("Export PNG");
   setLayout(&dialogLO);
   scaleL.setText("Scale factor");
@@ -41,16 +39,9 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   transparentRB.setText("Transparent");
   transparentRB.setChecked(true);
   dialogLO.addWidget(&transparentRB, row, 1, 1, 2);
-  colorRB.setText("Color");
-  connect(&colorRB, SIGNAL(toggled(bool)), this, SLOT(colorToggled(bool)));
+  colorRB.setText("Use Scene Color");
   row++;
   dialogLO.addWidget(&colorRB, row, 1);
-  colorButton.setEnabled(false);
-  QPixmap pixmap(30,15);
-  pixmap.fill(color);
-  colorButton.setIcon(QIcon(pixmap));
-  connect(&colorButton, SIGNAL(clicked(bool)), this, SLOT(colorButtonClicked()));
-  dialogLO.addWidget(&colorButton, row, 2);
   if(sequence) {
     row++;
     speedL.setText("Speed:");
@@ -93,18 +84,6 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   ok.setText("OK");
   connect(&ok, SIGNAL(clicked(bool)), this, SLOT(accept()));
   dialogLO.addWidget(&ok, row, 2);
-}
-
-void ExportDialog::colorToggled(bool enabled) {
-  colorButton.setEnabled(enabled);
-}
-
-void ExportDialog::colorButtonClicked() {
-  color=QColorDialog::getColor(color);
-  if(!color.isValid()) return;
-  QPixmap pixmap(30,15);
-  pixmap.fill(color);
-  colorButton.setIcon(QIcon(pixmap));
 }
 
 void ExportDialog::fileBrowser() {

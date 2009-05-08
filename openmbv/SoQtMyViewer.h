@@ -36,6 +36,7 @@ class SoQtMyViewer : public SoQtExaminerViewer {
     SbBool processSoEvent(const SoEvent *const event);
     virtual void actualRedraw(void);
     // for text in viewport
+  public:
     SoSeparator *fgSep, *bgSep;
     SoTranslation *timeTrans, *ombvTrans;
 };

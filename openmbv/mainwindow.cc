@@ -39,6 +39,9 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
+///////////////////
+#include <Inventor/nodes/SoDepthBuffer.h>
+///////////////////
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -154,16 +157,19 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QMenuBar *mb=new QMenuBar(this);
   setMenuBar(mb);
 
+  QAction *act;
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar());
   QAction *addFileAct=fileMenu->addAction(QIcon(":/addfile.svg"), "Add File...", this, SLOT(openFileDialog()));
   fileMenu->addSeparator();
-  fileMenu->addAction(QIcon(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()));
-  fileMenu->addAction(QIcon(":/exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()));
+  act=fileMenu->addAction(QIcon(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
+  addAction(act); // must work also if menu bar is invisible
+  act=fileMenu->addAction(QIcon(":/exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
+  addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(QIcon(":/exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
   fileMenu->addSeparator();
   fileMenu->addAction(QIcon(":/loadwst.svg"), "Load Window State...", this, SLOT(loadWindowState()));
-  QAction *act=fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
+  act=fileMenu->addAction(QIcon(":/savewst.svg"), "Save Window State...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(QIcon(":/loadcamera.svg"), "Load Camera...", this, SLOT(loadCamera()));
   act=fileMenu->addAction(QIcon(":/savecamera.svg"), "Save Camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
@@ -850,31 +856,70 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileName, bool transparent, float red, float green, float blue) {
+void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileName, bool transparent) {
   if(transparent)
     myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
   else
-    myRenderer.setBackgroundColor(SbColor(red,green,blue));
-  myRenderer.render(glViewer->getSceneManager()->getSceneGraph());
+    myRenderer.setComponents(SoOffscreenRenderer::RGB);
   short width, height;
   myRenderer.getViewportRegion().getWindowSize().getValue(width, height);
+
+  // root separator for export
+  SoSeparator *root=new SoSeparator;
+  root->ref();
+  // add background
+  if(!transparent)
+    root->addChild(glViewer->bgSep);
+  // add scene
+  root->addChild(glViewer->getSceneManager()->getSceneGraph());
+  // clear depth buffer
+  SoDepthBuffer *db=new SoDepthBuffer;
+  root->addChild(db);
+  db->function.setValue(SoDepthBufferElement::ALWAYS);
+  // set correct translation
+  glViewer->timeTrans->translation.setValue(-1+2.0/width*3,1-2.0/height*15,0);
+  glViewer->ombvTrans->translation.setValue(0,-1+2.0/height*15 -1+2.0/height*3,0);
+  // add foreground
+  root->addChild(glViewer->fgSep);
+  // render
+  myRenderer.render(root);
+
   if(transparent) {
-    for(int i=0; i<width*height*4; i+=4) {
-      unsigned char r=myRenderer.getBuffer()[i+0];
-      unsigned char g=myRenderer.getBuffer()[i+1];
-      unsigned char b=myRenderer.getBuffer()[i+2];
-      unsigned char a=myRenderer.getBuffer()[i+3];
-      myRenderer.getBuffer()[i+0]=b;
-      myRenderer.getBuffer()[i+1]=g;
-      myRenderer.getBuffer()[i+2]=r;
-      myRenderer.getBuffer()[i+3]=a;
-    }
-    QImage image(myRenderer.getBuffer(), width, height, QImage::Format_ARGB32);
+    unsigned char *buf=new unsigned char[width*height*4];
+    for(int y=0; y<height; y++)
+      for(int x=0; x<width; x++) {
+        int i=(y*width+x)*4;
+        unsigned char r=myRenderer.getBuffer()[i+0];
+        unsigned char g=myRenderer.getBuffer()[i+1];
+        unsigned char b=myRenderer.getBuffer()[i+2];
+        unsigned char a=myRenderer.getBuffer()[i+3];
+        int o=((height-y-1)*width+x)*4;
+        buf[o+0]=b;
+        buf[o+1]=g;
+        buf[o+2]=r;
+        buf[o+3]=a;
+      }
+    QImage image(buf, width, height, QImage::Format_ARGB32);
     image.save(fileName.c_str(), "png");
+    delete[]buf;
   }
   else {
-    QImage image(myRenderer.getBuffer(), width, height, QImage::Format_RGB888);
+    unsigned char *buf=new unsigned char[width*height*4];
+    for(int y=0; y<height; y++)
+      for(int x=0; x<width; x++) {
+        int i=(y*width+x)*3;
+        unsigned char r=myRenderer.getBuffer()[i+0];
+        unsigned char g=myRenderer.getBuffer()[i+1];
+        unsigned char b=myRenderer.getBuffer()[i+2];
+        int o=((height-y-1)*width+x)*4;
+        buf[o+0]=b;
+        buf[o+1]=g;
+        buf[o+2]=r;
+        buf[o+3]=255;
+      }
+    QImage image(buf, width, height, QImage::Format_ARGB32);
     image.save(fileName.c_str(), "png");
+    delete[]buf;
   }
 }
 
@@ -886,11 +931,10 @@ void MainWindow::exportCurrentAsPNG() {
   QString str("Exporting current frame, please wait!");
   statusBar()->showMessage(str);
   cout<<str.toStdString()<<endl;
-  QColor c=dialog.getColor();
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
-  exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent(), c.red()/255.0, c.green()/255.0, c.blue()/255.0);
+  exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent());
   str="Done";
   statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;
@@ -902,8 +946,6 @@ void MainWindow::exportSequenceAsPNG() {
   if(dialog.result()==QDialog::Rejected) return;
   double scale=dialog.getScale();
   bool transparent=dialog.getTransparent();
-  QColor c=dialog.getColor();
-  float red=c.red()/255.0, green=c.green()/255.0, blue=c.blue()/255.0;
   QString fileName=dialog.getFileName();
   if(!fileName.toUpper().endsWith(".PNG")) return;
   fileName=fileName.remove(fileName.length()-4,4);
@@ -927,13 +969,12 @@ void MainWindow::exportSequenceAsPNG() {
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
   SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
-int xx=0;
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
     cout<<str.toStdString()<<endl;
     frame->setValue(frame_);
-    exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent, red, green, blue);
+    exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
   QString str("Done");
   statusBar()->showMessage(str, 10000);
