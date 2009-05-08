@@ -117,4 +117,5 @@ namespace OpenMBV {
 
 }
 
-#endif
+#endif /* _OPENMBV_RIGIDBODY_H_ */
+

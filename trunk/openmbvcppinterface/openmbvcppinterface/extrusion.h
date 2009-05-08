@@ -44,7 +44,7 @@ namespace OpenMBV {
       /** Default constructor */
       Extrusion();
 
-      /** Set the OpenGL winding rule for the tesselation of the crsoss section area.
+      /** Set the OpenGL winding rule for the tesselation of the cross section area.
        * Allowable values are "odd", "nonzero", "positive", "negative" and "absGEqTwo".
        * See the OpenGL-GLU documentation the the meaning of this values.
        */
@@ -75,4 +75,5 @@ namespace OpenMBV {
 
 }
 
-#endif
+#endif /* _OPENMBV_EXTRUSION_H_ */
+
