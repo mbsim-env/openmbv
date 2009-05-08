@@ -108,7 +108,7 @@ class MainWindow : public QMainWindow {
     void speedWheelChanged(int value);
     void speedWheelPressed();
     void speedWheelReleased();
-    void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent, float red, float green, float blue);
+    void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
