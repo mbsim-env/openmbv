@@ -34,7 +34,8 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   objectfactory.cc\
   rigidbody.cc\
   compoundrigidbody.cc\
-  SoQtMyViewer.cc
+  SoQtMyViewer.cc \
+  spineextrusion.cc
 
 nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
@@ -79,7 +80,8 @@ noinst_HEADERS = openmbv.qrc\
   group.h\
   body.h\
   SoSpecial.h\
-  SoQtMyViewer.h
+  SoQtMyViewer.h \
+  spineextrusion.h
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html ../mbxmlutils/mbxmlutils/measurement.html

@@ -33,6 +33,7 @@
 #include "objbody.h"
 #include "extrusion.h"
 #include "compoundrigidbody.h"
+#include "spineextrusion.h"
 #include "mainwindow.h"
 #include <string>
 
@@ -65,6 +66,8 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIte
     return new Extrusion(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"CompoundRigidBody")
     return new CompoundRigidBody(element, h5Parent, parentItem, soParent);
+  else if(element->ValueStr()==OPENMBVNS"SpineExtrusion")
+    return new SpineExtrusion(element, h5Parent, parentItem, soParent);
   QString str("ERROR: Unknown element: %1"); str=str.arg(element->Value());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;

@@ -23,7 +23,8 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   cube.cc \
   objbody.cc \
   ivbody.cc \
-  cuboid.cc
+  cuboid.cc \
+  spineextrusion.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
   body.h \
@@ -43,4 +44,5 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   cube.h \
   objbody.h \
   ivbody.h \
-  cuboid.h
+  cuboid.h \
+  spineextrusion.h

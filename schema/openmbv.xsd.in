@@ -187,6 +187,21 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="SpineExtrusion" substitutionGroup="Body" type="SpineExtrusionType"/>
+  <xs:complexType name="SpineExtrusionType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="contour" type="pv:lengthMatrix"/>
+          <xs:element name="minimalColorValue" type="pv:nounitScalar"/>
+          <xs:element name="maximalColorValue" type="pv:nounitScalar"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="color" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType> 
+
   <xs:element name="Extrusion" substitutionGroup="RigidBody" type="ExtrusionType"/>
   <xs:complexType name="ExtrusionType">
     <xs:complexContent>
