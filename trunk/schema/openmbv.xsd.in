@@ -187,6 +187,20 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="CoilSpring" substitutionGroup="Body" type="CoilSpringType"/>
+  <xs:complexType name="CoilSpringType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
+          <xs:element name="springRadius" type="pv:nounitScalar"/>
+          <xs:element name="crossSectionRadius" type="pv:nounitScalar"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType> 
+
   <xs:element name="SpineExtrusion" substitutionGroup="Body" type="SpineExtrusionType"/>
   <xs:complexType name="SpineExtrusionType">
     <xs:complexContent>
