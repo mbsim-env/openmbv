@@ -35,6 +35,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
   setAnimationEnabled(false);
   setSeekTime(1);
+//setHeadlight(false);
 
   // background
   setClearBeforeRender(false); // clear by my background color

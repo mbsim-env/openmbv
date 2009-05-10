@@ -18,7 +18,6 @@
   <xs:element name="Object" abstract="true" type="ObjectType"/>
   <xs:complexType name="ObjectType">
     <xs:attribute name="name" type="xs:token" use="required"/>
-    <xs:attribute name="expand" type="xs:boolean" default="true"/>
   </xs:complexType> 
 
   <xs:element name="Group" substitutionGroup="Object" type="GroupType"/>
@@ -28,6 +27,7 @@
         <xs:sequence>
           <xs:element ref="Object" maxOccurs="unbounded"/>  
         </xs:sequence> 
+        <xs:attribute name="expand" type="xs:boolean" default="true"/>
         <xs:attribute ref="xml:base"/>
       </xs:extension>
     </xs:complexContent>
@@ -186,20 +186,6 @@
       <xs:extension base="RigidBodyType"/>
     </xs:complexContent>
   </xs:complexType>   
-
-  <xs:element name="CoilSpring" substitutionGroup="Body" type="CoilSpringType"/>
-  <xs:complexType name="CoilSpringType">
-    <xs:complexContent>
-      <xs:extension base="BodyType">
-        <xs:sequence>
-          <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
-          <xs:element name="springRadius" type="pv:nounitScalar"/>
-          <xs:element name="crossSectionRadius" type="pv:nounitScalar"/>
-          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
-        </xs:sequence> 
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType> 
 
   <xs:element name="SpineExtrusion" substitutionGroup="Body" type="SpineExtrusionType"/>
   <xs:complexType name="SpineExtrusionType">

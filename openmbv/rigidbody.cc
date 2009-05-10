@@ -20,6 +20,7 @@
 #include "config.h"
 #include "rigidbody.h"
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoSurroundScale.h>
@@ -65,7 +66,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   // create so
 
-  if(h5Parent) {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // path
     soPathSwitch=new SoSwitch;
     soSep->addChild(soPathSwitch);
@@ -138,7 +139,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   grp->addChild(initRot);
   initRot->rotation.connectFrom(&soDragger->rotation);
 
-  if(h5Parent) {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
     soLocalFrameSwitch=new SoSwitch;
     soSep->addChild(soLocalFrameSwitch);
@@ -160,7 +161,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   scale->scaleFactor.setValue(scaleValue,scaleValue,scaleValue);
   soSep->addChild(scale);
 
-  if(h5Parent) {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
     localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", 0);
     localFrame->setCheckable(true);

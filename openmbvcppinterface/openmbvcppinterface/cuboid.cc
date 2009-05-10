@@ -29,7 +29,7 @@ Cuboid::Cuboid() : RigidBody(),
 }
 
 void Cuboid::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Cuboid name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Cuboid name=\""<<name<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <length>["<<length[0]<<";"
                                <<length[1]<<";"

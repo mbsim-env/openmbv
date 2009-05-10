@@ -21,10 +21,25 @@
 #include "group.h"
 #include "objectfactory.h"
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
+#include <string>
+
+using namespace std;
 
 Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
   iconFile=":/group.svg";
   setIcon(0, QIcon(iconFile.c_str()));
+
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
+    // expand or collapse
+    if(element->Attribute("expand")==0)
+      setExpanded(true);
+    else
+      if(element->Attribute("expand")==string("true"))
+        setExpanded(true);
+      else
+        setExpanded(false);
+  }
 
   // if xml:base attribute exist => new sub file
   if(element->Attribute("xml:base")) {

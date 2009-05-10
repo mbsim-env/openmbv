@@ -70,10 +70,7 @@ int main() {
     
     Extrusion extrusion;
     extrusion.setName("myextrusion");
-    PolygonPoint point;
-    point.x=0.6;
-    point.y=0.2;
-    point.b=0;
+    PolygonPoint point(0.6,0.2,0);
     vector<PolygonPoint*> contour;
     contour.push_back(&point);
     contour.push_back(&point);

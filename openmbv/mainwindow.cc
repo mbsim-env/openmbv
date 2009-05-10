@@ -39,9 +39,8 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
-///////////////////
 #include <Inventor/nodes/SoDepthBuffer.h>
-///////////////////
+#include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -106,7 +105,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
-  sceneRoot->addChild(new SoOrthographicCamera); // child nr 0 of sceneRoot
+  sceneRoot->addChild(new SoOrthographicCamera); // child nr 0 of sceneRoot!!!!! (MUST BE CHILD NR 0)
+  sceneRoot->addChild(new SoPolygonOffset); // move all filled polygons 1 unit in background
   sceneRootBBox=new SoSepNoPickNoBBox;
   sceneRoot->addChild(sceneRootBBox);
   SoLightModel *lm=new SoLightModel;
@@ -206,47 +206,50 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   connect(playAct, SIGNAL(triggered()), this, SLOT(playSCSlot()));
 
 
-  // view menu
-  QMenu *viewMenu=new QMenu("View", menuBar());
-  QAction *viewAllAct=viewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()), QKeySequence("A"));
+  // scene view menu
+  QMenu *sceneViewMenu=new QMenu("Scene View", menuBar());
+  QAction *viewAllAct=sceneViewMenu->addAction(QIcon(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()), QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
-  viewMenu->addSeparator()->setText("Parallel View");
-  QAction *topViewAct=viewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  sceneViewMenu->addSeparator()->setText("Parallel View");
+  QAction *topViewAct=sceneViewMenu->addAction(QIcon(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()), QKeySequence("T"));
   addAction(topViewAct); // must work also if menu bar is invisible
-  QAction *bottomViewAct=viewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  QAction *bottomViewAct=sceneViewMenu->addAction(QIcon(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
   addAction(bottomViewAct); // must work also if menu bar is invisible
-  QAction *frontViewAct=viewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  QAction *frontViewAct=sceneViewMenu->addAction(QIcon(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()), QKeySequence("F"));
   addAction(frontViewAct); // must work also if menu bar is invisible
-  QAction *backViewAct=viewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  QAction *backViewAct=sceneViewMenu->addAction(QIcon(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
   addAction(backViewAct); // must work also if menu bar is invisible
-  QAction *rightViewAct=viewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  QAction *rightViewAct=sceneViewMenu->addAction(QIcon(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()), QKeySequence("R"));
   addAction(rightViewAct); // must work also if menu bar is invisible
-  QAction *leftViewAct=viewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
+  QAction *leftViewAct=sceneViewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
   addAction(leftViewAct); // must work also if menu bar is invisible
-  viewMenu->addSeparator();
-  QAction *cameraAct=viewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  sceneViewMenu->addSeparator();
+  QAction *cameraAct=sceneViewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
-  viewMenu->addSeparator();
-  viewMenu->addAction(QIcon(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
-  viewMenu->addAction(QIcon(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
-  viewMenu->addSeparator();
-  toggleMenuBar=viewMenu->addAction("Menu Bar", this, SLOT(toggleMenuBarSlot()), QKeySequence("F10"));
+  sceneViewMenu->addSeparator();
+  sceneViewMenu->addAction(QIcon(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
+  sceneViewMenu->addAction(QIcon(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
+  menuBar()->addMenu(sceneViewMenu);
+
+  // gui view menu
+  QMenu *guiViewMenu=new QMenu("GUI View", menuBar());
+  toggleMenuBar=guiViewMenu->addAction("Menu Bar", this, SLOT(toggleMenuBarSlot()), QKeySequence("F10"));
   addAction(toggleMenuBar); // must work also if menu bar is invisible
   toggleMenuBar->setCheckable(true);
   toggleMenuBar->setChecked(true);
-  toggleStatusBar=viewMenu->addAction("Status Bar", this, SLOT(toggleStatusBarSlot()));
+  toggleStatusBar=guiViewMenu->addAction("Status Bar", this, SLOT(toggleStatusBarSlot()));
   toggleStatusBar->setCheckable(true);
   toggleStatusBar->setChecked(true);
-  toggleFrameSlider=viewMenu->addAction("Frame/Time Slider", this, SLOT(toggleFrameSliderSlot()));
+  toggleFrameSlider=guiViewMenu->addAction("Frame/Time Slider", this, SLOT(toggleFrameSliderSlot()));
   toggleFrameSlider->setCheckable(true);
   toggleFrameSlider->setChecked(true);
-  QAction *toggleFullScreen=viewMenu->addAction("Full Screen", this, SLOT(toggleFullScreenSlot()), QKeySequence("F5"));
+  QAction *toggleFullScreen=guiViewMenu->addAction("Full Screen", this, SLOT(toggleFullScreenSlot()), QKeySequence("F5"));
   addAction(toggleFullScreen); // must work also if menu bar is invisible
   toggleFullScreen->setCheckable(true);
-  toggleDecoration=viewMenu->addAction("Window Decoration", this, SLOT(toggleDecorationSlot()));
+  toggleDecoration=guiViewMenu->addAction("Window Decoration", this, SLOT(toggleDecorationSlot()));
   toggleDecoration->setCheckable(true);
   toggleDecoration->setChecked(true);
-  menuBar()->addMenu(viewMenu);
+  menuBar()->addMenu(guiViewMenu);
 
   // dock menu
   QMenu *dockMenu=new QMenu("Docks", menuBar());
@@ -462,6 +465,14 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   else if((i=std::find(arg.begin(), arg.end(), "--lastframe"))!=arg.end())
     { lastframeArg=true; arg.erase(i); }
 
+  // speed
+  if((i=std::find(arg.begin(), arg.end(), "--speed"))!=arg.end()) {
+    i2=i; i2++;
+    oldSpeed=QString(i2->c_str()).toDouble();
+    speedSB->setValue(oldSpeed);
+    arg.erase(i); arg.erase(i2);
+  }
+
   // camera position
   string cameraFile="";
   if((i=std::find(arg.begin(), arg.end(), "--camera"))!=arg.end()) {
@@ -473,16 +484,20 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   // read XML files
   if(arg.empty()) arg.push_back("."); // if calles without argument loat current dir
   QDir dir;
-  QRegExp filterRE("([^.]+\\.ombv.xml|[^.]+\\.ombv.env.xml)");
+  QRegExp filterRE1("[^.]+\\.ombv.xml");
+  QRegExp filterRE2("[^.]+\\.ombv.env.xml");
   dir.setFilter(QDir::Files);
   i=arg.begin();
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
-      // open all [^.]+\.ombv.xml or [^.]+\.ombv.env.xml files
+      // open all [^.]+\.ombv.xml and then all [^.]+\.ombv.env.xml files
       QStringList file=dir.entryList();
       for(int j=0; j<file.size(); j++)
-        if(filterRE.exactMatch(file[j]))
+        if(filterRE1.exactMatch(file[j]))
+          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+      for(int j=0; j<file.size(); j++)
+        if(filterRE2.exactMatch(file[j]))
           openFile(dir.path().toStdString()+"/"+file[j].toStdString());
       i2=i; i++; arg.erase(i2);
       continue;
@@ -540,7 +555,12 @@ bool MainWindow::openFile(string fileName) {
   incorporateNamespace(doc.FirstChildElement());
   Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent, objectList->invisibleRootItem(), sceneRoot);
   object->setText(0, fileName.c_str());
-  object->getIconFile()=":/h5file.svg";
+  if(!env)
+    object->getIconFile()=":/h5file.svg";
+  else {
+    object->getIconFile()=":/envfile.svg";
+    object->setExpanded(false);
+  }
   object->setIcon(0, QIcon(object->getIconFile().c_str()));
 
   // force a update
@@ -667,6 +687,16 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
   // if mouse button event
   if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
     SoMouseButtonEvent *ev=(SoMouseButtonEvent*)event;
+    // frame up on scroll
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON4) {
+      frameSB->stepUp();
+      return true;
+    }
+    // frame down on scroll
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON5) {
+      frameSB->stepDown();
+      return true;
+    }
     // if Ctrl|Ctrl+Alt + Button1|Button2 + Pressed: select object (show list if Alt)
     if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||

@@ -30,6 +30,7 @@
 #include "SoSpecial.h"
 #include <QtGui/QMenu>
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 #include <GL/gl.h>
 
 using namespace std;
@@ -73,7 +74,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   // switch for outline
   soOutLineSwitch=new SoSwitch;
   soOutLineSwitch->ref(); // add to scene must be done by derived class
-  if(h5Parent)
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     soOutLineSwitch->whichChild.connectFrom(&((Body*)parentItem)->soOutLineSwitch->whichChild);
@@ -89,7 +90,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   style->style.setValue(SoDrawStyle::LINES);
   soOutLineSep->addChild(style);
 
-  if(h5Parent) {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // draw method
     drawStyle=new SoDrawStyle;
     soSep->addChild(drawStyle);
