@@ -27,7 +27,7 @@
 using namespace OpenMBV;
 using namespace std;
 
-Group::Group() : Object(), separateFile(false) {
+Group::Group() : Object(), expandStr("true"), separateFile(false) {
 }
 
 void Group::addObject(Object* newObject) {

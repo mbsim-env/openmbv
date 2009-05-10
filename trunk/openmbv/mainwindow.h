@@ -66,7 +66,7 @@ class MainWindow : public QMainWindow {
     bool openFile(std::string fileName);
     SoQtMyViewer *glViewer;
     void viewParallel(ViewSide side);
-    SoSeparator *sceneRoot;
+    SoGroup *sceneRoot;
     QTimer *animTimer;
     QTime *time;
     QDoubleSpinBox *speedSB;

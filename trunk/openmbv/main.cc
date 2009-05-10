@@ -54,15 +54,17 @@ int main(int argc, char *argv[])
         <<"This is free software; see the source for copying conditions. There is NO"<<endl
         <<"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."<<endl
         <<""<<endl
-        <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--topbgcolor #XXXXXX]"<<endl
-        <<"               [--bottombgcolor #XXXXXX] [--closeall] [--wst <file>]"<<endl
-        <<"               [--camera <file>] [--fullscreen] [--geometry WIDTHxHEIGHT+X+Y]"<<endl
-        <<"               [--nodecoration] [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
+        <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
+        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
+        <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
+        <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
         <<"-h|--help        Shows this help"<<endl
         <<"--play           Start animation after loading"<<endl
+        <<"--speed          Set the animation speed"<<endl
         <<"--lastframe      View last frame after loading"<<endl
         <<"--topbgcolor     The color on the top of the background (red, green, blue value"<<endl
         <<"                 in hex)"<<endl

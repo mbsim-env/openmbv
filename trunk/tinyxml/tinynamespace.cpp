@@ -29,14 +29,16 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> prefixns) {
   }
 
   // set element name to '{<namespace>}<localname>'
-  if(e->ValueStr().find(':')>=0) {
-    for(map<string,string>::iterator i=prefixns.begin(); i!=prefixns.end(); i++) {
-      // none default prefix
-      if(e->ValueStr().compare(0,(*i).first.length()+1,(*i).first+":")==0)
-        e->SetValue("{"+(*i).second+"}"+e->ValueStr().substr((*i).first.length()+1));
-      // default prefix
-      if(e->ValueStr().find(":")==string::npos)
-        e->SetValue("{"+(*i).second+"}"+e->ValueStr());
+  for(map<string,string>::iterator i=prefixns.begin(); i!=prefixns.end(); i++) {
+    // none default prefix
+    if(e->ValueStr().compare(0,(*i).first.length()+1,(*i).first+":")==0) {
+      e->SetValue("{"+(*i).second+"}"+e->ValueStr().substr((*i).first.length()+1));
+      break;
+    }
+    // default prefix
+    if(e->ValueStr().find(":")==string::npos) {
+      e->SetValue("{"+(*i).second+"}"+e->ValueStr());
+      break;
     }
   }
 

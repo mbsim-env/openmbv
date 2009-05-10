@@ -31,12 +31,16 @@ namespace OpenMBV {
     friend class Body;
     protected:
       std::vector<Object*> object;
+      std::string expandStr;
       bool separateFile;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
     public:
       /** Default constructor */
       Group();
+
+      /** Expand this tree node in a view if true (the default) */
+      void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
 
       /** Add a object to this object container */
       void addObject(Object* object);

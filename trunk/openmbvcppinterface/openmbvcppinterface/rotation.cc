@@ -29,7 +29,7 @@ Rotation::Rotation() : RigidBody(),
   }
 
 void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Rotation name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Rotation name=\""<<name<<"\">"<<endl;
   RigidBody::writeXMLFile(xmlFile, indent+"  ");
   if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent, contour);
   xmlFile<<indent<<"</Rotation>"<<endl;

@@ -33,7 +33,7 @@ Frustum::Frustum() : RigidBody(),
 }
 
 void Frustum::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Frustum name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<Frustum name=\""<<name<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <baseRadius>"<<baseRadius<<"</baseRadius>"<<endl;
     xmlFile<<indent<<"  <topRadius>"<<topRadius<<"</topRadius>"<<endl;

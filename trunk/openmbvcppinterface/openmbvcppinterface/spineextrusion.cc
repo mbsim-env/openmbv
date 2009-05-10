@@ -20,7 +20,7 @@ SpineExtrusion::SpineExtrusion() : Body(),
   }
 
 void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
+  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\">"<<endl;
   Body::writeXMLFile(xmlFile, indent+"  ");
   if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
   xmlFile<<indent<<"  <minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;

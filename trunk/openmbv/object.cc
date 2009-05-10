@@ -23,23 +23,16 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 
 using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
 Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
-  if(h5Parent) {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
     parentItem->addChild(this);
-    // expand or collapse
-    if(element->Attribute("expand")==0)
-      setExpanded(true);
-    else
-      if(element->Attribute("expand")==string("true"))
-        setExpanded(true);
-      else
-        setExpanded(false);
   }
   
   // h5 group
@@ -71,7 +64,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   sensor->attach(soSep);
 
   // add to map for finding this object by the soSep SoNode
-  if(h5Parent)
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
     objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
   setText(0, element->Attribute("name"));
