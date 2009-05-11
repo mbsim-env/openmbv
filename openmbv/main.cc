@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
-        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
+        <<"               [--wst <file>] [--camera <file>] [] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
-        <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"               [--headlight <file>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
@@ -73,7 +73,10 @@ int main(int argc, char *argv[])
         <<"--nodecoration   Disable the window decoration (Titel/Border/...)"<<endl
         <<"--geometry       Set the main(window) geometry"<<endl
         <<"--wst            Load the given (main)window state file"<<endl
-        <<"--camera         Load the given camera file"<<endl
+        <<"--camera         Load the given camera file (*.iv)"<<endl
+        <<"                 (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
+        <<"--headlight      Load the given head light file (*.iv)"<<endl
+        <<"                 (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen     Start in full screen mode"<<endl
         <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                 in <dir>"<<endl

@@ -36,6 +36,7 @@
 #include "SoSpecial.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
+#include <FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
 #ifdef HAVE_QWT_WHEEL_H
@@ -66,7 +67,7 @@ class MainWindow : public QMainWindow {
     bool openFile(std::string fileName);
     SoQtMyViewer *glViewer;
     void viewParallel(ViewSide side);
-    SoGroup *sceneRoot;
+    SoShadowGroup *sceneRoot;
     QTimer *animTimer;
     QTime *time;
     QDoubleSpinBox *speedSB;
