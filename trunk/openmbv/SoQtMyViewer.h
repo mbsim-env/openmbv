@@ -32,6 +32,7 @@ class SoQtMyViewer : public SoQtExaminerViewer {
     SoQtMyViewer(QWidget *parent);
     void setSeekMode(SbBool enabled) { SoQtExaminerViewer::setSeekMode(enabled); } // is protected
     void seekToPoint(const SbVec3f& scenepos) { SoQtExaminerViewer::seekToPoint(scenepos); } // is protected
+    void myChangeCameraValues(SoCamera *cam) { changeCameraValues(cam); } // is protected
   protected:
     SbBool processSoEvent(const SoEvent *const event);
     virtual void actualRedraw(void);

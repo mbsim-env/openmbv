@@ -43,11 +43,11 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
 
   // create so
-  SoFile *file=new SoFile;
-  soSep->addChild(file);
-  file->name.setValue(fileName.c_str());
-  // connect object OMBVMATERIAL in file to hdf5 mat if it is of type SoMaterial
-  SoBase *ref=SoNode::getByName("OMBVMATERIAL");
+  SoInput in;
+  in.openFile(fileName.c_str());
+  soSep->addChild(SoDB::readAll(&in));
+  // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
+  SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
     ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
     ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);

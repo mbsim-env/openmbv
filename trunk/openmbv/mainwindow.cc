@@ -37,6 +37,8 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
@@ -103,9 +105,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   fgColorBottom->set1Value(0, 1,1,1);
   glViewer=new SoQtMyViewer(glViewerWG);
   mainLO->addWidget(glViewerWG,0,0);
-  sceneRoot=new SoSeparator;
+  sceneRoot=new SoShadowGroup;
   sceneRoot->ref();
-  sceneRoot->addChild(new SoOrthographicCamera); // child nr 0 of sceneRoot!!!!! (MUST BE CHILD NR 0)
+  sceneRoot->precision.setValue(1.0);
   sceneRoot->addChild(new SoPolygonOffset); // move all filled polygons 1 unit in background
   sceneRootBBox=new SoSepNoPickNoBBox;
   sceneRoot->addChild(sceneRootBBox);
@@ -478,6 +480,20 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   if((i=std::find(arg.begin(), arg.end(), "--camera"))!=arg.end()) {
     i2=i; i2++;
     cameraFile=*i2;
+    arg.erase(i); arg.erase(i2);
+  }
+
+  // head light
+  if((i=std::find(arg.begin(), arg.end(), "--headlight"))!=arg.end()) {
+    i2=i; i2++;
+    SoInput input;
+    input.openFile(i2->c_str());
+    SoBase *newHeadLight;
+    if(SoBase::read(&input, newHeadLight, SoDirectionalLight::getClassTypeId())) {
+      glViewer->getHeadlight()->on.setValue(((SoDirectionalLight*)newHeadLight)->on.getValue());
+      glViewer->getHeadlight()->intensity.setValue(((SoDirectionalLight*)newHeadLight)->intensity.getValue());
+      glViewer->getHeadlight()->color.setValue(((SoDirectionalLight*)newHeadLight)->color.getValue());
+    }
     arg.erase(i); arg.erase(i2);
   }
 
@@ -1134,10 +1150,19 @@ void MainWindow::loadCamera(string filename) {
   }
   SoInput input;
   input.openFile(filename.c_str());
-  SoSeparator *sep=SoDB::readAll(&input);
-  if(sep->getChild(0)->isOfType(SoCamera::getClassTypeId())) {
-    sceneRoot->replaceChild(0, sep->getChild(0));
-    glViewer->setCamera((SoCamera*)(sep->getChild(0)));
+  SoBase *newCamera;
+  if(SoBase::read(&input, newCamera, SoOrthographicCamera::getClassTypeId())) {
+    glViewer->setCameraType(SoOrthographicCamera::getClassTypeId());
+    glViewer->myChangeCameraValues((SoCamera*)newCamera);
+  }
+  else if(SoBase::read(&input, newCamera, SoPerspectiveCamera::getClassTypeId())) {
+    glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
+    glViewer->myChangeCameraValues((SoCamera*)newCamera);
+  }
+  else {
+    QString str("Only SoPerspectiveCamera and SoOrthographicCamera are allowed!");
+    statusBar()->showMessage(str, 10000);
+    cout<<str.toStdString()<<endl;
   }
 }
 
