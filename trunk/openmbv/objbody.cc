@@ -21,7 +21,7 @@
 #include "objbody.h"
 #include <QFile>
 #include <QTextStream>
-#include <tinyxml/tinynamespace.h>
+#include <tinynamespace.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 

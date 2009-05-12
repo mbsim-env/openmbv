@@ -23,7 +23,7 @@ fi
 #DOXYGENDEPTAGFILES=$(pkg-config deppackage --variable=DOXYGENTAGFILES)
 #AC_SUBST([DOXYGENDEPTAGFILES])
 
-AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
+AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile])
 
 AC_OUTPUT

@@ -2,7 +2,7 @@ if COND_MBXMLUTILS
   MAYBE_SCHEMA = schema
 endif
 
-SUBDIRS = tinyxml openmbv $(MAYBE_SCHEMA)
+SUBDIRS = openmbvtinyxml openmbv $(MAYBE_SCHEMA)
 
 
 
