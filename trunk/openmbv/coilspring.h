@@ -36,6 +36,7 @@
  * \brief class for drawing simple helix springs
  * \author Thorsten Schindler
  * \date 2009-05-08 initial commit (Thorsten Schindler)
+ * \date 2009-05-12 efficient spine update (Thorsten Schindler)
  * \todo setValuesPointer TODO
  */
 class CoilSpring : public Body {
@@ -59,8 +60,8 @@ class CoilSpring : public Body {
     /** rotation of helix */
     SoRotation* rotation;
 
-    // TODO with this strategy no scaling update is done, though it would be more efficient
-    // float* spine;
+    /** memory for efficient spine update */ 
+    float* spine;
 
     /** radius of helix */
     double springRadius;

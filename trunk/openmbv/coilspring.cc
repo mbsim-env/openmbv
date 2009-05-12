@@ -62,16 +62,15 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 
-  // set spine 
-  // TODO with this strategy no scaling update is done, though it would be more efficient
-  // spine = new float[3*(numberOfSpinePoints+1)];
-  // for(int i=0;i<=numberOfSpinePoints;i++) {
-  //   spine[3*i] = springRadius*cos(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
-  //   spine[3*i+1] = springRadius*sin(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
-  //   spine[3*i+2] = 0.;
-  // }
-  // extrusion->spine.setValuesPointer(numberOfSpinePoints+1,spine);
-  // extrusion->spine.setDefault(FALSE);
+  // initialise spine 
+  spine = new float[3*(numberOfSpinePoints+1)];
+  for(int i=0;i<=numberOfSpinePoints;i++) {
+    spine[3*i] = springRadius*cos(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
+    spine[3*i+1] = springRadius*sin(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
+    spine[3*i+2] = 0.;
+  }
+  extrusion->spine.setValuesPointer(numberOfSpinePoints+1,spine);
+  extrusion->spine.setDefault(FALSE);
 
   // additional flags
   extrusion->solid=TRUE; // backface culling
@@ -97,17 +96,11 @@ double CoilSpring::update() {
   SbVec3f distance(data[4]-data[1],data[5]-data[2],data[6]-data[3]);
   rotation->rotation.setValue(SbRotation(SbVec3f(0,0,1),distance));
 
-  // spine
-  extrusion->spine.setNum(numberOfSpinePoints+1);
-  SbVec3f *sp = extrusion->spine.startEditing();
-  for(int i=0;i<=numberOfSpinePoints;i++) sp[i] = SbVec3f(springRadius*cos(i*numberOfCoils*2.*M_PI/numberOfSpinePoints), springRadius*sin(i*numberOfCoils*2.*M_PI/numberOfSpinePoints), i*distance.length()*scaleValue/numberOfSpinePoints);
-  extrusion->spine.finishEditing();
-  extrusion->spine.setDefault(FALSE);
-
-  // TODO with this strategy no scaling update is done, though it would be more efficient
-  // for(int i=0;i<=numberOfSpinePoints;i++) {
-  //   spine[3*i+2] = i*distance.length()*scaleValue/numberOfSpinePoints;
-  // }
+  // spine 
+  for(int i=0;i<=numberOfSpinePoints;i++) {
+    spine[3*i+2] = i*distance.length()*scaleValue/numberOfSpinePoints;
+  }
+  extrusion->spine.touch();
   
   // color
   mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
