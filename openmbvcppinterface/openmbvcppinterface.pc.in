@@ -7,5 +7,5 @@ Name: openmbvcppinterface
 Description: A library to create OpenMBV input files.
 Requires: hdf5serie
 Version: @VERSION@
-Libs: -L${libdir} -lopenmbvcppinterface
-Cflags: -I${includedir}
+Libs: -L${libdir} -lopenmbvcppinterface -lopenmbvcppinterfacetinyxml
+Cflags: -I${includedir} -DTIXML_USE_STL

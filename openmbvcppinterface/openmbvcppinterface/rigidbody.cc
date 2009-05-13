@@ -69,3 +69,19 @@ void RigidBody::createHDF5File() {
     data->create(*hdf5Group,"data",columns);
   }
 }
+
+void RigidBody::initializeUsingXML(TiXmlElement *element) {
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
+  if(e)
+    setMinimalColorValue(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
+  if(e)
+    setMaximalColorValue(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"initialTranslation");
+  setInitialTranslation(toVector(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"initialRotation");
+  setInitialRotation(toVector(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  setScaleFactor(atof(e->GetText()));
+}

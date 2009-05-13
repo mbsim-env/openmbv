@@ -37,3 +37,7 @@ string Object::getFullName() {
   else
     return name;
 }
+
+void Object::initializeUsingXML(TiXmlElement *element) {
+  setName(element->Attribute("name"));
+}

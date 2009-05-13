@@ -42,6 +42,9 @@ namespace OpenMBV {
       void setCrossSectionRadius(double radius) { crossSectionRadius=radius; }
       void setScaleFactor(double scale) { scaleFactor=scale; }
       void setNumberOfCoils(double nr) { numberOfCoils=nr; }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

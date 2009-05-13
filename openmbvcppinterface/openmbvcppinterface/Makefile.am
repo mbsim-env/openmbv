@@ -6,7 +6,10 @@ libopenmbvcppinterface_ladir = $(includedir)/openmbvcppinterface
 
 INCLUDES = $(HDF5SERIE_CFLAGS)
 
+libopenmbvcppinterface_la_CPPFLAGS = -DTIXML_USE_STL
+
 libopenmbvcppinterface_la_SOURCES = object.cc \
+  objectfactory.cc\
   body.cc \
   group.cc \
   rigidbody.cc \
@@ -27,6 +30,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   spineextrusion.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
+  objectfactory.h\
   body.h \
   group.h \
   rigidbody.h \
