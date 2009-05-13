@@ -113,6 +113,9 @@ namespace OpenMBV {
         if(staticColor>=0) row[7]=staticColor;
         data->append(row);
       }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

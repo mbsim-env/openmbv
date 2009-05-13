@@ -61,3 +61,36 @@ std::string Body::getRelPathTo(Body* destBody) {
 
 void Body::terminate() {
 }
+
+// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
+vector<double> Body::toVector(string str) {
+  for(int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
+  stringstream stream(str);
+  double d;
+  vector<double> ret;
+  while(1) {
+    stream>>d;
+    if(stream.fail()) break;
+    ret.push_back(d);
+  }
+  return ret;
+}
+
+// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
+vector<vector<double> > Body::toMatrix(string str) {
+  vector<vector<double> > ret;
+  for(int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  bool br=false;
+  while(1) {
+    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
+    ret.push_back(toVector(str.substr(0,end)));
+    if(br) break;
+    str=str.substr(end+1);
+  }
+  return ret;
+}
+
+void Body::initializeUsingXML(TiXmlElement *element) {
+}

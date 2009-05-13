@@ -36,3 +36,9 @@ void Cuboid::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
                                <<length[2]<<"]</length>"<<endl;
   xmlFile<<indent<<"</Cuboid>"<<endl;
 }
+
+void Cuboid::initializeUsingXML(TiXmlElement *element) {
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"length");
+  setLength(toVector(e->GetText()));
+}

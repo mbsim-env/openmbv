@@ -56,3 +56,15 @@ void CoilSpring::createHDF5File() {
     data->create(*hdf5Group,"data",columns);
   }
 }
+
+void CoilSpring::initializeUsingXML(TiXmlElement *element) {
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
+  setNumberOfCoils(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"springRadius");
+  setSpringRadius(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
+  setCrossSectionRadius(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  setScaleFactor(atof(e->GetText()));
+}

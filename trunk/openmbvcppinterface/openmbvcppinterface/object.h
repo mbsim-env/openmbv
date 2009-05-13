@@ -22,8 +22,10 @@
 
 #include <string>
 #include <H5Cpp.h>
+#include "openmbvcppinterfacetinyxml/tinyxml.h"
 
 #define OPENMBVNS_ "http://openmbv.berlios.de/OpenMBV"
+#define OPENMBVNS "{"OPENMBVNS_"}"
 
 namespace OpenMBV {
 
@@ -51,6 +53,9 @@ namespace OpenMBV {
 
       /** Returns the full name (path) of the object */
       std::string getFullName();
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

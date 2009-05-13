@@ -22,6 +22,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 #include <openmbvcppinterface/object.h>
 
 namespace OpenMBV {
@@ -45,7 +46,13 @@ namespace OpenMBV {
       /** Returns if this body is linked to another */
       bool isHDF5Link() { return hdf5LinkBody!=0; }
 
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
+
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
+      static std::vector<double> toVector(std::string str); // convenience
+      static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
+
     protected:
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
