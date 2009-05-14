@@ -1,4 +1,4 @@
-SUBDIRS = openmbvcppinterfacetinyxml openmbvcppinterface
+SUBDIRS = openmbvcppinterfacetinyxml openmbvcppinterface schema
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openmbvcppinterface.pc

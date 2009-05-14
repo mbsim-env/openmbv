@@ -98,6 +98,6 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 fi
 
-AC_CONFIG_FILES([Makefile openmbvtinyxml/Makefile openmbv/Makefile schema/Makefile schema/openmbv.xsd doc/Makefile])
+AC_CONFIG_FILES([Makefile openmbvtinyxml/Makefile openmbv/Makefile schema/Makefile schema/openmbv.xsd:openmbvcppinterface/schema/openmbv.xsd.in doc/Makefile])
 
 AC_OUTPUT

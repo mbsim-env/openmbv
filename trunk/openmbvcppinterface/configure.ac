@@ -24,6 +24,6 @@ fi
 #AC_SUBST([DOXYGENDEPTAGFILES])
 
 AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
-  openmbvcppinterface/check/Makefile doc/Doxyfile])
+  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile schema/openmbv.xsd])
 
 AC_OUTPUT
