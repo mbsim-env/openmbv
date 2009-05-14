@@ -3,6 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
+SCHEMADIR=@datadir@/@PACKAGE@/schema
+
 Name: openmbvcppinterface
 Description: A library to create OpenMBV input files.
 Requires: hdf5serie
