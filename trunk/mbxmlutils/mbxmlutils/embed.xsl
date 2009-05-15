@@ -34,18 +34,18 @@
   </xsl:template>
 
   <!-- TODO: fix double inclusion of xsi:schemaLocation of the same namespace !!!!!!!!!!!!!!!!! -->
-<!--  <xsl:template match="@xsi:schemaLocation">
-    <xsl:if test="not(../@name)">
+  <xsl:template match="@xsi:schemaLocation">
+    <xsl:if test="name(..)='DynamicSystemSolver'">
       <xsl:copy/>
     </xsl:if>
-  </xsl:template>-->
+  </xsl:template>
 
 
 
   <!-- embed a source document count times -->
   <xsl:template match="pv:embed">
     <xsl:call-template name="EMBED">
-      <xsl:with-param name="NUMBER" select="0"/>
+      <xsl:with-param name="NUMBER" select="1"/>
       <xsl:with-param name="COUNT" select="@count"/>
       <xsl:with-param name="COUNTERNAME" select="@counterName"/>
       <xsl:with-param name="HREF" select="@href"/>
@@ -58,7 +58,7 @@
    <xsl:param name="COUNT"/>
    <xsl:param name="COUNTERNAME"/>
    <xsl:param name="HREF"/>
-   <xsl:if test="$NUMBER &lt; $COUNT">
+   <xsl:if test="$NUMBER &lt;= $COUNT">
      <xsl:apply-templates select="document($HREF)">
        <xsl:with-param name="NUMBER" select="$NUMBER"/>
        <xsl:with-param name="COUNT" select="$COUNT"/>

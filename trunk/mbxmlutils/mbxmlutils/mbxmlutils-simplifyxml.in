@@ -42,39 +42,50 @@ echo "  In file: $MAINXML"
 echo "  XSL file: embed.xsl"
 echo "  Out file: .$MAINXMLBASENAME.embeded.xml"
 @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/embed.xsl) \
-  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$NAMESPACELOCATION'" /out .embed.xsl || exit
+  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$(winepath -w $NAMESPACELOCATION | sed -re "s|\\\|/|g")'" /out .embed.xsl || exit
 @WINEALTOVAXML@ /xslt2 .embed.xsl /in $(winepath -w $MAINXML) /out .$MAINXMLBASENAME.embeded.xml || exit
 echo "DONE"
 
-echo "Convert all physical vairables (scalar/vector/matrix) to octave notation"
-echo "  In file: $PARAMXML"
-echo "  XSL file: physicalvariable2octavestring.xsl"
-echo "  Out file: .parameter.octavenotation.xml"
-@WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/physicalvariable2octavenotation.xsl) /in $(winepath -w $PARAMXML) /out .parameter.octavenotation.xml || exit
+echo "Validate embeded main file"
+echo "  In file: .$MAINXMLBASENAME.embeded.xml"
+@WINEALTOVAXML@ /validate $(winepath -w .$MAINXMLBASENAME.embeded.xml) /schema $(winepath -w $NAMESPACELOCATION) || exit
 echo "DONE"
+
+if test -f $PARAMXML; then
+  echo "Convert all physical vairables (scalar/vector/matrix) to octave notation"
+  echo "  In file: $PARAMXML"
+  echo "  XSL file: physicalvariable2octavenotation.xsl"
+  echo "  Out file: .parameter.octavenotation.xml"
+  @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/physicalvariable2octavenotation.xsl) /in $(winepath -w $PARAMXML) /out .parameter.octavenotation.xml || exit
+  echo "DONE"
+fi
 
 echo "Convert all physical vairables (scalar/vector/matrix) to octave notation"
 echo "  In file: .$MAINXMLBASENAME.embeded.xml"
-echo "  XSL file: physicalvariable2octavestring.xsl"
+echo "  XSL file: physicalvariable2octavenotation.xsl"
 echo "  Out file: .$MAINXMLBASENAME.octavenotation.xml"
 @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/physicalvariable2octavenotation.xsl) /in .$MAINXMLBASENAME.embeded.xml /out .$MAINXMLBASENAME.octavenotation.xml || exit
 echo "DONE"
 
-echo "Resubstitute parameters"
-echo "  In file: .$MAINXMLBASENAME.octavenotation.xml"
-echo "  XSL file: resubstitute.xsl"
-echo "  Out file: .$MAINXMLBASENAME.resubst.xml"
-@WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/resubstitute.xsl) \
-  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$NAMESPACELOCATION'" /out .resubstitute.xsl || exit
-@WINEALTOVAXML@ /xslt2 .resubstitute.xsl /in .$MAINXMLBASENAME.octavenotation.xml /out .$MAINXMLBASENAME.resubst.xml || exit
-echo "DONE"
+if test -f $PARAMXML; then
+  echo "Resubstitute parameters"
+  echo "  In file: .$MAINXMLBASENAME.octavenotation.xml"
+  echo "  XSL file: resubstitute.xsl"
+  echo "  Out file: .$MAINXMLBASENAME.resubst.xml"
+  @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/resubstitute.xsl) \
+    /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$(winepath -w $NAMESPACELOCATION | sed -re "s|\\\|/|g")'" /out .resubstitute.xsl || exit
+  @WINEALTOVAXML@ /xslt2 .resubstitute.xsl /in .$MAINXMLBASENAME.octavenotation.xml /out .$MAINXMLBASENAME.resubst.xml || exit
+  echo "DONE"
+else
+  cp .$MAINXMLBASENAME.octavenotation.xml .$MAINXMLBASENAME.resubst.xml
+fi
 
 echo "Convert to SI unit"
 echo "  In file: .$MAINXMLBASENAME.resubst.xml"
 echo "  XSL file: convert2SIunit.xsl"
 echo "  Out file: .$MAINXMLBASENAME.siunit.xml"
 @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/convert2SIunit.xsl) \
-  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$NAMESPACELOCATION'" /out .convert2SIunit.xsl || exit
+  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$(winepath -w $NAMESPACELOCATION | sed -re "s|\\\|/|g")'" /out .convert2SIunit.xsl || exit
 @WINEALTOVAXML@ /xslt2 .convert2SIunit.xsl /in .$MAINXMLBASENAME.resubst.xml /out .$MAINXMLBASENAME.siunit.xml || exit
 echo "DONE"
 
@@ -83,7 +94,7 @@ echo "  In file: .$MAINXMLBASENAME.siunit.xml"
 echo "  XSL file: labelPhysicalVariable.xsl"
 echo "  Out file: .$MAINXMLBASENAME.labeled.xml"
 @WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/labelPhysicalVariable.xsl) \
-  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$NAMESPACELOCATION'" /out .labelPhysicalVariable.xsl || exit
+  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$(winepath -w $NAMESPACELOCATION | sed -re "s|\\\|/|g")'" /out .labelPhysicalVariable.xsl || exit
 @WINEALTOVAXML@ /xslt2 .labelPhysicalVariable.xsl /in .$MAINXMLBASENAME.siunit.xml /out .$MAINXMLBASENAME.labeled.xml || exit
 echo "DONE"
 

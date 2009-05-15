@@ -1,6 +1,6 @@
 % check octave version
 myversion=version;
-if str2double(myversion(1:index(myversion,'.')-1)) <= 2
+if str2num(myversion(1:index(myversion,'.')-1)) <= 2
   octave2=1;
 else
   octave2=0;
@@ -16,7 +16,9 @@ while(1)
   line=fgetl(f);
   nr=nr+1;
   if octave2
-    match=regexp('@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@',line);
+    fid=fopen('.line', 'w'); fprintf(fid, '%s', line); fclose(fid);
+    [dummy,ret]=system('grep -E "@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION{@" < .line > /dev/null');
+    if ret==0, match=1; else match=[]; end
   else
     match=regexp(line, '@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION{@');
   end
@@ -26,7 +28,10 @@ while(1)
   else
     % get expression to evaluate (and pre, post-expression)
     if octave2
-      [match,preexp,type,exp,postexp]=regexp('(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)',line);
+      preexp=system('sed -re "s/(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)/\\1/" < .line');
+      type=system('sed -re "s/(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)/\\2/" < .line');
+      exp=system('sed -re "s/(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)/\\3/" < .line');
+      postexp=system('sed -re "s/(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION\\{@(.*)@\\}@(.*)/\\4/" < .line');
     else
       [aa,bb,cc,dd,ee,ff]=regexp(line, '(.*)@(SCALAR|VECTOR|MATRIX|SCALARINTEGER)EXPRESSION{@(.*)@}@(.*)');
       preexp=ee{1}{1};

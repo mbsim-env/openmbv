@@ -14,6 +14,9 @@
       <xsl:apply-templates/>
     </xsl:copy>
   </xsl:template>
+  <xsl:template match="@*">
+    <xsl:copy/>
+  </xsl:template>
 
   <xsl:template match="@name|@ref">
     <xsl:attribute name="{name()}">
