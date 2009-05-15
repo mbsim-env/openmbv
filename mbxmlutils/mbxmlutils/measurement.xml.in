@@ -34,4 +34,21 @@
     <unit name="degree">value*180/pi</unit>
     <unit name="°">value*180/pi</unit>
   </measure>
+  <measure name="stiffness" SIunit="N/m">
+    <unit name="N/m">value</unit>
+  </measure>
+  <measure name="damping" SIunit="N*s/m">
+    <unit name="N*s/m">value</unit>
+  </measure>
+  <measure name="acceleration" SIunit="m/s^2">
+    <unit name="m/s^2">value</unit>
+    <unit name="g">value*9.81</unit>
+  </measure>
+  <measure name="velocity" SIunit="m/s">
+    <unit name="m/s">value</unit>
+    <unit name="km/h">value*3.6</unit>
+  </measure>
+  <measure name="inertia" SIunit="kg*m^2">
+    <unit name="kg*m^2">value</unit>
+  </measure>
 </measurement>

@@ -94,8 +94,6 @@
     <xsl:param name="CLASSTYPE" select="@name"/>
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-<xsl:message>A<xsl:value-of select="$CLASSTYPE"/>A</xsl:message>
-<xsl:message>X<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>X</xsl:message>
       <xsl:apply-templates>
         <xsl:with-param name="CLASSNAME" select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>
       </xsl:apply-templates>

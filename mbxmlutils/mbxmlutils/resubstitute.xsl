@@ -68,7 +68,7 @@
       <xsl:if test="$CHANGED=true()">
         <xsl:call-template name="PARAM">
           <xsl:with-param name="EXPRESSION" select="$EXPRESSION"/>
-          <xsl:with-param name="NODE" select="document('.parameter.octavestring.xml')/pa:parameter/*[1]"/>
+          <xsl:with-param name="NODE" select="document('.parameter.octavenotation.xml')/pa:parameter/*[1]"/>
           <xsl:with-param name="CHANGED" select="false"/>
           <xsl:with-param name="RECURSIONLEVEL" select="$RECURSIONLEVEL+1"/>
         </xsl:call-template>
