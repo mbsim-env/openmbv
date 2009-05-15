@@ -102,7 +102,7 @@ echo "Evaluate labels"
 echo "  In file: .$MAINXMLBASENAME.labeled.xml"
 echo "  Program: octave"
 echo "  Out file: .$MAINXMLBASENAME.evaluated.xml"
-octave -q @OCTAVEDIR@/evaluatePhysicalVariable.m .$MAINXMLBASENAME.labeled.xml > .$MAINXMLBASENAME.evaluated.xml || exit
+octave -q @OCTAVEDIR@/evaluatePhysicalVariable.m .$MAINXMLBASENAME.labeled.xml .$MAINXMLBASENAME.evaluated.xml || exit
 echo "DONE"
 
 echo "Output processed data"
