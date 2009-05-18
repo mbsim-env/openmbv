@@ -119,10 +119,10 @@
     <xsl:param name="COUNT"/>
     <xsl:param name="COUNTERNAME"/>
     <xsl:attribute name="{name()}">
-      <xsl:if test="$COUNTERNAME!='' and (name()='name' or name()='ref')">
+      <xsl:if test="$COUNTERNAME!='' and (name()='name' or matches(name(),'^ref'))">
         <xsl:value-of select="replace(replace(.,concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'([^a-zA-Z0-9_]|$)'),concat('$1(',$NUMBER,')$2')),concat('([^a-zA-Z0-9_]|^)',$COUNTERNAME,'MAX','([^a-zA-Z0-9_]|$)'),concat('$1(',$COUNT,')$2'))"/>
       </xsl:if>
-      <xsl:if test="$COUNTERNAME='' or (name()!='name' and name()!='ref')">
+      <xsl:if test="$COUNTERNAME='' or (name()!='name' and not(matches(name(),'^ref')))">
         <xsl:value-of select="."/>
       </xsl:if>
     </xsl:attribute>
