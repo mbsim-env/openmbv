@@ -33,6 +33,9 @@ namespace OpenMBV {
 
       /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
     protected:
       std::string ivFileName;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

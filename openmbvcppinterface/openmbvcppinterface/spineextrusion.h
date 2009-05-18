@@ -89,6 +89,9 @@ namespace OpenMBV {
         data->append(row);
       }
 
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
+
     protected:
       /** Number of spine points used for extrusion along a path. */
       int numberOfSpinePoints;

@@ -84,6 +84,9 @@ namespace OpenMBV {
        * To use "calculate" the Normals must be set to "smoothIfLessBarrier" and
        */
       void setOutline(Outline outline_) { outline=outline_; }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
     protected:
       std::string objFileName;
       bool useTextureFromMatLib, useMaterialFromMatLib;

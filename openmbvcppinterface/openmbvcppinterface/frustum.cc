@@ -42,3 +42,18 @@ void Frustum::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <innerTopRadius>"<<innerTopRadius<<"</innerTopRadius>"<<endl;
   xmlFile<<indent<<"</Frustum>"<<endl;
 }
+
+void Frustum::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"baseRadius");
+  setBaseRadius(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"topRadius");
+  setTopRadius(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"height");
+  setHeight(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"innerBaseRadius");
+  setInnerBaseRadius(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"innerTopRadius");
+  setInnerTopRadius(atof(e->GetText()));
+}

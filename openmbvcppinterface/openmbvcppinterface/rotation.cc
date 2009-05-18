@@ -35,3 +35,10 @@ void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"</Rotation>"<<endl;
 }
 
+
+void Rotation::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"contour");
+  setContour(PolygonPoint::initializeUsingXML(e));
+}

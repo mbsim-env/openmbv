@@ -66,3 +66,22 @@ void Arrow::createHDF5File() {
     data->create(*hdf5Group,"data",columns);
   }
 }
+
+void Arrow::initializeUsingXML(TiXmlElement *element) {
+  Body::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"diameter");
+  setDiameter(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"headDiameter");
+  setHeadDiameter(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"headLength");
+  setHeadLength(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"type");
+  string typeStr=e->GetText();
+  if(typeStr=="line") setType(line);
+  if(typeStr=="fromHead") setType(fromHead);
+  if(typeStr=="toHead") setType(toHead);
+  if(typeStr=="bothHeads") setType(bothHeads);
+  e=element->FirstChildElement(OPENMBVNS"scaleLength");
+  setScaleLength(toVector(e->GetText())[0]);
+}

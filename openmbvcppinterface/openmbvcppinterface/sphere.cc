@@ -34,3 +34,10 @@ void Sphere::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <radius>"<<radius<<"</radius>"<<endl;
   xmlFile<<indent<<"</Sphere>"<<endl;
 }
+
+void Sphere::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"radius");
+  setRadius(toVector(e->GetText())[0]);
+}

@@ -35,3 +35,12 @@ void Frame::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <offset>"<<offset<<"</offset>"<<endl;
   xmlFile<<indent<<"</Frame>"<<endl;
 }
+
+void Frame::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"size");
+  setSize(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"offset");
+  setOffset(toVector(e->GetText())[0]);
+}

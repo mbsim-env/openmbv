@@ -42,6 +42,9 @@ namespace OpenMBV {
         contour=contour_;
       }
 
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
+
   };
 
 }

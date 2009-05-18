@@ -37,6 +37,9 @@ namespace OpenMBV {
       void setRadius(double radius_) {
         radius=radius_;
       } 
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

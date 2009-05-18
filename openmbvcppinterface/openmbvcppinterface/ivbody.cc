@@ -33,3 +33,10 @@ void IvBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <ivFileName>"<<ivFileName<<"</ivFileName>"<<endl;
   xmlFile<<indent<<"</IvBody>"<<endl;
 }
+
+void IvBody::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"ivFileName");
+  setIvFileName(e->GetText());
+}

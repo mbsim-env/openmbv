@@ -58,6 +58,7 @@ void CoilSpring::createHDF5File() {
 }
 
 void CoilSpring::initializeUsingXML(TiXmlElement *element) {
+  Body::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
   setNumberOfCoils(atof(e->GetText()));

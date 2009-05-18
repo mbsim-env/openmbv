@@ -84,6 +84,9 @@ namespace OpenMBV {
       void setScaleLength(double scale) {
         scaleLength=scale;
       }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }
