@@ -48,3 +48,10 @@ void Path::createHDF5File() {
     data->create(*hdf5Group,"data",columns);
   }
 }
+
+void Path::initializeUsingXML(TiXmlElement *element) {
+  Body::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"color");
+  setColor(toVector(e->GetText()));
+}

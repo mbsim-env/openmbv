@@ -47,3 +47,22 @@ void Extrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
   xmlFile<<indent<<"</Extrusion>"<<endl;
 }
 
+
+void Extrusion::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"windingRule");
+  string wrStr=e->GetText();
+  if(wrStr=="odd") setWindingRule(odd);
+  if(wrStr=="nonzero") setWindingRule(nonzero);
+  if(wrStr=="positive") setWindingRule(positive);
+  if(wrStr=="negative") setWindingRule(negative);
+  if(wrStr=="absGEqTwo") setWindingRule(absGEqTwo);
+  e=element->FirstChildElement(OPENMBVNS"height");
+  setHeight(toVector(e->GetText())[0]);
+  e=e->NextSiblingElement();
+  while(e) {
+    addContour(PolygonPoint::initializeUsingXML(e));
+    e=e->NextSiblingElement();
+  }
+}

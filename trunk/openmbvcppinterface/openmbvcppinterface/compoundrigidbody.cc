@@ -34,3 +34,10 @@ void CompoundRigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& 
       rigidBody[i]->writeXMLFile(xmlFile, indent+"  ");
   xmlFile<<indent<<"</CompoundRigidBody>"<<endl;
 }
+
+void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
+/*  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"length");
+  setLength(toVector(e->GetText()));*/
+}

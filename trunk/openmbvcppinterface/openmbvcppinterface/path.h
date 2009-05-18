@@ -61,6 +61,9 @@ namespace OpenMBV {
         color.push_back(green);
         color.push_back(blue);
       }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

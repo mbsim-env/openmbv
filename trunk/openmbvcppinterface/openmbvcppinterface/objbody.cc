@@ -60,3 +60,31 @@ void ObjBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <outline>"<<outlineStr<<"</outline>"<<endl;
   xmlFile<<indent<<"</ObjBody>"<<endl;
 }
+
+void ObjBody::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"objFileName");
+  setObjFileName(e->GetText());
+  e=element->FirstChildElement(OPENMBVNS"useTextureFromMatLib");
+  setUseTextureFromMatLib((e->GetText()=="true")?true:false);
+  e=element->FirstChildElement(OPENMBVNS"useMaterialFromMatLib");
+  setUseMaterialFromMatLib((e->GetText()=="true")?true:false);
+  e=element->FirstChildElement(OPENMBVNS"normals");
+  string normalStr=e->GetText();
+  if(normalStr=="fromObjFile") setNormals(fromObjFile);
+  if(normalStr=="flat") setNormals(flat);
+  if(normalStr=="smooth") setNormals(smooth);
+  if(normalStr=="smoothIfLessBarrier") setNormals(smoothIfLessBarrier);
+  e=element->FirstChildElement(OPENMBVNS"epsVertex");
+  setEpsVertex(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"epsNormal");
+  setEpsNormal(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"smoothBarrier");
+  setSmoothBarrier(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"outline");
+  string outlineStr=e->GetText();
+  if(outlineStr=="none") setOutline(none);
+  if(outlineStr=="calculate") setOutline(calculate);
+  if(outlineStr=="fromFile") setOutline(fromFile);
+}

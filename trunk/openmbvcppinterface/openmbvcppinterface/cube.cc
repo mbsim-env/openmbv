@@ -34,3 +34,10 @@ void Cube::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
     xmlFile<<indent<<"  <length>"<<length<<"</length>"<<endl;
   xmlFile<<indent<<"</Cube>"<<endl;
 }
+
+void Cube::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"length");
+  setLength(toVector(e->GetText())[0]);
+}

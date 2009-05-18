@@ -93,4 +93,5 @@ vector<vector<double> > Body::toMatrix(string str) {
 }
 
 void Body::initializeUsingXML(TiXmlElement *element) {
+  Object::initializeUsingXML(element);
 }

@@ -23,6 +23,8 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include "openmbvcppinterfacetinyxml/tinyxml.h"
+#include "openmbvcppinterface/body.h"
 
 namespace OpenMBV {
 
@@ -54,6 +56,16 @@ namespace OpenMBV {
           if(j+1!=cont->end()) xmlFile<<";"<<std::endl; else xmlFile<<" ]"<<std::endl;
         }
         xmlFile<<indent<<"</contour>"<<std::endl;
+      }
+
+      static std::vector<PolygonPoint*>* initializeUsingXML(TiXmlElement *element) {
+        std::vector<std::vector<double> > mat=Body::toMatrix(element->GetText());
+        std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
+        for(size_t r=0; r<mat.size(); r++) {
+          PolygonPoint *pp=new PolygonPoint(mat[r][0], mat[r][1], (int)(mat[r][2]));
+          contour->push_back(pp);
+        }
+        return contour;
       }
 
     private:

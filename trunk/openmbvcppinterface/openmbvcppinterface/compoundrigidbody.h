@@ -38,6 +38,9 @@ namespace OpenMBV {
       void addRigidBody(RigidBody* rigidBody_) {
         rigidBody.push_back(rigidBody_);
       }
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
   };
 
 }

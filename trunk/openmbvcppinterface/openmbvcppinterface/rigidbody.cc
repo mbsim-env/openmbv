@@ -71,6 +71,7 @@ void RigidBody::createHDF5File() {
 }
 
 void RigidBody::initializeUsingXML(TiXmlElement *element) {
+  Body::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
   if(e)

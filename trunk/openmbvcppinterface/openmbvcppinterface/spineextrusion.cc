@@ -46,3 +46,16 @@ void SpineExtrusion::createHDF5File() {
   }
 }
 
+
+void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
+  Body::initializeUsingXML(element);
+  TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
+  setMinimalColorValue(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
+  setMaximalColorValue(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  setScaleFactor(toVector(e->GetText())[0]);
+  e=element->FirstChildElement(OPENMBVNS"color");
+  setStaticColor(toVector(e->GetText())[0]);
+}

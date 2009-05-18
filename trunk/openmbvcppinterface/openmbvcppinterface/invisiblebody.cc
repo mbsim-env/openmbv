@@ -32,3 +32,7 @@ void InvisibleBody::writeXMLFile(std::ofstream& xmlFile, const std::string& inde
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
   xmlFile<<indent<<"</InvisibleBody>"<<endl;
 }
+
+void InvisibleBody::initializeUsingXML(TiXmlElement *element) {
+  RigidBody::initializeUsingXML(element);
+}
