@@ -67,9 +67,9 @@ void ObjBody::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"objFileName");
   setObjFileName(e->GetText());
   e=element->FirstChildElement(OPENMBVNS"useTextureFromMatLib");
-  setUseTextureFromMatLib((e->GetText()=="true")?true:false);
+  setUseTextureFromMatLib((e->GetText()==string("true"))?true:false);
   e=element->FirstChildElement(OPENMBVNS"useMaterialFromMatLib");
-  setUseMaterialFromMatLib((e->GetText()=="true")?true:false);
+  setUseMaterialFromMatLib((e->GetText()==string("true"))?true:false);
   e=element->FirstChildElement(OPENMBVNS"normals");
   string normalStr=e->GetText();
   if(normalStr=="fromObjFile") setNormals(fromObjFile);
