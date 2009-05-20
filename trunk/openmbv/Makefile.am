@@ -36,7 +36,8 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   compoundrigidbody.cc\
   SoQtMyViewer.cc \
   spineextrusion.cc \
-  coilspring.cc
+  coilspring.cc \
+  nurbsdisk.cc
 
 nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
@@ -83,7 +84,8 @@ noinst_HEADERS = openmbv.qrc\
   SoSpecial.h\
   SoQtMyViewer.h \
   spineextrusion.h \
-  coilspring.h
+  coilspring.h \
+  nurbsdisk.h
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html ../mbxmlutils/mbxmlutils/measurement.html
