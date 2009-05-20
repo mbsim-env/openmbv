@@ -1,6 +1,0 @@
-INPUT                  = ../openmbvcppinterface/openmbvcppinterface
-FILE_PATTERNS          = *.h
-GENERATE_HTML          = NO
-GENERATE_LATEX         = NO
-GENERATE_XML           = YES
-XML_PROGRAMLISTING     = NO
