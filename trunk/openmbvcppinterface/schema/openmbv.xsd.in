@@ -287,4 +287,15 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="NurbsDisk" substitutionGroup="Body" type="NurbsDisk"/>
+  <xs:complexType name="NurbsDiskType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>
