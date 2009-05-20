@@ -17,64 +17,59 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <openmbvcppinterface/spineextrusion.h>
+#include <openmbvcppinterface/nurbsdisk.h>
 #include <iostream>
 #include <fstream>
 
 using namespace std;
 using namespace OpenMBV;
 
-SpineExtrusion::SpineExtrusion() : Body(),
-  numberOfSpinePoints(0),
-  contour(0),
+NurbsDisk::NurbsDisk() : Body(),
   data(0), 
   staticColor(-1),
   minimalColorValue(0.),
   maximalColorValue(1.),
-  scaleFactor(1) {
+  scaleFactor(1), 
+  Ri(0.),
+  Ro(0.),
+  KnotVecAzimuthal(0),
+  KnotVecRadial(0),
+  ElementNumberAzimuthal(0),
+  ElementNumberRadial(0),
+  InterpolationDegree(3) {
+    // TODO thickness 
   }
 
-  SpineExtrusion::~SpineExtrusion() {
+  NurbsDisk::~NurbsDisk() {
     if(!hdf5LinkBody && data) delete data;
   }
 
-void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\">"<<endl;
+void NurbsDisk::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
+  xmlFile<<indent<<"<NurbsDisk name=\""<<name<<"\">"<<endl;
   Body::writeXMLFile(xmlFile, indent+"  ");
-  if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
   xmlFile<<indent<<"  <minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
   xmlFile<<indent<<"  <maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
   xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
   xmlFile<<indent<<"  <color>"<<staticColor<<"</color>"<<endl;
-  xmlFile<<indent<<"</SpineExtrusion>"<<endl;
+  xmlFile<<indent<<"  <ElementNumberAzimuthal>"<<ElementNumberAzimuthal<<"</ElementNumberAzimuthal>"<<endl;
+  xmlFile<<indent<<"  <ElementNumberRadial>"<<ElementNumberRadial<<"</ElementNumberRadial>"<<endl;
+  xmlFile<<indent<<"  <KnotVecAzimuthal>"<<KnotVecAzimuthal<<"</KnotVecAzimuthal>"<<endl;
+  xmlFile<<indent<<"  <KnotVecRadial>"<<KnotVecRadial<<"</KnotVecRadial>"<<endl;
+  xmlFile<<indent<<"</NurbsDisk>"<<endl;
 }
 
-void SpineExtrusion::createHDF5File() {
+void NurbsDisk::createHDF5File() {
   Body::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
     columns.push_back("Time");
-    for(int i=0;i<numberOfSpinePoints;i++) {
+    for(int i=0;i<22;i++) { //NodeDofs
       columns.push_back("x"+numtostr(i));
       columns.push_back("y"+numtostr(i));
       columns.push_back("z"+numtostr(i));
-      columns.push_back("twist"+numtostr(i));
     }
     data->create(*hdf5Group,"data",columns);
   }
 }
 
-
-void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
-  Body::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  setMinimalColorValue(toVector(e->GetText())[0]);
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  setMaximalColorValue(toVector(e->GetText())[0]);
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  setScaleFactor(toVector(e->GetText())[0]);
-  e=element->FirstChildElement(OPENMBVNS"color");
-  setStaticColor(toVector(e->GetText())[0]);
-}
