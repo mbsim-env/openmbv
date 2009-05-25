@@ -287,7 +287,7 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="NurbsDisk" substitutionGroup="Body" type="NurbsDisk"/>
+  <xs:element name="NurbsDisk" substitutionGroup="Body" type="NurbsDiskType"/>
   <xs:complexType name="NurbsDiskType">
     <xs:complexContent>
       <xs:extension base="BodyType">
