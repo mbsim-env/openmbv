@@ -26,27 +26,27 @@ echo "Combine Doxygen XML documentation"
 echo "  In file: $DOXYGENDOCDIR/index.xml"
 echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
 echo "  Out file: .$PROJECT.doxygen.xml"
-xsltproc --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit
+@XSLTPROC@ --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit
 echo "DONE"
 
 echo "Add Doxygen class and element function documentation to XML Schema"
 echo "  In file: $FILE"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
 echo "  Out file: $BASENAME.doxygen.xsd"
-xsltproc --output $BASENAME.doxygen.xsd \
-   --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
-   --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
-   --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
-   --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
-   @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit
+@XSLTPROC@ --output $BASENAME.doxygen.xsd \
+  --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
+  --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
+  --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
+  --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
+  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit
 echo "DONE"
 
 echo "Generate HTML documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
 echo "  Out file: $BASENAME.html"
-xsltproc --output $BASENAME.html \
+@XSLTPROC@ --output $BASENAME.html \
   --param PROJECT "'$PROJECT'" \
   --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
-   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit
+  @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit
 echo "DONE"
