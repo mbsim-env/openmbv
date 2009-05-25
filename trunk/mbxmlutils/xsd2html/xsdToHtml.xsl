@@ -3,7 +3,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns="http://www.w3.org/1999/xhtml"
-  version="2.0">
+  version="1.0">
 
   <xsl:param name="PROJECT"/>
   <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
@@ -11,7 +11,7 @@
 
 
   <!-- output method -->
-  <xsl:output method="xhtml"
+  <xsl:output method="html"
     doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
     doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>
 
@@ -306,15 +306,18 @@
       <!-- type -->
       <xsl:if test="@type">
         <!-- type {http://openmbv.berlios.de/MBXMLUTILS/physicalvariable}* -->
-        <xsl:if test="namespace-uri-from-QName(resolve-QName(@type,.))='http://openmbv.berlios.de/MBXMLUtils/physicalvariable'">
+        <xsl:if test="substring(@type,1,3)='pv:'">
           (Type: <a style="font-family:monospace">
              <!-- set href to $PHYSICALVARIABLEHTMLDOC#[scalartype|vectortype|matrixtype] -->
-            <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:value-of select="replace(replace(replace(@type,'^.*Scalar$','scalartype'),'^.*Vector$','vectortype'),'^.*Matrix$','matrixtype')"/></xsl:attribute>
+            <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:if test="substring(@type,string-length(@type)-5,6)='Scalar'">scalartype</xsl:if>
+              <xsl:if test="substring(@type,string-length(@type)-5,6)='Vector'">vectortype</xsl:if>
+              <xsl:if test="substring(@type,string-length(@type)-5,6)='Matrix'">matrixtype</xsl:if>
+            </xsl:attribute>
             <xsl:value-of select="@type"/>
           </a>)
         </xsl:if>
         <!-- type not {http://openmbv.berlios.de/MBXMLUtils/physicalvariable}* -->
-        <xsl:if test="namespace-uri-from-QName(resolve-QName(@type,.))!='http://openmbv.berlios.de/MBXMLUtils/physicalvariable'">
+        <xsl:if test="substring(@type,1,3)='pv:'">
           (Type: <span style="font-family:monospace">
             <xsl:value-of select="@type"/>
           </span>)

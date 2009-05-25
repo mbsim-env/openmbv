@@ -25,13 +25,13 @@ MAINXMLBASENAME=$(basename $MAINXML .xml)
 if test -f $PARAMXML; then
   echo "Validate parameter file"
   echo "  In file: $PARAMXML"
-  @WINEALTOVAXML@ /validate $(winepath -w $PARAMXML) /schema $(winepath -w @SCHEMADIR@/parameter.xsd) || exit
+  xmllint --noout --schema @SCHEMADIR@/parameter.xsd $PARAMXML || exit
   echo "DONE"
 fi
 
 echo "Validate main file    TODO: chech for root element"
 echo "  In file: $MAINXML"
-@WINEALTOVAXML@ /validate $(winepath -w $MAINXML) /schema $(winepath -w $NAMESPACELOCATION) || exit
+xmllint --noout --schema $NAMESPACELOCATION $MAINXML || exit
 echo "DONE"
 
 echo "Validate all files to embed    TODO"
@@ -41,10 +41,10 @@ echo "Embed all files in main file"
 echo "  In file: $MAINXML"
 echo "  XSL file: embed.xsl"
 echo "  Out file: .$MAINXMLBASENAME.embeded.xml"
-@WINEALTOVAXML@ /xslt2 $(winepath -w @XSLDIR@/setNamespace.xsl) /in $(winepath -w @XSLDIR@/embed.xsl) \
-  /param "NAMESPACE='$NAMESPACE'" /param "NAMESPACELOCATION='$(winepath -w $NAMESPACELOCATION | sed -re "s|\\\|/|g")'" /out .embed.xsl || exit
-@WINEALTOVAXML@ /xslt2 .embed.xsl /in $(winepath -w $MAINXML) /out .$MAINXMLBASENAME.embeded.xml || exit
+#xsltproc --output .$MAINXMLBASENAME.embeded.xml @XSLDIR@/embed.xsl $MAINXML || exit
+sed -re "" $MAINXML
 echo "DONE"
+exit 1
 
 echo "Validate embeded main file"
 echo "  In file: .$MAINXMLBASENAME.embeded.xml"

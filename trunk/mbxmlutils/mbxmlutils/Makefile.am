@@ -6,7 +6,7 @@ octavedir = @datadir@/@PACKAGE@/octave
 xmldir = @datadir@/@PACKAGE@/xml
 dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd
 dist_doc_DATA = measurement.html
-dist_xsl_DATA = convert2SIunit.xsl embed.xsl setNamespace.xsl physicalvariable2octavenotation.xsl resubstitute.xsl labelPhysicalVariable.xsl
+dist_xsl_DATA = convert2SIunit.xsl embed.xsl physicalvariable2octavenotation.xsl resubstitute.xsl labelPhysicalVariable.xsl
 dist_octave_DATA = evaluatePhysicalVariable.m
 dist_xml_DATA = measurement.xml
 
