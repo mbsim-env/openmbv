@@ -1,7 +1,7 @@
 docdir = @datadir@/@PACKAGE@/doc
 dist_doc_DATA = openmbv.html
 
-../schema/openmbv.xsd: ../schema/openmbv.xsd.in
+../schema/openmbv.xsd: ../openmbvcppinterface/schema/openmbv.xsd.in
 	$(top_srcdir)/config.status --file=../schema/openmbv.xsd
 
 openmbv.html: ../schema/openmbv.xsd ../openmbvcppinterface/openmbvcppinterface/*.h

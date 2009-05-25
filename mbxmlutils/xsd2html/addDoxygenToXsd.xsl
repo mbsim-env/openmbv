@@ -1,7 +1,7 @@
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  version="2.0">
+  version="1.0">
 
   <!-- adds the doxygen class and class member documentation to a xsd-file -->
 
@@ -101,7 +101,7 @@
   </xsl:template>
 
   <xsl:template match="xs:element">
-    <xsl:param name="FUNCTIONNAME" select="concat(upper-case(substring(@name,1,1)),substring(@name,2))"/><!-- set first character upper case -->
+    <xsl:param name="FUNCTIONNAME" select="concat(translate(substring(@name,1,1),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),substring(@name,2))"/><!-- set first character upper case -->
     <xsl:param name="CLASSNAME"/>
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
