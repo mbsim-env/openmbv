@@ -2,10 +2,10 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:mm="http://openmbv.berlios.de/MBXMLUtils/measurement"
   xmlns="http://www.w3.org/1999/xhtml"
-  version="2.0">
+  version="1.0">
 
   <!-- output method -->
-  <xsl:output method="xhtml"
+  <xsl:output method="html"
     doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
     doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>
 

@@ -27,9 +27,8 @@
     <unit name="d">value*86400</unit>
   </measure>
   <measure name="angle" SIunit="rad">
-    <unit name="s">value*3600*180/pi</unit>
-    <unit name="sec">value*3600*180/pi</unit>
-    <unit name="min">value*60*180/pi</unit>
+    <unit name="''">value*3600*180/pi</unit>
+    <unit name="'">value*60*180/pi</unit>
     <unit name="rad">value</unit>
     <unit name="degree">value*180/pi</unit>
     <unit name="°">value*180/pi</unit>
@@ -42,7 +41,6 @@
   </measure>
   <measure name="acceleration" SIunit="m/s^2">
     <unit name="m/s^2">value</unit>
-    <unit name="g">value*9.81</unit>
   </measure>
   <measure name="velocity" SIunit="m/s">
     <unit name="m/s">value</unit>

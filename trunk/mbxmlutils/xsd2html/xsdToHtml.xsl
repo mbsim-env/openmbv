@@ -261,7 +261,7 @@
           <xsl:with-param name="ELEMENTNAME" select="'li'"/>
           <xsl:with-param name="COLOR" select="'red'"/>
         </xsl:apply-templates>
-        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:choice">
+        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
           <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
         </xsl:apply-templates>
       </ul>
@@ -317,7 +317,7 @@
           </a>)
         </xsl:if>
         <!-- type not {http://openmbv.berlios.de/MBXMLUtils/physicalvariable}* -->
-        <xsl:if test="substring(@type,1,3)='pv:'">
+        <xsl:if test="substring(@type,1,3)!='pv:'">
           (Type: <span style="font-family:monospace">
             <xsl:value-of select="@type"/>
           </span>)

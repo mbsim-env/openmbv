@@ -1,0 +1,15 @@
+lib_LTLIBRARIES = libmbxmlutilstinyxml.la
+INCLUDES = -DTIXML_USE_STL
+libmbxmlutilstinyxml_la_SOURCES = tinynamespace.cpp \
+  tinystr.cpp \
+  tinyxml.cpp \
+  tinyxmlerror.cpp \
+  tinyxmlparser.cpp
+
+libmbxmlutilstinyxml_la_HEADERS = tinynamespace.h \
+  tinystr.h \
+  tinyxml.h
+
+libmbxmlutilstinyxml_ladir = $(includedir)/mbxmlutilstinyxml
+
+EXTRA_DIST = readme.txt changes.txt
