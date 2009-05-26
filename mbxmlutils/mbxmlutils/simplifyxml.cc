@@ -16,7 +16,7 @@ int validate(const char *schema, const char *file) {
   xmlDoc *doc;
   cout<<"Parse and validate "<<file<<endl;
   doc=xmlParseFile(file);
-  if(!doc) { cout<<"ERROR parsing "<<file<<endl; return -1; }
+  if(!doc) { cout<<"ERROR parsing "<<file<<endl; return 1; }
   int ret=xmlSchemaValidateDoc(xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema))), doc);
   if(ret!=0) { cout<<"ERROR validating "<<file<<endl; return ret; }
   xmlFreeDoc(doc);
@@ -66,12 +66,12 @@ void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
   if(s) resubst(s, counterName, subst);
 }
 
-void embed(TiXmlElement *e, map<string,string> &nsprefix) {
+int embed(TiXmlElement *e, map<string,string> &nsprefix) {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
     string file=e->Attribute("href");
     int count=atoi(e->Attribute("count"));
     string counterName=e->Attribute("counterName");
-    validate(nslocation, file.c_str());
+    if(validate(nslocation, file.c_str())!=0) return 1;
     TiXmlDocument *doc=new TiXmlDocument;
     doc->LoadFile(file.c_str());
     TiXmlElement *enew=doc->FirstChildElement();
@@ -88,10 +88,12 @@ void embed(TiXmlElement *e, map<string,string> &nsprefix) {
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c) embed(c, nsprefix);
+  if(c)
+    if(embed(c, nsprefix)!=0) return 1;
   
   TiXmlElement *s=e->NextSiblingElement();
-  if(s) embed(s, nsprefix);
+  if(s)
+    if(embed(s, nsprefix)!=0) return 1;
 }
 
 void convertToSIUnit(TiXmlElement *e, map<string,string> units) {
@@ -141,10 +143,10 @@ int main(int argc, char *argv[]) {
 
   // validate parameter file
   if(string(paramxml)!="none")
-    if(validate(SCHEMADIR"/parameter.xsd", paramxml)!=0) return -1;
+    if(validate(SCHEMADIR"/parameter.xsd", paramxml)!=0) return 1;
 
   // validate main file
-  if(validate(nslocation, mainxml)!=0) return -1;
+  if(validate(nslocation, mainxml)!=0) return 1;
 
   // embed/validate files
   TiXmlDocument *mainxmldoc=new TiXmlDocument;
@@ -152,16 +154,14 @@ int main(int argc, char *argv[]) {
   TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
   map<string,string> nsprefix;
   incorporateNamespace(mainxmlroot,nsprefix);
-  embed(mainxmlroot,nsprefix);
+  if(embed(mainxmlroot,nsprefix)!=0) return 1;
 
   // validate embeded file
   cout<<"Parse and validate embeded file"<<endl;
   unIncorporateNamespace(mainxmlroot, nsprefix);
   mainxmldoc->SaveFile(".mbxmlutils_simplifyxml.xml");
-  if(validate(nslocation, ".mbxmlutils_simplifyxml.xml")!=0) return -1;
+  if(validate(nslocation, ".mbxmlutils_simplifyxml.xml")!=0) return 1;
   incorporateNamespace(mainxmlroot, nsprefix);
-
-  // validate embeded main file
 
   // convert parameter file to octave notation
 
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
     for(el2=ele->FirstChildElement(); el2!=0; el2=el2->NextSiblingElement()) {
       if(units.find(el2->Attribute("name"))!=units.end()) {
         cout<<"ERROR! Unit name "<<el2->Attribute("name")<<" is defined more than once."<<endl;
-        return -1;
+        return 1;
       }
       units[el2->Attribute("name")]=el2->GetText();
     }
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
 
   // call octave file
   cout<<"Process labeled file by octave"<<endl;
-  if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutils_simplifyxml.xml .simplified."+string(mainxml)).c_str())!=0) return -1;
+  if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutils_simplifyxml.xml .simplified."+string(mainxml)).c_str())!=0) return 1;
 
   return 0;
 }
