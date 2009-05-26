@@ -94,6 +94,7 @@ int embed(TiXmlElement *e, map<string,string> &nsprefix) {
   TiXmlElement *s=e->NextSiblingElement();
   if(s)
     if(embed(s, nsprefix)!=0) return 1;
+  return 0;
 }
 
 void convertToSIUnit(TiXmlElement *e, map<string,string> units) {
