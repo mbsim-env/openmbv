@@ -53,9 +53,8 @@ void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
   // resubst name and ref* attributes elements
   TiXmlAttribute *a=e->FirstAttribute();
   for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next()) {
-    if(a->Name()==string("name"))
-      a->SetValue(replace(a->ValueStr(), counterName, subst));
-    if(string(a->Name()).substr(0,3)=="ref")
+    if(a->Name()==string("name") ||
+       string(a->Name()).substr(0,3)=="ref")
       a->SetValue(replace(a->ValueStr(), counterName, subst));
   }
 
@@ -66,10 +65,16 @@ void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
   if(s) resubst(s, counterName, subst);
 }
 
-int embed(TiXmlElement *e, map<string,string> &nsprefix) {
+int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlDocument *paramxmldoc) {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
     string file=e->Attribute("href");
-    int count=atoi(e->Attribute("count"));
+
+    // subst count by parameter
+    string countstr=e->Attribute("count");
+    for(TiXmlElement *el=paramxmldoc->FirstChildElement()->FirstChildElement(); el!=0; el=el->NextSiblingElement())
+      countstr=replace(countstr, el->Attribute("name"), el->GetText());
+    int count=atoi(countstr.c_str());
+
     string counterName=e->Attribute("counterName");
     if(validate(nslocation, file.c_str())!=0) return 1;
     TiXmlDocument *doc=new TiXmlDocument;
@@ -89,11 +94,11 @@ int embed(TiXmlElement *e, map<string,string> &nsprefix) {
 
   TiXmlElement *c=e->FirstChildElement();
   if(c)
-    if(embed(c, nsprefix)!=0) return 1;
+    if(embed(c, nsprefix, paramxmldoc)!=0) return 1;
   
   TiXmlElement *s=e->NextSiblingElement();
   if(s)
-    if(embed(s, nsprefix)!=0) return 1;
+    if(embed(s, nsprefix, paramxmldoc)!=0) return 1;
   return 0;
 }
 
@@ -149,13 +154,21 @@ int main(int argc, char *argv[]) {
   // validate main file
   if(validate(nslocation, mainxml)!=0) return 1;
 
+  // read parameter file
+  TiXmlDocument *paramxmldoc=0;
+  if(string(paramxml)!="none") {
+    cout<<"Read parameter file"<<endl;
+    paramxmldoc=new TiXmlDocument;
+    paramxmldoc->LoadFile(paramxml);
+  }
+
   // embed/validate files
   TiXmlDocument *mainxmldoc=new TiXmlDocument;
   mainxmldoc->LoadFile(mainxml);
   TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
   map<string,string> nsprefix;
   incorporateNamespace(mainxmlroot,nsprefix);
-  if(embed(mainxmlroot,nsprefix)!=0) return 1;
+  if(embed(mainxmlroot,nsprefix,paramxmldoc)!=0) return 1;
 
   // validate embeded file
   cout<<"Parse and validate embeded file"<<endl;
@@ -171,8 +184,6 @@ int main(int argc, char *argv[]) {
   // resubst parameters
   if(string(paramxml)!="none") {
     cout<<"Resubstitute parameters"<<endl;
-    TiXmlDocument *paramxmldoc=new TiXmlDocument;
-    paramxmldoc->LoadFile(paramxml);
     TiXmlElement *el=paramxmldoc->FirstChildElement();
     for(el=el->FirstChildElement(); el!=0; el=el->NextSiblingElement())
       resubst(mainxmlroot, el->Attribute("name"), (string("(")+el->GetText()+")").c_str());
