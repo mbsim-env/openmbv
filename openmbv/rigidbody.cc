@@ -56,6 +56,11 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     maximalColorValue=toVector(e->GetText())[0];
   else
     maximalColorValue=1;
+  e=element->FirstChildElement(OPENMBVNS"staticColor");
+  if(e)
+    staticColor=atof(e->GetText());
+  else
+    staticColor=nan("");
 
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   vector<double> initTransValue=toVector(e->GetText());
@@ -150,6 +155,12 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     mat=new SoMaterial;
     soSep->addChild(mat);
     mat->shininess.setValue(0.9);
+    if(!isnan(staticColor)) {
+      double m=1/(maximalColorValue-minimalColorValue);
+      staticColor=m*staticColor-m*minimalColorValue;
+      mat->diffuseColor.setHSVValue((1-staticColor)*2/3,1,1);
+      mat->specularColor.setHSVValue((1-staticColor)*2/3,0.7,1);
+    }
   }
   else { // a dummmy localFrameScale
     localFrameScale=new SoScale;
@@ -230,12 +241,14 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
-  double col=data[7];
-  double m=1/(maximalColorValue-minimalColorValue);
-  col=m*col-m*minimalColorValue;
-  mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
-  mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
+  if(isnan(staticColor)) {
+    // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
+    double col=data[7];
+    double m=1/(maximalColorValue-minimalColorValue);
+    col=m*col-m*minimalColorValue;
+    mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
+    mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
+  }
 
   // path
   if(path->isChecked()) {

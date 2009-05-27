@@ -44,7 +44,7 @@ class RigidBody : public Body {
     virtual double update();
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoTranslation *translation;
-    double minimalColorValue, maximalColorValue;
+    double minimalColorValue, maximalColorValue, staticColor;
     SoMaterial *mat;
     H5::VectorSerie<double> *h5Data;
     SoScale *refFrameScale, *localFrameScale;
