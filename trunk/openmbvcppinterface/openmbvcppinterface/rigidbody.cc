@@ -33,7 +33,7 @@ RigidBody::RigidBody() : Body(),
   initialRotation(3, 0),
   scaleFactor(1),
   data(0),
-  staticColor(-1) {
+  staticColor(nan("")) {
 }
 
 RigidBody::~RigidBody() {
@@ -44,6 +44,7 @@ void RigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
   Body::writeXMLFile(xmlFile, indent);
   xmlFile<<indent<<"<minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
   xmlFile<<indent<<"<maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
+  xmlFile<<indent<<"<staticColor>"<<staticColor<<"</staticColor>"<<endl;
   xmlFile<<indent<<"<initialTranslation>["<<initialTranslation[0]<<";"
                                        <<initialTranslation[1]<<";"
                                        <<initialTranslation[2]<<"]</initialTranslation>"<<endl;
@@ -79,6 +80,9 @@ void RigidBody::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
   if(e)
     setMaximalColorValue(atof(e->GetText()));
+  e=element->FirstChildElement(OPENMBVNS"staticColor");
+  if(e)
+    setStaticColor(atof(e->GetText()));
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   setInitialTranslation(toVector(e->GetText()));
   e=element->FirstChildElement(OPENMBVNS"initialRotation");
