@@ -34,6 +34,15 @@
           <xs:attribute name="counterName" type="xs:token" use="required"/>
         </xs:complexType>
       </xs:element>
+
+      <!-- A regexp for matching a MBXMLUtils name attribute. E.g. matches: "box1", "box{i+5}", "box2_{2*i+1}_{j+1}" -->
+      <xs:simpleType name="name">
+        <xs:restriction base="xs:token">
+          <xsl:element name="xs:pattern">
+            <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
+          </xsl:element>
+        </xs:restriction>
+      </xs:simpleType>
       <!-- ################################ -->
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
