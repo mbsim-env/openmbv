@@ -24,6 +24,7 @@
 #include <vector>
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
+#include <cmath>
 
 namespace OpenMBV {
 
@@ -110,7 +111,7 @@ namespace OpenMBV {
       /** Append a data vector the the h5 datsset */
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(staticColor>=0) row[7]=staticColor;
+        if(!isnan(staticColor)) row[7]=staticColor;
         data->append(row);
       }
 
