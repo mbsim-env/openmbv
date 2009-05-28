@@ -26,11 +26,10 @@
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
       <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
 
-      <!-- ################################ -->
+      <!-- element for embeding -->
       <xs:element name="embed">
         <xs:complexType>
           <xs:attribute name="href" type="xs:anyURI" use="required"/>
-          <!--<xs:attribute name="count" type="xs:token" use="required"/>-->
           <xs:attribute name="count" use="required">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -46,11 +45,11 @@
       <xs:simpleType name="name">
         <xs:restriction base="xs:token">
           <xsl:element name="xs:pattern">
-            <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
+            <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
           </xsl:element>
         </xs:restriction>
       </xs:simpleType>
-      <!-- ################################ -->
+
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
 

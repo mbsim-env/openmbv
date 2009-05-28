@@ -1,5 +1,6 @@
 #include <libxml/xmlschemas.h>
 #include <iostream>
+#include <fstream>
 #include <regex.h>
 #include "env.h"
 #include "mbxmlutilstinyxml/tinyxml.h"
@@ -20,6 +21,76 @@ int validate(const char *schema, const char *file) {
   int ret=xmlSchemaValidateDoc(xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema))), doc);
   if(ret!=0) { cout<<"ERROR validating "<<file<<endl; return ret; }
   xmlFreeDoc(doc);
+  return 0;
+}
+
+int toOctave(TiXmlElement *e) {
+  if(e->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
+    string mat="[";
+    for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
+      for(TiXmlElement* ele=row->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
+        mat=mat+ele->GetText();
+        if(ele->NextSiblingElement()) mat=mat+",";
+      }
+      if(row->NextSiblingElement()) mat=mat+";";
+    }
+    mat=mat+"]";
+    TiXmlText *text=new TiXmlText(mat);
+    e->Parent()->InsertEndChild(*text);
+    e->Parent()->RemoveChild(e);
+    return 0;
+  }
+  if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
+    string vec="[";
+    for(TiXmlElement* ele=e->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
+      vec=vec+ele->GetText();
+      if(ele->NextSiblingElement()) vec=vec+";";
+    }
+    vec=vec+"]";
+    TiXmlText *text=new TiXmlText(vec);
+    e->Parent()->InsertEndChild(*text);
+    e->Parent()->RemoveChild(e);
+    return 0;
+  }
+  if(e->ValueStr()==MBXMLUTILSPVNS"asciiVectorRef" || e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
+    ifstream file(e->Attribute("href"));
+    if(file.fail()) { cout<<"ERROR! Can not open file: "<<e->Attribute("href")<<endl; return 1; }
+    string line, vec;
+    while(!file.eof()) {;
+      getline(file, line);
+      // delete comments starting with % or # and append lines to vec separated by ;
+      size_t pos=line.find_first_of("%#");
+      if(pos!=string::npos) vec=vec+line.substr(0,pos)+";"; else vec=vec+line+";";
+    }
+    regex_t re;
+    regmatch_t pmatch[1];
+    // replace sequences of ; with ;
+    regcomp(&re, ";( *;)+", REG_EXTENDED);
+    while(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
+      vec=vec.substr(0, pmatch[0].rm_so)+";"+vec.substr(pmatch[0].rm_eo);
+    // delete leading ;
+    regcomp(&re, "^ *;", REG_EXTENDED);
+    if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
+      vec=vec.substr(pmatch[0].rm_eo);
+    // delete tailing ;
+    regcomp(&re, "; *$", REG_EXTENDED);
+    if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
+      vec=vec.substr(0,pmatch[0].rm_so);
+    vec="["+vec+"]";
+    TiXmlText *text=new TiXmlText(vec);
+    e->Parent()->InsertEndChild(*text);
+    e->Parent()->RemoveChild(e);
+    return 0;
+  }
+
+  TiXmlElement *c=e->FirstChildElement();
+  if(c)
+    if(toOctave(c)!=0) return 1;
+  
+  TiXmlElement *s=e->NextSiblingElement();
+  if(s)
+    if(toOctave(s)!=0) return 1;
+
   return 0;
 }
 
@@ -65,14 +136,15 @@ void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
   if(s) resubst(s, counterName, subst);
 }
 
-int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlDocument *paramxmldoc) {
+int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlElement *paramxmlroot) {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
     string file=e->Attribute("href");
 
     // subst count by parameter
     string countstr=e->Attribute("count");
-    for(TiXmlElement *el=paramxmldoc->FirstChildElement()->FirstChildElement(); el!=0; el=el->NextSiblingElement())
-      countstr=replace(countstr, el->Attribute("name"), el->GetText());
+    if(paramxmlroot)
+      for(TiXmlElement *el=paramxmlroot->FirstChildElement(); el!=0; el=el->NextSiblingElement())
+        countstr=replace(countstr, el->Attribute("name"), el->GetText());
     int count=atoi(countstr.c_str());
 
     string counterName=e->Attribute("counterName");
@@ -94,11 +166,11 @@ int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlDocument *paramxml
 
   TiXmlElement *c=e->FirstChildElement();
   if(c)
-    if(embed(c, nsprefix, paramxmldoc)!=0) return 1;
+    if(embed(c, nsprefix, paramxmlroot)!=0) return 1;
   
   TiXmlElement *s=e->NextSiblingElement();
   if(s)
-    if(embed(s, nsprefix, paramxmldoc)!=0) return 1;
+    if(embed(s, nsprefix, paramxmlroot)!=0) return 1;
   return 0;
 }
 
@@ -155,12 +227,20 @@ int main(int argc, char *argv[]) {
   if(validate(nslocation, mainxml)!=0) return 1;
 
   // read parameter file
-  TiXmlDocument *paramxmldoc=0;
+  TiXmlElement *paramxmlroot=0;
   if(string(paramxml)!="none") {
     cout<<"Read parameter file"<<endl;
-    paramxmldoc=new TiXmlDocument;
+    TiXmlDocument *paramxmldoc=new TiXmlDocument;
     paramxmldoc->LoadFile(paramxml);
+    paramxmlroot=paramxmldoc->FirstChildElement();
+    map<string,string> dummy;
+    incorporateNamespace(paramxmlroot,dummy);
   }
+
+  // convert parameter file to octave notation
+  cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements in parameter file to octave format"<<endl;
+  if(string(paramxml)!="none")
+    if(toOctave(paramxmlroot)!=0) return 1;
 
   // embed/validate files
   TiXmlDocument *mainxmldoc=new TiXmlDocument;
@@ -168,7 +248,7 @@ int main(int argc, char *argv[]) {
   TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
   map<string,string> nsprefix;
   incorporateNamespace(mainxmlroot,nsprefix);
-  if(embed(mainxmlroot,nsprefix,paramxmldoc)!=0) return 1;
+  if(embed(mainxmlroot,nsprefix,paramxmlroot)!=0) return 1;
 
   // validate embeded file
   cout<<"Parse and validate embeded file"<<endl;
@@ -177,14 +257,14 @@ int main(int argc, char *argv[]) {
   if(validate(nslocation, ".mbxmlutils_simplifyxml.xml")!=0) return 1;
   incorporateNamespace(mainxmlroot, nsprefix);
 
-  // convert parameter file to octave notation
-
   // convert main file to octave notation
+  cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements to octave format"<<endl;
+  if(toOctave(mainxmlroot)!=0) return 1;
   
   // resubst parameters
   if(string(paramxml)!="none") {
     cout<<"Resubstitute parameters"<<endl;
-    TiXmlElement *el=paramxmldoc->FirstChildElement();
+    TiXmlElement *el=paramxmlroot;
     for(el=el->FirstChildElement(); el!=0; el=el->NextSiblingElement())
       resubst(mainxmlroot, el->Attribute("name"), (string("(")+el->GetText()+")").c_str());
   }
