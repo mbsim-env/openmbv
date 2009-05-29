@@ -68,14 +68,17 @@ int toOctave(TiXmlElement *e) {
     regcomp(&re, ";( *;)+", REG_EXTENDED);
     while(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(0, pmatch[0].rm_so)+";"+vec.substr(pmatch[0].rm_eo);
+    regfree(&re);
     // delete leading ;
     regcomp(&re, "^ *;", REG_EXTENDED);
     if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(pmatch[0].rm_eo);
+    regfree(&re);
     // delete tailing ;
     regcomp(&re, "; *$", REG_EXTENDED);
     if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(0,pmatch[0].rm_so);
+    regfree(&re);
     vec="["+vec+"]";
     TiXmlText *text=new TiXmlText(vec);
     e->Parent()->InsertEndChild(*text);
@@ -114,6 +117,10 @@ string replace(string str, string search, string subst) {
       str=subst;
     else break_=true;
   } while(break_==false);
+  regfree(&re1);
+  regfree(&re2);
+  regfree(&re3);
+  regfree(&re4);
   return str;
 }
 void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
@@ -208,9 +215,9 @@ void label(TiXmlElement *e) {
 
 int main(int argc, char *argv[]) {
   if(argc!=4) {
-    cout<<"Usage: mbxmlutils-simplifyxml <param-file> <main-file>"<<endl
-        <<"                              <namespace-location-of-main-file>"<<endl
-        <<"  The output file is named '.simplified.<main-file>'."<<endl
+    cout<<"Usage: mbxmlutilspp <param-file> <main-file>"<<endl
+        <<"                    <namespace-location-of-main-file>"<<endl
+        <<"  The output file is named '.pp.<main-file>'."<<endl
         <<"  Use 'none' if not <param-file> is avaliabel."<<endl;
     return 0;
   }
@@ -253,8 +260,8 @@ int main(int argc, char *argv[]) {
   // validate embeded file
   cout<<"Parse and validate embeded file"<<endl;
   unIncorporateNamespace(mainxmlroot, nsprefix);
-  mainxmldoc->SaveFile(".mbxmlutils_simplifyxml.xml");
-  if(validate(nslocation, ".mbxmlutils_simplifyxml.xml")!=0) return 1;
+  mainxmldoc->SaveFile(".mbxmlutilspp.xml");
+  if(validate(nslocation, ".mbxmlutilspp.xml")!=0) return 1;
   incorporateNamespace(mainxmlroot, nsprefix);
 
   // convert main file to octave notation
@@ -294,11 +301,11 @@ int main(int argc, char *argv[]) {
   // save file
   cout<<"Save labeled file"<<endl;
   unIncorporateNamespace(mainxmlroot, nsprefix);
-  mainxmldoc->SaveFile(".mbxmlutils_simplifyxml.xml");
+  mainxmldoc->SaveFile(".mbxmlutilspp.xml");
 
   // call octave file
   cout<<"Process labeled file by octave"<<endl;
-  if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutils_simplifyxml.xml .simplified."+string(mainxml)).c_str())!=0) return 1;
+  if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutilspp.xml .pp."+string(mainxml)).c_str())!=0) return 1;
 
   return 0;
 }
