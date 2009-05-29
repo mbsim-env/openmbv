@@ -34,8 +34,8 @@ CLEANFILES = .measurement.xml.isvalid measurement.html physicalvariable.xsd
 
 
 # program to convert a complex xml file to a plain xml file
-bin_PROGRAMS = mbxmlutils-simplifyxml
-mbxmlutils_simplifyxml_SOURCES = simplifyxml.cc
-mbxmlutils_simplifyxml_CPPFLAGS = $(LIBXML2_CFLAGS) -DTIXML_USE_STL
-mbxmlutils_simplifyxml_LDFLAGS = -L../mbxmlutilstinyxml
-mbxmlutils_simplifyxml_LDADD = $(LIBXML2_LIBS) -lmbxmlutilstinyxml
+bin_PROGRAMS = mbxmlutilspp
+mbxmlutilspp_SOURCES = preprocessor.cc
+mbxmlutilspp_CPPFLAGS = $(LIBXML2_CFLAGS) -DTIXML_USE_STL
+mbxmlutilspp_LDFLAGS = -L../mbxmlutilstinyxml
+mbxmlutilspp_LDADD = $(LIBXML2_LIBS) -lmbxmlutilstinyxml
