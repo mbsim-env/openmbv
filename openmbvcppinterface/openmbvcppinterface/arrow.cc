@@ -45,7 +45,7 @@ void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
       case toHead: typeStr="toHead"; break;
       case bothHeads: typeStr="bothHeads"; break;
     }
-    xmlFile<<indent<<"  <type>"<<typeStr<<"</type>"<<endl;
+    xmlFile<<indent<<"  <type>\""<<typeStr<<"\"</type>"<<endl;
     xmlFile<<indent<<"  <scaleLength>"<<scaleLength<<"</scaleLength>"<<endl;
   xmlFile<<indent<<"</Arrow>"<<endl;
 }
@@ -77,7 +77,7 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"headLength");
   setHeadLength(toVector(e->GetText())[0]);
   e=element->FirstChildElement(OPENMBVNS"type");
-  string typeStr=e->GetText();
+  string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(typeStr=="line") setType(line);
   if(typeStr=="fromHead") setType(fromHead);
   if(typeStr=="toHead") setType(toHead);

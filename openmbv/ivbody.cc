@@ -37,7 +37,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"ivFileName");
-  string fileName=e->GetText();
+  string fileName=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
 
   // fix relative path name of file to be included (will hopefully work also on windows)
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);

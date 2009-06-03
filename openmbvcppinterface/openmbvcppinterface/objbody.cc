@@ -37,7 +37,7 @@ ObjBody::ObjBody() : RigidBody(),
 void ObjBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<ObjBody name=\""<<name<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <objFileName>"<<objFileName<<"</objFileName>"<<endl;
+    xmlFile<<indent<<"  <objFileName>\""<<objFileName<<"\"</objFileName>"<<endl;
     xmlFile<<indent<<"  <useTextureFromMatLib>"<<(useTextureFromMatLib?"true":"false")<<"</useTextureFromMatLib>"<<endl;
     xmlFile<<indent<<"  <useMaterialFromMatLib>"<<(useMaterialFromMatLib?"true":"false")<<"</useMaterialFromMatLib>"<<endl;
     string normalsStr;
@@ -47,7 +47,7 @@ void ObjBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
       case smooth: normalsStr="smooth"; break;
       case smoothIfLessBarrier: normalsStr="smoothIfLessBarrier"; break;
     }
-    xmlFile<<indent<<"  <normals>"<<normalsStr<<"</normals>"<<endl;
+    xmlFile<<indent<<"  <normals>\""<<normalsStr<<"\"</normals>"<<endl;
     xmlFile<<indent<<"  <epsVertex>"<<epsVertex<<"</epsVertex>"<<endl;
     xmlFile<<indent<<"  <epsNormal>"<<epsNormal<<"</epsNormal>"<<endl;
     xmlFile<<indent<<"  <smoothBarrier>"<<smoothBarrier<<"</smoothBarrier>"<<endl;
@@ -57,7 +57,7 @@ void ObjBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
       case calculate: outlineStr="calculate"; break;
       case fromFile: outlineStr="fromFile"; break;
     }
-    xmlFile<<indent<<"  <outline>"<<outlineStr<<"</outline>"<<endl;
+    xmlFile<<indent<<"  <outline>\""<<outlineStr<<"\"</outline>"<<endl;
   xmlFile<<indent<<"</ObjBody>"<<endl;
 }
 
@@ -65,13 +65,13 @@ void ObjBody::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"objFileName");
-  setObjFileName(e->GetText());
+  setObjFileName(string(e->GetText()).substr(1,string(e->GetText()).length()-2));
   e=element->FirstChildElement(OPENMBVNS"useTextureFromMatLib");
-  setUseTextureFromMatLib((e->GetText()==string("true"))?true:false);
+  setUseTextureFromMatLib((e->GetText()==string("true") || e->GetText()==string("1"))?true:false);
   e=element->FirstChildElement(OPENMBVNS"useMaterialFromMatLib");
-  setUseMaterialFromMatLib((e->GetText()==string("true"))?true:false);
+  setUseMaterialFromMatLib((e->GetText()==string("true") || e->GetText()==string("1"))?true:false);
   e=element->FirstChildElement(OPENMBVNS"normals");
-  string normalStr=e->GetText();
+  string normalStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(normalStr=="fromObjFile") setNormals(fromObjFile);
   if(normalStr=="flat") setNormals(flat);
   if(normalStr=="smooth") setNormals(smooth);
@@ -83,7 +83,7 @@ void ObjBody::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"smoothBarrier");
   setSmoothBarrier(toVector(e->GetText())[0]);
   e=element->FirstChildElement(OPENMBVNS"outline");
-  string outlineStr=e->GetText();
+  string outlineStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(outlineStr=="none") setOutline(none);
   if(outlineStr=="calculate") setOutline(calculate);
   if(outlineStr=="fromFile") setOutline(fromFile);
