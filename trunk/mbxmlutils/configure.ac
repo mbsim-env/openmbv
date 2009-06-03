@@ -9,6 +9,13 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_LANG([C++])
 
+dnl Check for MinGW
+AC_CANONICAL_HOST
+if test "_$host_os" = "_mingw32" ; then
+  AC_DEFINE([MINGW], [1], [Host System is MinGW/MSys])
+  LIBS="$LIBS -lregex"
+fi
+
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
 dnl Check for xslt
@@ -38,11 +45,25 @@ if [ !(echo "regexp('a','b'); regexprep('a','b','c');" | $octave -q) ]; then
   AC_MSG_ERROR([octave regexp and/or regexprep function not found! octave >= 3 needed!])
 fi
 
+dnl Helper functions to convert path to windows
+dirtowin() {
+  echo $(cd $1 && pwd -W 2> /dev/null)
+}
+filetowin() {
+  echo $(cd $(dirname $1) && pwd -W 2> /dev/null)/$(basename $1)
+}
+
 DATADIR="$(eval echo $(eval echo $datadir))"
 AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
 AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
+if test "_$host_os" = "_mingw32" ; then
+  SCHEMADIR=$(dirtowin $SCHEMADIR)
+  XMLDIR=$(dirtowin $XMLDIR)
+  OCTAVEDIR=$(dirtowin $OCTAVEDIR)
+  OCTAVE=$(filetowin $OCTAVE)
+fi
 
 AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils/measurement.xml mbxmlutils.pc mbxmlutils/env.h])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
