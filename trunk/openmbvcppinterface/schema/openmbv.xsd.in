@@ -221,7 +221,7 @@
             </xs:simpleType>
           </xs:element>
           <xs:element name="height" type="pv:lengthScalar"/>
-          <xs:element name="contour" maxOccurs="unbounded" type="xs:lengthMatrix"/>
+          <xs:element name="contour" maxOccurs="unbounded" type="pv:lengthMatrix"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
