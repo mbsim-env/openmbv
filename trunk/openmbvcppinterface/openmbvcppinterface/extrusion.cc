@@ -40,7 +40,7 @@ void Extrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  xmlFile<<indent<<"  <windingRule>"<<windingRuleStr<<"</windingRule>"<<endl;
+  xmlFile<<indent<<"  <windingRule>\""<<windingRuleStr<<"\"</windingRule>"<<endl;
   xmlFile<<indent<<"  <height>"<<height<<"</height>"<<endl;
   for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(xmlFile, indent, (*i));
@@ -52,7 +52,7 @@ void Extrusion::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"windingRule");
-  string wrStr=e->GetText();
+  string wrStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(wrStr=="odd") setWindingRule(odd);
   if(wrStr=="nonzero") setWindingRule(nonzero);
   if(wrStr=="positive") setWindingRule(positive);

@@ -48,7 +48,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   e=e->NextSiblingElement();
   headLength=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  string type_=e->GetText();
+  string type_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(type_=="line") type=line;
   else if(type_=="fromHead") type=fromHead;
   else if(type_=="toHead") type=toHead;

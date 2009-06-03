@@ -136,10 +136,10 @@
           <xs:element name="normals">
             <xs:simpleType>
               <xs:restriction base="xs:token">
-                <xs:enumeration value="fromObjFile"/>
-                <xs:enumeration value="flat"/>
-                <xs:enumeration value="smooth"/>
-                <xs:enumeration value="smoothIfLessBarrier"/>
+                <xs:enumeration value="&quot;fromObjFile&quot;"/>
+                <xs:enumeration value="&quot;flat&quot;"/>
+                <xs:enumeration value="&quot;smooth&quot;"/>
+                <xs:enumeration value="&quot;smoothIfLessBarrier&quot;"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
@@ -149,9 +149,9 @@
           <xs:element name="outline">
             <xs:simpleType>
               <xs:restriction base="xs:token">
-                <xs:enumeration value="none"/>
-                <xs:enumeration value="calculate"/>
-                <xs:enumeration value="fromFile"/>
+                <xs:enumeration value="&quot;none&quot;"/>
+                <xs:enumeration value="&quot;calculate&quot;"/>
+                <xs:enumeration value="&quot;fromFile&quot;"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
@@ -212,16 +212,16 @@
           <xs:element name="windingRule">
             <xs:simpleType>
               <xs:restriction base="xs:token">
-                <xs:enumeration value="odd"/>
-                <xs:enumeration value="nonzero"/>
-                <xs:enumeration value="positive"/>
-                <xs:enumeration value="negative"/>
-                <xs:enumeration value="absGEqZero"/>
+                <xs:enumeration value="&quot;odd&quot;"/>
+                <xs:enumeration value="&quot;nonzero&quot;"/>
+                <xs:enumeration value="&quot;positive&quot;"/>
+                <xs:enumeration value="&quot;negative&quot;"/>
+                <xs:enumeration value="&quot;absGEqZero&quot;"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
           <xs:element name="height" type="pv:lengthScalar"/>
-          <xs:element name="contour" maxOccurs="unbounded" type="xs:token"/>
+          <xs:element name="contour" maxOccurs="unbounded" type="xs:lengthMatrix"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -249,11 +249,11 @@
           <xs:element name="type">
             <xs:simpleType>
               <xs:restriction base="xs:token">
-                <xs:enumeration value="line"/>
-                <xs:enumeration value="fromHead"/>
-                <xs:enumeration value="toHead"/>
-                <xs:enumeration value="bothHeads"/>
-                <xs:enumeration value="absGEqZero"/>
+                <xs:enumeration value="&quot;line&quot;"/>
+                <xs:enumeration value="&quot;fromHead&quot;"/>
+                <xs:enumeration value="&quot;toHead&quot;"/>
+                <xs:enumeration value="&quot;bothHeads&quot;"/>
+                <xs:enumeration value="&quot;absGEqZero&quot;"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:element>

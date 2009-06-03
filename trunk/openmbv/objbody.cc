@@ -33,15 +33,15 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"objFileName");
-  string fileName=e->GetText();
+  string fileName=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   // fix relative path name of file to be included (will hopefully work also on windows)
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
   e=e->NextSiblingElement();
-  bool textureFromFile=(e->GetText()==string("true"))?true:false;
+  bool textureFromFile=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
   e=e->NextSiblingElement();
-  bool materialFromFile=(e->GetText()==string("true"))?true:false;
+  bool materialFromFile=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
   e=e->NextSiblingElement();
-  string normals_=e->GetText();
+  string normals_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   Normals normals;
   if(normals_=="fromObjFile") normals=fromObjFile;
   else if(normals_=="flat") normals=flat;
@@ -54,7 +54,7 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   e=e->NextSiblingElement();
   smoothBarrier=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  string outline_=e->GetText();
+  string outline_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   Outline outline;
   if(outline_=="none") outline=none;
   else if(outline_=="calculate") outline=calculate;
