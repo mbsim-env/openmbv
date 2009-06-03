@@ -27,8 +27,16 @@ while(1)
   while 1
     [S,bb,cc,dd,T]=regexp(line, '@TEXTB@([^@]+)@TEXTE@');
     if length(S)==0, break; end
-    val=eval(T{1}{1});
-    if size(val,1)==1 && size(val,2)==1
+    % convert character entities
+    intext=T{1}{1};
+    intext=regexprep(intext, '&quot;', '"');
+    intext=regexprep(intext, '&apos;', "'");
+    % evaluate
+    val=eval(intext);
+    % output string, scalar or matrix
+    if ischar(val)
+      text=['&quot;' val '&quot;'];
+    elseif size(val,1)==1 && size(val,2)==1
       text=sprintf('%.15e', val);
     else
       text=sprintf('[');
