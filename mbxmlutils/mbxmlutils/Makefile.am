@@ -25,7 +25,7 @@ measurement.html: measurement.xml measurementToHtml.xsl .measurement.xml.isvalid
 
 # generate physicalvariable.xsd
 physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
+	@XSLTPROC@ --param SCHEMADIR "'@SCHEMADIR@'" --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
 
 
 

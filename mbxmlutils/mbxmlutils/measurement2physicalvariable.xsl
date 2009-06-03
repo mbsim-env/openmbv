@@ -4,6 +4,8 @@
   xmlns:mm="http://openmbv.berlios.de/MBXMLUtils/measurement"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xsl:param name="SCHEMADIR"/>
+
   <xsl:output method="xml" version="1.0" indent="yes"/>
 
   <xsl:template match="text()"/>
@@ -24,7 +26,9 @@
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
-      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+      <xs:import namespace="http://www.w3.org/XML/1998/namespace">
+        <xsl:attribute name="schemaLocation"><xsl:value-of select="$SCHEMADIR"/>/xml.xsd</xsl:attribute>
+      </xs:import>
 
       <!-- element for embeding -->
       <xs:element name="embed">

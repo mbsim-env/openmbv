@@ -1,7 +1,9 @@
 #include <libxml/xmlschemas.h>
 #include <iostream>
 #include <fstream>
+extern "C" {
 #include <regex.h>
+}
 #include "env.h"
 #include "mbxmlutilstinyxml/tinyxml.h"
 #include "mbxmlutilstinyxml/tinynamespace.h"
