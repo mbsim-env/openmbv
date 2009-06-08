@@ -82,8 +82,8 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   extrusion->solid=TRUE; // backface culling
   extrusion->convex=TRUE; // only convex polygons included in visualisation
   extrusion->ccw=TRUE; // vertex ordering counterclockwise?
-  extrusion->beginCap=FALSE; // front side at begin of the spine
-  extrusion->endCap=FALSE; // front side at end of the spine
+  extrusion->beginCap=TRUE; // front side at begin of the spine
+  extrusion->endCap=TRUE; // front side at end of the spine
   extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
 }
 
