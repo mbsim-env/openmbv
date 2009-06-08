@@ -11,8 +11,8 @@ endif
 
 bin_PROGRAMS = openmbv
 openmbv_CPPFLAGS = $(QT_CFLAGS) -I../openmbvcppinterface/openmbvcppinterfacetinyxml $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
-openmbv_LDFLAGS  = -L../openmbvtinyxml
-openmbv_LDADD    = -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
+openmbv_LDFLAGS  = -L../openmbvtinyxml 
+openmbv_LDADD    = -lGLU -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   body.cc\
   cuboid.cc\
