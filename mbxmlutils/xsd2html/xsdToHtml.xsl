@@ -230,9 +230,11 @@
 
   <!-- child elements -->
   <xsl:template mode="SIMPLECONTENT" match="xs:complexType">
-    <ul style="list-style-type:none;padding-left:4ex">
-      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice"/>
-    </ul>
+    <xsl:if test="xs:sequence|xs:choice">
+      <ul style="list-style-type:none;padding-left:4ex">
+        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice"/>
+      </ul>
+    </xsl:if>
   </xsl:template>
 
   <!-- occurance -->
@@ -353,28 +355,33 @@
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
-    <p>
-      <xsl:if test="@source='doxygen'">
-        <xsl:attribute name="style">
-          color:gray
-        </xsl:attribute>
-        Doxygen:
-      </xsl:if>
-      <xsl:value-of select="."/>
-    </p>
+    <xsl:if test="@source='doxygen'">
+      <div style="margin-bottom:1ex"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+    </xsl:if>
+    <xsl:apply-templates mode="CLONEDOC"/>
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
-    <p style="padding-left:3ex;margin:0;margin-bottom:1ex">
-      <xsl:if test="@source='doxygen'">
-        <xsl:attribute name="style">
-          padding-left:3ex;margin:0;margin-bottom:1ex;color:gray
-        </xsl:attribute>
-        Doxygen:
-      </xsl:if>
-      <xsl:value-of select="."/>
-    </p>
+    <xsl:if test="@source='doxygen'">
+      <div style="margin-left:3ex;margin-bottom:1ex"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+    </xsl:if>
+    <div style="margin-left:3ex">
+      <xsl:apply-templates mode="CLONEDOC"/>
+    </div>
+  </xsl:template>
+
+  <!-- clone doxygen xml/html part -->
+  <xsl:template mode="CLONEDOC" match="*">
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:copy/>
+      </xsl:for-each>
+      <xsl:apply-templates mode="CLONEDOC"/>
+    </xsl:copy>
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="text()">
+    <xsl:copy/>
   </xsl:template>
 
 </xsl:stylesheet>
