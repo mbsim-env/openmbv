@@ -1,6 +1,7 @@
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.w3.org/1999/xhtml"
   version="1.0">
 
   <!-- adds the doxygen class and class member documentation to a xsd-file -->
@@ -75,16 +76,7 @@
 
   <!-- add doxygen class documentation -->
   <xsl:template match="/doxygen/compounddef/compoundname">
-    <xsl:if test="string-length(normalize-space(../briefdescription))!=0 or string-length(normalize-space(../detaileddescription))!=0">
-      <xs:documentation source="doxygen">
-        <xsl:if test="string-length(normalize-space(../briefdescription))!=0">
-          <xsl:apply-templates select="../briefdescription"/>
-        </xsl:if>
-        <xsl:if test="string-length(normalize-space(../detaileddescription))!=0">
-          <xsl:apply-templates select="../detaileddescription"/>
-        </xsl:if>
-      </xs:documentation>
-    </xsl:if>
+    <xsl:call-template name="DOXYGENDOC"/>
   </xsl:template>
 
 
@@ -130,16 +122,52 @@
 
   <!-- add doxygen class member documentation -->
   <xsl:template match="/doxygen/compounddef/sectiondef/memberdef/name">
+    <xsl:call-template name="DOXYGENDOC"/>
+  </xsl:template>
+
+  <!-- convert doxygen xml to html -->
+  <xsl:template name="DOXYGENDOC">
     <xsl:if test="string-length(normalize-space(../briefdescription))!=0 or string-length(normalize-space(../detaileddescription))!=0">
       <xs:documentation source="doxygen">
         <xsl:if test="string-length(normalize-space(../briefdescription))!=0">
-          <xsl:apply-templates select="../briefdescription"/>
+          <xsl:apply-templates mode="DOXYGENDOC" select="../briefdescription"/>
         </xsl:if>
         <xsl:if test="string-length(normalize-space(../detaileddescription))!=0">
-          <xsl:apply-templates select="../detaileddescription"/>
+          <xsl:apply-templates mode="DOXYGENDOC" select="../detaileddescription"/>
         </xsl:if>
       </xs:documentation>
     </xsl:if>
+  </xsl:template>
+  <xsl:template mode="DOXYGENDOC" match="briefdescription|detaileddescription">
+    <xsl:apply-templates mode="DOXYGENDOC"/>
+  </xsl:template>
+  <xsl:template mode="DOXYGENDOC" match="para">
+    <div style="margin-bottom:1ex"><xsl:apply-templates mode="DOXYGENDOC"/></div>
+  </xsl:template>
+  <xsl:template mode="DOXYGENDOC" match="simplesect">
+    <div style="margin-bottom:1ex">
+      <b><xsl:value-of select="@kind"/></b>
+      <div style="margin-left:3ex">
+        <xsl:apply-templates mode="DOXYGENDOC"/>
+      </div>
+    </div>
+  </xsl:template>
+  <xsl:template mode="DOXYGENDOC" match="formula">
+    <xsl:if test="not(starts-with(.,'$'))">
+      <div style="margin-top:1ex;margin-bottom:1ex"><img><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
+            <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
+      </img></div>
+    </xsl:if>
+    <xsl:if test="starts-with(.,'$')">
+      <img><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
+         <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
+      </img>
+    </xsl:if>
+  </xsl:template>
+  <xsl:template mode="DOXYGENDOC" match="image[@type='html']">
+      <div style="margin-top:1ex;margin-bottom:1ex"><img><xsl:attribute name="src"><xsl:value-of select="@name"/></xsl:attribute>
+            <xsl:attribute name="alt"><xsl:value-of select="@name"/></xsl:attribute>
+      </img></div>
   </xsl:template>
 
 </xsl:stylesheet>
