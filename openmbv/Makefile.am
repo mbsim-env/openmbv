@@ -10,7 +10,7 @@ if COND_WIN32
 endif
 
 bin_PROGRAMS = openmbv
-openmbv_CPPFLAGS = $(QT_CFLAGS) -I../openmbvcppinterface/openmbvcppinterfacetinyxml $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+openmbv_CPPFLAGS = $(QT_CFLAGS) -I../openmbvtinyxml/tinyxml-src $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
 openmbv_LDFLAGS  = -L../openmbvtinyxml 
 openmbv_LDADD    = -lGLU -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
@@ -91,6 +91,6 @@ noinst_HEADERS = openmbv.qrc\
 openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html ../mbxmlutils/mbxmlutils/measurement.html
 # generate dummy documentation if not exist
 ../doc/openmbv.qt.html:
-	touch -r ../schema/openmbv.xsd.in ../doc/openmbv.qt.html
+	touch -r ../openmbvcppinterface/schema/openmbv.xsd.in ../doc/openmbv.qt.html
 ../mbxmlutils/mbxmlutils/measurement.html:
 	touch -r ../mbxmlutils/mbxmlutils/measurement.xml.in ../mbxmlutils/mbxmlutils/measurement.html

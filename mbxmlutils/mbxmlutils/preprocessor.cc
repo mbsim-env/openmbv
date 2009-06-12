@@ -5,8 +5,8 @@ extern "C" {
 #include <regex.h>
 }
 #include "env.h"
-#include "mbxmlutilstinyxml/tinyxml.h"
-#include "mbxmlutilstinyxml/tinynamespace.h"
+#include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
+#include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
