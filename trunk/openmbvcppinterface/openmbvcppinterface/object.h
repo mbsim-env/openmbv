@@ -22,7 +22,7 @@
 
 #include <string>
 #include <H5Cpp.h>
-#include "openmbvcppinterfacetinyxml/tinyxml.h"
+#include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"
 
 #define OPENMBVNS_ "http://openmbv.berlios.de/OpenMBV"
 #define OPENMBVNS "{"OPENMBVNS_"}"
