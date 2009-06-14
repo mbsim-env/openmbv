@@ -35,7 +35,8 @@ SpineExtrusion::SpineExtrusion() : Body(),
   }
 
   SpineExtrusion::~SpineExtrusion() {
-    if(!hdf5LinkBody && data) delete data;
+    if(!hdf5LinkBody && data) { delete data; data=0; }
+    if(contour) { delete contour; contour=0; }
   }
 
 void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
