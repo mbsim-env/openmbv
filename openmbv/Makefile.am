@@ -7,12 +7,15 @@ endif
 
 if COND_WIN32
   MAYBE_WIN32_SRC = openmbv.rc
+  LIBGLU=-lglu32
+else
+  LIBGLU=-lGLU
 endif
 
 bin_PROGRAMS = openmbv
 openmbv_CPPFLAGS = $(QT_CFLAGS) -I../openmbvtinyxml/tinyxml-src $(COIN_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
 openmbv_LDFLAGS  = -L../openmbvtinyxml 
-openmbv_LDADD    = -lGLU -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
+openmbv_LDADD    = $(LIBGLU) -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   body.cc\
   cuboid.cc\
