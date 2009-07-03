@@ -2,7 +2,7 @@ docdir = @datadir@/@PACKAGE@/doc
 nodist_doc_DATA = openmbv.html *.png
 
 ../schema/openmbv.xsd: ../openmbvcppinterface/schema/openmbv.xsd.in
-	$(top_srcdir)/config.status --file=../schema/openmbv.xsd
+	$(top_srcdir)/config.status --file=../schema/openmbv.xsd:../openmbvcppinterface/schema/openmbv.xsd.in
 
 openmbv.html: ../schema/openmbv.xsd ../openmbvcppinterface/openmbvcppinterface/*.h
 	doxygen
