@@ -29,6 +29,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoRotation.h>
 #include <Inventor/draggers/SoDragger.h>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
@@ -36,13 +37,14 @@
 class RigidBody : public Body {
   Q_OBJECT
   protected:
-    QAction *localFrame, *referenceFrame, *path, *dragger;
+    QAction *localFrame, *referenceFrame, *path, *dragger, *moveCameraWith;
     SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch, *soDraggerSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
     int pathMaxFrameRead;
     virtual double update();
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
+    SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
     double minimalColorValue, maximalColorValue, staticColor;
     SoMaterial *mat;
@@ -59,6 +61,7 @@ class RigidBody : public Body {
     void referenceFrameSlot();
     void pathSlot();
     void draggerSlot();
+    void moveCameraWithSlot();
 };
 
 #endif

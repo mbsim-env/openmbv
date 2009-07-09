@@ -38,6 +38,7 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
@@ -76,6 +77,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
 
   // init SoQt and Inventor
   SoQt::init(this);
+  // init user engines
+  SoTransposeEngine::initClass();
   // init realtime
   SoDB::enableRealTimeSensor(false);
   SoSceneManager::enableRealTimeUpdate(false);
@@ -109,6 +112,29 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   sceneRoot->ref();
   sceneRoot->precision.setValue(1.0);
   sceneRoot->addChild(new SoPolygonOffset); // move all filled polygons 1 unit in background
+
+  // Move the world system such that the camera is constant relative the the body
+  // with moves with the camera; if not, don't move the world system.
+  // rot
+  SoRotation *worldSysRot=new SoRotation;
+  sceneRoot->addChild(worldSysRot);
+  cameraOrientation=new SoTransposeEngine;
+  worldSysRot->rotation.connectFrom(&cameraOrientation->outRotation);
+  // trans
+  SoTranslation *worldSysTrans=new SoTranslation;
+  sceneRoot->addChild(worldSysTrans);
+  cameraPosition=new SoTransformVec3f;
+  cameraPosition->matrix.setValue(-1,0,0,0 , 0,-1,0,0 , 0,0,-1,0 , 0,0,0,1);
+  worldSysTrans->translation.connectFrom(&cameraPosition->point);
+
+  // world frame
+  worldFrameSwitch=new SoSwitch;
+  sceneRoot->addChild(worldFrameSwitch);
+  worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  SoSepNoPickNoBBox *worldFrameSep=new SoSepNoPickNoBBox;
+  worldFrameSwitch->addChild(worldFrameSep);
+  worldFrameSep->addChild(Body::soFrame(1,1,false));
+
   sceneRootBBox=new SoSepNoPickNoBBox;
   sceneRoot->addChild(sceneRootBBox);
   SoLightModel *lm=new SoLightModel;
@@ -226,7 +252,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   QAction *leftViewAct=sceneViewMenu->addAction(QIcon(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
   addAction(leftViewAct); // must work also if menu bar is invisible
   sceneViewMenu->addSeparator();
+  act=sceneViewMenu->addAction(QIcon(":/frame.svg"),"World Frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
+  act->setCheckable(true);
   QAction *cameraAct=sceneViewMenu->addAction(QIcon(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  sceneViewMenu->addAction(QIcon(":/camerabody.svg"),"Release Camera From Move With Body", this, SLOT(releaseCameraFromBodySlot()));
   addAction(cameraAct); // must work also if menu bar is invisible
   sceneViewMenu->addSeparator();
   sceneViewMenu->addAction(QIcon(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
@@ -749,7 +778,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         }
         if(!found) continue;
         xOld=x; yOld=y; zOld=z;
-        pickedPoints[i]->getPoint().getValue(x,y,z);
+
+        // get picked point and delete the cameraPosition and cameraOrientation values (if camera moves with body)
+        SbVec3f delta;
+        cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
+        (delta+cameraPosition->vector[0]).getValue(x,y,z);
+
         if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7) {
           QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
           statusBar()->showMessage(str);
@@ -1223,4 +1257,23 @@ void MainWindow::toggleDecorationSlot() {
   else
     setWindowFlags(Qt::FramelessWindowHint);
   show();
+}
+
+void MainWindow::releaseCameraFromBodySlot() {
+  cameraPosition->vector.disconnect();
+  cameraPosition->vector.setValue(0,0,0);
+  cameraOrientation->inRotation.disconnect();
+  cameraOrientation->inRotation.setValue(0,0,0,1);
+}
+
+void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
+  cameraPosition->vector.connectFrom(pos);
+  cameraOrientation->inRotation.connectFrom(rot);
+}
+
+void MainWindow::showWorldFrameSlot() {
+  if(worldFrameSwitch->whichChild.getValue()==SO_SWITCH_NONE)
+    worldFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  else
+    worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }

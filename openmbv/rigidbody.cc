@@ -28,6 +28,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/draggers/SoCenterballDragger.h>
+#include <Inventor/actions/SoGetMatrixAction.h>
 #include <QtGui/QMenu>
 
 using namespace std;
@@ -101,6 +102,8 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     rotationGamma=new SoRotationXYZ;
     rotationGamma->axis=SoRotationXYZ::Z;
     soSep->addChild(rotationGamma);
+    rotation=new SoRotation;
+    rotation->ref(); // do not add to scene graph (only for convinience)
   
     // reference frame
     soReferenceFrameSwitch=new SoSwitch;
@@ -186,6 +189,8 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     dragger=new QAction(QIcon(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", 0);
     dragger->setCheckable(true);
     connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
+    moveCameraWith=new QAction(QIcon(":/camerabody.svg"),"Move Camera With This Body",0);
+    connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   }
 }
 
@@ -197,6 +202,7 @@ QMenu* RigidBody::createMenu() {
   menu->addSeparator();
   menu->addAction(path);
   menu->addAction(dragger);
+  menu->addAction(moveCameraWith);
   return menu;
 }
 
@@ -230,6 +236,10 @@ void RigidBody::draggerSlot() {
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
+void RigidBody::moveCameraWithSlot() {
+  MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
+}
+
 double RigidBody::update() {
   if(h5Group==0) return 0;
   // read from hdf5
@@ -241,6 +251,8 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
+  rotation->rotation.setValue(cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotatoin matrix (needed for move camera with body)
+
   if(isnan(staticColor)) {
     // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
     double col=data[7];
