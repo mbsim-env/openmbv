@@ -38,6 +38,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   rigidbody.cc\
   compoundrigidbody.cc\
   SoQtMyViewer.cc \
+  SoTransposeEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc
@@ -86,6 +87,7 @@ noinst_HEADERS = openmbv.qrc\
   body.h\
   SoSpecial.h\
   SoQtMyViewer.h \
+  SoTransposeEngine.h \
   spineextrusion.h \
   coilspring.h \
   nurbsdisk.h

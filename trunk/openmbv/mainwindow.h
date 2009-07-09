@@ -36,6 +36,9 @@
 #include "SoSpecial.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
+#include <Inventor/engines/SoTransformVec3f.h>
+#include "SoTransposeEngine.h"
+#include <Inventor/fields/SoSFRotation.h>
 #include <FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
@@ -59,6 +62,9 @@ class MainWindow : public QMainWindow {
     double fpsMax;
     QWebView *helpViewer;
     bool enableFullScreen;
+    SoTransformVec3f *cameraPosition;
+    SoTransposeEngine *cameraOrientation;
+    SoSwitch *worldFrameSwitch;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
@@ -95,6 +101,8 @@ class MainWindow : public QMainWindow {
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
+    void releaseCameraFromBodySlot();
+    void showWorldFrameSlot();
     void viewTopSlot() { viewParallel(top); }
     void viewBottomSlot() { viewParallel(bottom); }
     void viewFrontSlot() { viewParallel(front); }
@@ -148,6 +156,7 @@ class MainWindow : public QMainWindow {
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
     bool getEnableFullScreen() { return enableFullScreen; }
+    void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
 };
 
 #endif

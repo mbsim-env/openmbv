@@ -105,6 +105,7 @@ class Body : public Object {
 
     static std::vector<double> toVector(std::string str); // convenience
     static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
+  public:
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) { SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale); } // convenience
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale); // convenience
     static SbRotation cardan2Rotation(const SbVec3f& c);
