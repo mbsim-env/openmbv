@@ -24,6 +24,9 @@
 using namespace std;
 
 CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
+  iconFile=":/coilspring.svg";
+  setIcon(0, QIcon(iconFile.c_str()));
+
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   if(h5Group) {
@@ -82,7 +85,12 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
 }
 
 QString CoilSpring::getInfo() {
-  return Body::getInfo();
+  float x, y, z;
+  fromPoint->translation.getValue().getValue(x,y,z);
+  return Body::getInfo()+
+         QString("-----<br/>")+
+         QString("<b>From Point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
+         QString("<b>Length:</b> %1<br/>").arg(spine[2*numberOfSpinePoints-3+2]);
 }
 
 double CoilSpring::update() {
