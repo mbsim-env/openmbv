@@ -40,6 +40,7 @@
  * \todo setValuesPointer TODO
  */
 class CoilSpring : public Body {
+  Q_OBJECT
   public:
     /** constructor */
     CoilSpring(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);

@@ -133,6 +133,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   SoSepNoPickNoBBox *worldFrameSep=new SoSepNoPickNoBBox;
   worldFrameSwitch->addChild(worldFrameSep);
+  SoDrawStyle *drawStyle=new SoDrawStyle;
+  worldFrameSep->addChild(drawStyle);
+  drawStyle->lineWidth.setValue(2);
+  drawStyle->linePattern.setValue(0xF8F8);
   worldFrameSep->addChild(Body::soFrame(1,1,false));
 
   sceneRootBBox=new SoSepNoPickNoBBox;
@@ -145,6 +149,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   color->rgb.setValue(0,1,0);
   SoDrawStyle *style=new SoDrawStyle;
   style->style.setValue(SoDrawStyle::LINES);
+  style->lineWidth.setValue(2);
   sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
   
@@ -949,11 +954,21 @@ void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileNa
   SoSeparator *root=new SoSeparator;
   root->ref();
   // add background
-  if(!transparent)
+  if(!transparent) {
+    // do not write to depth buffer
+    SoDepthBuffer *db1=new SoDepthBuffer;
+    root->addChild(db1);
+    db1->write.setValue(false);
+    // render background
     root->addChild(glViewer->bgSep);
+    // write to depth buffer until now
+    SoDepthBuffer *db2=new SoDepthBuffer;
+    root->addChild(db2);
+    db2->write.setValue(true);
+  }
   // add scene
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
-  // clear depth buffer
+  // do not test depth buffer
   SoDepthBuffer *db=new SoDepthBuffer;
   root->addChild(db);
   db->function.setValue(SoDepthBufferElement::ALWAYS);

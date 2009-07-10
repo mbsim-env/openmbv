@@ -51,6 +51,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   exportdialog.moc.cc\
   object.moc.cc\
   path.moc.cc\
+  coilspring.moc.cc\
   arrow.moc.cc\
   objbody.moc.cc\
   rigidbody.moc.cc\
