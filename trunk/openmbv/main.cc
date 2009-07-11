@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
         <<"This is free software; see the source for copying conditions. There is NO"<<endl
         <<"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."<<endl
         <<""<<endl
+        <<"Licensed under the GNU General Public License (GPL)"<<endl
+        <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
         <<"               [--wst <file>] [--camera <file>] [] [--fullscreen]"<<endl
