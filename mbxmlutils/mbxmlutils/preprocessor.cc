@@ -220,7 +220,13 @@ int main(int argc, char *argv[]) {
     cout<<"Usage: mbxmlutilspp <param-file> <main-file>"<<endl
         <<"                    <namespace-location-of-main-file>"<<endl
         <<"  The output file is named '.pp.<main-file>'."<<endl
-        <<"  Use 'none' if not <param-file> is avaliabel."<<endl;
+        <<"  Use 'none' if not <param-file> is avaliabel."<<endl
+        <<""<<endl
+        <<"Copyright (C) 2009 Markus Friedrich <mafriedrich@users.berlios.de>"<<endl
+        <<"This is free software; see the source for copying conditions. There is NO"<<endl
+        <<"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."<<endl
+        <<""<<endl
+        <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl;
     return 0;
   }
   int ret;
