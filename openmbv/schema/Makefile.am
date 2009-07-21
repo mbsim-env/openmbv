@@ -1,2 +1,2 @@
 schemadir = @datadir@/@PACKAGE@/schema
-dist_schema_DATA = openmbv.xsd
+dist_schema_DATA = schema/openmbv.xsd
