@@ -48,6 +48,7 @@ class RigidBody : public Body {
     SoTranslation *translation;
     double minimalColorValue, maximalColorValue, staticColor;
     SoMaterial *mat;
+    double oldColor;
     H5::VectorSerie<double> *h5Data;
     SoScale *refFrameScale, *localFrameScale;
     static void draggerFinishCB(void *, SoDragger*);
