@@ -33,7 +33,7 @@
 
 using namespace std;
 
-RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
+RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), oldColor(nan("")) {
   if(h5Parent) {
     //h5 dataset
     h5Data=new H5::VectorSerie<double>;
@@ -253,9 +253,12 @@ double RigidBody::update() {
   rotationGamma->angle.setValue(data[6]);
   rotation->rotation.setValue(cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotatoin matrix (needed for move camera with body)
 
-  if(isnan(staticColor)) {
+  // do not change "mat" if color has not changed to prevent
+  // invalidating the render cache of the geometry.
+  if(isnan(staticColor) && oldColor!=data[7]) {
     // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
     double col=data[7];
+    oldColor=col;
     double m=1/(maximalColorValue-minimalColorValue);
     col=m*col-m*minimalColorValue;
     mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
