@@ -31,25 +31,25 @@ AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc
-MOC=$(pkg-config --variable moc_location QtCore)
-UIC=$(pkg-config --variable uic_location QtCore)
-RCC=${MOC%*/*}/rcc
+test -x "$MOC" || MOC=$(pkg-config --variable moc_location QtCore)
+test -x "$UIC" || UIC=$(pkg-config --variable uic_location QtCore)
+test -x "$RCC" || RCC=${MOC%*/*}/rcc
 AC_SUBST([MOC])
 AC_SUBST([UIC])
 AC_SUBST([RCC])
-DIR1=$(pkg-config --variable libdir QtCore)
-DIR2=$(pkg-config --variable prefix QtCore)
+test -d "$QTLIBDIR" || QTLIBDIR=$(pkg-config --variable libdir QtCore)
+test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
 dnl check for static qsvg imageformats plugin
 qsvg=0
-AC_CHECK_FILE([$DIR1/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$DIR1/plugins/imageformats -lqsvg $QT_LIBS"])
-AC_CHECK_FILE([$DIR2/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$DIR2/plugins/imageformats -lqsvg $QT_LIBS"])
+AC_CHECK_FILE([$QTLIBDIR/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$QTLIBDIR/plugins/imageformats -lqsvg $QT_LIBS"])
+AC_CHECK_FILE([$QTPREFIX/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$QTPREFIX/plugins/imageformats -lqsvg $QT_LIBS"])
 if test $qsvg -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
 fi
 dnl check for static qsvgicon iconengines plugin
 qsvgicon=0
-AC_CHECK_FILE([$DIR1/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$DIR1/plugins/iconengines -lqsvgicon $QT_LIBS"])
-AC_CHECK_FILE([$DIR2/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$DIR2/plugins/iconengines -lqsvgicon $QT_LIBS"])
+AC_CHECK_FILE([$QTLIBDIR/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$QTLIBDIR/plugins/iconengines -lqsvgicon $QT_LIBS"])
+AC_CHECK_FILE([$QTPREFIX/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$QTPREFIX/plugins/iconengines -lqsvgicon $QT_LIBS"])
 if test $qsvgicon -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
 fi
