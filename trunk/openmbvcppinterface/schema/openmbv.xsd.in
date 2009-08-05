@@ -26,7 +26,7 @@
     <xs:complexContent>
       <xs:extension base="ObjectType">
         <xs:sequence>
-          <xs:element ref="Object" maxOccurs="unbounded"/>  
+          <xs:element ref="Object" minOccurs="0" maxOccurs="unbounded"/>  
         </xs:sequence> 
         <xs:attribute name="expand" type="xs:boolean" default="true"/>
         <xs:attribute ref="xml:base"/>
