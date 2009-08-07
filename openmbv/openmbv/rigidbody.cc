@@ -33,7 +33,7 @@
 
 using namespace std;
 
-RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), oldColor(nan("")) {
+RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   if(h5Parent) {
     //h5 dataset
     h5Data=new H5::VectorSerie<double>;
@@ -47,22 +47,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   }
   
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  if(e)
-    minimalColorValue=toVector(e->GetText())[0];
-  else
-    minimalColorValue=0;
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  if(e)
-    maximalColorValue=toVector(e->GetText())[0];
-  else
-    maximalColorValue=1;
-  e=element->FirstChildElement(OPENMBVNS"staticColor");
-  if(e)
-    staticColor=atof(e->GetText());
-  else
-    staticColor=nan("");
-
+  TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   vector<double> initTransValue=toVector(e->GetText());
   e=e->NextSiblingElement();
@@ -158,12 +143,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     mat=new SoMaterial;
     soSep->addChild(mat);
     mat->shininess.setValue(0.9);
-    if(!isnan(staticColor)) {
-      double m=1/(maximalColorValue-minimalColorValue);
-      staticColor=m*staticColor-m*minimalColorValue;
-      mat->diffuseColor.setHSVValue((1-staticColor)*2/3,1,1);
-      mat->specularColor.setHSVValue((1-staticColor)*2/3,0.7,1);
-    }
+    if(!isnan(staticColor)) setColor(mat, staticColor);
   }
   else { // a dummmy localFrameScale
     localFrameScale=new SoScale;
@@ -195,7 +175,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 }
 
 QMenu* RigidBody::createMenu() {
-  QMenu* menu=Body::createMenu();
+  QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: RigidBody");
   menu->addAction(localFrame);
   menu->addAction(referenceFrame);
@@ -255,15 +235,7 @@ double RigidBody::update() {
 
   // do not change "mat" if color has not changed to prevent
   // invalidating the render cache of the geometry.
-  if(isnan(staticColor) && oldColor!=data[7]) {
-    // norm color to [0,1] (from [minimalColorValue,maximalColorValue])
-    double col=data[7];
-    oldColor=col;
-    double m=1/(maximalColorValue-minimalColorValue);
-    col=m*col-m*minimalColorValue;
-    mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
-    mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
-  }
+  if(isnan(staticColor)) setColor(mat, data[7]);
 
   // path
   if(path->isChecked()) {
@@ -281,7 +253,7 @@ double RigidBody::update() {
 QString RigidBody::getInfo() {
   float x, y, z;
   translation->translation.getValue().getValue(x,y,z);
-  return Body::getInfo()+
+  return DynamicColoredBody::getInfo()+
          QString("-----<br/>")+
          QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(rotationAlpha->angle.getValue())

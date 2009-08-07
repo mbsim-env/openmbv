@@ -21,7 +21,7 @@
 #define _SPINEEXTRUSION_H_
 
 #include "config.h"
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include "tinyxml.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
@@ -34,7 +34,7 @@
  * \author Thorsten Schindler
  * \date 2009-05-06 initial commit (Thorsten Schindler)
  */
-class SpineExtrusion : public Body {
+class SpineExtrusion : public DynamicColoredBody {
   public:
     /** constructor */
     SpineExtrusion(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);

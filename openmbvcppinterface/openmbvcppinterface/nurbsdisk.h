@@ -20,7 +20,7 @@
 #ifndef _OPENMBV_NURBSDISK_H_
 #define _OPENMBV_NURBSDISK_H_
 
-#include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <vector>
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
@@ -34,36 +34,13 @@ namespace OpenMBV {
    * \author Thorsten Schindler
    * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
    */
-  class NurbsDisk : public Body {
+  class NurbsDisk : public DynamicColoredBody {
     public:
       /** constructor */ 
       NurbsDisk(); // (REMARK[TS]: only standard constructor is allowed because of creation of OpenMBV bodies in ObjectFactory)
 
       /** destructor */
       virtual ~NurbsDisk();
-
-      /** Set a static color for the body.
-       * If this value is set, the color given to the append function
-       * (as last element of the data row) is overwritten with this value.
-       */
-      void setStaticColor(const double col) {
-        staticColor=col;
-      }
-
-      /** Set the minimal color value.
-       * The color value of the body is linearly mapped between minimalColorValue
-       * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal) [HSV-color model].
-       */
-      void setMinimalColorValue(const double min) {
-        minimalColorValue=min;
-      }
-
-      /** Set the maximal color value.
-       * See also minimalColorValue
-       */
-      void setMaximalColorValue(const double max) {
-        maximalColorValue=max;
-      }
 
       /** Set the scale factor of the body. */
       void setScaleFactor(const double scale) {
@@ -122,12 +99,6 @@ namespace OpenMBV {
     protected:
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
       H5::VectorSerie<double>* data;
-
-      /** Static color value for all time. */
-      double staticColor;
-
-      /** Interpolation boundaries for colour mapping. */
-      double minimalColorValue, maximalColorValue;
 
       /** Scale factor of the body. */
       double scaleFactor;

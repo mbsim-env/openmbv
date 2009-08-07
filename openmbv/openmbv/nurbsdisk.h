@@ -21,7 +21,7 @@
 #define _NURBSDISK_H_
 
 #include "config.h"
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include "tinyxml.h"
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedNurbsSurface.h>
@@ -36,7 +36,7 @@
  * \author Thorsten Schindler
  * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
  */
-class NurbsDisk : public Body {
+class NurbsDisk : public DynamicColoredBody {
   public:
     /** constructor */
     NurbsDisk(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);

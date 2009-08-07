@@ -24,7 +24,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-CoilSpring::CoilSpring() : Body(),
+CoilSpring::CoilSpring() : DynamicColoredBody(),
   springRadius(1),
   crossSectionRadius(0.1),
   scaleFactor(1) {
@@ -32,7 +32,7 @@ CoilSpring::CoilSpring() : Body(),
 
 void CoilSpring::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<CoilSpring name=\""<<name<<"\">"<<endl;
-    Body::writeXMLFile(xmlFile, indent+"  ");
+    DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <numberOfCoils>"<<numberOfCoils<<"</numberOfCoils>"<<endl;
     xmlFile<<indent<<"  <springRadius>"<<springRadius<<"</springRadius>"<<endl;
     xmlFile<<indent<<"  <crossSectionRadius>"<<crossSectionRadius<<"</crossSectionRadius>"<<endl;
@@ -41,7 +41,7 @@ void CoilSpring::writeXMLFile(std::ofstream& xmlFile, const std::string& indent)
 }
 
 void CoilSpring::createHDF5File() {
-  Body::createHDF5File();
+  DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
@@ -58,7 +58,7 @@ void CoilSpring::createHDF5File() {
 }
 
 void CoilSpring::initializeUsingXML(TiXmlElement *element) {
-  Body::initializeUsingXML(element);
+  DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
   setNumberOfCoils(atof(e->GetText()));

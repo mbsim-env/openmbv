@@ -23,7 +23,7 @@
 
 using namespace std;
 
-CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
+CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/coilspring.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 
@@ -51,6 +51,7 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
   // body
   mat=new SoMaterial;
   soSep->addChild(mat);
+  if(!isnan(staticColor)) setColor(mat, staticColor);
   fromPoint=new SoTranslation;
   soSep->addChild(fromPoint);
   rotation=new SoRotation;
@@ -87,7 +88,7 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
 QString CoilSpring::getInfo() {
   float x, y, z;
   fromPoint->translation.getValue().getValue(x,y,z);
-  return Body::getInfo()+
+  return DynamicColoredBody::getInfo()+
          QString("-----<br/>")+
          QString("<b>From Point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Length:</b> %1<br/>").arg(spine[2*numberOfSpinePoints-3+2]);
@@ -111,8 +112,7 @@ double CoilSpring::update() {
   extrusion->spine.touch();
   
   // color
-  mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
-  mat->specularColor.setHSVValue((1-data[7])*2/3,0.7,1);
+  if(isnan(staticColor)) setColor(mat, data[7]);
 
   return data[0];
 }

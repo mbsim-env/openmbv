@@ -21,7 +21,7 @@
 #define _ARROW_H_
 
 #include "config.h"
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include "tinyxml.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -32,7 +32,7 @@
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
-class Arrow : public Body {
+class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
     enum Type {

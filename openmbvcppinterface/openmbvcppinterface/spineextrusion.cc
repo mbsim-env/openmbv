@@ -24,13 +24,10 @@
 using namespace std;
 using namespace OpenMBV;
 
-SpineExtrusion::SpineExtrusion() : Body(),
+SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),
   contour(0),
   data(0), 
-  staticColor(-1),
-  minimalColorValue(0.),
-  maximalColorValue(1.),
   scaleFactor(1) {
   }
 
@@ -41,17 +38,14 @@ SpineExtrusion::SpineExtrusion() : Body(),
 
 void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\">"<<endl;
-  Body::writeXMLFile(xmlFile, indent+"  ");
+  DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
   if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
-  xmlFile<<indent<<"  <minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
-  xmlFile<<indent<<"  <maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
   xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
-  xmlFile<<indent<<"  <color>"<<staticColor<<"</color>"<<endl;
   xmlFile<<indent<<"</SpineExtrusion>"<<endl;
 }
 
 void SpineExtrusion::createHDF5File() {
-  Body::createHDF5File();
+  DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
@@ -68,14 +62,8 @@ void SpineExtrusion::createHDF5File() {
 
 
 void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
-  Body::initializeUsingXML(element);
+  DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  setMinimalColorValue(toVector(e->GetText())[0]);
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  setMaximalColorValue(toVector(e->GetText())[0]);
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(toVector(e->GetText())[0]);
-  e=element->FirstChildElement(OPENMBVNS"color");
-  setStaticColor(toVector(e->GetText())[0]);
 }

@@ -24,7 +24,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-Arrow::Arrow() : Body(),
+Arrow::Arrow() : DynamicColoredBody(),
   diameter(1),
   headDiameter(0.5),
   headLength(0.75),
@@ -34,7 +34,7 @@ Arrow::Arrow() : Body(),
 
 void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<Arrow name=\""<<name<<"\">"<<endl;
-    Body::writeXMLFile(xmlFile, indent+"  ");
+    DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <diameter>"<<diameter<<"</diameter>"<<endl;
     xmlFile<<indent<<"  <headDiameter>"<<headDiameter<<"</headDiameter>"<<endl;
     xmlFile<<indent<<"  <headLength>"<<headLength<<"</headLength>"<<endl;
@@ -51,7 +51,7 @@ void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
 }
 
 void Arrow::createHDF5File() {
-  Body::createHDF5File();
+  DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
@@ -68,7 +68,7 @@ void Arrow::createHDF5File() {
 }
 
 void Arrow::initializeUsingXML(TiXmlElement *element) {
-  Body::initializeUsingXML(element);
+  DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"diameter");
   setDiameter(toVector(e->GetText())[0]);

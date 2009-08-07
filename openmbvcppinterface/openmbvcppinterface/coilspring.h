@@ -20,13 +20,13 @@
 #ifndef _OPENMBV_COILSPRING_H_
 #define _OPENMBV_COILSPRING_H_
 
-#include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {
 
   /** A coil spring */
-  class CoilSpring : public Body {
+  class CoilSpring : public DynamicColoredBody {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();

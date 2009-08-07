@@ -24,11 +24,8 @@
 using namespace std;
 using namespace OpenMBV;
 
-NurbsDisk::NurbsDisk() : Body(),
+NurbsDisk::NurbsDisk() : DynamicColoredBody(),
   data(0), 
-  staticColor(-1),
-  minimalColorValue(0.),
-  maximalColorValue(1.),
   scaleFactor(1), 
   Ri(0.),
   Ro(0.),
@@ -46,11 +43,8 @@ NurbsDisk::NurbsDisk() : Body(),
 
 void NurbsDisk::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<NurbsDisk name=\""<<name<<"\">"<<endl;
-  Body::writeXMLFile(xmlFile, indent+"  ");
-  xmlFile<<indent<<"  <minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
-  xmlFile<<indent<<"  <maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
+  DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
   xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
-  xmlFile<<indent<<"  <color>"<<staticColor<<"</color>"<<endl;
   xmlFile<<indent<<"  <ElementNumberAzimuthal>"<<ElementNumberAzimuthal<<"</ElementNumberAzimuthal>"<<endl;
   xmlFile<<indent<<"  <ElementNumberRadial>"<<ElementNumberRadial<<"</ElementNumberRadial>"<<endl;
   xmlFile<<indent<<"  <KnotVecAzimuthal>"<<KnotVecAzimuthal<<"</KnotVecAzimuthal>"<<endl;
@@ -59,7 +53,7 @@ void NurbsDisk::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
 }
 
 void NurbsDisk::createHDF5File() {
-  Body::createHDF5File();
+  DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;

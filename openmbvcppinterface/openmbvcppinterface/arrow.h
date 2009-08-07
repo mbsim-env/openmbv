@@ -20,13 +20,13 @@
 #ifndef _OPENMBV_ARROW_H_
 #define _OPENMBV_ARROW_H_
 
-#include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {
 
   /** A arrow with zero, one or two heads */
-  class Arrow : public Body {
+  class Arrow : public DynamicColoredBody {
     protected:
       enum Type {
         line,

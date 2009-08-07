@@ -21,7 +21,7 @@
 #define _COILSPRING_H_
 
 #include "config.h"
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include "tinyxml.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
@@ -39,7 +39,7 @@
  * \date 2009-05-12 efficient spine update (Thorsten Schindler)
  * \todo setValuesPointer TODO
  */
-class CoilSpring : public Body {
+class CoilSpring : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
