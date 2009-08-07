@@ -18,6 +18,7 @@ openmbv_LDFLAGS  = -L../openmbvtinyxml
 openmbv_LDADD    = $(LIBGLU) -lopenmbvtinyxml $(COIN_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   body.cc\
+  dynamiccoloredbody.cc\
   cuboid.cc\
   cube.cc\
   extrusion.cc\
@@ -65,7 +66,8 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   ivbody.moc.cc\
   frame.moc.cc\
   group.moc.cc\
-  body.moc.cc
+  body.moc.cc\
+  dynamiccoloredbody.moc.cc
 
 noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
@@ -86,6 +88,7 @@ noinst_HEADERS = openmbv.qrc\
   frame.h\
   group.h\
   body.h\
+  dynamiccoloredbody.h\
   SoSpecial.h\
   SoQtMyViewer.h \
   SoTransposeEngine.h \

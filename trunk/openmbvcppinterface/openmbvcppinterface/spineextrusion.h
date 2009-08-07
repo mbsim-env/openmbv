@@ -20,7 +20,7 @@
 #ifndef _OPENMBV_SPINEEXTRUSION_H_
 #define _OPENMBV_SPINEEXTRUSION_H_
 
-#include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <openmbvcppinterface/polygonpoint.h>
 #include <vector>
 #include <assert.h>
@@ -32,7 +32,7 @@ namespace OpenMBV {
    * \brief Class for all bodies extruded along a curve. 
    * \author Thorsten Schindler
    */
-  class SpineExtrusion : public Body {
+  class SpineExtrusion : public DynamicColoredBody {
     public:
       /** constructor */
       SpineExtrusion();
@@ -52,35 +52,12 @@ namespace OpenMBV {
         return numberOfSpinePoints;
       }
 
-      /** Set the minimal color value.
-       * The color value of the body is linearly mapped between minimalColorValue
-       * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal) [HSV-color model].
-       */
-      void setMinimalColorValue(const double min) {
-        minimalColorValue=min;
-      }
-
-      /** Set the maximal color value.
-       * See also minimalColorValue
-       */
-      void setMaximalColorValue(const double max) {
-        maximalColorValue=max;
-      }
-
       /** Set a new contour to the extrusion. */
       void setContour(std::vector<PolygonPoint*> *contour_) { contour = contour_; }
 
       /** Set the scale factor of the body. */
       void setScaleFactor(const double scale) {
         scaleFactor=scale;
-      }
-
-      /** Set a static color for the body.
-       * If this value is set, the color given to the append function
-       * (as last element of the data row) is overwritten with this value.
-       */
-      void setStaticColor(const double col) {
-        staticColor=col;
       }
 
       /** Append a data vector to the h5 datsset */
@@ -101,12 +78,6 @@ namespace OpenMBV {
 
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
       H5::VectorSerie<double>* data;
-
-      /** Static color value for all time. */
-      double staticColor;
-
-      /** Interpolation boundaries for colour mapping. */
-      double minimalColorValue, maximalColorValue;
 
       /** Scale factor of the body. */
       double scaleFactor;

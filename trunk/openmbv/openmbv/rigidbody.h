@@ -21,7 +21,7 @@
 #define _RIGIDBODY_H_
 
 #include "config.h"
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include "tinyxml.h"
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
@@ -34,7 +34,7 @@
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
-class RigidBody : public Body {
+class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
     QAction *localFrame, *referenceFrame, *path, *dragger, *moveCameraWith;
@@ -46,9 +46,7 @@ class RigidBody : public Body {
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
-    double minimalColorValue, maximalColorValue, staticColor;
     SoMaterial *mat;
-    double oldColor;
     H5::VectorSerie<double> *h5Data;
     SoScale *refFrameScale, *localFrameScale;
     static void draggerFinishCB(void *, SoDragger*);

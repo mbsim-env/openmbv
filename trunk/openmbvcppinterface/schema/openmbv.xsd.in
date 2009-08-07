@@ -49,14 +49,24 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="RigidBody" abstract="true" substitutionGroup="Body" type="RigidBodyType"/>
-  <xs:complexType name="RigidBodyType">
+  <xs:element name="DynamicColoredBody" abstract="true" substitutionGroup="Body" type="DynamicColoredBodyType"/>
+  <xs:complexType name="DynamicColoredBodyType">
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
           <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="staticColor" type="pv:nounitScalar" minOccurs="0"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="RigidBody" abstract="true" substitutionGroup="DynamicColoredBody" type="RigidBodyType"/>
+  <xs:complexType name="RigidBodyType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
           <xs:element name="initialTranslation" type="pv:lengthVector"/>
           <xs:element name="initialRotation" type="pv:angleVector"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
@@ -189,16 +199,13 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="SpineExtrusion" substitutionGroup="Body" type="SpineExtrusionType"/>
+  <xs:element name="SpineExtrusion" substitutionGroup="DynamicColoredBody" type="SpineExtrusionType"/>
   <xs:complexType name="SpineExtrusionType">
     <xs:complexContent>
-      <xs:extension base="BodyType">
+      <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="contour" type="pv:lengthMatrix"/>
-          <xs:element name="minimalColorValue" type="pv:nounitScalar"/>
-          <xs:element name="maximalColorValue" type="pv:nounitScalar"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
-          <xs:element name="color" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -238,10 +245,10 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="Arrow" substitutionGroup="Body" type="ArrowType"/>
+  <xs:element name="Arrow" substitutionGroup="DynamicColoredBody" type="ArrowType"/>
   <xs:complexType name="ArrowType">
     <xs:complexContent>
-      <xs:extension base="BodyType">
+      <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="diameter" type="pv:lengthScalar"/>
           <xs:element name="headDiameter" type="pv:lengthScalar"/>
@@ -274,10 +281,10 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="CoilSpring" substitutionGroup="Body" type="CoilSpringType"/>
+  <xs:element name="CoilSpring" substitutionGroup="DynamicColoredBody" type="CoilSpringType"/>
   <xs:complexType name="CoilSpringType">
     <xs:complexContent>
-      <xs:extension base="BodyType">
+      <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
           <xs:element name="springRadius" type="pv:lengthScalar"/>
@@ -288,12 +295,16 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="NurbsDisk" substitutionGroup="Body" type="NurbsDiskType"/>
+  <xs:element name="NurbsDisk" substitutionGroup="DynamicColoredBody" type="NurbsDiskType"/>
   <xs:complexType name="NurbsDiskType">
     <xs:complexContent>
-      <xs:extension base="BodyType">
+      <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="ElementNumberAzimuthal" type="xs:integer"/>
+          <xs:element name="ElementNumberRadial" type="xs:integer"/>
+          <xs:element name="KnotVecAzimuthal" type="pv:nounitScalar"/>
+          <xs:element name="KnotVecRadial" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

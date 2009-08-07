@@ -26,7 +26,7 @@
 
 using namespace std;
 
-Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
+Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/arrow.svg";
   setIcon(0, QIcon(iconFile.c_str()));
 
@@ -77,6 +77,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // mat
   mat=new SoMaterial;
   soSep->addChild(mat);
+  if(!isnan(staticColor)) setColor(mat, staticColor);
   // translate to To-Point
   toPoint=new SoTranslation;
   soSep->addChild(toPoint);
@@ -166,8 +167,7 @@ double Arrow::update() {
   rotation1->rotation.setValue(SbVec3f(0, 0, 1), -atan2(dx,dy));
   rotation2->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
   // mat
-  mat->diffuseColor.setHSVValue((1-data[7])*2/3,1,1);
-  mat->specularColor.setHSVValue((1-data[7])*2/3,0.7,1);
+  if(isnan(staticColor)) setColor(mat, data[7]);
 
   // path
   if(path->isChecked()) {
@@ -183,7 +183,7 @@ double Arrow::update() {
 }
 
 QString Arrow::getInfo() {
-  return Body::getInfo()+
+  return DynamicColoredBody::getInfo()+
          QString("-----<br/>")+
          QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]).arg(data[2]).arg(data[3])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]).arg(data[5]).arg(data[6])+
@@ -200,7 +200,7 @@ void Arrow::pathSlot() {
 }
 
 QMenu* Arrow::createMenu() {
-  QMenu* menu=Body::createMenu();
+  QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: Arrow");
   menu->addAction(path);
   return menu;

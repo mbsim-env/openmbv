@@ -26,14 +26,11 @@
 using namespace std;
 using namespace OpenMBV;
 
-RigidBody::RigidBody() : Body(),
-  minimalColorValue(0),
-  maximalColorValue(1),
+RigidBody::RigidBody() : DynamicColoredBody(),
   initialTranslation(3, 0),
   initialRotation(3, 0),
   scaleFactor(1),
-  data(0),
-  staticColor(nan("")) {
+  data(0) {
 }
 
 RigidBody::~RigidBody() {
@@ -41,10 +38,7 @@ RigidBody::~RigidBody() {
 }
 
 void RigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  Body::writeXMLFile(xmlFile, indent);
-  xmlFile<<indent<<"<minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
-  xmlFile<<indent<<"<maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
-  xmlFile<<indent<<"<staticColor>"<<staticColor<<"</staticColor>"<<endl;
+  DynamicColoredBody::writeXMLFile(xmlFile, indent);
   xmlFile<<indent<<"<initialTranslation>["<<initialTranslation[0]<<";"
                                        <<initialTranslation[1]<<";"
                                        <<initialTranslation[2]<<"]</initialTranslation>"<<endl;
@@ -55,7 +49,7 @@ void RigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
 }
 
 void RigidBody::createHDF5File() {
-  Body::createHDF5File();
+  DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
@@ -72,17 +66,8 @@ void RigidBody::createHDF5File() {
 }
 
 void RigidBody::initializeUsingXML(TiXmlElement *element) {
-  Body::initializeUsingXML(element);
+  DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  if(e)
-    setMinimalColorValue(atof(e->GetText()));
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  if(e)
-    setMaximalColorValue(atof(e->GetText()));
-  e=element->FirstChildElement(OPENMBVNS"staticColor");
-  if(e)
-    setStaticColor(atof(e->GetText()));
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   setInitialTranslation(toVector(e->GetText()));
   e=element->FirstChildElement(OPENMBVNS"initialRotation");

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), numberOfSpinePoints(0) {
+SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent), numberOfSpinePoints(0) {
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   if(h5Group) {
@@ -39,24 +39,15 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"contour");
   vector<vector<double> > contour=toMatrix(e->GetText());
-  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  double minimalColorValue=toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  double maximalColorValue=toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   double scaleValue=toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"color");
-  double color=toVector(e->GetText())[0];
 
   // create so
   // material
   SoMaterial *mat=new SoMaterial;
   soSep->addChild(mat);
   mat->shininess.setValue(0.9);
-  double m=1/(maximalColorValue-minimalColorValue);
-  color=m*color-m*minimalColorValue;
-  mat->diffuseColor.setHSVValue((1-color)*2/3,1,1);
-  mat->specularColor.setHSVValue((1-color)*2/3,0.7,1);
+  if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // body
   extrusion=new SoVRMLExtrusion;
@@ -88,7 +79,7 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
 }
 
 QString SpineExtrusion::getInfo() {
-  return Body::getInfo();
+  return DynamicColoredBody::getInfo();
 }
 
 double SpineExtrusion::update() {
