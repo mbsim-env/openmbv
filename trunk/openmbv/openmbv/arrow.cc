@@ -152,6 +152,15 @@ double Arrow::update() {
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
   length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
+  
+  if(draw->isChecked())
+    if(length<1e-10) {
+      soSwitch->whichChild.setValue(SO_SWITCH_NONE);
+      return data[0];
+    }
+    else
+      soSwitch->whichChild.setValue(SO_SWITCH_ALL);
+
   // scale factors
   if(length<2*headLength)
     scale1->scaleFactor.setValue(length/2/headLength,length/2/headLength,length/2/headLength);
