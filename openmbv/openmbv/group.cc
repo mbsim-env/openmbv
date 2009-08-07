@@ -53,6 +53,9 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parent
     Object *object=ObjectFactory(e, h5Group, this, soSep);
     e=e->NextSiblingElement();
   }
+
+  // hide groups without childs
+  if(childCount()==0) setHidden(true);
 }
 
 QString Group::getInfo() {
