@@ -138,8 +138,9 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   soOutLineSep->addChild(coneOL2);
  
   // GUI
-  path=new QAction(QIcon(":/path.svg"),"Draw Path of To-Point", 0);
+  path=new QAction(QIcon(":/path.svg"),"Draw Path of To-Point", this);
   path->setCheckable(true);
+  path->setObjectName("Arrow::path");
   connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
 }
 
