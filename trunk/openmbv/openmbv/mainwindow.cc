@@ -170,6 +170,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0
   objectList = new QTreeWidget(objectListDW);
   objectListLO->addWidget(objectList, 0,0);
   objectList->setHeaderHidden(true);
+  objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
 
   // object info dock widget
@@ -633,7 +634,15 @@ void MainWindow::objectListClicked() {
   if(QApplication::mouseButtons()==Qt::RightButton) {
     Object *object=(Object*)objectList->currentItem();
     QMenu* menu=object->createMenu();
-    menu->exec(QCursor::pos());
+    QAction *currentAct=menu->exec(QCursor::pos());
+    if(currentAct) {
+      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
+      for(int i=0; i<obj.size(); i++) {
+        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
+        if(act==currentAct) continue; // do not trigger the currentItem twice
+        if(act) act->trigger();
+      }
+    }
     delete menu;
   }
 }

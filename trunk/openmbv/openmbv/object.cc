@@ -73,10 +73,12 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   draw=new QAction(QIcon(":/drawobject.svg"),"Draw Object", this);
   draw->setCheckable(true);
   draw->setChecked(true);
+  draw->setObjectName("Object::draw");
   connect(draw,SIGNAL(changed()),this,SLOT(drawSlot()));
   // GUI bbox action
   bbox=new QAction(QIcon(":/bbox.svg"),"Show Bounding Box", this);
   bbox->setCheckable(true);
+  bbox->setObjectName("Object::bbox");
   connect(bbox,SIGNAL(changed()),this,SLOT(bboxSlot()));
 }
 

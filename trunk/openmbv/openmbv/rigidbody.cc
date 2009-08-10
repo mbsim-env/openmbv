@@ -157,19 +157,24 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
-    localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", 0);
+    localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", this);
     localFrame->setCheckable(true);
+    localFrame->setObjectName("RigidBody::localFrame");
     connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-    referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", 0);
+    referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", this);
     referenceFrame->setCheckable(true);
+    referenceFrame->setObjectName("RigidBody::referenceFrame");
     connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
-    path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", 0);
+    path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", this);
     path->setCheckable(true);
+    path->setObjectName("RigidBody::path");
     connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
-    dragger=new QAction(QIcon(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", 0);
+    dragger=new QAction(QIcon(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
     dragger->setCheckable(true);
+    dragger->setObjectName("RigidBody::dragger");
     connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
-    moveCameraWith=new QAction(QIcon(":/camerabody.svg"),"Move Camera With This Body",0);
+    moveCameraWith=new QAction(QIcon(":/camerabody.svg"),"Move Camera With This Body",this);
+    moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   }
 }
