@@ -665,9 +665,11 @@ void MainWindow::guiHelp() {
     "  <dt>X-Down + Left-Button + Move</dt><dd> Manipulate a dragger. The dragger must be enabled using the property menu of the body before</dd>"
     "  <dt>X-Down + Shift-Down + Left-Button + Move</dt><dd> Manipulate a dragger in constraint motion. The dragger must be enabled using the property menu of the body before</dd>"
     "  <dt>Ctrl+Left-Button</dt><dd> Selects the body under the cursor.</dd>"
-    "  <dt>Crtl+Right-Button</dt><dd> Shows the property menu of body under the cursor.</dd>"
+    "  <dt>Ctrl+Shift+Left-Button</dt><dd> Toggle the selection of the body under the cursor.</dd>"
+    "  <dt>Crtl+Right-Button</dt><dd> Select the body under the curser and show the property menu.</dd>"
+    "  <dt>Crtl+Shift+Right-Button</dt><dd> Toggle the selection of the body under the curser and show the property menu.</dd>"
     "  <dt>Crtl+Alt+Left-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects this body.</dd>"
-    "  <dt>Crtl+Alt+Right-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu enety, shows the proptery menu of this body.</dd>"
+    "  <dt>Crtl+Alt+Right-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects and shows the proptery menu of this body.</dd>"
     "  <dt>Crtl+Middle-Button</dt><dd> Seeks the focal point of the camera to the point on the shape under the cursor.</dd>"
     "</ul>");
 }
@@ -823,16 +825,24 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           delete menu;
           it=pickedObject.begin();
           for(int i=0; i<ind; i++, it++);
-          objectList->setCurrentItem(*it);
+          objectList->setCurrentItem(*it,0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
         }
         // if Button1 select picked object
         else
-          objectList->setCurrentItem(*pickedObject.begin());
+          objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
         // if Button2 show property menu
         if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
           Object *object=(Object*)(objectList->currentItem());
           QMenu* menu=object->createMenu();
-          menu->exec(QCursor::pos());
+          QAction *currentAct=menu->exec(QCursor::pos());
+          if(currentAct) {
+            QList<QTreeWidgetItem*> obj=objectList->selectedItems();
+            for(int i=0; i<obj.size(); i++) {
+              QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
+              if(act==currentAct) continue; // do not trigger the currentItem twice
+              if(act) act->trigger();
+            }
+          }
           delete menu;
         }
       }
