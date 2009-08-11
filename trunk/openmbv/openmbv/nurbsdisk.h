@@ -37,6 +37,7 @@
  * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
  */
 class NurbsDisk : public DynamicColoredBody {
+  Q_OBJECT
   public:
     /** constructor */
     NurbsDisk(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);

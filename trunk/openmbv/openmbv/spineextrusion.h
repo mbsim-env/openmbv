@@ -35,6 +35,7 @@
  * \date 2009-05-06 initial commit (Thorsten Schindler)
  */
 class SpineExtrusion : public DynamicColoredBody {
+  Q_OBJECT
   public:
     /** constructor */
     SpineExtrusion(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);

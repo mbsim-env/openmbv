@@ -53,6 +53,8 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   object.moc.cc\
   path.moc.cc\
   coilspring.moc.cc\
+  spineextrusion.moc.cc \
+  nurbsdisk.moc.cc \
   arrow.moc.cc\
   objbody.moc.cc\
   rigidbody.moc.cc\
