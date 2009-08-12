@@ -50,7 +50,7 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // read XML
   TiXmlElement *e=element->FirstChildElement();
   while(e!=0) {
-    Object *object=ObjectFactory(e, h5Group, this, soSep);
+    ObjectFactory(e, h5Group, this, soSep);
     e=e->NextSiblingElement();
   }
 

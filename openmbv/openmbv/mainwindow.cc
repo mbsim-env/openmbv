@@ -66,7 +66,7 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), deltaTime(0), fpsMax(25), oldSpeed(1), helpViewer(0), enableFullScreen(false) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25), helpViewer(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 

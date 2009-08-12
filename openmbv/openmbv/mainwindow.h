@@ -57,7 +57,6 @@ class MainWindow : public QMainWindow {
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     Mode mode;
-    SoGetBoundingBoxAction *bboxAction;
     SoText2 *timeString;
     double fpsMax;
     QWebView *helpViewer;

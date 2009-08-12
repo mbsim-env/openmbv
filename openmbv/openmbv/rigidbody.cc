@@ -89,7 +89,12 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     soSep->addChild(rotationGamma);
     rotation=new SoRotation;
     rotation->ref(); // do not add to scene graph (only for convinience)
-  
+
+    // till now the scene graph should be static (except color). So add a SoSeparator for caching
+    SoSeparator *newSoSep=new SoSeparator;
+    soSep->addChild(newSoSep);
+    soSep=newSoSep;
+
     // reference frame
     soReferenceFrameSwitch=new SoSwitch;
     soSep->addChild(soReferenceFrameSwitch);

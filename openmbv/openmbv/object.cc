@@ -47,6 +47,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   soSwitch->ref();
   soSwitch->whichChild.setValue(SO_SWITCH_ALL);
   soSep=new SoSeparator;
+  soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
 
   // switch for bounding box
