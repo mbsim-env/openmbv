@@ -64,7 +64,7 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   // cross section
   extrusion->crossSection.setNum(contour.size()+1);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(int i=0;i<contour.size();i++) cs[i] = SbVec2f(contour[i][0], contour[i][1]); // clockwise in local coordinate system
+  for(size_t i=0;i<contour.size();i++) cs[i] = SbVec2f(contour[i][0], contour[i][1]); // clockwise in local coordinate system
   cs[contour.size()] =  SbVec2f(contour[0][0], contour[0][1]); // closed cross section
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);

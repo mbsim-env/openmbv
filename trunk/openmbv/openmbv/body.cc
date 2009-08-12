@@ -68,7 +68,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     // register callback function on frame change
     SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
     sensor->attach(MainWindow::getInstance()->getFrame());
-    sensor->setPriority(0);
+    //sensor->setPriority(0);
   }
 
   // switch for outline
@@ -123,7 +123,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
 
 void Body::frameSensorCB(void *data, SoSensor*) {
   Body* me=(Body*)data;
-  double time;
+  double time=0;
   if(me->drawThisPath) 
     time=me->update();
   if(timeUpdater==me)
@@ -182,7 +182,7 @@ void Body::resetAnimRange(int numOfRows, double dt) {
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
 vector<double> Body::toVector(string str) {
-  for(int i=0; i<str.length(); i++)
+  for(size_t i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
   stringstream stream(str);
   double d;
@@ -198,7 +198,7 @@ vector<double> Body::toVector(string str) {
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
 vector<vector<double> > Body::toMatrix(string str) {
   vector<vector<double> > ret;
-  for(int i=0; i<str.length(); i++)
+  for(size_t i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
   bool br=false;
   while(1) {
@@ -411,7 +411,7 @@ void Body::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& f
       nNew=n[fni[ni1]]+n[fni[ni2]];
       n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2], nNew);
       vector<int> vvv=vni[i->first.vi1];
-      for(int k=0; k<vvv.size(); k++)
+      for(size_t k=0; k<vvv.size(); k++)
         if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
     }
     ni1=i->second[0].ni2; ni2=i->second[1].ni2;
@@ -420,7 +420,7 @@ void Body::computeNormals(const SoMFInt32& fvi, const SoMFVec3f &v, SoMFInt32& f
       nNew=n[fni[ni1]]+n[fni[ni2]];
       n.set1Value(fni[ni1], nNew); n.set1Value(fni[ni2] ,nNew);
       vector<int> vvv=vni[i->first.vi1];
-      for(int k=0; k<vvv.size(); k++)
+      for(size_t k=0; k<vvv.size(); k++)
         if(fni[vvv[k]]==fni[ni2]) fni.set1Value(vvv[k], fni[ni1]);
     }
     if(!smooth) {

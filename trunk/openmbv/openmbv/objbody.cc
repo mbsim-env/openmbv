@@ -282,7 +282,7 @@ void ObjBody::readMtlLib(const std::string& mtlFile_, std::map<QString, SoMateri
   QRegExp KsRE("[ \t]*Ks[ \t].*");
   QRegExp NsRE("[ \t]*Ns[ \t].*");
   QRegExp dRE("[ \t]*d[ \t].*");
-  SoMaterial *curMaterial;
+  SoMaterial *curMaterial=NULL;
   while(!mtlFile.atEnd()) {
     QByteArray line=mtlFile.readLine();
     line.resize(line.size()-1); // delete "\n"
@@ -341,7 +341,7 @@ void ObjBody::readMapLib(const std::string& mapFile_, std::map<QString, SoTextur
   QRegExp emptyRE("[ \t]*");
   QRegExp newmapRE("[ \t]*newmap[ \t].*");
   QRegExp KdRE("[ \t]*Kd[ \t].*");
-  SoTexture2 *curMap;
+  SoTexture2 *curMap=NULL;
   while(!mapFile.atEnd()) {
     QByteArray line=mapFile.readLine();
     line.resize(line.size()-1); // delete "\n"

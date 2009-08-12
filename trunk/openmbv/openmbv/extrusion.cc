@@ -64,12 +64,12 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
   sh->creaseAngle.setValue(M_PI);
   // side
-  for(int c=0; c<contour.size(); c++) {
+  for(size_t c=0; c<contour.size(); c++) {
     SoNormal *n=new SoNormal;
     side->addChild(n);
     SoCoordinate3 *v=new SoCoordinate3;
     side->addChild(v);
-    int r;
+    size_t r;
     SoIndexedFaceSet *s=new SoIndexedFaceSet;
     side->addChild(s);
     // outline
@@ -83,8 +83,8 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     soOutLineSep->addChild(ol3);
     //
     for(r=0; r<contour[c].size(); r++) {
-      int rn=r+1; if(rn>=contour[c].size()) rn=0;
-      int rp=r-1; if(rp<0) rp=contour[c].size()-1;
+      size_t rn=r+1; if(rn>=contour[c].size()) rn=0;
+      size_t rp; if(r>=1) rp=r-1; else rp=contour[c].size()-1;
       v->point.set1Value(2*r+0, contour[c][r][0], contour[c][r][1], 0);
       v->point.set1Value(2*r+1, contour[c][r][0], contour[c][r][1], height);
       SbVec3f n1(contour[c][r][1]-contour[c][rp][1],contour[c][rp][0]-contour[c][r][0],0); n1.normalize();
@@ -128,9 +128,9 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   SoGroup *soTess=new SoGroup;
   soTess->ref();
   gluTessBeginPolygon(tess, soTess);
-  for(int c=0; c<contour.size(); c++) {
+  for(size_t c=0; c<contour.size(); c++) {
     gluTessBeginContour(tess);
-    for(int r=0; r<contour[c].size(); r++) {
+    for(size_t r=0; r<contour[c].size(); r++) {
       GLdouble *v=new GLdouble[3];
       v[0]=contour[c][r][0];
       v[1]=contour[c][r][1];
