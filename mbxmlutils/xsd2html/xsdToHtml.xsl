@@ -12,8 +12,8 @@
 
   <!-- output method -->
   <xsl:output method="html"
-    doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
-    doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>
+    doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
+    doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
 
   <!-- no default text -->
   <xsl:template match="text()"/>
@@ -22,7 +22,29 @@
 
   <xsl:template match="/">
     <!-- html header -->
-    <html xml:lang="en" lang="en"><head><title><xsl:value-of select="$PROJECT"/> - XML Documentation</title></head><body>
+    <html xml:lang="en" lang="en">
+    <head>
+      <title><xsl:value-of select="$PROJECT"/> - XML Documentation</title>
+      <style type="text/css">
+        div.para { margin-bottom:1ex }
+        div.figure { margin-top:1ex;margin-bottom:1ex }
+        dt { font-weight:bold }
+        h3 { margin-top:10ex }
+        *.element { font-family:monospace;font-weight:bold }
+        *.type { font-family:monospace }
+        *.attribute { font-family:monospace;font-weight:bold;margin-left:2ex }
+        *.elementdocu { padding-left:3ex;margin:0;margin-bottom:1ex }
+        *.elementdocu { margin-left:3ex;margin-bottom:1ex }
+        *.classdocu { margin-bottom:1ex }
+        ul.elementchoice { list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
+        *.elementchoicecolor { color:blue }
+        ul.elementsequence { list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
+        *.elementsequencecolor { color:red }
+        ul.elementchild { list-style-type:none;padding-left:4ex }
+        ul.elementsofclass { list-style-type:none;padding:0 }
+      </style>
+    </head>
+    <body>
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <p>This is the Documentation of the XML representation for <xsl:value-of select="$PROJECT"/>.</p>
     <h2>Contents</h2>
@@ -33,7 +55,7 @@
           <xsl:for-each select="/xs:schema/xs:element">
             <xsl:sort select="@name"/>
             <li>
-              <a style="font-family:monospace;font-weight:bold"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
+              <a class="element"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
                 <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>&lt;<xsl:value-of select="@name"/>&gt;</a>
             </li>
           </xsl:for-each>
@@ -42,55 +64,55 @@
     </ul>
     <h2><a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
     <h3>A element:</h3>
-    <p><span style="font-family:monospace;font-weight:bold">&lt;ElementName&gt;</span> [0-2] (Type: <span style="font-family:monospace">elementType</span>)
-    <br/><span style="font-family:monospace;font-weight:bold;margin-left:2ex">attrName1</span><span> [required]</span> (Type: <span style="font-family:monospace">typeOfTheAttribute</span>)
-    <br/><span style="font-family:monospace;font-weight:bold;margin-left:2ex">attrName2</span><span> [optional]</span> (Type: <span style="font-family:monospace">typeOfTheAttribute</span>)</p>
-    <p style="padding-left:3ex;margin:0;margin-bottom:1ex">
+    <p><span class="element">&lt;ElementName&gt;</span> [0-2] (Type: <span class="type">elementType</span>)
+    <br/><span class="attribute">attrName1</span><span> [required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
+    <br/><span class="attribute">attrName2</span><span> [optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
+    <p class="elementdocu">
       Documentation of the element.
     </p>
-    <p>The upper nomenclature defines a XML element named <span style="font-family:monospace">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span style="font-family:monospace">elementType</span>.<br/>
+    <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
     A occurance of [optional] means [0-1].<br/>
-    The element has two attributes named <span style="font-family:monospace">attrName1</span> and <span style="font-family:monospace">attrName2</span> of type <span style="font-family:monospace">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
+    The element has two attributes named <span class="attribute">attrName1</span> and <span class="attribute">attrName2</span> of type <span class="type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
     <h3>A choice of element:</h3>
-    <ul style="list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-      <li style="color:blue">[1-2]</li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetA&gt;</span></li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetB&gt;</span></li>
+    <ul class="elementchoice">
+      <li class="elementchoicecolor">[1-2]</li>
+      <li><span class="element">&lt;ElemenetA&gt;</span></li>
+      <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
     A occurance of [optional] means [0-1].</p>
     <h3>A seqence of elements:</h3>
-    <ul style="list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-      <li style="color:red">[0-3]</li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetA&gt;</span></li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetB&gt;</span></li>
+    <ul class="elementsequence">
+      <li class="elementsequencecolor">[0-3]</li>
+      <li><span class="element">&lt;ElemenetA&gt;</span></li>
+      <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
     A occurance of [optional] means [0-1].</p>
     <h3>Nested sequences/choices:</h3>
-    <ul style="list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-      <li style="color:red">[1-2]</li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetA&gt;</span></li>
+    <ul class="elementsequence">
+      <li class="elementsequencecolor">[1-2]</li>
+      <li><span class="element">&lt;ElemenetA&gt;</span></li>
       <li>
-        <ul style="list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-          <li style="color:blue">[0-3]</li>
-          <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetC&gt;</span></li>
-          <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetD&gt;</span></li>
+        <ul class="elementchoice">
+          <li class="elementchoicecolor">[0-3]</li>
+          <li><span class="element">&lt;ElemenetC&gt;</span></li>
+          <li><span class="element">&lt;ElemenetD&gt;</span></li>
         </ul>
       </li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ElemenetB&gt;</span></li>
+      <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>Sequences and choices can be nested like above.</p>
     <h3>Child Elements:</h3>
-    <ul style="list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-      <li style="color:red">[1-2]</li>
-      <li><span style="font-family:monospace;font-weight:bold">&lt;ParantElemenet&gt;</span>
-        <ul style="list-style-type:none;padding-left:4ex">
+    <ul class="elementsequence">
+      <li class="elementsequencecolor">[1-2]</li>
+      <li><span class="element">&lt;ParantElemenet&gt;</span>
+        <ul class="elementchild">
           <li>
-            <ul style="list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
-              <li style="color:blue">[0-3]</li>
-              <li><span style="font-family:monospace;font-weight:bold">&lt;ChildElemenetA&gt;</span></li>
-              <li><span style="font-family:monospace;font-weight:bold">&lt;ChildElemenetB&gt;</span></li>
+            <ul class="elementchoice">
+              <li class="elementchoicecolor">[0-3]</li>
+              <li><span class="element">&lt;ChildElemenetA&gt;</span></li>
+              <li><span class="element">&lt;ChildElemenetB&gt;</span></li>
             </ul>
           </li>
         </ul>
@@ -110,7 +132,7 @@
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    <h3 style="font-family:monospace;font-weight:bold;margin-top:5em">
+    <h3 class="element">
       <a>
         <xsl:attribute name="name">
           <xsl:value-of select="@name"/>
@@ -127,7 +149,7 @@
     <xsl:if test="@substitutionGroup">
       <p>
         Inherits:
-        <a style="font-family:monospace;font-weight:bold">
+        <a class="element">
           <xsl:attribute name="href">#<xsl:value-of select="@substitutionGroup"/></xsl:attribute>
           &lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
       </p>
@@ -138,7 +160,7 @@
         Inherited by:
         <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
           <xsl:sort select="@name"/>
-          <a style="font-family:monospace;font-weight:bold">
+          <a class="element">
             <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>
             &lt;<xsl:value-of select="@name"/>&gt;</a><xsl:if test="position()!=last()">, </xsl:if>
         </xsl:for-each>
@@ -161,7 +183,7 @@
       </xsl:apply-templates>
       <!-- child elements for base class -->
       <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-        <ul style="list-style-type:none;padding:0">
+        <ul class="elementofclass">
           <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
             <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
           </xsl:apply-templates>
@@ -173,14 +195,14 @@
   <!-- class attributes -->
   <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
     <p>
-      Attribute: <span style="font-family:monospace;font-weight:bold"><xsl:value-of select="@name"/></span>
+      Attribute: <span class="element"><xsl:value-of select="@name"/></span>
       <xsl:if test="@use='required'">
         <span> [required]</span><xsl:text> </xsl:text>
       </xsl:if>
       <xsl:if test="@use!='required'">
         <span> [optional]</span><xsl:text> </xsl:text>
       </xsl:if>
-      (Type: <a style="font-family:monospace">
+      (Type: <a class="type">
         <xsl:attribute name="href">
           #<xsl:value-of select="@type"/>
         </xsl:attribute>
@@ -201,7 +223,7 @@
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
     <xsl:param name="CLASSTYPE" select="@name"/>
-    <a style="font-family:monospace;font-weight:bold">
+    <a class="element">
       <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:attribute>
       &lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
   </xsl:template>
@@ -210,11 +232,11 @@
   <xsl:template mode="CLASS" match="xs:extension">
     <xsl:param name="CLASSNAME"/>
     <xsl:if test="xs:sequence|xs:choice">
-      <ul style="list-style-type:none;padding:0">
+      <ul class="elementsofclass">
         <!-- elements from base class -->
         <li>
           All Elements from 
-          <a style="font-family:monospace;font-weight:bold">
+          <a class="element">
             <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:attribute>
             &lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
         </li>
@@ -231,7 +253,7 @@
   <!-- child elements -->
   <xsl:template mode="SIMPLECONTENT" match="xs:complexType">
     <xsl:if test="xs:sequence|xs:choice">
-      <ul style="list-style-type:none;padding-left:4ex">
+      <ul class="elementchild">
         <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice"/>
       </ul>
     </xsl:if>
@@ -240,11 +262,11 @@
   <!-- occurance -->
   <xsl:template mode="OCCURANCE" match="xs:sequence|xs:choice|xs:element">
     <xsl:param name="ELEMENTNAME"/>
-    <xsl:param name="COLOR"/>
+    <xsl:param name="COLORSTYLE"/>
     <xsl:if test="@minOccurs|@maxOccurs">
       <xsl:element name="{$ELEMENTNAME}">
-        <xsl:attribute name="style">
-          color:<xsl:value-of select="$COLOR"/>
+        <xsl:attribute name="class">
+          <xsl:value-of select="$COLORSTYLE"/>
         </xsl:attribute>
         <xsl:if test="@minOccurs=0 and not(@maxOccurs)">
           [optional]
@@ -260,10 +282,10 @@
   <xsl:template mode="SIMPLECONTENT" match="xs:sequence">
     <xsl:param name="CLASSNAME"/>
     <li>
-      <ul style="list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
+      <ul class="elementsequence">
         <xsl:apply-templates mode="OCCURANCE" select=".">
           <xsl:with-param name="ELEMENTNAME" select="'li'"/>
-          <xsl:with-param name="COLOR" select="'red'"/>
+          <xsl:with-param name="COLORSTYLE" select="'elementsequencecolor'"/>
         </xsl:apply-templates>
         <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
           <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
@@ -276,10 +298,10 @@
   <xsl:template mode="SIMPLECONTENT" match="xs:choice">
     <xsl:param name="CLASSNAME"/>
     <li>
-      <ul style="list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex">
+      <ul class="elementchoice">
         <xsl:apply-templates mode="OCCURANCE" select=".">
           <xsl:with-param name="ELEMENTNAME" select="'li'"/>
-          <xsl:with-param name="COLOR" select="'blue'"/>
+          <xsl:with-param name="COLORSTYLE" select="'elementchoicecolor'"/>
         </xsl:apply-templates>
         <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
           <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
@@ -295,11 +317,11 @@
     <li>
       <!-- name by not(ref) -->
       <xsl:if test="not(@ref)">
-        <span style="font-family:monospace;font-weight:bold">&lt;<xsl:value-of select="@name"/>&gt;</span>
+        <span class="element">&lt;<xsl:value-of select="@name"/>&gt;</span>
       </xsl:if>
       <!-- name by ref -->
       <xsl:if test="@ref">
-        <a style="font-family:monospace;font-weight:bold">
+        <a class="element">
           <xsl:attribute name="href">#<xsl:value-of select="@ref"/></xsl:attribute>
           &lt;<xsl:value-of select="@ref"/>&gt;</a>
       </xsl:if><xsl:text> </xsl:text>
@@ -311,7 +333,7 @@
       <xsl:if test="@type">
         <!-- type {http://openmbv.berlios.de/MBXMLUTILS/physicalvariable}* -->
         <xsl:if test="substring(@type,1,3)='pv:'">
-          (Type: <a style="font-family:monospace">
+          (Type: <a class="type">
              <!-- set href to $PHYSICALVARIABLEHTMLDOC#[scalartype|vectortype|matrixtype] -->
             <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:if test="substring(@type,string-length(@type)-5,6)='Scalar'">scalartype</xsl:if>
               <xsl:if test="substring(@type,string-length(@type)-5,6)='Vector'">vectortype</xsl:if>
@@ -322,7 +344,7 @@
         </xsl:if>
         <!-- type not {http://openmbv.berlios.de/MBXMLUtils/physicalvariable}* -->
         <xsl:if test="substring(@type,1,3)!='pv:'">
-          (Type: <span style="font-family:monospace">
+          (Type: <span class="type">
             <xsl:value-of select="@type"/>
           </span>)
         </xsl:if>
@@ -343,20 +365,20 @@
   <!-- element attributes -->
   <xsl:template mode="ELEMENTATTRIBUTE" match="xs:attribute">
     <br/>
-    <span style="font-family:monospace;font-weight:bold;margin-left:2ex"><xsl:value-of select="@name"/></span>
+    <span class="attribute"><xsl:value-of select="@name"/></span>
     <xsl:if test="@use='required'">
       <span> [required]</span><xsl:text> </xsl:text>
     </xsl:if>
     <xsl:if test="@use!='required'">
       <span> [optional]</span><xsl:text> </xsl:text>
     </xsl:if>
-    (Type: <span style="font-family:monospace"><xsl:value-of select="@type"/></span>)
+    (Type: <span class="type"><xsl:value-of select="@type"/></span>)
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
     <xsl:if test="@source='doxygen'">
-      <div style="margin-bottom:1ex"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+      <div class="classdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
     </xsl:if>
     <xsl:apply-templates mode="CLONEDOC"/>
   </xsl:template>
@@ -364,9 +386,9 @@
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
     <xsl:if test="@source='doxygen'">
-      <div style="margin-left:3ex;margin-bottom:1ex"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+      <div class="elementdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
     </xsl:if>
-    <div style="margin-left:3ex">
+    <div class="elementdocu">
       <xsl:apply-templates mode="CLONEDOC"/>
     </div>
   </xsl:template>

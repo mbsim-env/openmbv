@@ -55,6 +55,7 @@ echo "  Out file: $BASENAME.html"
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit
 echo "DONE"
 
-echo "Copy equations/images (png's) to current dir"
-cp $DOXYGENDOCHTMLDIR/form_*.png . || echo "No files to copy!"
+echo "Copy equations/images (png's, eps's) to current dir"
+cp $DOXYGENDOCHTMLDIR/form_*.png . || echo "No png files to copy!"
 cp $(ls -1 $DOXYGENDOCHTMLDIR/*.png | grep -Ev "form_[0-9]+\.png" | grep -v "class.*\.png" | grep -v "doxygen.png") . || echo "No files to copy!"
+cp $DOXYGENDOCHTMLDIR/*.eps . || echo "No eps files to copy!"
