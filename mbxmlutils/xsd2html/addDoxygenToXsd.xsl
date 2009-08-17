@@ -152,26 +152,26 @@
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="formula">
     <xsl:if test="not(starts-with(.,'$'))">
-      <div class="figure"><img name="formula"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
+      <div class="eqn"><img class="eqn"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
             <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
       </img></div>
     </xsl:if>
     <xsl:if test="starts-with(.,'$')">
-      <img name="formula"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
+      <img class="inlineeqn"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
          <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
       </img>
     </xsl:if>
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="image[@type='html']">
-    <div class="figure"><table><caption align="bottom"><xsl:value-of select="."/></caption><tr><td><img name="htmlimage"><xsl:attribute name="src"><xsl:value-of select="@name"/></xsl:attribute>
+    <div class="htmlfigure"><table><caption align="bottom"><xsl:value-of select="."/></caption><tr><td><img class="htmlfigure"><xsl:attribute name="src"><xsl:value-of select="@name"/></xsl:attribute>
       <xsl:attribute name="alt"><xsl:value-of select="@name"/></xsl:attribute>
     </img></td></tr></table></div>
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="image[@type='latex']">
     <!-- ABUSE the html "object" element to include a LaTeX image in the XML schema -->
-    <object type="lateximage"><xsl:attribute name="width"><xsl:value-of select="@width"/></xsl:attribute>
+    <object class="latexfigure"><xsl:attribute name="standby"><xsl:value-of select="@width"/></xsl:attribute>
       <xsl:attribute name="data"><xsl:value-of select="@name"/></xsl:attribute>
-      <xsl:attribute name="standby"><xsl:value-of select="."/></xsl:attribute>
+      <xsl:attribute name="title"><xsl:value-of select="."/></xsl:attribute>
     </object>
   </xsl:template>
 

@@ -1,7 +1,7 @@
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  xmlns:html="http://www.w3.org/1999/xhtml"
   version="1.0">
 
   <xsl:param name="PROJECT"/>
@@ -124,23 +124,23 @@ A indent indicates child elements for a given element.
     \section{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}
     \label{<xsl:value-of select="@name"/>}
     <!-- abstract -->
-    <xsl:if test="@abstract='true'">
+    <xsl:if test="@abstract='true'"><xsl:text>
 
       This element ist abstract.
 
-    </xsl:if>
+    </xsl:text></xsl:if>
     <!-- inherits -->
-    <xsl:if test="@substitutionGroup">
+    <xsl:if test="@substitutionGroup"><xsl:text>
 
-      Inherits:
+      Inherits:</xsl:text>
       \texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@substitutionGroup"/></xsl:call-template>$&gt;$}
       (\ref{<xsl:value-of select="@substitutionGroup"/>}, p. \pageref{<xsl:value-of select="@substitutionGroup"/>})
 
     </xsl:if>
     <!-- inherited by -->
-    <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0">
+    <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0"><xsl:text>
 
-      Inherited by:
+      Inherited by:</xsl:text>
       <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
         <xsl:sort select="@name"/>\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}
         (\ref{<xsl:value-of select="@name"/>}, p. \pageref{<xsl:value-of select="@name"/>})
@@ -148,19 +148,21 @@ A indent indicates child elements for a given element.
       </xsl:for-each>
 
     </xsl:if>
-    <!-- used in -->
+    <!-- used in --><xsl:text>
 
-    Can be used in: <xsl:apply-templates mode="USEDIN2" select="."/>
+    Can be used in: </xsl:text><xsl:apply-templates mode="USEDIN2" select="."/><xsl:text>
 
+    </xsl:text>
     <!-- class documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
     <!-- class attributes -->
     <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
     <!-- child elements -->
-    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
+    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice"><xsl:text>
 
       Child Elements:
-
+       
+      </xsl:text>
       <!-- child elements for not base class -->
       <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension">
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
@@ -177,14 +179,14 @@ A indent indicates child elements for a given element.
   </xsl:template>
 
   <!-- class attributes -->
-  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
+  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute"><xsl:text>
 
-    Attribute: \texttt{<xsl:value-of select="@name"/>}
+    </xsl:text>Attribute: \texttt{<xsl:value-of select="@name"/>}
     <xsl:if test="@use='required'">XrequiredX</xsl:if>
     <xsl:if test="@use!='required'">XoptionalX</xsl:if>
-    (Type: \texttt{<xsl:value-of select="@type"/>})
+    (Type: \texttt{<xsl:value-of select="@type"/>})<xsl:text>
 
-  </xsl:template>
+  </xsl:text></xsl:template>
 
   <!-- used in -->
   <xsl:template mode="USEDIN2" match="/xs:schema/xs:element">
@@ -313,11 +315,11 @@ A indent indicates child elements for a given element.
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source='doxygen'">
+    <xsl:if test="@source='doxygen'"><xsl:text>
 
       The following part is the C++ API docucmentation from Doxygen
 
-    </xsl:if>
+    </xsl:text></xsl:if>
     <xsl:apply-templates mode="CLONEDOC"/>
   </xsl:template>
 
@@ -325,15 +327,16 @@ A indent indicates child elements for a given element.
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
     \begin{list}{}{\leftmargin=5ex}
       \item
-      <xsl:if test="@source='doxygen'">
+      <xsl:if test="@source='doxygen'"><xsl:text>
 
-        The following part is the C++ API docucmentation from Doxygen
+        </xsl:text>The following part is the C++ API docucmentation from Doxygen<xsl:text>
 
-      </xsl:if>
-
+      </xsl:text></xsl:if>
       <xsl:apply-templates mode="CLONEDOC"/>
     \end{list}
   </xsl:template>
+
+
 
   <!-- clone doxygen xml/html part -->
   <xsl:template mode="CLONEDOC" match="*">
@@ -344,15 +347,39 @@ A indent indicates child elements for a given element.
       <xsl:apply-templates mode="CLONEDOC"/>
     </xsl:copy>
   </xsl:template>
+
   <xsl:template mode="CLONEDOC" match="text()">
     <xsl:copy/>
   </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:object" xmlns:html="http://www.w3.org/1999/xhtml">
-    \begin{center}\includegraphics[width=<xsl:value-of select="@width"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@name"/>\end{center}
+
+  <xsl:template mode="CLONEDOC" match="html:div[@class='para']"><xsl:text>
+
+    </xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>
+
+  </xsl:text></xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:dl">
+    \begin{description}
+      <xsl:apply-templates mode="CLONEDOC"/>
+    \end{description}
   </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:img[@name='formula']" xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <xsl:template mode="CLONEDOC" match="html:dt">
+    \item[<xsl:value-of select="."/>]
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:dd">
+    <xsl:apply-templates mode="CLONEDOC"/>
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:img[@class='eqn']|html:img[@class='inlineeqn']">
     <xsl:value-of select="@alt"/>
   </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:table/html:caption" xmlns:html="http://www.w3.org/1999/xhtml"/> <!-- prevent the caption from the <img name=htmlimage> element -->
+
+  <xsl:template mode="CLONEDOC" match="html:div[@class='htmlfigure']"/>
+
+  <xsl:template mode="CLONEDOC" match="html:object[@class='latexfigure']">
+    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@title"/>\end{center}
+  </xsl:template>
  
 </xsl:stylesheet>
