@@ -2,6 +2,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  xmlns:html="http://www.w3.org/1999/xhtml"
   xmlns="http://www.w3.org/1999/xhtml"
   version="1.0">
 
@@ -27,9 +28,17 @@
       <title><xsl:value-of select="$PROJECT"/> - XML Documentation</title>
       <style type="text/css">
         div.para { margin-bottom:1ex }
-        div.figure { margin-top:1ex;margin-bottom:1ex }
+        dl,dd { }
         dt { font-weight:bold }
+        div.eqn { margin-bottom:1ex }
+        img.eqn { }
+        img.inlineeqn { }
+        div.htmlfigure,table,caption,tr,td { }
+        img.htmlfigure { }
+        object.latexfigure { }
+
         h3 { margin-top:10ex }
+
         *.element { font-family:monospace;font-weight:bold }
         *.type { font-family:monospace }
         *.attribute { font-family:monospace;font-weight:bold;margin-left:2ex }
@@ -405,5 +414,7 @@
   <xsl:template mode="CLONEDOC" match="text()">
     <xsl:copy/>
   </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:object[@class='latexfigure']"/>
 
 </xsl:stylesheet>
