@@ -15,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   */
+*/
 
 #ifndef _NURBSDISK_H_
 #define _NURBSDISK_H_
@@ -23,8 +23,15 @@
 #include "config.h"
 #include "dynamiccoloredbody.h"
 #include "tinyxml.h"
+
 #include <Inventor/nodes/SoIndexedFaceSet.h>
-#include <Inventor/nodes/SoIndexedNurbsSurface.h>
+#include <Inventor/SoPrimitiveVertex.h> 
+#include <Inventor/nodes/SoIndexedNurbsSurface.h> 
+#include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoShapeHints.h> 
+#include <Inventor/nodes/SoSeparator.h>
+
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
@@ -35,6 +42,7 @@
  * \author Raphael Missel
  * \author Thorsten Schindler
  * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
+ * \date 2009-08-17 visualisation / contour (Grundl / Missel / Schindler)
  */
 class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
@@ -46,16 +54,33 @@ class NurbsDisk : public DynamicColoredBody {
     virtual QString getInfo();
 
   protected:
+    /** number of elements in azimuthal and radial direction */
+    int nj, nr;
+
+    /** interpolation degree radial and azimuthal */
+    int degRadial, degAzimuthal;
+   
+    /** number of intermediate points between finite element nodes for visualisation */
+    int drawDegree;
+
+    /** knot vector azimuthal and radial */
+    std::vector<double> knotVecAzimuthal, knotVecRadial;
+
+    /** inner and outer radius */
+    float innerRadius, outerRadius;
+
     /** NURBS surface */
     SoIndexedNurbsSurface *surface;
 
+    /** NURBS Control Points and Points for sides and back of the disk */
+    SoCoordinate3 *controlPts;
+
     /** primitive closures */
-    SoIndexedFaceSet *back;
-    SoIndexedFaceSet *side;
+    SoIndexedFaceSet *faceSet;
 
     /** local h5 data set copy */
     H5::VectorSerie<double> *h5Data;
-  
+
     /** update method invoked at each time step */
     virtual double update();
 };
