@@ -29,6 +29,7 @@
 namespace OpenMBV {
 
   /** \brief Abstract base class for all rigid bodies
+   *
    * Each rigid body has a body fixed local coordinate system L
    * and a reference coordinate system R which has a fixed relative
    * position and rotation with respect to L (see figure).
