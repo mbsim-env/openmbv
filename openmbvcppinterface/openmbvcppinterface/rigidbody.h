@@ -28,7 +28,35 @@
 
 namespace OpenMBV {
 
-  /** Abstract base class for all rigid bodies */
+  /** \brief Abstract base class for all rigid bodies
+   * Each rigid body has a body fixed local coordinate system L
+   * and a reference coordinate system R which has a fixed relative
+   * position and rotation with respect to L (see figure).
+   * And there is a inertial fixed world coordinate system W.
+   *
+   * \image html rigidbodycos.png "Coordinate Systems of Rigid Body"
+   * \image latex rigidbodycos.eps "Coordinate Systems of Rigid Body" width=8cm
+   *
+   * The fixed translation from system R to system L is given by
+   * the vector initialTranslation \f$[_R x_B, _R y_B, _R z_B]^T\f$
+   * which coordinates are given in system R.
+   *
+   * The fixed rotation between the systems R and L is given by
+   * the vector initialRotation \f$[\alpha_B, \beta_B, \gamma_B]^T\f$
+   * which are the kardan angles of the transformation matrix 
+   * \f[ A_{RL}= \textrm{cardan}(\alpha_B, \beta_B, \gamma_B) \f]
+   * from system L to system R.
+   *
+   * The time dependend translation between the systems W and R is given
+   * in the HDF5 dataset by the vector \f$ [_W x_P, _W y_P, _W z_P]^T=_W r_P \f$
+   * which coordinates are given in system W.
+   *
+   * The time dependend rotation between the systems W and R is given
+   * in the HDF5 dataset by the vector \f$ [\alpha_P, \beta_P, \gamma_P] \f$
+   * which are the kardan angles of the transformation matrix
+   * \f[ A_{WR}= \textrm{cardan}(\alpha_P, \beta_P, \gamma_P) \f]
+   * from system R to system W.
+   */
   class RigidBody : public DynamicColoredBody {
     friend class CompoundRigidBody;
     protected:
