@@ -98,6 +98,17 @@ noinst_HEADERS = openmbv.qrc\
   coilspring.h \
   nurbsdisk.h
 
+# BEGIN generate openmbv.qrc from openbv.qrc.myin
+# Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
+openmbv.qrc: openmbv.qrc.in_sed
+	FILES=""; \
+	for F in $$(ls -1 ../doc/*.png); do \
+	  FILES="$$FILES<file alias=\"$$(basename $$F)\">$$F</file>"; \
+	done; \
+	echo $$FILES; \
+	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc
+# END generate openmbv.qrc from openbv.qrc.myin
+
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html
 # generate dummy documentation if not exist

@@ -7,7 +7,7 @@ nodist_doc_DATA = openmbv.html *.png
 openmbv.html: ../schema/schema/openmbv.xsd ../openmbvcppinterface-src/openmbvcppinterface/*.h
 	doxygen
 	$$(pkg-config mbxmlutils --variable BINDIR)/mbxmlutils-xsd2html ../schema/schema/openmbv.xsd xml .:../openmbvcppinterface-src/openmbvcppinterface OpenMBV OpenMBV::
-	sed -re "s|$$(pkg-config mbxmlutils --variable DOCDIR)/measurement.html|qrc:measurement.html|" ../doc/openmbv.html > openmbv.qt.html
+	sed -re "s|$$(pkg-config mbxmlutils --variable DOCDIR)/measurement.html|qrc:measurement.html|;s|(<img class=\"[^\"]*\" src=\")([^\"]+)\"|\1qrc:\2\"|g" ../doc/openmbv.html > openmbv.qt.html
 
 
 
