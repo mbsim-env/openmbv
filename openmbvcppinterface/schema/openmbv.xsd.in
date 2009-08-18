@@ -301,10 +301,15 @@
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
-          <xs:element name="ElementNumberAzimuthal" type="xs:integer"/>
-          <xs:element name="ElementNumberRadial" type="xs:integer"/>
-          <xs:element name="KnotVecAzimuthal" type="pv:nounitScalar"/>
-          <xs:element name="KnotVecRadial" type="pv:nounitScalar"/>
+          <xs:element name="drawDegree" type="pv:nounitScalar"/>
+          <xs:element name="innerRadius" type="pv:lengthScalar"/>
+          <xs:element name="outerRadius" type="pv:lengthScalar"/>
+          <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
+          <xs:element name="knotVecRadial" type="pv:lengthVector"/>
+          <xs:element name="elementNumberAzimuthal" type="pv:nounitScalar"/>
+          <xs:element name="elementNumberRadial" type="pv:nounitScalar"/>
+          <xs:element name="interpolationDegreeRadial" type="pv:nounitScalar"/>
+          <xs:element name="interpolationDegreeAzimuthal" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
