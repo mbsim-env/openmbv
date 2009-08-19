@@ -34,6 +34,8 @@
 \usepackage{graphicx}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
 \begin{document}
 \begin{center}
   {\Huge <xsl:value-of select="$PROJECT"/> - XML Documentation}
@@ -41,6 +43,9 @@
   This is the Documentation of the XML representation for <xsl:value-of select="$PROJECT"/>.
 \end{center}
 \tableofcontents
+\chapter{Introduction}
+    <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
+
 \chapter{Nomenclature}
 \label{nomenclature}
 
@@ -109,19 +114,40 @@ Sequences and choices can be nested like above.
 A indent indicates child elements for a given element.
 
 \chapter{Elements}
-    <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:element">
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+      <xsl:with-param name="LEVEL" select="0"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
 \end{document}
   </xsl:template>
 
+  <!-- walk throw all elements -->
+  <xsl:template mode="WALKCLASS" match="/xs:schema/xs:element">
+    <xsl:param name="LEVEL"/>
+    <xsl:param name="NAME" select="@name"/>
+    <xsl:apply-templates mode="CLASS" select=".">
+      <xsl:with-param name="LEVEL" select="$LEVEL"/>
+    </xsl:apply-templates>
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
+      <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
+      <xsl:sort select="@name"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
   <!-- class -->
   <xsl:template mode="CLASS" match="/xs:schema/xs:element">
+    <xsl:param name="LEVEL"/>
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    \section{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}
+    <xsl:choose>
+      <xsl:when test='$LEVEL=0'>\section</xsl:when>
+      <xsl:when test='$LEVEL=1'>\subsection</xsl:when>
+      <xsl:when test='$LEVEL=2'>\subsubsection</xsl:when>
+      <xsl:when test='$LEVEL=3'>\paragraph</xsl:when>
+      <xsl:otherwise>\subparagraph</xsl:otherwise>
+    </xsl:choose>{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}
     \label{<xsl:value-of select="@name"/>}
     <!-- abstract -->
     <xsl:if test="@abstract='true'"><xsl:text>
