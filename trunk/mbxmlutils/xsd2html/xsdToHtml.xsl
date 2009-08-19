@@ -37,7 +37,8 @@
         img.htmlfigure { }
         object.latexfigure { }
 
-        h3 { margin-top:10ex }
+        h2,h3,h4,h5,h6,h7,h8,h9 { margin-top:10ex;margin;font-size:14pt }
+        ol.content { padding-left:3ex }
 
         *.element { font-family:monospace;font-weight:bold }
         *.type { font-family:monospace }
@@ -57,20 +58,17 @@
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <p>This is the Documentation of the XML representation for <xsl:value-of select="$PROJECT"/>.</p>
     <h2>Contents</h2>
-    <ul>
+    <ol class="content">
       <li><a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
       <li>Elements
-        <ul>
-          <xsl:for-each select="/xs:schema/xs:element">
+        <ol class="content">
+          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+            <xsl:with-param name="LEVEL" select="0"/>
             <xsl:sort select="@name"/>
-            <li>
-              <a class="element"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
-                <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>&lt;<xsl:value-of select="@name"/>&gt;</a>
-            </li>
-          </xsl:for-each>
-        </ul>
+          </xsl:apply-templates>
+        </ol>
       </li>
-    </ul>
+    </ol>
     <h2><a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
     <h3>A element:</h3>
     <p><span class="element">&lt;ElementName&gt;</span> [0-2] (Type: <span class="type">elementType</span>)
@@ -130,18 +128,52 @@
     <p>A indent indicates child elements for a given element.</p>
 
     <h2>Elements</h2>
-    <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:element">
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+      <xsl:with-param name="LEVEL" select="0"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
     </body></html>
   </xsl:template>
 
+  <!-- generate contents -->
+  <xsl:template mode="CONTENT" match="/xs:schema/xs:element">
+    <xsl:param name="LEVEL"/>
+    <xsl:param name="NAME" select="@name"/>
+    <li>
+      <a class="element"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
+        <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <xsl:if test="/xs:schema/xs:element[@substitutionGroup=$NAME]">
+        <ol class="content">
+          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
+            <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
+            <xsl:sort select="@name"/>
+          </xsl:apply-templates>
+        </ol>
+      </xsl:if>
+    </li>
+  </xsl:template>
+
+  <!-- walk throw all elements -->
+  <xsl:template mode="WALKCLASS" match="/xs:schema/xs:element">
+    <xsl:param name="LEVEL"/>
+    <xsl:param name="NAME" select="@name"/>
+    <xsl:apply-templates mode="CLASS" select=".">
+      <xsl:with-param name="LEVEL" select="$LEVEL"/>
+    </xsl:apply-templates>
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
+      <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
+      <xsl:sort select="@name"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
   <!-- class -->
   <xsl:template mode="CLASS" match="/xs:schema/xs:element">
+    <xsl:param name="LEVEL"/>
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    <h3 class="element">
+    <xsl:element name="{concat('h',$LEVEL+3)}">
+      <xsl:attribute name="class">element</xsl:attribute>
       <a>
         <xsl:attribute name="name">
           <xsl:value-of select="@name"/>
@@ -149,7 +181,7 @@
         <xsl:attribute name="href">#content-<xsl:value-of select="@name"/></xsl:attribute>
         &lt;<xsl:value-of select="@name"/>&gt;
       </a>
-    </h3>
+    </xsl:element>
     <!-- abstract -->
     <xsl:if test="@abstract='true'">
       <p>This element ist abstract.</p>
@@ -192,7 +224,7 @@
       </xsl:apply-templates>
       <!-- child elements for base class -->
       <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-        <ul class="elementofclass">
+        <ul class="elementsofclass">
           <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
             <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
           </xsl:apply-templates>
