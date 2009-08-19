@@ -59,6 +59,7 @@
     <p>This is the Documentation of the XML representation for <xsl:value-of select="$PROJECT"/>.</p>
     <h2>Contents</h2>
     <ol class="content">
+      <li><a name="content-introduction" href="#introduction">Introduction</a></li>
       <li><a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
       <li>Elements
         <ol class="content">
@@ -69,6 +70,8 @@
         </ol>
       </li>
     </ol>
+    <h2><a name="introduction" href="#content-introduction">Introduction:</a></h2>
+    <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
     <h2><a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
     <h3>A element:</h3>
     <p><span class="element">&lt;ElementName&gt;</span> [0-2] (Type: <span class="type">elementType</span>)
