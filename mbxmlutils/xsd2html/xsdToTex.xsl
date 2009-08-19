@@ -32,6 +32,7 @@
 \documentclass{report}
 \usepackage{color}
 \usepackage{graphicx}
+\usepackage[utf8x]{inputenc}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
 \setcounter{secnumdepth}{5}
@@ -351,15 +352,17 @@ A indent indicates child elements for a given element.
 
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
-    \begin{list}{}{\leftmargin=5ex}
-      \item
+    \par
+    \begingroup
+      \leftskip5ex
       <xsl:if test="@source='doxygen'"><xsl:text>
 
         </xsl:text>The following part is the C++ API docucmentation from Doxygen<xsl:text>
 
       </xsl:text></xsl:if>
       <xsl:apply-templates mode="CLONEDOC"/>
-    \end{list}
+      \par
+    \endgroup
   </xsl:template>
 
 
