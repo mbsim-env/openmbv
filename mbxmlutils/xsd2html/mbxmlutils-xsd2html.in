@@ -2,13 +2,14 @@
 
 if [ $# -ne 5 ]; then
   echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
-  echo "                           <ProjectName> <DocygenPrefix>"
+  echo "                           <ProjectName> <DocygenPrefix> <IncludeDoxygen>"
   echo "  InXsdFile: Input xsd file which should be converted to html"
   echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
   echo "                   corrospondending documentation"
   echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
   echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
   echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
+  echo "  IncludeDoxygen: If true, include the doxygen part in the documentation"
   exit
 fi
 
@@ -17,6 +18,7 @@ DOXYGENDOCDIR=$2 #"/home/markus/project/MBSim/openmbv/doc_/xml"
 FIGUREDIR=$3
 PROJECT=$4 #"OpenMBV"
 DOXYGENCLASSPREFIX=$5 #"OpenMBV::"
+INCLUDEDOXYGEN=$6
 
 
 
