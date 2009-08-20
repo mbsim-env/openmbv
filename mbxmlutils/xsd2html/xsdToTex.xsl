@@ -301,7 +301,7 @@ A indent indicates child elements for a given element.
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
       </xsl:apply-templates>
     <xsl:if test="$FIRST='true'">\end{longtable}</xsl:if>
-    <xsl:if test="$FIRST!='true'">\end{tabular}\\</xsl:if>
+    <xsl:if test="$FIRST!='true'">\end{tabular}\\ \\[-2ex]</xsl:if>
   </xsl:template>
 
   <!-- choice -->
@@ -318,7 +318,7 @@ A indent indicates child elements for a given element.
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
       </xsl:apply-templates>
     <xsl:if test="$FIRST='true'">\end{longtable}</xsl:if>
-    <xsl:if test="$FIRST!='true'">\end{tabular}\\</xsl:if>
+    <xsl:if test="$FIRST!='true'">\end{tabular}\\ \\[-2ex]</xsl:if>
   </xsl:template>
 
   <!-- element -->
