@@ -8,6 +8,7 @@
 
   <xsl:param name="PROJECT"/>
   <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
+  <xsl:param name="INCLUDEDOXYGEN"/>
 
 
 
@@ -39,6 +40,7 @@
 
         h2,h3,h4,h5,h6,h7,h8,h9 { margin-top:10ex;margin;font-size:14pt }
         ol.content { padding-left:3ex }
+        span.occurance { font-style:italic }
 
         *.element { font-family:monospace;font-weight:bold }
         *.type { font-family:monospace }
@@ -56,7 +58,6 @@
     </head>
     <body>
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
-    <p>This is the Documentation of the XML representation for <xsl:value-of select="$PROJECT"/>.</p>
     <h2>Contents</h2>
     <ol class="content">
       <li><a name="content-introduction" href="#introduction">Introduction</a></li>
@@ -74,38 +75,38 @@
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
     <h2><a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
     <h3>A element:</h3>
-    <p><span class="element">&lt;ElementName&gt;</span> [0-2] (Type: <span class="type">elementType</span>)
-    <br/><span class="attribute">attrName1</span><span> [required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
-    <br/><span class="attribute">attrName2</span><span> [optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
+    <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
+    <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
+    <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
     <p class="elementdocu">
       Documentation of the element.
     </p>
     <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
-    A occurance of [optional] means [0-1].<br/>
+    A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.<br/>
     The element has two attributes named <span class="attribute">attrName1</span> and <span class="attribute">attrName2</span> of type <span class="type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
     <h3>A choice of element:</h3>
     <ul class="elementchoice">
-      <li class="elementchoicecolor">[1-2]</li>
+      <li class="elementchoicecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
       <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
-    A occurance of [optional] means [0-1].</p>
+    A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
     <h3>A seqence of elements:</h3>
     <ul class="elementsequence">
-      <li class="elementsequencecolor">[0-3]</li>
+      <li class="elementsequencecolor"><span class="occurance">[0-3]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
       <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
-    A occurance of [optional] means [0-1].</p>
+    A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
     <h3>Nested sequences/choices:</h3>
     <ul class="elementsequence">
-      <li class="elementsequencecolor">[1-2]</li>
+      <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
       <li>
         <ul class="elementchoice">
-          <li class="elementchoicecolor">[0-3]</li>
+          <li class="elementchoicecolor"><span class="occurance">[0-3]</span></li>
           <li><span class="element">&lt;ElemenetC&gt;</span></li>
           <li><span class="element">&lt;ElemenetD&gt;</span></li>
         </ul>
@@ -115,12 +116,12 @@
     <p>Sequences and choices can be nested like above.</p>
     <h3>Child Elements:</h3>
     <ul class="elementsequence">
-      <li class="elementsequencecolor">[1-2]</li>
+      <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ParantElemenet&gt;</span>
         <ul class="elementchild">
           <li>
             <ul class="elementchoice">
-              <li class="elementchoicecolor">[0-3]</li>
+              <li class="elementchoicecolor"><span class="occurance">[0-3]</span></li>
               <li><span class="element">&lt;ChildElemenetA&gt;</span></li>
               <li><span class="element">&lt;ChildElemenetB&gt;</span></li>
             </ul>
@@ -185,39 +186,40 @@
         &lt;<xsl:value-of select="@name"/>&gt;
       </a>
     </xsl:element>
-    <!-- abstract -->
-    <xsl:if test="@abstract='true'">
-      <p>This element ist abstract.</p>
-    </xsl:if>
-    <!-- inherits -->
-    <xsl:if test="@substitutionGroup">
-      <p>
-        Inherits:
-        <a class="element">
-          <xsl:attribute name="href">#<xsl:value-of select="@substitutionGroup"/></xsl:attribute>
-          &lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
-      </p>
-    </xsl:if>
-    <!-- inherited by -->
-    <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0">
-      <p>
-        Inherited by:
-        <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
-          <xsl:sort select="@name"/>
+    <table border="1">
+      <!-- abstract -->
+      <tr><td>Abstract Element:</td><td>
+        <xsl:if test="@abstract='true'">true</xsl:if>
+        <xsl:if test="@abstract!='true' or not(@abstract)">false</xsl:if>
+      </td></tr>
+      <!-- inherits -->
+      <tr><td>Inherits:</td><td>
+        <xsl:if test="@substitutionGroup">
           <a class="element">
-            <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>
-            &lt;<xsl:value-of select="@name"/>&gt;</a><xsl:if test="position()!=last()">, </xsl:if>
-        </xsl:for-each>
-      </p>
-    </xsl:if>
-    <!-- used in -->
-    <p>Can be used in:
-      <xsl:apply-templates mode="USEDIN2" select="."/>
-    </p>
+            <xsl:attribute name="href">#<xsl:value-of select="@substitutionGroup"/></xsl:attribute>
+            &lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
+        </xsl:if>
+      </td></tr>
+      <!-- inherited by -->
+      <tr><td>Inherited by:</td><td>
+        <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0">
+          <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
+            <xsl:sort select="@name"/>
+            <a class="element">
+              <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>
+              &lt;<xsl:value-of select="@name"/>&gt;</a>, 
+          </xsl:for-each>
+        </xsl:if>
+      </td></tr>
+      <!-- used in -->
+      <tr><td>Can be used in:</td><td><xsl:apply-templates mode="USEDIN2" select="."/></td></tr>
+      <!-- class attributes -->
+      <tr><td>Attributes:</td><td>
+      <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
+      </td></tr>
+    </table>
     <!-- class documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
-    <!-- class attributes -->
-    <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
     <!-- child elements -->
     <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
       <p>Child Elements:</p>
@@ -238,21 +240,20 @@
 
   <!-- class attributes -->
   <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
-    <p>
-      Attribute: <span class="element"><xsl:value-of select="@name"/></span>
-      <xsl:if test="@use='required'">
-        <span> [required]</span><xsl:text> </xsl:text>
-      </xsl:if>
-      <xsl:if test="@use!='required'">
-        <span> [optional]</span><xsl:text> </xsl:text>
-      </xsl:if>
-      (Type: <a class="type">
-        <xsl:attribute name="href">
-          #<xsl:value-of select="@type"/>
-        </xsl:attribute>
-        <xsl:value-of select="@type"/>
-      </a>)
-    </p>
+    <span class="element"><xsl:value-of select="@name"/></span>
+    <xsl:if test="@use='required'">
+      <span class="occurance"> [required]</span><xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@use!='required'">
+      <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
+    </xsl:if>
+    (Type: <a class="type">
+      <xsl:attribute name="href">
+        #<xsl:value-of select="@type"/>
+      </xsl:attribute>
+      <xsl:value-of select="@type"/>
+    </a>)
+    <br/>
   </xsl:template>
 
   <!-- used in -->
@@ -313,10 +314,10 @@
           <xsl:value-of select="$COLORSTYLE"/>
         </xsl:attribute>
         <xsl:if test="@minOccurs=0 and not(@maxOccurs)">
-          [optional]
+          <span class="occurance">[optional]</span>
         </xsl:if>
         <xsl:if test="not(@minOccurs=0 and not(@maxOccurs))">
-          [<xsl:if test="@minOccurs"><xsl:value-of select="@minOccurs"/></xsl:if><xsl:if test="not(@minOccurs)">1</xsl:if>-<xsl:if test="@maxOccurs"><xsl:value-of select="@maxOccurs"/></xsl:if><xsl:if test="not(@maxOccurs)">1</xsl:if>]
+          <span class="occurance">[<xsl:if test="@minOccurs"><xsl:value-of select="@minOccurs"/></xsl:if><xsl:if test="not(@minOccurs)">1</xsl:if>-<xsl:if test="@maxOccurs"><xsl:value-of select="@maxOccurs"/></xsl:if><xsl:if test="not(@maxOccurs)">1</xsl:if>]</span>
         </xsl:if>
       </xsl:element>
     </xsl:if>
@@ -411,30 +412,34 @@
     <br/>
     <span class="attribute"><xsl:value-of select="@name"/></span>
     <xsl:if test="@use='required'">
-      <span> [required]</span><xsl:text> </xsl:text>
+      <span class="occurance"> [required]</span><xsl:text> </xsl:text>
     </xsl:if>
     <xsl:if test="@use!='required'">
-      <span> [optional]</span><xsl:text> </xsl:text>
+      <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
     </xsl:if>
     (Type: <span class="type"><xsl:value-of select="@type"/></span>)
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source='doxygen'">
-      <div class="classdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
+      <xsl:if test="@source='doxygen'">
+        <div class="classdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+      </xsl:if>
+      <xsl:apply-templates mode="CLONEDOC"/>
     </xsl:if>
-    <xsl:apply-templates mode="CLONEDOC"/>
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source='doxygen'">
-      <div class="elementdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
+      <xsl:if test="@source='doxygen'">
+        <div class="elementdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
+      </xsl:if>
+      <div class="elementdocu">
+        <xsl:apply-templates mode="CLONEDOC"/>
+      </div>
     </xsl:if>
-    <div class="elementdocu">
-      <xsl:apply-templates mode="CLONEDOC"/>
-    </div>
   </xsl:template>
 
   <!-- clone doxygen xml/html part -->
