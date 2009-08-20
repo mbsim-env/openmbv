@@ -56,6 +56,7 @@ echo "  Out file: $BASENAME.html"
 @XSLTPROC@ --output $BASENAME.html \
   --param PROJECT "'$PROJECT'" \
   --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
+  --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit
 echo "DONE"
 
@@ -113,6 +114,7 @@ echo "  Out file: $BASENAME.tex"
 @XSLTPROC@ --output $BASENAME.tex \
   --param PROJECT "'$PROJECT'" \
   --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
+  --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit
 echo "DONE"
 
