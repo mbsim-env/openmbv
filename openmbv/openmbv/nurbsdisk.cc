@@ -18,8 +18,10 @@
 */
 
 #include "config.h"
+
 #include "nurbsdisk.h"
 #include "mainwindow.h"
+
 #include <Inventor/nodes/SoMaterial.h>
 
 using namespace std;
@@ -134,11 +136,6 @@ double NurbsDisk::update() {
     pointData[nurbsLength+(nj)*2*drawDegree+i][2]=pointtmp[2]+DiskPosition[2];
   }
 
-  //cerr << "pointData = " << endl;
-  //for(int i=0;i<nurbsLength+nj*drawDegree*4;i++) {
-  //  for(int j=0;j<3;j++) cerr << pointData[i][j] << " ";
-  //  cerr << endl;
-  //}
   controlPts->point.setValues(0, nurbsLength*3+4*3*nj*drawDegree,pointData);
 
   // surface
@@ -159,7 +156,7 @@ double NurbsDisk::update() {
   surface->coordIndex.setValues(0,nurbsLength,nurbsIndices);
 
   // faces for primitive closure
-  int faceValues[(nj*drawDegree)*4*5];
+  int faceValues[(nj*drawDegree)*3*5];
   for(int j=0;j<3;j++) { // inner ring up-down ; circle - hollow down ; outer down-up  
     for(int i=0;i<(nj*drawDegree-1);i++) { 
       faceValues[j*nj*drawDegree*5+i*5+0]=nurbsLength+(nj*drawDegree)*(j)+i;
@@ -176,22 +173,8 @@ double NurbsDisk::update() {
     faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+3]=nurbsLength+(nj*drawDegree)*(j+1)+(nj*drawDegree-1);
     faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+4]=-1;
   }
-  for(int i=0;i<(nj*drawDegree-1);i++) {
-      faceValues[3*nj*drawDegree*5+i*5+0]=nurbsLength+(nj*drawDegree)*(0)+i;
-      faceValues[3*nj*drawDegree*5+i*5+1]=nurbsLength+(nj*drawDegree)*(0)+i+1;
-      faceValues[3*nj*drawDegree*5+i*5+2]=nurbsLength+(nj*drawDegree)*(2)+i+1;
-      faceValues[3*nj*drawDegree*5+i*5+3]=nurbsLength+(nj*drawDegree)*(2)+i;
-      faceValues[3*nj*drawDegree*5+i*5+4]=-1;
-  }
-    faceValues[3*nj*drawDegree*5+(nj*drawDegree-1)*5+0]=nurbsLength+(nj*drawDegree)*(0)+(nj*drawDegree-1);
-    faceValues[3*nj*drawDegree*5+(nj*drawDegree-1)*5+1]=nurbsLength+(nj*drawDegree)*(0);
-    faceValues[3*nj*drawDegree*5+(nj*drawDegree-1)*5+2]=nurbsLength+(nj*drawDegree)*(2);
-    faceValues[3*nj*drawDegree*5+(nj*drawDegree-1)*5+3]=nurbsLength+(nj*drawDegree)*(2)+(nj*drawDegree-1);
-    faceValues[3*nj*drawDegree*5+(nj*drawDegree-1)*5+4]=-1;
 
-  //cerr << "faceValues = " << endl;
-  //for(int i=0;i<(nj*drawDegree)*3*5;i++) cerr << faceValues[i] << endl;
-  faceSet->coordIndex.setValues(0,(nj*drawDegree)*4*5,faceValues);
+  faceSet->coordIndex.setValues(0,(nj*drawDegree)*3*5,faceValues);
 
   return data[0];
 }
