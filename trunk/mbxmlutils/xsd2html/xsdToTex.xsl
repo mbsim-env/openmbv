@@ -38,6 +38,7 @@
 \usepackage{bold-extra}
 \usepackage{longtable}
 \usepackage{tabularx}
+\usepackage{titlesec}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
 
@@ -52,6 +53,17 @@
 \setlength{\headsep}{8mm}
 \setlength{\textheight}{235.5mm}
 \setlength{\footskip}{13mm}
+
+\titleformat{\section}[hang]{\Large\bf}{\thesection}{1em}{}
+\titleformat{\subsection}[hang]{\Large\bf}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[hang]{\Large\bf}{\thesubsubsection}{1em}{}
+\titleformat{\paragraph}[hang]{\Large\bf}{\theparagraph}{1em}{}
+\titleformat{\subparagraph}[hang]{\Large\bf}{\thesubparagraph}{1em}{}
+\titlespacing*{\section}{0ex}{12ex}{1ex}
+\titlespacing*{\subsection}{0ex}{12ex}{1ex}
+\titlespacing*{\subsubsection}{0ex}{12ex}{1ex}
+\titlespacing*{\paragraph}{0ex}{12ex}{1ex}
+\titlespacing*{\subparagraph}{0ex}{12ex}{1ex}
 
 \setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
