@@ -15,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+   */
 
 #include "config.h"
 
@@ -59,6 +59,8 @@ NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   e=element->FirstChildElement(OPENMBVNS"knotVecRadial");
   knotVecRadial=toVector(e->GetText());  
 
+  nurbsLength = (nr+1)*(nj+degAzimuthal);
+
   // create so
   // material
   SoMaterial *mat=new SoMaterial;
@@ -67,14 +69,89 @@ NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // body
+  // points
   controlPts = new SoCoordinate3;
   soSep->addChild(controlPts);
 
+  // nurbs
   surface=new SoIndexedNurbsSurface;
   soSep->addChild(surface);
 
+  //surface->numVControlPoints = 4;
+  //surface->numUControlPoints = 4;
+
+  surface->numVControlPoints = nr+1;
+  surface->numUControlPoints = nj+degAzimuthal;
+
+  // IN COMMENTS: BEZIER SURFACE FOR TEST
+  //surface->vKnotVector.setNum(8);
+  //float* knotVecRadial_ = surface->vKnotVector.startEditing();
+  //for(int i=0;i<4;i++) knotVecRadial_[i]=0.;
+  //for(int i=4;i<8;i++) knotVecRadial_[i]=1.;
+  //surface->vKnotVector.finishEditing();
+  //surface->vKnotVector.setDefault(FALSE);
+
+  surface->vKnotVector.setNum(nr+1+degRadial+1);
+  float* knotVecRadial_ = surface->vKnotVector.startEditing();
+  for(int i=0;i<nr+1+degRadial+1;i++) 
+    knotVecRadial_[i]=knotVecRadial[i];
+  surface->vKnotVector.finishEditing();
+  surface->vKnotVector.setDefault(FALSE);
+
+  //surface->uKnotVector.setNum(8);
+  //float* knotVecAzimuthal_ = surface->uKnotVector.startEditing();
+  //for(int i=0;i<4;i++) knotVecAzimuthal_[i]=0.;
+  //for(int i=4;i<8;i++) knotVecAzimuthal_[i]=1.;
+  //surface->uKnotVector.finishEditing();
+  //surface->uKnotVector.setDefault(FALSE);
+
+  surface->uKnotVector.setNum(nj+1+2*degAzimuthal);
+  float* knotVecAzimuthal_ = surface->uKnotVector.startEditing();
+  for(int i=0;i<nj+1+2*degAzimuthal;i++) 
+    knotVecAzimuthal_[i]=knotVecAzimuthal[i];
+  surface->uKnotVector.finishEditing();
+  surface->uKnotVector.setDefault(FALSE);
+
+  //surface->coordIndex.setNum(16);
+  //int32_t *nurbsIndices = surface->coordIndex.startEditing();
+  //for(int i=0;i<4;i++) 
+  //  for(int j=0;j<4;j++) 
+  //    nurbsIndices[i*4+j]=i*4+j;
+  //surface->coordIndex.finishEditing();
+  //surface->coordIndex.setDefault(FALSE);
+
+  surface->coordIndex.setNum(nurbsLength);
+  int32_t *nurbsIndices = surface->coordIndex.startEditing();
+  for(int i=0;i<(nr+1);i++) 
+    for(int j=0;j<(nj+degAzimuthal);j++) 
+      nurbsIndices[i*(nj+degAzimuthal)+j]=(i+1)*(nj+degAzimuthal)-1-j;
+  surface->coordIndex.finishEditing();
+  surface->coordIndex.setDefault(FALSE);
+
+  //controlPts->point.setNum(16);
+  //SbVec3f *pointData = controlPts->point.startEditing();
+  //pointData[0][0]  =-4.5; pointData[0][1]  =-2.0; pointData[0][2]  = 8.0;
+  //pointData[1][0]  =-2.0; pointData[1][1]  = 1.0; pointData[1][2]  = 8.0;
+  //pointData[2][0]  = 2.0; pointData[2][1]  =-3.0; pointData[2][2]  = 6.0;
+  //pointData[3][0]  = 5.0; pointData[3][1]  =-1.0; pointData[3][2]  = 8.0;
+  //pointData[4][0]  =-3.0; pointData[4][1]  = 3.0; pointData[4][2]  = 4.0;
+  //pointData[5][0]  = 0.0; pointData[5][1]  =-1.0; pointData[5][2]  = 4.0;
+  //pointData[6][0]  = 1.0; pointData[6][1]  =-1.0; pointData[6][2]  = 4.0;
+  //pointData[7][0]  = 3.0; pointData[7][1]  = 2.0; pointData[7][2]  = 4.0;
+  //pointData[8][0]  =-5.0; pointData[8][1]  =-2.0; pointData[8][2]  =-2.0;
+  //pointData[9][0]  =-2.0; pointData[9][1]  =-4.0; pointData[9][2]  =-2.0;
+  //pointData[10][0] = 2.0; pointData[10][1] =-1.0; pointData[10][2] =-2.0;
+  //pointData[11][0] = 5.0; pointData[11][1] = 0.0; pointData[11][2] =-2.0;
+  //pointData[12][0] =-4.5; pointData[12][1] = 2.0; pointData[12][2] =-6.0;
+  //pointData[13][0] =-2.0; pointData[13][1] =-4.0; pointData[13][2] =-5.0;
+  //pointData[14][0] = 2.0; pointData[14][1] = 3.0; pointData[14][2] =-5.0;
+  //pointData[15][0] = 4.5; pointData[15][1] =-2.0; pointData[15][2] =-6.0;
+  //controlPts->point.finishEditing();
+  //controlPts->point.setDefault(FALSE);
+
+  // faces
   faceSet=new SoIndexedFaceSet;
-  soSep->addChild(faceSet);
+  soSep->addChild(faceSet);  
 }
 
 QString NurbsDisk::getInfo() {
@@ -88,8 +165,8 @@ double NurbsDisk::update() {
   std::vector<double> data=h5Data->getRow(frame);
 
   // set points
-  int nurbsLength = (nr+1)*(nj+degAzimuthal);
-  float pointData[nurbsLength+nj*drawDegree*4][3]; 
+  controlPts->point.setNum(nurbsLength+nj*drawDegree*4);
+  SbVec3f *pointData = controlPts->point.startEditing();
   for(int i=0;i<nurbsLength+nj*drawDegree;i++) {  // control points + visualisation points of the inner ring
     pointData[i][0]=data[i*3+1];
     pointData[i][1]=data[i*3+2];
@@ -102,7 +179,7 @@ double NurbsDisk::update() {
     pointData[i+2*nj*drawDegree][2]=data[i*3+3];
   }
 
-  // vector of the position of the disk
+  // vector of the position of the disk (midpoint of base circle, not midplane!)
   float DiskPosition[3];
   for(int i=0;i<3;i++) DiskPosition[i]=data[1+nurbsLength*3+2*nj*drawDegree*3+i];
 
@@ -135,28 +212,12 @@ double NurbsDisk::update() {
     pointData[nurbsLength+(nj)*2*drawDegree+i][1]=pointtmp[1]+DiskPosition[1];
     pointData[nurbsLength+(nj)*2*drawDegree+i][2]=pointtmp[2]+DiskPosition[2];
   }
+  controlPts->point.finishEditing();
+  controlPts->point.setDefault(FALSE);
 
-  controlPts->point.setValues(0, nurbsLength*3+4*3*nj*drawDegree,pointData);
-
-  // surface
-  float knotVecRadial_[nr+1+degRadial+1];
-  float knotVecAzimuthal_[nj+1+2*degAzimuthal];
-  for(int i=0;i<nr+1+degRadial+1;i++) knotVecRadial_[i]=knotVecRadial[i];
-  for(int i=0;i<nj+1+2*degAzimuthal;i++) knotVecAzimuthal_[i]=knotVecAzimuthal[i];
-
-  surface->numVControlPoints = nr+1;
-  surface->numUControlPoints = nj+degAzimuthal;
-  surface->vKnotVector.setValues(0, nr+1+degRadial+1, knotVecRadial_);
-  surface->uKnotVector.setValues(0, nj+1+2*degAzimuthal, knotVecAzimuthal_);
-
-  int nurbsIndices[nurbsLength];
-  for(int i=0;i<(nr+1);i++) 
-    for(int j=0;j<(nj+degAzimuthal);j++) 
-      nurbsIndices[i*(nj+degAzimuthal)+j]=(i+1)*(nj+degAzimuthal)-1-j;
-  surface->coordIndex.setValues(0,nurbsLength,nurbsIndices);
-
-  // faces for primitive closure
-  int faceValues[(nj*drawDegree)*3*5];
+  // faces
+  faceSet->coordIndex.setNum((nj*drawDegree)*3*5);
+  int32_t *faceValues = faceSet->coordIndex.startEditing();
   for(int j=0;j<3;j++) { // inner ring up-down ; circle - hollow down ; outer down-up  
     for(int i=0;i<(nj*drawDegree-1);i++) { 
       faceValues[j*nj*drawDegree*5+i*5+0]=nurbsLength+(nj*drawDegree)*(j)+i;
@@ -173,9 +234,8 @@ double NurbsDisk::update() {
     faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+3]=nurbsLength+(nj*drawDegree)*(j+1)+(nj*drawDegree-1);
     faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+4]=-1;
   }
-
-  faceSet->coordIndex.setValues(0,(nj*drawDegree)*3*5,faceValues);
-
+  faceSet->coordIndex.finishEditing();
+  faceSet->coordIndex.setDefault(FALSE);
   return data[0];
 }
 
