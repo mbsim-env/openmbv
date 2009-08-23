@@ -69,6 +69,9 @@ class NurbsDisk : public DynamicColoredBody {
     /** inner and outer radius */
     float innerRadius, outerRadius;
 
+    /** number of nurbs control points */
+    int nurbsLength;
+
     /** NURBS surface */
     SoIndexedNurbsSurface *surface;
 
