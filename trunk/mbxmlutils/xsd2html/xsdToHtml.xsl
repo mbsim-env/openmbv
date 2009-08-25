@@ -64,7 +64,7 @@
       <li><a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
       <li>Elements
         <ol class="content">
-          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
             <xsl:with-param name="LEVEL" select="0"/>
             <xsl:sort select="@name"/>
           </xsl:apply-templates>
@@ -132,7 +132,7 @@
     <p>A indent indicates child elements for a given element.</p>
 
     <h2>Elements</h2>
-    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
       <xsl:with-param name="LEVEL" select="0"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>

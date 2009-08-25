@@ -143,7 +143,7 @@ Sequences and choices can be nested like above.
 A indent indicates child elements for a given element.
 
 \chapter{Elements}
-    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
       <xsl:with-param name="LEVEL" select="0"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>

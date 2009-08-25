@@ -31,7 +31,7 @@ echo "Combine Doxygen XML documentation"
 echo "  In file: $DOXYGENDOCDIR/index.xml"
 echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
 echo "  Out file: .$PROJECT.doxygen.xml"
-@XSLTPROC@ --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit
+@XSLTPROC@ --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
 echo "DONE"
 
 echo "Add Doxygen class and element function documentation to XML Schema"
@@ -43,7 +43,7 @@ echo "  Out file: $BASENAME.doxygen.xsd"
   --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
   --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
   --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
-  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit
+  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
 echo "DONE"
 
 
@@ -57,12 +57,12 @@ echo "  Out file: $BASENAME.html"
   --param PROJECT "'$PROJECT'" \
   --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
-  @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit
+  @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  cp -f $D/*.png .
+  ls $D/*.png >2 /dev/null && cp -f $D/*.png .
 done
 
 echo "Export equations"
@@ -105,7 +105,7 @@ echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
 sed -re "s|<( *meta( *[a-zA-Z_0-9-]+ *= *\"[^\"]*\")* *)>|<\1/>|g;s|< */ *meta *>||g" $BASENAME.html > $BASENAME.html.sed
 rm -f $BASENAME.html
 mv $BASENAME.html.sed $BASENAME.html
-@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.html || exit
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.html || exit 1
 
 echo "Generate LaTeX documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
@@ -115,18 +115,18 @@ echo "  Out file: $BASENAME.tex"
   --param PROJECT "'$PROJECT'" \
   --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
-  @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit
+  @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
 echo "Copy *.eps"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  cp -f $D/*.eps .
+  ls $D/*.eps >2 /dev/null && cp -f $D/*.eps .
 done
 
 echo "Generate LaTeX-PS documentation"
 echo "  In file: $BASENAME.tex"
 echo "  Out file: $BASENAME.ps"
-latex -interaction errorstopmode $BASENAME.tex || exit
+latex -interaction errorstopmode $BASENAME.tex || exit 1
 latex $BASENAME.tex
 latex $BASENAME.tex
-dvips -o $BASENAME.ps $BASENAME.dvi || exit
+dvips -o $BASENAME.ps $BASENAME.dvi || exit 1
