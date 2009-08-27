@@ -170,7 +170,7 @@
     <xsl:param name="NAME" select="@name"/>
     <xsl:apply-templates mode="CLASS" select=".">
       <xsl:with-param name="LEVEL" select="$LEVEL"/>
-      <xsl:with-param name="LEVELNR" select="$LEVELNR"/>
+      <xsl:with-param name="TITLENR" select="concat($LEVELNR,'.',position())"/>
     </xsl:apply-templates>
     <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
       <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
@@ -182,13 +182,13 @@
   <!-- class -->
   <xsl:template mode="CLASS" match="/xs:schema/xs:element">
     <xsl:param name="LEVEL"/>
-    <xsl:param name="LEVELNR"/>
+    <xsl:param name="TITLENR"/>
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
     <xsl:element name="{concat('h',$LEVEL+3)}">
       <xsl:attribute name="class">element</xsl:attribute>
-      <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
+      <xsl:value-of select="$TITLENR"/>
       <xsl:text> </xsl:text>
       <a>
         <xsl:attribute name="name">
