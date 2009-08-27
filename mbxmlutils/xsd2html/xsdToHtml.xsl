@@ -39,7 +39,7 @@
         object.latexfigure { }
 
         h2,h3,h4,h5,h6,h7,h8,h9 { margin-top:10ex;margin;font-size:14pt }
-        ol.content { padding-left:3ex }
+        ul.content { padding-left:3ex;list-style-type:none }
         span.occurance { font-style:italic }
 
         *.element { font-family:monospace;font-weight:bold }
@@ -59,21 +59,22 @@
     <body>
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <h2>Contents</h2>
-    <ol class="content">
-      <li><a name="content-introduction" href="#introduction">Introduction</a></li>
-      <li><a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
-      <li>Elements
-        <ol class="content">
+    <ul class="content">
+      <li>1 <a name="content-introduction" href="#introduction">Introduction</a></li>
+      <li>2 <a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
+      <li>3 Elements
+        <ul class="content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
             <xsl:with-param name="LEVEL" select="0"/>
+            <xsl:with-param name="LEVELNR" select="'3'"/>
             <xsl:sort select="@name"/>
           </xsl:apply-templates>
-        </ol>
+        </ul>
       </li>
-    </ol>
-    <h2><a name="introduction" href="#content-introduction">Introduction:</a></h2>
+    </ul>
+    <h2>1 <a name="introduction" href="#content-introduction">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
-    <h2><a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
+    <h2>2 <a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
     <h3>A element:</h3>
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
@@ -131,9 +132,10 @@
     </ul>
     <p>A indent indicates child elements for a given element.</p>
 
-    <h2>Elements</h2>
+    <h2>3 Elements</h2>
     <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
       <xsl:with-param name="LEVEL" select="0"/>
+      <xsl:with-param name="LEVELNR" select="'3'"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
     </body></html>
@@ -142,17 +144,21 @@
   <!-- generate contents -->
   <xsl:template mode="CONTENT" match="/xs:schema/xs:element">
     <xsl:param name="LEVEL"/>
+    <xsl:param name="LEVELNR"/>
     <xsl:param name="NAME" select="@name"/>
     <li>
+      <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
+      <xsl:text> </xsl:text>
       <a class="element"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
         <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>&lt;<xsl:value-of select="@name"/>&gt;</a>
       <xsl:if test="/xs:schema/xs:element[@substitutionGroup=$NAME]">
-        <ol class="content">
+        <ul class="content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
             <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
+            <xsl:with-param name="LEVELNR" select="concat($LEVELNR,'.',position())"/>
             <xsl:sort select="@name"/>
           </xsl:apply-templates>
-        </ol>
+        </ul>
       </xsl:if>
     </li>
   </xsl:template>
@@ -160,12 +166,15 @@
   <!-- walk throw all elements -->
   <xsl:template mode="WALKCLASS" match="/xs:schema/xs:element">
     <xsl:param name="LEVEL"/>
+    <xsl:param name="LEVELNR"/>
     <xsl:param name="NAME" select="@name"/>
     <xsl:apply-templates mode="CLASS" select=".">
       <xsl:with-param name="LEVEL" select="$LEVEL"/>
+      <xsl:with-param name="LEVELNR" select="$LEVELNR"/>
     </xsl:apply-templates>
     <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
       <xsl:with-param name="LEVEL" select="$LEVEL+1"/>
+      <xsl:with-param name="LEVELNR" select="concat($LEVELNR,'.',position())"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
   </xsl:template>
@@ -173,11 +182,14 @@
   <!-- class -->
   <xsl:template mode="CLASS" match="/xs:schema/xs:element">
     <xsl:param name="LEVEL"/>
+    <xsl:param name="LEVELNR"/>
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
     <xsl:element name="{concat('h',$LEVEL+3)}">
       <xsl:attribute name="class">element</xsl:attribute>
+      <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
+      <xsl:text> </xsl:text>
       <a>
         <xsl:attribute name="name">
           <xsl:value-of select="@name"/>
