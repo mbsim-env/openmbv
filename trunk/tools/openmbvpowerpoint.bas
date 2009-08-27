@@ -4,10 +4,14 @@
 ' object.
 '
 ' 1. Import this Visual-Basic-Script in MS Powerpoint
-' 2. Change the path to 'openmbv.exe'. See the line after 'EDIT!!! OpenMBV-PATH'
-' 3. Change or duplicate the 'OpenMBV_path1' subroutine for each instance of OpenMBV
-'    and change the OpenMBV parameters. See the line after 'EDIT!!! *.ombv.xml PATH'
-' 4. Set the Powerpoint 'User Action' of the object on click to the macro 'OpenMBV_path1'
+' 2. Change the path to 'openmbv.exe'. See the line after
+'    'EDIT!!! OpenMBV-PATH'
+' 3. Change or duplicate the 'OpenMBV_path1' subroutine for each instance of
+'    OpenMBV and change the OpenMBV parameters. See the line after
+'    'EDIT!!! *.ombv.xml PATH'
+' 4. Set the Powerpoint 'User Action' of the object on click to the macro
+'    'OpenMBV_path1'
+' 5. Run/Load the Add-In file "AutoEvents.ppa" before the presentation
 
 Type RECT
   x1 As Long
@@ -16,9 +20,41 @@ Type RECT
   y2 As Long
 End Type
 
-Declare Function GetDesktopWindow Lib "User32" () As Long
-Declare Function GetWindowRect Lib "User32" (ByVal hWnd As Long, rectangle As RECT) As Long
-          
+Declare Function GetDesktopWindow Lib "user32" () As Long
+Declare Function GetWindowRect Lib "user32" (ByVal hWnd As Long, _
+  rectangle As RECT) As Long
+
+Dim handleW1 As Long
+
+Declare Function FindWindowA Lib "user32" (ByVal lpClassName As String, _
+  ByVal lpWindowName As String) As Long
+
+Declare Function SetWindowPos Lib "user32" (ByVal handleW1 As Long, _
+  ByVal handleW1InsertWhere As Long, ByVal w As Long, ByVal x As Long, _
+  ByVal y As Long, ByVal z As Long, ByVal wFlags As Long) As Long
+
+Const TOGGLE_HIDEWINDOW = &H80
+Const TOGGLE_UNHIDEWINDOW = &H40
+
+Function HideTaskbar()
+  handleW1 = FindWindowA("Shell_traywnd", "")
+  Call SetWindowPos(handleW1, 0, 0, 0, 0, 0, TOGGLE_HIDEWINDOW)
+End Function
+
+Function UnhideTaskbar()
+  Call SetWindowPos(handleW1, 0, 0, 0, 0, 0, TOGGLE_UNHIDEWINDOW)
+End Function
+
+Sub Auto_ShowBegin()
+  Call HideTaskbar
+End Sub
+Sub Auto_ShowEnd()
+  Call UnhideTaskbar
+End Sub
+
+
+
+
 Sub OpenMBV(para As String, objShape As Shape)
   ' display resulution
   Dim R As RECT
