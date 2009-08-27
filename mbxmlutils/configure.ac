@@ -59,6 +59,7 @@ AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 if test "_$host_os" = "_mingw32" ; then
+  mkdir -p $SCHEMADIR $XMLDIR $OCTAVEDIR
   SCHEMADIR=$(dirtowin $SCHEMADIR)
   XMLDIR=$(dirtowin $XMLDIR)
   OCTAVEDIR=$(dirtowin $OCTAVEDIR)
