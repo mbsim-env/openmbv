@@ -68,7 +68,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     // register callback function on frame change
     SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
     sensor->attach(MainWindow::getInstance()->getFrame());
-    //sensor->setPriority(0);
+    sensor->setPriority(0); // is needed for png export
   }
 
   // switch for outline
