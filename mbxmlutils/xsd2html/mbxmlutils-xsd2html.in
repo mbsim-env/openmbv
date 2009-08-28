@@ -60,6 +60,11 @@ echo "  Out file: $BASENAME.html"
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
+echo "Validate generated HTML documentation"
+echo "  In file: $BASENAME.html"
+echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.html || exit 1
+
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
   ls $D/*.png >2 /dev/null && cp -f $D/*.png .
@@ -71,6 +76,7 @@ echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
 echo "  Out file: equation.txt"
 @XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.doxygen.xsd
 
+# Generating equation
 L=1
 while [ $L -le $(cat equation.txt | wc -l) ]; do
   LINE="$(sed -rne "${L}p" equation.txt)"
@@ -97,15 +103,6 @@ done
 
 
 
-
-echo "Validate generated HTML documentation"
-echo "  In file: $BASENAME.html"
-echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
-# close meta elements if this is not done by the XSLT (this is a workaround for non xhtml aware xslt)
-sed -re "s|<( *meta( *[a-zA-Z_0-9-]+ *= *\"[^\"]*\")* *)>|<\1/>|g;s|< */ *meta *>||g" $BASENAME.html > $BASENAME.html.sed
-rm -f $BASENAME.html
-mv $BASENAME.html.sed $BASENAME.html
-@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.html || exit 1
 
 echo "Generate LaTeX documentation"
 echo "  In file: $BASENAME.doxygen.xsd"

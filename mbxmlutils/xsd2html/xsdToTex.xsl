@@ -410,24 +410,58 @@ A indent indicates child elements for a given element.
     <xsl:copy/>
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:div[@class='para']"><xsl:text>
+  <xsl:template mode="CLONEDOC" match="html:div[@class='para']|html:p"><xsl:text>
 
     </xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>
 
   </xsl:text></xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:br">
+   \\
+  </xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:dl">
     \begin{description}
       <xsl:apply-templates mode="CLONEDOC"/>
     \end{description}
   </xsl:template>
-
   <xsl:template mode="CLONEDOC" match="html:dt">
     \item[<xsl:value-of select="."/>]
   </xsl:template>
-
   <xsl:template mode="CLONEDOC" match="html:dd">
     <xsl:apply-templates mode="CLONEDOC"/>
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:ul">
+    \begin{itemize}
+      <xsl:apply-templates mode="CLONEDOC"/>
+    \end{itemize}
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:li">
+    \item
+    <xsl:apply-templates mode="CLONEDOC"/>
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:ol">
+    \begin{enumerate}
+      <xsl:apply-templates mode="CLONEDOC"/>
+    \end{enumerate}
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:li">
+    \item
+    <xsl:apply-templates mode="CLONEDOC"/>
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:b">
+    \textbf{<xsl:apply-templates mode="CLONEDOC"/>}
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:i">
+    \textit{<xsl:apply-templates mode="CLONEDOC"/>}
+  </xsl:template>
+
+  <xsl:template mode="CLONEDOC" match="html:tt">
+    \texttt{<xsl:apply-templates mode="CLONEDOC"/>}
   </xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:img[@class='eqn']|html:img[@class='inlineeqn']">
@@ -435,7 +469,6 @@ A indent indicates child elements for a given element.
   </xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:div[@class='htmlfigure']"/>
-
   <xsl:template mode="CLONEDOC" match="html:object[@class='latexfigure']">
     \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@title"/>\end{center}
   </xsl:template>
