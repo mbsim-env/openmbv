@@ -52,18 +52,18 @@ echo "DONE"
 echo "Generate HTML documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
-echo "  Out file: $BASENAME.html"
-@XSLTPROC@ --output $BASENAME.html \
+echo "  Out file: $BASENAME.xhtml"
+@XSLTPROC@ --output $BASENAME.xhtml \
   --param PROJECT "'$PROJECT'" \
-  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
+  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.xhtml'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
 echo "Validate generated HTML documentation"
-echo "  In file: $BASENAME.html"
+echo "  In file: $BASENAME.xhtml"
 echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
-@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.html || exit 1
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.xhtml || exit 1
 
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
@@ -110,7 +110,7 @@ echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
 echo "  Out file: $BASENAME.tex"
 @XSLTPROC@ --output $BASENAME.tex \
   --param PROJECT "'$PROJECT'" \
-  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.html'" \
+  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.xhtml'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
