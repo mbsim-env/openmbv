@@ -4,6 +4,9 @@
   xmlns:html="http://www.w3.org/1999/xhtml"
   version="1.0">
 
+  <!-- If changes in this file are made, then the analog changes must
+       be done in the file xstToHtml.xsl -->
+
   <xsl:param name="PROJECT"/>
   <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
@@ -39,6 +42,7 @@
 \usepackage{longtable}
 \usepackage{tabularx}
 \usepackage{titlesec}
+\usepackage[dvips]{hyperref}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
 
@@ -190,22 +194,21 @@ A indent indicates child elements for a given element.
       <!-- inherits -->
       Inherits: &amp;
       <xsl:if test="@substitutionGroup">
-        \textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@substitutionGroup"/></xsl:call-template>$&gt;$}}
-        (\ref{<xsl:value-of select="@substitutionGroup"/>}, p. \pageref{<xsl:value-of select="@substitutionGroup"/>})
+        \hyperref[<xsl:value-of select="@substitutionGroup"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@substitutionGroup"/></xsl:call-template>$&gt;$}}}
+        (\ref*{<xsl:value-of select="@substitutionGroup"/>}, p. \pageref*{<xsl:value-of select="@substitutionGroup"/>})
       </xsl:if>\\
       \hline
       <!-- inherited by -->
-      Inherited by: &amp;
-      <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0">
-        <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
-          <xsl:sort select="@name"/>\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}~(\ref{<xsl:value-of select="@name"/>},~p.~\pageref{<xsl:value-of select="@name"/>}),
-        </xsl:for-each>
-      </xsl:if>\\
+      Inherited by:
+      <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
+        <xsl:sort select="@name"/>&amp; \hyperref[<xsl:value-of select="@name"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="@name"/>},~p.~\pageref*{<xsl:value-of select="@name"/>}) \\
+      </xsl:for-each>
+      <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])=0"> &amp; \\</xsl:if>
       \hline
       <!-- used in -->
-      Can be used in: &amp;
+      <!--Can be used in: &amp;
       <xsl:apply-templates mode="USEDIN2" select="."/>\\
-      \hline
+      \hline-->
       <!-- class attributes -->
       Attributes: 
       <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
@@ -216,22 +219,21 @@ A indent indicates child elements for a given element.
     <!-- class documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
     <!-- child elements -->
-    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice"><xsl:text>
+    <xsl:text>
 
       Child Elements:
        
-      </xsl:text>
-      <!-- child elements for not base class -->
-      <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension">
+    </xsl:text>
+    <!-- child elements for not base class -->
+    <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension">
+      <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+    </xsl:apply-templates>
+    <!-- child elements for base class -->
+    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
+      <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+        <xsl:with-param name="FIRST" select="'true'"/>
       </xsl:apply-templates>
-      <!-- child elements for base class -->
-      <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-        <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-          <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
-          <xsl:with-param name="FIRST" select="'true'"/>
-        </xsl:apply-templates>
-      </xsl:if>
     </xsl:if>
   </xsl:template>
 
@@ -244,7 +246,7 @@ A indent indicates child elements for a given element.
   </xsl:template>
 
   <!-- used in -->
-  <xsl:template mode="USEDIN2" match="/xs:schema/xs:element">
+  <!--<xsl:template mode="USEDIN2" match="/xs:schema/xs:element">
     <xsl:param name="SUBSTGROUP" select="@substitutionGroup"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <xsl:apply-templates mode="USEDIN" select="/descendant::xs:element[@ref=$CLASSNAME]"/>
@@ -254,21 +256,19 @@ A indent indicates child elements for a given element.
     <xsl:apply-templates mode="USEDIN" select="ancestor::xs:complexType[last()]"/>
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
-    <xsl:param name="CLASSTYPE" select="@name"/>\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:call-template>$&gt;$}}~(\ref{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>},~p.~\pageref{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
-  </xsl:template>
+    <xsl:param name="CLASSTYPE" select="@name"/>\hyperref[<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
+  </xsl:template>-->
 
   <!-- child elements for not base class -->
   <xsl:template mode="CLASS" match="xs:extension">
     <xsl:param name="CLASSNAME"/>
-    <xsl:if test="xs:sequence|xs:choice">
-      <!-- elements from base class -->
-      All Elements from \textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:call-template>$&gt;$}}~(\ref{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>},~p.~\pageref{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
-      <!-- elements from this class -->
-      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
-        <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
-        <xsl:with-param name="FIRST" select="'true'"/>
-      </xsl:apply-templates>
-    </xsl:if>
+    <!-- elements from base class -->
+    All Elements from \hyperref[<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
+    <!-- elements from this class -->
+    <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
+      <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+      <xsl:with-param name="FIRST" select="'true'"/>
+    </xsl:apply-templates>
   </xsl:template>
 
 
@@ -340,8 +340,8 @@ A indent indicates child elements for a given element.
     <!-- name by not(ref) -->
     <xsl:if test="not(@ref)">\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}</xsl:if>
     <!-- name by ref -->
-    <xsl:if test="@ref">\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@ref"/></xsl:call-template>$&gt;$}}
-      (\ref{<xsl:value-of select="@ref"/>}, p. \pageref{<xsl:value-of select="@ref"/>})</xsl:if>
+    <xsl:if test="@ref">\hyperref[<xsl:value-of select="@ref"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@ref"/></xsl:call-template>$&gt;$}}}
+      (\ref*{<xsl:value-of select="@ref"/>}, p. \pageref*{<xsl:value-of select="@ref"/>})</xsl:if>
     <!-- occurence -->
     <xsl:apply-templates mode="OCCURANCE" select="."><xsl:with-param name="ELEMENTNAME" select="'span'"/></xsl:apply-templates>
     <!-- type -->

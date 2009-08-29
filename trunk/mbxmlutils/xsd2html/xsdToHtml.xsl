@@ -6,6 +6,9 @@
   xmlns="http://www.w3.org/1999/xhtml"
   version="1.0">
 
+  <!-- If changes in this file are made, then the analog changes must
+       be done in the file xstToTex.xsl -->
+
   <xsl:param name="PROJECT"/>
   <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
@@ -14,6 +17,7 @@
 
   <!-- output method -->
   <xsl:output method="xml"
+    encoding="UTF-8"
     doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
     doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
 
@@ -224,7 +228,7 @@
         </xsl:if>
       </td></tr>
       <!-- used in -->
-      <tr><td>Can be used in:</td><td><xsl:apply-templates mode="USEDIN2" select="."/></td></tr>
+      <!--<tr><td>Can be used in:</td><td><xsl:apply-templates mode="USEDIN2" select="."/></td></tr>-->
       <!-- class attributes -->
       <tr><td>Attributes:</td><td>
       <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
@@ -233,20 +237,18 @@
     <!-- class documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
     <!-- child elements -->
-    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-      <p>Child Elements:</p>
-      <!-- child elements for not base class -->
-      <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension">
-        <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
-      </xsl:apply-templates>
-      <!-- child elements for base class -->
-      <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-        <ul class="elementsofclass">
-          <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
-            <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
-          </xsl:apply-templates>
-        </ul>
-      </xsl:if>
+    <p>Child Elements:</p>
+    <!-- child elements for not base class -->
+    <xsl:apply-templates mode="CLASS" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension">
+      <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+    </xsl:apply-templates>
+    <!-- child elements for base class -->
+    <xsl:if test="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
+      <ul class="elementsofclass">
+        <xsl:apply-templates mode="SIMPLECONTENT" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:sequence|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:choice">
+          <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+        </xsl:apply-templates>
+      </ul>
     </xsl:if>
   </xsl:template>
 
@@ -269,7 +271,7 @@
   </xsl:template>
 
   <!-- used in -->
-  <xsl:template mode="USEDIN2" match="/xs:schema/xs:element">
+  <!--<xsl:template mode="USEDIN2" match="/xs:schema/xs:element">
       <xsl:param name="SUBSTGROUP" select="@substitutionGroup"/>
       <xsl:param name="CLASSNAME" select="@name"/>
       <xsl:apply-templates mode="USEDIN" select="/descendant::xs:element[@ref=$CLASSNAME]"/>
@@ -283,26 +285,24 @@
     <a class="element">
       <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:attribute>
       &lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
-  </xsl:template>
+  </xsl:template>-->
 
   <!-- child elements for not base class -->
   <xsl:template mode="CLASS" match="xs:extension">
     <xsl:param name="CLASSNAME"/>
-    <xsl:if test="xs:sequence|xs:choice">
-      <ul class="elementsofclass">
-        <!-- elements from base class -->
-        <li>
-          All Elements from 
-          <a class="element">
-            <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:attribute>
-            &lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
-        </li>
-        <!-- elements from this class -->
-        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
-          <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
-        </xsl:apply-templates>
-      </ul>
-    </xsl:if>
+    <ul class="elementsofclass">
+      <!-- elements from base class -->
+      <li>
+        All Elements from 
+        <a class="element">
+          <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:attribute>
+          &lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
+      </li>
+      <!-- elements from this class -->
+      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
+        <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
+      </xsl:apply-templates>
+    </ul>
   </xsl:template>
 
 
