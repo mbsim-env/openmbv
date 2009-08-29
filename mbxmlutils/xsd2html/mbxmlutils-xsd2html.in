@@ -124,6 +124,6 @@ echo "Generate LaTeX-PS documentation"
 echo "  In file: $BASENAME.tex"
 echo "  Out file: $BASENAME.ps"
 latex -interaction errorstopmode $BASENAME.tex || exit 1
-latex $BASENAME.tex
-latex $BASENAME.tex
+latex $BASENAME.tex >& /dev/null
+latex $BASENAME.tex >& /dev/null
 dvips -o $BASENAME.ps $BASENAME.dvi || exit 1
