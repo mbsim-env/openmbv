@@ -110,9 +110,9 @@ openmbv.qrc: openmbv.qrc.in_sed
 # END generate openmbv.qrc from openbv.qrc.myin
 
 # some dependencies for openmbv.qrc.cc
-openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.html
+openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.xhtml
 # generate dummy documentation if not exist
-../doc/openmbv.qt.html:
-	touch -r ../schema/schema/openmbv.xsd.in ../doc/openmbv.qt.html
-#../mbxmlutils/mbxmlutils/measurement.html:
-#	touch -r ../mbxmlutils/mbxmlutils/measurement.xml.in ../mbxmlutils/mbxmlutils/measurement.html
+../doc/openmbv.qt.xhtml:
+	touch -r ../schema/schema/openmbv.xsd.in ../doc/openmbv.qt.xhtml
+#../mbxmlutils/mbxmlutils/measurement.xhtml:
+#	touch -r ../mbxmlutils/mbxmlutils/measurement.xml.in ../mbxmlutils/mbxmlutils/measurement.xhtml

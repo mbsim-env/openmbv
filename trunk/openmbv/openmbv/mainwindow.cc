@@ -693,7 +693,7 @@ void MainWindow::xmlHelp() {
     connect(home, SIGNAL(clicked()), this, SLOT(helpHome()));
     connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
     connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
-    helpViewer->load(QUrl("qrc:openmbv.html"));
+    helpViewer->load(QUrl("qrc:openmbv.xhtml"));
   }
   helpDialog->show();
   helpDialog->raise();
@@ -702,7 +702,7 @@ void MainWindow::xmlHelp() {
 }
 
 void MainWindow::helpHome() {
-  helpViewer->load(QUrl("qrc:openmbv.html"));
+  helpViewer->load(QUrl("qrc:openmbv.xhtml"));
 }
 
 void MainWindow::aboutOpenMBV() {

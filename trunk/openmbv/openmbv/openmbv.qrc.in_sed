@@ -50,8 +50,8 @@
     <file>objbody.svg</file>
     <file>help.svg</file>
     <file>compoundrigidbody.svg</file>
-    <file alias="openmbv.html">../doc/openmbv.qt.html</file>
-<!--    <file alias="measurement.html">../mbxmlutils/mbxmlutils/measurement.html</file>-->
+    <file alias="openmbv.xhtml">../doc/openmbv.qt.xhtml</file>
+<!--    <file alias="measurement.xhtml">../mbxmlutils/mbxmlutils/measurement.xhtml</file>-->
     PNGFILESTOINCLUDE
   </qresource>
 </RCC>
