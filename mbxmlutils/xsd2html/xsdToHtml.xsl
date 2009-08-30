@@ -42,7 +42,7 @@
         img.htmlfigure { }
         object.latexfigure { }
 
-        h2,h3,h4,h5,h6,h7,h8,h9 { margin-top:10ex;margin;font-size:14pt }
+        h2,h3 { margin-top:10ex;margin;font-size:14pt }
         ul.content { padding-left:3ex;list-style-type:none }
         span.occurance { font-style:italic }
 
@@ -79,7 +79,7 @@
     <h2>1 <a name="introduction" href="#content-introduction">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
     <h2>2 <a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
-    <h3>A element:</h3>
+    <h3>2.1 A element:</h3>
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
     <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
@@ -89,7 +89,7 @@
     <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.<br/>
     The element has two attributes named <span class="attribute">attrName1</span> and <span class="attribute">attrName2</span> of type <span class="type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
-    <h3>A choice of element:</h3>
+    <h3>2.2 A choice of element:</h3>
     <ul class="elementchoice">
       <li class="elementchoicecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -97,7 +97,7 @@
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>A seqence of elements:</h3>
+    <h3>2.3 A seqence of elements:</h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[0-3]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -105,7 +105,7 @@
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>Nested sequences/choices:</h3>
+    <h3>2.4 Nested sequences/choices:</h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -119,7 +119,7 @@
       <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>Sequences and choices can be nested like above.</p>
-    <h3>Child Elements:</h3>
+    <h3>2.5 Child Elements:</h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ParantElemenet&gt;</span>
@@ -190,7 +190,7 @@
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    <xsl:element name="{concat('h',$LEVEL+3)}">
+    <xsl:element name="h3">
       <xsl:attribute name="class">element</xsl:attribute>
       <xsl:value-of select="$TITLENR"/>
       <xsl:text> </xsl:text>

@@ -53,7 +53,8 @@ This is the documentation of the definition of scalar, vector and matrix types w
 \label{scalartype}
 A scalar type can be of any unit defined in \hyperref[measurement]{measurements}.
 The type name of a scalar of measure length is \texttt{pv:lengthScalar} and so on.
-Where \texttt{pv} is mapped to the namespace-uri \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
+Where \texttt{pv} is mapped to the namespace-uri\\
+\texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a scalar type must be a text value. All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single scalar value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
 \begin{verbatim}
@@ -65,7 +66,8 @@ The content of a scalar type must be a text value. All parameters defined in the
 \label{vectortype}
 A vector type can be of any unit defined in \hyperref[measurement]{measurements}.
 The type name of a vector of measure length is \texttt{pv:lengthVector} and so on.
-Where \texttt{pv} is mapped to the namespace-uri \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
+Where \texttt{pv} is mapped to the namespace-uri\\
+\texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a vector type can be one of the following:
 \begin{itemize}
@@ -73,9 +75,11 @@ The content of a vector type can be one of the following:
     \begin{verbatim}
 &lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;
 &lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;
+    \end{verbatim}
   \item A XML representation of a vector: The following shows a example of such a XML representation.
     \begin{verbatim}
-&lt;myVectorElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myVectorElement
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
   &lt;pv:ele&gt;6.5&lt;/pv:ele&gt;
   &lt;pv:ele&gt;1.5&lt;/pv:ele&gt;
   &lt;pv:ele&gt;7.3&lt;/pv:ele&gt;
@@ -83,7 +87,8 @@ The content of a vector type can be one of the following:
     \end{verbatim}
   \item A reference to a ascii file: The following shows a example as a reference to the file vec.txt.
     \begin{verbatim}
-&lt;myVectorElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myVectorElement
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
   &lt;pv:asciiVectorRef href="vec.txt"/&gt;
 &lt;/myVectorElement&gt;
     \end{verbatim}
@@ -94,7 +99,8 @@ The file vec.txt is a simple ascii file containing one element of the vector per
 \label{matrixtype}
 A matrix type can be of any unit defined in \hyperref[measurement]{measurements}.
 The type name of a matrix of measure length is \texttt{pv:lengthMatrix} and so on.
-Where \texttt{pv} is mapped to the namespace-uri \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
+Where \texttt{pv} is mapped to the namespace-uri\\
+\texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a matrix type can be one of the following:
 \begin{itemize}
@@ -105,7 +111,8 @@ The content of a matrix type can be one of the following:
     \end{verbatim}
   \item A XML representation of a matrix: The following shows a example of such a XML representation.
     \begin{verbatim}
-&lt;myMatrixElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myMatrixElement
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
   &lt;pv:row&gt;
     &lt;pv:ele&gt;6.5&lt;/pv:ele&gt;
     &lt;pv:ele&gt;1.5&lt;/pv:ele&gt;
@@ -118,7 +125,8 @@ The content of a matrix type can be one of the following:
     \end{verbatim}
   \item A reference to a ascii file: The following shows a example as a reference to the file mat.txt.
     \begin{verbatim}
-&lt;myMatrixElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myMatrixElement
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
   &lt;pv:asciiMatrixRef href="mat.txt"/&gt;
 &lt;/myMatrixElement&gt;
     \end{verbatim}
