@@ -66,7 +66,7 @@ if test "_$host_os" = "_mingw32" ; then
   OCTAVE=$(filetowin $OCTAVE)
 fi
 
-AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils/measurement.xml mbxmlutils.pc mbxmlutils/env.h xsd2html/xhtml1-transitional.xsd])
+AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils.pc mbxmlutils/env.h xsd2html/xhtml1-transitional.xsd])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT
