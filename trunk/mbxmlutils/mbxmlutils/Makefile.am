@@ -4,7 +4,7 @@ docdir = @datadir@/@PACKAGE@/doc
 xmldir = @datadir@/@PACKAGE@/xml
 octavedir = @datadir@/@PACKAGE@/octave
 dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd
-dist_doc_DATA = measurement.xhtml measurement.ps
+dist_doc_DATA = measurement.xhtml
 dist_xml_DATA = measurement.xml
 dist_octave_DATA = evaluate.m
 
@@ -21,12 +21,12 @@ dist_octave_DATA = evaluate.m
 measurement.xhtml: measurement.xml measurementToHtml.xsl .measurement.xml.isvalid
 	@XSLTPROC@ --output measurement.xhtml measurementToHtml.xsl measurement.xml
 	@XMLLINT@ --noout --schema $(datadir)/$(PACKAGE)/schema/xhtml1-transitional.xsd measurement.xhtml || rm measurement.xhtml
-measurement.ps: measurement.xml measurementToHtml.xsl .measurement.xml.isvalid
+measurement.tex: measurement.xml measurementToTex.xsl .measurement.xml.isvalid
 	@XSLTPROC@ --output measurement.tex measurementToTex.xsl measurement.xml
-	latex -interaction errorstopmode measurement.tex
-	latex measurement.tex >& /dev/null
-	latex measurement.tex >& /dev/null
-	dvips -o measurement.ps measurement.dvi
+	latex -help >& /dev/null && latex -interaction errorstopmode measurement.tex || echo "Skip running LaTeX"
+	latex -help >& /dev/null && latex measurement.tex >& /dev/null || echo "Skip running LaTeX"
+	latex -help >& /dev/null && latex measurement.tex >& /dev/null || echo "Skip running LaTeX"
+	latex -help >& /dev/null && dvips -o measurement.ps measurement.dvi || echo "Skip running LaTeX"
 
 
 
@@ -36,7 +36,7 @@ physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurem
 
 
 
-CLEANFILES = .measurement.xml.isvalid measurement.xhtml measurement.ps physicalvariable.xsd
+CLEANFILES = .measurement.xml.isvalid measurement.xhtml measurement.tex physicalvariable.xsd
 
 
 
