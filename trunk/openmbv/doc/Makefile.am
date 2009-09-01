@@ -15,3 +15,5 @@ schemadir = @datadir@/@PACKAGE@/schema
 nodist_schema_DATA = openmbv.doxygen.xsd
 
 openmbv.doxygen.xsd: openmbv.xhtml
+
+CLEANFILES=openmbv.xhtml
