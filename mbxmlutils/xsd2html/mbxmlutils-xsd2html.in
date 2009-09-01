@@ -74,7 +74,7 @@ echo "Export equations"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
 echo "  Out file: equation.txt"
-@XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.doxygen.xsd
+@XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.doxygen.xsd || exit 1
 
 # Generating equation
 L=1
