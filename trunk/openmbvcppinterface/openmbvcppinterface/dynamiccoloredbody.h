@@ -29,6 +29,7 @@ namespace OpenMBV {
     protected:
       double minimalColorValue, maximalColorValue;
       double staticColor;
+      double dynamicColor;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
       DynamicColoredBody();
@@ -56,6 +57,14 @@ namespace OpenMBV {
        */
       void setStaticColor(const double col) {
         staticColor=col;
+      }
+
+      /** Set the color for the body dynamically.
+       * If this value is set, the color given to the append function
+       * (as last element of the data row) is overwritten with this value.
+       */
+      void setDynamicColor(const double col) {
+        dynamicColor=col;
       }
 
       /** Initializes the time invariant part of the object using a XML node */
