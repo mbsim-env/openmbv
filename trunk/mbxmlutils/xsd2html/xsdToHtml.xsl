@@ -65,8 +65,16 @@
     <h2>Contents</h2>
     <ul class="content">
       <li>1 <a name="content-introduction" href="#introduction">Introduction</a></li>
-      <li>2 <a name="content-nomenclature" href="#nomenclature">Nomenclature</a></li>
-      <li>3 Elements
+      <li>2 <a name="content-nomenclature" href="#nomenclature">Nomenclature</a>
+        <ul class="content">
+          <li>2.1 <a name="content-aelement" href="#aelement">A element</a></li>
+          <li>2.2 <a name="content-achoice" href="#achoice">A choice of element</a></li>
+          <li>2.3 <a name="content-asequence" href="#asequence">A sequence of elements</a></li>
+          <li>2.4 <a name="content-nested" href="#nested">Nested sequences/choices</a></li>
+          <li>2.5 <a name="content-childelements" href="#childelements">Child Elements</a></li>
+        </ul>
+      </li>
+      <li>3 <a name="content-elements" href="#elements">Elements</a>
         <ul class="content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
             <xsl:with-param name="LEVEL" select="0"/>
@@ -79,7 +87,7 @@
     <h2>1 <a name="introduction" href="#content-introduction">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
     <h2>2 <a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
-    <h3>2.1 A element:</h3>
+    <h3>2.1 <a name="aelement" href="#content-aelement">A element</a></h3>
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
     <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
@@ -89,7 +97,7 @@
     <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.<br/>
     The element has two attributes named <span class="attribute">attrName1</span> and <span class="attribute">attrName2</span> of type <span class="type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
-    <h3>2.2 A choice of element:</h3>
+    <h3>2.2 <a name="achoice" href="#content-achoice">A choice of element</a></h3>
     <ul class="elementchoice">
       <li class="elementchoicecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -97,7 +105,7 @@
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>2.3 A seqence of elements:</h3>
+    <h3>2.3 <a name="asequence" href="#content-asequence">A sequence of elements</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[0-3]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -105,7 +113,7 @@
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>2.4 Nested sequences/choices:</h3>
+    <h3>2.4 <a name="nested" href="#content-nested">Nested sequences/choices</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -119,7 +127,7 @@
       <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>Sequences and choices can be nested like above.</p>
-    <h3>2.5 Child Elements:</h3>
+    <h3>2.5 <a name="childelements" href="#content-childelements">Child Elements</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ParantElemenet&gt;</span>
@@ -136,7 +144,7 @@
     </ul>
     <p>A indent indicates child elements for a given element.</p>
 
-    <h2>3 Elements</h2>
+    <h2>3 <a name="elements" href="#content-elements">Elements</a></h2>
     <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
       <xsl:with-param name="LEVEL" select="0"/>
       <xsl:with-param name="LEVELNR" select="'3'"/>
@@ -190,7 +198,7 @@
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    <xsl:element name="h3">
+    <xsl:element name="h3"><!-- use h3 for all section headings independent of the LEVEL -->
       <xsl:attribute name="class">element</xsl:attribute>
       <xsl:value-of select="$TITLENR"/>
       <xsl:text> </xsl:text>

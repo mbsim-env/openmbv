@@ -30,7 +30,7 @@
   </xs:annotation>
 
   <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-      schemaLocation="@SCHEMADIR@/xml.xsd"/>
+    schemaLocation="xml.xsd"/>
 
   <xs:annotation>
     <xs:documentation>
