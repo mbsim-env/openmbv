@@ -22,6 +22,7 @@
 
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
+#include <cmath>
 
 namespace OpenMBV {
 
@@ -44,8 +45,9 @@ namespace OpenMBV {
       Arrow();
       
       /** Append the data \p row to the end of the dataset */
-      void append(const std::vector<double>& row) {
+      void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
 

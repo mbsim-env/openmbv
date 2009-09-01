@@ -27,7 +27,8 @@ using namespace OpenMBV;
 DynamicColoredBody::DynamicColoredBody() : Body(),
   minimalColorValue(0),
   maximalColorValue(1),
-  staticColor(nan("")) {
+  staticColor(nan("")),
+  dynamicColor(nan("")) {
 }
 
 DynamicColoredBody::~DynamicColoredBody() {}

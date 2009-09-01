@@ -115,7 +115,7 @@ namespace OpenMBV {
       /** Append a data vector the the h5 datsset */
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan(staticColor)) row[7]=staticColor;
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
 

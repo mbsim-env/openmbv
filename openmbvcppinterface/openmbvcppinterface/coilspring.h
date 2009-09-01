@@ -22,6 +22,7 @@
 
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
+#include <cmath>
 
 namespace OpenMBV {
 
@@ -34,8 +35,9 @@ namespace OpenMBV {
       double springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
     public:
       CoilSpring();
-      void append(const std::vector<double>& row) {
+      void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
       void setSpringRadius(double radius) { springRadius=radius; }
