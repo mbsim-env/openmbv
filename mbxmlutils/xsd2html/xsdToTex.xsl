@@ -11,16 +11,6 @@
   <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
 
-  <xsl:template name="CONUNDERSCORE">
-    <xsl:param name="V"/>
-    <xsl:if test="not(contains($V,'_'))">
-      <xsl:value-of select="$V"/>
-    </xsl:if>
-    <xsl:if test="contains($V,'_')">
-      <xsl:value-of select="concat(substring-before($V,'_'),'\_',substring-after($V,'_'))"/>
-    </xsl:if>
-  </xsl:template>
-
 
 
   <!-- output method -->
@@ -42,6 +32,7 @@
 \usepackage{longtable}
 \usepackage{tabularx}
 \usepackage{titlesec}
+\usepackage{listings}
 \usepackage[dvips]{hyperref}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
@@ -51,7 +42,7 @@
 \setlength{\oddsidemargin}{30mm}
 \setlength{\evensidemargin}{30mm}
 \setlength{\textwidth}{153mm}
-\setlength{\voffset}{-25.4mm}
+\setlength{\voffset}{-35mm}
 \setlength{\topmargin}{25mm}
 \setlength{\headheight}{5mm}
 \setlength{\headsep}{8mm}
@@ -85,24 +76,24 @@
 
 \section{A element}
 \begin{tabular}{l}
-  \textbf{\texttt{$&lt;$ElementName$&gt;$}} \textit{[0-2]} (Type: \texttt{elementType})\\
-  \hspace{2ex}\textbf{attrName1} \textit{[required]} (Type: \texttt{typeOfTheAttribute})\\
-  \hspace{2ex}\textbf{attrName2} \textit{[optional]} (Type: \texttt{typeOfTheAttribute})\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementName&gt;| \textit{[0-2]} (Type: \lstinline[basicstyle=\ttfamily]|elementType|)\\
+  \hspace{2ex}\lstinline[basicstyle=\bf\ttfamily]|attrName1| \textit{[required]} (Type: \lstinline[basicstyle=\ttfamily]|typeOfTheAttribute|)\\
+  \hspace{2ex}\lstinline[basicstyle=\bf\ttfamily]|attrName2| \textit{[optional]} (Type: \lstinline[basicstyle=\ttfamily]|typeOfTheAttribute|)\\
   \hspace{3ex}
   \begin{minipage}[b]{\linewidth}
     Documentation of the element.
   \end{minipage}
 \end{tabular}
 
-The upper nomenclature defines a XML element named \texttt{ElementName} with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type \texttt{elementType}.\\
+The upper nomenclature defines a XML element named \lstinline[basicstyle=\bf\ttfamily]|ElementName| with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type \lstinline[basicstyle=\ttfamily]|elementType|.\\
 A occurance of \textit{[optional]} means \textit{[0-1]}.\\
-The element has two attributes named \texttt{attrName1} and \texttt{attrName2} of type \texttt{typeOfTheAttribute}. A attribute can be optional or required.
+The element has two attributes named \lstinline[basicstyle=\bf\ttfamily]|attrName1| and \lstinline[basicstyle=\bf\ttfamily]|attrName2| of type \lstinline[basicstyle=\ttfamily]|typeOfTheAttribute|. A attribute can be optional or required.
 
 \section{A choice of elment}
 \begin{tabular}{!{\color{blue}\vline}@{\hspace{0.5pt}}l}
   {\color{blue}\textit{[1-2]}}\\
-  \textbf{\texttt{$&lt;$ElementA$&gt;$}}\\
-  \textbf{\texttt{$&lt;$ElementB$&gt;$}}\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementA&gt;|\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementB&gt;|\\
 \end{tabular}
 
 The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.\\
@@ -111,8 +102,8 @@ A occurance of \textit{[optional]} means \textit{[0-1]}.
 \section{A sequence of elments}
 \begin{tabular}{!{\color{red}\vline}@{\hspace{0.5pt}}l}
   {\color{red}\textit{[1-2]}}\\
-  \textbf{\texttt{$&lt;$ElementA$&gt;$}}\\
-  \textbf{\texttt{$&lt;$ElementB$&gt;$}}\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementA&gt;|\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementB&gt;|\\
 \end{tabular}
 
 The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.\\
@@ -121,13 +112,13 @@ A occurance of \textit{[optional]} means \textit{[0-1]}.
 \section{Nested sequences/choices}
 \begin{tabular}{!{\color{red}\vline}@{\hspace{0.5pt}}l}
   {\color{red}\textit{[1-2]}}\\
-  \textbf{\texttt{$&lt;$ElementA$&gt;$}}\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementA&gt;|\\
   \begin{tabular}{!{\color{blue}\vline}@{\hspace{0.5pt}}l}
     {\color{blue}\textit{[0-3]}}\\
-    \textbf{\texttt{$&lt;$ElementC$&gt;$}}\\
-    \textbf{\texttt{$&lt;$ElementD$&gt;$}}\\
+    \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementC&gt;|\\
+    \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementD&gt;|\\
   \end{tabular}\\
-  \textbf{\texttt{$&lt;$ElementB$&gt;$}}\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementB&gt;|\\
 \end{tabular}
 
 Sequences and choices can be nested like above.
@@ -135,12 +126,12 @@ Sequences and choices can be nested like above.
 \section{Child Elements}
 \begin{tabular}{!{\color{red}\vline}@{\hspace{0.5pt}}l}
   {\color{red}\textit{[1-2]}}\\
-  \textbf{\texttt{$&lt;$ParentElement$&gt;$}}\\
+  \lstinline[basicstyle=\bf\ttfamily]|&lt;ParentElement&gt;|\\
   \hspace{5ex}
   \begin{tabular}{!{\color{blue}\vline}@{\hspace{0.5pt}}l}
     {\color{blue}\textit{[0-3]}}\\
-    \textbf{\texttt{$&lt;$ChildElementA$&gt;$}}\\
-    \textbf{\texttt{$&lt;$ChildElementB$&gt;$}}\\
+    \lstinline[basicstyle=\bf\ttfamily]|&lt;ChildElementA&gt;|\\
+    \lstinline[basicstyle=\bf\ttfamily]|&lt;ChildElementB&gt;|\\
   \end{tabular}\\
 \end{tabular}
 
@@ -180,7 +171,7 @@ A indent indicates child elements for a given element.
       <xsl:when test='$LEVEL=2'>\subsubsection</xsl:when>
       <xsl:when test='$LEVEL=3'>\paragraph</xsl:when>
       <xsl:otherwise>\subparagraph</xsl:otherwise>
-    </xsl:choose>{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}}
+    </xsl:choose>{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|}
     \label{<xsl:value-of select="@name"/>}
     \makebox{}\\
     \setlength{\arrayrulewidth}{0.5pt}
@@ -194,14 +185,14 @@ A indent indicates child elements for a given element.
       <!-- inherits -->
       Inherits: &amp;
       <xsl:if test="@substitutionGroup">
-        \hyperref[<xsl:value-of select="@substitutionGroup"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@substitutionGroup"/></xsl:call-template>$&gt;$}}}
+        \hyperref[<xsl:value-of select="@substitutionGroup"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@substitutionGroup"/>&gt;|}
         (\ref*{<xsl:value-of select="@substitutionGroup"/>}, p. \pageref*{<xsl:value-of select="@substitutionGroup"/>})
       </xsl:if>\\
       \hline
       <!-- inherited by -->
       Inherited by:
       <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
-        <xsl:sort select="@name"/>&amp; \hyperref[<xsl:value-of select="@name"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="@name"/>},~p.~\pageref*{<xsl:value-of select="@name"/>}) \\
+        <xsl:sort select="@name"/>&amp; \hyperref[<xsl:value-of select="@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|}~(\ref*{<xsl:value-of select="@name"/>},~p.~\pageref*{<xsl:value-of select="@name"/>}) \\
       </xsl:for-each>
       <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])=0"> &amp; \\</xsl:if>
       \hline
@@ -239,10 +230,10 @@ A indent indicates child elements for a given element.
 
   <!-- class attributes -->
   <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
-    &amp; \textbf{\texttt{<xsl:value-of select="@name"/>}}
+    &amp; \lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
     <xsl:if test="@use='required'">\textit{[required]}</xsl:if>
     <xsl:if test="@use!='required'">\textit{[optional]}</xsl:if>
-    (Type: \texttt{<xsl:value-of select="@type"/>})\\
+    (Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)\\
   </xsl:template>
 
   <!-- used in -->
@@ -256,14 +247,14 @@ A indent indicates child elements for a given element.
     <xsl:apply-templates mode="USEDIN" select="ancestor::xs:complexType[last()]"/>
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
-    <xsl:param name="CLASSTYPE" select="@name"/>\hyperref[<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
+    <xsl:param name="CLASSTYPE" select="@name"/>\hyperref[<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;|}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
   </xsl:template>-->
 
   <!-- child elements for not base class -->
   <xsl:template mode="CLASS" match="xs:extension">
     <xsl:param name="CLASSNAME"/>
     <!-- elements from base class -->
-    All Elements from \hyperref[<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:call-template>$&gt;$}}}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
+    All Elements from \hyperref[<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;|}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
     <!-- elements from this class -->
     <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
       <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
@@ -338,14 +329,14 @@ A indent indicates child elements for a given element.
     <xsl:param name="FUNCTIONNAME" select="@name"/>
     <xsl:param name="CLASSNAME"/>
     <!-- name by not(ref) -->
-    <xsl:if test="not(@ref)">\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@name"/></xsl:call-template>$&gt;$}}</xsl:if>
+    <xsl:if test="not(@ref)">\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|</xsl:if>
     <!-- name by ref -->
-    <xsl:if test="@ref">\hyperref[<xsl:value-of select="@ref"/>]{\textbf{\texttt{$&lt;$<xsl:call-template name="CONUNDERSCORE"><xsl:with-param name="V" select="@ref"/></xsl:call-template>$&gt;$}}}
+    <xsl:if test="@ref">\hyperref[<xsl:value-of select="@ref"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@ref"/>&gt;|}
       (\ref*{<xsl:value-of select="@ref"/>}, p. \pageref*{<xsl:value-of select="@ref"/>})</xsl:if>
     <!-- occurence -->
     <xsl:apply-templates mode="OCCURANCE" select="."><xsl:with-param name="ELEMENTNAME" select="'span'"/></xsl:apply-templates>
     <!-- type -->
-    <xsl:if test="@type">(Type: \texttt{<xsl:value-of select="@type"/>})</xsl:if>\\
+    <xsl:if test="@type">(Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)</xsl:if>\\
     <!-- element attributes -->
     <xsl:if test="@name and not(@type)">
       <xsl:if test="xs:complexType/xs:attribute">
@@ -362,9 +353,9 @@ A indent indicates child elements for a given element.
 
   <!-- element attributes -->
   <xsl:template mode="ELEMENTATTRIBUTE" match="xs:attribute">
-    \hspace{2ex}\textbf{\texttt{<xsl:value-of select="@name"/>}}
+    \hspace{2ex}\lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
     <xsl:if test="@use='required'"> \textit{[required]}</xsl:if>
-    <xsl:if test="@use!='required'"> \textit{[optional]}</xsl:if> (Type: \texttt{<xsl:value-of select="@type"/>})\\
+    <xsl:if test="@use!='required'"> \textit{[optional]}</xsl:if> (Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)\\
   </xsl:template>
 
   <!-- documentation -->
