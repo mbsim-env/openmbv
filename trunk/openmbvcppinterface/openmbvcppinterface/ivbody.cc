@@ -28,7 +28,7 @@ IvBody::IvBody() : RigidBody() {
 }
 
 void IvBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<IvBody name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<IvBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <ivFileName>\""<<ivFileName<<"\"</ivFileName>"<<endl;
   xmlFile<<indent<<"</IvBody>"<<endl;

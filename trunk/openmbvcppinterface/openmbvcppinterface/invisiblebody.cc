@@ -28,7 +28,7 @@ InvisibleBody::InvisibleBody() : RigidBody() {
 }
 
 void InvisibleBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<InvisibleBody name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<InvisibleBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
   xmlFile<<indent<<"</InvisibleBody>"<<endl;
 }

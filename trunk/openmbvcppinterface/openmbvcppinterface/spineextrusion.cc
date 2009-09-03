@@ -37,7 +37,7 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   }
 
 void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
   DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
   if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
   xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;

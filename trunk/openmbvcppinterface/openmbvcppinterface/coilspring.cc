@@ -31,7 +31,7 @@ CoilSpring::CoilSpring() : DynamicColoredBody(),
 }
 
 void CoilSpring::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<CoilSpring name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<CoilSpring name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <numberOfCoils>"<<numberOfCoils<<"</numberOfCoils>"<<endl;
     xmlFile<<indent<<"  <springRadius>"<<springRadius<<"</springRadius>"<<endl;

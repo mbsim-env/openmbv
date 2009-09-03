@@ -28,7 +28,7 @@ Path::Path() : Body() {
 }
 
 void Path::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Path name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<Path name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     Body::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <color>["<<color[0]<<";"
                                  <<color[1]<<";"

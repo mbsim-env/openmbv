@@ -29,7 +29,7 @@ Frame::Frame() : RigidBody(),
 }
 
 void Frame::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Frame name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<Frame name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <size>"<<size<<"</size>"<<endl;
     xmlFile<<indent<<"  <offset>"<<offset<<"</offset>"<<endl;
