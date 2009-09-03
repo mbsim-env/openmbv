@@ -45,7 +45,7 @@ NurbsDisk::~NurbsDisk() {
 }
 
 void NurbsDisk::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<NurbsDisk name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<NurbsDisk name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
   DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
   xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
   xmlFile<<indent<<"  <drawDegree>"<<drawDegree<<"</drawDegree>"<<endl;  

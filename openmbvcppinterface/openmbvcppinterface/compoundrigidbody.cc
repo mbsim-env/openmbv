@@ -28,7 +28,7 @@ CompoundRigidBody::CompoundRigidBody() : RigidBody() {
 }
 
 void CompoundRigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<CompoundRigidBody name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<CompoundRigidBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     for(int i=0; i<rigidBody.size(); i++)
       rigidBody[i]->writeXMLFile(xmlFile, indent+"  ");

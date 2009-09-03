@@ -30,9 +30,23 @@ using namespace std;
 map<SoNode*,Object*> Object::objectMap;
 
 Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
+  bool enable=true;
+  if(element->Attribute("enable") && element->Attribute("enable")==string("false"))
+    enable=false;
+
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
     parentItem->addChild(this);
+
+    // enable or disable
+    if(((Object*)parentItem)->drawThisPath && enable) {
+      drawThisPath=true;
+      setForeground(0, QBrush(QColor(0,0,0))); // TODO color
+    }
+    else {
+      drawThisPath=false;
+      setForeground(0, QBrush(QColor(128,128,128))); // TODO color
+    }
   }
   
   // h5 group
@@ -45,7 +59,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   soSwitch=new SoSwitch;
   soParent->addChild(soSwitch); // parent so
   soSwitch->ref();
-  soSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  soSwitch->whichChild.setValue(enable?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soSep=new SoSeparator;
   soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
@@ -73,7 +87,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   // GUI draw action
   draw=new QAction(QIcon(":/drawobject.svg"),"Draw Object", this);
   draw->setCheckable(true);
-  draw->setChecked(true);
+  draw->setChecked(enable);
   draw->setObjectName("Object::draw");
   connect(draw,SIGNAL(changed()),this,SLOT(drawSlot()));
   // GUI bbox action

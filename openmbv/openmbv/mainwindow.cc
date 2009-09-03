@@ -644,6 +644,7 @@ void MainWindow::objectListClicked() {
       }
     }
     delete menu;
+    frame->touch(); // force rendering the scene
   }
 }
 

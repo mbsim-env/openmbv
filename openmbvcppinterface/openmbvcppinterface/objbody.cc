@@ -35,7 +35,7 @@ ObjBody::ObjBody() : RigidBody(),
 }
 
 void ObjBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<ObjBody name=\""<<name<<"\">"<<endl;
+  xmlFile<<indent<<"<ObjBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <objFileName>\""<<objFileName<<"\"</objFileName>"<<endl;
     xmlFile<<indent<<"  <useTextureFromMatLib>"<<(useTextureFromMatLib?"true":"false")<<"</useTextureFromMatLib>"<<endl;
