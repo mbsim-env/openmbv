@@ -40,7 +40,7 @@ void Group::addObject(Object* newObject) {
 
 void Group::writeXMLFile(ofstream& xmlFile, const string& indent) {
   if(!separateFile) {
-    xmlFile<<indent<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\">"<<endl;
+    xmlFile<<indent<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\" enable=\""<<enableStr<<"\">"<<endl;
       for(int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"</Group>"<<endl;
@@ -53,7 +53,7 @@ void Group::writeXMLFile(ofstream& xmlFile, const string& indent) {
     // create new xml file and write to it till now
     ofstream newxmlFile((fullName+".ombv.xml").c_str());
     newxmlFile<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
-    newxmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\""<<endl<<
+    newxmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\" enable=\""<<enableStr<<"\""<<endl<<
                 "  xmlns=\""OPENMBVNS_"\""<<endl<<
                 "  xmlns:xi=\"http://www.w3.org/2001/XInclude\">"<<endl;
       for(int i=0; i<object.size(); i++)
@@ -86,7 +86,7 @@ void Group::createHDF5File() {
 void Group::initialize() {
   ofstream xmlFile((name+".ombv.xml").c_str());
   xmlFile<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
-  xmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\""<<endl<<
+  xmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\" enable=\""<<enableStr<<"\""<<endl<<
            "  xmlns=\""OPENMBVNS_"\""<<endl<<
            "  xmlns:xi=\"http://www.w3.org/2001/XInclude\">"<<endl;
     for(int i=0; i<object.size(); i++)
