@@ -39,7 +39,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
     parentItem->addChild(this);
 
     // enable or disable
-    if(((Object*)parentItem)->drawThisPath && enable) {
+    if((((Object*)parentItem)->drawThisPath && enable) || (dynamic_cast<Object*>(parentItem)==0 && enable)) {
       drawThisPath=true;
       setForeground(0, QBrush(QColor(0,0,0))); // TODO color
     }
