@@ -33,7 +33,10 @@
       <!-- element for embeding -->
       <xs:element name="embed">
         <xs:complexType>
-          <xs:attribute name="href" type="xs:anyURI" use="required"/>
+          <xs:sequence minOccurs="0">
+            <xs:any processContents="strict"/>
+          </xs:sequence>
+          <xs:attribute name="href" type="xs:anyURI" use="optional"/>
           <xs:attribute name="count" use="required">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -41,7 +44,13 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
-          <xs:attribute name="counterName" type="xs:token" use="required"/>
+          <xs:attribute name="counterName" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
         </xs:complexType>
       </xs:element>
 

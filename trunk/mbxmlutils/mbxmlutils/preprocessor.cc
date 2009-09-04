@@ -26,7 +26,7 @@ int validate(const char *schema, const char *file) {
   return 0;
 }
 
-int toOctave(TiXmlElement *e) {
+int toOctave(TiXmlElement *&e) {
   if(e->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
     string mat="[";
     for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
@@ -40,6 +40,7 @@ int toOctave(TiXmlElement *e) {
     TiXmlText *text=new TiXmlText(mat);
     e->Parent()->InsertEndChild(*text);
     e->Parent()->RemoveChild(e);
+    e=0;
     return 0;
   }
   if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
@@ -52,6 +53,7 @@ int toOctave(TiXmlElement *e) {
     TiXmlText *text=new TiXmlText(vec);
     e->Parent()->InsertEndChild(*text);
     e->Parent()->RemoveChild(e);
+    e=0;
     return 0;
   }
   if(e->ValueStr()==MBXMLUTILSPVNS"asciiVectorRef" || e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
@@ -85,16 +87,16 @@ int toOctave(TiXmlElement *e) {
     TiXmlText *text=new TiXmlText(vec);
     e->Parent()->InsertEndChild(*text);
     e->Parent()->RemoveChild(e);
+    e=0;
     return 0;
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c)
+  while(c) {
     if(toOctave(c)!=0) return 1;
-  
-  TiXmlElement *s=e->NextSiblingElement();
-  if(s)
-    if(toOctave(s)!=0) return 1;
+    if(c==0) break; // break if c was removed by toOctave at the line below
+    c=c->NextSiblingElement();
+  }
 
   return 0;
 }
@@ -139,15 +141,25 @@ void resubst(TiXmlElement *e, const char *counterName, const char *subst) {
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c) resubst(c, counterName, subst);
-  
-  TiXmlElement *s=e->NextSiblingElement();
-  if(s) resubst(s, counterName, subst);
+  while(c) {
+    resubst(c, counterName, subst);
+    c=c->NextSiblingElement();
+  }
 }
 
-int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlElement *paramxmlroot) {
+int embed(TiXmlElement *&e, map<string,string> &nsprefix, TiXmlElement *paramxmlroot) {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
-    string file=e->Attribute("href");
+    // check
+    if((e->Attribute("href") && e->FirstChildElement()) ||
+       (e->Attribute("href")==0 && e->FirstChildElement()==0)) {
+      cout<<"ERROR! Only the href attribute OR a child element is allowed in embed!"<<endl;
+      return 1;
+    }
+
+    // file name if href attribute exist
+    string file="";
+    if(e->Attribute("href"))
+      file=e->Attribute("href");
 
     // subst count by parameter
     string countstr=e->Attribute("count");
@@ -156,30 +168,42 @@ int embed(TiXmlElement *e, map<string,string> &nsprefix, TiXmlElement *paramxmlr
         countstr=replace(countstr, el->Attribute("name"), el->GetText());
     int count=atoi(countstr.c_str());
 
+    // couter name
     string counterName=e->Attribute("counterName");
-    if(validate(nslocation, file.c_str())!=0) return 1;
-    TiXmlDocument *doc=new TiXmlDocument;
-    doc->LoadFile(file.c_str());
-    TiXmlElement *enew=doc->FirstChildElement();
-    incorporateNamespace(enew, nsprefix);
-    TiXmlElement *ee;
+
+    // validate/load if file is given
+    TiXmlElement *enew;
+    if(file!="") {
+      if(validate(nslocation, file.c_str())!=0) return 1;
+      TiXmlDocument *doc=new TiXmlDocument;
+      doc->LoadFile(file.c_str());
+      enew=doc->FirstChildElement();
+      incorporateNamespace(enew, nsprefix);
+    }
+    else // or take the child element (as a clone, because the embed element is deleted)
+      enew=(TiXmlElement*)e->FirstChildElement()->Clone();
+
+    // delete embed element and insert count time the new element
     for(int i=1; i<=count; i++) {
       cout<<"Embed "<<file<<" ("<<i<<"/"<<count<<")"<<endl;
-      if(i==1) ee=e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
-      else ee=(TiXmlElement*)(e->Parent()->InsertAfterChild(ee, *enew));
+      if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
+      else e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
       cout<<"Resubstitute "<<counterName<<" with "<<i<<endl;
       ostringstream oss; oss<<i;
-      resubst(ee, counterName.c_str(), oss.str().c_str());
+      // resubst counterName
+      resubst(e, counterName.c_str(), oss.str().c_str());
+      // apply embed to new element
+      if(embed(e, nsprefix, paramxmlroot)!=0) return 1;
     }
+    return 0;
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c)
+  while(c) {
     if(embed(c, nsprefix, paramxmlroot)!=0) return 1;
-  
-  TiXmlElement *s=e->NextSiblingElement();
-  if(s)
-    if(embed(s, nsprefix, paramxmlroot)!=0) return 1;
+    c=c->NextSiblingElement();
+  }
+ 
   return 0;
 }
 
@@ -190,10 +214,10 @@ void convertToSIUnit(TiXmlElement *e, map<string,string> units) {
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c) convertToSIUnit(c, units);
-  
-  TiXmlElement *s=e->NextSiblingElement();
-  if(s) convertToSIUnit(s, units);
+  while(c) {
+    convertToSIUnit(c, units);
+    c=c->NextSiblingElement();
+  }
 }
 
 void label(TiXmlElement *e) {
@@ -209,16 +233,17 @@ void label(TiXmlElement *e) {
   }
 
   TiXmlElement *c=e->FirstChildElement();
-  if(c) label(c);
-  
-  TiXmlElement *s=e->NextSiblingElement();
-  if(s) label(s);
+  while(c) {
+    label(c);
+    c=c->NextSiblingElement();
+  }
 }
 
 int main(int argc, char *argv[]) {
-  if(argc!=4) {
-    cout<<"Usage: mbxmlutilspp <param-file> <main-file>"<<endl
-        <<"                    <namespace-location-of-main-file>"<<endl
+  if((argc-1)%3!=0 || argc<=1) {
+    cout<<"Usage:"<<endl
+        <<"mbxmlutilspp <param-file> <main-file> <namespace-location-of-main-file>"<<endl
+        <<"             [<param-file> <main-file> <namespace-location-of-main-file>] ..."<<endl
         <<"  The output file is named '.pp.<main-file>'."<<endl
         <<"  Use 'none' if not <param-file> is avaliabel."<<endl
         <<""<<endl
@@ -229,91 +254,94 @@ int main(int argc, char *argv[]) {
         <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl;
     return 0;
   }
-  int ret;
-  char *paramxml=argv[1];
-  char *mainxml=argv[2];
-  nslocation=argv[3];
 
-  // validate parameter file
-  if(string(paramxml)!="none")
-    if(validate(SCHEMADIR"/parameter.xsd", paramxml)!=0) return 1;
+  // loop over all files
+  for(int nr=0; nr<(argc-1)/3; nr++) {
+    char *paramxml=argv[3*nr+1];
+    char *mainxml=argv[3*nr+2];
+    nslocation=argv[3*nr+3];
 
-  // validate main file
-  if(validate(nslocation, mainxml)!=0) return 1;
+    // validate parameter file
+    if(string(paramxml)!="none")
+      if(validate(SCHEMADIR"/parameter.xsd", paramxml)!=0) return 1;
 
-  // read parameter file
-  TiXmlElement *paramxmlroot=0;
-  if(string(paramxml)!="none") {
-    cout<<"Read parameter file"<<endl;
-    TiXmlDocument *paramxmldoc=new TiXmlDocument;
-    paramxmldoc->LoadFile(paramxml);
-    paramxmlroot=paramxmldoc->FirstChildElement();
-    map<string,string> dummy;
-    incorporateNamespace(paramxmlroot,dummy);
-  }
+    // validate main file
+    if(validate(nslocation, mainxml)!=0) return 1;
 
-  // convert parameter file to octave notation
-  cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements in parameter file to octave format"<<endl;
-  if(string(paramxml)!="none")
-    if(toOctave(paramxmlroot)!=0) return 1;
-
-  // embed/validate files
-  TiXmlDocument *mainxmldoc=new TiXmlDocument;
-  mainxmldoc->LoadFile(mainxml);
-  TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
-  map<string,string> nsprefix;
-  incorporateNamespace(mainxmlroot,nsprefix);
-  if(embed(mainxmlroot,nsprefix,paramxmlroot)!=0) return 1;
-
-  // validate embeded file
-  cout<<"Parse and validate embeded file"<<endl;
-  unIncorporateNamespace(mainxmlroot, nsprefix);
-  mainxmldoc->SaveFile(".mbxmlutilspp.xml");
-  if(validate(nslocation, ".mbxmlutilspp.xml")!=0) return 1;
-  incorporateNamespace(mainxmlroot, nsprefix);
-
-  // convert main file to octave notation
-  cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements to octave format"<<endl;
-  if(toOctave(mainxmlroot)!=0) return 1;
-  
-  // resubst parameters
-  if(string(paramxml)!="none") {
-    cout<<"Resubstitute parameters"<<endl;
-    TiXmlElement *el=paramxmlroot;
-    for(el=el->FirstChildElement(); el!=0; el=el->NextSiblingElement())
-      resubst(mainxmlroot, el->Attribute("name"), (string("(")+el->GetText()+")").c_str());
-  }
-
-  // convert to SI unit
-  // get units
-  cout<<"Convert all 'physicalvariable' to SI unit"<<endl;
-  TiXmlDocument *mmdoc=new TiXmlDocument;
-  mmdoc->LoadFile(XMLDIR"/measurement.xml");
-  TiXmlElement *ele, *el2;
-  map<string,string> units;
-  for(ele=mmdoc->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement())
-    for(el2=ele->FirstChildElement(); el2!=0; el2=el2->NextSiblingElement()) {
-      if(units.find(el2->Attribute("name"))!=units.end()) {
-        cout<<"ERROR! Unit name "<<el2->Attribute("name")<<" is defined more than once."<<endl;
-        return 1;
-      }
-      units[el2->Attribute("name")]=el2->GetText();
+    // read parameter file
+    TiXmlElement *paramxmlroot=0;
+    if(string(paramxml)!="none") {
+      cout<<"Read parameter file"<<endl;
+      TiXmlDocument *paramxmldoc=new TiXmlDocument;
+      paramxmldoc->LoadFile(paramxml);
+      paramxmlroot=paramxmldoc->FirstChildElement();
+      map<string,string> dummy;
+      incorporateNamespace(paramxmlroot,dummy);
     }
-  // convert units
-  convertToSIUnit(mainxmlroot, units);
 
-  // label expressions
-  cout<<"Label all 'physicalvariable'"<<endl;
-  label(mainxmlroot);
+    // convert parameter file to octave notation
+    cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements in parameter file to octave format"<<endl;
+    if(string(paramxml)!="none")
+      if(toOctave(paramxmlroot)!=0) return 1;
 
-  // save file
-  cout<<"Save labeled file"<<endl;
-  unIncorporateNamespace(mainxmlroot, nsprefix);
-  mainxmldoc->SaveFile(".mbxmlutilspp.xml");
+    // embed/validate files
+    TiXmlDocument *mainxmldoc=new TiXmlDocument;
+    mainxmldoc->LoadFile(mainxml);
+    TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
+    map<string,string> nsprefix;
+    incorporateNamespace(mainxmlroot,nsprefix);
+    if(embed(mainxmlroot,nsprefix,paramxmlroot)!=0) return 1;
 
-  // call octave file
-  cout<<"Process labeled file by octave"<<endl;
-  if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutilspp.xml .pp."+string(mainxml)).c_str())!=0) return 1;
+    // validate embeded file
+    cout<<"Parse and validate embeded file"<<endl;
+    unIncorporateNamespace(mainxmlroot, nsprefix);
+    mainxmldoc->SaveFile(".mbxmlutilspp.xml");
+    if(validate(nslocation, ".mbxmlutilspp.xml")!=0) return 1;
+    incorporateNamespace(mainxmlroot, nsprefix);
+
+    // convert main file to octave notation
+    cout<<"Convert xml[Matrix|Vector] and ascii[Matrix|Vector]Ref elements to octave format"<<endl;
+    if(toOctave(mainxmlroot)!=0) return 1;
+    
+    // resubst parameters
+    if(string(paramxml)!="none") {
+      cout<<"Resubstitute parameters"<<endl;
+      TiXmlElement *el=paramxmlroot;
+      for(el=el->FirstChildElement(); el!=0; el=el->NextSiblingElement())
+        resubst(mainxmlroot, el->Attribute("name"), (string("(")+el->GetText()+")").c_str());
+    }
+
+    // convert to SI unit
+    // get units
+    cout<<"Convert all 'physicalvariable' to SI unit"<<endl;
+    TiXmlDocument *mmdoc=new TiXmlDocument;
+    mmdoc->LoadFile(XMLDIR"/measurement.xml");
+    TiXmlElement *ele, *el2;
+    map<string,string> units;
+    for(ele=mmdoc->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement())
+      for(el2=ele->FirstChildElement(); el2!=0; el2=el2->NextSiblingElement()) {
+        if(units.find(el2->Attribute("name"))!=units.end()) {
+          cout<<"ERROR! Unit name "<<el2->Attribute("name")<<" is defined more than once."<<endl;
+          return 1;
+        }
+        units[el2->Attribute("name")]=el2->GetText();
+      }
+    // convert units
+    convertToSIUnit(mainxmlroot, units);
+
+    // label expressions
+    cout<<"Label all 'physicalvariable'"<<endl;
+    label(mainxmlroot);
+
+    // save file
+    cout<<"Save labeled file"<<endl;
+    unIncorporateNamespace(mainxmlroot, nsprefix);
+    mainxmldoc->SaveFile(".mbxmlutilspp.xml");
+
+    // call octave file
+    cout<<"Process labeled file by octave"<<endl;
+    if(system((OCTAVE" -q "OCTAVEDIR"/evaluate.m .mbxmlutilspp.xml .pp."+string(mainxml)).c_str())!=0) return 1;
+  }
 
   return 0;
 }
