@@ -33,7 +33,14 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
 
   SpineExtrusion::~SpineExtrusion() {
     if(!hdf5LinkBody && data) { delete data; data=0; }
-    if(contour) { delete contour; contour=0; }
+    if(contour) { 
+      for(unsigned int i=0;i<contour->size();i++) {
+        delete (*contour)[i];
+        (*contour)[i]=0;
+      }
+      delete contour;
+      contour=0;
+    }
   }
 
 void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
@@ -67,3 +74,4 @@ void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(toVector(e->GetText())[0]);
 }
+
