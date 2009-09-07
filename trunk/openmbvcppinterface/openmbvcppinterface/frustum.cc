@@ -47,13 +47,13 @@ void Frustum::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"baseRadius");
-  setBaseRadius(atof(e->GetText()));
+  setBaseRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"topRadius");
-  setTopRadius(atof(e->GetText()));
+  setTopRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"height");
-  setHeight(atof(e->GetText()));
+  setHeight(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"innerBaseRadius");
-  setInnerBaseRadius(atof(e->GetText()));
+  setInnerBaseRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"innerTopRadius");
-  setInnerTopRadius(atof(e->GetText()));
+  setInnerTopRadius(getDouble(e));
 }

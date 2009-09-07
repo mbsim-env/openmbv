@@ -39,5 +39,5 @@ void Sphere::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"radius");
-  setRadius(toVector(e->GetText())[0]);
+  setRadius(getDouble(e));
 }

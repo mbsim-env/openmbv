@@ -59,7 +59,7 @@ void Extrusion::initializeUsingXML(TiXmlElement *element) {
   if(wrStr=="negative") setWindingRule(negative);
   if(wrStr=="absGEqTwo") setWindingRule(absGEqTwo);
   e=element->FirstChildElement(OPENMBVNS"height");
-  setHeight(toVector(e->GetText())[0]);
+  setHeight(getDouble(e));
   e=e->NextSiblingElement();
   while(e) {
     addContour(PolygonPoint::initializeUsingXML(e));

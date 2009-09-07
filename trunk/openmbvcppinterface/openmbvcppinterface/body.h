@@ -50,12 +50,16 @@ namespace OpenMBV {
       virtual void initializeUsingXML(TiXmlElement *element);
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-      static std::vector<double> toVector(std::string str); // convenience
-      static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
+      static double getDouble(TiXmlElement *e);
+      static std::vector<double> getVec(TiXmlElement *e, int rows=0);
+      static std::vector<std::vector<double> > getMat(TiXmlElement *e, int rows=0, int cols=0);
 
     protected:
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
+
+      static std::vector<double> toVector(std::string str);
+      static std::vector<std::vector<double> > toMatrix(std::string str);
   };
 
 }

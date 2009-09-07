@@ -71,11 +71,11 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"diameter");
-  setDiameter(toVector(e->GetText())[0]);
+  setDiameter(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"headDiameter");
-  setHeadDiameter(toVector(e->GetText())[0]);
+  setHeadDiameter(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"headLength");
-  setHeadLength(toVector(e->GetText())[0]);
+  setHeadLength(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"type");
   string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(typeStr=="line") setType(line);
@@ -83,5 +83,5 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   if(typeStr=="toHead") setType(toHead);
   if(typeStr=="bothHeads") setType(bothHeads);
   e=element->FirstChildElement(OPENMBVNS"scaleLength");
-  setScaleLength(toVector(e->GetText())[0]);
+  setScaleLength(getDouble(e));
 }

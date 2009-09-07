@@ -40,7 +40,7 @@ void Frame::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"size");
-  setSize(toVector(e->GetText())[0]);
+  setSize(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"offset");
-  setOffset(toVector(e->GetText())[0]);
+  setOffset(getDouble(e));
 }

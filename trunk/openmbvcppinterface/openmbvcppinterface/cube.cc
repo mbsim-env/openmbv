@@ -39,5 +39,5 @@ void Cube::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"length");
-  setLength(toVector(e->GetText())[0]);
+  setLength(getDouble(e));
 }

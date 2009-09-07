@@ -61,11 +61,11 @@ void CoilSpring::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
-  setNumberOfCoils(atof(e->GetText()));
+  setNumberOfCoils(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"springRadius");
-  setSpringRadius(atof(e->GetText()));
+  setSpringRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
-  setCrossSectionRadius(atof(e->GetText()));
+  setCrossSectionRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  setScaleFactor(atof(e->GetText()));
+  setScaleFactor(getDouble(e));
 }

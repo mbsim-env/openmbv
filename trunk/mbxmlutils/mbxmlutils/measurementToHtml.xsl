@@ -29,6 +29,8 @@
       <li><a name="content-scalartype" href="#scalartype">Scalar Type</a></li>
       <li><a name="content-vectortype" href="#vectortype">Vector Type</a></li>
       <li><a name="content-matrixtype" href="#matrixtype">Matrix Type</a></li>
+      <li><a name="content-octave" href="#octave">Octave Expression/Program</a></li>
+      <li><a name="content-embed" href="#embed">Embeding</a></li>
       <li><a name="content-measurements" href="#measurements">Measurements</a>
         <ul>
           <xsl:for-each select="/mm:measurement/mm:measure">
@@ -49,7 +51,7 @@
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>.
       The type name of a scalar of measure length is <span style="font-family:monospace">pv:lengthScalar</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
-    <p>The content of a scalar type must be a text value. All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single scalar value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:</p>
+    <p>The content of a scalar type must be a <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:</p>
     <pre>&lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
 
@@ -59,7 +61,7 @@
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
-      <li>A text value: All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single row vector value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
           <pre>&lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;</pre>
           <pre>&lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;</pre></li>
       <li>A XML representation of a vector: The following shows a example of such a XML representation.<pre>
@@ -82,7 +84,7 @@
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>
-      <li>A text value: All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single matrix value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
           <pre>&lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;</pre>
           <pre>&lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;</pre></li>
       <li>A XML representation of a matrix: The following shows a example of such a XML representation.<pre>
@@ -103,6 +105,31 @@
 &lt;/myMatrixElement&gt;
 </pre>The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
+
+    <h2><a name="octave" href="#content-octave">Octave Expression/Program</a></h2>
+    <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
+
+   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar parameter of name 'a' and 'b' exist:</p>
+<pre>4
+b
+3+a*8
+[4;a]*[6,b]
+</pre>
+
+<p>If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar parameter of name 'a' and 'b' exist:</p>
+<pre>if 1==a; ret=4; else ret=8; end
+myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
+</pre>
+
+    <h2><a name="embed" href="#content-embed">Embeding</a></h2>
+    <p>Using the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element, where the prefix <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
+<pre>&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
+<p>or</p>
+<pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+  &lt;any_element_with_childs/&gt;
+&lt;/pv:embed&gt;
+</pre>
+<p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
 
     <h2><a name="measurements" href="#content-measurements">Measurements</a></h2>
     <p>The following measurements are defined</p>

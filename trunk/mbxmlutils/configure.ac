@@ -22,7 +22,8 @@ dnl Check for xslt
 AC_ARG_WITH([xsltprocpath],
   [  --with-xsltproc-path=PATHTOXSLTPROC  The path to the 'xsltproc' program.],
   [xsltprocpath="$withval"],[xsltprocpath=""])
-AC_PATH_PROG([xsltproc],[xsltproc],[AC_MSG_ERROR([xsltproc not found])],[$xsltprocpath:$prefix/bin:$PATH])
+AC_PATH_PROG([xsltproc],[xsltproc],[no],[$xsltprocpath:$prefix/bin:$PATH])
+test $xsltproc = "no" && AC_MSG_ERROR([xsltproc not found])
 AC_SUBST([XSLTPROC],[$xsltproc])
 
 dnl Check for libxml2
@@ -32,18 +33,40 @@ dnl Check for xmllint
 AC_ARG_WITH([xmllintpath],
   [  --with-xmllint-path=PATHTOXMLLINT  The path to the 'xmllint' program.],
   [xmllintpath="$withval"],[xmllintpath=""])
-AC_PATH_PROG([xmllint],[xmllint],[AC_MSG_ERROR([xmllint not found])],[$xmllintpath:$prefix/bin:$PATH])
+AC_PATH_PROG([xmllint],[xmllint],[no],[$xmllintpath:$prefix/bin:$PATH])
+test $xmllint = "no" && AC_MSG_ERROR([xmllint not found])
 AC_SUBST([XMLLINT],[$xmllint])
 
 dnl Check for octave
-AC_ARG_WITH([octave-path],
-  [  --with-octave-path=PATHTOOCTAVE  The path to the 'octave' program.],
-  [octavepath="$withval"],[octavepath=""])
-AC_PATH_PROG([octave],[octave],[AC_MSG_ERROR([octave not found])],[$octavepath:$prefix/bin:$PATH])
-AC_SUBST([OCTAVE],[$octave])
-if [ !(echo "regexp('a','b'); regexprep('a','b','c');" | $octave -q) ]; then
-  AC_MSG_ERROR([octave regexp and/or regexprep function not found! octave >= 3 needed!])
-fi
+AC_ARG_WITH([mkoctfile-path],
+  [  --with-mkoctfile-path=PATHTOMKOCTFILE  The path to the 'mkoctfile' program.],
+  [mkoctfilepath="$withval"],[mkoctfilepath=""])
+AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$mkoctfilepath:$prefix/bin:$PATH])
+test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
+AC_SUBST([MKOCTFILE],[$mkoctfile])
+# use allways the same compiler as mkoctfile for CXX
+AC_PATH_PROG([CXX],[$($MKOCTFILE -p CXX)],[no],[$mkoctfilepath:$mkoctfilepath/../mingw32/bin:$prefix/bin:$PATH])
+test $CXX = "no" && AC_MSG_ERROR([mkoctfile compiler not found])
+# get mkoctfile compiler flags
+MKOCTFILE_CFLAGS="$(echo $($MKOCTFILE -p INCFLAGS) | sed -re 's|\\|/|g')"
+MKOCTFILE_LIBS="$(echo $($MKOCTFILE -p RLD_FLAG) $($MKOCTFILE -p LFLAGS) $($MKOCTFILE -p OCTAVE_LIBS) | sed -re 's|\\|/|g')"
+AC_SUBST([MKOCTFILE_CFLAGS])
+AC_SUBST([MKOCTFILE_LIBS])
+# try to compile a octave stand alone program
+SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
+SAVE_LIBS=$LIBS; LIBS="$LIBS $MKOCTFILE_LIBS"
+AC_CHECKING(compiling a octave program)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <octave/oct.h>
+#include <octave/octave.h>
+#include <octave/parse.h>]],[[
+  const char *octave_argv[2]={"dummy", "-q"};
+  octave_main(2, (char**)octave_argv, 1);
+  int dummy;
+  eval_string("1+1;",true,dummy,0);
+]])], AC_MSG_RESULT([done]), AC_MSG_ERROR([can not compile a octave program]))
+CPPFLAGS=$SAVE_CPPFLAGS
+LIBS=$SAVE_LIBS
 
 dnl Helper functions to convert path to windows
 dirtowin() {
@@ -63,7 +86,6 @@ if test "_$host_os" = "_mingw32" ; then
   SCHEMADIR=$(dirtowin $SCHEMADIR)
   XMLDIR=$(dirtowin $XMLDIR)
   OCTAVEDIR=$(dirtowin $OCTAVEDIR)
-  OCTAVE=$(filetowin $OCTAVE)
 fi
 
 AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils.pc mbxmlutils/env.h])
