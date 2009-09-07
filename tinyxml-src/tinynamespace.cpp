@@ -12,6 +12,66 @@
 
 using namespace std;
 
+string TiXml_itoa(int i) {
+  ostringstream str;
+  str<<i;
+  return str.str();
+}
+
+void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
+  TiXmlUnknown line;
+  line.SetValue("?LineNr "+TiXml_itoa(e->Row())+"?");
+  if(e->FirstChild())
+    e->InsertBeforeChild(e->FirstChild(), line);
+  else
+    e->InsertEndChild(line);
+
+  TiXmlElement *c=e->FirstChildElement();
+  while(c) {
+    TiXml_addLineNrAsProcessingInstruction(c);
+    c=c->NextSiblingElement();
+  }
+}
+
+void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
+  TiXmlUnknown *u;
+  for(u=e->FirstChild()->ToUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
+  if(u) {
+    string line=u->ValueStr().substr(8);
+    line=line.substr(0,line.length()-1);
+    e->SetRow(atoi(line.c_str()));
+    e->RemoveChild(u);
+  }
+
+  TiXmlElement *c=e->FirstChildElement();
+  while(c) {
+    TiXml_addLineNrAsProcessingInstruction(c);
+    c=c->NextSiblingElement();
+  }
+}
+
+void TiXml_deletePIandComm(TiXmlElement *e) {
+}
+
+void TiXml_location(const TiXmlElement *e, const string &pre, const string &post) {
+  cout<<pre<<e->GetElementWithXmlBase(0)->Attribute("xml:base")<<":"<<e->Row()<<post<<endl;
+  const TiXmlElement *p;
+  for(int i=1; (p=e->GetElementWithXmlBase(i))!=0; i++) {
+    const TiXmlNode *c=e->GetElementWithXmlBase(i-1)->FirstChild();
+    const TiXmlUnknown *u;
+    for(u=c->ToUnknown(); u && u->ValueStr().substr(0,23)!="?OriginalElementLineNr "; u=u->NextSibling()->ToUnknown());
+    string line=u->ValueStr().substr(23);
+    for(u=c->ToUnknown(); u && u->ValueStr().substr(0,14)!="?EmbedCountNr "; u=u->NextSibling()->ToUnknown());
+    string count;
+    if(u) {
+      count=u->ValueStr().substr(14);
+      count=count.substr(0,count.length()-1);
+      count=":[count="+count+"]";
+    }
+    cout<<"  included by: "<<p->Attribute("xml:base")<<":"<<line.substr(0,line.length()-1)<<count<<endl;
+  }
+}
+
 string tinyNamespaceCompStr;
 bool comp(pair<string,string> p) {
   if(p.second==tinyNamespaceCompStr) return true; else return false;
@@ -65,6 +125,12 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
     docInclude.LoadFile(newFile);
     incorporateNamespace(docInclude.FirstChildElement(), nsprefix);
     docInclude.FirstChildElement()->SetAttribute("xml:base", newFile);
+
+    // include a processing instruction with the line number of the original element
+    TiXmlUnknown xincLine;
+    xincLine.SetValue("?OriginalElementLineNr "+TiXml_itoa(e->Row())+"?");
+    docInclude.FirstChildElement()->InsertBeforeChild(docInclude.FirstChildElement()->FirstChild(), xincLine);
+
     e->Parent()->InsertAfterChild(e,*docInclude.FirstChildElement());
     e->Parent()->RemoveChild(e);
   }

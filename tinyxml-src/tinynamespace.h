@@ -12,6 +12,21 @@
 #include <map>
 #include <string>
 
+/* Just a int to string converter */
+std::string TiXml_itoa(int i);
+
+/* Output the location (filename and line number) of the element e.
+ * If the element was included by a xi:include, then the filename and line number
+ * of the origianl xi:include element is also shown.
+ * It the element was included by a pv:embed. then the filename and line nubmer
+ * and the "count" of the origianl pv:embed element is also shown.
+ */
+void TiXml_location(const TiXmlElement *e, const std::string &pre, const std::string &post);
+
+void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
+void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);
+void TiXml_deletePIandComm(TiXmlElement *e);
+
 /* Changes recursivly every element name from e.g. 'myns:localname' to
  * '{http://my.host.org/mynamespace}localname' if there is a
  * namespace alias definition attribute

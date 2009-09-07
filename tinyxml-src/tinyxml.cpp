@@ -501,6 +501,19 @@ const TiXmlDocument* TiXmlNode::GetDocument() const
 }
 
 
+// by Markus Friedrich
+const TiXmlElement* TiXmlNode::GetElementWithXmlBase(int i) const {
+  if(ToElement() && ToElement()->Attribute("xml:base") && i==0)
+    return ToElement();
+  else if(ToElement() && ToElement()->Attribute("xml:base") && i>0 && parent)
+    return parent->GetElementWithXmlBase(i-1);
+  else if(parent)
+    return parent->GetElementWithXmlBase(i);
+  else
+    return 0;
+}
+
+
 TiXmlElement::TiXmlElement (const char * _value)
 	: TiXmlNode( TiXmlNode::ELEMENT )
 {
@@ -806,15 +819,18 @@ void TiXmlElement::Print( FILE* cfile, int depth ) const
 
 		for ( node = firstChild; node; node=node->NextSibling() )
 		{
-			if ( !node->ToText() )
+			if ( !node->ToText() && !node->ToUnknown() && !node->ToComment() ) // changed by Markus Friedrich
 			{
 				fprintf( cfile, "\n" );
 			}
-			node->Print( cfile, depth+1 );
+			node->Print( cfile, (node->ToUnknown()||node->ToComment())?0:depth+1 ); // changed by Markus Friedrich
 		}
-		fprintf( cfile, "\n" );
-		for( i=0; i<depth; ++i ) {
-			fprintf( cfile, "    " );
+		if ( !lastChild->ToText() && !lastChild->ToUnknown() && !lastChild->ToComment() ) // changed by Markus Friedrich
+		{
+			fprintf( cfile, "\n" );
+			for( i=0; i<depth; ++i ) {
+				fprintf( cfile, "    " );
+			}
 		}
 		fprintf( cfile, "</%s>", value.c_str() );
 	}
@@ -860,6 +876,7 @@ bool TiXmlElement::Accept( TiXmlVisitor* visitor ) const
 TiXmlNode* TiXmlElement::Clone() const
 {
 	TiXmlElement* clone = new TiXmlElement( Value() );
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 	if ( !clone )
 		return 0;
 
@@ -1078,6 +1095,8 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 
 	Parse( data.c_str(), 0, encoding );
 
+        FirstChildElement()->SetAttribute("xml:base", value); // by Markus Friedrich
+
 	if (  Error() )
         return false;
     else
@@ -1138,6 +1157,7 @@ void TiXmlDocument::CopyTo( TiXmlDocument* target ) const
 TiXmlNode* TiXmlDocument::Clone() const
 {
 	TiXmlDocument* clone = new TiXmlDocument();
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 	if ( !clone )
 		return 0;
 
@@ -1323,6 +1343,7 @@ bool TiXmlComment::Accept( TiXmlVisitor* visitor ) const
 TiXmlNode* TiXmlComment::Clone() const
 {
 	TiXmlComment* clone = new TiXmlComment();
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 
 	if ( !clone )
 		return 0;
@@ -1370,6 +1391,7 @@ TiXmlNode* TiXmlText::Clone() const
 {	
 	TiXmlText* clone = 0;
 	clone = new TiXmlText( "" );
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 
 	if ( !clone )
 		return 0;
@@ -1458,6 +1480,7 @@ bool TiXmlDeclaration::Accept( TiXmlVisitor* visitor ) const
 TiXmlNode* TiXmlDeclaration::Clone() const
 {	
 	TiXmlDeclaration* clone = new TiXmlDeclaration();
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 
 	if ( !clone )
 		return 0;
@@ -1490,6 +1513,7 @@ bool TiXmlUnknown::Accept( TiXmlVisitor* visitor ) const
 TiXmlNode* TiXmlUnknown::Clone() const
 {
 	TiXmlUnknown* clone = new TiXmlUnknown();
+        clone->location = location; // copy cursor location when cloning (by Markus Friedrich)
 
 	if ( !clone )
 		return 0;

@@ -243,6 +243,7 @@ public:
 		@sa TiXmlDocument::SetTabSize()
 	*/
 	int Row() const			{ return location.row + 1; }
+	void SetRow(int i)       	{ location.row=i - 1; }  // by Markus Friedrich
 	int Column() const		{ return location.col + 1; }	///< See Row()
 
 	void  SetUserData( void* user )			{ userData = user; }	///< Set a pointer to arbitrary user data.
@@ -691,6 +692,8 @@ public:
 	TiXmlDocument* GetDocument() {
 		return const_cast< TiXmlDocument* >( (const_cast< const TiXmlNode* >(this))->GetDocument() );
 	}
+
+        const TiXmlElement* GetElementWithXmlBase(int i=0) const; // by Markus Friedrich
 
 	/// Returns true if this node has no children.
 	bool NoChildren() const						{ return !firstChild; }
