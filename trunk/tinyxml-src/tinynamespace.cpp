@@ -45,7 +45,8 @@ void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
 
   TiXmlElement *c=e->FirstChildElement();
   while(c) {
-    TiXml_addLineNrAsProcessingInstruction(c);
+    cout<<"III "<<c->ValueStr()<<endl;
+    TiXml_setLineNrFromProcessingInstruction(c);
     c=c->NextSiblingElement();
   }
 }
