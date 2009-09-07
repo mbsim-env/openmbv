@@ -185,7 +185,7 @@ string fixPath(string oldFile, string newFile) {
   // fix relative path name of file to be included (will hopefully work also on windows)
   // if new file has a relative path
   if(!( newFile[0]=='/' ||
-       (((newFile[0]>='a' && newFile[0]<='z') || (newFile[0]>='a' && newFile[0]<='z')) && newFile[1]==':') ||
+       (((newFile[0]>='a' && newFile[0]<='z') || (newFile[0]>='A' && newFile[0]<='Z')) && newFile[1]==':') ||
        (newFile[0]=='\\' && newFile[1]=='\\'))) {
     // find last slash or backslash of old file
     int i=oldFile.find_last_of('/');
