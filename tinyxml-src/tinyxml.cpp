@@ -1095,7 +1095,8 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 
 	Parse( data.c_str(), 0, encoding );
 
-        FirstChildElement()->SetAttribute("xml:base", value); // by Markus Friedrich
+        if ( FirstChildElement()->Attribute("xml:base")==0 )
+               FirstChildElement()->SetAttribute("xml:base", value); // by Markus Friedrich
 
 	if (  Error() )
         return false;
