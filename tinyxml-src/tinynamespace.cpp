@@ -35,12 +35,14 @@ void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
 
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
   TiXmlUnknown *u;
-  for(u=e->FirstChild()->ToUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
-  if(u) {
-    string line=u->ValueStr().substr(8);
-    line=line.substr(0,line.length()-1);
-    e->SetRow(atoi(line.c_str()));
-    e->RemoveChild(u);
+  if(e->FirstChild()) {
+    for(u=e->FirstChild()->ToUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
+    if(u) {
+      string line=u->ValueStr().substr(8);
+      line=line.substr(0,line.length()-1);
+      e->SetRow(atoi(line.c_str()));
+      e->RemoveChild(u);
+    }
   }
 
   TiXmlElement *c=e->FirstChildElement();
