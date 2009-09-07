@@ -72,6 +72,6 @@ void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  setScaleFactor(toVector(e->GetText())[0]);
+  setScaleFactor(getDouble(e));
 }
 

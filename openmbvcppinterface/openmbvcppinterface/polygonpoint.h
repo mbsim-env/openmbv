@@ -59,7 +59,7 @@ namespace OpenMBV {
       }
 
       static std::vector<PolygonPoint*>* initializeUsingXML(TiXmlElement *element) {
-        std::vector<std::vector<double> > mat=Body::toMatrix(element->GetText());
+        std::vector<std::vector<double> > mat=Body::getMat(element);
         std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
         for(size_t r=0; r<mat.size(); r++) {
           PolygonPoint *pp=new PolygonPoint(mat[r][0], mat[r][1], (int)(mat[r][2]));

@@ -77,11 +77,11 @@ void ObjBody::initializeUsingXML(TiXmlElement *element) {
   if(normalStr=="smooth") setNormals(smooth);
   if(normalStr=="smoothIfLessBarrier") setNormals(smoothIfLessBarrier);
   e=element->FirstChildElement(OPENMBVNS"epsVertex");
-  setEpsVertex(toVector(e->GetText())[0]);
+  setEpsVertex(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"epsNormal");
-  setEpsNormal(toVector(e->GetText())[0]);
+  setEpsNormal(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"smoothBarrier");
-  setSmoothBarrier(toVector(e->GetText())[0]);
+  setSmoothBarrier(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"outline");
   string outlineStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(outlineStr=="none") setOutline(none);

@@ -56,7 +56,7 @@ The type name of a scalar of measure length is \texttt{pv:lengthScalar} and so o
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
-The content of a scalar type must be a text value. All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single scalar value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+The content of a scalar type must be a \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
 \begin{verbatim}
   &lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;
   &lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;
@@ -71,7 +71,7 @@ Where \texttt{pv} is mapped to the namespace-uri\\
 
 The content of a vector type can be one of the following:
 \begin{itemize}
-  \item A text value: All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single row vector value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+  \item A \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
     \begin{verbatim}
 &lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;
 &lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;
@@ -104,7 +104,7 @@ Where \texttt{pv} is mapped to the namespace-uri\\
 
 The content of a matrix type can be one of the following:
 \begin{itemize}
-  \item A text value: All parameters defined in the parameter file given to the XML preprocessor are substututed in this text value. Afterwards this text value, which can be a abitary octave  string/program, is evaluated by octave. The text value must evalute to a single matrix value. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+  \item A \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
     \begin{verbatim}
 &lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;
 &lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;
@@ -132,6 +132,38 @@ The content of a matrix type can be one of the following:
     \end{verbatim}
     The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
+
+\chapter{Octave Expression/Program}
+\label{octave}
+A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.
+
+If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar parameter of name 'a' and 'b' exist:
+\begin{verbatim}
+4
+b
+3+a*8
+[4;a]*[6,b]
+\end{verbatim}
+
+If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar parameter of name 'a' and 'b' exist:
+\begin{verbatim}
+if 1==a; ret=4; else ret=8; end
+myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
+\end{verbatim}
+
+\chapter{Embeding}
+\label{embed}
+Using the \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| element, where the prefix \lstinline[basicstyle=\ttfamily]|pv| is mapped to the namespace-uri \lstinline[basicstyle=\ttfamily]|http://openmbv.berlios.de/MBXMLUtils/physicalvariable| it is possible to embed a XML element multiple times. The full valid example syntax for this element is:
+\begin{verbatim}
+&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;
+\end{verbatim}
+or
+\begin{verbatim}
+&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+  &lt;any_element_with_childs/&gt;
+&lt;/pv:embed&gt;
+\end{verbatim}
+This will substitute the \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| element in the current context \lstinline[basicstyle=\ttfamily]|2+a| times with the element defined in the file \lstinline[basicstyle=\ttfamily]|file.xml| or with \lstinline[basicstyle=\ttfamily]|&lt;any_element_with_childs&gt;|. The insert elements have access to a parameter named \lstinline[basicstyle=\ttfamily]|n| which counts from \lstinline[basicstyle=\ttfamily]|1| to \lstinline[basicstyle=\ttfamily]|2+a| for each insert element. The new element is only insert if the octave expression defined by the attribute \lstinline[basicstyle=\ttfamily]|onlyif| evaluates to \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|). If the attribute \lstinline[basicstyle=\ttfamily]|onlyif| is not given it is allways \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|).
 
 \chapter{Measurement}
 \label{measurement}

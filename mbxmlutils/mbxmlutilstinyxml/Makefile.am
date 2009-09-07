@@ -1,4 +1,5 @@
 lib_LTLIBRARIES = libmbxmlutilstinyxml.la
+
 INCLUDES = -DTIXML_USE_STL
 libmbxmlutilstinyxml_la_SOURCES = tinyxml-src/tinynamespace.cpp \
   tinyxml-src/tinystr.cpp \

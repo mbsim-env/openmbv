@@ -45,11 +45,11 @@ void DynamicColoredBody::initializeUsingXML(TiXmlElement *element) {
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
   if(e)
-    setMinimalColorValue(atof(e->GetText()));
+    setMinimalColorValue(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
   if(e)
-    setMaximalColorValue(atof(e->GetText()));
+    setMaximalColorValue(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"staticColor");
   if(e)
-    setStaticColor(atof(e->GetText()));
+    setStaticColor(getDouble(e));
 }

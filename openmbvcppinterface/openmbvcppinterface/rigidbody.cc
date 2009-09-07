@@ -69,9 +69,9 @@ void RigidBody::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
-  setInitialTranslation(toVector(e->GetText()));
+  setInitialTranslation(getVec(e,3));
   e=element->FirstChildElement(OPENMBVNS"initialRotation");
-  setInitialRotation(toVector(e->GetText()));
+  setInitialRotation(getVec(e,3));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  setScaleFactor(atof(e->GetText()));
+  setScaleFactor(getDouble(e));
 }

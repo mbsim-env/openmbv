@@ -41,5 +41,5 @@ void Cuboid::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"length");
-  setLength(toVector(e->GetText()));
+  setLength(getVec(e,3));
 }

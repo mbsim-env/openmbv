@@ -2,11 +2,9 @@
 schemadir = @datadir@/@PACKAGE@/schema
 docdir = @datadir@/@PACKAGE@/doc
 xmldir = @datadir@/@PACKAGE@/xml
-octavedir = @datadir@/@PACKAGE@/octave
 dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd xhtml1-transitional.xsd
 dist_doc_DATA = measurement.xhtml measurement.tex
 dist_xml_DATA = measurement.xml
-dist_octave_DATA = evaluate.m
 
 
 
@@ -43,6 +41,6 @@ CLEANFILES = .measurement.xml.isvalid measurement.xhtml measurement.tex physical
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = $(LIBXML2_CFLAGS) -DTIXML_USE_STL
+mbxmlutilspp_CPPFLAGS = $(LIBXML2_CFLAGS) -DTIXML_USE_STL $(MKOCTFILE_CFLAGS)
 mbxmlutilspp_LDFLAGS = -L../mbxmlutilstinyxml
-mbxmlutilspp_LDADD = $(LIBXML2_LIBS) -lmbxmlutilstinyxml
+mbxmlutilspp_LDADD = $(LIBXML2_LIBS) -lmbxmlutilstinyxml $(MKOCTFILE_LIBS)

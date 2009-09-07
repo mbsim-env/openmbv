@@ -22,6 +22,8 @@
 #include <fstream>
 #include <H5Cpp.h>
 #include <openmbvcppinterface/group.h>
+#include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
+#include <cmath>
 
 using namespace std;
 using namespace OpenMBV;
@@ -90,6 +92,52 @@ vector<vector<double> > Body::toMatrix(string str) {
     str=str.substr(end+1);
   }
   return ret;
+}
+
+double Body::getDouble(TiXmlElement *e) {
+  vector<vector<double> > m=toMatrix(e->GetText());
+  if(m.size()==1 && m[0].size()==1)
+    return m[0][0];
+  else {
+    ostringstream str;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
+         "where a scalar was requested for element "<<e->ValueStr();
+    TiXml_location(e, "", str.str());
+    throw 1;
+  }
+  return NAN;
+}
+
+vector<double> Body::getVec(TiXmlElement *e, int rows) {
+  vector<vector<double> > m=toMatrix(e->GetText());
+  if((rows==0 || m.size()==rows) && m[0].size()==1) {
+    vector<double> v;
+    for(int i=0; i<m.size(); i++)
+      v.push_back(m[i][0]);
+    return v;
+  }
+  else {
+    ostringstream str;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
+         "where a vector of size "<<rows<<" was requested for element "<<e->ValueStr();
+    TiXml_location(e, "", str.str());
+    throw 1;
+  }
+  return vector<double>();
+}
+
+vector<vector<double> > Body::getMat(TiXmlElement *e, int rows, int cols) {
+  vector<vector<double> > m=toMatrix(e->GetText());
+  if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
+    return m;
+  else {
+    ostringstream str;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
+         "where a matrix of size "<<rows<<"x"<<cols<<" was requested for element "<<e->ValueStr();
+    TiXml_location(e, "", str.str());
+    throw 1;
+  }
+  return vector<vector<double> >();
 }
 
 void Body::initializeUsingXML(TiXmlElement *element) {

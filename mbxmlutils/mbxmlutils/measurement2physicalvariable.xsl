@@ -37,13 +37,7 @@
             <xs:any processContents="strict"/>
           </xs:sequence>
           <xs:attribute name="href" type="xs:anyURI" use="optional"/>
-          <xs:attribute name="count" use="required">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:pattern value="([0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:attribute>
+          <xs:attribute name="count" use="required" type="xs:string"/>
           <xs:attribute name="counterName" use="required">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -51,6 +45,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
+          <xs:attribute name="onlyif" use="optional" type="xs:string" default="1"/>
         </xs:complexType>
       </xs:element>
 
