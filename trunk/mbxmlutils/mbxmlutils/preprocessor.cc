@@ -18,6 +18,8 @@ using namespace std;
 
 char *nslocation;
 
+int machinePrec;
+
 // validate file using schema (currently by libxml)
 int validate(const char *schema, const char *file) {
   xmlDoc *doc;
@@ -39,7 +41,7 @@ int toOctave(TiXmlElement *&e) {
         mat=mat+ele->GetText();
         if(ele->NextSiblingElement()) mat=mat+",";
       }
-      if(row->NextSiblingElement()) mat=mat+";";
+      if(row->NextSiblingElement()) mat=mat+";\n";
     }
     mat=mat+"]";
     TiXmlText *text=new TiXmlText(mat);
@@ -89,6 +91,13 @@ int toOctave(TiXmlElement *&e) {
     if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(0,pmatch[0].rm_so);
     regfree(&re);
+    // convert ; to ;\n if we have a matrix
+    if(e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
+      size_t i;
+      while((i=vec.find(';'))!=string::npos)
+        vec=vec.substr(0,i)+";\n"+vec.substr(i+1);
+    }
+
     vec="["+vec+"]";
     TiXmlText *text=new TiXmlText(vec);
     e->Parent()->InsertEndChild(*text);
@@ -110,7 +119,7 @@ int toOctave(TiXmlElement *&e) {
 string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true) {
   int dummy;
   string clear="";
-  if(clearOnStart) clear="clear all;";
+  if(clearOnStart) clear="clear all;\n";
   streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
   eval_string(clear+prestr+"ret="+str,true,dummy,0);
   std::cerr.rdbuf(orgcerr); // enable std::cerr
@@ -135,7 +144,7 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   if(error_state!=0)
     throw string("'ret' variable not set in octave statement list: "+str);
   ostringstream ret;
-  ret.precision(15);
+  ret.precision(machinePrec);
   if(o.is_scalar_type() && o.is_real_type())
     ret<<o.double_value();
   else if(o.is_matrix_type() && o.is_real_type()) {
@@ -173,10 +182,10 @@ int genParamString(TiXmlElement *e, string &paramString) {
       // fill octave with variables
       octaveEval("", "1;"); // clear all
       for(i=0; i<param.size(); i++)
-        octaveEval("", param[i].name+"="+param[i].equ+";", false, false);
+        octaveEval("", param[i].name+"="+param[i].equ, false, false);
       // try to evaluate the parameter
       for(i=0; i<param.size(); i++)
-        param[i].equ=octaveEval("", param[i].equ+";",(j==param.size()-1)?true:false, false);
+        param[i].equ=octaveEval("", param[i].equ,(j==param.size()-1)?true:false, false);
     }
     catch(string str) {
       cout<<param[i].ele->GetElementWithXmlBase(0)<<":"<<param[i].ele->Row()<<": ";
@@ -190,7 +199,7 @@ int genParamString(TiXmlElement *e, string &paramString) {
 
   // generate the octave string
   for(size_t i=0; i<param.size(); i++)
-    paramString=paramString+param[i].name+"="+param[i].equ+";";
+    paramString=paramString+param[i].name+"="+param[i].equ+";\n";
 
   return 0;
 }
@@ -217,8 +226,8 @@ try {
       onlyif=e->Attribute("onlyif");
 
     // evaluate count using parameters
-    string countstr=string(e->Attribute("count"))+";";
-    countstr=octaveEval(paramString, countstr);
+    string countstr=string(e->Attribute("count"));
+    countstr=octaveEval(paramString, countstr+";");
     int count=atoi(countstr.c_str());
 
     // couter name
@@ -254,7 +263,7 @@ try {
     // delete embed element and insert count time the new element
     for(int i=1; i<=count; i++) {
       ostringstream istr; istr<<i;
-      if(octaveEval(paramString+counterName+"="+istr.str()+";",onlyif)=="1") {
+      if(octaveEval(paramString+counterName+"="+istr.str()+";\n",onlyif)=="1") {
         cout<<"Embed "<<(file==""?"inline element":file)<<" ("<<i<<"/"<<count<<")"<<endl;
         if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
         else e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
@@ -265,7 +274,7 @@ try {
         e->InsertAfterChild(e->FirstChild(), countNr);
     
         // apply embed to new element
-        if(embed(e, nsprefix, paramString+counterName+"="+istr.str()+";",units)!=0) return 1;
+        if(embed(e, nsprefix, paramString+counterName+"="+istr.str()+";\n",units)!=0) return 1;
       }
       else
         cout<<"Skip embeding "<<(file==""?"inline element":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
@@ -275,12 +284,13 @@ try {
   else {
     if(e->GetText()) {
       // eval all text elements
-      e->FirstChild()->SetValue(octaveEval(paramString, string(e->GetText())+";"));
+      e->FirstChild()->SetValue(octaveEval(paramString, string(e->GetText())));
       // convert all text elements to SI unit
       if(e->Attribute("unit")) {
-        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";", units[e->Attribute("unit")]+";"));
+        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", units[e->Attribute("unit")]));
         e->RemoveAttribute("unit");
       }
+      e->FirstChild()->ToText()->SetCDATA(false);
     }
   
     // eval the "{...}" part in all name and ref* attributes
@@ -291,7 +301,7 @@ try {
         int i;
         while((i=s.find('{'))>=0) {
           int j=s.find('}');
-          s=s.substr(0,i)+octaveEval(paramString, s.substr(i+1,j-i-1)+";")+s.substr(j+1);
+          s=s.substr(0,i)+octaveEval(paramString, s.substr(i+1,j-i-1))+s.substr(j+1);
         }
         a->SetValue(s);
       }
@@ -341,7 +351,18 @@ int main(int argc, char *argv[]) {
   const char *octave_argv[2]={"dummy", "-q"};
   octave_main(2, (char**)octave_argv, 1);
   int dummy;
+  streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
   eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // 1/0 is error
+  std::cerr.rdbuf(orgcerr); // enable std::cerr
+
+  // preserve whitespace and newline in TiXmlText nodes
+  TiXmlBase::SetCondenseWhiteSpace(false);
+
+  // calcaulate machine precision
+  double machineEps;
+  for(machineEps=1.0; (1.0+machineEps)>1.0; machineEps*=0.5);
+  machineEps*=2.0;
+  machinePrec=(int)(-log(machineEps)/log(10))+1;
 
   // loop over all files
   for(int nr=0; nr<(argc-1)/3; nr++) {
