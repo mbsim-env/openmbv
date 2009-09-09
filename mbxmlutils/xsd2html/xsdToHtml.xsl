@@ -35,12 +35,11 @@
         div.para { margin-bottom:1ex }
         dl,dd { }
         dt { font-weight:bold }
-        div.eqn { margin-bottom:1ex }
-        img.eqn { }
-        img.inlineeqn { }
-        div.htmlfigure,table,caption,tr,td { }
-        img.htmlfigure { }
-        object.latexfigure { }
+        img.eqn { display:block;margin-bottom:1ex;margin-top:1ex }
+        img.inlineeqn { vertical-align:middle }
+        img.figure { }
+        table.figure { }
+        div.figure { margin-bottom:1ex;margin-top:1ex }
 
         h2,h3 { margin-top:10ex;margin;font-size:14pt }
         ul.content { padding-left:3ex;list-style-type:none }
@@ -474,7 +473,14 @@
   <xsl:template mode="CLONEDOC" match="text()">
     <xsl:copy/>
   </xsl:template>
-
-  <xsl:template mode="CLONEDOC" match="html:object[@class='latexfigure']"/>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
+    <div class="figure">
+      <table class="figure">
+        <caption align="bottom"><xsl:value-of select="@title"/></caption>
+        <tr><td><img class="figure"><xsl:attribute name="src"><xsl:value-of select="@data"/>.png</xsl:attribute>
+                     <xsl:attribute name="alt"><xsl:value-of select="@data"/></xsl:attribute></img></td></tr>
+      </table>
+    </div>
+  </xsl:template>
 
 </xsl:stylesheet>
