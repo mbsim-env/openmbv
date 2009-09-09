@@ -95,7 +95,9 @@ int toOctave(TiXmlElement *&e) {
     if(e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
       size_t i;
       while((i=vec.find(';'))!=string::npos)
-        vec=vec.substr(0,i)+";\n"+vec.substr(i+1);
+        vec=vec.substr(0,i)+"#\n"+vec.substr(i+1);
+      while((i=vec.find('#'))!=string::npos)
+        vec=vec.substr(0,i)+";"+vec.substr(i+1);
     }
 
     vec="["+vec+"]";
