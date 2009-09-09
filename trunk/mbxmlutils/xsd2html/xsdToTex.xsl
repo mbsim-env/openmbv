@@ -459,9 +459,8 @@ A indent indicates child elements for a given element.
     <xsl:value-of select="@alt"/>
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:div[@class='htmlfigure']"/>
-  <xsl:template mode="CLONEDOC" match="html:object[@class='latexfigure']">
-    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@title"/>\end{center}
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
+    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>.eps}\\<xsl:value-of select="@title"/>\end{center}
   </xsl:template>
  
 </xsl:stylesheet>
