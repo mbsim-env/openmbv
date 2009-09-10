@@ -74,15 +74,14 @@ echo "Export equations"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
 echo "  Out file: equation.txt"
-@XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.doxygen.xsd || exit 1
+@XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.xhtml || exit 1
 
 # Generating equation
-L=1
-while [ $L -le $(cat equation.txt | wc -l) ]; do
-  LINE="$(sed -rne "${L}p" equation.txt)"
-  F="$(echo $LINE | cut -d' ' -f1)"
-  E="$(echo $LINE | cut -d' ' -f2-)"
-  echo "Generating $F for equation $E"
+while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
+  B=$(sed -rne "/^MBXMLUTILS_BEGINEQN$/=;/^MBXMLUTILS_BEGINEQN$/q" equation.txt)
+  E=$(sed -rne "/^MBXMLUTILS_ENDEQN$/=;/^MBXMLUTILS_ENDEQN$/q" equation.txt)
+  FILE=$(sed -rne "$[$B+1]p" equation.txt)
+  echo "Generating equation in $FILE"
   cat << EOF > equation.tex
 \documentclass{report}
 \usepackage{graphicx,psfrag,amsmath,amssymb,color}
@@ -91,13 +90,14 @@ while [ $L -le $(cat equation.txt | wc -l) ]; do
 \setlength{\textheight}{100cm}
 \begin{document}
 \pagestyle{empty}
-$E
-\end{document}
 EOF
+  sed -rne "$[$B+2],$[$E-1]p" equation.txt >> equation.tex
+  echo '\end{document}' >> equation.tex
   latex -help >& /dev/null && latex equation.tex || echo "Skip generation of png-equations (LaTeX not found)"
   latex -help >& /dev/null && dvips -E -o equation.eps equation.dvi || echo ""
-  latex -help >& /dev/null && gs -q -dBATCH -dNOPAUSE -dEPSCrop -r96 -sDEVICE=pngalpha -sOutputFile=$F equation.eps || echo ""
-  L=$[$L+1]
+  latex -help >& /dev/null && gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || echo ""
+  sed -rne "$[$E+1],\$p" equation.txt >> equation.txt.new
+  mv equation.txt.new equation.txt
 done
 
 

@@ -158,10 +158,11 @@
     <xsl:param name="LEVELNR"/>
     <xsl:param name="NAME" select="@name"/>
     <li>
-      <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
+      <xsl:if test="$LEVEL &lt; 0"><!-- prevent numbers -->
+        <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
+      </xsl:if>
       <xsl:text> </xsl:text>
-      <a class="element"><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
-        <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <a class="element" name="content-{@name}" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
       <xsl:if test="/xs:schema/xs:element[@substitutionGroup=$NAME]">
         <ul class="content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
@@ -197,18 +198,14 @@
     <xsl:param name="TYPENAME" select="@type"/>
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
-    <xsl:element name="h3"><!-- use h3 for all section headings independent of the LEVEL -->
-      <xsl:attribute name="class">element</xsl:attribute>
-      <xsl:value-of select="$TITLENR"/>
+    <!-- use h3 for all section headings independent of the LEVEL -->
+    <h3 class="element">
+      <xsl:if test="$LEVEL &lt; 0"><!-- prevent numbers -->
+        <xsl:value-of select="$TITLENR"/>
+      </xsl:if>
       <xsl:text> </xsl:text>
-      <a>
-        <xsl:attribute name="name">
-          <xsl:value-of select="@name"/>
-        </xsl:attribute>
-        <xsl:attribute name="href">#content-<xsl:value-of select="@name"/></xsl:attribute>
-        &lt;<xsl:value-of select="@name"/>&gt;
-      </a>
-    </xsl:element>
+      <a name="{@name}" href="#content-{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
+    </h3>
     <table border="1">
       <!-- abstract -->
       <tr><td>Abstract Element:</td><td>
@@ -218,9 +215,7 @@
       <!-- inherits -->
       <tr><td>Inherits:</td><td>
         <xsl:if test="@substitutionGroup">
-          <a class="element">
-            <xsl:attribute name="href">#<xsl:value-of select="@substitutionGroup"/></xsl:attribute>
-            &lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
+          <a class="element" href="#{@substitutionGroup}">&lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
         </xsl:if>
       </td></tr>
       <!-- inherited by -->
@@ -228,9 +223,7 @@
         <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])>0">
           <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
             <xsl:sort select="@name"/>
-            <a class="element">
-              <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>
-              &lt;<xsl:value-of select="@name"/>&gt;</a>, 
+            <a class="element" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>, 
           </xsl:for-each>
         </xsl:if>
       </td></tr>
@@ -268,12 +261,7 @@
     <xsl:if test="@use!='required'">
       <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
     </xsl:if>
-    (Type: <a class="type">
-      <xsl:attribute name="href">
-        #<xsl:value-of select="@type"/>
-      </xsl:attribute>
-      <xsl:value-of select="@type"/>
-    </a>)
+    (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
     <br/>
   </xsl:template>
 
@@ -289,9 +277,7 @@
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
     <xsl:param name="CLASSTYPE" select="@name"/>
-    <a class="element">
-      <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:attribute>
-      &lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
+    <a class="element" href="#{/xs:schema/xs:element[@type=$CLASSTYPE]/@name}">&lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
   </xsl:template>-->
 
   <!-- child elements for not base class -->
@@ -301,9 +287,7 @@
       <!-- elements from base class -->
       <li>
         All Elements from 
-        <a class="element">
-          <xsl:attribute name="href">#<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:attribute>
-          &lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
+        <a class="element" href="#{/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup}">&lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
       </li>
       <!-- elements from this class -->
       <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
@@ -328,10 +312,7 @@
     <xsl:param name="ELEMENTNAME"/>
     <xsl:param name="COLORSTYLE"/>
     <xsl:if test="@minOccurs|@maxOccurs">
-      <xsl:element name="{$ELEMENTNAME}">
-        <xsl:attribute name="class">
-          <xsl:value-of select="$COLORSTYLE"/>
-        </xsl:attribute>
+      <xsl:element name="{$ELEMENTNAME}" class="{$COLORSTYLE}">
         <xsl:if test="@minOccurs=0 and not(@maxOccurs)">
           <span class="occurance">[optional]</span>
         </xsl:if>
@@ -385,9 +366,7 @@
       </xsl:if>
       <!-- name by ref -->
       <xsl:if test="@ref">
-        <a class="element">
-          <xsl:attribute name="href">#<xsl:value-of select="@ref"/></xsl:attribute>
-          &lt;<xsl:value-of select="@ref"/>&gt;</a>
+        <a class="element" href="#{@ref}">&lt;<xsl:value-of select="@ref"/>&gt;</a>
       </xsl:if><xsl:text> </xsl:text>
       <!-- occurence -->
       <xsl:apply-templates mode="OCCURANCE" select=".">
@@ -473,14 +452,29 @@
   <xsl:template mode="CLONEDOC" match="text()">
     <xsl:copy/>
   </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']">
+    <img class="eqn" src="{concat(generate-id(),'.png')}" alt="{.}"/>
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='inlineeqn']">
+    <img class="inlineeqn" src="{concat(generate-id(),'.png')}" alt="{.}"/>
+  </xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
     <div class="figure">
       <table class="figure">
         <caption align="bottom"><xsl:value-of select="@title"/></caption>
-        <tr><td><img class="figure"><xsl:attribute name="src"><xsl:value-of select="@data"/>.png</xsl:attribute>
-                     <xsl:attribute name="alt"><xsl:value-of select="@data"/></xsl:attribute></img></td></tr>
+        <tr><td><img class="figure" src="{@data}.png" alt="{@data}"></img></td></tr>
       </table>
     </div>
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_html']">
+    <div class="figure">
+      <table class="figure">
+        <caption align="bottom"><xsl:value-of select="@title"/></caption>
+        <tr><td><img class="figure" src="{@data}" alt="{@data}"></img></td></tr>
+      </table>
+    </div>
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_latex']">
   </xsl:template>
 
 </xsl:stylesheet>
