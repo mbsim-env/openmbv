@@ -152,27 +152,23 @@
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="formula">
     <xsl:if test="not(starts-with(.,'$'))">
-      <div class="eqn"><img class="eqn"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
-            <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
-      </img></div>
+      <object class="eqn">
+        <xsl:value-of select="substring-before(substring-after(.,'\['),'\]')"/>
+      </object>
     </xsl:if>
     <xsl:if test="starts-with(.,'$')">
-      <img class="inlineeqn"><xsl:attribute name="src">form_<xsl:value-of select="@id"/>.png</xsl:attribute>
-         <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
-      </img>
+      <object class="inlineeqn">
+        <xsl:value-of select="substring-before(substring-after(.,'$'),'$')"/>
+      </object>
     </xsl:if>
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="image[@type='html']">
-    <div class="htmlfigure"><table><caption align="bottom"><xsl:value-of select="."/></caption><tr><td><img class="htmlfigure"><xsl:attribute name="src"><xsl:value-of select="@name"/></xsl:attribute>
-      <xsl:attribute name="alt"><xsl:value-of select="@name"/></xsl:attribute>
-    </img></td></tr></table></div>
+    <!-- ABUSE the html "object" element to include a LaTeX image in the XML schema -->
+    <object class="figure_html" data="{@name}" title="{.}"/>
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="image[@type='latex']">
     <!-- ABUSE the html "object" element to include a LaTeX image in the XML schema -->
-    <object class="latexfigure"><xsl:attribute name="standby"><xsl:value-of select="@width"/></xsl:attribute>
-      <xsl:attribute name="data"><xsl:value-of select="@name"/></xsl:attribute>
-      <xsl:attribute name="title"><xsl:value-of select="."/></xsl:attribute>
-    </object>
+    <object class="figure_latex" standby="{@width}" data="{@name}" title="{.}"/>
   </xsl:template>
 
 </xsl:stylesheet>

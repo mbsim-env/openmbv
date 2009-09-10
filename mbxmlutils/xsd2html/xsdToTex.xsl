@@ -49,6 +49,7 @@
 \setlength{\textheight}{235.5mm}
 \setlength{\footskip}{13mm}
 
+% BEGIN format existing section/subsection/... and add/format new subparagraph[A-E]
 \titleformat{\section}[hang]{\Large\bf}{\thesection}{1em}{}
 \titleformat{\subsection}[hang]{\Large\bf}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}[hang]{\Large\bf}{\thesubsubsection}{1em}{}
@@ -60,8 +61,39 @@
 \titlespacing*{\paragraph}{0ex}{12ex}{1ex}
 \titlespacing*{\subparagraph}{0ex}{12ex}{1ex}
 
-\setcounter{secnumdepth}{5}
-\setcounter{tocdepth}{5}
+\titleclass{\subparagraphA}{straight}[\subparagraph]
+\newcounter{subparagraphA}
+\renewcommand{\thesubparagraphA}{\thesubparagraph.\arabic{subparagraphA}}
+\titleformat{\subparagraphA}[hang]{\Large\bf}{\thesubparagraphA}{1em}{}
+\titlespacing*{\subparagraphA}{0ex}{12ex}{1ex}
+
+\titleclass{\subparagraphB}{straight}[\subparagraphA]
+\newcounter{subparagraphB}
+\renewcommand{\thesubparagraphB}{\thesubparagraphA.\arabic{subparagraphB}}
+\titleformat{\subparagraphB}[hang]{\Large\bf}{\thesubparagraphB}{1em}{}
+\titlespacing*{\subparagraphB}{0ex}{12ex}{1ex}
+
+\titleclass{\subparagraphC}{straight}[\subparagraphB]
+\newcounter{subparagraphC}
+\renewcommand{\thesubparagraphC}{\thesubparagraphB.\arabic{subparagraphC}}
+\titleformat{\subparagraphC}[hang]{\Large\bf}{\thesubparagraphC}{1em}{}
+\titlespacing*{\subparagraphC}{0ex}{12ex}{1ex}
+
+\titleclass{\subparagraphD}{straight}[\subparagraphC]
+\newcounter{subparagraphD}
+\renewcommand{\thesubparagraphD}{\thesubparagraphC.\arabic{subparagraphD}}
+\titleformat{\subparagraphD}[hang]{\Large\bf}{\thesubparagraphD}{1em}{}
+\titlespacing*{\subparagraphD}{0ex}{12ex}{1ex}
+
+\titleclass{\subparagraphE}{straight}[\subparagraphD]
+\newcounter{subparagraphE}
+\renewcommand{\thesubparagraphE}{\thesubparagraphD.\arabic{subparagraphE}}
+\titleformat{\subparagraphE}[hang]{\Large\bf}{\thesubparagraphE}{1em}{}
+\titlespacing*{\subparagraphE}{0ex}{12ex}{1ex}
+% END format existing section/subsection/... and add/format new subparagraph[A-E]
+
+\setcounter{secnumdepth}{1}
+\setcounter{tocdepth}{10}
 \begin{document}
 
 \title{<xsl:value-of select="$PROJECT"/> - XML Documentation}
@@ -166,11 +198,16 @@ A indent indicates child elements for a given element.
     <xsl:param name="CLASSNAME" select="@name"/>
     <!-- heading -->
     <xsl:choose>
-      <xsl:when test='$LEVEL=0'>\section</xsl:when>
-      <xsl:when test='$LEVEL=1'>\subsection</xsl:when>
-      <xsl:when test='$LEVEL=2'>\subsubsection</xsl:when>
-      <xsl:when test='$LEVEL=3'>\paragraph</xsl:when>
-      <xsl:otherwise>\subparagraph</xsl:otherwise>
+      <!-- section is not used to prevent numbers on top level elements -->
+      <xsl:when test='$LEVEL=0'>\subsection</xsl:when>
+      <xsl:when test='$LEVEL=1'>\subsubsection</xsl:when>
+      <xsl:when test='$LEVEL=2'>\paragraph</xsl:when>
+      <xsl:when test='$LEVEL=3'>\subparagraph</xsl:when>
+      <xsl:when test='$LEVEL=4'>\subparagraphA</xsl:when>
+      <xsl:when test='$LEVEL=5'>\subparagraphB</xsl:when>
+      <xsl:when test='$LEVEL=6'>\subparagraphC</xsl:when>
+      <xsl:when test='$LEVEL=7'>\subparagraphD</xsl:when>
+      <xsl:otherwise>\subparagraphE</xsl:otherwise>
     </xsl:choose>{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|}
     \label{<xsl:value-of select="@name"/>}
     \makebox{}\\
@@ -455,12 +492,20 @@ A indent indicates child elements for a given element.
     \texttt{<xsl:apply-templates mode="CLONEDOC"/>}
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:img[@class='eqn']|html:img[@class='inlineeqn']">
-    <xsl:value-of select="@alt"/>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']">
+    \[ <xsl:value-of select="."/> \]
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='inlineeqn']">
+    $ <xsl:value-of select="."/> $
   </xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
     \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>.eps}\\<xsl:value-of select="@title"/>\end{center}
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_latex']">
+    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@title"/>\end{center}
+  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_html']">
   </xsl:template>
  
 </xsl:stylesheet>
