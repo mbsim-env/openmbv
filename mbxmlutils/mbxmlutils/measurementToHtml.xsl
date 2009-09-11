@@ -121,6 +121,16 @@ b
 myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
 </pre>
 
+<p>A octave expression can also expand over more then one line like below. Note that the characters '&amp;', '&lt;' and '&gt;' are not allowed in XML. So you have to quote them with '&amp;amp;', '&amp;lt;' and '&amp;gt;', or you must enclose the octave code in a CDATA section:</p>
+<pre>&lt;![CDATA[
+function r=myfunc(a)
+  r=2*a;
+end
+if 1 &amp; 2, x=9; else x=8; end
+ret=myfunc(m1/2);
+]]&gt;
+</pre>
+
     <h2><a name="embed" href="#content-embed">Embeding</a></h2>
     <p>Using the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element, where the prefix <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
 <pre>&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
@@ -129,7 +139,17 @@ myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
   &lt;any_element_with_childs/&gt;
 &lt;/pv:embed&gt;
 </pre>
-<p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
+<p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global parameters and to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
+
+<p>The first child element of <span style="font-family:monospace">&lt;pv:embed&gt;</span> can be the element <span style="font-family:monospace">&lt;p:parameter&gt;</span>. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.</p>
+<pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+  &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+    &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
+    &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
+  &lt;/p:parameter&gt;
+  &lt;any_element_with_childs/&gt;
+&lt;/pv:embed&gt;
+</pre>
 
     <h2><a name="measurements" href="#content-measurements">Measurements</a></h2>
     <p>The following measurements are defined</p>
