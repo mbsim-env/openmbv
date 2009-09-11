@@ -151,6 +151,17 @@ if 1==a; ret=4; else ret=8; end
 myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
 \end{verbatim}
 
+A octave expression can also expand over more then one line like below. Note that the characters '\verb|&amp;|', '\verb|&lt;|' and '\verb|&gt;|' are not allowed in XML. So you have to quote them with '\verb|&amp;amp;|', '\verb|&amp;lt;|' and '\verb|&amp;gt;|', or you must enclose the octave code in a CDATA section:
+\begin{verbatim}
+&lt;![CDATA[
+function r=myfunc(a)
+  r=2*a;
+end
+if 1 &amp; 2, x=9; else x=8; end
+ret=myfunc(m1/2);
+]]&gt;
+\end{verbatim}
+
 \chapter{Embeding}
 \label{embed}
 Using the \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| element, where the prefix \lstinline[basicstyle=\ttfamily]|pv| is mapped to the namespace-uri \lstinline[basicstyle=\ttfamily]|http://openmbv.berlios.de/MBXMLUtils/physicalvariable| it is possible to embed a XML element multiple times. The full valid example syntax for this element is:
@@ -164,6 +175,17 @@ or
 &lt;/pv:embed&gt;
 \end{verbatim}
 This will substitute the \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| element in the current context \lstinline[basicstyle=\ttfamily]|2+a| times with the element defined in the file \lstinline[basicstyle=\ttfamily]|file.xml| or with \lstinline[basicstyle=\ttfamily]|&lt;any_element_with_childs&gt;|. The insert elements have access to a parameter named \lstinline[basicstyle=\ttfamily]|n| which counts from \lstinline[basicstyle=\ttfamily]|1| to \lstinline[basicstyle=\ttfamily]|2+a| for each insert element. The new element is only insert if the octave expression defined by the attribute \lstinline[basicstyle=\ttfamily]|onlyif| evaluates to \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|). If the attribute \lstinline[basicstyle=\ttfamily]|onlyif| is not given it is allways \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|).
+
+The first child element of \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| can be the element \lstinline[basicstyle=\ttfamily]|&lt;p:parameter&gt;|. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.
+\begin{verbatim}
+&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+  &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+    &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
+    &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
+  &lt;/p:parameter&gt;
+  &lt;any_element_with_childs/&gt;
+&lt;/pv:embed&gt;
+\end{verbatim}
 
 \chapter{Measurement}
 \label{measurement}

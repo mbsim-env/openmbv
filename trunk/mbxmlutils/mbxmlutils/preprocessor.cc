@@ -13,6 +13,7 @@ extern "C" {
 #include <octave/parse.h>
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
+#define MBXMLUTILSPNS "{http://openmbv.berlios.de/MBXMLUtils/parameter}"
 
 using namespace std;
 
@@ -120,6 +121,10 @@ int toOctave(TiXmlElement *&e) {
 
 string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true) {
   int dummy;
+  // delete leading new lines in str
+  for(int i=0; i<str.length() && (str[i]==' ' || str[i]=='\n' || str[i]=='\t'); i++)
+    str[i]=' ';
+
   string clear="";
   if(clearOnStart) clear="clear all;\n";
   streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
@@ -182,7 +187,7 @@ int genParamString(TiXmlElement *e, string &paramString) {
     size_t i;
     try {
       // fill octave with variables
-      octaveEval("", "1;"); // clear all
+      octaveEval("", "1;\n"+paramString); // clear all
       for(i=0; i<param.size(); i++)
         octaveEval("", param[i].name+"="+param[i].equ, false, false);
       // try to evaluate the parameter
@@ -210,9 +215,12 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, string paramString, ma
 try {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
     // check
-    if((e->Attribute("href") && e->FirstChildElement()) ||
-       (e->Attribute("href")==0 && e->FirstChildElement()==0)) {
-      TiXml_location(e, "", ": Only the href attribute OR a child element is allowed in embed!");
+    TiXmlElement *l=0, *dummy;
+    for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
+    if(l) cout<<l->ValueStr()<<endl;
+    if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPNS"parameter") ||
+       (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPNS"parameter"))) {
+      TiXml_location(e, "", ": Only the href attribute OR a child element (expect parameter) is allowed in embed!");
       return 1;
     }
 
@@ -254,13 +262,20 @@ try {
         return 1;
       }
     }
-    else // or take the child element (as a clone, because the embed element is deleted)
+    else { // or take the child element (as a clone, because the embed element is deleted)
       enew=(TiXmlElement*)e->FirstChildElement()->Clone();
+      enew->SetAttribute("xml:base", e->GetElementWithXmlBase(0)->Attribute("xml:base")); // add a xml:base attribute
+    }
 
     // include a processing instruction with the line number of the original element
     TiXmlUnknown embedLine;
     embedLine.SetValue("?OriginalElementLineNr "+TiXml_itoa(e->Row())+"?");
     enew->InsertBeforeChild(enew->FirstChild(), embedLine);
+
+
+    // generate local paramter for embed
+    if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPNS"parameter")
+      genParamString(e->FirstChildElement(), paramString);
 
     // delete embed element and insert count time the new element
     for(int i=1; i<=count; i++) {
