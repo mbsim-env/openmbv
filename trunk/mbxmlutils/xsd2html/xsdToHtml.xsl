@@ -82,6 +82,15 @@
           </xsl:apply-templates>
         </ul>
       </li>
+      <li>4 <a name="content-simpletypes" href="#simpletypes">Simple Types</a>
+        <xsl:if test="/xs:schema/xs:simpleType">
+          <ul class="content">
+            <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:simpleType">
+              <xsl:sort select="@name"/>
+            </xsl:apply-templates>
+          </ul>
+        </xsl:if>
+      </li>
     </ul>
     <h2>1 <a name="introduction" href="#content-introduction">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
@@ -149,6 +158,12 @@
       <xsl:with-param name="LEVELNR" select="'3'"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
+
+    <h2>4 <a name="simpletypes" href="#content-simpletypes">Simple Types</a></h2>
+    <xsl:apply-templates mode="SIMPLETYPE" select="/xs:schema/xs:simpleType">
+      <xsl:sort select="@name"/>
+    </xsl:apply-templates>
+
     </body></html>
   </xsl:template>
 
@@ -172,6 +187,13 @@
           </xsl:apply-templates>
         </ul>
       </xsl:if>
+    </li>
+  </xsl:template>
+
+  <!-- generate contents -->
+  <xsl:template mode="CONTENT" match="/xs:schema/xs:simpleType">
+    <li>
+      <a class="element" name="content-{@name}" href="#{@name}"><xsl:value-of select="@name"/></a>
     </li>
   </xsl:template>
 
@@ -231,7 +253,7 @@
       <!--<tr><td>Can be used in:</td><td><xsl:apply-templates mode="USEDIN2" select="."/></td></tr>-->
       <!-- class attributes -->
       <tr><td>Attributes:</td><td>
-      <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
+      <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:attribute"/>
       </td></tr>
     </table>
     <!-- class documentation -->
@@ -252,17 +274,31 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- simple type -->
+  <xsl:template mode="SIMPLETYPE" match="/xs:schema/xs:simpleType">
+    <h3 class="element">
+      <a name="{@name}" href="#content-{@name}"><xsl:value-of select="@name"/></a>
+    </h3>
+    <!-- simpleType documentation -->
+    <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
+  </xsl:template>
+
   <!-- class attributes -->
-  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
-    <span class="element"><xsl:value-of select="@name"/></span>
-    <xsl:if test="@use='required'">
-      <span class="occurance"> [required]</span><xsl:text> </xsl:text>
+  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute|/xs:schema/xs:complexType/xs:complexContent/xs:extension/xs:attribute">
+    <xsl:if test="@name">
+      <span class="element"><xsl:value-of select="@name"/></span>
+      <xsl:if test="@use='required'">
+        <span class="occurance"> [required]</span><xsl:text> </xsl:text>
+      </xsl:if>
+      <xsl:if test="@use!='required'">
+        <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
+      </xsl:if>
+      (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
+      <br/>
     </xsl:if>
-    <xsl:if test="@use!='required'">
-      <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
+    <xsl:if test="@ref">
+      <a class="element" href="#{@ref}"><xsl:value-of select="@ref"/></a><br/>
     </xsl:if>
-    (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
-    <br/>
   </xsl:template>
 
   <!-- used in -->
@@ -373,25 +409,7 @@
         <xsl:with-param name="ELEMENTNAME" select="'span'"/>
       </xsl:apply-templates>
       <!-- type -->
-      <xsl:if test="@type">
-        <!-- type {http://openmbv.berlios.de/MBXMLUTILS/physicalvariable}* -->
-        <xsl:if test="substring(@type,1,3)='pv:'">
-          (Type: <a class="type">
-             <!-- set href to $PHYSICALVARIABLEHTMLDOC#[scalartype|vectortype|matrixtype] -->
-            <xsl:attribute name="href"><xsl:value-of select="$PHYSICALVARIABLEHTMLDOC"/>#<xsl:if test="substring(@type,string-length(@type)-5,6)='Scalar'">scalartype</xsl:if>
-              <xsl:if test="substring(@type,string-length(@type)-5,6)='Vector'">vectortype</xsl:if>
-              <xsl:if test="substring(@type,string-length(@type)-5,6)='Matrix'">matrixtype</xsl:if>
-            </xsl:attribute>
-            <xsl:value-of select="@type"/>
-          </a>)
-        </xsl:if>
-        <!-- type not {http://openmbv.berlios.de/MBXMLUtils/physicalvariable}* -->
-        <xsl:if test="substring(@type,1,3)!='pv:'">
-          (Type: <span class="type">
-            <xsl:value-of select="@type"/>
-          </span>)
-        </xsl:if>
-      </xsl:if>
+      <xsl:if test="@type">(Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)</xsl:if>
       <!-- element attributes -->
       <xsl:if test="@name and not(@type)">
         <xsl:apply-templates mode="ELEMENTATTRIBUTE" select="xs:complexType/xs:attribute"/>
@@ -415,7 +433,7 @@
     <xsl:if test="@use!='required'">
       <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
     </xsl:if>
-    (Type: <span class="type"><xsl:value-of select="@type"/></span>)
+    (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
   </xsl:template>
 
   <!-- documentation -->

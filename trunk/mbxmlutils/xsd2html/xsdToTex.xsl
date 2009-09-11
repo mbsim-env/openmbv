@@ -175,6 +175,11 @@ A indent indicates child elements for a given element.
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
+\chapter{Simple Types}
+    <xsl:apply-templates mode="SIMPLETYPE" select="/xs:schema/xs:simpleType">
+      <xsl:sort select="@name"/>
+    </xsl:apply-templates>
+
 \end{document}
   </xsl:template>
 
@@ -223,13 +228,13 @@ A indent indicates child elements for a given element.
       Inherits: &amp;
       <xsl:if test="@substitutionGroup">
         \hyperref[<xsl:value-of select="@substitutionGroup"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@substitutionGroup"/>&gt;|}
-        (\ref*{<xsl:value-of select="@substitutionGroup"/>}, p. \pageref*{<xsl:value-of select="@substitutionGroup"/>})
+        (P. \pageref*{<xsl:value-of select="@substitutionGroup"/>})
       </xsl:if>\\
       \hline
       <!-- inherited by -->
       Inherited by:
       <xsl:for-each select="/xs:schema/xs:element[@substitutionGroup=$CLASSNAME]">
-        <xsl:sort select="@name"/>&amp; \hyperref[<xsl:value-of select="@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|}~(\ref*{<xsl:value-of select="@name"/>},~p.~\pageref*{<xsl:value-of select="@name"/>}) \\
+        <xsl:sort select="@name"/>&amp; \hyperref[<xsl:value-of select="@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|}~(P.~\pageref*{<xsl:value-of select="@name"/>}) \\
       </xsl:for-each>
       <xsl:if test="count(/xs:schema/xs:element[@substitutionGroup=$CLASSNAME])=0"> &amp; \\</xsl:if>
       \hline
@@ -239,7 +244,7 @@ A indent indicates child elements for a given element.
       \hline-->
       <!-- class attributes -->
       Attributes: 
-      <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute"/>
+      <xsl:apply-templates mode="CLASSATTRIBUTE" select="/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute|/xs:schema/xs:complexType[@name=$TYPENAME]/xs:complexContent/xs:extension/xs:attribute"/>
       <xsl:if test="not(/xs:schema/xs:complexType[@name=$TYPENAME]/xs:attribute)"> &amp; \\</xsl:if>
       \hline
     \end{tabularx}
@@ -265,12 +270,25 @@ A indent indicates child elements for a given element.
     </xsl:if>
   </xsl:template>
 
+  <!-- simple type -->
+  <xsl:template mode="SIMPLETYPE" match="/xs:schema/xs:simpleType">
+    \subsection{\lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|}
+    \label{<xsl:value-of select="@name"/>}
+    <!-- simpleType documentation -->
+    <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
+  </xsl:template>
+
   <!-- class attributes -->
-  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute">
-    &amp; \lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
-    <xsl:if test="@use='required'">\textit{[required]}</xsl:if>
-    <xsl:if test="@use!='required'">\textit{[optional]}</xsl:if>
-    (Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)\\
+  <xsl:template mode="CLASSATTRIBUTE" match="/xs:schema/xs:complexType/xs:attribute|/xs:schema/xs:complexType/xs:complexContent/xs:extension/xs:attribute">
+    <xsl:if test="@name">
+      &amp; \lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
+      <xsl:if test="@use='required'">\textit{[required]}</xsl:if>
+      <xsl:if test="@use!='required'">\textit{[optional]}</xsl:if>
+      (Type: \hyperref[<xsl:value-of select="@type"/>]{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|})\\
+    </xsl:if>
+    <xsl:if test="@ref">
+      &amp; \hyperref[<xsl:value-of select="@ref"/>]{\lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@ref"/>|}\\
+    </xsl:if>
   </xsl:template>
 
   <!-- used in -->
@@ -284,14 +302,14 @@ A indent indicates child elements for a given element.
     <xsl:apply-templates mode="USEDIN" select="ancestor::xs:complexType[last()]"/>
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
-    <xsl:param name="CLASSTYPE" select="@name"/>\hyperref[<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;|}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
+    <xsl:param name="CLASSTYPE" select="@name"/>\hyperref[<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;|}~(P.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>}),
   </xsl:template>-->
 
   <!-- child elements for not base class -->
   <xsl:template mode="CLASS" match="xs:extension">
     <xsl:param name="CLASSNAME"/>
     <!-- elements from base class -->
-    All Elements from \hyperref[<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;|}~(\ref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>},~p.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
+    All Elements from \hyperref[<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;|}~(P.~\pageref*{<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>})\\
     <!-- elements from this class -->
     <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
       <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
@@ -369,11 +387,11 @@ A indent indicates child elements for a given element.
     <xsl:if test="not(@ref)">\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|</xsl:if>
     <!-- name by ref -->
     <xsl:if test="@ref">\hyperref[<xsl:value-of select="@ref"/>]{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@ref"/>&gt;|}
-      (\ref*{<xsl:value-of select="@ref"/>}, p. \pageref*{<xsl:value-of select="@ref"/>})</xsl:if>
+      (P. \pageref*{<xsl:value-of select="@ref"/>})</xsl:if>
     <!-- occurence -->
     <xsl:apply-templates mode="OCCURANCE" select="."><xsl:with-param name="ELEMENTNAME" select="'span'"/></xsl:apply-templates>
     <!-- type -->
-    <xsl:if test="@type">(Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)</xsl:if>\\
+    <xsl:if test="@type">(Type: \hyperref[<xsl:value-of select="@type"/>]{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|})</xsl:if>\\
     <!-- element attributes -->
     <xsl:if test="@name and not(@type)">
       <xsl:if test="xs:complexType/xs:attribute">
@@ -392,7 +410,8 @@ A indent indicates child elements for a given element.
   <xsl:template mode="ELEMENTATTRIBUTE" match="xs:attribute">
     \hspace{2ex}\lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
     <xsl:if test="@use='required'"> \textit{[required]}</xsl:if>
-    <xsl:if test="@use!='required'"> \textit{[optional]}</xsl:if> (Type: \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|)\\
+    <xsl:if test="@use!='required'"> \textit{[optional]}</xsl:if>
+    (Type: \hyperref[<xsl:value-of select="@type"/>]{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|})\\
   </xsl:template>
 
   <!-- documentation -->

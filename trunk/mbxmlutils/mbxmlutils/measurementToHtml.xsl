@@ -166,9 +166,9 @@ ret=myfunc(m1/2);
         <xsl:value-of select="@name"/>
       </xsl:attribute>
       <xsl:attribute name="href">#content-<xsl:value-of select="@name"/></xsl:attribute>
-      <xsl:value-of select="@name"/>
+      <tt><xsl:value-of select="@name"/></tt>
     </a></h3>
-    <p>The SI unit of <xsl:value-of select="@name"/> is: <span style="font-weight:bold"><xsl:value-of select="@SIunit"/></span></p>
+    <p>The SI unit of <tt><xsl:value-of select="@name"/></tt> is: <tt><span style="font-weight:bold"><xsl:value-of select="@SIunit"/></span></tt></p>
     <p>The following units are defined the measure <xsl:value-of select="@name"/>. "Unit Name" is the name of the unit and
       "Conversion to SI Unit" is a expression which converts a value of this unit to the SI unit.</p>
     <table border="1">
@@ -181,14 +181,14 @@ ret=myfunc(m1/2);
     <tr>
       <!-- if SI unit use bold font -->
       <xsl:if test="../@SIunit=@name">
-        <td><span style="font-weight:bold"><xsl:value-of select="@name"/></span></td>
+        <td><tt><span style="font-weight:bold"><xsl:value-of select="@name"/></span></tt></td>
       </xsl:if>
       <!-- if not SI unit use normalt font -->
       <xsl:if test="../@SIunit!=@name">
-        <td><xsl:value-of select="@name"/></td>
+        <td><tt><xsl:value-of select="@name"/></tt></td>
       </xsl:if>
       <!-- outout conversion -->
-      <td><xsl:value-of select="."/></td>
+      <td><tt><xsl:value-of select="."/></tt></td>
     </tr>
   </xsl:template>
 
