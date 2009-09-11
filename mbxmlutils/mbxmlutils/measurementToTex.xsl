@@ -198,9 +198,9 @@ The following measurements are defined
   </xsl:template>
 
   <xsl:template match="/mm:measurement/mm:measure">
-\section{<xsl:value-of select="@name"/>}
+\section{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@name"/>|}
 \label{<xsl:value-of select="@name"/>}
-The SI unit of <xsl:value-of select="@name"/> is: \lstinline[basicstyle=\ttfamily\bfseries]|<xsl:value-of select="@SIunit"/>|
+The SI unit of \lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@name"/>| is: \lstinline[basicstyle=\ttfamily\bfseries]|<xsl:value-of select="@SIunit"/>|
 
 The following units are defined the measure <xsl:value-of select="@name"/>. "Unit Name" is the name of the unit and
 "Conversion to SI Unit" is a expression which converts a value of this unit to the SI unit.
