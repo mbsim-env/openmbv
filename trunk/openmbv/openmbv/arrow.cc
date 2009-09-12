@@ -193,6 +193,7 @@ double Arrow::update() {
 }
 
 QString Arrow::getInfo() {
+  if(data.size()==0) update();
   return DynamicColoredBody::getInfo()+
          QString("-----<br/>")+
          QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]).arg(data[2]).arg(data[3])+
