@@ -40,14 +40,13 @@
 
 \begin{document}
 
-\title{Measurement - XML Documentation}
+\title{Physical Variable - XML Documentation}
 \maketitle
 
 \tableofcontents
 
 \chapter{Introduction}
 \label{introduction}
-This is the documentation of the definition of scalar, vector and matrix types with a abitary measurement.
 
 \chapter{Scalar Type}
 \label{scalartype}

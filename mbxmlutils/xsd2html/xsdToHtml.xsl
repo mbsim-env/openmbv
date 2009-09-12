@@ -10,7 +10,6 @@
        be done in the file xstToTex.xsl -->
 
   <xsl:param name="PROJECT"/>
-  <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
 
 
@@ -63,39 +62,54 @@
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <h2>Contents</h2>
     <ul class="content">
-      <li>1 <a name="content-introduction" href="#introduction">Introduction</a></li>
-      <li>2 <a name="content-nomenclature" href="#nomenclature">Nomenclature</a>
+      <li>1 <a name="introduction-content" href="#introduction">Introduction</a></li>
+      <li>2 <a name="nomenclature-content" href="#nomenclature">Nomenclature</a>
         <ul class="content">
-          <li>2.1 <a name="content-aelement" href="#aelement">A element</a></li>
-          <li>2.2 <a name="content-achoice" href="#achoice">A choice of element</a></li>
-          <li>2.3 <a name="content-asequence" href="#asequence">A sequence of elements</a></li>
-          <li>2.4 <a name="content-nested" href="#nested">Nested sequences/choices</a></li>
-          <li>2.5 <a name="content-childelements" href="#childelements">Child Elements</a></li>
+          <li>2.1 <a name="aelement-content" href="#aelement">A element</a></li>
+          <li>2.2 <a name="achoice-content" href="#achoice">A choice of element</a></li>
+          <li>2.3 <a name="asequence-content" href="#asequence">A sequence of elements</a></li>
+          <li>2.4 <a name="nested-content" href="#nested">Nested sequences/choices</a></li>
+          <li>2.5 <a name="childelements-content" href="#childelements">Child Elements</a></li>
         </ul>
       </li>
-      <li>3 <a name="content-elements" href="#elements">Elements</a>
+      <li>3 <a name="elements-content" href="#elements">Elements</a>
         <ul class="content">
-          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
+          <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
+            <xsl:sort select="."/>
+            <li><a class="element">
+              <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="."/></xsl:attribute>
+              &lt;<xsl:value-of select="."/>&gt;</a>
+              <ul class="content">
+                <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=current()]">
+                  <xsl:with-param name="LEVEL" select="0"/>
+                  <xsl:with-param name="LEVELNR" select="'3'"/>
+                  <xsl:sort select="@name"/>
+                </xsl:apply-templates>
+              </ul>
+            </li>
+          </xsl:for-each>
+          <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[not(@substitutionGroup)]">
             <xsl:with-param name="LEVEL" select="0"/>
             <xsl:with-param name="LEVELNR" select="'3'"/>
             <xsl:sort select="@name"/>
           </xsl:apply-templates>
         </ul>
       </li>
-      <li>4 <a name="content-simpletypes" href="#simpletypes">Simple Types</a>
+      <li>4 <a name="simpletypes-content" href="#simpletypes">Simple Types</a>
         <xsl:if test="/xs:schema/xs:simpleType">
           <ul class="content">
-            <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:simpleType">
+            <xsl:for-each select="/xs:schema/xs:simpleType">
               <xsl:sort select="@name"/>
-            </xsl:apply-templates>
+              <li><a class="element" name="{@name}-content" href="#{@name}"><xsl:value-of select="@name"/></a></li>
+            </xsl:for-each>
           </ul>
         </xsl:if>
       </li>
     </ul>
-    <h2>1 <a name="introduction" href="#content-introduction">Introduction:</a></h2>
+    <h2>1 <a name="introduction" href="#introduction-content">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
-    <h2>2 <a name="nomenclature" href="#content-nomenclature">Nomenclature:</a></h2>
-    <h3>2.1 <a name="aelement" href="#content-aelement">A element</a></h3>
+    <h2>2 <a name="nomenclature" href="#nomenclature-content">Nomenclature:</a></h2>
+    <h3>2.1 <a name="aelement" href="#aelement-content">A element</a></h3>
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
     <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
@@ -105,7 +119,7 @@
     <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.<br/>
     The element has two attributes named <span class="attribute">attrName1</span> and <span class="attribute">attrName2</span> of type <span class="type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
-    <h3>2.2 <a name="achoice" href="#content-achoice">A choice of element</a></h3>
+    <h3>2.2 <a name="achoice" href="#achoice-content">A choice of element</a></h3>
     <ul class="elementchoice">
       <li class="elementchoicecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -113,7 +127,7 @@
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>2.3 <a name="asequence" href="#content-asequence">A sequence of elements</a></h3>
+    <h3>2.3 <a name="asequence" href="#asequence-content">A sequence of elements</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[0-3]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -121,7 +135,7 @@
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
     A occurance of <span class="occurance">[optional]</span> means <span class="occurance">[0-1]</span>.</p>
-    <h3>2.4 <a name="nested" href="#content-nested">Nested sequences/choices</a></h3>
+    <h3>2.4 <a name="nested" href="#nested-content">Nested sequences/choices</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ElemenetA&gt;</span></li>
@@ -135,7 +149,7 @@
       <li><span class="element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>Sequences and choices can be nested like above.</p>
-    <h3>2.5 <a name="childelements" href="#content-childelements">Child Elements</a></h3>
+    <h3>2.5 <a name="childelements" href="#childelements-content">Child Elements</a></h3>
     <ul class="elementsequence">
       <li class="elementsequencecolor"><span class="occurance">[1-2]</span></li>
       <li><span class="element">&lt;ParantElemenet&gt;</span>
@@ -152,19 +166,46 @@
     </ul>
     <p>A indent indicates child elements for a given element.</p>
 
-    <h2>3 <a name="elements" href="#content-elements">Elements</a></h2>
-    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
+    <h2>3 <a name="elements" href="#elements-content">Elements</a></h2>
+    <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
+      <xsl:sort select="."/>
+      <!-- heading -->
+      <!-- use h3 for all section headings independent of the LEVEL -->
+      <h3 class="element"><a>
+        <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="."/></xsl:attribute>
+        &lt;<xsl:value-of select="."/>&gt;</a></h3>
+      <p>This element is defined by a XML Schema (Project), which is included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.</p>
+      <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=current()]">
+        <xsl:with-param name="LEVEL" select="1"/>
+        <xsl:with-param name="LEVELNR" select="'3'"/>
+        <xsl:sort select="@name"/>
+      </xsl:apply-templates>
+    </xsl:for-each>
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
       <xsl:with-param name="LEVEL" select="0"/>
       <xsl:with-param name="LEVELNR" select="'3'"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
-    <h2>4 <a name="simpletypes" href="#content-simpletypes">Simple Types</a></h2>
+    <h2>4 <a name="simpletypes" href="#simpletypes-content">Simple Types</a></h2>
     <xsl:apply-templates mode="SIMPLETYPE" select="/xs:schema/xs:simpleType">
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
     </body></html>
+  </xsl:template>
+
+  <!-- generate html link form a attribute -->
+  <xsl:template mode="GENLINK" match="@*">
+    <xsl:param name="V1" select="../namespace::*[name()=substring-before(current(),':')]"/>
+    <xsl:param name="V2" select="translate($V1,'.:/','___')"/>
+    <xsl:text>../</xsl:text><xsl:value-of select="$V2"/><xsl:text>/index.xhtml#</xsl:text>
+    <xsl:if test="not(contains(.,':'))">
+      <xsl:value-of select="."/>
+    </xsl:if>
+    <xsl:if test="contains(.,':')">
+      <xsl:value-of select="substring-after(.,':')"/>
+    </xsl:if>
   </xsl:template>
 
   <!-- generate contents -->
@@ -177,7 +218,7 @@
         <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
       </xsl:if>
       <xsl:text> </xsl:text>
-      <a class="element" name="content-{@name}" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <a class="element" name="{@name}-content" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
       <xsl:if test="/xs:schema/xs:element[@substitutionGroup=$NAME]">
         <ul class="content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
@@ -187,13 +228,6 @@
           </xsl:apply-templates>
         </ul>
       </xsl:if>
-    </li>
-  </xsl:template>
-
-  <!-- generate contents -->
-  <xsl:template mode="CONTENT" match="/xs:schema/xs:simpleType">
-    <li>
-      <a class="element" name="content-{@name}" href="#{@name}"><xsl:value-of select="@name"/></a>
     </li>
   </xsl:template>
 
@@ -226,7 +260,7 @@
         <xsl:value-of select="$TITLENR"/>
       </xsl:if>
       <xsl:text> </xsl:text>
-      <a name="{@name}" href="#content-{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <a name="{@name}" href="#{@name}-content">&lt;<xsl:value-of select="@name"/>&gt;</a>
     </h3>
     <table border="1">
       <!-- abstract -->
@@ -237,7 +271,9 @@
       <!-- inherits -->
       <tr><td>Inherits:</td><td>
         <xsl:if test="@substitutionGroup">
-          <a class="element" href="#{@substitutionGroup}">&lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
+          <a class="element">
+            <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@substitutionGroup"/></xsl:attribute>
+            &lt;<xsl:value-of select="@substitutionGroup"/>&gt;</a>
         </xsl:if>
       </td></tr>
       <!-- inherited by -->
@@ -277,7 +313,7 @@
   <!-- simple type -->
   <xsl:template mode="SIMPLETYPE" match="/xs:schema/xs:simpleType">
     <h3 class="element">
-      <a name="{@name}" href="#content-{@name}"><xsl:value-of select="@name"/></a>
+      <a name="{@name}" href="#{@name}-content"><xsl:value-of select="@name"/></a>
     </h3>
     <!-- simpleType documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
@@ -293,11 +329,15 @@
       <xsl:if test="@use!='required'">
         <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
       </xsl:if>
-      (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
+      (Type: <a class="type">
+        <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
+        <xsl:value-of select="@type"/></a>)
       <br/>
     </xsl:if>
     <xsl:if test="@ref">
-      <a class="element" href="#{@ref}"><xsl:value-of select="@ref"/></a><br/>
+      <a class="element">
+        <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@ref"/></xsl:attribute>
+        <xsl:value-of select="@ref"/></a><br/>
     </xsl:if>
   </xsl:template>
 
@@ -313,7 +353,9 @@
   </xsl:template>
   <xsl:template mode="USEDIN" match="xs:complexType">
     <xsl:param name="CLASSTYPE" select="@name"/>
-    <a class="element" href="#{/xs:schema/xs:element[@type=$CLASSTYPE]/@name}">&lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
+    <a class="element">
+      <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/></xsl:attribute>
+      &lt;<xsl:value-of select="/xs:schema/xs:element[@type=$CLASSTYPE]/@name"/>&gt;</a>,
   </xsl:template>-->
 
   <!-- child elements for not base class -->
@@ -323,7 +365,9 @@
       <!-- elements from base class -->
       <li>
         All Elements from 
-        <a class="element" href="#{/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup}">&lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
+        <a class="element">
+          <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/></xsl:attribute>
+          &lt;<xsl:value-of select="/xs:schema/xs:element[@name=$CLASSNAME]/@substitutionGroup"/>&gt;</a>
       </li>
       <!-- elements from this class -->
       <xsl:apply-templates mode="SIMPLECONTENT" select="xs:sequence|xs:choice">
@@ -402,14 +446,18 @@
       </xsl:if>
       <!-- name by ref -->
       <xsl:if test="@ref">
-        <a class="element" href="#{@ref}">&lt;<xsl:value-of select="@ref"/>&gt;</a>
+        <a class="element">
+          <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@ref"/></xsl:attribute>
+          &lt;<xsl:value-of select="@ref"/>&gt;</a>
       </xsl:if><xsl:text> </xsl:text>
       <!-- occurence -->
       <xsl:apply-templates mode="OCCURANCE" select=".">
         <xsl:with-param name="ELEMENTNAME" select="'span'"/>
       </xsl:apply-templates>
       <!-- type -->
-      <xsl:if test="@type">(Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)</xsl:if>
+      <xsl:if test="@type">(Type: <a class="type">
+        <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
+        <xsl:value-of select="@type"/></a>)</xsl:if>
       <!-- element attributes -->
       <xsl:if test="@name and not(@type)">
         <xsl:apply-templates mode="ELEMENTATTRIBUTE" select="xs:complexType/xs:attribute"/>
@@ -433,7 +481,9 @@
     <xsl:if test="@use!='required'">
       <span class="occurance"> [optional]</span><xsl:text> </xsl:text>
     </xsl:if>
-    (Type: <a class="type" href="#{@type}"><xsl:value-of select="@type"/></a>)
+    (Type: <a class="type">
+      <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
+      <xsl:value-of select="@type"/></a>)
   </xsl:template>
 
   <!-- documentation -->
@@ -471,10 +521,10 @@
     <xsl:copy/>
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']">
-    <img class="eqn" src="{concat(generate-id(),'.png')}" alt="{.}"/>
+    <img class="eqn" src="{concat('mbxmlutils_',generate-id(),'.png')}" alt="{.}"/>
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='inlineeqn']">
-    <img class="inlineeqn" src="{concat(generate-id(),'.png')}" alt="{.}"/>
+    <img class="inlineeqn" src="{concat('mbxmlutils_',generate-id(),'.png')}" alt="{.}"/>
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
     <div class="figure">
