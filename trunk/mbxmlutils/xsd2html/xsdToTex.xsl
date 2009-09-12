@@ -8,7 +8,6 @@
        be done in the file xstToHtml.xsl -->
 
   <xsl:param name="PROJECT"/>
-  <xsl:param name="PHYSICALVARIABLEHTMLDOC"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
 
 
@@ -32,6 +31,7 @@
 \usepackage{longtable}
 \usepackage{tabularx}
 \usepackage{titlesec}
+\usepackage{titletoc}
 \usepackage{listings}
 \usepackage[dvips]{hyperref}
 \setlength{\parskip}{1em}
@@ -90,6 +90,16 @@
 \renewcommand{\thesubparagraphE}{\thesubparagraphD.\arabic{subparagraphE}}
 \titleformat{\subparagraphE}[hang]{\Large\bf}{\thesubparagraphE}{1em}{}
 \titlespacing*{\subparagraphE}{0ex}{12ex}{1ex}
+
+\dottedcontents{subsection}[1.5em]{}{0em}{0.75pc}
+\dottedcontents{subsubsection}[3.0em]{}{0em}{0.75pc}
+\dottedcontents{paragraph}[4.5em]{}{0em}{0.75pc}
+\dottedcontents{subparagraph}[6.0em]{}{0em}{0.75pc}
+\dottedcontents{subparagraphA}[7.5em]{}{0em}{0.75pc}
+\dottedcontents{subparagraphB}[9.0em]{}{0em}{0.75pc}
+\dottedcontents{subparagraphC}[10.5em]{}{0em}{0.75pc}
+\dottedcontents{subparagraphD}[12.0em]{}{0em}{0.75pc}
+\dottedcontents{subparagraphE}[13.5em]{}{0em}{0.75pc}
 % END format existing section/subsection/... and add/format new subparagraph[A-E]
 
 \setcounter{secnumdepth}{1}
@@ -170,7 +180,17 @@ Sequences and choices can be nested like above.
 A indent indicates child elements for a given element.
 
 \chapter{Elements}
-    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]|/xs:schema/xs:element[not(@substitutionGroup=/xs:schema/xs:element/@name)]">
+    <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
+      <xsl:sort select="."/>
+      \subsection{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="."/>&gt;|}
+      This element is defined by a XML Schema (Project), which is included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.
+      <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=current()]">
+        <xsl:with-param name="LEVEL" select="1"/>
+        <xsl:with-param name="LEVELNR" select="'3'"/>
+        <xsl:sort select="@name"/>
+      </xsl:apply-templates>
+    </xsl:for-each>
+    <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[not(@substitutionGroup)]">
       <xsl:with-param name="LEVEL" select="0"/>
       <xsl:sort select="@name"/>
     </xsl:apply-templates>

@@ -3,8 +3,10 @@ schemadir = @datadir@/@PACKAGE@/schema
 docdir = @datadir@/@PACKAGE@/doc
 xmldir = @datadir@/@PACKAGE@/xml
 dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd xhtml1-transitional.xsd
-dist_doc_DATA = measurement.xhtml measurement.tex
+noinst_DATA = physicalvariable/physicalvariable.tex
 dist_xml_DATA = measurement.xml
+
+
 
 
 
@@ -16,15 +18,21 @@ dist_xml_DATA = measurement.xml
 
 
 # generate measurement documentation
-measurement.xhtml: measurement.xml measurementToHtml.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --output measurement.xhtml measurementToHtml.xsl measurement.xml
-	@XMLLINT@ --noout --schema xhtml1-transitional.xsd measurement.xhtml || (rm measurement.xhtml; exit 1)
-measurement.tex: measurement.xml measurementToTex.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --output measurement.tex measurementToTex.xsl measurement.xml
-	latex -help >& /dev/null && latex -interaction errorstopmode measurement.tex || echo "Skip running LaTeX"
-	latex -help >& /dev/null && latex measurement.tex >& /dev/null || echo "Skip running LaTeX"
-	latex -help >& /dev/null && latex measurement.tex >& /dev/null || echo "Skip running LaTeX"
-	latex -help >& /dev/null && dvips -o measurement.ps measurement.dvi || echo "Skip running LaTeX"
+physicalvariable/physicalvariable.tex: measurement.xml measurementToTex.xsl .measurement.xml.isvalid physicalvariable.xsd
+	DIR=$$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$$|\1|p' physicalvariable.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g'); \
+	@XSLTPROC@ --output $$DIR/index.xhtml measurementToHtml.xsl measurement.xml; \
+	@XMLLINT@ --noout --schema xhtml1-transitional.xsd $$DIR/index.xhtml || (rm $$DIR/index.xhtml; exit 1)
+	@XSLTPROC@ --output physicalvariable/physicalvariable.tex measurementToTex.xsl measurement.xml
+	cd physicalvariable; \
+	latex -help >& /dev/null && latex -interaction errorstopmode physicalvariable.tex || echo "Skip running LaTeX"; \
+	latex -help >& /dev/null && latex physicalvariable.tex >& /dev/null || echo "Skip running LaTeX"; \
+	latex -help >& /dev/null && latex physicalvariable.tex >& /dev/null || echo "Skip running LaTeX"; \
+	latex -help >& /dev/null && dvips -o physicalvariable.ps physicalvariable.dvi || echo "Skip running LaTeX"
+
+install-data-local:
+	DIR=$$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$$|\1|p' physicalvariable.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g'); \
+	cp -rf http___* $(docdir)
+	
 
 
 
@@ -34,7 +42,7 @@ physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurem
 
 
 
-CLEANFILES = .measurement.xml.isvalid measurement.xhtml measurement.tex physicalvariable.xsd
+CLEANFILES = .measurement.xml.isvalid index.xhtml measurement/measurement.tex physicalvariable.xsd
 
 
 

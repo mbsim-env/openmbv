@@ -31,14 +31,14 @@ echo "Combine Doxygen XML documentation"
 echo "  In file: $DOXYGENDOCDIR/index.xml"
 echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
 echo "  Out file: .$PROJECT.doxygen.xml"
-@XSLTPROC@ --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
+@XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
 echo "DONE"
 
 echo "Add Doxygen class and element function documentation to XML Schema"
 echo "  In file: $FILE"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
 echo "  Out file: $BASENAME.doxygen.xsd"
-@XSLTPROC@ --output $BASENAME.doxygen.xsd \
+@XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
   --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
   --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
   --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
@@ -49,32 +49,33 @@ echo "DONE"
 
 
 
+HTMLDIR=$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$|\1|p' $BASENAME.doxygen.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g')
 echo "Generate HTML documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
-echo "  Out file: $BASENAME.xhtml"
-@XSLTPROC@ --output $BASENAME.xhtml \
+echo "  Out file: $HTMLDIR/index.xhtml"
+rm -rf $HTMLDIR
+@XSLTPROC@ --novalid --output $HTMLDIR/index.xhtml \
   --param PROJECT "'$PROJECT'" \
-  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.xhtml'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
 echo "Validate generated HTML documentation"
-echo "  In file: $BASENAME.xhtml"
+echo "  In file: $HTML.xhtml"
 echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
-@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $BASENAME.xhtml || exit 1
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
 
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  ls $D/*.png >2 /dev/null && cp -f $D/*.png .
+  ls $D/*.png >& /dev/null && cp -f $D/*.png $HTMLDIR
 done
 
 echo "Export equations"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
 echo "  Out file: equation.txt"
-@XSLTPROC@ --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $BASENAME.xhtml || exit 1
+@XSLTPROC@ --novalid --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $HTMLDIR/index.xhtml || exit 1
 
 # Generating equation
 while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
@@ -96,9 +97,11 @@ EOF
   latex -help >& /dev/null && latex equation.tex || echo "Skip generation of png-equations (LaTeX not found)"
   latex -help >& /dev/null && dvips -E -o equation.eps equation.dvi || echo ""
   latex -help >& /dev/null && gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || echo ""
+  mv $FILE $HTMLDIR/$FILE
   sed -rne "$[$E+1],\$p" equation.txt >> equation.txt.new
   mv equation.txt.new equation.txt
 done
+rm -f equation.*
 
 
 
@@ -107,23 +110,25 @@ done
 echo "Generate LaTeX documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
-echo "  Out file: $BASENAME.tex"
-@XSLTPROC@ --output $BASENAME.tex \
+echo "  Out file: $BASENAME/$BASENAME.tex"
+@XSLTPROC@ --novalid --output $BASENAME/$BASENAME.tex \
   --param PROJECT "'$PROJECT'" \
-  --param PHYSICALVARIABLEHTMLDOC "'@datadir@/@PACKAGE@/doc/measurement.xhtml'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
 echo "Copy *.eps"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  ls $D/*.eps >2 /dev/null && cp -f $D/*.eps .
+  ls $D/*.eps >& /dev/null && cp -f $D/*.eps $BASENAME
 done
 
 echo "Generate LaTeX-PS documentation"
-echo "  In file: $BASENAME.tex"
-echo "  Out file: $BASENAME.ps"
+echo "  In file: $BASENAME/$BASENAME.tex"
+echo "  Out file: $BASENAME/$BASENAME.ps"
+OLDDIR=$(pwd)
+cd $BASENAME
 latex -help >& /dev/null && latex -interaction errorstopmode $BASENAME.tex || echo "Skip running LaTeX"
 latex -help >& /dev/null && latex $BASENAME.tex >& /dev/null || echo "Skip running LaTeX"
 latex -help >& /dev/null && latex $BASENAME.tex >& /dev/null || echo "Skip running LaTeX"
 latex -help >& /dev/null && dvips -o $BASENAME.ps $BASENAME.dvi || echo "Skip running LaTeX"
+cd $OLDDIR

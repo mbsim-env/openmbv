@@ -21,22 +21,22 @@
   <!-- for all direct root child elements (classes) -->
   <xsl:template match="/">
     <!-- html header -->
-    <html xml:lang="en" lang="en"><head><title>Measurement - XML Documentation</title></head><body>
-    <h1>Measurement - XML Documentation</h1>
+    <html xml:lang="en" lang="en"><head><title>Physical Variable - XML Documentation</title></head><body>
+    <h1>Physical Variable - XML Documentation</h1>
     <h2>Contents</h2>
     <ul>
-      <li><a name="content-introduction" href="#introduction">Introduction</a></li>
-      <li><a name="content-scalartype" href="#scalartype">Scalar Type</a></li>
-      <li><a name="content-vectortype" href="#vectortype">Vector Type</a></li>
-      <li><a name="content-matrixtype" href="#matrixtype">Matrix Type</a></li>
-      <li><a name="content-octave" href="#octave">Octave Expression/Program</a></li>
-      <li><a name="content-embed" href="#embed">Embeding</a></li>
-      <li><a name="content-measurements" href="#measurements">Measurements</a>
+      <li><a name="introduction-content" href="#introduction">Introduction</a></li>
+      <li><a name="scalartype-content" href="#scalartype">Scalar Type</a></li>
+      <li><a name="vectortype-content" href="#vectortype">Vector Type</a></li>
+      <li><a name="matrixtype-content" href="#matrixtype">Matrix Type</a></li>
+      <li><a name="octave-content" href="#octave">Octave Expression/Program</a></li>
+      <li><a name="embed-content" href="#embed">Embeding</a></li>
+      <li><a name="measurements-content" href="#measurements">Measurements</a>
         <ul>
           <xsl:for-each select="/mm:measurement/mm:measure">
             <xsl:sort select="@name"/>
             <li>
-              <a><xsl:attribute name="name">content-<xsl:value-of select="@name"/></xsl:attribute>
+              <a><xsl:attribute name="name"><xsl:value-of select="@name"/>-content</xsl:attribute>
                 <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute><xsl:value-of select="@name"/></a>
             </li>
           </xsl:for-each>
@@ -44,10 +44,13 @@
       </li>
     </ul>
 
-    <h2><a name="introduction" href="#content-introduction">Introduction</a></h2>
-    <p>This is the documentation of the definition of scalar, vector and matrix types with a abitary measurement.</p>
+    <h2><a name="introduction" href="#introduction-content">Introduction</a></h2>
 
-    <h2><a name="scalartype" href="#content-scalartype">Scalar Type</a></h2>
+    <h2><a name="scalartype" href="#scalartype-content">Scalar Type</a>
+      <xsl:for-each select="/mm:measurement/mm:measure">
+        <a name="{@name}Scalar"/>
+      </xsl:for-each>
+    </h2>
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>.
       The type name of a scalar of measure length is <span style="font-family:monospace">pv:lengthScalar</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
@@ -55,7 +58,11 @@
     <pre>&lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
 
-    <h2><a name="vectortype" href="#content-vectortype">Vector Type</a></h2>
+    <h2><a name="vectortype" href="#vectortype-content">Vector Type</a>
+      <xsl:for-each select="/mm:measurement/mm:measure">
+        <a name="{@name}Vector"/>
+      </xsl:for-each>
+    </h2>
     <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>.
       The type name of a vector of measure length is <span style="font-family:monospace">pv:lengthVector</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
@@ -78,7 +85,11 @@
 </pre>The file vec.txt is a simple ascii file containing one element of the vector per line. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
 
-    <h2><a name="matrixtype" href="#content-matrixtype">Matrix Type</a></h2>
+    <h2><a name="matrixtype" href="#matrixtype-content">Matrix Type</a>
+      <xsl:for-each select="/mm:measurement/mm:measure">
+        <a name="{@name}Matrix"/>
+      </xsl:for-each>
+    </h2>
     <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>.
       The type name of a matrix of measure length is <span style="font-family:monospace">pv:lengthMatrix</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
@@ -106,7 +117,7 @@
 </pre>The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
 
-    <h2><a name="octave" href="#content-octave">Octave Expression/Program</a></h2>
+    <h2><a name="octave" href="#octave-content">Octave Expression/Program</a></h2>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
    <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar parameter of name 'a' and 'b' exist:</p>
@@ -131,7 +142,7 @@ ret=myfunc(m1/2);
 ]]&gt;
 </pre>
 
-    <h2><a name="embed" href="#content-embed">Embeding</a></h2>
+    <h2><a name="embed" href="#embed-content">Embeding</a></h2>
     <p>Using the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element, where the prefix <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
 <pre>&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
 <p>or</p>
@@ -151,7 +162,7 @@ ret=myfunc(m1/2);
 &lt;/pv:embed&gt;
 </pre>
 
-    <h2><a name="measurements" href="#content-measurements">Measurements</a></h2>
+    <h2><a name="measurements" href="#measurements-content">Measurements</a></h2>
     <p>The following measurements are defined</p>
     <xsl:apply-templates select="/mm:measurement/mm:measure">
       <xsl:sort select="@name"/>
@@ -165,7 +176,7 @@ ret=myfunc(m1/2);
       <xsl:attribute name="name">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
-      <xsl:attribute name="href">#content-<xsl:value-of select="@name"/></xsl:attribute>
+      <xsl:attribute name="href">#<xsl:value-of select="@name"/>-content</xsl:attribute>
       <tt><xsl:value-of select="@name"/></tt>
     </a></h3>
     <p>The SI unit of <tt><xsl:value-of select="@name"/></tt> is: <tt><span style="font-weight:bold"><xsl:value-of select="@SIunit"/></span></tt></p>
