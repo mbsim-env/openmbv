@@ -50,12 +50,12 @@
 
 \chapter{Scalar Type}
 \label{scalartype}
-A scalar type can be of any unit defined in \hyperref[measurement]{measurements}.
+A scalar type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
 The type name of a scalar of measure length is \texttt{pv:lengthScalar} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
-The content of a scalar type must be a \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+The content of a scalar type must be a \hyperref[octave]{octave~expression/program}~(P.~\pageref*{octave}). The following examples are valid, if there exist a scalar paremter \verb|a| and \verb|b| in the \hyperref[parameters]{parameter~file}~(P.~\pageref*{parameters}):
 \begin{verbatim}
   &lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;
   &lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;
@@ -63,14 +63,14 @@ The content of a scalar type must be a \hyperref[octave]{octave expression/progr
 
 \chapter{Vector Type}
 \label{vectortype}
-A vector type can be of any unit defined in \hyperref[measurement]{measurements}.
+A vector type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
 The type name of a vector of measure length is \texttt{pv:lengthVector} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a vector type can be one of the following:
 \begin{itemize}
-  \item A \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+  \item A \hyperref[octave]{octave~expression/program}~(P.~\pageref*{octave}). The following examples are valid, if there exist a scalar paremter \verb|a| and \verb|b| in the \hyperref[parameters]{parameter~file}~(P.~\pageref*{parameters}):
     \begin{verbatim}
 &lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;
 &lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;
@@ -96,14 +96,14 @@ The file vec.txt is a simple ascii file containing one element of the vector per
 
 \chapter{Matrix Type}
 \label{matrixtype}
-A matrix type can be of any unit defined in \hyperref[measurement]{measurements}.
+A matrix type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
 The type name of a matrix of measure length is \texttt{pv:lengthMatrix} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a matrix type can be one of the following:
 \begin{itemize}
-  \item A \hyperref[octave]{octave expression/program}. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+  \item A \hyperref[octave]{octave~expression/program}~(P.~\pageref*{octave}). The following examples are valid, if there exist a scalar paremter \verb|a| and \verb|b| in the \hyperref[parameters]{parameter~file}~(P.~\pageref*{parameters}):
     \begin{verbatim}
 &lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;
 &lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;
@@ -132,11 +132,24 @@ The content of a matrix type can be one of the following:
     The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
 
+\chapter{Parameters}
+\label{parameters}
+A example for a parameter file is given below:
+\begin{verbatim}
+&lt;parameter xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+  &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/scalarParameter&gt;
+  &lt;scalarParameter name="N"&gt;&lt;9/scalarParameter&gt;
+  &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
+  &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
+&lt;/parameter&gt;
+\end{verbatim}
+The parameter names must be unique and the parameters can have references to each other. The order of scalar, vector and matrix parameters is arbitary. The parameter values can be given as \hyperref[octave]{Octave Expressions/Programs}~(P.~\pageref*{octave}).
+
 \chapter{Octave Expression/Program}
 \label{octave}
 A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.
 
-If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar parameter of name 'a' and 'b' exist:
+If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar \hyperref[parameters]{parameter}~(P.~\pageref*{parameters}) of name \verb|a| and \verb|b| exist:
 \begin{verbatim}
 4
 b
@@ -144,7 +157,7 @@ b
 [4;a]*[6,b]
 \end{verbatim}
 
-If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar parameter of name 'a' and 'b' exist:
+If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar \hyperref[parameters]{parameter}~(P.~\pageref*{parameters}) of name \verb|a| and \verb|b| exist:
 \begin{verbatim}
 if 1==a; ret=4; else ret=8; end
 myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
@@ -175,7 +188,7 @@ or
 \end{verbatim}
 This will substitute the \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| element in the current context \lstinline[basicstyle=\ttfamily]|2+a| times with the element defined in the file \lstinline[basicstyle=\ttfamily]|file.xml| or with \lstinline[basicstyle=\ttfamily]|&lt;any_element_with_childs&gt;|. The insert elements have access to a parameter named \lstinline[basicstyle=\ttfamily]|n| which counts from \lstinline[basicstyle=\ttfamily]|1| to \lstinline[basicstyle=\ttfamily]|2+a| for each insert element. The new element is only insert if the octave expression defined by the attribute \lstinline[basicstyle=\ttfamily]|onlyif| evaluates to \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|). If the attribute \lstinline[basicstyle=\ttfamily]|onlyif| is not given it is allways \lstinline[basicstyle=\ttfamily]|1| (\lstinline[basicstyle=\ttfamily]|true|).
 
-The first child element of \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| can be the element \lstinline[basicstyle=\ttfamily]|&lt;p:parameter&gt;|. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.
+The first child element of \lstinline[basicstyle=\ttfamily]|&lt;pv:embed&gt;| can be the element \hyperref[parameters]{\lstinline[basicstyle=\ttfamily]|&lt;p:parameter&gt;|}~(P.~\pageref*{parameters}). In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.
 \begin{verbatim}
 &lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
   &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;

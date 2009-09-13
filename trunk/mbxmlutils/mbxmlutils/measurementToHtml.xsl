@@ -29,6 +29,7 @@
       <li><a name="scalartype-content" href="#scalartype">Scalar Type</a></li>
       <li><a name="vectortype-content" href="#vectortype">Vector Type</a></li>
       <li><a name="matrixtype-content" href="#matrixtype">Matrix Type</a></li>
+      <li><a name="parameters-content" href="#parameters">Parameters</a></li>
       <li><a name="octave-content" href="#octave">Octave Expression/Program</a></li>
       <li><a name="embed-content" href="#embed">Embeding</a></li>
       <li><a name="measurements-content" href="#measurements">Measurements</a>
@@ -54,7 +55,7 @@
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>.
       The type name of a scalar of measure length is <span style="font-family:monospace">pv:lengthScalar</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
-    <p>The content of a scalar type must be a <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:</p>
+    <p>The content of a scalar type must be a <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:</p>
     <pre>&lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
 
@@ -68,7 +69,7 @@
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
-      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:
           <pre>&lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;</pre>
           <pre>&lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;</pre></li>
       <li>A XML representation of a vector: The following shows a example of such a XML representation.<pre>
@@ -95,7 +96,7 @@
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>
-      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter a and b in the parameter file:
+      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:
           <pre>&lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;</pre>
           <pre>&lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;</pre></li>
       <li>A XML representation of a matrix: The following shows a example of such a XML representation.<pre>
@@ -117,17 +118,28 @@
 </pre>The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
 
+    <h2><a name="parameters" href="#parameters-content">Parameters</a></h2>
+    <p>A example for a parameter file is given below:</p>
+<pre>&lt;parameter xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+  &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/scalarParameter&gt;
+  &lt;scalarParameter name="N"&gt;&lt;9/scalarParameter&gt;
+  &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
+  &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
+&lt;/parameter&gt;
+</pre>
+    <p>The parameter names must be unique and the parameters can have references to each other. The order of scalar, vector and matrix parameters is arbitary. The parameter values can be given as <a href="#octave">Octave Expressions/Programs</a>.</p>
+
     <h2><a name="octave" href="#octave-content">Octave Expression/Program</a></h2>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
-   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar parameter of name 'a' and 'b' exist:</p>
+   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <tt>a</tt> and <tt>b</tt> exist:</p>
 <pre>4
 b
 3+a*8
 [4;a]*[6,b]
 </pre>
 
-<p>If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar parameter of name 'a' and 'b' exist:</p>
+<p>If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar <a href="#parameters">parameter</a> of name <tt>a</tt> and <tt>b</tt> exist:</p>
 <pre>if 1==a; ret=4; else ret=8; end
 myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
 </pre>
@@ -150,9 +162,9 @@ ret=myfunc(m1/2);
   &lt;any_element_with_childs/&gt;
 &lt;/pv:embed&gt;
 </pre>
-<p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global parameters and to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
+<p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global <a href="#parameters">parameters</a> and to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
 
-<p>The first child element of <span style="font-family:monospace">&lt;pv:embed&gt;</span> can be the element <span style="font-family:monospace">&lt;p:parameter&gt;</span>. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.</p>
+<p>The first child element of <span style="font-family:monospace">&lt;pv:embed&gt;</span> can be the element <a style="font-family:monospace" href="#parameters">&lt;p:parameter&gt;</a>. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.</p>
 <pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
   &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
     &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;

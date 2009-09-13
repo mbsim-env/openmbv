@@ -33,6 +33,7 @@
 \usepackage{titlesec}
 \usepackage{titletoc}
 \usepackage{listings}
+\usepackage{amsmath,amssymb,amsbsy}
 \usepackage[dvips]{hyperref}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
