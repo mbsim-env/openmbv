@@ -694,7 +694,9 @@ void MainWindow::xmlHelp() {
     connect(home, SIGNAL(clicked()), this, SLOT(helpHome()));
     connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
     connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
-    helpViewer->load(QUrl("qrc:openmbv.xhtml"));
+    helpViewer->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+    connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrl(const QUrl&)));
+    helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
   }
   helpDialog->show();
   helpDialog->raise();
@@ -702,8 +704,19 @@ void MainWindow::xmlHelp() {
   helpDialog->resize(700,500);
 }
 
+void MainWindow::loadUrl(const QUrl &url) {
+  // if the current url is in qrc and the link clicked is relative, then resolve the link to a absoulute qrc path
+  if(helpViewer->url().scheme()=="qrc" && url.scheme()=="") {
+    QString qrcfile=QFileInfo(helpViewer->url().path()).path()+"/"+url.path();
+    cout<<"XX "<<("qrc:"+qrcfile).toStdString()<<endl;
+    helpViewer->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
+  }
+  else
+    helpViewer->load(url);
+}
+
 void MainWindow::helpHome() {
-  helpViewer->load(QUrl("qrc:openmbv.xhtml"));
+  helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
 }
 
 void MainWindow::aboutOpenMBV() {

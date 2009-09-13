@@ -85,7 +85,7 @@ while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
   echo "Generating equation in $FILE"
   cat << EOF > equation.tex
 \documentclass{report}
-\usepackage{graphicx,psfrag,amsmath,amssymb,color}
+\usepackage{graphicx,psfrag,amsmath,amssymb,amsbsy,color}
 \setlength{\parindent}{0cm}
 \setlength{\textwidth}{100cm}
 \setlength{\textheight}{100cm}

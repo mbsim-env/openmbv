@@ -120,6 +120,7 @@ class MainWindow : public QMainWindow {
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
+    void loadUrl(const QUrl &url);
     void helpHome();
     void stopSCSlot();
     void lastFrameSCSlot();

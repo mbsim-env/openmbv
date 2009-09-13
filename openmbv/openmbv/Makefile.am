@@ -102,17 +102,18 @@ noinst_HEADERS = openmbv.qrc\
 # Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
 openmbv.qrc: openmbv.qrc.in_sed
 	FILES=""; \
-	for F in $$(ls -1 ../doc/*.png); do \
-	  FILES="$$FILES<file alias=\"$$(basename $$F)\">$$F</file>"; \
+	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
+	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>"; \
 	done; \
-	echo $$FILES; \
+	for F in $$(ls -1 $$(pkg-config mbxmlutils --variable DOCDIR)/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png $$(pkg-config mbxmlutils --variable DOCDIR)/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
+	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>"; \
+	done; \
 	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc
 # END generate openmbv.qrc from openbv.qrc.myin
 
 # some dependencies for openmbv.qrc.cc
-openmbv.qrc.cc: openmbv.qrc ../doc/openmbv.qt.xhtml
+openmbv.qrc.cc: openmbv.qrc ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
+
 # generate dummy documentation if not exist
-../doc/openmbv.qt.xhtml:
-	touch -r ../schema/schema/openmbv.xsd.in ../doc/openmbv.qt.xhtml
-#../mbxmlutils/mbxmlutils/measurement.xhtml:
-#	touch -r ../mbxmlutils/mbxmlutils/measurement.xml.in ../mbxmlutils/mbxmlutils/measurement.xhtml
+../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml:
+	touch -r ../schema/schema/openmbv.xsd.in ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
