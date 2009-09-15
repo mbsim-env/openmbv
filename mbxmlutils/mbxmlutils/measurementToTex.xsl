@@ -48,6 +48,22 @@
 \chapter{Introduction}
 \label{introduction}
 
+\chapter{Element Name}
+\label{name}
+Elements which must be referable must have a name. Mostly this name is given by the attribute \verb|name|. A valid name starts with a letter or a underscore. The following characters can be letters, underscores or digits. The content between '\verb|{|' and '\verb|}|' can be any \hyperref[octave]{Octave Expression/Program} and is substituted by the result of Octave (which must be a valid name; normal a integer number).
+
+The following table shows examples for valid element names (on the left) and the substituted names (on the right), if there exist a scalar (integer) parameter of name \verb|n| with the value \verb|2|:
+\begin{tabular}{|l|l|}
+  \hline
+  \textbf{Element Name} &amp; \textbf{Substituted Element Name}\\
+  \hline
+  \verb|Object1| &amp; \verb|Object1|\\
+  \verb|myname_3| &amp; \verb|myname_3|\\
+  \verb|body{n+6}| &amp; \verb|body8|\\
+  \verb|Obj_{n+4}_{if n==2; ret=3; else ret=6; end}| &amp; \verb|Obj_6_3|\\
+  \hline
+\end{tabular}
+
 \chapter{Scalar Type}
 \label{scalartype}
 A scalar type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).

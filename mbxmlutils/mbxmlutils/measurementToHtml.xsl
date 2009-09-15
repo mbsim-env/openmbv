@@ -26,6 +26,7 @@
     <h2>Contents</h2>
     <ul>
       <li><a name="introduction-content" href="#introduction">Introduction</a></li>
+      <li><a name="name-content" href="#name">Element Name</a></li>
       <li><a name="scalartype-content" href="#scalartype">Scalar Type</a></li>
       <li><a name="vectortype-content" href="#vectortype">Vector Type</a></li>
       <li><a name="matrixtype-content" href="#matrixtype">Matrix Type</a></li>
@@ -46,6 +47,17 @@
     </ul>
 
     <h2><a name="introduction" href="#introduction-content">Introduction</a></h2>
+
+    <h2><a name="name" href="#name-content">Element Name</a></h2>
+    <p>Elements which must be referable must have a name. Mostly this name is given by the attribute <tt>name</tt>. A valid name starts with a letter or a underscore. The following characters can be letters, underscores or digits. The content between '<tt>{</tt>' and '<tt>}</tt>' can be any <a href="#octave">Octave Expression/Program</a> and is substituted by the result of Octave (which must be a valid name; normal a integer number).</p>
+    <p>The following table shows examples for valid element names (on the left) and the substituted names (on the right), if there exist a scalar (integer) parameter of name <tt>n</tt> with the value <tt>2</tt>:</p>
+    <table border="1">
+      <tr><th>Element Name</th><th>Substituted Element Name</th></tr>
+      <tr><td><tt>Object1</tt></td><td><tt>Object1</tt></td></tr>
+      <tr><td><tt>myname_3</tt></td><td><tt>myname_3</tt></td></tr>
+      <tr><td><tt>body{n+6}</tt></td><td><tt>body8</tt></td></tr>
+      <tr><td><tt>Obj_{n+4}_{if n==2; ret=3; else ret=6; end}</tt></td><td><tt>Obj_6_3</tt></td></tr>
+    </table>
 
     <h2><a name="scalartype" href="#scalartype-content">Scalar Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">

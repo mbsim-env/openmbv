@@ -474,78 +474,61 @@ A indent indicates child elements for a given element.
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="text()">
-    <xsl:copy/>
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="text()"><xsl:value-of select="."/></xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:div[@class='para']|html:p"><xsl:text>
 
-    </xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>
 
-  </xsl:text></xsl:template>
+</xsl:text></xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:br">
-   \\
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:br"><xsl:text> \\
+</xsl:text></xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:dl">
-    \begin{description}
-      <xsl:apply-templates mode="CLONEDOC"/>
-    \end{description}
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:dt">
-    \item[<xsl:value-of select="."/>]
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:dd">
-    <xsl:apply-templates mode="CLONEDOC"/>
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:dl"><xsl:text>\begin{description}
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>\end{description}
+</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:dt"><xsl:text>\item[</xsl:text><xsl:value-of select="."/><xsl:text>]
+</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:dd"><xsl:apply-templates mode="CLONEDOC"/></xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:ul">
-    \begin{itemize}
-      <xsl:apply-templates mode="CLONEDOC"/>
-    \end{itemize}
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:li">
-    \item
-    <xsl:apply-templates mode="CLONEDOC"/>
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:ul"><xsl:text>\begin{itemize}
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>\end{itemize}
+</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:li"><xsl:text>\item
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/></xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:ol">
-    \begin{enumerate}
-      <xsl:apply-templates mode="CLONEDOC"/>
-    \end{enumerate}
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:li">
-    \item
-    <xsl:apply-templates mode="CLONEDOC"/>
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:ol"><xsl:text>\begin{enumerate}
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/><xsl:text>\end{enumerate}
+</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:li"><xsl:text>\item
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/></xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:b">
-    \textbf{<xsl:apply-templates mode="CLONEDOC"/>}
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:b">\textbf{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:i">
-    \textit{<xsl:apply-templates mode="CLONEDOC"/>}
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:i">\textit{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:tt">
-    \texttt{<xsl:apply-templates mode="CLONEDOC"/>}
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:tt">\texttt{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']">
-    \[ <xsl:value-of select="."/> \]
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:object[@class='inlineeqn']">
-    $ <xsl:value-of select="."/> $
-  </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']"><xsl:text>
+\[ </xsl:text><xsl:value-of select="."/><xsl:text> \]
+</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='inlineeqn']"> $<xsl:value-of select="."/>$ </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:object[@class='figure']">
-    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>.eps}\\<xsl:value-of select="@title"/>\end{center}
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_latex']">
-    \begin{center}\includegraphics[width=<xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/>}\\<xsl:value-of select="@title"/>\end{center}
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_html']">
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure']"><xsl:text>
+\begin{center}
+  \includegraphics[width=</xsl:text><xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/><xsl:text>.eps}\\
+</xsl:text><xsl:value-of select="@title"/><xsl:text>
+\end{center}</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_latex']"><xsl:text>
+\begin{center}
+  \includegraphics[width=</xsl:text><xsl:value-of select="@standby"/>]{<xsl:value-of select="@data"/><xsl:text>}\\
+</xsl:text><xsl:value-of select="@title"/><xsl:text>
+\end{center}</xsl:text></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:object[@class='figure_html']"></xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:a[@class='link']">
+    <xsl:if test="contains(@href,':')">\hyperref[<xsl:value-of select="substring-after(@href,':')"/>]{<xsl:value-of select="."/>}</xsl:if>
+    <xsl:if test="not(contains(@href,':'))">\hyperref[<xsl:value-of select="@href"/>]{<xsl:value-of select="."/>}</xsl:if>
   </xsl:template>
  
 </xsl:stylesheet>
