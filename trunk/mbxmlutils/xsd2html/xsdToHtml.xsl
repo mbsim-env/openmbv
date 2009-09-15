@@ -544,5 +544,9 @@
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='figure_latex']">
   </xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:a[@class='link']">
+    <a><xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@href"/></xsl:attribute>
+    <xsl:value-of select="."/></a>
+  </xsl:template>
 
 </xsl:stylesheet>
