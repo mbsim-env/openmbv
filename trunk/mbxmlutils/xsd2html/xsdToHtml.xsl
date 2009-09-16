@@ -48,8 +48,7 @@
         *.type { font-family:monospace }
         *.attribute { font-family:monospace;font-weight:bold;margin-left:2ex }
         *.elementdocu { padding-left:3ex;margin:0;margin-bottom:1ex }
-        *.elementdocu { margin-left:3ex;margin-bottom:1ex }
-        *.classdocu { margin-bottom:1ex }
+        *.classdocu { margin-top:2ex;margin-bottom:2ex }
         ul.elementchoice { list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
         *.elementchoicecolor { color:blue }
         ul.elementsequence { list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
@@ -492,7 +491,7 @@
       <xsl:if test="@source='doxygen'">
         <div class="classdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
       </xsl:if>
-      <xsl:apply-templates mode="CLONEDOC"/>
+      <div class="classdocu"><xsl:apply-templates mode="CLONEDOC"/></div>
     </xsl:if>
   </xsl:template>
 

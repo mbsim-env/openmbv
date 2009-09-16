@@ -27,24 +27,29 @@ DOXYGENFUNCTIONPREFIX2="add"
 BASENAME=$(basename $FILE .xsd)
 prefix=@prefix@
 
-echo "Combine Doxygen XML documentation"
-echo "  In file: $DOXYGENDOCDIR/index.xml"
-echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
-echo "  Out file: .$PROJECT.doxygen.xml"
-@XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
-echo "DONE"
-
-echo "Add Doxygen class and element function documentation to XML Schema"
-echo "  In file: $FILE"
-echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
-echo "  Out file: $BASENAME.doxygen.xsd"
-@XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
-  --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
-  --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
-  --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
-  --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
-  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
-echo "DONE"
+if [ $INCLUDEDOXYGEN = "true" ]; then
+  echo "Combine Doxygen XML documentation"
+  echo "  In file: $DOXYGENDOCDIR/index.xml"
+  echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
+  echo "  Out file: .$PROJECT.doxygen.xml"
+  @XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
+  echo "DONE"
+  
+  echo "Add Doxygen class and element function documentation to XML Schema"
+  echo "  In file: $FILE"
+  echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
+  echo "  Out file: $BASENAME.doxygen.xsd"
+  @XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
+    --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
+    --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
+    --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
+    --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
+    @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
+  echo "DONE"
+else
+  echo "Do not add Doxygen class docu"
+  cp $FILE $BASENAME.doxygen.xsd
+fi
 
 
 
