@@ -39,12 +39,12 @@ int toOctave(TiXmlElement *&e) {
     string mat="[";
     for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
       for(TiXmlElement* ele=row->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-        mat=mat+ele->GetText();
-        if(ele->NextSiblingElement()) mat=mat+",";
+        mat+=ele->GetText();
+        if(ele->NextSiblingElement()) mat+=",";
       }
-      if(row->NextSiblingElement()) mat=mat+";\n";
+      if(row->NextSiblingElement()) mat+=";\n";
     }
-    mat=mat+"]";
+    mat+="]";
     TiXmlText *text=new TiXmlText(mat);
     e->Parent()->InsertEndChild(*text);
     e->Parent()->RemoveChild(e);
@@ -54,10 +54,10 @@ int toOctave(TiXmlElement *&e) {
   if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
     string vec="[";
     for(TiXmlElement* ele=e->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-      vec=vec+ele->GetText();
-      if(ele->NextSiblingElement()) vec=vec+";";
+      vec+=ele->GetText();
+      if(ele->NextSiblingElement()) vec+=";";
     }
-    vec=vec+"]";
+    vec+="]";
     TiXmlText *text=new TiXmlText(vec);
     e->Parent()->InsertEndChild(*text);
     e->Parent()->RemoveChild(e);
@@ -73,32 +73,34 @@ int toOctave(TiXmlElement *&e) {
       getline(file, line);
       // delete comments starting with % or # and append lines to vec separated by ;
       size_t pos=line.find_first_of("%#");
-      if(pos!=string::npos) vec=vec+line.substr(0,pos)+";"; else vec=vec+line+";";
+      if(pos!=string::npos) vec+=line.substr(0,pos)+"#%"; else vec+=line+"#%"; // use "#%" for a new line this is later replaced by ";\n"
     }
     regex_t re;
     regmatch_t pmatch[1];
-    // replace sequences of ; with ;
-    regcomp(&re, ";( *;)+", REG_EXTENDED);
+    // replace sequences of '#%' with '#%'
+    regcomp(&re, "#%( *#%)+", REG_EXTENDED);
     while(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
-      vec=vec.substr(0, pmatch[0].rm_so)+";"+vec.substr(pmatch[0].rm_eo);
+      vec=vec.substr(0, pmatch[0].rm_so)+"#%"+vec.substr(pmatch[0].rm_eo);
     regfree(&re);
     // delete leading ;
-    regcomp(&re, "^ *;", REG_EXTENDED);
+    regcomp(&re, "^ *#%", REG_EXTENDED);
     if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(pmatch[0].rm_eo);
     regfree(&re);
     // delete tailing ;
-    regcomp(&re, "; *$", REG_EXTENDED);
+    regcomp(&re, "#% *$", REG_EXTENDED);
     if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
       vec=vec.substr(0,pmatch[0].rm_so);
     regfree(&re);
-    // convert ; to ;\n if we have a matrix
+    // convert '#%' to ';\n' if we have a matrix
     if(e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
-      size_t i;
-      while((i=vec.find(';'))!=string::npos)
-        vec=vec.substr(0,i)+"#\n"+vec.substr(i+1);
-      while((i=vec.find('#'))!=string::npos)
-        vec=vec.substr(0,i)+";"+vec.substr(i+1);
+      for(size_t i=0; i<vec.length()-1; i++)
+        if(vec[i]=='#' && vec[i+1]=='%') { vec[i]=';'; vec[i+1]='\n'; }
+    }
+    // convert '#%' to '; ' if we have a vector
+    if(e->ValueStr()==MBXMLUTILSPVNS"asciiVectorRef") {
+      for(size_t i=0; i<vec.length()-1; i++)
+        if(vec[i]=='#' && vec[i+1]=='%') { vec[i]=';'; vec[i+1]=' '; }
     }
 
     vec="["+vec+"]";
@@ -274,14 +276,16 @@ try {
 
 
     // generate local paramter for embed
-    if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPNS"parameter")
+    if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPNS"parameter") {
+      cout<<"Generate local octave parameter string for "<<(file==""?"<inline element>":file)<<endl;
       genParamString(e->FirstChildElement(), paramString);
+    }
 
     // delete embed element and insert count time the new element
     for(int i=1; i<=count; i++) {
       ostringstream istr; istr<<i;
       if(octaveEval(paramString+counterName+"="+istr.str()+";\n",onlyif)=="1") {
-        cout<<"Embed "<<(file==""?"inline element":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+        cout<<"Embed "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
         if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
         else e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
 
@@ -294,7 +298,7 @@ try {
         if(embed(e, nsprefix, paramString+counterName+"="+istr.str()+";\n",units)!=0) return 1;
       }
       else
-        cout<<"Skip embeding "<<(file==""?"inline element":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+        cout<<"Skip embeding "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
     }
     return 0;
   }
@@ -403,15 +407,17 @@ int main(int argc, char *argv[]) {
     }
 
     // convert parameter file to octave notation
-    cout<<"Process xml[Matrix|Vector], ascii[Matrix|Vector]Ref elements in "<<paramxml<<endl;
-    if(string(paramxml)!="none")
+    if(string(paramxml)!="none") {
+      cout<<"Process xml[Matrix|Vector], ascii[Matrix|Vector]Ref elements in "<<paramxml<<endl;
       if(toOctave(paramxmlroot)!=0) return 1;
+    }
 
     // generate octave parameter string
-    cout<<"Generate octave parameter string from "<<paramxml<<endl;
     string paramString="";
-    if(string(paramxml)!="none")
+    if(string(paramxml)!="none") {
+      cout<<"Generate octave parameter string from "<<paramxml<<endl;
       if(genParamString(paramxmlroot, paramString)!=0) return 1;
+    }
 
     // get units
     cout<<"Build unit list for measurements"<<endl;
