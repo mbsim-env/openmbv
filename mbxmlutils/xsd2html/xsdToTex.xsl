@@ -442,8 +442,9 @@ A indent indicates child elements for a given element.
 
         \textbf{The following part is the C++ API docucmentation from Doxygen}
 
-      </xsl:text></xsl:if>
-      <xsl:apply-templates mode="CLONEDOC"/>
+      </xsl:text></xsl:if><xsl:text>
+
+</xsl:text><xsl:apply-templates mode="CLONEDOC"/>
     </xsl:if>
   </xsl:template>
 
@@ -474,7 +475,7 @@ A indent indicates child elements for a given element.
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="text()"><xsl:value-of select="."/></xsl:template>
+  <xsl:template mode="CLONEDOC" match="text()"><xsl:text> </xsl:text><xsl:value-of select="normalize-space(.)"/></xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:div[@class='para']|html:p"><xsl:text>
 
