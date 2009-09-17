@@ -40,7 +40,7 @@
         table.figure { }
         div.figure { margin-bottom:1ex;margin-top:1ex }
 
-        h2,h3 { margin-top:10ex;margin;font-size:14pt }
+        h2,h3 { margin-top:10ex;font-size:14pt }
         ul.content { padding-left:3ex;list-style-type:none }
         span.occurance { font-style:italic }
 
@@ -55,10 +55,55 @@
         *.elementsequencecolor { color:red }
         ul.elementchild { list-style-type:none;padding-left:4ex }
         ul.elementsofclass { list-style-type:none;padding:0 }
+
+        span.expandcollapsecontent { cursor:nw-resize;color:blue;font-family:monospace;font-weight:bold;font-size:1.25em }
+        div.expandcollapseexample { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic;padding-top:2em }
       </style>
+      <script type="text/javascript">
+        /* <![CDATA[ */
+        function expandcollapsecontent(c) {
+          var ul=c.parentNode.getElementsByTagName('ul')[0];
+          if(ul.style.display=="") {
+            ul.style.display="none";
+            c.firstChild.data="+ ";
+            c.style.cursor="se-resize";
+          }
+          else {
+            ul.style.display="";
+            c.firstChild.data="- ";
+            c.style.cursor="nw-resize";
+          }
+        }
+        function expandcollapseexample(c) {
+          var pre=c.nextSibling;
+          if(pre.style.display=="") {
+            pre.style.display="none";
+            c.firstChild.data="Expand Example...: (ALPHA)";
+            c.style.cursor="s-resize";
+          }
+          else {
+            pre.style.display="";
+            c.firstChild.data="Collapse Example: (ALPHA)";
+            c.style.cursor="n-resize";
+          }
+        }
+        function collapseexamplesonload() {
+          var pre=document.getElementsByTagName("pre");
+          for(var i=0; i<pre.length; i++) {
+            if(pre[i].getAttribute("class")=="expandcollapseexample") {
+              var c=pre[i].previousSibling;
+              pre[i].style.display="none";
+              c.firstChild.data="Expand Example...: (ALPHA)";
+              c.style.cursor="s-resize";
+            }
+          }
+        }
+        /* ]]> */
+      </script>
     </head>
-    <body>
+    <body onload="collapseexamplesonload()">
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
+    <p>XML-Namespace: <i><xsl:value-of select="/xs:schema/@targetNamespace"/></i></p>
     <h2>Contents</h2>
     <ul class="content">
       <li>1 <a name="introduction-content" href="#introduction">Introduction</a></li>
@@ -75,7 +120,7 @@
         <ul class="content">
           <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
             <xsl:sort select="."/>
-            <li><a class="element">
+            <li><span class="expandcollapsecontent" onclick="expandcollapsecontent(this)">- </span><a class="element">
               <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="."/></xsl:attribute>
               &lt;<xsl:value-of select="."/>&gt;</a>
               <ul class="content">
@@ -212,7 +257,7 @@
     <xsl:param name="LEVEL"/>
     <xsl:param name="LEVELNR"/>
     <xsl:param name="NAME" select="@name"/>
-    <li>
+    <li><span class="expandcollapsecontent" onclick="expandcollapsecontent(this)">- </span>
       <xsl:if test="$LEVEL &lt; 0"><!-- prevent numbers -->
         <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
       </xsl:if>
@@ -307,6 +352,21 @@
         </xsl:apply-templates>
       </ul>
     </xsl:if>
+
+    <!-- BEGIN show example xml code -->
+    <xsl:if test="not(@abstract) or @abstract='false'">
+      <div class="expandcollapseexample" onclick="expandcollapseexample(this)">Collapse Example: (ALPHA)</div>
+      <pre class="expandcollapseexample"><xsl:apply-templates mode="EXAMPLEELEMENT" select=".">
+        <xsl:with-param name="NAME" select="@name"/>
+        <xsl:with-param name="INDENT" select="''"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates mode="EXAMPLECHILDS" select=".">
+        <xsl:with-param name="INDENT" select="'  '"/>
+      </xsl:apply-templates>
+      <xsl:text>&lt;/</xsl:text><xsl:value-of select="@name"/><xsl:text>&gt;
+    </xsl:text></pre>
+    </xsl:if>
+    <!-- END show example xml code -->
   </xsl:template>
 
   <!-- simple type -->
@@ -547,5 +607,86 @@
     <a><xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@href"/></xsl:attribute>
     <xsl:value-of select="."/></a>
   </xsl:template>
+
+  <!-- BEGIN show example xml code -->
+  <xsl:template mode="EXAMPLEELEMENT" match="/xs:schema/xs:element">
+    <xsl:param name="NAME"/>
+    <xsl:param name="INDENT"/>
+    <xsl:if test="@name=$NAME"><xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="@name"/></xsl:if>
+    <xsl:apply-templates mode="EXAMPLEELEMENT" select="/xs:schema/xs:element[@name=current()/@substitutionGroup]">
+      <xsl:with-param name="NAME" select="$NAME"/>
+      <xsl:with-param name="INDENT" select="$INDENT"/>
+    </xsl:apply-templates>
+    <xsl:for-each select="/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:attribute|/xs:schema/xs:complexType[@name=current()/@type]/xs:attribute">
+      <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
+    </xsl:for-each>
+    <xsl:if test="@name=$NAME">&gt;
+</xsl:if>
+  </xsl:template>
+
+  <xsl:template mode="EXAMPLECHILDS" match="/xs:schema/xs:element">
+    <xsl:param name="INDENT"/>
+    <xsl:apply-templates mode="EXAMPLECHILDS" select="/xs:schema/xs:element[@name=current()/@substitutionGroup]">
+      <xsl:with-param name="INDENT" select="$INDENT"/>
+    </xsl:apply-templates>
+    <xsl:apply-templates mode="EXAMPLELOCAL" select="/xs:schema/xs:complexType[@name=current()/@type]/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:element|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:element">
+      <xsl:with-param name="INDENT" select="$INDENT"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template mode="EXAMPLELOCAL" match="xs:sequence">
+    <xsl:param name="INDENT"/>
+    <xsl:apply-templates mode="EXAMPLELOCAL" select="xs:sequence|xs:choice|xs:element">
+      <xsl:with-param name="INDENT" select="$INDENT"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template mode="EXAMPLELOCAL" match="xs:choice">
+    <xsl:param name="INDENT"/>
+    <xsl:apply-templates mode="EXAMPLELOCAL" select="child::*[position()=1]">
+      <xsl:with-param name="INDENT" select="$INDENT"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template mode="EXAMPLELOCAL" match="xs:element">
+    <xsl:param name="INDENT"/>
+    <xsl:if test="@ref and /xs:schema/xs:element[@name=current()/@ref and (@abstract='false' or not(@abstract))]">
+      <xsl:apply-templates mode="EXAMPLEELEMENT" select="/xs:schema/xs:element[@name=current()/@ref]">
+        <xsl:with-param name="NAME" select="@ref"/>
+        <xsl:with-param name="INDENT" select="$INDENT"/>
+      </xsl:apply-templates>
+      <xsl:apply-templates mode="EXAMPLECHILDS" select="/xs:schema/xs:element[@name=current()/@ref]">
+        <xsl:with-param name="INDENT" select="concat($INDENT,'  ')"/>
+      </xsl:apply-templates>
+      <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="@ref"/><xsl:text>&gt;
+</xsl:text>
+    </xsl:if>
+    <xsl:if test="not(@ref and /xs:schema/xs:element[@name=current()/@ref and (@abstract='false' or not(@abstract))])">
+      <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="@name"/><xsl:value-of select="@ref"/>
+      <xsl:for-each select="xs:complexType/xs:attribute">
+        <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
+      </xsl:for-each>
+      <xsl:if test="@type">
+        <xsl:text>&gt;VALUE&lt;/</xsl:text><xsl:value-of select="@name"/><xsl:text>&gt;
+</xsl:text>
+      </xsl:if>
+      <xsl:if test="not(@type)">
+        <xsl:if test="xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element">
+          <xsl:text>&gt;
+</xsl:text>
+          <xsl:apply-templates mode="EXAMPLELOCAL" select="xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element">
+            <xsl:with-param name="INDENT" select="concat($INDENT, '  ')"/>
+          </xsl:apply-templates>
+          <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="@name"/><xsl:value-of select="@ref"/><xsl:text>&gt;
+</xsl:text>
+        </xsl:if>
+        <xsl:if test="not(xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element)">
+          <xsl:text>/&gt;</xsl:text><xsl:if test="/xs:schema/xs:element[@name=current()/@ref and @abstract='true']"> (Abstract)</xsl:if><xsl:text>
+</xsl:text>
+        </xsl:if>
+      </xsl:if>
+    </xsl:if>
+  </xsl:template>
+  <!-- END show example xml code -->
 
 </xsl:stylesheet>
