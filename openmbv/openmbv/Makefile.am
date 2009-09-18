@@ -116,4 +116,6 @@ openmbv.qrc.cc: openmbv.qrc ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
 
 # generate dummy documentation if not exist
 ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml:
+	echo "WARNING! XML docu do not exist. Creating empty dummy docu!"
+	mkdir -p ../doc/http___openmbv_berlios_de_OpenMBV
 	touch -r ../schema/schema/openmbv.xsd.in ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
