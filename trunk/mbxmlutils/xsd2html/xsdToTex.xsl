@@ -107,7 +107,8 @@
 \setcounter{tocdepth}{10}
 \begin{document}
 
-\title{<xsl:value-of select="$PROJECT"/> - XML Documentation}
+\title{<xsl:value-of select="$PROJECT"/> - XML Documentation\\[1cm]
+  \normalsize{XML-Namespace: \textit{<xsl:value-of select="/xs:schema/@targetNamespace"/>}}}
 \maketitle
 
 \tableofcontents
@@ -184,7 +185,9 @@ A indent indicates child elements for a given element.
     <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
       <xsl:sort select="."/>
       \subsection{\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="."/>&gt;|}
-      This element is defined by a XML Schema (Project), which is included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.
+      This element is defined by the XML Schema (Project) with the namespace
+      \textit{<xsl:value-of select="../namespace::*[name()=substring-before(current(),':')]"/>}, which is included
+      by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.
       <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=current()]">
         <xsl:with-param name="LEVEL" select="1"/>
         <xsl:with-param name="LEVELNR" select="'3'"/>

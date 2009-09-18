@@ -24,6 +24,10 @@
   <xsl:template match="text()"/>
 
 
+  <!-- all nodes of all imported schemas and myself -->
+  <xsl:param name="ALLNODES" select="document(/xs:schema/xs:import/@schemaLocation)|/"/>
+
+
 
   <xsl:template match="/">
     <!-- html header -->
@@ -218,7 +222,9 @@
       <h3 class="element"><a>
         <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="."/></xsl:attribute>
         &lt;<xsl:value-of select="."/>&gt;</a></h3>
-      <p>This element is defined by a XML Schema (Project), which is included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.</p>
+      <p>This element is defined by the XML Schema (Project) with the namespace
+        <i><xsl:value-of select="../namespace::*[name()=substring-before(current(),':')]"/></i>, which is
+        included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.</p>
       <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=current()]">
         <xsl:with-param name="LEVEL" select="1"/>
         <xsl:with-param name="LEVELNR" select="'3'"/>
@@ -612,21 +618,27 @@
   <xsl:template mode="EXAMPLEELEMENT" match="/xs:schema/xs:element">
     <xsl:param name="NAME"/>
     <xsl:param name="INDENT"/>
+    <xsl:param name="NS_SUBSTITUTIONGROUP" select="namespace::*[name()=substring-before(current()/@substitutionGroup,':')]"/>
+    <xsl:param name="NAME_SUBSTITUTIONGROUP" select="translate(substring(@substitutionGroup,string-length(substring-before(@substitutionGroup,':'))+1),':','')"/>
     <xsl:if test="@name=$NAME"><xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="@name"/></xsl:if>
-    <xsl:apply-templates mode="EXAMPLEELEMENT" select="/xs:schema/xs:element[@name=current()/@substitutionGroup]">
+    <xsl:apply-templates mode="EXAMPLEELEMENT" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)]">
+      <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@substitutionGroup]" with namespace aware attribute values -->
       <xsl:with-param name="NAME" select="$NAME"/>
       <xsl:with-param name="INDENT" select="$INDENT"/>
     </xsl:apply-templates>
     <xsl:for-each select="/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:attribute|/xs:schema/xs:complexType[@name=current()/@type]/xs:attribute">
       <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
     </xsl:for-each>
-    <xsl:if test="@name=$NAME">&gt;
-</xsl:if>
+    <xsl:if test="@name=$NAME">&gt;<xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:text>
+</xsl:text></xsl:if>
   </xsl:template>
 
   <xsl:template mode="EXAMPLECHILDS" match="/xs:schema/xs:element">
     <xsl:param name="INDENT"/>
-    <xsl:apply-templates mode="EXAMPLECHILDS" select="/xs:schema/xs:element[@name=current()/@substitutionGroup]">
+    <xsl:param name="NS_SUBSTITUTIONGROUP" select="namespace::*[name()=substring-before(current()/@substitutionGroup,':')]"/>
+    <xsl:param name="NAME_SUBSTITUTIONGROUP" select="translate(substring(@substitutionGroup,string-length(substring-before(@substitutionGroup,':'))+1),':','')"/>
+    <xsl:apply-templates mode="EXAMPLECHILDS" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)]">
+      <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@substitutionGroup]" with namespace aware attribute values -->
       <xsl:with-param name="INDENT" select="$INDENT"/>
     </xsl:apply-templates>
     <xsl:apply-templates mode="EXAMPLELOCAL" select="/xs:schema/xs:complexType[@name=current()/@type]/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:element|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:element">
@@ -650,12 +662,16 @@
 
   <xsl:template mode="EXAMPLELOCAL" match="xs:element">
     <xsl:param name="INDENT"/>
+    <xsl:param name="NS_REF" select="namespace::*[name()=substring-before(current()/@ref,':')]"/>
+    <xsl:param name="NAME_REF" select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/>
     <xsl:if test="@ref and /xs:schema/xs:element[@name=current()/@ref and (@abstract='false' or not(@abstract))]">
-      <xsl:apply-templates mode="EXAMPLEELEMENT" select="/xs:schema/xs:element[@name=current()/@ref]">
+      <xsl:apply-templates mode="EXAMPLEELEMENT" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF)]">
+        <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@ref]" with namespace aware attribute values -->
         <xsl:with-param name="NAME" select="@ref"/>
         <xsl:with-param name="INDENT" select="$INDENT"/>
       </xsl:apply-templates>
-      <xsl:apply-templates mode="EXAMPLECHILDS" select="/xs:schema/xs:element[@name=current()/@ref]">
+      <xsl:apply-templates mode="EXAMPLECHILDS" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF)]">
+        <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@ref]" with namespace aware attribute values -->
         <xsl:with-param name="INDENT" select="concat($INDENT,'  ')"/>
       </xsl:apply-templates>
       <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="@ref"/><xsl:text>&gt;
@@ -667,12 +683,12 @@
         <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
       </xsl:for-each>
       <xsl:if test="@type">
-        <xsl:text>&gt;VALUE&lt;/</xsl:text><xsl:value-of select="@name"/><xsl:text>&gt;
+        <xsl:text>&gt;VALUE&lt;/</xsl:text><xsl:value-of select="@name"/>&gt;<xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:text>
 </xsl:text>
       </xsl:if>
       <xsl:if test="not(@type)">
         <xsl:if test="xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element">
-          <xsl:text>&gt;
+          <xsl:text>&gt;</xsl:text><xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:text>
 </xsl:text>
           <xsl:apply-templates mode="EXAMPLELOCAL" select="xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element">
             <xsl:with-param name="INDENT" select="concat($INDENT, '  ')"/>
@@ -681,11 +697,15 @@
 </xsl:text>
         </xsl:if>
         <xsl:if test="not(xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element)">
-          <xsl:text>/&gt;</xsl:text><xsl:if test="/xs:schema/xs:element[@name=current()/@ref and @abstract='true']"> (Abstract)</xsl:if><xsl:text>
+          <xsl:text>/&gt;</xsl:text><xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:if test="/xs:schema/xs:element[@name=current()/@ref and @abstract='true']"> &lt;!-- Abstract --&gt;</xsl:if><xsl:text>
 </xsl:text>
         </xsl:if>
       </xsl:if>
     </xsl:if>
+  </xsl:template>
+  
+  <xsl:template mode="EXAMPLEOPTIONAL" match="*">
+    <xsl:if test="@minOccurs=0"> &lt;!-- optional --&gt;</xsl:if>
   </xsl:template>
   <!-- END show example xml code -->
 
