@@ -30,7 +30,7 @@ physicalvariable/physicalvariable.tex: measurement.xml measurementToTex.xsl meas
 	latex -help >& /dev/null && dvips -o physicalvariable.ps physicalvariable.dvi || echo "Skip running LaTeX"
 
 install-data-local:
-	DIR=$$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$$|\1|p' physicalvariable.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g'); \
+	mkdir -p $(docdir)
 	cp -rf http___* $(docdir)
 	
 
