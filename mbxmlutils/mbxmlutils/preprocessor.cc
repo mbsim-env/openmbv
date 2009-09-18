@@ -219,7 +219,6 @@ try {
     // check
     TiXmlElement *l=0, *dummy;
     for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
-    if(l) cout<<l->ValueStr()<<endl;
     if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPNS"parameter") ||
        (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPNS"parameter"))) {
       TiXml_location(e, "", ": Only the href attribute OR a child element (expect parameter) is allowed in embed!");
