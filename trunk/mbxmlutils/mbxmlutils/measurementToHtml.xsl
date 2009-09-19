@@ -64,25 +64,31 @@
         <a name="{@name}Scalar"/>
       </xsl:for-each>
     </h2>
-    <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>.
+    <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
+      attribute of name <tt>unit</tt>.
       The type name of a scalar of measure length is <span style="font-family:monospace">pv:lengthScalar</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a scalar type must be a <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:</p>
-    <pre>&lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
+    <pre>&lt;myScalarElement unit="mm"&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
+    <p>There is also a special unit of name <tt>unknown</tt> defined. This unit dose not take the optional <tt>unit</tt>
+      attribute, it takes an optional attribute of name <tt>convertUnit</tt>. The value of this attribute can be a
+      <a href="#octave">Octave Expression</a>
+      which must contain a parameter of name <tt>value</tt>. The given value is then converted by this expression.</p>
 
     <h2><a name="vectortype" href="#vectortype-content">Vector Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">
         <a name="{@name}Vector"/>
       </xsl:for-each>
     </h2>
-    <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>.
+    <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
+      attribute of name <tt>unit</tt>.
       The type name of a vector of measure length is <span style="font-family:monospace">pv:lengthVector</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
       <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:
-          <pre>&lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;</pre>
+          <pre>&lt;myVectorElement unit="mm"&gt;[1;b;a;7]&lt;/myVectorElement&gt;</pre>
           <pre>&lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;</pre></li>
       <li>A XML representation of a vector: The following shows a example of such a XML representation.<pre>
 &lt;myVectorElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
@@ -97,19 +103,21 @@
 &lt;/myVectorElement&gt;
 </pre>The file vec.txt is a simple ascii file containing one element of the vector per line. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
+    <p>For the special unit of name <tt>unknown</tt> see <a href="#scalartype">Scalar Type</a></p>
 
     <h2><a name="matrixtype" href="#matrixtype-content">Matrix Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">
         <a name="{@name}Matrix"/>
       </xsl:for-each>
     </h2>
-    <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>.
+    <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
+      attribute of name <tt>unit</tt>.
       The type name of a matrix of measure length is <span style="font-family:monospace">pv:lengthMatrix</span> and so on.
       Where <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>
       <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <tt>a</tt> and <tt>b</tt> in the <a href="#parameters">parameter file</a>:
-          <pre>&lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;</pre>
+          <pre>&lt;myMatrixElement unit="mm"&gt;[1,b;a,7]&lt;/myMatrixElement&gt;</pre>
           <pre>&lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;</pre></li>
       <li>A XML representation of a matrix: The following shows a example of such a XML representation.<pre>
 &lt;myMatrixElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
@@ -129,6 +137,7 @@
 &lt;/myMatrixElement&gt;
 </pre>The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '#' or '%' and the end of line is also ignored (comments).</li>
     </ul>
+    <p>For the special unit of name <tt>unknown</tt> see <a href="#scalartype">Scalar Type</a></p>
 
     <h2><a name="parameters" href="#parameters-content">Parameters</a></h2>
     <p>A example for a parameter file is given below:</p>

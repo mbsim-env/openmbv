@@ -66,20 +66,25 @@ The following table shows examples for valid element names (on the left) and the
 
 \chapter{Scalar Type}
 \label{scalartype}
-A scalar type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
+A scalar type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}). The unit is given by a optional attribute of name \texttt{unit}.
 The type name of a scalar of measure length is \texttt{pv:lengthScalar} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
 
 The content of a scalar type must be a \hyperref[octave]{octave~expression/program}~(P.~\pageref*{octave}). The following examples are valid, if there exist a scalar paremter \verb|a| and \verb|b| in the \hyperref[parameters]{parameter~file}~(P.~\pageref*{parameters}):
 \begin{verbatim}
-  &lt;myScalarElement&gt;4*sin(a)+b&lt;/myScalarElement&gt;
+  &lt;myScalarElement unit="mm"&gt;4*sin(a)+b&lt;/myScalarElement&gt;
   &lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;
 \end{verbatim}
 
+There is also a special unit of name \texttt{unknown} defined. This unit dose not take the optional \texttt{unit}
+attribute, it takes an optional attribute of name \texttt{convertUnit}. The value of this attribute can be a
+\hyperref[octave]{Octave Expression}~(P.~\pageref*{octave})
+which must contain a parameter of name \texttt{value}. The given value is then converted by this expression.
+
 \chapter{Vector Type}
 \label{vectortype}
-A vector type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
+A vector type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}). The unit is given by a optional attribute of name \texttt{unit}.
 The type name of a vector of measure length is \texttt{pv:lengthVector} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
@@ -88,7 +93,7 @@ The content of a vector type can be one of the following:
 \begin{itemize}
   \item A \hyperref[octave]{octave~expression/program}~(P.~\pageref*{octave}). The following examples are valid, if there exist a scalar paremter \verb|a| and \verb|b| in the \hyperref[parameters]{parameter~file}~(P.~\pageref*{parameters}):
     \begin{verbatim}
-&lt;myVectorElement&gt;[1;b;a;7]&lt;/myVectorElement&gt;
+&lt;myVectorElement unit="mm"&gt;[1;b;a;7]&lt;/myVectorElement&gt;
 &lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;
     \end{verbatim}
   \item A XML representation of a vector: The following shows a example of such a XML representation.
@@ -110,9 +115,11 @@ The content of a vector type can be one of the following:
 The file vec.txt is a simple ascii file containing one element of the vector per line. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
 
+For the special unit of name \texttt{unknown} see \hyperref[scalartype]{Scalar Type}~(P.~\pageref*{scalartype})
+
 \chapter{Matrix Type}
 \label{matrixtype}
-A matrix type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}).
+A matrix type can be of any unit defined in \hyperref[measurement]{measurements}~(P.~\pageref*{measurement}). The unit is given by a optional attribute of name \texttt{unit}.
 The type name of a matrix of measure length is \texttt{pv:lengthMatrix} and so on.
 Where \texttt{pv} is mapped to the namespace-uri\\
 \texttt{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}.
@@ -147,6 +154,8 @@ The content of a matrix type can be one of the following:
     \end{verbatim}
     The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
+
+For the special unit of name \texttt{unknown} see \hyperref[scalartype]{Scalar Type}~(P.~\pageref*{scalartype})
 
 \chapter{Parameters}
 \label{parameters}
