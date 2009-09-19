@@ -310,6 +310,11 @@ try {
         e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", units[e->Attribute("unit")]));
         e->RemoveAttribute("unit");
       }
+      // evaluate convertUnit attribute if given
+      if(e->Attribute("convertUnit")) {
+        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", e->Attribute("convertUnit")));
+        e->RemoveAttribute("convertUnit");
+      }
       e->FirstChild()->ToText()->SetCDATA(false);
     }
   

@@ -182,6 +182,47 @@
       <!-- add scalar units -->
       <xsl:apply-templates mode="SCALAR" select="/mm:measurement/mm:measure"/>
 
+      <!-- unknown scalar/vector/matrix -->
+      <xs:complexType name="unknownScalar" mixed="true">
+        <xs:annotation>
+          <xs:documentation>
+            A scalar value in a unknown unit. The value is evaluated by the
+            octave string given in the convertUnit attribute.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+          <xs:extension base="scalar">
+            <xs:attribute name="convertUnit" type="xs:string"/>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="unknownVector" mixed="true">
+        <xs:annotation>
+          <xs:documentation>
+            A vector value in a unknown unit. The value is evaluated by the
+            octave string given in the convertUnit attribute.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+          <xs:extension base="vector">
+            <xs:attribute name="convertUnit" type="xs:string"/>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="unknownMatrix" mixed="true">
+        <xs:annotation>
+          <xs:documentation>
+            A matrix value in a unknown unit. The value is evaluated by the
+            octave string given in the convertUnit attribute.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+          <xs:extension base="matrix">
+            <xs:attribute name="convertUnit" type="xs:string"/>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+
     </xs:schema>
 
   </xsl:template>
