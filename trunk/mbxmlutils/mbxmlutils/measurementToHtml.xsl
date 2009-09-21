@@ -185,12 +185,14 @@ ret=myfunc(m1/2);
 </pre>
 <p>This will substitute the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element in the current context <span style="font-family:monospace">2+a</span> times with the element defined in the file <span style="font-family:monospace">file.xml</span> or with <span style="font-family:monospace">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global <a href="#parameters">parameters</a> and to a parameter named <span style="font-family:monospace">n</span> which counts from <span style="font-family:monospace">1</span> to <span style="font-family:monospace">2+a</span> for each insert element. The new element is only insert if the octave expression defined by the attribute <span style="font-family:monospace">onlyif</span> evaluates to <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>). If the attribute <span style="font-family:monospace">onlyif</span> is not given it is allways <span style="font-family:monospace">1</span> (<span style="font-family:monospace">true</span>).</p>
 
-<p>The first child element of <span style="font-family:monospace">&lt;pv:embed&gt;</span> can be the element <a style="font-family:monospace" href="#parameters">&lt;p:parameter&gt;</a>. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.</p>
+<p>The first child element of <span style="font-family:monospace">&lt;pv:embed&gt;</span> can be the element <span style="font-family:monospace">&lt;pv:localParameter&gt;</span> which has one child element <a style="font-family:monospace" href="#parameters">&lt;p:parameter&gt;</a>. In this case the global parameters are expanded by the parameters given by this element. If a parameter already exist then the parameter is overwritten.</p>
 <pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
-  &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
-    &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
-    &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
-  &lt;/p:parameter&gt;
+  &lt;pv:localParameter&gt;
+    &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+      &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
+      &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
+    &lt;/p:parameter&gt;
+  &lt;/pv:localParameter&gt;
   &lt;any_element_with_childs/&gt;
 &lt;/pv:embed&gt;
 </pre>
