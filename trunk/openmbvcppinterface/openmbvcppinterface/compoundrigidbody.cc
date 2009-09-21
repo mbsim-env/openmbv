@@ -18,6 +18,7 @@
 */
 
 #include <openmbvcppinterface/compoundrigidbody.h>
+#include <openmbvcppinterface/objectfactory.h>
 #include <iostream>
 #include <fstream>
 
@@ -36,8 +37,14 @@ void CompoundRigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& 
 }
 
 void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
-/*  RigidBody::initializeUsingXML(element);
+  RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"length");
-  setLength(getVec(e,3));*/
+  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  e=e->NextSiblingElement();
+  while (e) {
+    RigidBody * rb = (RigidBody*)(ObjectFactory::createObject(e));
+    rb->initializeUsingXML(e);
+    addRigidBody(rb);
+    e=e->NextSiblingElement();
+  }
 }
