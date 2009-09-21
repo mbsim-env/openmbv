@@ -35,11 +35,17 @@
       <xs:element name="embed">
         <xs:complexType>
           <xs:sequence>
-            <xs:element ref="p:parameter" minOccurs="0"/>
-            <xs:any processContents="strict" minOccurs="0"/>
+            <xs:element name="localParameter" minOccurs="0">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="p:parameter"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:any namespace="##other" processContents="strict" minOccurs="0"/>
           </xs:sequence>
           <xs:attribute name="href" type="xs:anyURI" use="optional"/>
-          <xs:attribute name="count" use="required" type="xs:string"/>
+          <xs:attribute name="count" use="required" type="fullOctaveString"/>
           <xs:attribute name="counterName" use="required">
             <xs:simpleType>
               <xs:restriction base="xs:token">
@@ -47,16 +53,27 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:attribute>
-          <xs:attribute name="onlyif" use="optional" type="xs:string" default="1"/>
+          <xs:attribute name="onlyif" use="optional" type="fullOctaveString" default="1"/>
         </xs:complexType>
       </xs:element>
 
+      <!-- base type for a string which is fully converted by octave -->
+      <xs:simpleType name="fullOctaveString">
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+
+      <!-- base type for a string which is partially converted by octave.
+           Only the content between { and } ist converted by octave -->
+      <xs:simpleType name="partialOctaveString">
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+
       <!-- A regexp for matching a MBXMLUtils name attribute. E.g. matches: "box1", "box{i+5}", "box2_{2*i+1}_{j+1}" -->
       <xs:simpleType name="name">
-        <xs:restriction base="xs:token">
-          <xsl:element name="xs:pattern">
+        <xs:restriction base="partialOctaveString">
+          <xs:pattern>
             <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
-          </xsl:element>
+          </xs:pattern>
         </xs:restriction>
       </xs:simpleType>
 
@@ -192,10 +209,11 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="scalar">
-            <xs:attribute name="convertUnit" type="xs:string"/>
+            <xs:attribute name="convertUnit" type="fullOctaveString"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
+
       <xs:complexType name="unknownVector" mixed="true">
         <xs:annotation>
           <xs:documentation>
@@ -205,10 +223,11 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="vector">
-            <xs:attribute name="convertUnit" type="xs:string"/>
+            <xs:attribute name="convertUnit" type="fullOctaveString"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
+
       <xs:complexType name="unknownMatrix" mixed="true">
         <xs:annotation>
           <xs:documentation>
@@ -218,10 +237,21 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="matrix">
-            <xs:attribute name="convertUnit" type="xs:string"/>
+            <xs:attribute name="convertUnit" type="fullOctaveString"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
+
+      <!-- string must be enclosed in '"' (processed by octave) -->
+      <xs:simpleType name="string">
+        <xs:annotation>
+          <xs:documentation>
+            A string value. The value is evaluated by the octave, so a plain string
+            must be enclosed in '"'.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
 
     </xs:schema>
 

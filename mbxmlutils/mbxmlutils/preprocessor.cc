@@ -13,7 +13,6 @@ extern "C" {
 #include <octave/parse.h>
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
-#define MBXMLUTILSPNS "{http://openmbv.berlios.de/MBXMLUtils/parameter}"
 
 using namespace std;
 
@@ -219,9 +218,9 @@ try {
     // check
     TiXmlElement *l=0, *dummy;
     for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
-    if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPNS"parameter") ||
-       (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPNS"parameter"))) {
-      TiXml_location(e, "", ": Only the href attribute OR a child element (expect parameter) is allowed in embed!");
+    if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPVNS"localParameter") ||
+       (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPVNS"localParameter"))) {
+      TiXml_location(e, "", ": Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!");
       return 1;
     }
 
@@ -264,7 +263,10 @@ try {
       }
     }
     else { // or take the child element (as a clone, because the embed element is deleted)
-      enew=(TiXmlElement*)e->FirstChildElement()->Clone();
+      if(e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter")
+        enew=(TiXmlElement*)e->FirstChildElement()->NextSiblingElement()->Clone();
+      else
+        enew=(TiXmlElement*)e->FirstChildElement()->Clone();
       enew->SetAttribute("xml:base", e->GetElementWithXmlBase(0)->Attribute("xml:base")); // add a xml:base attribute
     }
 
@@ -275,9 +277,9 @@ try {
 
 
     // generate local paramter for embed
-    if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPNS"parameter") {
+    if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter") {
       cout<<"Generate local octave parameter string for "<<(file==""?"<inline element>":file)<<endl;
-      genParamString(e->FirstChildElement(), paramString);
+      genParamString(e->FirstChildElement()->FirstChildElement(), paramString);
     }
 
     // delete embed element and insert count time the new element
@@ -302,6 +304,9 @@ try {
     return 0;
   }
   else {
+    // THIS IS A WORKAROUND! Actually not all Text-Elements should be converted but only the Text-Elements
+    // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
+    // schema aware processor is needed!
     if(e->GetText()) {
       // eval all text elements
       e->FirstChild()->SetValue(octaveEval(paramString, string(e->GetText())));
@@ -318,9 +323,11 @@ try {
       e->FirstChild()->ToText()->SetCDATA(false);
     }
   
-    // eval the "{...}" part in all name and ref* attributes
+    // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
+    // XML attributes of a type devived from pv:fullOctaveString and pv:partialOctaveString. But for that a
+    // schema aware processor is needed!
     TiXmlAttribute *a=e->FirstAttribute();
-    for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next()) {
+    for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next())
       if(a->Name()==string("name") || string(a->Name()).substr(0,3)=="ref") {
         string s=a->ValueStr();
         int i;
@@ -330,7 +337,6 @@ try {
         }
         a->SetValue(s);
       }
-    }
   }
 
   TiXmlElement *c=e->FirstChildElement();
@@ -423,6 +429,7 @@ int main(int argc, char *argv[]) {
       if(genParamString(paramxmlroot, paramString)!=0) return 1;
     }
 
+    // THIS IS A WORKAROUND! See before.
     // get units
     cout<<"Build unit list for measurements"<<endl;
     TiXmlDocument *mmdoc=new TiXmlDocument;
