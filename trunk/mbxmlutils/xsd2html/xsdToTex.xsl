@@ -512,7 +512,7 @@ A indent indicates child elements for a given element.
 
   <xsl:template mode="CLONEDOC" match="html:i">\textit{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="html:tt">\texttt{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:template>
+  <xsl:template mode="CLONEDOC" match="html:tt">\lstinline[basicstyle=\bf\ttfamily]|<xsl:apply-templates mode="CLONEDOC"/>|</xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']"><xsl:text>
 \[ </xsl:text><xsl:value-of select="."/><xsl:text> \]
@@ -531,8 +531,8 @@ A indent indicates child elements for a given element.
 \end{center}</xsl:text></xsl:template>
   <xsl:template mode="CLONEDOC" match="html:object[@class='figure_html']"></xsl:template>
   <xsl:template mode="CLONEDOC" match="html:a[@class='link']">
-    <xsl:if test="contains(@href,':')">\hyperref[<xsl:value-of select="substring-after(@href,':')"/>]{<xsl:value-of select="."/>}</xsl:if>
-    <xsl:if test="not(contains(@href,':'))">\hyperref[<xsl:value-of select="@href"/>]{<xsl:value-of select="."/>}</xsl:if>
+    <xsl:if test="contains(@href,':')">\hyperref[<xsl:value-of select="substring-after(@href,':')"/>]{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:if>
+    <xsl:if test="not(contains(@href,':'))">\hyperref[<xsl:value-of select="@href"/>]{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:if>
   </xsl:template>
  
 </xsl:stylesheet>
