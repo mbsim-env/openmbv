@@ -45,8 +45,8 @@
             <xs:any namespace="##other" processContents="strict" minOccurs="0"/>
           </xs:sequence>
           <xs:attribute name="href" type="xs:anyURI" use="optional"/>
-          <xs:attribute name="count" use="required" type="fullOctaveString"/>
-          <xs:attribute name="counterName" use="required">
+          <xs:attribute name="count" use="optional" type="fullOctaveString" default="1"/>
+          <xs:attribute name="counterName" use="optional">
             <xs:simpleType>
               <xs:restriction base="xs:token">
                 <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>

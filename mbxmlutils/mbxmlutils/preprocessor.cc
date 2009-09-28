@@ -215,12 +215,18 @@ int genParamString(TiXmlElement *e, string &paramString) {
 int embed(TiXmlElement *&e, map<string,string> &nsprefix, string paramString, map<string,string> &units) {
 try {
   if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
-    // check
+    // check if only href OR child element (This is not checked by the schema)
     TiXmlElement *l=0, *dummy;
     for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
     if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPVNS"localParameter") ||
        (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPVNS"localParameter"))) {
       TiXml_location(e, "", ": Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!");
+      return 1;
+    }
+    // check if attribute count AND counterName or none of both
+    if((e->Attribute("count")==0 && e->Attribute("counterName")!=0) ||
+       (e->Attribute("count")!=0 && e->Attribute("counterName")==0)) {
+      TiXml_location(e, "", ": Only both, the count and counterName attribute must be given or none of both!");
       return 1;
     }
 
@@ -236,12 +242,17 @@ try {
       onlyif=e->Attribute("onlyif");
 
     // evaluate count using parameters
-    string countstr=string(e->Attribute("count"));
-    countstr=octaveEval(paramString, countstr+";");
-    int count=atoi(countstr.c_str());
+    int count=1;
+    if(e->Attribute("count")) {
+      string countstr=string(e->Attribute("count"));
+      countstr=octaveEval(paramString, countstr+";");
+      count=atoi(countstr.c_str());
+    }
 
     // couter name
-    string counterName=e->Attribute("counterName");
+    string counterName="MBXMLUtilsDummyCounterName";
+    if(e->Attribute("counterName"))
+      counterName=e->Attribute("counterName");
 
     TiXmlElement *enew;
     // validate/load if file is given
