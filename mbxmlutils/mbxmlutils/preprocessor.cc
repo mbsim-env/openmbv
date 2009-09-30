@@ -127,7 +127,7 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
     str[i]=' ';
 
   string clear="";
-  if(clearOnStart) clear="clear all;\n";
+  if(clearOnStart) clear="clear -all;\n";
   streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
   eval_string(clear+prestr+"ret="+str,true,dummy,0);
   std::cerr.rdbuf(orgcerr); // enable std::cerr
@@ -395,6 +395,12 @@ int main(int argc, char *argv[]) {
   int dummy;
   streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
   eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // 1/0 is error
+  error_state=0;
+  eval_string("addpath(\""OCTAVEDIR"\");",true,dummy,0); // for octave >= 3.0.0
+  error_state=0;
+  eval_string("LOADPATH=[LOADPATH \":"OCTAVEDIR"\"];",true,dummy,0); // for octave < 3.0.0
+  error_state=0;
+  octaveEval("1;","1");
   std::cerr.rdbuf(orgcerr); // enable std::cerr
 
   // preserve whitespace and newline in TiXmlText nodes

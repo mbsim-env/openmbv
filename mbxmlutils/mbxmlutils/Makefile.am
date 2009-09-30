@@ -1,3 +1,5 @@
+SUBDIRS = octave
+
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema
 docdir = @datadir@/@PACKAGE@/doc
