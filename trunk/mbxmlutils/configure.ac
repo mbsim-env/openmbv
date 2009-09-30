@@ -88,7 +88,7 @@ if test "_$host_os" = "_mingw32" ; then
   OCTAVEDIR=$(dirtowin $OCTAVEDIR)
 fi
 
-AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils.pc mbxmlutils/env.h])
+AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils.pc mbxmlutils/env.h mbxmlutils/octave/Makefile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT
