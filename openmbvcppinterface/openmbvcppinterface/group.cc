@@ -83,7 +83,7 @@ void Group::createHDF5File() {
   }
 }
 
-void Group::initialize() {
+void Group::initializeXML() {
   ofstream xmlFile((name+".ombv.xml").c_str());
   xmlFile<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
   xmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\" enable=\""<<enableStr<<"\""<<endl<<
@@ -93,7 +93,9 @@ void Group::initialize() {
       object[i]->writeXMLFile(xmlFile, "  ");
   xmlFile<<"</Group>"<<endl;
   xmlFile.close();
+}
 
+void Group::initializeH5() {
   hdf5Group=(H5::Group*)new H5::FileSerie(name+".ombv.h5", H5F_ACC_TRUNC);
   for(int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
