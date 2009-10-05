@@ -2,9 +2,6 @@
 #include <libxml/xinclude.h>
 #include <iostream>
 #include <fstream>
-extern "C" {
-#include <regex.h>
-}
 #include "env.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
@@ -63,52 +60,6 @@ int toOctave(TiXmlElement *&e) {
     e=0;
     return 0;
   }
-  if(e->ValueStr()==MBXMLUTILSPVNS"asciiVectorRef" || e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
-    string filename=fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"), e->Attribute("href"));
-    ifstream file(filename.c_str());
-    if(file.fail()) { cout<<e->GetElementWithXmlBase(0)->Attribute("xml:base")<<":"<<e->Row()<<": Can not open file: "<<filename<<endl; return 1; }
-    string line, vec;
-    while(!file.eof()) {;
-      getline(file, line);
-      // delete comments starting with % or # and append lines to vec separated by ;
-      size_t pos=line.find_first_of("%#");
-      if(pos!=string::npos) vec+=line.substr(0,pos)+"#%"; else vec+=line+"#%"; // use "#%" for a new line this is later replaced by ";\n"
-    }
-    regex_t re;
-    regmatch_t pmatch[1];
-    // replace sequences of '#%' with '#%'
-    regcomp(&re, "#%( *#%)+", REG_EXTENDED);
-    while(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
-      vec=vec.substr(0, pmatch[0].rm_so)+"#%"+vec.substr(pmatch[0].rm_eo);
-    regfree(&re);
-    // delete leading ;
-    regcomp(&re, "^ *#%", REG_EXTENDED);
-    if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
-      vec=vec.substr(pmatch[0].rm_eo);
-    regfree(&re);
-    // delete tailing ;
-    regcomp(&re, "#% *$", REG_EXTENDED);
-    if(regexec(&re, vec.c_str(), 1, pmatch, 0)==0)
-      vec=vec.substr(0,pmatch[0].rm_so);
-    regfree(&re);
-    // convert '#%' to ';\n' if we have a matrix
-    if(e->ValueStr()==MBXMLUTILSPVNS"asciiMatrixRef") {
-      for(size_t i=0; i<vec.length()-1; i++)
-        if(vec[i]=='#' && vec[i+1]=='%') { vec[i]=';'; vec[i+1]='\n'; }
-    }
-    // convert '#%' to '; ' if we have a vector
-    if(e->ValueStr()==MBXMLUTILSPVNS"asciiVectorRef") {
-      for(size_t i=0; i<vec.length()-1; i++)
-        if(vec[i]=='#' && vec[i+1]=='%') { vec[i]=';'; vec[i+1]=' '; }
-    }
-
-    vec="["+vec+"]";
-    TiXmlText *text=new TiXmlText(vec);
-    e->Parent()->InsertEndChild(*text);
-    e->Parent()->RemoveChild(e);
-    e=0;
-    return 0;
-  }
 
   TiXmlElement *c=e->FirstChildElement();
   while(c) {
@@ -120,7 +71,14 @@ int toOctave(TiXmlElement *&e) {
   return 0;
 }
 
-string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true) {
+#define PATHLENGTH 10240
+string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true, TiXmlElement *e=NULL) {
+  static char savedPath[PATHLENGTH];
+  if(e) { // set working dir to path of current file, so that octave works with correct relative paths
+    getcwd(savedPath, PATHLENGTH);
+    chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),"").c_str());
+  }
+
   int dummy;
   // delete leading new lines in str
   for(int i=0; i<str.length() && (str[i]==' ' || str[i]=='\n' || str[i]=='\t'); i++)
@@ -137,20 +95,28 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
     eval_string(clear+prestr+str,true,dummy,0);
     if(!exitOnError) std::cerr.rdbuf(orgcerr); // enable std::cerr if not exiting on error
     if(error_state!=0) {
-      if(exitOnError)
+      if(exitOnError) {
+        if(e) chdir(savedPath);
         throw string("In octave expression: "+str);
+      }
       else {
         error_state=0;
-        if(str.substr(0,6)=="error(")
+        if(str.substr(0,6)=="error(") {
+          if(e) chdir(savedPath);
           return str;
-        else
+        }
+        else {
+          if(e) chdir(savedPath);
           return string("error(\"")+str+"\")";
+        }
       }
     }
   }
   octave_value o=eval_string("ret;",true,dummy);
-  if(error_state!=0)
+  if(error_state!=0) {
+    if(e) chdir(savedPath);
     throw string("'ret' variable not set in octave statement list: "+str);
+  }
   ostringstream ret;
   ret.precision(machinePrec);
   if(o.is_scalar_type() && o.is_real_type())
@@ -166,9 +132,12 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   }
   else if(o.is_string())
     ret<<"\""<<o.string_value()<<"\"";
-  else
+  else {
+    if(e) chdir(savedPath);
     throw string("Unknown type in octave expression: "+str);
+  }
 
+  if(e) chdir(savedPath);
   return ret.str().c_str();
 }
 
@@ -245,7 +214,7 @@ try {
     int count=1;
     if(e->Attribute("count")) {
       string countstr=string(e->Attribute("count"));
-      countstr=octaveEval(paramString, countstr+";");
+      countstr=octaveEval(paramString, countstr+";", true, true, e);
       count=atoi(countstr.c_str());
     }
 
@@ -267,7 +236,7 @@ try {
       enew=doc->FirstChildElement();
       incorporateNamespace(enew, nsprefix);
       // convert embeded file to octave notation
-      cout<<"Process xml[Matrix|Vector], ascii[Matrix|Vector]Ref elements in "<<file<<endl;
+      cout<<"Process xml[Matrix|Vector] elements in "<<file<<endl;
       if(toOctave(enew)!=0) {
         TiXml_location(e, "  included by: ", "");
         return 1;
@@ -320,15 +289,15 @@ try {
     // schema aware processor is needed!
     if(e->GetText()) {
       // eval all text elements
-      e->FirstChild()->SetValue(octaveEval(paramString, string(e->GetText())));
+      e->FirstChild()->SetValue(octaveEval(paramString, string(e->GetText()), true, true, e));
       // convert all text elements to SI unit
       if(e->Attribute("unit")) {
-        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", units[e->Attribute("unit")]));
+        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", units[e->Attribute("unit")], true, true, e));
         e->RemoveAttribute("unit");
       }
       // evaluate convertUnit attribute if given
       if(e->Attribute("convertUnit")) {
-        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", e->Attribute("convertUnit")));
+        e->FirstChild()->SetValue(octaveEval(string("value=")+e->GetText()+";\n", e->Attribute("convertUnit"), true, true, e));
         e->RemoveAttribute("convertUnit");
       }
       e->FirstChild()->ToText()->SetCDATA(false);
@@ -344,7 +313,7 @@ try {
         int i;
         while((i=s.find('{'))>=0) {
           int j=s.find('}');
-          s=s.substr(0,i)+octaveEval(paramString, s.substr(i+1,j-i-1))+s.substr(j+1);
+          s=s.substr(0,i)+octaveEval(paramString, s.substr(i+1,j-i-1), true, true, e)+s.substr(j+1);
         }
         a->SetValue(s);
       }
@@ -400,7 +369,6 @@ int main(int argc, char *argv[]) {
   error_state=0;
   eval_string("LOADPATH=[LOADPATH \":"OCTAVEDIR"\"];",true,dummy,0); // for octave < 3.0.0
   error_state=0;
-  octaveEval("1;","1");
   std::cerr.rdbuf(orgcerr); // enable std::cerr
 
   // preserve whitespace and newline in TiXmlText nodes
@@ -435,7 +403,7 @@ int main(int argc, char *argv[]) {
 
     // convert parameter file to octave notation
     if(string(paramxml)!="none") {
-      cout<<"Process xml[Matrix|Vector], ascii[Matrix|Vector]Ref elements in "<<paramxml<<endl;
+      cout<<"Process xml[Matrix|Vector] elements in "<<paramxml<<endl;
       if(toOctave(paramxmlroot)!=0) return 1;
     }
 
@@ -474,7 +442,7 @@ int main(int argc, char *argv[]) {
     incorporateNamespace(mainxmlroot,nsprefix);
 
     // convert main file to octave notation
-    cout<<"Process xml[Matrix|Vector], ascii[Matrix|Vector]Ref elements in "<<mainxml<<endl;
+    cout<<"Process xml[Matrix|Vector] elements in "<<mainxml<<endl;
     if(toOctave(mainxmlroot)!=0) return 1;
 
     // embed/validate/toOctave/unit/eval files
