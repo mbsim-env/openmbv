@@ -258,8 +258,33 @@ try {
 
     // generate local paramter for embed
     if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter") {
+      // check if only href OR p:parameter child element (This is not checked by the schema)
+      if((e->FirstChildElement()->Attribute("href") && e->FirstChildElement()->FirstChildElement()) ||
+         (!e->FirstChildElement()->Attribute("href") && !e->FirstChildElement()->FirstChildElement())) {
+        TiXml_location(e->FirstChildElement(), "", ": Only the href attribute OR the child element p:parameter) is allowed here!");
+        return 1;
+      }
       cout<<"Generate local octave parameter string for "<<(file==""?"<inline element>":file)<<endl;
-      genParamString(e->FirstChildElement()->FirstChildElement(), paramString);
+      if(e->FirstChildElement()->FirstChildElement()) // inline parameter
+        genParamString(e->FirstChildElement()->FirstChildElement(), paramString);
+      else { // parameter from href attribute
+        string paramFile=e->FirstChildElement()->Attribute("href");
+        // validate local parameter file
+        if(validate(SCHEMADIR"/parameter.xsd", paramFile.c_str())!=0) {
+          TiXml_location(e->FirstChildElement(), "  included by: ", "");
+          return 1;
+        }
+        // read local parameter file
+        cout<<"Read local parameter file "<<paramFile<<endl;
+        TiXmlDocument *localparamxmldoc=new TiXmlDocument;
+        localparamxmldoc->LoadFile(paramFile.c_str());
+        TiXmlElement *localparamxmlroot=localparamxmldoc->FirstChildElement();
+        map<string,string> dummy;
+        incorporateNamespace(localparamxmlroot,dummy);
+        // generate local parameters
+        genParamString(localparamxmlroot, paramString);
+        delete localparamxmldoc;
+      }
     }
 
     // delete embed element and insert count time the new element
