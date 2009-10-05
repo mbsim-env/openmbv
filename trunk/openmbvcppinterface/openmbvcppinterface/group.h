@@ -48,10 +48,20 @@ namespace OpenMBV {
       /** Plot a separate xml and h5 file for this group if truee */
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
       
-      /** Initialisze the tree.
+      /** Initialisze/Write the XML file.
+       * Call this function for the root node of the tree to create the XML file.
+       */
+      void initializeXML();
+      
+      /** Initialisze the h5 file.
+       * Call this function for the root node of the tree to init the h5 file.
+       */
+      void initializeH5();
+      
+      /** Initialisze the tree (XML and h5).
        * Call this function for the root node of the tree before starting writing.
        */
-      void initialize();
+      void initialize() { initializeXML(); initializeH5(); }
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.
