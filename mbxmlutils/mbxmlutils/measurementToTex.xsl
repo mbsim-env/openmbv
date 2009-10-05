@@ -96,6 +96,10 @@ The content of a vector type can be one of the following:
 &lt;myVectorElement unit="mm"&gt;[1;b;a;7]&lt;/myVectorElement&gt;
 &lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;
     \end{verbatim}
+    Using the octave load command it is also possible to load the data from a external file:
+    \begin{verbatim}
+&lt;myVectorElement unit="mm"&gt;ret=load('myfile.dat')&lt;/myVectorElement&gt;
+    \end{verbatim}
   \item A XML representation of a vector: The following shows a example of such a XML representation.
     \begin{verbatim}
 &lt;myVectorElement
@@ -105,14 +109,6 @@ The content of a vector type can be one of the following:
   &lt;pv:ele&gt;7.3&lt;/pv:ele&gt;
 &lt;/myVectorElement&gt;
     \end{verbatim}
-  \item A reference to a ascii file: The following shows a example as a reference to the file vec.txt.
-    \begin{verbatim}
-&lt;myVectorElement
-  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
-  &lt;pv:asciiVectorRef href="vec.txt"/&gt;
-&lt;/myVectorElement&gt;
-    \end{verbatim}
-The file vec.txt is a simple ascii file containing one element of the vector per line. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
 
 For the special unit of name \texttt{unknown} see \hyperref[scalartype]{Scalar Type}~(P.~\pageref*{scalartype})
@@ -131,6 +127,10 @@ The content of a matrix type can be one of the following:
 &lt;myMatrixElement&gt;[1,b;a,7]&lt;/myMatrixElement&gt;
 &lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;
     \end{verbatim}
+    Using the octave load command it is also possible to load the data from a external file:
+    \begin{verbatim}
+&lt;myMatrixElement&gt;ret=load('mydata.dat')&lt;/myMatrixElement&gt;
+    \end{verbatim}
   \item A XML representation of a matrix: The following shows a example of such a XML representation.
     \begin{verbatim}
 &lt;myMatrixElement
@@ -145,14 +145,6 @@ The content of a matrix type can be one of the following:
   &lt;/pv:row&gt;
 &lt;/myMatrixElement&gt;
     \end{verbatim}
-  \item A reference to a ascii file: The following shows a example as a reference to the file mat.txt.
-    \begin{verbatim}
-&lt;myMatrixElement
-  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
-  &lt;pv:asciiMatrixRef href="mat.txt"/&gt;
-&lt;/myMatrixElement&gt;
-    \end{verbatim}
-    The file mat.txt is a simple ascii file containing one row of the vector per line. The values inside a row must be separated by ',' or space. All empty lines are ignored and the the content between '\#' or '\%' and the end of line is also ignored (comments).
 \end{itemize}
 
 For the special unit of name \texttt{unknown} see \hyperref[scalartype]{Scalar Type}~(P.~\pageref*{scalartype})

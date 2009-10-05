@@ -117,11 +117,6 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:element name="asciiMatrixRef">
-            <xs:complexType>
-              <xs:attribute name="href" type="xs:anyURI" use="required"/>
-            </xs:complexType>
-          </xs:element>
         </xs:choice>
       </xs:complexType>
 
@@ -159,11 +154,6 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:element name="asciiVectorRef">
-            <xs:complexType>
-              <xs:attribute name="href" type="xs:anyURI" use="required"/>
-            </xs:complexType>
-          </xs:element>
         </xs:choice>
       </xs:complexType>
 
@@ -188,11 +178,6 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
-          <xs:element name="asciiScalarRef">
-            <xs:complexType>
-              <xs:attribute name="href" type="xs:anyURI" use="required"/>
-            </xs:complexType>
-          </xs:element>
         </xs:choice>
       </xs:complexType>
 

@@ -130,9 +130,7 @@
           <pv:ele>2.4*7</pv:ele>
         </pv:xmlVector>
       </initialTranslation>
-      <initialRotation>
-        <pv:asciiVectorRef href="/home/markus/project/MBSim/testv.dat"/>
-      </initialRotation>
+      <initialRotation>ret=load('/home/markus/project/MBSim/testv.dat')</initialRotation>
       <scaleFactor>1</scaleFactor>
       <contour>
         [ 0.6, 0.2, 0;
