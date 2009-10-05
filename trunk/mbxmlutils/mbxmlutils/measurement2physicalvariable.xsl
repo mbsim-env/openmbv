@@ -38,8 +38,9 @@
             <xs:element name="localParameter" minOccurs="0">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element ref="p:parameter"/>
+                  <xs:element ref="p:parameter" minOccurs="0"/>
                 </xs:sequence>
+                <xs:attribute name="href" use="optional" type="xs:anyURI"/>
               </xs:complexType>
             </xs:element>
             <xs:any namespace="##other" processContents="strict" minOccurs="0"/>
