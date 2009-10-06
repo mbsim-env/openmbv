@@ -28,10 +28,12 @@ class DynamicColoredBody : public Body {
   Q_OBJECT
   protected:
     double minimalColorValue, maximalColorValue, staticColor;
-    double oldColor;
+    double color,oldColor;
     void setColor(SoMaterial *mat, double col);
+    double getColor() { return color; }
   public:
     DynamicColoredBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    QString getInfo();
 };
 
 #endif

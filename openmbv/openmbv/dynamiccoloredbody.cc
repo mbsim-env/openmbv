@@ -22,7 +22,7 @@
 
 using namespace std;
 
-DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), oldColor(nan("")) {
+DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), oldColor(nan("")), color(0) {
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
   if(e)
@@ -45,6 +45,7 @@ DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Paren
 
 void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
   if(oldColor!=col) {
+    color=col;
     oldColor=col;
     double m=1/(maximalColorValue-minimalColorValue);
     col=m*col-m*minimalColorValue;
@@ -52,3 +53,10 @@ void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
     mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
   }
 }
+
+QString DynamicColoredBody::getInfo() {
+  return Body::getInfo()+
+         QString("-----<br/>")+
+         QString("<b>Color:</b> %1<br/>").arg(getColor());
+}
+
