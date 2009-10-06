@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
-        <<"               [--wst <file>] [--camera <file>] [] [--fullscreen]"<<endl
+        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
         <<"               [--headlight <file>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
         <<"                 (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen     Start in full screen mode"<<endl
         <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
-        <<"                 in <dir>"<<endl
-        <<"<file>           Open/Load <file>"<<endl;
+        <<"                 in <dir>. Only fully preprocessed xml files are allowd."<<endl
+        <<"<file>           Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }
