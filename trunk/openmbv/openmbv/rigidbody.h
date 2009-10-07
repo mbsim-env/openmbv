@@ -51,6 +51,7 @@ class RigidBody : public DynamicColoredBody {
     SoScale *refFrameScale, *localFrameScale;
     static void draggerFinishCB(void *, SoDragger*);
     static void draggerMoveCB(void *, SoDragger*);
+    SoSeparator *soSepRigidBody;
   public:
     RigidBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();

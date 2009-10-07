@@ -38,12 +38,12 @@ Cube::Cube(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   cube->width.setValue(length);
   cube->height.setValue(length);
   cube->depth.setValue(length);
-  soSep->addChild(cube);
+  soSepRigidBody->addChild(cube);
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(length,length,length);
   localFrameScale->scaleFactor.setValue(length,length,length);
 
   // outline
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(cube);
 }

@@ -36,11 +36,11 @@ Sphere::Sphere(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   // create so
   SoSphere *sphere=new SoSphere;
   sphere->radius.setValue(radius);
-  soSep->addChild(sphere);
+  soSepRigidBody->addChild(sphere);
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(2*radius,2*radius,2*radius);
   localFrameScale->scaleFactor.setValue(2*radius,2*radius,2*radius);
 
   // outline
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
 }

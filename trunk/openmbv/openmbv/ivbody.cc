@@ -45,7 +45,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   // create so
   SoInput in;
   in.openFile(fileName.c_str());
-  soSep->addChild(SoDB::readAll(&in));
+  soSepRigidBody->addChild(SoDB::readAll(&in));
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
@@ -55,7 +55,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
 
   // scale ref/localFrame
   SoGetBoundingBoxAction bboxAction(SbViewportRegion(0,0));
-  bboxAction.apply(soSep);
+  bboxAction.apply(soSepRigidBody);
   float x1,y1,z1,x2,y2,z2;
   bboxAction.getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
   double size=min(x2-x1,min(y2-y1,z2-z1));

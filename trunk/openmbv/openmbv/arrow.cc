@@ -146,21 +146,41 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
 
 double Arrow::update() {
   if(h5Group==0) return 0;
-  // read from hdf5
+
   int frame=MainWindow::getInstance()->getFrame()->getValue();
+  // read from hdf5
   data=h5Data->getRow(frame);
   
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
   length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
+
+  // path
+  if(path->isChecked()) {
+    for(int i=pathMaxFrameRead+1; i<=frame; i++) {
+      vector<double> localData=h5Data->getRow(i);
+      if(length<1e-10)
+        if(i-1<0)
+          pathCoord->point.set1Value(i, 0, 0, 0); // dont known what coord to write; using 0
+        else
+          pathCoord->point.set1Value(i, *pathCoord->point.getValues(i-1));
+      else
+        pathCoord->point.set1Value(i, localData[1], localData[2], localData[3]);
+    }
+    pathMaxFrameRead=frame;
+    pathLine->numVertices.setValue(1+frame);
+  }
   
   if(draw->isChecked())
     if(length<1e-10) {
       soSwitch->whichChild.setValue(SO_SWITCH_NONE);
+      soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
       return data[0];
     }
-    else
+    else {
       soSwitch->whichChild.setValue(SO_SWITCH_ALL);
+      soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    }
 
   // scale factors
   if(length<2*headLength)
@@ -178,16 +198,6 @@ double Arrow::update() {
   rotation2->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
   // mat
   if(isnan(staticColor)) setColor(mat, data[7]);
-
-  // path
-  if(path->isChecked()) {
-    for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> data=h5Data->getRow(i);
-      pathCoord->point.set1Value(i, data[1], data[2], data[3]);
-    }
-    pathMaxFrameRead=frame;
-    pathLine->numVertices.setValue(1+frame);
-  }
 
   return data[0];
 }

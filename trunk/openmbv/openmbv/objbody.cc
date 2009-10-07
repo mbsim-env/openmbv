@@ -193,23 +193,23 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
    for(i=group.begin(); i!=group.end(); i++)
      convertIndex(i->second.f->coordIndex, newvi);
   }
-  soSep->addChild(v);
+  soSepRigidBody->addChild(v);
   // texture points
-  if(textureFromFile) soSep->addChild(t);
+  if(textureFromFile) soSepRigidBody->addChild(t);
   // no backface culling; two side lithning
   SoShapeHints *sh=new SoShapeHints;
-  soSep->addChild(sh);
+  soSepRigidBody->addChild(sh);
   sh->vertexOrdering.setValue(SoShapeHints::UNKNOWN_ORDERING);
   sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
   // normals and shape
   if(normals==flat) { // flat normals
     SoNormalBinding *nb=new SoNormalBinding;
-    soSep->addChild(nb);
+    soSepRigidBody->addChild(nb);
     nb->value.setValue(SoNormalBinding::PER_FACE);
     for(i=group.begin(); i!=group.end(); i++) {
-      if(i->second.mat) soSep->addChild(i->second.mat);
-      if(i->second.map) soSep->addChild(i->second.map);
-      soSep->addChild(i->second.f);
+      if(i->second.mat) soSepRigidBody->addChild(i->second.mat);
+      if(i->second.map) soSepRigidBody->addChild(i->second.map);
+      soSepRigidBody->addChild(i->second.f);
     }
   }
   else if(normals==fromObjFile) { // use normals form obj
@@ -222,11 +222,11 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
      for(i=group.begin(); i!=group.end(); i++)
        convertIndex(i->second.f->normalIndex, newvi);
     }
-    soSep->addChild(n);
+    soSepRigidBody->addChild(n);
     for(i=group.begin(); i!=group.end(); i++) {
-      if(i->second.mat) soSep->addChild(i->second.mat);
-      if(i->second.map) soSep->addChild(i->second.map);
-      soSep->addChild(i->second.f);
+      if(i->second.mat) soSepRigidBody->addChild(i->second.mat);
+      if(i->second.map) soSepRigidBody->addChild(i->second.map);
+      soSepRigidBody->addChild(i->second.f);
     }
   }
   else { // smooth or real normals
@@ -245,10 +245,10 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
        i->second.n->vector.copyFrom(newvv);
        convertIndex(i->second.f->normalIndex, newvi);
       }
-      soSep->addChild(i->second.n);
-      if(i->second.mat) soSep->addChild(i->second.mat);
-      if(i->second.map) soSep->addChild(i->second.map);
-      soSep->addChild(i->second.f);
+      soSepRigidBody->addChild(i->second.n);
+      if(i->second.mat) soSepRigidBody->addChild(i->second.mat);
+      if(i->second.map) soSepRigidBody->addChild(i->second.map);
+      soSepRigidBody->addChild(i->second.f);
       if(outline==calculate) {
         i->second.ol->coordIndex.copyFrom(oli);
         soOutLineSep->addChild(i->second.ol);
@@ -258,11 +258,11 @@ ObjBody::ObjBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   if(outline==fromFile)
     for(i=group.begin(); i!=group.end(); i++)
       soOutLineSep->addChild(i->second.ol);
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
 
   // scale ref/localFrame
   SoGetBoundingBoxAction bboxAction(SbViewportRegion(0,0));
-  bboxAction.apply(soSep);
+  bboxAction.apply(soSepRigidBody);
   float x1,y1,z1,x2,y2,z2;
   bboxAction.getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
   double size=min(x2-x1,min(y2-y1,z2-z1));

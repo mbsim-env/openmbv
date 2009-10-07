@@ -49,7 +49,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   // create so
   // coordinates
   SoCoordinate3 *coord=new SoCoordinate3;
-  soSep->addChild(coord);
+  soSepRigidBody->addChild(coord);
   for(int i=0; i<N; i++) {
     double phi=2*M_PI/N*i;
     coord->point.set1Value(i+0, baseRadius*cos(phi), baseRadius*sin(phi), -height);
@@ -61,7 +61,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   }
   // normals
   SoNormal *normal=new SoNormal;
-  soSep->addChild(normal);
+  soSepRigidBody->addChild(normal);
   normal->vector.set1Value(0, 0, 0, -1);
   normal->vector.set1Value(1, 0, 0, 1);
   for(int i=0; i<N; i++) {
@@ -76,7 +76,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
     SoIndexedTriangleStripSet *baseFace=new SoIndexedTriangleStripSet;
     soSep->addChild(baseFace);
     SoIndexedTriangleStripSet *topFace=new SoIndexedTriangleStripSet;
-    soSep->addChild(topFace);
+    soSepRigidBody->addChild(topFace);
     baseFace->coordIndex.set1Value(++nr, N-1);
     baseFace->normalIndex.set1Value(nr, 0);
     topFace->coordIndex.set1Value(nr, 2*N-1);
@@ -99,9 +99,9 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   else {
     int nr=-1;
     SoIndexedFaceSet *baseFace=new SoIndexedFaceSet;
-    soSep->addChild(baseFace);
+    soSepRigidBody->addChild(baseFace);
     SoIndexedFaceSet *topFace=new SoIndexedFaceSet;
-    soSep->addChild(topFace);
+    soSepRigidBody->addChild(topFace);
     for(int i=0; i<N; i++) {
       baseFace->coordIndex.set1Value(++nr, i);
       baseFace->normalIndex.set1Value(nr, 0);
@@ -112,7 +112,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   // faces outer
   int nr=-1;
   SoIndexedTriangleStripSet *outerFace=new SoIndexedTriangleStripSet;
-  soSep->addChild(outerFace);
+  soSepRigidBody->addChild(outerFace);
   outerFace->coordIndex.set1Value(++nr, N-1);
   outerFace->normalIndex.set1Value(nr, N-1+2);
   outerFace->coordIndex.set1Value(++nr, 2*N-1);
@@ -127,7 +127,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   if(innerBaseRadius>0 || innerTopRadius>0) {
     int nr=-1;
     SoIndexedTriangleStripSet *innerFace=new SoIndexedTriangleStripSet;
-    soSep->addChild(innerFace);
+    soSepRigidBody->addChild(innerFace);
     innerFace->coordIndex.set1Value(++nr, 3*N-1);
     innerFace->normalIndex.set1Value(nr, 2*N-1+2);
     innerFace->coordIndex.set1Value(++nr, 4*N-1);
