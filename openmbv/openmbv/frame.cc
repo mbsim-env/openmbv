@@ -33,7 +33,7 @@ Frame::Frame(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   double offset=toVector(e->GetText())[0];
 
   // create so
-  soSep->addChild(soFrame(size, offset, true));
+  soSepRigidBody->addChild(soFrame(size, offset, true));
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);

@@ -91,24 +91,24 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     rotation->ref(); // do not add to scene graph (only for convinience)
 
     // till now the scene graph should be static (except color). So add a SoSeparator for caching
-    SoSeparator *newSoSep=new SoSeparator;
-    soSep->addChild(newSoSep);
-    soSep=newSoSep;
+    soSepRigidBody=new SoSeparator;
+    soSep->addChild(soSepRigidBody);
 
     // reference frame
     soReferenceFrameSwitch=new SoSwitch;
-    soSep->addChild(soReferenceFrameSwitch);
+    soSepRigidBody->addChild(soReferenceFrameSwitch);
     soReferenceFrameSwitch->addChild(soFrame(1,1,false,refFrameScale));
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
     refFrameScale=new SoScale;
     refFrameScale->ref();
+    soSepRigidBody=soSep;
   }
 
   // dragger for initial translation and rotation
   SoGroup *grp=new SoGroup;
-  soSep->addChild(grp);
+  soSepRigidBody->addChild(grp);
   soDraggerSwitch=new SoSwitch;
   grp->addChild(soDraggerSwitch);
   soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
@@ -140,13 +140,13 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
     soLocalFrameSwitch=new SoSwitch;
-    soSep->addChild(soLocalFrameSwitch);
+    soSepRigidBody->addChild(soLocalFrameSwitch);
     soLocalFrameSwitch->addChild(soFrame(1,1,false,localFrameScale));
     soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   
     // mat (from hdf5)
     mat=new SoMaterial;
-    soSep->addChild(mat);
+    soSepRigidBody->addChild(mat);
     mat->shininess.setValue(0.9);
     if(!isnan(staticColor)) setColor(mat, staticColor);
   }
@@ -158,7 +158,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // initial scale
   SoScale *scale=new SoScale;
   scale->scaleFactor.setValue(scaleValue,scaleValue,scaleValue);
-  soSep->addChild(scale);
+  soSepRigidBody->addChild(scale);
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI

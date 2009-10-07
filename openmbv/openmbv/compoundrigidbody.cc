@@ -31,7 +31,7 @@ CompoundRigidBody::CompoundRigidBody(TiXmlElement *element, H5::Group *h5Parent,
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   e=e->NextSiblingElement(); // first rigidbody
   while(e!=0) {
-    ObjectFactory(e, 0, this, soSep);
+    ObjectFactory(e, 0, this, soSepRigidBody);
     e=e->NextSiblingElement(); // next rigidbody
   }
 

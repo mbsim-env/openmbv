@@ -53,10 +53,10 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   // create so
   // outline
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
   // side
   SoSeparator *side=new SoSeparator;
-  soSep->addChild(side);
+  soSepRigidBody->addChild(side);
   // shape hint
   SoShapeHints *sh=new SoShapeHints;
   side->addChild(sh);
@@ -142,23 +142,23 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   gluTessEndPolygon(tess);
   // normal binding
   SoNormalBinding *nb=new SoNormalBinding;
-  soSep->addChild(nb);
+  soSepRigidBody->addChild(nb);
   nb->value.setValue(SoNormalBinding::OVERALL);
   // normal
   SoNormal *n=new SoNormal;
-  soSep->addChild(n);
+  soSepRigidBody->addChild(n);
   n->vector.set1Value(0, 0, 0, -1);
   // base
-  soSep->addChild(soTess);
+  soSepRigidBody->addChild(soTess);
   // trans
   SoTranslation *t=new SoTranslation;
-  soSep->addChild(t);
+  soSepRigidBody->addChild(t);
   t->translation.setValue(0, 0, height);
   // normal
   n=new SoNormal;
-  soSep->addChild(n);
+  soSepRigidBody->addChild(n);
   n->vector.set1Value(0, 0, 0, 1);
   // top
-  soSep->addChild(soTess);
+  soSepRigidBody->addChild(soTess);
   // scale ref/localFrame
 }

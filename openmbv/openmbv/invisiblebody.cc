@@ -34,5 +34,5 @@ InvisibleBody::InvisibleBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWi
   // create so
 
   // outline
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
 }
