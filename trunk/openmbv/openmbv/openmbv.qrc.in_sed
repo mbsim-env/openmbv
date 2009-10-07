@@ -50,6 +50,7 @@
     <file>objbody.svg</file>
     <file>help.svg</file>
     <file>compoundrigidbody.svg</file>
+    <file>guihelp.xhtml</file>
     <file alias="http___openmbv_berlios_de_OpenMBV/index.xhtml">../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml</file>
     PNGFILESTOINCLUDE
   </qresource>
