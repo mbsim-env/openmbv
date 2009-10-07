@@ -59,7 +59,7 @@ class MainWindow : public QMainWindow {
     Mode mode;
     SoText2 *timeString;
     double fpsMax;
-    QWebView *helpViewer;
+    QWebView *helpViewerGUI, *helpViewerXML;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
@@ -91,6 +91,7 @@ class MainWindow : public QMainWindow {
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
+    void help(std::string type, QDialog *helpDialog);
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -120,8 +121,10 @@ class MainWindow : public QMainWindow {
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
-    void loadUrl(const QUrl &url);
-    void helpHome();
+    void loadUrlGUI(const QUrl &url); // a workaround for Qt bug N261352
+    void loadUrlXML(const QUrl &url); // a workaround for Qt bug N261352
+    void helpHomeXML();
+    void helpHomeGUI();
     void stopSCSlot();
     void lastFrameSCSlot();
     void playSCSlot();

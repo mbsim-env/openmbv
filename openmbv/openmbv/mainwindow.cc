@@ -66,7 +66,7 @@ using namespace std;
 
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25), helpViewer(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
@@ -649,38 +649,19 @@ void MainWindow::objectListClicked() {
 }
 
 void MainWindow::guiHelp() {
-  QMessageBox::information(this, "OpenMBV - GUI Help", 
-    "<h1>GUI Help</h1>"
-    "<h2>Keyboard Interaction</h2>"
-    "<ul>"
-    "  <dt>Up or J</dt><dd> Go one frame up</dd>"
-    "  <dt>Down or K</dt><dd> Go one frame down</dd>"
-    "  <dt>Page-Up</dt><dd> Increase animation speed by 10%</dd>"
-    "  <dt>Page-Down</dt><dd> Decrease animation speed by 10%</dd>"
-    "</ul>"
-    "<h2>Mouse Interaction</h2>"
-    "<ul>"
-    "  <dt>Left-Button + Move</dt><dd> Rotate the entiry scene</dd>"
-    "  <dt>Right-Button + Move</dt><dd> Translate the entiry scene</dd>"
-    "  <dt>Middle-Button + Move</dt><dd> Zoom the entiry scene</dd>"
-    "  <dt>X-Down + Left-Button + Move</dt><dd> Manipulate a dragger. The dragger must be enabled using the property menu of the body before</dd>"
-    "  <dt>X-Down + Shift-Down + Left-Button + Move</dt><dd> Manipulate a dragger in constraint motion. The dragger must be enabled using the property menu of the body before</dd>"
-    "  <dt>Ctrl+Left-Button</dt><dd> Selects the body under the cursor.</dd>"
-    "  <dt>Ctrl+Shift+Left-Button</dt><dd> Toggle the selection of the body under the cursor.</dd>"
-    "  <dt>Crtl+Right-Button</dt><dd> Select the body under the curser and show the property menu.</dd>"
-    "  <dt>Crtl+Shift+Right-Button</dt><dd> Toggle the selection of the body under the curser and show the property menu.</dd>"
-    "  <dt>Crtl+Alt+Left-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects this body.</dd>"
-    "  <dt>Crtl+Alt+Right-Button</dt><dd> Shows a menu of all bodies under the cursor. Selecting one menu entry, selects and shows the proptery menu of this body.</dd>"
-    "  <dt>Crtl+Middle-Button</dt><dd> Seeks the focal point of the camera to the point on the shape under the cursor.</dd>"
-    "</ul>");
+  static QDialog *guiHelpDialog=0;
+  help("GUI", guiHelpDialog);
 }
 
 void MainWindow::xmlHelp() {
-  static QDialog *helpDialog=0;
+  static QDialog *xmlHelpDialog=0;
+  help("XML", xmlHelpDialog);
+}
+
+void MainWindow::help(std::string type, QDialog *helpDialog) {
   if(!helpDialog) {
     helpDialog=new QDialog(this);
     helpDialog->setWindowIcon(QIcon(":/help.svg"));
-    helpDialog->setWindowTitle("OpenMBV - XML Help");
     QGridLayout *layout=new QGridLayout(helpDialog);
     helpDialog->setLayout(layout);
     QPushButton *home=new QPushButton("Home",helpDialog);
@@ -689,14 +670,25 @@ void MainWindow::xmlHelp() {
     layout->addWidget(helpBackward,0,1);
     QPushButton *helpForward=new QPushButton("Forward",helpDialog);
     layout->addWidget(helpForward,0,2);
-    helpViewer=new QWebView(helpDialog);
+    QWebView *helpViewer=new QWebView(helpDialog);
     layout->addWidget(helpViewer,1,0,1,3);
-    connect(home, SIGNAL(clicked()), this, SLOT(helpHome()));
     connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
     connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
+    if(type=="GUI") {
+      helpDialog->setWindowTitle("OpenMBV - GUI Help");
+      connect(home, SIGNAL(clicked()), this, SLOT(helpHomeGUI()));
+      connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrlGUI(const QUrl&)));
+      helpViewer->load(QUrl("qrc:guihelp.xhtml"));
+      helpViewerGUI=helpViewer;
+    }
+    else if(type=="XML") {
+      helpDialog->setWindowTitle("OpenMBV - XML Help");
+      connect(home, SIGNAL(clicked()), this, SLOT(helpHomeXML()));
+      connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrlXML(const QUrl&)));
+      helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
+      helpViewerXML=helpViewer;
+    }
     helpViewer->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-    connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrl(const QUrl&)));
-    helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
   }
   helpDialog->show();
   helpDialog->raise();
@@ -704,19 +696,34 @@ void MainWindow::xmlHelp() {
   helpDialog->resize(700,500);
 }
 
-void MainWindow::loadUrl(const QUrl &url) {
+void MainWindow::loadUrlXML(const QUrl &url) { // a workaround for Qt bug N261352
   // if the current url is in qrc and the link clicked is relative, then resolve the link to a absoulute qrc path
-  if(helpViewer->url().scheme()=="qrc" && url.scheme()=="") {
-    QString qrcfile=QFileInfo(helpViewer->url().path()).path()+"/"+url.path();
+  if(helpViewerXML->url().scheme()=="qrc" && url.scheme()=="") {
+    QString qrcfile=QFileInfo(helpViewerXML->url().path()).path()+"/"+url.path();
     cout<<"XX "<<("qrc:"+qrcfile).toStdString()<<endl;
-    helpViewer->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
+    helpViewerXML->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
   }
   else
-    helpViewer->load(url);
+    helpViewerXML->load(url);
 }
 
-void MainWindow::helpHome() {
-  helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
+void MainWindow::loadUrlGUI(const QUrl &url) { // a workaround for Qt bug N261352
+  // if the current url is in qrc and the link clicked is relative, then resolve the link to a absoulute qrc path
+  if(helpViewerGUI->url().scheme()=="qrc" && url.scheme()=="") {
+    QString qrcfile=QFileInfo(helpViewerGUI->url().path()).path()+"/"+url.path();
+    cout<<"XX "<<("qrc:"+qrcfile).toStdString()<<endl;
+    helpViewerGUI->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
+  }
+  else
+    helpViewerGUI->load(url);
+}
+
+void MainWindow::helpHomeGUI() {
+  helpViewerGUI->load(QUrl("qrc:guihelp.xhtml"));
+}
+
+void MainWindow::helpHomeXML() {
+  helpViewerXML->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
 }
 
 void MainWindow::aboutOpenMBV() {
