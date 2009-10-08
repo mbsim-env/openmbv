@@ -100,7 +100,7 @@ noinst_HEADERS = openmbv.qrc\
 
 # BEGIN generate openmbv.qrc from openbv.qrc.myin
 # Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
-openmbv.qrc: openmbv.qrc.in_sed
+openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/
 	FILES=""; \
 	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>"; \
