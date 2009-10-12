@@ -179,7 +179,7 @@ double Arrow::update() {
     }
     else {
       soSwitch->whichChild.setValue(SO_SWITCH_ALL);
-      soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+      if(bbox->isChecked()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
     }
 
   // scale factors
