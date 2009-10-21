@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://openmbv.berlios.de/OpenMBV"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  xmlns="http://openmbv.berlios.de/OpenMBV"
+  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  xmlns:xml="http://www.w3.org/XML/1998/namespace"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+    schemaLocation="@MBXMLUTILSSCHEMA@/physicalvariable.xsd"/>
+
+  <!-- for xml:base attribute: include xml namespaces defining attribute xml:base -->
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace"
+    schemaLocation="@MBXMLUTILSSCHEMA@/xml.xsd"/>
+
+
+
+  <xs:simpleType name="objectReferenceType">
+    <xs:restriction base="pv:partialOctaveString">
+      <!-- pattern value="(\.\./)*(X/)*X" with
+             X=((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)
+      from physicalvariable.xsd name attribute -->
+      <xs:pattern value="(\.\./)*(((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)/)*((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="Object" abstract="true" type="ObjectType"/>
+  <xs:complexType name="ObjectType">
+    <xs:attribute name="name" type="pv:name" use="required"/>
+    <xs:attribute name="enable" type="xs:boolean" default="true"/>
+  </xs:complexType> 
+
+  <xs:element name="Group" substitutionGroup="Object" type="GroupType"/>
+  <xs:complexType name="GroupType">
+    <xs:complexContent>
+      <xs:extension base="ObjectType">
+        <xs:sequence>
+          <xs:element ref="Object" minOccurs="0" maxOccurs="unbounded"/>  
+        </xs:sequence> 
+        <xs:attribute name="expand" type="xs:boolean" default="true"/>
+        <xs:attribute ref="xml:base"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Body" abstract="true" substitutionGroup="Object" type="BodyType"/>
+  <xs:complexType name="BodyType">
+    <xs:complexContent>
+      <xs:extension base="ObjectType">
+        <xs:sequence>
+          <xs:element name="hdf5Link" minOccurs="0">  
+            <xs:complexType>
+              <xs:attribute name="ref" type="objectReferenceType" use="required"/>
+            </xs:complexType> 
+          </xs:element>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="DynamicColoredBody" abstract="true" substitutionGroup="Body" type="DynamicColoredBodyType"/>
+  <xs:complexType name="DynamicColoredBodyType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="staticColor" type="pv:nounitScalar" minOccurs="0"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="RigidBody" abstract="true" substitutionGroup="DynamicColoredBody" type="RigidBodyType"/>
+  <xs:complexType name="RigidBodyType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="initialTranslation" type="pv:lengthVector"/>
+          <xs:element name="initialRotation" type="pv:angleVector"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Cube" substitutionGroup="RigidBody" type="CubeType"/>
+  <xs:complexType name="CubeType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="length" type="pv:lengthScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Cuboid" substitutionGroup="RigidBody" type="CuboidType"/>
+  <xs:complexType name="CuboidType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="length" type="pv:lengthVector"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Frustum" substitutionGroup="RigidBody" type="FrustumType"/>
+  <xs:complexType name="FrustumType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="baseRadius" type="pv:lengthScalar"/>
+          <xs:element name="topRadius" type="pv:lengthScalar"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
+          <xs:element name="innerBaseRadius" type="pv:lengthScalar"/>
+          <xs:element name="innerTopRadius" type="pv:lengthScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Frame" substitutionGroup="RigidBody" type="FrameType"/>
+  <xs:complexType name="FrameType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="size" type="pv:lengthScalar"/>
+          <xs:element name="offset" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="IvBody" substitutionGroup="RigidBody" type="IvBodyType"/>
+  <xs:complexType name="IvBodyType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="ivFileName" type="pv:string"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="ObjBody" substitutionGroup="RigidBody" type="ObjBodyType"/>
+  <xs:complexType name="ObjBodyType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="objFileName" type="pv:string"/>
+          <xs:element name="useTextureFromMatLib" type="xs:boolean"/>
+          <xs:element name="useMaterialFromMatLib" type="xs:boolean"/>
+          <xs:element name="normals">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;fromObjFile&quot;"/>
+                <xs:enumeration value="&quot;flat&quot;"/>
+                <xs:enumeration value="&quot;smooth&quot;"/>
+                <xs:enumeration value="&quot;smoothIfLessBarrier&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="epsVertex" type="pv:lengthScalar"/>
+          <xs:element name="epsNormal" type="pv:lengthScalar"/>
+          <xs:element name="smoothBarrier" type="pv:angleScalar"/>
+          <xs:element name="outline">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;none&quot;"/>
+                <xs:enumeration value="&quot;calculate&quot;"/>
+                <xs:enumeration value="&quot;fromFile&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Rotation" substitutionGroup="RigidBody" type="RotationType"/>
+  <xs:complexType name="RotationType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="contour" type="pv:lengthMatrix"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Sphere" substitutionGroup="RigidBody" type="SphereType"/>
+  <xs:complexType name="SphereType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="radius" type="pv:lengthScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="InvisibleBody" substitutionGroup="RigidBody" type="InvisibleBodyType"/>
+  <xs:complexType name="InvisibleBodyType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType"/>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="SpineExtrusion" substitutionGroup="DynamicColoredBody" type="SpineExtrusionType"/>
+  <xs:complexType name="SpineExtrusionType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="contour" type="pv:lengthMatrix"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType> 
+
+  <xs:element name="Extrusion" substitutionGroup="RigidBody" type="ExtrusionType"/>
+  <xs:complexType name="ExtrusionType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="windingRule">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;odd&quot;"/>
+                <xs:enumeration value="&quot;nonzero&quot;"/>
+                <xs:enumeration value="&quot;positive&quot;"/>
+                <xs:enumeration value="&quot;negative&quot;"/>
+                <xs:enumeration value="&quot;absGEqZero&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="height" type="pv:lengthScalar"/>
+          <xs:element name="contour" maxOccurs="unbounded" type="pv:lengthMatrix"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="CompoundRigidBody" substitutionGroup="RigidBody" type="CompoundRigidBodyType"/>
+  <xs:complexType name="CompoundRigidBodyType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element ref="RigidBody" maxOccurs="unbounded"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Arrow" substitutionGroup="DynamicColoredBody" type="ArrowType"/>
+  <xs:complexType name="ArrowType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="diameter" type="pv:lengthScalar"/>
+          <xs:element name="headDiameter" type="pv:lengthScalar"/>
+          <xs:element name="headLength" type="pv:lengthScalar"/>
+          <xs:element name="type">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;line&quot;"/>
+                <xs:enumeration value="&quot;fromHead&quot;"/>
+                <xs:enumeration value="&quot;toHead&quot;"/>
+                <xs:enumeration value="&quot;bothHeads&quot;"/>
+                <xs:enumeration value="&quot;absGEqZero&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="scaleLength" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="Path" substitutionGroup="Body" type="PathType"/>
+  <xs:complexType name="PathType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="color" type="pv:nounitVector"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="CoilSpring" substitutionGroup="DynamicColoredBody" type="CoilSpringType"/>
+  <xs:complexType name="CoilSpringType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
+          <xs:element name="springRadius" type="pv:lengthScalar"/>
+          <xs:element name="crossSectionRadius" type="pv:lengthScalar"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="NurbsDisk" substitutionGroup="DynamicColoredBody" type="NurbsDiskType"/>
+  <xs:complexType name="NurbsDiskType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="drawDegree" type="pv:nounitScalar"/>
+          <xs:element name="innerRadius" type="pv:lengthScalar"/>
+          <xs:element name="outerRadius" type="pv:lengthScalar"/>
+          <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
+          <xs:element name="knotVecRadial" type="pv:lengthVector"/>
+          <xs:element name="elementNumberAzimuthal" type="pv:nounitScalar"/>
+          <xs:element name="elementNumberRadial" type="pv:nounitScalar"/>
+          <xs:element name="interpolationDegreeRadial" type="pv:nounitScalar"/>
+          <xs:element name="interpolationDegreeAzimuthal" type="pv:nounitScalar"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+</xs:schema>
