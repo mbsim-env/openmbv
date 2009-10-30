@@ -134,6 +134,20 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="Grid" substitutionGroup="RigidBody" type="GridType"/>
+  <xs:complexType name="GridType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="xSize" type="pv:lengthScalar"/>
+          <xs:element name="ySize" type="pv:lengthScalar"/>
+          <xs:element name="nx" type="xs:positiveInteger"/>
+          <xs:element name="ny" type="xs:positiveInteger"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
   <xs:element name="IvBody" substitutionGroup="RigidBody" type="IvBodyType"/>
   <xs:complexType name="IvBodyType">
     <xs:complexContent>

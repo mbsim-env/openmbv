@@ -27,6 +27,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   frustum.cc\
   ivbody.cc\
   frame.cc\
+	grid.cc\
   group.cc\
   main.cc\
   mainwindow.cc\
@@ -67,6 +68,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   frustum.moc.cc\
   ivbody.moc.cc\
   frame.moc.cc\
+	grid.moc.cc\
   group.moc.cc\
   body.moc.cc\
   dynamiccoloredbody.moc.cc
@@ -88,6 +90,7 @@ noinst_HEADERS = openmbv.qrc\
   frustum.h\
   ivbody.h\
   frame.h\
+  grid.h\
   group.h\
   body.h\
   dynamiccoloredbody.h\
