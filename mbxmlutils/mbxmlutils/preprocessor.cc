@@ -2,6 +2,7 @@
 #include <libxml/xinclude.h>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 #include "env.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
