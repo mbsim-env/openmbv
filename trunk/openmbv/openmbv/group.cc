@@ -28,7 +28,7 @@ using namespace std;
 
 Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
   iconFile=":/group.svg";
-  setIcon(0, QIcon(iconFile.c_str()));
+  setIcon(0, QIconCached(iconFile.c_str()));
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // expand or collapse
@@ -44,7 +44,7 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // if xml:base attribute exist => new sub file
   if(element->Attribute("xml:base")) {
     iconFile=":/h5file.svg";
-    setIcon(0, QIcon(iconFile.c_str()));
+    setIcon(0, QIconCached(iconFile.c_str()));
     setText(0, element->Attribute("xml:base"));
   }
   // read XML

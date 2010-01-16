@@ -34,6 +34,8 @@
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
+class SoCenterballDragger;
+
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
@@ -52,6 +54,9 @@ class RigidBody : public DynamicColoredBody {
     static void draggerFinishCB(void *, SoDragger*);
     static void draggerMoveCB(void *, SoDragger*);
     SoSeparator *soSepRigidBody;
+    SoTranslation *initTrans;
+    SoRotation *initRot;
+    SoCenterballDragger *soDragger;
   public:
     RigidBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
