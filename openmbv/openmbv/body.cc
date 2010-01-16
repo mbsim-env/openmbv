@@ -97,16 +97,16 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   
     // GUI
     // draw outline action
-    outLine=new QAction(QIcon(":/outline.svg"),"Draw Out-Line", this);
+    outLine=new QAction(QIconCached(":/outline.svg"),"Draw Out-Line", this);
     outLine->setCheckable(true);
     outLine->setChecked(true);
     outLine->setObjectName("Body::outLine");
     connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
     // draw method action
     drawMethod=new QActionGroup(this);
-    drawMethodPolygon=new QAction(QIcon(":/filled.svg"),"Draw Style: Filled", drawMethod);
-    drawMethodLine=new QAction(QIcon(":/lines.svg"),"Draw Style: Lines", drawMethod);
-    drawMethodPoint=new QAction(QIcon(":/points.svg"),"Draw Style: Points", drawMethod);
+    drawMethodPolygon=new QAction(QIconCached(":/filled.svg"),"Draw Style: Filled", drawMethod);
+    drawMethodLine=new QAction(QIconCached(":/lines.svg"),"Draw Style: Lines", drawMethod);
+    drawMethodPoint=new QAction(QIconCached(":/points.svg"),"Draw Style: Points", drawMethod);
     drawMethodPolygon->setCheckable(true);
     drawMethodPolygon->setData(QVariant(filled));
     drawMethodPolygon->setObjectName("Body::drawMethodPolygon");

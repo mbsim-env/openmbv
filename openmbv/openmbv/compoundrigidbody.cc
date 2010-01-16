@@ -25,7 +25,7 @@ using namespace std;
 
 CompoundRigidBody::CompoundRigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/compoundrigidbody.svg";
-  setIcon(0, QIcon(iconFile.c_str()));
+  setIcon(0, QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"scaleFactor");

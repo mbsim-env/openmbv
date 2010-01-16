@@ -112,30 +112,18 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   soDraggerSwitch=new SoSwitch;
   grp->addChild(soDraggerSwitch);
   soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  SoCenterballDragger *soDragger=new SoCenterballDragger;
-  soDraggerSwitch->addChild(soDragger);
-  soDragger->addMotionCallback(draggerMoveCB, this);
-  soDragger->addFinishCallback(draggerFinishCB, this);
-  // initial translation from XML
-  soDragger->center.setValue(initTransValue[0],initTransValue[1],initTransValue[2]);
-  // initial rotation from XML
-  soDragger->rotation.setValue(cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert());
-  // scale of the dragger
-  SoSurroundScale *draggerScale=new SoSurroundScale;
-  draggerScale->setDoingTranslations(false);//TODO?
-  draggerScale->numNodesUpToContainer.setValue(5);
-  draggerScale->numNodesUpToReset.setValue(4);
-  soDragger->setPart("surroundScale", draggerScale);
+  // the dragger is added on the first click on the entry in the property menu (Because the constructor of the dragger takes a long time to execute (performace reason))
+  soDragger=0;
 
   // initial translation
-  SoTranslation *initTrans=new SoTranslation;
+  initTrans=new SoTranslation;
   grp->addChild(initTrans);
-  initTrans->translation.connectFrom(&soDragger->center);
+  initTrans->translation.setValue(initTransValue[0],initTransValue[1],initTransValue[2]); // this is later changed to connectFrom if the dragger exists
 
   // initial rotation
-  SoRotation *initRot=new SoRotation;
+  initRot=new SoRotation;
   grp->addChild(initRot);
-  initRot->rotation.connectFrom(&soDragger->rotation);
+  initRot->rotation.setValue(cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert()); // this is later changed to connectFrom if the dragger exists
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
@@ -162,23 +150,23 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
-    localFrame=new QAction(QIcon(":/localframe.svg"),"Draw Local Frame", this);
+    localFrame=new QAction(QIconCached(":/localframe.svg"),"Draw Local Frame", this);
     localFrame->setCheckable(true);
     localFrame->setObjectName("RigidBody::localFrame");
     connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-    referenceFrame=new QAction(QIcon(":/referenceframe.svg"),"Draw Reference Frame", this);
+    referenceFrame=new QAction(QIconCached(":/referenceframe.svg"),"Draw Reference Frame", this);
     referenceFrame->setCheckable(true);
     referenceFrame->setObjectName("RigidBody::referenceFrame");
     connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
-    path=new QAction(QIcon(":/path.svg"),"Draw Path of Reference Frame", this);
+    path=new QAction(QIconCached(":/path.svg"),"Draw Path of Reference Frame", this);
     path->setCheckable(true);
     path->setObjectName("RigidBody::path");
     connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
-    dragger=new QAction(QIcon(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
+    dragger=new QAction(QIconCached(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
     dragger->setCheckable(true);
     dragger->setObjectName("RigidBody::dragger");
     connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
-    moveCameraWith=new QAction(QIcon(":/camerabody.svg"),"Move Camera With This Body",this);
+    moveCameraWith=new QAction(QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   }
@@ -220,6 +208,27 @@ void RigidBody::pathSlot() {
 }
 
 void RigidBody::draggerSlot() {
+  ///////////////
+  if(soDragger==0) {
+    soDragger=new SoCenterballDragger;
+    soDraggerSwitch->addChild(soDragger);
+    soDragger->addMotionCallback(draggerMoveCB, this);
+    soDragger->addFinishCallback(draggerFinishCB, this);
+    // initial translation from XML
+    soDragger->center=initTrans->translation;
+    // initial rotation from XML
+    soDragger->rotation=initRot->rotation;
+    // scale of the dragger
+    SoSurroundScale *draggerScale=new SoSurroundScale;
+    draggerScale->setDoingTranslations(false);//TODO?
+    draggerScale->numNodesUpToContainer.setValue(5);
+    draggerScale->numNodesUpToReset.setValue(4);
+    soDragger->setPart("surroundScale", draggerScale);
+
+    initTrans->translation.connectFrom(&soDragger->center);
+    initRot->rotation.connectFrom(&soDragger->rotation);
+  }
+  ///////////////
   if(dragger->isChecked())
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else

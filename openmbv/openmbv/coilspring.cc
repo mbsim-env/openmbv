@@ -25,7 +25,7 @@ using namespace std;
 
 CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/coilspring.svg";
-  setIcon(0, QIcon(iconFile.c_str()));
+  setIcon(0, QIconCached(iconFile.c_str()));
 
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;

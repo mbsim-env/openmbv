@@ -28,7 +28,7 @@ using namespace std;
 
 Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/arrow.svg";
-  setIcon(0, QIcon(iconFile.c_str()));
+  setIcon(0, QIconCached(iconFile.c_str()));
 
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
@@ -138,7 +138,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   soOutLineSep->addChild(coneOL2);
  
   // GUI
-  path=new QAction(QIcon(":/path.svg"),"Draw Path of To-Point", this);
+  path=new QAction(QIconCached(":/path.svg"),"Draw Path of To-Point", this);
   path->setCheckable(true);
   path->setObjectName("Arrow::path");
   connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
