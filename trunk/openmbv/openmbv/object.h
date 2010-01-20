@@ -47,6 +47,17 @@ inline const QIcon& QIconCached(const QString& filename) {
   return i->second;
 }
 
+inline SoGroup* SoDBreadAllCached(const std::string &filename) {
+  static std::map<std::string, SoGroup*> myIvBodyCache;
+  std::map<std::string, SoGroup*>::iterator i=myIvBodyCache.find(filename);
+  if(i==myIvBodyCache.end()) {
+    SoInput in;
+    in.openFile(filename.c_str());
+    return myIvBodyCache[filename]=SoDB::readAll(&in);
+  }
+  return i->second;
+}
+
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
   protected:

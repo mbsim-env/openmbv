@@ -43,9 +43,8 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
 
   // create so
-  SoInput in;
-  in.openFile(fileName.c_str());
-  soSepRigidBody->addChild(SoDB::readAll(&in));
+  SoGroup *x=SoDBreadAllCached(fileName.c_str());
+  soSepRigidBody->addChild(x);
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
