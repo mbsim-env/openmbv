@@ -43,7 +43,8 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   SoTransposeEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
-  nurbsdisk.cc
+  nurbsdisk.cc \
+  IndexedTesselationFace.cc
 
 nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
@@ -99,7 +100,8 @@ noinst_HEADERS = openmbv.qrc\
   SoTransposeEngine.h \
   spineextrusion.h \
   coilspring.h \
-  nurbsdisk.h
+  nurbsdisk.h \
+  IndexedTesselationFace.h
 
 # BEGIN generate openmbv.qrc from openbv.qrc.myin
 # Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
