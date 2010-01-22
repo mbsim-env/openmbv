@@ -31,6 +31,7 @@
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <GL/glu.h>
+#include "IndexedTesselationFace.h"
 
 class Body : public Object {
   Q_OBJECT
@@ -44,16 +45,18 @@ class Body : public Object {
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     virtual double update()=0; // return the current time
-    SoSwitch *soOutLineSwitch;
-    SoSeparator *soOutLineSep;
-    QAction *outLine;
-    QActionGroup *drawMethod;
-    QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
     void resetAnimRange(int numOfRows, double dt);
   public slots:
     void outLineSlot();
   protected slots:
     void drawMethodSlot(QAction* action);
+  protected:
+    SoSwitch *soOutLineSwitch;
+    SoSeparator *soOutLineSep;
+    QAction *outLine;
+    QActionGroup *drawMethod;
+    QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
+    friend void IndexedTesselationFace::changedCB(void *data, SoSensor*);
 
 
 

@@ -61,6 +61,7 @@
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/actions/SoRayPickAction.h>
 #include <Inventor/SoPickedPoint.h>
+#include "IndexedTesselationFace.h"
 
 using namespace std;
 
@@ -79,6 +80,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   SoQt::init(this);
   // init user engines
   SoTransposeEngine::initClass();
+  IndexedTesselationFace::initClass();
   // init realtime
   SoDB::enableRealTimeSensor(false);
   SoSceneManager::enableRealTimeUpdate(false);
