@@ -21,15 +21,9 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_ADD_FIELD(coordinate, (NULL));
   SO_NODE_ADD_FIELD(coordIndex, (-1));
 
-  SoFieldSensor *sensor1=new SoFieldSensor(changedCB, this);
-  sensor1->attach(&windingRule);
-  sensor1->setPriority(100);
-  SoFieldSensor *sensor2=new SoFieldSensor(changedCB, this);
-  sensor2->attach(&coordinate);
-  sensor2->setPriority(100);
-  SoFieldSensor *sensor3=new SoFieldSensor(changedCB, this);
-  sensor3->attach(&coordIndex);
-  sensor3->setPriority(100);
+  SoNodeSensor *sensor=new SoNodeSensor(changedCB, this);
+  sensor->attach(this);
+  sensor->setPriority(100);
 }
 
 IndexedTesselationFace::IndexedTesselationFace() : SoGroup() {

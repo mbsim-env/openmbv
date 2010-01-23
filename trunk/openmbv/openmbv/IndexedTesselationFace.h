@@ -5,7 +5,7 @@
 #include <Inventor/fields/SoMFInt32.h>
 #include <Inventor/fields/SoMFVec3d.h>
 #include <Inventor/fields/SoSFEnum.h>
-#include <Inventor/sensors/SoFieldSensor.h>
+#include <Inventor/sensors/SoNodeSensor.h>
 
 class IndexedTesselationFace : public SoGroup {
  SO_NODE_HEADER(IndexedTesselationFace);
