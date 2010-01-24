@@ -92,6 +92,7 @@ class MainWindow : public QMainWindow {
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
+    QLineEdit *filter;
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -141,6 +142,20 @@ class MainWindow : public QMainWindow {
     void toggleFrameSliderSlot();
     void toggleFullScreenSlot();
     void toggleDecorationSlot();
+    void filterObjectList();
+    void searchObjectList(QTreeWidgetItem *item, const QRegExp&);
+    void expandToDepth1() { 
+      for(int i=0; i<objectList->invisibleRootItem()->childCount(); i++)
+        objectList->invisibleRootItem()->child(i)->setExpanded(false); 
+    }
+    void expandToDepth2() { objectList->expandToDepth(0); }
+    void expandToDepth3() { objectList->expandToDepth(1); }
+    void expandToDepth4() { objectList->expandToDepth(2); }
+    void expandToDepth5() { objectList->expandToDepth(3); }
+    void expandToDepth6() { objectList->expandToDepth(4); }
+    void expandToDepth7() { objectList->expandToDepth(5); }
+    void expandToDepth8() { objectList->expandToDepth(6); }
+    void expandToDepth9() { objectList->expandToDepth(7); }
   public:
     MainWindow(std::list<std::string>& arg);
     void updateScene() { glViewer->getSceneManager()->render(); }

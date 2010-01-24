@@ -41,11 +41,15 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
     // enable or disable
     if((dynamic_cast<Object*>(parentItem)==0 && enable) || (enable && ((Object*)parentItem)->drawThisPath)) {
       drawThisPath=true;
-      setForeground(0, QBrush(QColor(0,0,0))); // TODO color
+      QColor c=foreground(0).color();
+      c.setAlpha(255);
+      setForeground(0, QBrush(c));
     }
     else {
       drawThisPath=false;
-      setForeground(0, QBrush(QColor(128,128,128))); // TODO color
+      QColor c=foreground(0).color();
+      c.setAlpha(128);
+      setForeground(0, QBrush(c));
     }
   }
   
@@ -131,13 +135,17 @@ void Object::bboxSlot() {
 // set drawThisPath recursivly and colorisze the font
 void Object::setEnableRecursive(bool enable) {
   if(enable && draw->isChecked() && (QTreeWidgetItem::parent()?((Object*)QTreeWidgetItem::parent())->drawThisPath:true)) {
-    setForeground(0, QBrush(QColor(0,0,0))); // TODO color
+    QColor c=foreground(0).color();
+    c.setAlpha(255);
+    setForeground(0, QBrush(c));
     drawThisPath=true;
     for(int i=0; i<childCount(); i++)
       ((Object*)child(i))->setEnableRecursive(enable);
   }
   if(!enable) {
-    setForeground(0, QBrush(QColor(128,128,128))); // TODO color
+    QColor c=foreground(0).color();
+    c.setAlpha(128);
+    setForeground(0, QBrush(c));
     drawThisPath=false;
     for(int i=0; i<childCount(); i++)
       ((Object*)child(i))->setEnableRecursive(enable);

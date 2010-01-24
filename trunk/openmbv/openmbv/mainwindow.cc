@@ -169,11 +169,27 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
+  QLabel *filterL=new QLabel("Filter:");
+  filterL->setToolTip("Enter a regular expression to filter the object list.");
+  objectListLO->addWidget(filterL, 0,0);
+  filter=new QLineEdit;
+  filter->setToolTip("Enter a regular expression to filter the object list.");
+  objectListLO->addWidget(filter, 0,1);
+  connect(filter,SIGNAL(returnPressed()),this,SLOT(filterObjectList()));
   objectList = new QTreeWidget(objectListDW);
-  objectListLO->addWidget(objectList, 0,0);
+  objectListLO->addWidget(objectList, 1,0,1,2);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
+  connect(new QShortcut(QKeySequence("1"),this), SIGNAL(activated()), this, SLOT(expandToDepth1()));
+  connect(new QShortcut(QKeySequence("2"),this), SIGNAL(activated()), this, SLOT(expandToDepth2()));
+  connect(new QShortcut(QKeySequence("3"),this), SIGNAL(activated()), this, SLOT(expandToDepth3()));
+  connect(new QShortcut(QKeySequence("4"),this), SIGNAL(activated()), this, SLOT(expandToDepth4()));
+  connect(new QShortcut(QKeySequence("5"),this), SIGNAL(activated()), this, SLOT(expandToDepth5()));
+  connect(new QShortcut(QKeySequence("6"),this), SIGNAL(activated()), this, SLOT(expandToDepth6()));
+  connect(new QShortcut(QKeySequence("7"),this), SIGNAL(activated()), this, SLOT(expandToDepth7()));
+  connect(new QShortcut(QKeySequence("8"),this), SIGNAL(activated()), this, SLOT(expandToDepth8()));
+  connect(new QShortcut(QKeySequence("9"),this), SIGNAL(activated()), this, SLOT(expandToDepth9()));
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
@@ -378,8 +394,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   animationTB->addWidget(frameWG);
   connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
   connect(timeSlider, SIGNAL(rangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
-  connect(new QShortcut(QKeySequence(Qt::Key_Up),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
-  connect(new QShortcut(QKeySequence(Qt::Key_Down),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
+  connect(new QShortcut(QKeySequence(Qt::Key_Right),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
+  connect(new QShortcut(QKeySequence(Qt::Key_Left),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
   connect(new QShortcut(QKeySequence(Qt::Key_J),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
   connect(new QShortcut(QKeySequence(Qt::Key_K),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
 
@@ -619,6 +635,8 @@ bool MainWindow::openFile(string fileName) {
 
   // force a update
   frame->touch();
+  // apply object filter
+  if(filter->text()!="") filterObjectList();
 
   return true;
 }
@@ -1333,4 +1351,37 @@ void MainWindow::showWorldFrameSlot() {
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+}
+
+void MainWindow::filterObjectList() {
+  QRegExp filterRegExp(filter->text());
+  searchObjectList(objectList->invisibleRootItem(), filterRegExp);
+}
+void MainWindow::searchObjectList(QTreeWidgetItem *item, const QRegExp& filterRegExp) {
+  for(int i=0; i<item->childCount(); i++) {
+    // search recursive
+    searchObjectList(item->child(i), filterRegExp);
+    // set color
+    QColor c=item->child(i)->foreground(0).color();
+    c.setRed(filterRegExp.indexIn(item->child(i)->text(0))<0?255:0);
+    item->child(i)->setForeground(0, QBrush(c));
+    // if all children and children children are red, collapse
+    int count=0;
+    for(int j=0; j<item->child(i)->childCount(); j++)
+      if((dynamic_cast<Group*>(item->child(i)->child(j))!=0 && item->child(i)->child(j)->foreground(0).color().red()==255 && 
+          item->child(i)->child(j)->isExpanded()==false) ||
+         (dynamic_cast<Group*>(item->child(i)->child(j))==0 && item->child(i)->child(j)->foreground(0).color().red()==255))
+        count++;
+    item->child(i)->setExpanded(count!=item->child(i)->childCount());
+    // hide
+    item->child(i)->setHidden(false);
+    if((dynamic_cast<Group*>(item->child(i))!=0 && item->child(i)->foreground(0).color().red()==255 && 
+        item->child(i)->isExpanded()==false) ||
+       (dynamic_cast<Group*>(item->child(i))==0 && item->child(i)->foreground(0).color().red()==255)) {
+      bool hide=true;
+      for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
+        if(filterRegExp.indexIn(it->text(0))>=0) { hide=false; break; }
+      item->child(i)->setHidden(hide);
+    }
+  }
 }
