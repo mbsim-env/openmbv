@@ -20,12 +20,10 @@ AC_PATH_PROG([doxygen],[doxygen],[no],[$doxygenpath:$PATH])
 if test $doxygen = "no" ; then
   AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
 fi
-#DOXYGENDEPTAGFILES=$(pkg-config deppackage --variable=DOXYGENTAGFILES)
-#AC_SUBST([DOXYGENDEPTAGFILES])
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 
 AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
-  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile schema/openmbv.xsd])
+  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile])
 
 AC_OUTPUT

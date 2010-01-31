@@ -21,10 +21,17 @@ DOXYGENCLASSPREFIX=$5 #"OpenMBV::"
 INCLUDEDOXYGEN=$6
 
 
+if [ ! -e $FILE ]; then
+  echo "Input file $FILE not found!"
+  echo "You must install the package before you can generate the documentation."
+  exit 1
+fi
+
 
 DOXYGENFUNCTIONPREFIX1="set"
 DOXYGENFUNCTIONPREFIX2="add"
-BASENAME=$(basename $FILE .xsd)
+BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
+BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
 
 if [ $INCLUDEDOXYGEN = "true" ]; then
@@ -68,8 +75,8 @@ echo "DONE"
 
 echo "Validate generated HTML documentation"
 echo "  In file: $HTML.xhtml"
-echo "  XSD file: @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd"
-@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
+echo "  XSD file: @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils/xhtml1-transitional.xsd"
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
 
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
@@ -115,8 +122,8 @@ rm -f equation.*
 echo "Generate LaTeX documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
-echo "  Out file: $BASENAME/$BASENAME.tex"
-@XSLTPROC@ --novalid --output $BASENAME/$BASENAME.tex \
+echo "  Out file: $BASENAME2/$BASENAME2.tex"
+@XSLTPROC@ --novalid --output $BASENAME2/$BASENAME2.tex \
   --param PROJECT "'$PROJECT'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
@@ -124,16 +131,16 @@ echo "DONE"
 
 echo "Copy *.eps"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  ls $D/*.eps >& /dev/null && cp -f $D/*.eps $BASENAME
+  ls $D/*.eps >& /dev/null && cp -f $D/*.eps $BASENAME2
 done
 
 echo "Generate LaTeX-PS documentation"
-echo "  In file: $BASENAME/$BASENAME.tex"
-echo "  Out file: $BASENAME/$BASENAME.ps"
+echo "  In file: $BASENAME2/$BASENAME2.tex"
+echo "  Out file: $BASENAME2/$BASENAME2.ps"
 OLDDIR=$(pwd)
-cd $BASENAME
-latex -help >& /dev/null && latex -interaction errorstopmode $BASENAME.tex || echo "Skip running LaTeX"
-latex -help >& /dev/null && latex $BASENAME.tex >& /dev/null || echo "Skip running LaTeX"
-latex -help >& /dev/null && latex $BASENAME.tex >& /dev/null || echo "Skip running LaTeX"
-latex -help >& /dev/null && dvips -o $BASENAME.ps $BASENAME.dvi || echo "Skip running LaTeX"
+cd $BASENAME2
+latex -help >& /dev/null && latex -interaction errorstopmode $BASENAME2.tex || echo "Skip running LaTeX"
+latex -help >& /dev/null && latex $BASENAME2.tex >& /dev/null || echo "Skip running LaTeX"
+latex -help >& /dev/null && latex $BASENAME2.tex >& /dev/null || echo "Skip running LaTeX"
+latex -help >& /dev/null && dvips -o $BASENAME2.ps $BASENAME2.dvi || echo "Skip running LaTeX"
 cd $OLDDIR

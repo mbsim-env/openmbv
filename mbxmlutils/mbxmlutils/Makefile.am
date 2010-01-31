@@ -1,7 +1,7 @@
 SUBDIRS = octave
 
 # distribute and install
-schemadir = @datadir@/@PACKAGE@/schema
+schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils
 docdir = @datadir@/@PACKAGE@/doc
 xmldir = @datadir@/@PACKAGE@/xml
 dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd xhtml1-transitional.xsd
@@ -40,7 +40,7 @@ install-data-local:
 
 # generate physicalvariable.xsd
 physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --param SCHEMADIR "'@SCHEMADIR@'" --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
+	@XSLTPROC@ --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
 
 
 
