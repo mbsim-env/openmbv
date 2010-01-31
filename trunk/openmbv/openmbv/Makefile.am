@@ -105,7 +105,7 @@ noinst_HEADERS = openmbv.qrc\
 
 # BEGIN generate openmbv.qrc from openbv.qrc.myin
 # Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
-openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/
+openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
 	FILES=""; \
 	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>"; \
@@ -123,4 +123,4 @@ openmbv.qrc.cc: openmbv.qrc ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
 ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml:
 	echo "WARNING! XML docu do not exist. Creating empty dummy docu!"
 	mkdir -p ../doc/http___openmbv_berlios_de_OpenMBV
-	touch -r ../schema/schema/openmbv.xsd.in ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
+	touch -r ../schema/schema/openmbv.xsd ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml

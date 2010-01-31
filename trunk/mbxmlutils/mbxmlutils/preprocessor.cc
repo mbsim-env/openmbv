@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
+#include <stdlib.h>
 #include "env.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
@@ -14,18 +15,22 @@
 
 using namespace std;
 
+string SCHEMADIR;
+string XMLDIR;
+string OCTAVEDIR;
+
 char *nslocation;
 
 int machinePrec;
 
 // validate file using schema (currently by libxml)
-int validate(const char *schema, const char *file) {
+int validate(const string &schema, const char *file) {
   xmlDoc *doc;
   cout<<"Parse and validate "<<file<<endl;
   doc=xmlParseFile(file);
   if(!doc) return 1;
   if(xmlXIncludeProcess(doc)<0) return 1;
-  int ret=xmlSchemaValidateDoc(xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema))), doc);
+  int ret=xmlSchemaValidateDoc(xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema.c_str()))), doc);
   if(ret!=0) return ret;
   xmlFreeDoc(doc);
   return 0;
@@ -76,8 +81,8 @@ int toOctave(TiXmlElement *&e) {
 string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true, TiXmlElement *e=NULL) {
   static char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
-    getcwd(savedPath, PATHLENGTH);
-    chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),"").c_str());
+    char *dummychar=getcwd(savedPath, PATHLENGTH);
+    int dummyint=chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),"").c_str());
   }
 
   int dummy;
@@ -97,17 +102,17 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
     if(!exitOnError) std::cerr.rdbuf(orgcerr); // enable std::cerr if not exiting on error
     if(error_state!=0) {
       if(exitOnError) {
-        if(e) chdir(savedPath);
+        if(e) int dummyint=chdir(savedPath);
         throw string("In octave expression: "+str);
       }
       else {
         error_state=0;
         if(str.substr(0,6)=="error(") {
-          if(e) chdir(savedPath);
+          if(e) int dummyint=chdir(savedPath);
           return str;
         }
         else {
-          if(e) chdir(savedPath);
+          if(e) int dummyint=chdir(savedPath);
           return string("error(\"")+str+"\")";
         }
       }
@@ -115,7 +120,7 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   }
   octave_value o=eval_string("ret;",true,dummy);
   if(error_state!=0) {
-    if(e) chdir(savedPath);
+    if(e) int dummyint=chdir(savedPath);
     throw string("'ret' variable not set in octave statement list: "+str);
   }
   ostringstream ret;
@@ -134,11 +139,11 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   else if(o.is_string())
     ret<<"\""<<o.string_value()<<"\"";
   else {
-    if(e) chdir(savedPath);
+    if(e) int dummyint=chdir(savedPath);
     throw string("Unknown type in octave expression: "+str);
   }
 
-  if(e) chdir(savedPath);
+  if(e) int dummyint=chdir(savedPath);
   return ret.str().c_str();
 }
 
@@ -271,7 +276,7 @@ try {
       else { // parameter from href attribute
         string paramFile=e->FirstChildElement()->Attribute("href");
         // validate local parameter file
-        if(validate(SCHEMADIR"/parameter.xsd", paramFile.c_str())!=0) {
+        if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile.c_str())!=0) {
           TiXml_location(e->FirstChildElement(), "  included by: ", "");
           return 1;
         }
@@ -384,6 +389,15 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  // check for environment variables (none default installation)
+  char *env;
+  SCHEMADIR=SCHEMADIR_DEFAULT;
+  if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env;
+  XMLDIR=XMLDIR_DEFAULT;
+  if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env;
+  OCTAVEDIR=OCTAVEDIR_DEFAULT;
+  if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env;
+
   // initialize octave
   const char *octave_argv[2]={"dummy", "-q"};
   octave_main(2, (char**)octave_argv, 1);
@@ -391,9 +405,9 @@ int main(int argc, char *argv[]) {
   streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
   eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // 1/0 is error
   error_state=0;
-  eval_string("addpath(\""OCTAVEDIR"\");",true,dummy,0); // for octave >= 3.0.0
+  eval_string("addpath(\""+OCTAVEDIR+"\");",true,dummy,0); // for octave >= 3.0.0
   error_state=0;
-  eval_string("LOADPATH=[LOADPATH \":"OCTAVEDIR"\"];",true,dummy,0); // for octave < 3.0.0
+  eval_string("LOADPATH=[LOADPATH \":"+OCTAVEDIR+"\"];",true,dummy,0); // for octave < 3.0.0
   error_state=0;
   std::cerr.rdbuf(orgcerr); // enable std::cerr
 
@@ -414,7 +428,7 @@ int main(int argc, char *argv[]) {
 
     // validate parameter file
     if(string(paramxml)!="none")
-      if(validate(SCHEMADIR"/parameter.xsd", paramxml)!=0) return 1;
+      if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramxml)!=0) return 1;
 
     // read parameter file
     TiXmlElement *paramxmlroot=0;
@@ -444,7 +458,7 @@ int main(int argc, char *argv[]) {
     // get units
     cout<<"Build unit list for measurements"<<endl;
     TiXmlDocument *mmdoc=new TiXmlDocument;
-    mmdoc->LoadFile(XMLDIR"/measurement.xml");
+    mmdoc->LoadFile(XMLDIR+"/measurement.xml");
     TiXmlElement *ele, *el2;
     map<string,string> units;
     for(ele=mmdoc->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement())
