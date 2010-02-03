@@ -31,7 +31,7 @@ map<SoNode*,Object*> Object::objectMap;
 
 Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
   bool enable=true;
-  if(element->Attribute("enable") && element->Attribute("enable")==string("false"))
+  if(element->Attribute("enable") && (element->Attribute("enable")==string("false") || element->Attribute("enable")==string("0")))
     enable=false;
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {

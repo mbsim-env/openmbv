@@ -35,7 +35,7 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parent
     if(element->Attribute("expand")==0)
       setExpanded(true);
     else
-      if(element->Attribute("expand")==string("true"))
+      if((element->Attribute("expand")==string("true") || element->Attribute("expand")==string("1")))
         setExpanded(true);
       else
         setExpanded(false);
