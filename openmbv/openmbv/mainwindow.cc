@@ -1353,6 +1353,8 @@ void MainWindow::showWorldFrameSlot() {
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
+// MainWindow::filterObjectList(...) and MainWindow::searchObjectList(...) are also used in h5plotserie.
+// If changes are made here, please do the same changes in HDF5Serie, h5plotserie
 void MainWindow::filterObjectList() {
   QRegExp filterRegExp(filter->text());
   searchObjectList(objectList->invisibleRootItem(), filterRegExp);
@@ -1368,16 +1370,16 @@ void MainWindow::searchObjectList(QTreeWidgetItem *item, const QRegExp& filterRe
     // if all children and children children are red, collapse
     int count=0;
     for(int j=0; j<item->child(i)->childCount(); j++)
-      if((dynamic_cast<Group*>(item->child(i)->child(j))!=0 && item->child(i)->child(j)->foreground(0).color().red()==255 && 
+      if((item->child(i)->child(j)->childCount()!=0 && item->child(i)->child(j)->foreground(0).color().red()==255 && 
           item->child(i)->child(j)->isExpanded()==false) ||
-         (dynamic_cast<Group*>(item->child(i)->child(j))==0 && item->child(i)->child(j)->foreground(0).color().red()==255))
+         (item->child(i)->child(j)->childCount()==0 && item->child(i)->child(j)->foreground(0).color().red()==255))
         count++;
     item->child(i)->setExpanded(count!=item->child(i)->childCount());
     // hide
     item->child(i)->setHidden(false);
-    if((dynamic_cast<Group*>(item->child(i))!=0 && item->child(i)->foreground(0).color().red()==255 && 
+    if((item->child(i)->childCount()!=0 && item->child(i)->foreground(0).color().red()==255 && 
         item->child(i)->isExpanded()==false) ||
-       (dynamic_cast<Group*>(item->child(i))==0 && item->child(i)->foreground(0).color().red()==255)) {
+       (item->child(i)->childCount()==0 && item->child(i)->foreground(0).color().red()==255)) {
       bool hide=true;
       for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
         if(filterRegExp.indexIn(it->text(0))>=0) { hide=false; break; }
