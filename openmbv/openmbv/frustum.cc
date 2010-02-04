@@ -25,6 +25,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoNormal.h>
+#include <Inventor/nodes/SoShapeHints.h>
 
 using namespace std;
 
@@ -39,6 +40,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   double topRadius=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
   double height=toVector(e->GetText())[0];
+  if(fabs(height)<1e-13) height=0;
   e=e->NextSiblingElement();
   double innerBaseRadius=toVector(e->GetText())[0];
   e=e->NextSiblingElement();
@@ -47,6 +49,12 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   const int N=25;
 
   // create so
+  // two side render if height==0
+  if(height==0) {
+    SoShapeHints *sh=new SoShapeHints;
+    soSepRigidBody->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
+  }
   // coordinates
   SoCoordinate3 *coord=new SoCoordinate3;
   soSepRigidBody->addChild(coord);
@@ -70,73 +78,94 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
     if(innerBaseRadius>0 || innerTopRadius>0)
       normal->vector.set1Value(i+2+N, -cos(phi), -sin(phi), -(innerBaseRadius-innerTopRadius)/height);
   }
+  // fix radius if height==0
+  if(height==0 && innerTopRadius<innerBaseRadius) innerBaseRadius=innerTopRadius;
+  if(height==0 && topRadius>baseRadius) baseRadius=topRadius;
   // faces (base/top)
   if(innerBaseRadius>0 || innerTopRadius>0) {
     int nr=-1;
     SoIndexedTriangleStripSet *baseFace=new SoIndexedTriangleStripSet;
-    soSep->addChild(baseFace);
-    SoIndexedTriangleStripSet *topFace=new SoIndexedTriangleStripSet;
-    soSepRigidBody->addChild(topFace);
+    soSepRigidBody->addChild(baseFace);
+    SoIndexedTriangleStripSet *topFace=0;
+    if(height!=0) {
+      topFace=new SoIndexedTriangleStripSet;
+      soSepRigidBody->addChild(topFace);
+    }
     baseFace->coordIndex.set1Value(++nr, N-1);
     baseFace->normalIndex.set1Value(nr, 0);
-    topFace->coordIndex.set1Value(nr, 2*N-1);
-    topFace->normalIndex.set1Value(nr, 1);
+    if(height!=0) {
+      topFace->coordIndex.set1Value(nr, 2*N-1);
+      topFace->normalIndex.set1Value(nr, 1);
+    }
     baseFace->coordIndex.set1Value(++nr, 3*N-1);
     baseFace->normalIndex.set1Value(nr, 0);
-    topFace->coordIndex.set1Value(nr, 4*N-1);
-    topFace->normalIndex.set1Value(nr, 1);
+    if(height!=0) {
+      topFace->coordIndex.set1Value(nr, 4*N-1);
+      topFace->normalIndex.set1Value(nr, 1);
+    }
     for(int i=0; i<N; i++) {
       baseFace->coordIndex.set1Value(++nr, i);
       baseFace->normalIndex.set1Value(nr, 0);
-      topFace->coordIndex.set1Value(nr, i+N);
-      topFace->normalIndex.set1Value(nr, 1);
+      if(height!=0) {
+        topFace->coordIndex.set1Value(nr, i+N);
+        topFace->normalIndex.set1Value(nr, 1);
+      }
       baseFace->coordIndex.set1Value(++nr, i+2*N);
       baseFace->normalIndex.set1Value(nr, 0);
-      topFace->coordIndex.set1Value(nr, i+3*N);
-      topFace->normalIndex.set1Value(nr, 1);
+      if(height!=0) {
+        topFace->coordIndex.set1Value(nr, i+3*N);
+        topFace->normalIndex.set1Value(nr, 1);
+      }
     }
   }
   else {
     int nr=-1;
     SoIndexedFaceSet *baseFace=new SoIndexedFaceSet;
     soSepRigidBody->addChild(baseFace);
-    SoIndexedFaceSet *topFace=new SoIndexedFaceSet;
-    soSepRigidBody->addChild(topFace);
+    SoIndexedFaceSet *topFace=0;
+    if(height!=0) {
+      topFace=new SoIndexedFaceSet;
+      soSepRigidBody->addChild(topFace);
+    }
     for(int i=0; i<N; i++) {
       baseFace->coordIndex.set1Value(++nr, i);
       baseFace->normalIndex.set1Value(nr, 0);
-      topFace->coordIndex.set1Value(nr, i+N);
-      topFace->normalIndex.set1Value(nr, 1);
+      if(height!=0) {
+        topFace->coordIndex.set1Value(nr, i+N);
+        topFace->normalIndex.set1Value(nr, 1);
+      }
     }
   }
-  // faces outer
-  int nr=-1;
-  SoIndexedTriangleStripSet *outerFace=new SoIndexedTriangleStripSet;
-  soSepRigidBody->addChild(outerFace);
-  outerFace->coordIndex.set1Value(++nr, N-1);
-  outerFace->normalIndex.set1Value(nr, N-1+2);
-  outerFace->coordIndex.set1Value(++nr, 2*N-1);
-  outerFace->normalIndex.set1Value(nr, N-1+2);
-  for(int i=0; i<N; i++) {
-    outerFace->coordIndex.set1Value(++nr, i);
-    outerFace->normalIndex.set1Value(nr, i+2);
-    outerFace->coordIndex.set1Value(++nr, i+N);
-    outerFace->normalIndex.set1Value(nr, i+2);
-  }
-  // faces outer
-  if(innerBaseRadius>0 || innerTopRadius>0) {
+  if(height!=0) {
+    // faces outer
     int nr=-1;
-    SoIndexedTriangleStripSet *innerFace=new SoIndexedTriangleStripSet;
-    soSepRigidBody->addChild(innerFace);
-    innerFace->coordIndex.set1Value(++nr, 3*N-1);
-    innerFace->normalIndex.set1Value(nr, 2*N-1+2);
-    innerFace->coordIndex.set1Value(++nr, 4*N-1);
-    innerFace->normalIndex.set1Value(nr, 2*N-1+2);
+    SoIndexedTriangleStripSet *outerFace=new SoIndexedTriangleStripSet;
+    soSepRigidBody->addChild(outerFace);
+    outerFace->coordIndex.set1Value(++nr, N-1);
+    outerFace->normalIndex.set1Value(nr, N-1+2);
+    outerFace->coordIndex.set1Value(++nr, 2*N-1);
+    outerFace->normalIndex.set1Value(nr, N-1+2);
     for(int i=0; i<N; i++) {
-      innerFace->coordIndex.set1Value(++nr, 2*N+i);
-      innerFace->normalIndex.set1Value(nr, i+2+N);
-      innerFace->coordIndex.set1Value(++nr, i+3*N);
-      innerFace->normalIndex.set1Value(nr, i+2+N);
+      outerFace->coordIndex.set1Value(++nr, i);
+      outerFace->normalIndex.set1Value(nr, i+2);
+      outerFace->coordIndex.set1Value(++nr, i+N);
+      outerFace->normalIndex.set1Value(nr, i+2);
+    }
+    // faces inner
+    if(innerBaseRadius>0 || innerTopRadius>0) {
+      int nr=-1;
+      SoIndexedTriangleStripSet *innerFace=new SoIndexedTriangleStripSet;
+      soSepRigidBody->addChild(innerFace);
+      innerFace->coordIndex.set1Value(++nr, 3*N-1);
+      innerFace->normalIndex.set1Value(nr, 2*N-1+2);
+      innerFace->coordIndex.set1Value(++nr, 4*N-1);
+      innerFace->normalIndex.set1Value(nr, 2*N-1+2);
+      for(int i=0; i<N; i++) {
+        innerFace->coordIndex.set1Value(++nr, 2*N+i);
+        innerFace->normalIndex.set1Value(nr, i+2+N);
+        innerFace->coordIndex.set1Value(++nr, i+3*N);
+        innerFace->normalIndex.set1Value(nr, i+2+N);
+      }
     }
   }
   // scale ref/localFrame
@@ -146,24 +175,28 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   
   // outline
   SoIndexedLineSet *outLine=new SoIndexedLineSet;
-  nr=-1;
+  int nr=-1;
   outLine->coordIndex.set1Value(++nr, N-1);
   for(int i=0; i<N; i++)
     outLine->coordIndex.set1Value(++nr, i);
   outLine->coordIndex.set1Value(++nr, -1);
-  outLine->coordIndex.set1Value(++nr, 2*N-1);
-  for(int i=0; i<N; i++)
-    outLine->coordIndex.set1Value(++nr, i+N);
+  if(height!=0) {
+    outLine->coordIndex.set1Value(++nr, 2*N-1);
+    for(int i=0; i<N; i++)
+      outLine->coordIndex.set1Value(++nr, i+N);
+  }
   if(innerBaseRadius>0 || innerTopRadius>0) {
     outLine->coordIndex.set1Value(++nr, -1);
     outLine->coordIndex.set1Value(++nr, 3*N-1);
     for(int i=0; i<N; i++)
       outLine->coordIndex.set1Value(++nr, i+2*N);
     outLine->coordIndex.set1Value(++nr, -1);
-    outLine->coordIndex.set1Value(++nr, 4*N-1);
-    for(int i=0; i<N; i++)
-      outLine->coordIndex.set1Value(++nr, i+3*N);
+    if(height!=0) {
+      outLine->coordIndex.set1Value(++nr, 4*N-1);
+      for(int i=0; i<N; i++)
+        outLine->coordIndex.set1Value(++nr, i+3*N);
+    }
   }
-  soSep->addChild(soOutLineSwitch);
+  soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(outLine);
 }
