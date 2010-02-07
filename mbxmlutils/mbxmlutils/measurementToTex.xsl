@@ -21,7 +21,6 @@
 \documentclass[a4]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[dvips]{hyperref}
-\usepackage{bold-extra}
 \usepackage{listings}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
