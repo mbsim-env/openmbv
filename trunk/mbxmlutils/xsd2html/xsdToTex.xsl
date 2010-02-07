@@ -27,7 +27,6 @@
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 \usepackage{colortbl}
-\usepackage{bold-extra}
 \usepackage{longtable}
 \usepackage{tabularx}
 \usepackage{titlesec}
