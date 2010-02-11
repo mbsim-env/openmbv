@@ -22,6 +22,7 @@ if test $doxygen = "no" ; then
 fi
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
+AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 
 AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile])
