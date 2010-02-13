@@ -32,6 +32,8 @@
 #include "mainwindow.h"
 #include "compoundrigidbody.h"
 #include <GL/gl.h>
+#include <Inventor/actions/SoCallbackAction.h>
+#include <Inventor/SoPrimitiveVertex.h>
 
 using namespace std;
 
@@ -343,4 +345,123 @@ SbVec3f Body::rotation2Cardan(const SbRotation& R) {
     g=atan2(M[1][0],M[1][1]);
   }
   return SbVec3f(a,b,g);
+}
+
+
+
+
+void Body::triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3) {
+  Edges* edges=(Edges*)data;
+  SbVec3f v1=vp1->getPoint();
+  SbVec3f v2=vp2->getPoint();
+  SbVec3f v3=vp3->getPoint();
+  // convert to coordinates of the action
+  SbMatrix mm=action->getModelMatrix();
+  mm.multVecMatrix(v1, v1);
+  mm.multVecMatrix(v2, v2);
+  mm.multVecMatrix(v3, v3);
+  ///////////// Round
+//  float x,y,z;
+//  int K=10000;
+//  v1.getValue(x,y,z);
+//  x=round(x*K)/K;
+//  y=round(y*K)/K;
+//  z=round(z*K)/K;
+//  v1.setValue(x,y,z);
+//  v2.getValue(x,y,z);
+//  x=round(x*K)/K;
+//  y=round(y*K)/K;
+//  z=round(z*K)/K;
+//  v2.setValue(x,y,z);
+//  v3.getValue(x,y,z);
+//  x=round(x*K)/K;
+//  y=round(y*K)/K;
+//  z=round(z*K)/K;
+//  v3.setValue(x,y,z);
+  /////////////
+  edges->faceVertex.append(edges->vertex.addPoint(v1));
+  edges->faceVertex.append(edges->vertex.addPoint(v2));
+  edges->faceVertex.append(edges->vertex.addPoint(v3));
+  SbVec3f n=(v2-v1).cross(v3-v1);
+  n.normalize();
+  edges->normal.append(new SbVec3f(n));
+}
+
+SoCoordinate3* Body::preCalculateEdges(SoGroup *sep, Edges *edges) {
+  SoCallbackAction cba;
+  cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, edges);
+  cba.apply(sep);
+  int nr=0;
+  for(int i=0; i<edges->faceVertex.getLength()/3; i++) {
+    bool foundNeighbour01=false, foundNeighbour12=false, foundNeighbour20=false;
+    for(int j=0; j<edges->faceVertex.getLength()/3; j++) {
+      if(i==j) continue;
+      if((edges->faceVertex[3*i+0]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+2]) &&
+         (edges->faceVertex[3*i+1]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+2])) {
+        edges->innerEdge.append(edges->faceVertex[3*i+0]);
+        edges->innerEdge.append(edges->faceVertex[3*i+1]);
+        edges->innerEdge.append(i);
+        edges->innerEdge.append(j);
+        foundNeighbour01=true;
+      }
+      if((edges->faceVertex[3*i+1]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+2]) &&
+         (edges->faceVertex[3*i+2]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+2])) {
+        edges->innerEdge.append(edges->faceVertex[3*i+1]);
+        edges->innerEdge.append(edges->faceVertex[3*i+2]);
+        edges->innerEdge.append(i);
+        edges->innerEdge.append(j);
+        foundNeighbour12=true;
+      }
+      if((edges->faceVertex[3*i+2]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+2]) &&
+         (edges->faceVertex[3*i+0]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+2])) {
+        edges->innerEdge.append(edges->faceVertex[3*i+2]);
+        edges->innerEdge.append(edges->faceVertex[3*i+0]);
+        edges->innerEdge.append(i);
+        edges->innerEdge.append(j);
+        foundNeighbour20=true;
+      }
+    }
+    if(foundNeighbour01==false) {
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+0]);
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+1]);
+      edges->boundaryEdge.set1Value(nr++, -1);
+    }
+    if(foundNeighbour12==false) {
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+1]);
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+2]);
+      edges->boundaryEdge.set1Value(nr++, -1);
+    }
+    if(foundNeighbour20==false) {
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+2]);
+      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+0]);
+      edges->boundaryEdge.set1Value(nr++, -1);
+    }
+  }
+  SoCoordinate3 *soEdgeVertex=new SoCoordinate3;
+  soEdgeVertex->point.setValuesPointer(edges->vertex.numPoints(), edges->vertex.getPointsArrayPtr());
+  return soEdgeVertex;
+}
+
+SoIndexedLineSet* Body::calculateCreaseEdges(double creaseAngle, Edges *edges) {
+  SoIndexedLineSet *soCreaseEdge=new SoIndexedLineSet;
+  float CREASEANGLE=creaseAngle;
+  int nr=0;
+  for(int i=0; i<edges->innerEdge.getLength()/4; i++) {
+    int v1=edges->innerEdge[4*i+0];
+    int v2=edges->innerEdge[4*i+1];
+    int f1=edges->innerEdge[4*i+2];
+    int f2=edges->innerEdge[4*i+3];
+    if(edges->normal[f1]->dot(*edges->normal[f2])<cos(CREASEANGLE)) {
+      soCreaseEdge->coordIndex.set1Value(nr++, v1);
+      soCreaseEdge->coordIndex.set1Value(nr++, v2);
+      soCreaseEdge->coordIndex.set1Value(nr++, -1);
+    }
+  }
+  return soCreaseEdge;
+}
+
+SoIndexedLineSet* Body::calculateBoundaryEdges(Edges *edges) {
+  SoIndexedLineSet *soBoundaryEdge=new SoIndexedLineSet;
+  soBoundaryEdge->coordIndex.copyFrom(edges->boundaryEdge);
+  return soBoundaryEdge;
 }

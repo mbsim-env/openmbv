@@ -32,6 +32,9 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <GL/glu.h>
 #include "IndexedTesselationFace.h"
+#include <Inventor/SbBSPTree.h>
+#include <Inventor/lists/SbVec3fList.h>
+#include <Inventor/nodes/SoIndexedLineSet.h>
 
 class Body : public Object {
   Q_OBJECT
@@ -74,8 +77,23 @@ class Body : public Object {
     static void tessVertexCB(GLdouble *vertex); // convenience
     static void tessEndCB(void); // convenience
 
+    // string to vector
     static std::vector<double> toVector(std::string str); // convenience
     static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
+
+    // calculate crease edges
+    struct Edges {
+      SbBSPTree vertex;
+      SbIntList faceVertex;
+      SbVec3fList normal;
+      SbIntList innerEdge;
+      SoMFInt32 boundaryEdge;
+    };
+    static void triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3);
+    SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *edges);
+    SoIndexedLineSet* calculateCreaseEdges(double creaseAngle, Edges *edges);
+    SoIndexedLineSet* calculateBoundaryEdges(Edges *edges);
+
   public:
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) { SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale); } // convenience
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale); // convenience
