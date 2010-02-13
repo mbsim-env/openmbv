@@ -21,7 +21,8 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_ADD_FIELD(coordinate, (NULL));
   SO_NODE_ADD_FIELD(coordIndex, (-1));
 
-  SoNodeSensor *sensor=new SoNodeSensor(changedCB, this);
+  // on change on EVERY field call the changedCB method
+  sensor=new SoNodeSensor(changedCB, this);
   sensor->attach(this);
   sensor->setPriority(100);
 }
@@ -40,6 +41,9 @@ IndexedTesselationFace::~IndexedTesselationFace() {
 void IndexedTesselationFace::changedCB(void *data, SoSensor*) {
   assert(Body::tessCBInit);
   IndexedTesselationFace *me=(IndexedTesselationFace*)data;
+
+  me->sensor->detach();
+
   me->removeAllChildren();
 
   int wr;
@@ -68,4 +72,6 @@ void IndexedTesselationFace::changedCB(void *data, SoSensor*) {
     }
   }
   gluTessEndPolygon(Body::tess);
+
+  me->sensor->attach(me);
 }

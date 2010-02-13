@@ -21,6 +21,7 @@ class IndexedTesselationFace : public SoGroup {
  protected:
    enum WindingRule { ODD, NONZERO, POSITIVE, NEGATIVE, ABS_GEQ_TWO };
    static void changedCB(void *data, SoSensor*);
+   SoNodeSensor *sensor;
    friend class Body;
 
  private:
