@@ -115,13 +115,6 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     ol2->coordIndex.set1Value(r, 1);
     ol1->coordIndex.set1Value(r+1, -1);
     ol2->coordIndex.set1Value(r+1, -1);
-    // combine normals
-    SoMFVec3f newvv;
-    SoMFInt32 newvi;
-    eps=1e-8;
-    combine(n->vector, newvv, newvi);
-    n->vector.copyFrom(newvv);
-    convertIndex(s->normalIndex, newvi);
   }
   // base and top
   gluTessProperty(tess, GLU_TESS_WINDING_RULE, windingRule);

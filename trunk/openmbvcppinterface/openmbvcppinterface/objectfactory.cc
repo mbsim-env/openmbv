@@ -9,7 +9,6 @@
 #include "openmbvcppinterface/frame.h"
 #include "openmbvcppinterface/invisiblebody.h"
 #include "openmbvcppinterface/ivbody.h"
-#include "openmbvcppinterface/objbody.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/rotation.h"
 #include "openmbvcppinterface/sphere.h"
@@ -31,7 +30,6 @@ namespace OpenMBV {
     if(element->ValueStr()==OPENMBVNS"Frame") return new Frame;
     if(element->ValueStr()==OPENMBVNS"InvisibleBody") return new InvisibleBody;
     if(element->ValueStr()==OPENMBVNS"IvBody") return new IvBody;
-    if(element->ValueStr()==OPENMBVNS"ObjBody") return new ObjBody;
     if(element->ValueStr()==OPENMBVNS"Path") return new Path;
     if(element->ValueStr()==OPENMBVNS"Rotation") return new Rotation;
     if(element->ValueStr()==OPENMBVNS"Sphere") return new Sphere;

@@ -34,7 +34,6 @@
 #include "ivbody.h"
 #include "mainwindow.h"
 #include "nurbsdisk.h"
-#include "objbody.h"
 #include "path.h"
 #include "sphere.h"
 #include "spineextrusion.h"
@@ -69,8 +68,6 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIte
     return new InvisibleBody(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"NurbsDisk")
     return new NurbsDisk(element, h5Parent, parentItem, soParent);
-  else if(element->ValueStr()==OPENMBVNS"ObjBody")
-    return new ObjBody(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Path")
     return new Path(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Sphere")
