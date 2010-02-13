@@ -6,5 +6,5 @@ testprog_SOURCES = testprog.cc
 
 INCLUDES = $(HDF5SERIE_CFLAGS)
 
-testprog_LDFLAGS = -L..
-testprog_LDADD = -lopenmbvcppinterface $(HDF5SERIE_LIBS)
+testprog_LDFLAGS = -L.. -L../../openmbvcppinterfacetinyxml
+testprog_LDADD = -lopenmbvcppinterface $(HDF5SERIE_LIBS) -lopenmbvcppinterfacetinyxml

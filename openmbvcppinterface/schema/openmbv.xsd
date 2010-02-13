@@ -159,41 +159,6 @@
     </xs:complexContent>
   </xs:complexType>   
 
-  <xs:element name="ObjBody" substitutionGroup="RigidBody" type="ObjBodyType"/>
-  <xs:complexType name="ObjBodyType">
-    <xs:complexContent>
-      <xs:extension base="RigidBodyType">
-        <xs:sequence>
-          <xs:element name="objFileName" type="pv:string"/>
-          <xs:element name="useTextureFromMatLib" type="xs:boolean"/>
-          <xs:element name="useMaterialFromMatLib" type="xs:boolean"/>
-          <xs:element name="normals">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;fromObjFile&quot;"/>
-                <xs:enumeration value="&quot;flat&quot;"/>
-                <xs:enumeration value="&quot;smooth&quot;"/>
-                <xs:enumeration value="&quot;smoothIfLessBarrier&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
-          <xs:element name="epsVertex" type="pv:lengthScalar"/>
-          <xs:element name="epsNormal" type="pv:lengthScalar"/>
-          <xs:element name="smoothBarrier" type="pv:angleScalar"/>
-          <xs:element name="outline">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;none&quot;"/>
-                <xs:enumeration value="&quot;calculate&quot;"/>
-                <xs:enumeration value="&quot;fromFile&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
-        </xs:sequence> 
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>   
-
   <xs:element name="Rotation" substitutionGroup="RigidBody" type="RotationType"/>
   <xs:complexType name="RotationType">
     <xs:complexContent>

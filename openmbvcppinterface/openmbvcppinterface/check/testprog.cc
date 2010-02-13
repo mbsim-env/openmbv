@@ -9,7 +9,6 @@
 #include <openmbvcppinterface/rotation.h>
 #include <openmbvcppinterface/invisiblebody.h>
 #include <openmbvcppinterface/coilspring.h>
-#include <openmbvcppinterface/objbody.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 #include <iostream>
 
@@ -92,13 +91,8 @@ int main() {
     coilspring.setName("mycoilspring");
     g.addObject(&coilspring);
     
-    ObjBody objobject;
-    objobject.setName("myobjobject");
-    g.addObject(&objobject);
-    
     CompoundRigidBody crg;
     crg.setName("mycrg");
-    crg.addRigidBody(&objobject);
     crg.addRigidBody(&rotation);
     g.addObject(&crg);
 
@@ -118,6 +112,5 @@ int main() {
     rotation.append(row);
     invisiblebody.append(row);
     coilspring.append(row);
-    objobject.append(row);
   }
 }

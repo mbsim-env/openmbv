@@ -92,36 +92,10 @@
     <crossSectionRadius>0.1</crossSectionRadius>
     <scaleFactor>1</scaleFactor>
   </CoilSpring>
-  <ObjBody name="myobjobject" expand="true">
-    <initialTranslation>[0;0;0]</initialTranslation>
-    <initialRotation>[0;0;0]</initialRotation>
-    <scaleFactor>1</scaleFactor>
-    <objFileName></objFileName>
-    <useTextureFromMatLib>true</useTextureFromMatLib>
-    <useMaterialFromMatLib>true</useMaterialFromMatLib>
-    <normals>fromObjFile</normals>
-    <epsVertex>-1</epsVertex>
-    <epsNormal>-1</epsNormal>
-    <smoothBarrier>-1</smoothBarrier>
-    <outline>none</outline>
-  </ObjBody>
   <CompoundRigidBody name="mycrg" expand="true">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
-    <ObjBody name="myobjobject" expand="true">
-      <initialTranslation>[0;0;0]</initialTranslation>
-      <initialRotation>[0;0;0]</initialRotation>
-      <scaleFactor>1</scaleFactor>
-      <objFileName></objFileName>
-      <useTextureFromMatLib>true</useTextureFromMatLib>
-      <useMaterialFromMatLib>true</useMaterialFromMatLib>
-      <normals>fromObjFile</normals>
-      <epsVertex unit="mm">5</epsVertex>
-      <epsNormal>myp1</epsNormal>
-      <smoothBarrier>-1</smoothBarrier>
-      <outline>none</outline>
-    </ObjBody>
     <Rotation name="myrotation" expand="true">
       <initialTranslation>
         <pv:xmlVector>
