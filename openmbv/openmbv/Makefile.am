@@ -35,7 +35,6 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   object.cc\
   path.cc\
   arrow.cc\
-  objbody.cc\
   objectfactory.cc\
   rigidbody.cc\
   compoundrigidbody.cc\
@@ -58,7 +57,6 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   spineextrusion.moc.cc \
   nurbsdisk.moc.cc \
   arrow.moc.cc\
-  objbody.moc.cc\
   rigidbody.moc.cc\
   compoundrigidbody.moc.cc\
   cuboid.moc.cc\
@@ -79,7 +77,6 @@ noinst_HEADERS = openmbv.qrc\
   object.h\
   path.h\
   arrow.h\
-  objbody.h\
   rigidbody.h\
   compoundrigidbody.h\
   exportdialog.h\

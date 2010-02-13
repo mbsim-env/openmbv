@@ -26,7 +26,6 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   path.cc \
   coilspring.cc \
   cube.cc \
-  objbody.cc \
   ivbody.cc \
   cuboid.cc \
   spineextrusion.cc \
@@ -51,7 +50,6 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   path.h \
   coilspring.h \
   cube.h \
-  objbody.h \
   ivbody.h \
   cuboid.h \
   spineextrusion.h \
