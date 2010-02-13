@@ -208,7 +208,6 @@ void RigidBody::pathSlot() {
 }
 
 void RigidBody::draggerSlot() {
-  ///////////////
   if(soDragger==0) {
     soDragger=new SoCenterballDragger;
     soDraggerSwitch->addChild(soDragger);
@@ -228,7 +227,6 @@ void RigidBody::draggerSlot() {
     initTrans->translation.connectFrom(&soDragger->center);
     initRot->rotation.connectFrom(&soDragger->rotation);
   }
-  ///////////////
   if(dragger->isChecked())
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
