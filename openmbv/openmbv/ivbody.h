@@ -28,6 +28,9 @@
 
 class IvBody : public RigidBody {
   Q_OBJECT
+  protected:
+    double creaseAngle;
+    bool boundaryEdges;
   public:
     IvBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };

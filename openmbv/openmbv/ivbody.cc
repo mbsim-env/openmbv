@@ -31,16 +31,19 @@
 
 using namespace std;
 
-IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent), creaseAngle(-1), boundaryEdges(false) {
   iconFile=":/ivbody.svg";
   setIcon(0, QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"ivFileName");
   string fileName=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
-
   // fix relative path name of file to be included (will hopefully work also on windows)
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
+  e=element->FirstChildElement(OPENMBVNS"creaseAngle");
+  if(e) creaseAngle=toVector(e->GetText())[0];
+  e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
+  if(e) boundaryEdges=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
 
   // create so
   SoGroup *x=SoDBreadAllCached(fileName.c_str());
@@ -62,4 +65,11 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   localFrameScale->scaleFactor.setValue(size,size,size);
 
   // outline
+  if(creaseAngle>=0 || boundaryEdges) {
+    Edges *edges=new Edges;
+    soSepRigidBody->addChild(soOutLineSwitch);
+    soOutLineSep->addChild(preCalculateEdges(soSepRigidBody, edges));
+    if(creaseAngle>=0) soOutLineSep->addChild(calculateCreaseEdges(creaseAngle, edges));
+    if(boundaryEdges) soOutLineSep->addChild(calculateBoundaryEdges(edges));
+  }
 }
