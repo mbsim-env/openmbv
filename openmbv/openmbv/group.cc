@@ -50,6 +50,7 @@ Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // read XML
   TiXmlElement *e=element->FirstChildElement();
   while(e!=0) {
+    if(e->ValueStr()==OPENMBVNS"Group" && e->FirstChildElement()==0) { e=e->NextSiblingElement(); continue; } // a hack for openmbvdeleterows.sh
     ObjectFactory(e, h5Group, this, soSep);
     e=e->NextSiblingElement();
   }
