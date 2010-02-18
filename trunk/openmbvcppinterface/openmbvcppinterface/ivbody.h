@@ -34,10 +34,19 @@ namespace OpenMBV {
       /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
 
+      /** Set the limit crease angle for drawing crease edges. 
+       * If less 0 do not draw crease edges. Default: -1 */
+      void setCreaseEdges(double creaseAngle_) { creaseAngle=creaseAngle_; }
+
+      /** Draw boundary edges or not? Default: false */
+      void setBoundaryEdges(bool b) { boundaryEdges=b; }
+
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
     protected:
       std::string ivFileName;
+      double creaseAngle;
+      bool boundaryEdges;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
   };
 

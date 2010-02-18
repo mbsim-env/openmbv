@@ -24,13 +24,15 @@
 using namespace std;
 using namespace OpenMBV;
 
-IvBody::IvBody() : RigidBody() {
+IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 }
 
 void IvBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<IvBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     RigidBody::writeXMLFile(xmlFile, indent+"  ");
     xmlFile<<indent<<"  <ivFileName>\""<<ivFileName<<"\"</ivFileName>"<<endl;
+    xmlFile<<indent<<"  <creaseAngle>"<<creaseAngle<<"</creaseAngle>"<<endl;
+    xmlFile<<indent<<"  <boundaryEdges>"<<boundaryEdges<<"</boundaryEdges>"<<endl;
   xmlFile<<indent<<"</IvBody>"<<endl;
 }
 
@@ -39,4 +41,8 @@ void IvBody::initializeUsingXML(TiXmlElement *element) {
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"ivFileName");
   setIvFileName(string(e->GetText()).substr(1,string(e->GetText()).length()-2));
+  e=element->FirstChildElement(OPENMBVNS"creaseAngle");
+  if(e) setCreaseEdges(getDouble(e));
+  e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
+  if(e) setBoundaryEdges((e->GetText()==string("true") || e->GetText()==string("1"))?true:false);
 }

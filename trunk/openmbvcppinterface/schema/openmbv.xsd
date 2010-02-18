@@ -154,6 +154,8 @@
       <xs:extension base="RigidBodyType">
         <xs:sequence>
           <xs:element name="ivFileName" type="pv:string"/>
+          <xs:element name="creaseEdges" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="boundaryEdges" type="xs:boolean" minOccurs="0"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

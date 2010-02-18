@@ -66,7 +66,7 @@ void Body::terminate() {
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
 vector<double> Body::toVector(string str) {
-  for(int i=0; i<str.length(); i++)
+  for(unsigned int i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
   stringstream stream(str);
   double d;
@@ -82,7 +82,7 @@ vector<double> Body::toVector(string str) {
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
 vector<vector<double> > Body::toMatrix(string str) {
   vector<vector<double> > ret;
-  for(int i=0; i<str.length(); i++)
+  for(unsigned int i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
   bool br=false;
   while(1) {
@@ -108,11 +108,11 @@ double Body::getDouble(TiXmlElement *e) {
   return NAN;
 }
 
-vector<double> Body::getVec(TiXmlElement *e, int rows) {
+vector<double> Body::getVec(TiXmlElement *e, unsigned int rows) {
   vector<vector<double> > m=toMatrix(e->GetText());
   if((rows==0 || m.size()==rows) && m[0].size()==1) {
     vector<double> v;
-    for(int i=0; i<m.size(); i++)
+    for(unsigned int i=0; i<m.size(); i++)
       v.push_back(m[i][0]);
     return v;
   }
@@ -126,7 +126,7 @@ vector<double> Body::getVec(TiXmlElement *e, int rows) {
   return vector<double>();
 }
 
-vector<vector<double> > Body::getMat(TiXmlElement *e, int rows, int cols) {
+vector<vector<double> > Body::getMat(TiXmlElement *e, unsigned int rows, unsigned int cols) {
   vector<vector<double> > m=toMatrix(e->GetText());
   if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
     return m;
