@@ -81,13 +81,13 @@ int toOctave(TiXmlElement *&e) {
 string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOnStart=true, TiXmlElement *e=NULL) {
   static char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
-    char *dummychar=getcwd(savedPath, PATHLENGTH);
-    int dummyint=chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),"").c_str());
+    if(getcwd(savedPath, PATHLENGTH)==0) throw(1);
+    if(chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),".").c_str())!=0) throw(1);
   }
 
   int dummy;
   // delete leading new lines in str
-  for(int i=0; i<str.length() && (str[i]==' ' || str[i]=='\n' || str[i]=='\t'); i++)
+  for(unsigned int i=0; i<str.length() && (str[i]==' ' || str[i]=='\n' || str[i]=='\t'); i++)
     str[i]=' ';
 
   string clear="";
@@ -102,17 +102,17 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
     if(!exitOnError) std::cerr.rdbuf(orgcerr); // enable std::cerr if not exiting on error
     if(error_state!=0) {
       if(exitOnError) {
-        if(e) int dummyint=chdir(savedPath);
+        if(e) if(chdir(savedPath)!=0) throw(1);
         throw string("In octave expression: "+str);
       }
       else {
         error_state=0;
         if(str.substr(0,6)=="error(") {
-          if(e) int dummyint=chdir(savedPath);
+          if(e) if(chdir(savedPath)!=0) throw(1);
           return str;
         }
         else {
-          if(e) int dummyint=chdir(savedPath);
+          if(e) if(chdir(savedPath)!=0) throw(1);
           return string("error(\"")+str+"\")";
         }
       }
@@ -120,7 +120,7 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   }
   octave_value o=eval_string("ret;",true,dummy);
   if(error_state!=0) {
-    if(e) int dummyint=chdir(savedPath);
+    if(e) if(chdir(savedPath)!=0) throw(1);
     throw string("'ret' variable not set in octave statement list: "+str);
   }
   ostringstream ret;
@@ -139,11 +139,11 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   else if(o.is_string())
     ret<<"\""<<o.string_value()<<"\"";
   else {
-    if(e) int dummyint=chdir(savedPath);
+    if(e) if(chdir(savedPath)!=0) throw(1);
     throw string("Unknown type in octave expression: "+str);
   }
 
-  if(e) int dummyint=chdir(savedPath);
+  if(e) if(chdir(savedPath)!=0) throw(1);
   return ret.str().c_str();
 }
 
@@ -160,7 +160,7 @@ int genParamString(TiXmlElement *e, string &paramString) {
 
   // outer loop for resolving the tree structure of parameters
   for(size_t j=0; j<param.size(); j++) {
-    size_t i;
+    size_t i=0;
     try {
       // fill octave with variables
       octaveEval("", "1;\n"+paramString); // clear all
@@ -337,7 +337,6 @@ try {
     // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
     // XML attributes of a type devived from pv:fullOctaveString and pv:partialOctaveString. But for that a
     // schema aware processor is needed!
-    TiXmlAttribute *a=e->FirstAttribute();
     for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next())
       if(a->Name()==string("name") || string(a->Name()).substr(0,3)=="ref") {
         string s=a->ValueStr();
@@ -365,8 +364,8 @@ catch(string str) {
 }
 
 string extractFileName(string dirfilename) {
-  int i1=dirfilename.find_last_of('/');
-  int i2=dirfilename.find_last_of('\\');
+  unsigned int i1=dirfilename.find_last_of('/');
+  unsigned int i2=dirfilename.find_last_of('\\');
   i1=(i1==string::npos?-1:i1);
   i2=(i2==string::npos?-1:i2);
   i1=max(i1,i2);
