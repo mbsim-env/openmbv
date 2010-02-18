@@ -64,7 +64,7 @@
         div.expandcollapseexample { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic;padding-top:2em }
       </style>
       <script type="text/javascript">
-        /* <![CDATA[ */
+        <![CDATA[
         function expandcollapsecontent(c) {
           var ul=c.parentNode.getElementsByTagName('ul')[0];
           if(ul.style.display=="") {
@@ -102,7 +102,7 @@
             }
           }
         }
-        /* ]]> */
+        ]]>
       </script>
     </head>
     <body onload="collapseexamplesonload()">
