@@ -25,11 +25,11 @@ using namespace std;
 using namespace OpenMBV;
 
 Arrow::Arrow() : DynamicColoredBody(),
-  diameter(0.25),
   headDiameter(0.5),
   headLength(0.75),
-  type(toHead),
-  scaleLength(1) {
+  diameter(0.25),
+  scaleLength(1),
+  type(toHead) {
 }
 
 void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {

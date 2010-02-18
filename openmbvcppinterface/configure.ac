@@ -21,6 +21,8 @@ if test $doxygen = "no" ; then
   AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
 fi
 
+CPPFLAGS="$CPPFLAGS -Wall -Werror"
+
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 

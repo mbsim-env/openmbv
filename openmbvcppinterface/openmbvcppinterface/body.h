@@ -51,8 +51,8 @@ namespace OpenMBV {
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
       static double getDouble(TiXmlElement *e);
-      static std::vector<double> getVec(TiXmlElement *e, int rows=0);
-      static std::vector<std::vector<double> > getMat(TiXmlElement *e, int rows=0, int cols=0);
+      static std::vector<double> getVec(TiXmlElement *e, unsigned int rows=0);
+      static std::vector<std::vector<double> > getMat(TiXmlElement *e, unsigned int rows=0, unsigned int cols=0);
 
     protected:
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
