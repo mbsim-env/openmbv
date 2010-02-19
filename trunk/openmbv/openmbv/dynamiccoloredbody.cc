@@ -22,7 +22,7 @@
 
 using namespace std;
 
-DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), oldColor(nan("")), color(0) {
+DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), color(0), oldColor(nan("")) {
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
   if(e)

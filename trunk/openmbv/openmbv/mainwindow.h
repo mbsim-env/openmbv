@@ -64,6 +64,18 @@ class MainWindow : public QMainWindow {
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
     SoSwitch *worldFrameSwitch;
+
+    // Objects for global shilouette/crease/boundary geometry
+    SoSwitch *shilouetteSW;
+    SoSeparator *shilouetteSep;
+    SoCoordinate3 *soEdgeCoord;
+    SoIndexedLineSet *soShilouetteEdge;
+    SoIndexedLineSet *soCreaseEdge;
+    SoIndexedLineSet *soBoundaryEdge;
+    static void frameOrCameraSensorCB(void *data, SoSensor*);
+    SoFieldSensor *engDrawingFrameSensor, *engDrawingOrientationSensor;
+    double engDrawingCreaseAngle;
+    SoDrawStyle *engDrawingLineWidth;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
@@ -156,6 +168,8 @@ class MainWindow : public QMainWindow {
     void expandToDepth7() { objectList->expandToDepth(5); }
     void expandToDepth8() { objectList->expandToDepth(6); }
     void expandToDepth9() { objectList->expandToDepth(7); }
+    void toggleEngDrawingViewSlot();
+    void toggleEngDrawingViewRecursion(QTreeWidgetItem *obj, bool enable);
   public:
     MainWindow(std::list<std::string>& arg);
     void updateScene() { glViewer->getSceneManager()->render(); }

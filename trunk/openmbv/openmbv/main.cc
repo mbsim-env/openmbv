@@ -58,9 +58,10 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
-        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
+        <<"               [--wst <file>] [--camera <file>] [--fullscreen] [--shadows]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
-        <<"               [--headlight <file>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"               [--headlight <file>] [--edcreaseangle <angle>]"<<endl
+        <<"               [--edlinewidth <width>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
@@ -80,6 +81,9 @@ int main(int argc, char *argv[])
         <<"--headlight      Load the given head light file (*.iv)"<<endl
         <<"                 (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen     Start in full screen mode"<<endl
+        <<"--shadows        Enable shadows"<<endl
+        <<"--edcreaseangle  Crease angle for engineering drawing in degree (Default 30)"<<endl
+        <<"--edlinewidth    Line width for engineering drawing edges (Default 1)"<<endl
         <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                 in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>           Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;

@@ -20,11 +20,6 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_ADD_FIELD(windingRule, (ODD));
   SO_NODE_ADD_FIELD(coordinate, (NULL));
   SO_NODE_ADD_FIELD(coordIndex, (-1));
-
-  // on change on EVERY field call the changedCB method
-  sensor=new SoNodeSensor(changedCB, this);
-  sensor->attach(this);
-  sensor->setPriority(100);
 }
 
 IndexedTesselationFace::IndexedTesselationFace() : SoGroup() {
@@ -38,40 +33,37 @@ IndexedTesselationFace::IndexedTesselationFace(int numChilderen) : SoGroup(numCh
 IndexedTesselationFace::~IndexedTesselationFace() {
 }
 
-void IndexedTesselationFace::changedCB(void *data, SoSensor*) {
+SbBool IndexedTesselationFace::readChildren(SoInput *in) {
+  // if attributes are read, generate the children using gluTess
+
   assert(Body::tessCBInit);
-  IndexedTesselationFace *me=(IndexedTesselationFace*)data;
-
-  me->sensor->detach();
-
-  me->removeAllChildren();
 
   int wr;
-  switch(me->windingRule.getValue()) {
+  switch(windingRule.getValue()) {
     case ODD: wr=GLU_TESS_WINDING_ODD; break;
     case NONZERO: wr=GLU_TESS_WINDING_NONZERO; break;
     case POSITIVE: wr=GLU_TESS_WINDING_POSITIVE; break;
     case NEGATIVE: wr=GLU_TESS_WINDING_NEGATIVE; break;
-    case ABS_GEQ_TWO: wr=GLU_TESS_WINDING_ABS_GEQ_TWO; break;
+    default /*ABS_GEQ_TWO*/: wr=GLU_TESS_WINDING_ABS_GEQ_TWO; break;
   }
   gluTessProperty(Body::tess, GLU_TESS_WINDING_RULE, wr);
-  gluTessBeginPolygon(Body::tess, me);
+  gluTessBeginPolygon(Body::tess, this);
   bool contourOpen=false;
-  for(int i=0; i<me->coordIndex.getNum(); i++) {
-    if(contourOpen==false && me->coordIndex[i]>=0) {
+  for(int i=0; i<coordIndex.getNum(); i++) {
+    if(contourOpen==false && coordIndex[i]>=0) {
       gluTessBeginContour(Body::tess);
       contourOpen=true;
     }
-    if(me->coordIndex[i]>=0) {
-      double *v=(double*)(me->coordinate[me->coordIndex[i]].getValue());
+    if(coordIndex[i]>=0) {
+      double *v=(double*)(coordinate[coordIndex[i]].getValue());
       gluTessVertex(Body::tess, v, v);
     }
-    if(me->coordIndex[i]<0 || i>=me->coordIndex.getNum()-1) {
+    if(coordIndex[i]<0 || i>=coordIndex.getNum()-1) {
       gluTessEndContour(Body::tess);
       contourOpen=false;
     }
   }
   gluTessEndPolygon(Body::tess);
 
-  me->sensor->attach(me);
+  return true; // reading/generating of children sucessful
 }

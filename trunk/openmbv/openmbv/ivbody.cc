@@ -31,9 +31,12 @@
 
 using namespace std;
 
-IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent), creaseAngle(-1), boundaryEdges(false) {
+IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/ivbody.svg";
   setIcon(0, QIconCached(iconFile.c_str()));
+
+  double creaseAngle=-1;
+  bool boundaryEdges=false;
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"ivFileName");
@@ -46,8 +49,8 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   if(e) boundaryEdges=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
 
   // create so
-  SoGroup *x=SoDBreadAllCached(fileName.c_str());
-  soSepRigidBody->addChild(x);
+  SoGroup *soIv=SoDBreadAllCached(fileName.c_str());
+  soSepRigidBody->addChild(soIv);
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
@@ -68,7 +71,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   if(creaseAngle>=0 || boundaryEdges) {
     Edges *edges=new Edges;
     soSepRigidBody->addChild(soOutLineSwitch);
-    soOutLineSep->addChild(preCalculateEdges(soSepRigidBody, edges));
+    soOutLineSep->addChild(preCalculateEdges(soIv, edges));
     if(creaseAngle>=0) soOutLineSep->addChild(calculateCreaseEdges(creaseAngle, edges));
     if(boundaryEdges) soOutLineSep->addChild(calculateBoundaryEdges(edges));
   }

@@ -71,6 +71,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
+  engDrawingCreaseAngle=30*M_PI/180;
+
   list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
@@ -112,8 +114,49 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoShadowGroup;
   sceneRoot->ref();
+  sceneRoot->isActive.setValue(false);
   sceneRoot->precision.setValue(1.0);
-  sceneRoot->addChild(new SoPolygonOffset); // move all filled polygons 1 unit in background
+  SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons 1 unit in background
+  sceneRoot->addChild(offset);
+  offset->units.setValue(4);
+
+  // Switch/Separator for global shilouette/crease/boundary edge geometry
+  shilouetteSW=new SoSwitch;
+  sceneRoot->addChild(shilouetteSW);
+  shilouetteSW->whichChild.setValue(SO_SWITCH_NONE);
+  shilouetteSep=new SoSeparator;
+  shilouetteSW->addChild(shilouetteSep);
+  SoLightModel *lm2=new SoLightModel;
+  shilouetteSep->addChild(lm2);
+  lm2->model.setValue(SoLightModel::BASE_COLOR);
+  SoBaseColor *color2=new SoBaseColor;
+  shilouetteSep->addChild(color2);
+  color2->rgb.setValue(0,0,0);
+  engDrawingLineWidth=new SoDrawStyle;
+  shilouetteSep->addChild(engDrawingLineWidth);
+  soEdgeCoord=new SoCoordinate3;
+  shilouetteSep->addChild(soEdgeCoord);
+  soShilouetteEdge=new SoIndexedLineSet;
+  shilouetteSep->addChild(soShilouetteEdge);
+  soShilouetteEdge->coordIndex.set1Value(0, -1);
+  soCreaseEdge=new SoIndexedLineSet;
+  shilouetteSep->addChild(soCreaseEdge);
+  soCreaseEdge->coordIndex.set1Value(0, -1);
+  soBoundaryEdge=new SoIndexedLineSet;
+  shilouetteSep->addChild(soBoundaryEdge);
+  soBoundaryEdge->coordIndex.set1Value(0, -1);
+  // Switch for global shilouette/crease/boundary override elements
+  SoSwitch *shilouetteSW2=new SoSwitch;
+  sceneRoot->addChild(shilouetteSW2);
+  shilouetteSW2->whichChild.connectFrom(&shilouetteSW->whichChild);
+  SoLightModel *lm3=new SoLightModel;
+  shilouetteSW2->addChild(lm3);
+  lm3->model.setValue(SoLightModel::BASE_COLOR);
+  lm3->setOverride(true);
+  SoMaterial *color3=new SoMaterial;
+  shilouetteSW2->addChild(color3);
+  color3->diffuseColor.setValue(1,1,1);
+  color3->setOverride(true);
 
   // Move the world system such that the camera is constant relative the the body
   // with moves with the camera; if not, don't move the world system.
@@ -171,9 +214,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
   QLabel *filterL=new QLabel("Filter:");
   filterL->setToolTip("Enter a regular expression to filter the object list.");
+  filterL->setStatusTip(filterL->toolTip());
   objectListLO->addWidget(filterL, 0,0);
   filter=new QLineEdit;
   filter->setToolTip("Enter a regular expression to filter the object list.");
+  filter->setStatusTip(filter->toolTip());
   objectListLO->addWidget(filter, 0,1);
   connect(filter,SIGNAL(returnPressed()),this,SLOT(filterObjectList()));
   objectList = new QTreeWidget(objectListDW);
@@ -280,6 +325,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   act->setCheckable(true);
   QAction *cameraAct=sceneViewMenu->addAction(QIconCached(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
   sceneViewMenu->addAction(QIconCached(":/camerabody.svg"),"Release Camera From Move With Body", this, SLOT(releaseCameraFromBodySlot()));
+  QAction *engDrawingView=sceneViewMenu->addAction(QIconCached(":/engdrawing.svg"),"Engineering Drawing", this, SLOT(toggleEngDrawingViewSlot()));
+  engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled!");
+  engDrawingView->setStatusTip(engDrawingView->toolTip());
+  engDrawingView->setCheckable(true);
   addAction(cameraAct); // must work also if menu bar is invisible
   sceneViewMenu->addSeparator();
   sceneViewMenu->addAction(QIconCached(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
@@ -425,6 +474,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
   sensor->attach(frame);
 
+  // register callback function on frame change
+  engDrawingFrameSensor=new SoFieldSensor(frameOrCameraSensorCB, this);
+  engDrawingOrientationSensor=new SoFieldSensor(frameOrCameraSensorCB, this);
+
   // animation timer
   animTimer=new QTimer(this);
   connect(animTimer, SIGNAL(timeout()), this, SLOT(heavyWorkSlot()));
@@ -432,17 +485,28 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // react on parameters
 
+  // shadow
+  if((i=std::find(arg.begin(), arg.end(), "--shadows"))!=arg.end()) {
+    sceneRoot->isActive.setValue(true);
+    arg.erase(i);
+  }
+
+  // crease angle for engineering drawing
+  if((i=std::find(arg.begin(), arg.end(), "--edcreaseangle"))!=arg.end()) {
+    i2=i; i2++;
+    engDrawingCreaseAngle=QString(i2->c_str()).toDouble()*M_PI/180;
+    arg.erase(i); arg.erase(i2);
+  }
+
+  // line width for engineering drawing edges
+  if((i=std::find(arg.begin(), arg.end(), "--edlinewidth"))!=arg.end()) {
+    i2=i; i2++;
+    engDrawingLineWidth->lineWidth.setValue(QString(i2->c_str()).toDouble());
+    arg.erase(i); arg.erase(i2);
+  }
+
   // background color
   if((i=std::find(arg.begin(), arg.end(), "--topbgcolor"))!=arg.end()) {
-    i2=i; i2++;
-    QColor color(i2->c_str());
-    if(color.isValid()) {
-      QRgb rgb=color.rgb();
-      bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-    }
-    arg.erase(i); arg.erase(i2);
   }
   if((i=std::find(arg.begin(), arg.end(), "--bottombgcolor"))!=arg.end()) {
     i2=i; i2++;
@@ -944,6 +1008,52 @@ void MainWindow::frameSensorCB(void *data, SoSensor*) {
   me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
 }
 
+void MainWindow::frameOrCameraSensorCB(void *data, SoSensor* sensor) {
+  MainWindow *me=(MainWindow*)data;
+  static bool firstCall=true;
+  static Body::Edges *edges=NULL;
+  bool frameChanged=false;
+  if(sensor==me->engDrawingFrameSensor) frameChanged=true;
+  bool orientationChanged=false;
+  if(sensor==me->engDrawingOrientationSensor) orientationChanged=true;
+
+  if(frameChanged==true || firstCall==true) {
+    if(edges) delete edges;
+    edges=new Body::Edges;
+    SoCoordinate3 *soEdgeCoordOld=me->soEdgeCoord;
+    me->shilouetteSep->replaceChild(soEdgeCoordOld, me->soEdgeCoord=Body::preCalculateEdges(me->sceneRoot, edges));
+
+    SoIndexedLineSet *soCreaseEdgeOld=me->soCreaseEdge;
+    me->shilouetteSep->replaceChild(soCreaseEdgeOld, me->soCreaseEdge=Body::calculateCreaseEdges(me->engDrawingCreaseAngle,edges));
+    SoIndexedLineSet *soBoundaryEdgeOld=me->soBoundaryEdge;
+    me->shilouetteSep->replaceChild(soBoundaryEdgeOld, me->soBoundaryEdge=Body::calculateBoundaryEdges(edges));
+  }
+
+  if(frameChanged==true || orientationChanged==true || firstCall==true) {
+    SbRotation r=me->glViewer->getCamera()->orientation.getValue(); // camera orientation
+    r*=((SoSFRotation*)(me->cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+    SbVec3f n;
+    r.multVec(SbVec3f(0,0,-1),n); // a vector normal to the viewport in the world frame
+    me->soShilouetteEdge->coordIndex.deleteValues(0); // clear all previous shilouette edges
+    int nr=0;
+    for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
+      if(edges->ei2vini[i].ni.size()==2) {
+        int nia=edges->ei2vini[i].ni[0];
+        int nib=edges->ei2vini[i].ni[1];
+        int vai=edges->ei2vini[i].vai;
+        int vbi=edges->ei2vini[i].vbi;
+        if(edges->normal[nia]->dot(n)*edges->normal[nib]->dot(n)<0) {
+          me->soShilouetteEdge->coordIndex.set1Value(nr++, vai);
+          me->soShilouetteEdge->coordIndex.set1Value(nr++, vbi);
+          me->soShilouetteEdge->coordIndex.set1Value(nr++, -1);
+        }
+      }
+    }
+  }
+
+  firstCall=false;
+}
+
 void MainWindow::fpsCB() {
   static int count=1;
 
@@ -1151,7 +1261,7 @@ void MainWindow::lastFrameSCSlot() {
     return;
   }
 
-  printf("Not implemented yet!!!!!!!!!!!!!!\n"); //TODO
+  printf("Not implemented yet!!!!!!!!!!!!!!\n");
   stopAct->setChecked(false);
   playAct->setChecked(false);
   animTimer->stop();
@@ -1385,5 +1495,35 @@ void MainWindow::searchObjectList(QTreeWidgetItem *item, const QRegExp& filterRe
         if(filterRegExp.indexIn(it->text(0))>=0) { hide=false; break; }
       item->child(i)->setHidden(hide);
     }
+  }
+}
+
+void MainWindow::toggleEngDrawingViewRecursion(QTreeWidgetItem *obj, bool enable) {
+  for(int i=0; i<obj->childCount(); i++) {
+    QAction *act=((Object*)obj->child(i))->findChild<QAction*>("Body::outLine");
+    if(act) act->setChecked(enable);
+    MainWindow::toggleEngDrawingViewRecursion(obj->child(i), enable);
+  }
+}
+void MainWindow::toggleEngDrawingViewSlot() {
+  static SoMFColor bgColorSaved;
+  if(shilouetteSW->whichChild.getValue()==SO_SWITCH_NONE) {
+    shilouetteSW->whichChild.setValue(SO_SWITCH_ALL);
+    engDrawingFrameSensor->attach(frame);
+    engDrawingOrientationSensor->attach(&glViewer->getCamera()->orientation);
+    bgColorSaved=*bgColor;
+    bgColor->set1Value(0, 1.0,1.0,1.0);
+    bgColor->set1Value(1, 1.0,1.0,1.0);
+    bgColor->set1Value(2, 1.0,1.0,1.0);
+    bgColor->set1Value(3, 1.0,1.0,1.0);
+    MainWindow::toggleEngDrawingViewRecursion(objectList->invisibleRootItem(), false);
+    frame->touch();
+  }
+  else {
+    shilouetteSW->whichChild.setValue(SO_SWITCH_NONE);
+    engDrawingFrameSensor->detach();
+    engDrawingOrientationSensor->detach();
+    *bgColor=bgColorSaved;
+    MainWindow::toggleEngDrawingViewRecursion(objectList->invisibleRootItem(), true);
   }
 }
