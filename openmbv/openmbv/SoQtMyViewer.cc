@@ -44,9 +44,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   SoLightModel *l=new SoLightModel;
   bgSep->addChild(l);
   l->model.setValue(SoLightModel::BASE_COLOR);
-  SoBaseColor *col=new SoBaseColor;
-  bgSep->addChild(col);
-  col->rgb.setValue(1,0,0);
   SoMaterialBinding *mb=new SoMaterialBinding;
   bgSep->addChild(mb);
   mb->value.setValue(SoMaterialBinding::PER_VERTEX);

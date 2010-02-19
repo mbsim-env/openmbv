@@ -171,7 +171,7 @@ double Arrow::update() {
     pathLine->numVertices.setValue(1+frame);
   }
   
-  if(draw->isChecked())
+  if(draw->isChecked()) {
     if(length<1e-10) {
       soSwitch->whichChild.setValue(SO_SWITCH_NONE);
       soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
@@ -181,6 +181,7 @@ double Arrow::update() {
       soSwitch->whichChild.setValue(SO_SWITCH_ALL);
       if(bbox->isChecked()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
     }
+  }
 
   // scale factors
   if(length<2*headLength)

@@ -44,6 +44,7 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   if(windingRule_=="absGEqTwo") windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
   e=e->NextSiblingElement();
   double height=toVector(e->GetText())[0];
+  if(fabs(height)<1e-13) height=0;
   e=e->NextSiblingElement();
   vector<vector<vector<double> > > contour;
   while(e && e->ValueStr()==OPENMBVNS"contour") {
@@ -54,24 +55,38 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // create so
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
-  // side
+  // two side render if height==0
+  if(height==0) {
+    SoShapeHints *sh=new SoShapeHints;
+    soSepRigidBody->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
+  }
   SoSeparator *side=new SoSeparator;
-  soSepRigidBody->addChild(side);
-  // shape hint
-  SoShapeHints *sh=new SoShapeHints;
-  side->addChild(sh);
-  sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
-  sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
-  sh->creaseAngle.setValue(M_PI);
+  if(height!=0) {
+    // side
+    soSepRigidBody->addChild(side);
+    // shape hint
+    SoShapeHints *sh=new SoShapeHints;
+    side->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
+    sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
+    sh->creaseAngle.setValue(M_PI);
+  }
   // side
   for(size_t c=0; c<contour.size(); c++) {
-    SoNormal *n=new SoNormal;
-    side->addChild(n);
+    SoNormal *n=NULL;
+    if(height!=0) {
+      n=new SoNormal;
+      side->addChild(n);
+    }
     SoCoordinate3 *v=new SoCoordinate3;
     side->addChild(v);
     size_t r;
-    SoIndexedFaceSet *s=new SoIndexedFaceSet;
-    side->addChild(s);
+    SoIndexedFaceSet *s=NULL;
+    if(height!=0) {
+      s=new SoIndexedFaceSet;
+      side->addChild(s);
+    }
     // outline
     SoIndexedLineSet *ol1=new SoIndexedLineSet;
     SoIndexedLineSet *ol2=new SoIndexedLineSet;
@@ -87,12 +102,14 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
       size_t rp; if(r>=1) rp=r-1; else rp=contour[c].size()-1;
       v->point.set1Value(2*r+0, contour[c][r][0], contour[c][r][1], 0);
       v->point.set1Value(2*r+1, contour[c][r][0], contour[c][r][1], height);
-      SbVec3f n1(contour[c][r][1]-contour[c][rp][1],contour[c][rp][0]-contour[c][r][0],0); n1.normalize();
-      SbVec3f n2(contour[c][rn][1]-contour[c][r][1],contour[c][r][0]-contour[c][rn][0],0); n2.normalize();
-      if(((int)(contour[c][r][2]+0.5))!=1)
-        n1=n2=n1+n2;
-      n->vector.set1Value(2*r+0, n1);
-      n->vector.set1Value(2*r+1, n2);
+      if(height!=0) {
+        SbVec3f n1(contour[c][r][1]-contour[c][rp][1],contour[c][rp][0]-contour[c][r][0],0); n1.normalize();
+        SbVec3f n2(contour[c][rn][1]-contour[c][r][1],contour[c][r][0]-contour[c][rn][0],0); n2.normalize();
+        if(((int)(contour[c][r][2]+0.5))!=1)
+          n1=n2=n1+n2;
+        n->vector.set1Value(2*r+0, n1);
+        n->vector.set1Value(2*r+1, n2);
+      }
       ol1->coordIndex.set1Value(r, 2*r+0);
       ol2->coordIndex.set1Value(r, 2*r+1);
       if(((int)(contour[c][r][2]+0.5))==1) {
@@ -100,16 +117,18 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
         ol3->coordIndex.set1Value(nr++, 2*r+1);
         ol3->coordIndex.set1Value(nr++, -1);
       }
-      s->coordIndex.set1Value(5*r+0, 2*r+0);
-      s->coordIndex.set1Value(5*r+1, 2*r+1);
-      s->coordIndex.set1Value(5*r+2, 2*rn+1);
-      s->coordIndex.set1Value(5*r+3, 2*rn+0);
-      s->coordIndex.set1Value(5*r+4, -1);
-      s->normalIndex.set1Value(5*r+0, 2*r+1);
-      s->normalIndex.set1Value(5*r+1, 2*r+1);
-      s->normalIndex.set1Value(5*r+2, 2*rn);
-      s->normalIndex.set1Value(5*r+3, 2*rn);
-      s->normalIndex.set1Value(5*r+4, -1);
+      if(height!=0) {
+        s->coordIndex.set1Value(5*r+0, 2*r+0);
+        s->coordIndex.set1Value(5*r+1, 2*r+1);
+        s->coordIndex.set1Value(5*r+2, 2*rn+1);
+        s->coordIndex.set1Value(5*r+3, 2*rn+0);
+        s->coordIndex.set1Value(5*r+4, -1);
+        s->normalIndex.set1Value(5*r+0, 2*r+1);
+        s->normalIndex.set1Value(5*r+1, 2*r+1);
+        s->normalIndex.set1Value(5*r+2, 2*rn);
+        s->normalIndex.set1Value(5*r+3, 2*rn);
+        s->normalIndex.set1Value(5*r+4, -1);
+      }
     }
     ol1->coordIndex.set1Value(r, 0);
     ol2->coordIndex.set1Value(r, 1);
@@ -143,15 +162,17 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   n->vector.set1Value(0, 0, 0, -1);
   // base
   soSepRigidBody->addChild(soTess);
-  // trans
-  SoTranslation *t=new SoTranslation;
-  soSepRigidBody->addChild(t);
-  t->translation.setValue(0, 0, height);
-  // normal
-  n=new SoNormal;
-  soSepRigidBody->addChild(n);
-  n->vector.set1Value(0, 0, 0, 1);
-  // top
-  soSepRigidBody->addChild(soTess);
+  if(height!=0) {
+    // trans
+    SoTranslation *t=new SoTranslation;
+    soSepRigidBody->addChild(t);
+    t->translation.setValue(0, 0, height);
+    // normal
+    n=new SoNormal;
+    soSepRigidBody->addChild(n);
+    n->vector.set1Value(0, 0, 0, 1);
+    // top
+    soSepRigidBody->addChild(soTess);
+  }
   // scale ref/localFrame
 }

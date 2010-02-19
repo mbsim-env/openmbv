@@ -33,6 +33,7 @@
 #include <GL/glu.h>
 #include "IndexedTesselationFace.h"
 #include <Inventor/SbBSPTree.h>
+#include <Inventor/SbVec3i32.h>
 #include <Inventor/lists/SbVec3fList.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 
@@ -59,7 +60,7 @@ class Body : public Object {
     QAction *outLine;
     QActionGroup *drawMethod;
     QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
-    friend void IndexedTesselationFace::changedCB(void *data, SoSensor*);
+    friend class IndexedTesselationFace;
 
 
 
@@ -81,20 +82,23 @@ class Body : public Object {
     static std::vector<double> toVector(std::string str); // convenience
     static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
 
+  public:
     // calculate crease edges
+    struct XX {
+      int vai, vbi; // index of the vertex at the line begin and end
+      std::vector<int> ni; // index of all normal vectors of faces, which join this edge
+    };
     struct Edges {
-      SbBSPTree vertex;
-      SbIntList faceVertex;
-      SbVec3fList normal;
-      SbIntList innerEdge;
-      SoMFInt32 boundaryEdge;
+      SbBSPTree vertex; // a 3D float space paritioning for all vertex
+      SbBSPTree edge; // a 2D interger space paritioning for all edges (ABUSES the class SbBSPTree)
+      SbVec3fList normal; // a 1D array for the normals of all faces
+      std::vector<XX> ei2vini; // a 1D array for all edges
     };
     static void triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3);
-    SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *edges);
-    SoIndexedLineSet* calculateCreaseEdges(double creaseAngle, Edges *edges);
-    SoIndexedLineSet* calculateBoundaryEdges(Edges *edges);
+    static SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *edges);
+    static SoIndexedLineSet* calculateCreaseEdges(double creaseAngle, Edges *edges);
+    static SoIndexedLineSet* calculateBoundaryEdges(Edges *edges);
 
-  public:
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) { SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale); } // convenience
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale); // convenience
     static SbRotation cardan2Rotation(const SbVec3f& c);

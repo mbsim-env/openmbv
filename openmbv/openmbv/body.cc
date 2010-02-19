@@ -352,91 +352,45 @@ SbVec3f Body::rotation2Cardan(const SbRotation& R) {
 
 void Body::triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3) {
   Edges* edges=(Edges*)data;
+  // get coordinates of points
   SbVec3f v1=vp1->getPoint();
   SbVec3f v2=vp2->getPoint();
   SbVec3f v3=vp3->getPoint();
-  // convert to coordinates of the action
+  // convert coordinates to frame of the action
   SbMatrix mm=action->getModelMatrix();
   mm.multVecMatrix(v1, v1);
   mm.multVecMatrix(v2, v2);
   mm.multVecMatrix(v3, v3);
-  ///////////// Round
-//  float x,y,z;
-//  int K=10000;
-//  v1.getValue(x,y,z);
-//  x=round(x*K)/K;
-//  y=round(y*K)/K;
-//  z=round(z*K)/K;
-//  v1.setValue(x,y,z);
-//  v2.getValue(x,y,z);
-//  x=round(x*K)/K;
-//  y=round(y*K)/K;
-//  z=round(z*K)/K;
-//  v2.setValue(x,y,z);
-//  v3.getValue(x,y,z);
-//  x=round(x*K)/K;
-//  y=round(y*K)/K;
-//  z=round(z*K)/K;
-//  v3.setValue(x,y,z);
-  /////////////
-  edges->faceVertex.append(edges->vertex.addPoint(v1));
-  edges->faceVertex.append(edges->vertex.addPoint(v2));
-  edges->faceVertex.append(edges->vertex.addPoint(v3));
+  // add point and get point index
+  unsigned int v1i=edges->vertex.addPoint(v1);
+  unsigned int v2i=edges->vertex.addPoint(v2);
+  unsigned int v3i=edges->vertex.addPoint(v3);
+  // add edge and get edge index
+#define addEdge(i,j) addPoint(SbVec3f(i<j?i:j,i<j?j:i,0))
+  unsigned int e1i=edges->edge.addEdge(v1i, v2i);
+  unsigned int e2i=edges->edge.addEdge(v2i, v3i);
+  unsigned int e3i=edges->edge.addEdge(v3i, v1i);
+#undef addEdge
+  // add normal
+  int ni=edges->normal.getLength();
   SbVec3f n=(v2-v1).cross(v3-v1);
   n.normalize();
-  edges->normal.append(new SbVec3f(n));
+  edges->normal.append(&n);
+  // add ei->ni,v1i,v2i
+  XX *xx;
+#define expand(ei) if(ei>=edges->ei2vini.size()) edges->ei2vini.resize(ei+1);
+  expand(e1i); xx=&edges->ei2vini[e1i]; xx->vai=v1i; xx->vbi=v2i; xx->ni.push_back(ni);
+  expand(e2i); xx=&edges->ei2vini[e2i]; xx->vai=v2i; xx->vbi=v3i; xx->ni.push_back(ni);
+  expand(e3i); xx=&edges->ei2vini[e3i]; xx->vai=v3i; xx->vbi=v1i; xx->ni.push_back(ni);
+#undef expand
 }
 
 SoCoordinate3* Body::preCalculateEdges(SoGroup *sep, Edges *edges) {
+  // get all triangles
   SoCallbackAction cba;
   cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, edges);
   cba.apply(sep);
-  int nr=0;
-  for(int i=0; i<edges->faceVertex.getLength()/3; i++) {
-    bool foundNeighbour01=false, foundNeighbour12=false, foundNeighbour20=false;
-    for(int j=0; j<edges->faceVertex.getLength()/3; j++) {
-      if(i==j) continue;
-      if((edges->faceVertex[3*i+0]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+2]) &&
-         (edges->faceVertex[3*i+1]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+2])) {
-        edges->innerEdge.append(edges->faceVertex[3*i+0]);
-        edges->innerEdge.append(edges->faceVertex[3*i+1]);
-        edges->innerEdge.append(i);
-        edges->innerEdge.append(j);
-        foundNeighbour01=true;
-      }
-      if((edges->faceVertex[3*i+1]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+1]==edges->faceVertex[3*j+2]) &&
-         (edges->faceVertex[3*i+2]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+2])) {
-        edges->innerEdge.append(edges->faceVertex[3*i+1]);
-        edges->innerEdge.append(edges->faceVertex[3*i+2]);
-        edges->innerEdge.append(i);
-        edges->innerEdge.append(j);
-        foundNeighbour12=true;
-      }
-      if((edges->faceVertex[3*i+2]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+2]==edges->faceVertex[3*j+2]) &&
-         (edges->faceVertex[3*i+0]==edges->faceVertex[3*j+0] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+1] || edges->faceVertex[3*i+0]==edges->faceVertex[3*j+2])) {
-        edges->innerEdge.append(edges->faceVertex[3*i+2]);
-        edges->innerEdge.append(edges->faceVertex[3*i+0]);
-        edges->innerEdge.append(i);
-        edges->innerEdge.append(j);
-        foundNeighbour20=true;
-      }
-    }
-    if(foundNeighbour01==false) {
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+0]);
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+1]);
-      edges->boundaryEdge.set1Value(nr++, -1);
-    }
-    if(foundNeighbour12==false) {
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+1]);
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+2]);
-      edges->boundaryEdge.set1Value(nr++, -1);
-    }
-    if(foundNeighbour20==false) {
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+2]);
-      edges->boundaryEdge.set1Value(nr++, edges->faceVertex[3*i+0]);
-      edges->boundaryEdge.set1Value(nr++, -1);
-    }
-  }
+  // return vertex
   SoCoordinate3 *soEdgeVertex=new SoCoordinate3;
   soEdgeVertex->point.setValuesPointer(edges->vertex.numPoints(), edges->vertex.getPointsArrayPtr());
   return soEdgeVertex;
@@ -444,17 +398,18 @@ SoCoordinate3* Body::preCalculateEdges(SoGroup *sep, Edges *edges) {
 
 SoIndexedLineSet* Body::calculateCreaseEdges(double creaseAngle, Edges *edges) {
   SoIndexedLineSet *soCreaseEdge=new SoIndexedLineSet;
-  float CREASEANGLE=creaseAngle;
   int nr=0;
-  for(int i=0; i<edges->innerEdge.getLength()/4; i++) {
-    int v1=edges->innerEdge[4*i+0];
-    int v2=edges->innerEdge[4*i+1];
-    int f1=edges->innerEdge[4*i+2];
-    int f2=edges->innerEdge[4*i+3];
-    if(edges->normal[f1]->dot(*edges->normal[f2])<cos(CREASEANGLE)) {
-      soCreaseEdge->coordIndex.set1Value(nr++, v1);
-      soCreaseEdge->coordIndex.set1Value(nr++, v2);
-      soCreaseEdge->coordIndex.set1Value(nr++, -1);
+  for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
+    if(edges->ei2vini[i].ni.size()==2) {
+      int nia=edges->ei2vini[i].ni[0];
+      int nib=edges->ei2vini[i].ni[1];
+      int vai=edges->ei2vini[i].vai;
+      int vbi=edges->ei2vini[i].vbi;
+      if(edges->normal[nia]->dot(*edges->normal[nib])<cos(creaseAngle)) {
+        soCreaseEdge->coordIndex.set1Value(nr++, vai);
+        soCreaseEdge->coordIndex.set1Value(nr++, vbi);
+        soCreaseEdge->coordIndex.set1Value(nr++, -1);
+      }
     }
   }
   return soCreaseEdge;
@@ -462,6 +417,14 @@ SoIndexedLineSet* Body::calculateCreaseEdges(double creaseAngle, Edges *edges) {
 
 SoIndexedLineSet* Body::calculateBoundaryEdges(Edges *edges) {
   SoIndexedLineSet *soBoundaryEdge=new SoIndexedLineSet;
-  soBoundaryEdge->coordIndex.copyFrom(edges->boundaryEdge);
+  int nr=0;
+  for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
+    if(edges->ei2vini[i].ni.size()==1) {
+      //int ni, v1i, v2i;
+      soBoundaryEdge->coordIndex.set1Value(nr++, edges->ei2vini[i].vai);
+      soBoundaryEdge->coordIndex.set1Value(nr++, edges->ei2vini[i].vbi);
+      soBoundaryEdge->coordIndex.set1Value(nr++, -1);
+    }
+  }
   return soBoundaryEdge;
 }

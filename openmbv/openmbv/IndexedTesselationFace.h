@@ -5,7 +5,6 @@
 #include <Inventor/fields/SoMFInt32.h>
 #include <Inventor/fields/SoMFVec3d.h>
 #include <Inventor/fields/SoSFEnum.h>
-#include <Inventor/sensors/SoNodeSensor.h>
 
 class IndexedTesselationFace : public SoGroup {
  SO_NODE_HEADER(IndexedTesselationFace);
@@ -19,9 +18,8 @@ class IndexedTesselationFace : public SoGroup {
    IndexedTesselationFace(int numChilderen);
 
  protected:
+   SbBool readChildren(SoInput *in);
    enum WindingRule { ODD, NONZERO, POSITIVE, NEGATIVE, ABS_GEQ_TWO };
-   static void changedCB(void *data, SoSensor*);
-   SoNodeSensor *sensor;
    friend class Body;
 
  private:

@@ -98,6 +98,8 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 fi
 
+CPPFLAGS="$CPPFLAGS -Wall -Werror"
+
 AC_CONFIG_FILES([Makefile openmbvtinyxml/Makefile openmbv/Makefile schema/Makefile doc/Makefile])
 
 AC_OUTPUT
