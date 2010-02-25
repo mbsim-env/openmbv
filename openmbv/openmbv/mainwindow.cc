@@ -617,14 +617,14 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // read XML files
   if(arg.empty()) arg.push_back("."); // if called without argument load current dir
   QDir dir;
-  QRegExp filterRE1("[^.]+\\.ombv.xml");
-  QRegExp filterRE2("[^.]+\\.ombv.env.xml");
+  QRegExp filterRE1(".+\\.ombv\\.xml");
+  QRegExp filterRE2(".+\\.ombv\\.env\\.xml");
   dir.setFilter(QDir::Files);
   i=arg.begin();
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
-      // open all [^.]+\.ombv.xml and then all [^.]+\.ombv.env.xml files
+      // open all .+\.ombv\.xml and then all .+\.ombv\.env\.xml files
       QStringList file=dir.entryList();
       for(int j=0; j<file.size(); j++)
         if(filterRE1.exactMatch(file[j]))
