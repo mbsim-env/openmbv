@@ -21,19 +21,20 @@
 #include "frame.h"
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include "utils.h"
 
 Frame::Frame(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/frame.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"size");
-  double size=toVector(e->GetText())[0];
+  double size=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double offset=toVector(e->GetText())[0];
+  double offset=Utils::toVector(e->GetText())[0];
 
   // create so
-  soSepRigidBody->addChild(soFrame(size, offset, true));
+  soSepRigidBody->addChild(Utils::soFrame(size, offset, true));
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);

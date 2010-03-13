@@ -26,12 +26,14 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <vector>
+#include "utils.h"
+#include "utils.h"
 
 using namespace std;
 
 Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/extrusion.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"windingRule");
@@ -43,12 +45,12 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   if(windingRule_=="negative") windingRule=GLU_TESS_WINDING_NEGATIVE;
   if(windingRule_=="absGEqTwo") windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
   e=e->NextSiblingElement();
-  double height=toVector(e->GetText())[0];
+  double height=Utils::toVector(e->GetText())[0];
   if(fabs(height)<1e-13) height=0;
   e=e->NextSiblingElement();
   vector<vector<vector<double> > > contour;
   while(e && e->ValueStr()==OPENMBVNS"contour") {
-    contour.push_back(toMatrix(e->GetText()));
+    contour.push_back(Utils::toMatrix(e->GetText()));
     e=e->NextSiblingElement();
   }
 
@@ -136,22 +138,22 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     ol2->coordIndex.set1Value(r+1, -1);
   }
   // base and top
-  gluTessProperty(tess, GLU_TESS_WINDING_RULE, windingRule);
+  gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
   SoGroup *soTess=new SoGroup;
   soTess->ref();
-  gluTessBeginPolygon(tess, soTess);
+  gluTessBeginPolygon(Utils::tess, soTess);
   for(size_t c=0; c<contour.size(); c++) {
-    gluTessBeginContour(tess);
+    gluTessBeginContour(Utils::tess);
     for(size_t r=0; r<contour[c].size(); r++) {
       GLdouble *v=new GLdouble[3];
       v[0]=contour[c][r][0];
       v[1]=contour[c][r][1];
       v[2]=0;
-      gluTessVertex(tess, v, v);
+      gluTessVertex(Utils::tess, v, v);
     }
-    gluTessEndContour(tess);
+    gluTessEndContour(Utils::tess);
   }
-  gluTessEndPolygon(tess);
+  gluTessEndPolygon(Utils::tess);
   // normal binding
   SoNormalBinding *nb=new SoNormalBinding;
   soSepRigidBody->addChild(nb);

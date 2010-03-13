@@ -36,28 +36,6 @@
 
 #define OPENMBVNS "{http://openmbv.berlios.de/OpenMBV}"
 
-// Use QIconCached(filename) instead of QIcon(filename) everywhere
-// to cache the parsing of e.g. SVG files. This lead to a speedup
-// (at app init) by a factor of 11 in my test case.
-inline const QIcon& QIconCached(const QString& filename) {
-  static std::map<QString, QIcon> myIconCache;
-  std::map<QString, QIcon>::iterator i=myIconCache.find(filename);
-  if(i==myIconCache.end())
-    return myIconCache[filename]=QIcon(filename);
-  return i->second;
-}
-
-inline SoGroup* SoDBreadAllCached(const std::string &filename) {
-  static std::map<std::string, SoGroup*> myIvBodyCache;
-  std::map<std::string, SoGroup*>::iterator i=myIvBodyCache.find(filename);
-  if(i==myIvBodyCache.end()) {
-    SoInput in;
-    in.openFile(filename.c_str());
-    return myIvBodyCache[filename]=SoDB::readAll(&in);
-  }
-  return i->second;
-}
-
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
   protected:

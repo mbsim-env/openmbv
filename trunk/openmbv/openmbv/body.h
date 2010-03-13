@@ -30,12 +30,12 @@
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
-#include <GL/glu.h>
 #include "IndexedTesselationFace.h"
 #include <Inventor/SbBSPTree.h>
 #include <Inventor/SbVec3i32.h>
 #include <Inventor/lists/SbVec3fList.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include "utils.h"
 
 class Body : public Object {
   Q_OBJECT
@@ -61,48 +61,6 @@ class Body : public Object {
     QActionGroup *drawMethod;
     QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
     friend class IndexedTesselationFace;
-
-
-
-  // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-  protected:
-    // tess // convenience
-    static GLUtesselator *tess; // convenience
-    static GLenum tessType; // convenience
-    static int tessNumVertices; // convenience
-    static SoTriangleStripSet *tessTriangleStrip; // convenience
-    static SoIndexedFaceSet *tessTriangleFan; // convenience
-    static SoCoordinate3 *tessCoord; // convenience
-    static bool tessCBInit; // convenience
-    static void tessBeginCB(GLenum type, void *data); // convenience
-    static void tessVertexCB(GLdouble *vertex); // convenience
-    static void tessEndCB(void); // convenience
-
-    // string to vector
-    static std::vector<double> toVector(std::string str); // convenience
-    static std::vector<std::vector<double> > toMatrix(std::string str); // convenience
-
-  public:
-    // calculate crease edges
-    struct XX {
-      int vai, vbi; // index of the vertex at the line begin and end
-      std::vector<int> ni; // index of all normal vectors of faces, which join this edge
-    };
-    struct Edges {
-      SbBSPTree vertex; // a 3D float space paritioning for all vertex
-      SbBSPTree edge; // a 2D interger space paritioning for all edges (ABUSES the class SbBSPTree)
-      SbVec3fList normal; // a 1D array for the normals of all faces
-      std::vector<XX> ei2vini; // a 1D array for all edges
-    };
-    static void triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3);
-    static SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *edges);
-    static SoIndexedLineSet* calculateCreaseEdges(double creaseAngle, Edges *edges);
-    static SoIndexedLineSet* calculateBoundaryEdges(Edges *edges);
-
-    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) { SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale); } // convenience
-    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale); // convenience
-    static SbRotation cardan2Rotation(const SbVec3f& c);
-    static SbVec3f rotation2Cardan(const SbRotation& r);
 };
 
 #endif

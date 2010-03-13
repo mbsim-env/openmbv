@@ -21,6 +21,7 @@
 #include "spineextrusion.h"
 #include "mainwindow.h"
 #include <Inventor/nodes/SoMaterial.h>
+#include "utils.h"
 
 using namespace std;
 
@@ -38,9 +39,9 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"contour");
-  vector<vector<double> > contour=toMatrix(e->GetText());
+  vector<vector<double> > contour=Utils::toMatrix(e->GetText());
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  double scaleValue=toVector(e->GetText())[0];
+  double scaleValue=Utils::toVector(e->GetText())[0];
 
   // create so
   // material

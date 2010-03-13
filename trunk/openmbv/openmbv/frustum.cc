@@ -26,25 +26,26 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoShapeHints.h>
+#include "utils.h"
 
 using namespace std;
 
 Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/frustum.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"baseRadius");
-  double baseRadius=toVector(e->GetText())[0];
+  double baseRadius=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double topRadius=toVector(e->GetText())[0];
+  double topRadius=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double height=toVector(e->GetText())[0];
+  double height=Utils::toVector(e->GetText())[0];
   if(fabs(height)<1e-13) height=0;
   e=e->NextSiblingElement();
-  double innerBaseRadius=toVector(e->GetText())[0];
+  double innerBaseRadius=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double innerTopRadius=toVector(e->GetText())[0];
+  double innerTopRadius=Utils::toVector(e->GetText())[0];
 
   const int N=25;
 

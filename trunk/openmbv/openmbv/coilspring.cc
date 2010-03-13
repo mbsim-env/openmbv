@@ -20,12 +20,13 @@
 #include "config.h"
 #include "coilspring.h"
 #include "mainwindow.h"
+#include "utils.h"
 
 using namespace std;
 
 CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/coilspring.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
@@ -39,13 +40,13 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
-  numberOfCoils=(int)toVector(e->GetText())[0];
+  numberOfCoils=(int)Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"springRadius");
-  springRadius=toVector(e->GetText())[0];
+  springRadius=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
-  double crossSectionRadius=toVector(e->GetText())[0];
+  double crossSectionRadius=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  scaleValue=toVector(e->GetText())[0];
+  scaleValue=Utils::toVector(e->GetText())[0];
 
   // create so
   // body

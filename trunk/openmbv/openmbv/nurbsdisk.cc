@@ -23,6 +23,7 @@
 #include "mainwindow.h"
 
 #include <Inventor/nodes/SoMaterial.h>
+#include "utils.h"
 
 using namespace std;
 
@@ -40,25 +41,25 @@ NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // read XML
   TiXmlElement *e;
   //e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  //double scaleValue=toVector(e->GetText())[0];
+  //double scaleValue=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"drawDegree");
-  drawDegree=(int)toVector(e->GetText())[0];  
+  drawDegree=(int)Utils::toVector(e->GetText())[0];  
   e=element->FirstChildElement(OPENMBVNS"elementNumberAzimuthal");
-  nj=(int)toVector(e->GetText())[0];
+  nj=(int)Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"elementNumberRadial");
-  nr=(int)toVector(e->GetText())[0]; 
+  nr=(int)Utils::toVector(e->GetText())[0]; 
   e=element->FirstChildElement(OPENMBVNS"interpolationDegreeRadial");
-  degRadial=(int)toVector(e->GetText())[0];
+  degRadial=(int)Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"interpolationDegreeAzimuthal");
-  degAzimuthal=(int)toVector(e->GetText())[0];
+  degAzimuthal=(int)Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"innerRadius");
-  innerRadius=toVector(e->GetText())[0];
+  innerRadius=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"outerRadius");
-  outerRadius=toVector(e->GetText())[0];
+  outerRadius=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"knotVecAzimuthal");
-  knotVecAzimuthal=toVector(e->GetText());
+  knotVecAzimuthal=Utils::toVector(e->GetText());
   e=element->FirstChildElement(OPENMBVNS"knotVecRadial");
-  knotVecRadial=toVector(e->GetText());  
+  knotVecRadial=Utils::toVector(e->GetText());  
 
   nurbsLength = (nr+1)*(nj+degAzimuthal);
 

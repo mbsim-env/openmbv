@@ -28,12 +28,13 @@
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 
 #include <vector>
+#include "utils.h"
 
 using namespace std;
 
 IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/ivbody.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   double creaseAngle=-1;
   bool boundaryEdges=false;
@@ -44,12 +45,12 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   // fix relative path name of file to be included (will hopefully work also on windows)
   fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
   e=element->FirstChildElement(OPENMBVNS"creaseAngle");
-  if(e) creaseAngle=toVector(e->GetText())[0];
+  if(e) creaseAngle=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
   if(e) boundaryEdges=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
 
   // create so
-  SoGroup *soIv=SoDBreadAllCached(fileName.c_str());
+  SoGroup *soIv=Utils::SoDBreadAllCached(fileName.c_str());
   soSepRigidBody->addChild(soIv);
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
@@ -69,10 +70,10 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
 
   // outline
   if(creaseAngle>=0 || boundaryEdges) {
-    Edges *edges=new Edges;
+    Utils::Edges *edges=new Utils::Edges;
     soSepRigidBody->addChild(soOutLineSwitch);
-    soOutLineSep->addChild(preCalculateEdges(soIv, edges));
-    if(creaseAngle>=0) soOutLineSep->addChild(calculateCreaseEdges(creaseAngle, edges));
-    if(boundaryEdges) soOutLineSep->addChild(calculateBoundaryEdges(edges));
+    soOutLineSep->addChild(Utils::preCalculateEdgesCached(soIv, edges));
+    if(creaseAngle>=0) soOutLineSep->addChild(Utils::calculateCreaseEdges(creaseAngle, edges));
+    if(boundaryEdges) soOutLineSep->addChild(Utils::calculateBoundaryEdges(edges));
   }
 }

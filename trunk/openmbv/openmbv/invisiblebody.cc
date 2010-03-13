@@ -22,12 +22,13 @@
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
+#include "utils.h"
 
 using namespace std;
 
 InvisibleBody::InvisibleBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/invisiblebody.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
 

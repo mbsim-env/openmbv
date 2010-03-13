@@ -30,6 +30,7 @@
 #include <Inventor/draggers/SoCenterballDragger.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <QtGui/QMenu>
+#include "utils.h"
 
 using namespace std;
 
@@ -49,11 +50,11 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // read XML
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
-  vector<double> initTransValue=toVector(e->GetText());
+  vector<double> initTransValue=Utils::toVector(e->GetText());
   e=e->NextSiblingElement();
-  vector<double> initRotValue=toVector(e->GetText());
+  vector<double> initRotValue=Utils::toVector(e->GetText());
   e=e->NextSiblingElement();
-  double scaleValue=toVector(e->GetText())[0];
+  double scaleValue=Utils::toVector(e->GetText())[0];
 
   // create so
 
@@ -97,7 +98,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     // reference frame
     soReferenceFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soReferenceFrameSwitch);
-    soReferenceFrameSwitch->addChild(soFrame(1,1,false,refFrameScale));
+    soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
@@ -123,13 +124,13 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // initial rotation
   initRot=new SoRotation;
   grp->addChild(initRot);
-  initRot->rotation.setValue(cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert()); // this is later changed to connectFrom if the dragger exists
+  initRot->rotation.setValue(Utils::cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert()); // this is later changed to connectFrom if the dragger exists
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
     soLocalFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soLocalFrameSwitch);
-    soLocalFrameSwitch->addChild(soFrame(1,1,false,localFrameScale));
+    soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
     soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
   
     // mat (from hdf5)
@@ -150,23 +151,23 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
-    localFrame=new QAction(QIconCached(":/localframe.svg"),"Draw Local Frame", this);
+    localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
     localFrame->setCheckable(true);
     localFrame->setObjectName("RigidBody::localFrame");
     connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-    referenceFrame=new QAction(QIconCached(":/referenceframe.svg"),"Draw Reference Frame", this);
+    referenceFrame=new QAction(Utils::QIconCached(":/referenceframe.svg"),"Draw Reference Frame", this);
     referenceFrame->setCheckable(true);
     referenceFrame->setObjectName("RigidBody::referenceFrame");
     connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
-    path=new QAction(QIconCached(":/path.svg"),"Draw Path of Reference Frame", this);
+    path=new QAction(Utils::QIconCached(":/path.svg"),"Draw Path of Reference Frame", this);
     path->setCheckable(true);
     path->setObjectName("RigidBody::path");
     connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
-    dragger=new QAction(QIconCached(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
+    dragger=new QAction(Utils::QIconCached(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
     dragger->setCheckable(true);
     dragger->setObjectName("RigidBody::dragger");
     connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
-    moveCameraWith=new QAction(QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);
+    moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   }
@@ -248,7 +249,7 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  rotation->rotation.setValue(cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotatoin matrix (needed for move camera with body)
+  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotatoin matrix (needed for move camera with body)
 
   // do not change "mat" if color has not changed to prevent
   // invalidating the render cache of the geometry.
@@ -286,7 +287,7 @@ void RigidBody::draggerMoveCB(void *, SoDragger *dragger_) {
   float x,y,z;
   dragger->center.getValue().getValue(x,y,z);
   float a, b, g;
-  rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
+  Utils::rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
   MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
     arg(x,0,'f',6).arg(y,0,'f',6).arg(z,0,'f',6).
     arg(a,0,'f',6).arg(b,0,'f',6).arg(g,0,'f',6));
@@ -298,7 +299,7 @@ void RigidBody::draggerFinishCB(void *me_, SoDragger *dragger_) {
   float x,y,z;
   dragger->center.getValue().getValue(x,y,z);
   float a, b, g;
-  rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
+  Utils::rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
   cout<<"New initial translation/rotation for: "<<me->getPath()<<endl
       <<"Translation: ["<<x<<", "<<y<<", "<<z<<"]"<<endl
       <<"Rotation: ["<<a<<", "<<b<<", "<<g<<"]"<<endl;

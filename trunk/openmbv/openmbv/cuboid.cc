@@ -22,16 +22,17 @@
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
+#include "utils.h"
 
 using namespace std;
 
 Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/cuboid.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"length");
-  vector<double> length=toVector(e->GetText());
+  vector<double> length=Utils::toVector(e->GetText());
 
   // create so
   SoCube *cuboid=new SoCube;
