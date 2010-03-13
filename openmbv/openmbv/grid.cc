@@ -22,20 +22,21 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include "utils.h"
 
 Grid::Grid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/grid.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
 //  // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"xSize");
-  double dx=toVector(e->GetText())[0];
+  double dx=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"ySize");
-  double dy=toVector(e->GetText())[0];
+  double dy=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"nx");
-  int nx=int(toVector(e->GetText())[0]+.5);
+  int nx=int(Utils::toVector(e->GetText())[0]+.5);
   e=element->FirstChildElement(OPENMBVNS"ny");
-  int ny=int(toVector(e->GetText())[0]+.5);
+  int ny=int(Utils::toVector(e->GetText())[0]+.5);
 
   SoSeparator *sep = new SoSeparator;
 

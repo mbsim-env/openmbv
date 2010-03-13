@@ -33,6 +33,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   mainwindow.cc\
   exportdialog.cc\
   object.cc\
+  utils.cc\
   path.cc\
   arrow.cc\
   objectfactory.cc\
@@ -75,6 +76,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
 noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
   object.h\
+  utils.h\
   path.h\
   arrow.h\
   rigidbody.h\

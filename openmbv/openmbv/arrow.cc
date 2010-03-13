@@ -23,12 +23,13 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include "utils.h"
 
 using namespace std;
 
 Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/arrow.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
@@ -42,11 +43,11 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"diameter");
-  double diameter=toVector(e->GetText())[0];
+  double diameter=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  double headDiameter=toVector(e->GetText())[0];
+  double headDiameter=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
-  headLength=toVector(e->GetText())[0];
+  headLength=Utils::toVector(e->GetText())[0];
   e=e->NextSiblingElement();
   string type_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
   if(type_=="line") type=line;
@@ -55,7 +56,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   else type=bothHeads;
   if(type!=toHead) printf("Only toHead is implemented yet!!!\n"); //TODO
   e=e->NextSiblingElement();
-  scaleLength=toVector(e->GetText())[0];
+  scaleLength=Utils::toVector(e->GetText())[0];
 
   // create so
   // path
@@ -138,7 +139,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   soOutLineSep->addChild(coneOL2);
  
   // GUI
-  path=new QAction(QIconCached(":/path.svg"),"Draw Path of To-Point", this);
+  path=new QAction(Utils::QIconCached(":/path.svg"),"Draw Path of To-Point", this);
   path->setCheckable(true);
   path->setObjectName("Arrow::path");
   connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));

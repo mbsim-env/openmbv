@@ -21,12 +21,13 @@
 #include "path.h"
 #include "mainwindow.h"
 #include <Inventor/nodes/SoBaseColor.h>
+#include "utils.h"
 
 using namespace std;
 
 Path::Path(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
   iconFile=":/path.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
@@ -40,7 +41,7 @@ Path::Path(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"color");
-  vector<double> color=toVector(e->GetText());
+  vector<double> color=Utils::toVector(e->GetText());
 
   // create so
   SoBaseColor *col=new SoBaseColor;

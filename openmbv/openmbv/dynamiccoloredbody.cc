@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -26,12 +27,12 @@ DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Paren
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
   if(e)
-    minimalColorValue=toVector(e->GetText())[0];
+    minimalColorValue=Utils::toVector(e->GetText())[0];
   else
     minimalColorValue=0;
   e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
   if(e)
-    maximalColorValue=toVector(e->GetText())[0];
+    maximalColorValue=Utils::toVector(e->GetText())[0];
   else
     maximalColorValue=1;
   e=element->FirstChildElement(OPENMBVNS"staticColor");

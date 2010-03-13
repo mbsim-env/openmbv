@@ -36,7 +36,7 @@ IndexedTesselationFace::~IndexedTesselationFace() {
 SbBool IndexedTesselationFace::readChildren(SoInput *in) {
   // if attributes are read, generate the children using gluTess
 
-  assert(Body::tessCBInit);
+  assert(Utils::init);
 
   int wr;
   switch(windingRule.getValue()) {
@@ -46,24 +46,24 @@ SbBool IndexedTesselationFace::readChildren(SoInput *in) {
     case NEGATIVE: wr=GLU_TESS_WINDING_NEGATIVE; break;
     default /*ABS_GEQ_TWO*/: wr=GLU_TESS_WINDING_ABS_GEQ_TWO; break;
   }
-  gluTessProperty(Body::tess, GLU_TESS_WINDING_RULE, wr);
-  gluTessBeginPolygon(Body::tess, this);
+  gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, wr);
+  gluTessBeginPolygon(Utils::tess, this);
   bool contourOpen=false;
   for(int i=0; i<coordIndex.getNum(); i++) {
     if(contourOpen==false && coordIndex[i]>=0) {
-      gluTessBeginContour(Body::tess);
+      gluTessBeginContour(Utils::tess);
       contourOpen=true;
     }
     if(coordIndex[i]>=0) {
       double *v=(double*)(coordinate[coordIndex[i]].getValue());
-      gluTessVertex(Body::tess, v, v);
+      gluTessVertex(Utils::tess, v, v);
     }
     if(coordIndex[i]<0 || i>=coordIndex.getNum()-1) {
-      gluTessEndContour(Body::tess);
+      gluTessEndContour(Utils::tess);
       contourOpen=false;
     }
   }
-  gluTessEndPolygon(Body::tess);
+  gluTessEndPolygon(Utils::tess);
 
   return true; // reading/generating of children sucessful
 }

@@ -22,16 +22,17 @@
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
+#include "utils.h"
 
 using namespace std;
 
 Sphere::Sphere(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
   iconFile=":/sphere.svg";
-  setIcon(0, QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"radius");
-  double radius=toVector(e->GetText())[0];
+  double radius=Utils::toVector(e->GetText())[0];
 
   // create so
   SoSphere *sphere=new SoSphere;
