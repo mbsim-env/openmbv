@@ -122,7 +122,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   sceneRoot->precision.setValue(1.0);
   SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons 1 unit in background
   sceneRoot->addChild(offset);
-  offset->units.setValue(4);
+  offset->units.setValue(10);
 
   // Switch/Separator for global shilouette/crease/boundary edge geometry
   shilouetteSW=new SoSwitch;
@@ -1038,21 +1038,8 @@ void MainWindow::frameOrCameraSensorCB(void *data, SoSensor* sensor) {
     r*=((SoSFRotation*)(me->cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
     SbVec3f n;
     r.multVec(SbVec3f(0,0,-1),n); // a vector normal to the viewport in the world frame
-    me->soShilouetteEdge->coordIndex.deleteValues(0); // clear all previous shilouette edges
-    int nr=0;
-    for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
-      if(edges->ei2vini[i].ni.size()==2) {
-        int nia=edges->ei2vini[i].ni[0];
-        int nib=edges->ei2vini[i].ni[1];
-        int vai=edges->ei2vini[i].vai;
-        int vbi=edges->ei2vini[i].vbi;
-        if(edges->normal[nia]->dot(n)*edges->normal[nib]->dot(n)<0) {
-          me->soShilouetteEdge->coordIndex.set1Value(nr++, vai);
-          me->soShilouetteEdge->coordIndex.set1Value(nr++, vbi);
-          me->soShilouetteEdge->coordIndex.set1Value(nr++, -1);
-        }
-      }
-    }
+    SoIndexedLineSet *soShilouetteEdgeOld=me->soShilouetteEdge;
+    me->shilouetteSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=Utils::calculateShilouetteEdge(n, edges));
   }
 
   firstCall=false;
