@@ -36,7 +36,7 @@ IndexedTesselationFace::~IndexedTesselationFace() {
 SbBool IndexedTesselationFace::readChildren(SoInput *in) {
   // if attributes are read, generate the children using gluTess
 
-  assert(Utils::init);
+  Utils::initialize();
 
   int wr;
   switch(windingRule.getValue()) {
