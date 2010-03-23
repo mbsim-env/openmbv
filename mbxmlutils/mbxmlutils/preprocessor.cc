@@ -364,8 +364,8 @@ catch(string str) {
 }
 
 string extractFileName(string dirfilename) {
-  unsigned int i1=dirfilename.find_last_of('/');
-  unsigned int i2=dirfilename.find_last_of('\\');
+  size_t i1=dirfilename.find_last_of('/');
+  size_t i2=dirfilename.find_last_of('\\');
   i1=(i1==string::npos?-1:i1);
   i2=(i2==string::npos?-1:i2);
   i1=max(i1,i2);
