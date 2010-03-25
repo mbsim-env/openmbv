@@ -36,6 +36,9 @@ namespace OpenMBV {
     public:
       /** Default constructor */
       Path();
+      
+      /** Destructor */
+      virtual ~Path();
 
       /** Append a data vector the to hf dataset */
       void append(const std::vector<double>& row) {

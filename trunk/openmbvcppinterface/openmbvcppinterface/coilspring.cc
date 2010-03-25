@@ -30,6 +30,10 @@ CoilSpring::CoilSpring() : DynamicColoredBody(),
   scaleFactor(1) {
 }
 
+CoilSpring::~CoilSpring() {
+  if(!hdf5LinkBody && data) { delete data; data=0; }
+}
+
 void CoilSpring::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<CoilSpring name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
