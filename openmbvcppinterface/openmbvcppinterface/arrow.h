@@ -43,6 +43,9 @@ namespace OpenMBV {
     public:
       /** Default Constructor */
       Arrow();
+
+      /** Destructor */
+      virtual ~Arrow();
       
       /** Append the data \p row to the end of the dataset */
       void append(std::vector<double>& row) {

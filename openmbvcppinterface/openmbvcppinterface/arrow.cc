@@ -32,6 +32,10 @@ Arrow::Arrow() : DynamicColoredBody(),
   type(toHead) {
 }
 
+Arrow::~Arrow() {
+  if(!hdf5LinkBody && data) { delete data; data=0; }
+}
+
 void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<Arrow name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");

@@ -27,6 +27,10 @@ using namespace OpenMBV;
 Path::Path() : Body() {
 }
 
+Path::~Path() {
+  if(!hdf5LinkBody && data) { delete data; data=0; }
+}
+
 void Path::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<Path name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
     Body::writeXMLFile(xmlFile, indent+"  ");

@@ -34,7 +34,12 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
       double springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
     public:
+      /** Default Constructor */
       CoilSpring();
+      
+      /** Destructor */
+      virtual ~CoilSpring();
+      
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
         if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
