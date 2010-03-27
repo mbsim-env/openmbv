@@ -25,6 +25,7 @@ using namespace std;
 using namespace OpenMBV;
 
 Arrow::Arrow() : DynamicColoredBody(),
+  data(0),
   headDiameter(0.5),
   headLength(0.75),
   diameter(0.25),
