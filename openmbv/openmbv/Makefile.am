@@ -109,7 +109,7 @@ openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/index.x
 	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>"; \
 	done; \
-	for F in $$(ls -1 $$(pkg-config mbxmlutils --variable DOCDIR)/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png $$(pkg-config mbxmlutils --variable DOCDIR)/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
+	for F in $$(ls -1 @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>"; \
 	done; \
 	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc
