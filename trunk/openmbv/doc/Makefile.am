@@ -4,11 +4,11 @@ xml/index.xml: ../schema/schema/openmbv.xsd ../openmbvcppinterface-src/openmbvcp
 	doxygen
 
 openmbv/openmbv.tex: xml/index.xml
-	$$(pkg-config mbxmlutils --variable BINDIR)/mbxmlutils-xsd2html $$(pkg-config mbxmlutils --variable SCHEMADIR)/http___openmbv_berlios_de_OpenMBV/openmbv.xsd xml ../openmbvcppinterface-src/openmbvcppinterface OpenMBV OpenMBV:: true
+	@MBXMLUTILSBINDIR@/mbxmlutils-xsd2html @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd xml ../openmbvcppinterface-src/openmbvcppinterface OpenMBV OpenMBV:: true
 
 
 install:
-	cp -r http___* $$(pkg-config mbxmlutils --variable DOCDIR)
+	cp -r http___* @MBXMLUTILSDOCDIR@
 
 
 
