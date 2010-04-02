@@ -12,6 +12,9 @@
 #include <map>
 #include <string>
 
+const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i);
+void TiXml_PostLoadFile(TiXmlDocument *doc);
+
 /* Just a int to string converter */
 std::string TiXml_itoa(int i);
 
@@ -21,7 +24,7 @@ std::string TiXml_itoa(int i);
  * It the element was included by a pv:embed. then the filename and line nubmer
  * and the "count" of the origianl pv:embed element is also shown.
  */
-void TiXml_location(const TiXmlElement *e, const std::string &pre, const std::string &post);
+void TiXml_location(TiXmlElement *e, const std::string &pre, const std::string &post);
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);

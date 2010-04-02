@@ -12,6 +12,23 @@
 
 using namespace std;
 
+const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i) {
+  if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i==0)
+    return e->ToElement();
+  else if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i>0 && e->Parent())
+    return TiXml_GetElementWithXmlBase(e->Parent()->ToElement(),i-1);
+  else if(e->Parent())
+    return TiXml_GetElementWithXmlBase(e->Parent()->ToElement(),i);
+  else
+    return 0;
+}
+
+void TiXml_PostLoadFile(TiXmlDocument *doc) {
+  if(doc->FirstChildElement()->Attribute("xml:base")==0)
+    doc->FirstChildElement()->SetAttribute("xml:base", doc->Value());
+}
+
+
 string TiXml_itoa(int i) {
   ostringstream str;
   str<<i;
@@ -55,11 +72,11 @@ void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
 void TiXml_deletePIandComm(TiXmlElement *e) {
 }
 
-void TiXml_location(const TiXmlElement *e, const string &pre, const string &post) {
-  cout<<pre<<e->GetElementWithXmlBase(0)->Attribute("xml:base")<<":"<<e->Row()<<post<<endl;
+void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
+  cout<<pre<<TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")<<":"<<e->Row()<<post<<endl;
   const TiXmlElement *p;
-  for(int i=1; (p=e->GetElementWithXmlBase(i))!=0; i++) {
-    const TiXmlNode *c=e->GetElementWithXmlBase(i-1)->FirstChild();
+  for(int i=1; (p=TiXml_GetElementWithXmlBase(e,i))!=0; i++) {
+    const TiXmlNode *c=TiXml_GetElementWithXmlBase(e,i-1)->FirstChild();
     const TiXmlUnknown *u;
     for(u=c->ToUnknown(); u && u->ValueStr().substr(0,23)!="?OriginalElementLineNr "; u=u->NextSibling()->ToUnknown());
     string line=u->ValueStr().substr(23);
