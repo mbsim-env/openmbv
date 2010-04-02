@@ -55,7 +55,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   }
   
   // h5 group
-  if(element->Parent()->Type()==TiXmlNode::DOCUMENT || h5Parent==0)
+  if(element->Parent()->ToDocument() || h5Parent==0)
     h5Group=h5Parent;
   else
     h5Group=new H5::Group(h5Parent->openGroup(element->Attribute("name")));

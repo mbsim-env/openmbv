@@ -688,7 +688,7 @@ bool MainWindow::openFile(string fileName) {
   }
   // read XML
   TiXmlDocument doc;
-  doc.LoadFile(fileName);
+  doc.LoadFile(fileName); TiXml_PostLoadFile(&doc);
   map<string,string> dummy;
   incorporateNamespace(doc.FirstChildElement(), dummy);
   Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent, objectList->invisibleRootItem(), sceneRoot);

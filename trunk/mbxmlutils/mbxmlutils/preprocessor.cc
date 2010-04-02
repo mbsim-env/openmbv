@@ -82,7 +82,7 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
   static char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
     if(getcwd(savedPath, PATHLENGTH)==0) throw(1);
-    if(chdir(fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"),".").c_str())!=0) throw(1);
+    if(chdir(fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"),".").c_str())!=0) throw(1);
   }
 
   int dummy;
@@ -171,7 +171,7 @@ int genParamString(TiXmlElement *e, string &paramString) {
         param[i].equ=octaveEval("", param[i].equ,(j==param.size()-1)?true:false, false);
     }
     catch(string str) {
-      cout<<param[i].ele->GetElementWithXmlBase(0)<<":"<<param[i].ele->Row()<<": ";
+      cout<<TiXml_GetElementWithXmlBase(param[i].ele,0)<<":"<<param[i].ele->Row()<<": ";
       if(str.find("error(")!=string::npos)
         cout<<"Possible a infinite recursion in parameter file at e.g.: "<<param[i].ele->GetText()<<endl;
       else
@@ -208,7 +208,7 @@ try {
     // get file name if href attribute exist
     string file="";
     if(e->Attribute("href")) {
-      file=fixPath(e->GetElementWithXmlBase(0)->Attribute("xml:base"), e->Attribute("href"));
+      file=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Attribute("href"));
     }
 
     // get onlyif attribute if exist
@@ -238,7 +238,7 @@ try {
       }
       cout<<"Read "<<file<<endl;
       TiXmlDocument *doc=new TiXmlDocument;
-      doc->LoadFile(file.c_str());
+      doc->LoadFile(file.c_str()); TiXml_PostLoadFile(doc);
       enew=doc->FirstChildElement();
       incorporateNamespace(enew, nsprefix);
       // convert embeded file to octave notation
@@ -253,7 +253,7 @@ try {
         enew=(TiXmlElement*)e->FirstChildElement()->NextSiblingElement()->Clone();
       else
         enew=(TiXmlElement*)e->FirstChildElement()->Clone();
-      enew->SetAttribute("xml:base", e->GetElementWithXmlBase(0)->Attribute("xml:base")); // add a xml:base attribute
+      enew->SetAttribute("xml:base", TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")); // add a xml:base attribute
     }
 
     // include a processing instruction with the line number of the original element
@@ -283,7 +283,7 @@ try {
         // read local parameter file
         cout<<"Read local parameter file "<<paramFile<<endl;
         TiXmlDocument *localparamxmldoc=new TiXmlDocument;
-        localparamxmldoc->LoadFile(paramFile.c_str());
+        localparamxmldoc->LoadFile(paramFile.c_str()); TiXml_PostLoadFile(localparamxmldoc);
         TiXmlElement *localparamxmlroot=localparamxmldoc->FirstChildElement();
         map<string,string> dummy;
         incorporateNamespace(localparamxmlroot,dummy);
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
     if(string(paramxml)!="none") {
       cout<<"Read "<<paramxml<<endl;
       TiXmlDocument *paramxmldoc=new TiXmlDocument;
-      paramxmldoc->LoadFile(paramxml);
+      paramxmldoc->LoadFile(paramxml); TiXml_PostLoadFile(paramxmldoc);
       paramxmlroot=paramxmldoc->FirstChildElement();
       map<string,string> dummy;
       incorporateNamespace(paramxmlroot,dummy);
@@ -457,7 +457,7 @@ int main(int argc, char *argv[]) {
     // get units
     cout<<"Build unit list for measurements"<<endl;
     TiXmlDocument *mmdoc=new TiXmlDocument;
-    mmdoc->LoadFile(XMLDIR+"/measurement.xml");
+    mmdoc->LoadFile(XMLDIR+"/measurement.xml"); TiXml_PostLoadFile(mmdoc);
     TiXmlElement *ele, *el2;
     map<string,string> units;
     for(ele=mmdoc->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement())
@@ -475,7 +475,7 @@ int main(int argc, char *argv[]) {
     // read main file
     cout<<"Read "<<mainxml<<endl;
     TiXmlDocument *mainxmldoc=new TiXmlDocument;
-    mainxmldoc->LoadFile(mainxml);
+    mainxmldoc->LoadFile(mainxml); TiXml_PostLoadFile(mainxmldoc);
     TiXmlElement *mainxmlroot=mainxmldoc->FirstChildElement();
     map<string,string> nsprefix;
     incorporateNamespace(mainxmlroot,nsprefix);
