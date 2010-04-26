@@ -38,7 +38,7 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // read XML
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"windingRule");
   string windingRule_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
-  int windingRule;
+  int windingRule=GLU_TESS_WINDING_ODD;
   if(windingRule_=="odd") windingRule=GLU_TESS_WINDING_ODD; 
   if(windingRule_=="nonZero") windingRule=GLU_TESS_WINDING_NONZERO;
   if(windingRule_=="positive") windingRule=GLU_TESS_WINDING_POSITIVE;
