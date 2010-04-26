@@ -382,10 +382,10 @@ catch(string str) {
 }
 
 string extractFileName(string dirfilename) {
-  size_t i1=dirfilename.find_last_of('/');
-  size_t i2=dirfilename.find_last_of('\\');
-  i1=(i1==string::npos?-1:i1);
-  i2=(i2==string::npos?-1:i2);
+  int i1=(int)dirfilename.find_last_of('/');
+  int i2=(int)dirfilename.find_last_of('\\');
+  i1=(i1==(int)string::npos?-1:(int)i1);
+  i2=(i2==(int)string::npos?-1:(int)i2);
   i1=max(i1,i2);
   return dirfilename.substr(i1+1);
 }
