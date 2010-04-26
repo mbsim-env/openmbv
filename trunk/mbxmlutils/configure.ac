@@ -12,7 +12,9 @@ AC_LANG([C++])
 dnl Check for MinGW
 AC_CANONICAL_HOST
 if test "_$host_os" = "_mingw32" ; then
-  AC_DEFINE([MINGW], [1], [Host System is MinGW/MSys])
+  # MINGW is already in use by octave header
+  AC_DEFINE([MBXMLUTILS_MINGW], [1], [Host System is MinGW/MSys])
+  CPPFLAGS="$CPPFLAGS -DMBXMLUTILS_MINGW"
   LIBS="$LIBS -lregex"
 fi
 

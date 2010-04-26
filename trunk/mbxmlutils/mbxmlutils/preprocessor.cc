@@ -10,6 +10,7 @@
 #include <octave/oct.h>
 #include <octave/octave.h>
 #include <octave/parse.h>
+// #include <config.h> conflict with octave header
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
@@ -22,6 +23,23 @@ string OCTAVEDIR;
 char *nslocation;
 
 int machinePrec;
+
+int orgstderr;
+streambuf *orgcerr;
+void disable_stderr() {
+  orgcerr=std::cerr.rdbuf(0);
+  orgstderr=dup(fileno(stderr));
+#ifdef MBXMLUTILS_MINGW
+  freopen("nul", "w", stderr);
+#else
+  freopen("/dev/null", "w", stderr);
+#endif
+}
+void enable_stderr() {
+  std::cerr.rdbuf(orgcerr);
+  dup2(orgstderr, fileno(stderr));
+  close(orgstderr);
+}
 
 // validate file using schema (currently by libxml)
 int validate(const string &schema, const char *file) {
@@ -92,14 +110,14 @@ string octaveEval(string prestr, string str, bool exitOnError=true, bool clearOn
 
   string clear="";
   if(clearOnStart) clear="clear -all;\n";
-  streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
+  disable_stderr();
   eval_string(clear+prestr+"ret="+str,true,dummy,0);
-  std::cerr.rdbuf(orgcerr); // enable std::cerr
+  enable_stderr();
   if(error_state!=0) {
     error_state=0;
-    if(!exitOnError) std::cerr.rdbuf(0); // disable std::cerr if not exiting on error
+    if(!exitOnError) disable_stderr();
     eval_string(clear+prestr+str,true,dummy,0);
-    if(!exitOnError) std::cerr.rdbuf(orgcerr); // enable std::cerr if not exiting on error
+    if(!exitOnError) enable_stderr();
     if(error_state!=0) {
       if(exitOnError) {
         if(e) if(chdir(savedPath)!=0) throw(1);
@@ -401,14 +419,14 @@ int main(int argc, char *argv[]) {
   const char *octave_argv[2]={"dummy", "-q"};
   octave_main(2, (char**)octave_argv, 1);
   int dummy;
-  streambuf *orgcerr=std::cerr.rdbuf(0); // disable std::cerr
+  disable_stderr();
   eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // 1/0 is error
   error_state=0;
   eval_string("addpath(\""+OCTAVEDIR+"\");",true,dummy,0); // for octave >= 3.0.0
   error_state=0;
   eval_string("LOADPATH=[LOADPATH \":"+OCTAVEDIR+"\"];",true,dummy,0); // for octave < 3.0.0
   error_state=0;
-  std::cerr.rdbuf(orgcerr); // enable std::cerr
+  enable_stderr();
 
   // preserve whitespace and newline in TiXmlText nodes
   TiXmlBase::SetCondenseWhiteSpace(false);
