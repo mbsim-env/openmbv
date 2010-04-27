@@ -30,9 +30,9 @@ void disable_stderr() {
   orgcerr=std::cerr.rdbuf(0);
   orgstderr=dup(fileno(stderr));
 #ifdef MBXMLUTILS_MINGW
-  freopen("nul", "w", stderr);
+  if(freopen("nul", "w", stderr)==0) throw(1);
 #else
-  freopen("/dev/null", "w", stderr);
+  if(freopen("/dev/null", "w", stderr)==0) throw(1);
 #endif
 }
 void enable_stderr() {
