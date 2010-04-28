@@ -41,7 +41,16 @@
                 <xs:attribute name="href" use="optional" type="xs:anyURI"/>
               </xs:complexType>
             </xs:element>
-            <xs:any namespace="##other" processContents="strict" minOccurs="0"/>
+            <!--
+            -<xs:any namespace="##other" processContents="strict" minOccurs="0"/>
+            -->
+            <xs:choice minOccurs="0">
+              <!--
+                 - This choice enables nested embed-Tags. (Need to be tested)
+                 -->
+              <xs:any namespace="##other" processContents="strict"/>
+              <xs:element ref="embed"/>
+            </xs:choice>
           </xs:sequence>
           <xs:attribute name="href" type="xs:anyURI" use="optional"/>
           <xs:attribute name="count" use="optional" type="fullOctaveString" default="1"/>
