@@ -26,7 +26,14 @@
 
 namespace OpenMBV {
 
-  /** A coil spring */
+  /** A coil spring
+   *
+   * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
+   * double precision values. Each row represents one dataset in time.
+   * A row consists of the following columns in order given in
+   * world frame: time,
+   * "from" point x, "from" point y,
+   * "from" point z, "to" point x, "to" point y, "to" point z, color */
   class CoilSpring : public DynamicColoredBody {
     protected:
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

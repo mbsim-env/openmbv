@@ -57,7 +57,13 @@ namespace OpenMBV {
    * which are the kardan angles of the transformation matrix
    * \f[ A_{WR}= \textrm{cardan}(\alpha_P, \beta_P, \gamma_P) \f]
    * from system R to system W.
-   */
+   *
+   * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
+   * double precision values. Each row represents one dataset in time.
+   * A row consists of the following columns in order: time,
+   * \f$ _W x_P \f$, \f$ _W y_P \f$, \f$ _W z_P \f$,
+   * \f$ \alpha_P \f$, \f$ \beta_P \f$, \f$ \gamma_P \f$,
+   * color */
   class RigidBody : public DynamicColoredBody {
     friend class CompoundRigidBody;
     protected:

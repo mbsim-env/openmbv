@@ -62,11 +62,11 @@ void Arrow::createHDF5File() {
     vector<string> columns;
     columns.push_back("Time");
     columns.push_back("toPoint x");
-    columns.push_back("toPoint x");
-    columns.push_back("toPoint x");
-    columns.push_back("delte x");
-    columns.push_back("delte y");
-    columns.push_back("delte z");
+    columns.push_back("toPoint y");
+    columns.push_back("toPoint z");
+    columns.push_back("delta x");
+    columns.push_back("delta y");
+    columns.push_back("delta z");
     columns.push_back("color");
     data->create(*hdf5Group,"data",columns);
   }
