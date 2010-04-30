@@ -513,6 +513,8 @@ A indent indicates child elements for a given element.
 
   <xsl:template mode="CLONEDOC" match="html:tt">\lstinline[basicstyle=\bf\ttfamily]|<xsl:apply-templates mode="CLONEDOC"/>|</xsl:template>
 
+  <xsl:template mode="CLONEDOC" match="html:pre">\begin{verbatim}<xsl:value-of select="."/>\end{verbatim}</xsl:template>
+
   <xsl:template mode="CLONEDOC" match="html:object[@class='eqn']"><xsl:text>
 \[ </xsl:text><xsl:value-of select="."/><xsl:text> \]
 </xsl:text></xsl:template>
