@@ -31,7 +31,15 @@ namespace OpenMBV {
   /** 
    * \brief Class for all bodies extruded along a curve. 
    * \author Thorsten Schindler
-   */
+   *
+   * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
+   * double precision values. Each row represents one dataset in time.
+   * A row consists of the following columns in order given in
+   * world frame (N is the number of spine points): time,
+   * spine point 1 x, spine point 1 y, spine point 1 z, spine twist 1,
+   * spine point 2 x, spine point 2 y, spine point 2 z, spine twist 2,
+   * ...,
+   * spine point N x, spine point N y, spine point N z, spine twist N */
   class SpineExtrusion : public DynamicColoredBody {
     public:
       /** constructor */

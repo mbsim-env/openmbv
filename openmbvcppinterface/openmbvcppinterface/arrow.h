@@ -26,7 +26,14 @@
 
 namespace OpenMBV {
 
-  /** A arrow with zero, one or two heads */
+  /** A arrow with zero, one or two heads
+   *
+   * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
+   * double precision values. Each row represents one dataset in time.
+   * A row consists of the following columns in order given in
+   * world frame: time,
+   * "to" point x, "to" point y,
+   * "to" point z, delta x, delta y, delta z, color */
   class Arrow : public DynamicColoredBody {
     protected:
       enum Type {
