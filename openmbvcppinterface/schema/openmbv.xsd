@@ -14,6 +14,39 @@
   <xs:import namespace="http://www.w3.org/XML/1998/namespace"
     schemaLocation="../http___openmbv_berlios_de_MBXMLUtils/xml.xsd"/>
 
+  <xs:annotation><xs:documentation xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<tt>&lt;filename&gt;.ombv.xml</tt>) and a HDF5 file (<tt>&lt;filename&gt;.ombv.h5</tt>).</p>
+    <p>The root element of the XML file must be <tt>&lt;Group&gt;</tt>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombv.xml) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<Group name="TS" expand="true" enable="true" xmlns="http://openmbv.berlios.de/OpenMBV">
+  <Group name="Hauptgruppe1" expand="true" enable="true">
+    <Cuboid name="Box1" enable="true">
+      <minimalColorValue>0</minimalColorValue>
+      <maximalColorValue>1</maximalColorValue>
+      <staticColor>nan</staticColor>
+      <initialTranslation>[0;0;0]</initialTranslation>
+      <initialRotation>[0;0;0]</initialRotation>
+      <scaleFactor>1</scaleFactor>
+      <length>[0.5;0.5;0.5]</length>
+    </Cuboid>
+    <Frame name="P1" enable="true">
+      <minimalColorValue>0</minimalColorValue>
+      <maximalColorValue>1</maximalColorValue>
+      <staticColor>nan</staticColor>
+      <initialTranslation>[0;0;0]</initialTranslation>
+      <initialRotation>[0;0;0]</initialRotation>
+      <scaleFactor>1</scaleFactor>
+      <size>0.5</size>
+      <offset>1</offset>
+    </Frame>
+  </Group>
+</Group>]]></pre>
+    <p>The according HDF5 file (TS.ombv.h5) must provide two datasets with the following path in the HDF5 file:</p>
+    <ul>
+      <li>"/Hauptgruppe1/Box1/data"</li>
+      <li>"/Hauptgruppe1/P1/data"</li>
+    </ul>
+    <p>The content of the datasets is also documented in section Elements.</p>
+  </xs:documentation></xs:annotation>
 
 
   <xs:simpleType name="objectReferenceType">
