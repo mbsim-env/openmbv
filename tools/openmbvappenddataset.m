@@ -49,12 +49,12 @@ function openmbvappenddataset(hdf5filename, path, data, chunk, h5import)
 %openmbvappenddataset('TS.ombv.h5', 'Hauptgruppe1/P1', [0.0 0 0 0 0 0 0 0; 0.1 1 1 1 0.1 0 0 0]);
 
 % parameters
-if exist('h5import')
+if exist('h5import')==1
   H5IMPORT=h5import;
 else
   H5IMPORT='h5import';
 end
-if exist('chunk')
+if exist('chunk')==1
   CHUNK=chunk;
 else
   CHUNK=10;
