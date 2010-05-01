@@ -87,8 +87,8 @@ class Utils {
     };
     /** Use preCalculateEdgesCached(...) instead of preCalculateEdges(...) everywhere
      * to cache the calculte of edges */
-    static SoCoordinate3* preCalculateEdgesCached(SoGroup *grp, Edges *edges);
-    static SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *edges);
+    static SoCoordinate3* preCalculateEdgesCached(SoGroup *grp, Edges *&edges);
+    static SoCoordinate3 *preCalculateEdges(SoGroup *sep, Edges *&edges);
     static SoIndexedLineSet* calculateCreaseEdges(const double creaseAngle, const Edges *edges);
     static SoIndexedLineSet* calculateBoundaryEdges(const Edges *edges);
     static SoIndexedLineSet* calculateShilouetteEdge(const SbVec3f &n, const Edges *edges);

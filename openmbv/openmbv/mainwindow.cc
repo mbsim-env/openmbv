@@ -1023,7 +1023,7 @@ void MainWindow::frameOrCameraSensorCB(void *data, SoSensor* sensor) {
 
   if(frameChanged==true || firstCall==true) {
     if(edges) delete edges;
-    edges=new Utils::Edges;
+    edges=NULL;
     SoCoordinate3 *soEdgeCoordOld=me->soEdgeCoord;
     me->shilouetteSep->replaceChild(soEdgeCoordOld, me->soEdgeCoord=Utils::preCalculateEdges(me->sceneRoot, edges));
 

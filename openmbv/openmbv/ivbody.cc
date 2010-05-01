@@ -70,7 +70,7 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
 
   // outline
   if(creaseAngle>=0 || boundaryEdges) {
-    Utils::Edges *edges=new Utils::Edges;
+    Utils::Edges *edges=NULL;
     soSepRigidBody->addChild(soOutLineSwitch);
     soOutLineSep->addChild(Utils::preCalculateEdgesCached(soIv, edges));
     if(creaseAngle>=0) soOutLineSep->addChild(Utils::calculateCreaseEdges(creaseAngle, edges));
