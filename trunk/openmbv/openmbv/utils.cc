@@ -194,7 +194,7 @@ struct CoordEdge {
   SoCoordinate3 *coord;
   Utils::Edges *edges;
 };
-SoCoordinate3* Utils::preCalculateEdgesCached(SoGroup *grp, Utils::Edges *edges) {
+SoCoordinate3* Utils::preCalculateEdgesCached(SoGroup *grp, Utils::Edges *&edges) {
   static std::map<SoGroup*, CoordEdge> myCache;
   std::map<SoGroup*, CoordEdge>::iterator i=myCache.find(grp);
   if(i==myCache.end()) {
@@ -242,7 +242,8 @@ void Utils::triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVe
 #undef expand
 }
 
-SoCoordinate3* Utils::preCalculateEdges(SoGroup *sep, Utils::Edges *edges) {
+SoCoordinate3* Utils::preCalculateEdges(SoGroup *sep, Utils::Edges *&edges) {
+  if(edges==NULL) edges=new Utils::Edges;
   // get all triangles
   SoCallbackAction cba;
   cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, edges);
