@@ -40,8 +40,6 @@ NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   // read XML
   TiXmlElement *e;
-  //e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  //double scaleValue=Utils::toVector(e->GetText())[0];
   e=element->FirstChildElement(OPENMBVNS"drawDegree");
   drawDegree=(int)Utils::toVector(e->GetText())[0];  
   e=element->FirstChildElement(OPENMBVNS"elementNumberAzimuthal");

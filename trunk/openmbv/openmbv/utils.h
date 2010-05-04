@@ -20,6 +20,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <map>
 #include <QIcon>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
@@ -55,6 +56,8 @@ class Utils {
     static void tessVertexCB(GLdouble *vertex);
     static void tessEndCB(void);
 
+    static std::map<std::string, double> simpleParameter;
+
   public:
     static void initialize();
 
@@ -68,6 +71,9 @@ class Utils {
     static SoSeparator* SoDBreadAllCached(const std::string &filename);
 
     /** string to vector */
+    static void addSimpleParameter(std::string name, double value);
+    static void clearSimpleParameters();
+    static double toDouble(std::string str);
     static std::vector<double> toVector(std::string str);
     static std::vector<std::vector<double> > toMatrix(std::string str);
 

@@ -17,30 +17,31 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_CUBE_H_
-#define _OPENMBV_CUBE_H_
+#include <vector>
+#include <ostream>
 
-#include <openmbvcppinterface/rigidbody.h>
+#ifndef _OPENMBV_DOUBLEPARAM_H_
+#define _OPENMBV_DOUBLEPARAM_H_
 
 namespace OpenMBV {
 
-  /** A cube */
-  class Cube : public RigidBody {
+  /** Stores a double or a string. */
+  class DoubleParam {
     protected:
-      DoubleParam length;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      double value;
+      std::string paramStr;
     public:
-      /** Default constructor */
-      Cube();
-
-      /** Set the length of the cube (x, y and z)*/
-      void setLength(DoubleParam length_) {
-        length=length_;
-      } 
-
-      /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      DoubleParam(int value_); // convenience: to prevent ambiguous conversion from int
+      DoubleParam(double value_);
+      DoubleParam(std::string paramStr_);
+      DoubleParam(char *paramStr_);
+      DoubleParam(const char *paramStr_);
+      operator double();
+      friend std::ostream& operator<<(std::ostream &os, const DoubleParam v);
   };
+
+  /** stream output of a double or string */
+  std::ostream& operator<<(std::ostream &os, const DoubleParam v);
 
 }
 

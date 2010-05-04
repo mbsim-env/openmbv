@@ -37,11 +37,11 @@ namespace OpenMBV {
   class PolygonPoint {
     public:
       /** constructor */
-      PolygonPoint(float x_, float y_, int b_) : x(x_), y(y_), b(b_) {}
+      PolygonPoint(DoubleParam x_, DoubleParam y_, int b_) : x(x_), y(y_), b(b_) {}
 
       /* GETTER / SETTER */
-      float getXComponent() { return x; } 
-      float getYComponent() { return y; } 
+      DoubleParam getXComponent() { return x; } 
+      DoubleParam getYComponent() { return y; } 
       int getBorderValue() { return b; }
       /***************************************************/
 
@@ -69,7 +69,7 @@ namespace OpenMBV {
       }
 
     private:
-      float x, y;
+      DoubleParam x, y;
       int b;
   };
 

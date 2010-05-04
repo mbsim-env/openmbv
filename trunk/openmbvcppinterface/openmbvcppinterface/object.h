@@ -21,8 +21,10 @@
 #define _OPENMBV_OBJECT_H_
 
 #include <string>
+#include <map>
 #include <H5Cpp.h>
 #include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"
+#include "openmbvcppinterface/doubleparam.h"
 
 #define OPENMBVNS_ "http://openmbv.berlios.de/OpenMBV"
 #define OPENMBVNS "{"OPENMBVNS_"}"
@@ -42,6 +44,7 @@ namespace OpenMBV {
       virtual void createHDF5File()=0;
       H5::Group *hdf5Group;
       virtual void terminate()=0;
+      static std::map<std::string, double> simpleParameter;
     public:
       /** Default constructor */
       Object();
@@ -60,6 +63,12 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      /** Clear the all parameters */
+      static void clearSimpleParameters();
+
+      /** Add a parameter */
+      static void addSimpleParameter(std::string name, double value);
   };
 
 }

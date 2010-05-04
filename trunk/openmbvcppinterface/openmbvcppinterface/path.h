@@ -21,6 +21,7 @@
 #define _OPENMBV_PATH_H_
 
 #include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/doubleparam.h>
 #include <hdf5serie/vectorserie.h>
 #include <vector>
 
@@ -37,7 +38,7 @@ namespace OpenMBV {
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      std::vector<double> color;
+      std::vector<DoubleParam> color;
     public:
       /** Default constructor */
       Path();
@@ -55,15 +56,20 @@ namespace OpenMBV {
        * Use a vector with tree double representing reg, green and blue as paremter.
        * red, green and blue runs form 0 to 1
        */
-      void setColor(const std::vector<double>& color_) {
+      void setColor(const std::vector<DoubleParam>& color_) {
         assert(color_.size()==3);
         color=color_;
       }
 
+      // for convenience
+      void setColor(const std::vector<double>& color_) {
+        color=toVectorDoubleParam(color_);
+      } 
+
       /** Set the color of the paht.
        * red, green and blue runs form 0 to 1
        */
-      void setColor(double red, double green, double blue) {
+      void setColor(DoubleParam red, DoubleParam green, DoubleParam blue) {
         color.clear();
         color.push_back(red);
         color.push_back(green);

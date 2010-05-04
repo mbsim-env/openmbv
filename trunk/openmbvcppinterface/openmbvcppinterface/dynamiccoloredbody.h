@@ -27,9 +27,9 @@ namespace OpenMBV {
   /** Abstract base class for all dynamically colored bodies */
   class DynamicColoredBody : public Body {
     protected:
-      double minimalColorValue, maximalColorValue;
-      double staticColor;
-      double dynamicColor;
+      DoubleParam minimalColorValue, maximalColorValue;
+      DoubleParam staticColor;
+      DoubleParam dynamicColor;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
       DynamicColoredBody();
@@ -40,14 +40,14 @@ namespace OpenMBV {
        * The color value of the body in linearly mapped between minimalColorValue
        * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).
        */
-      void setMinimalColorValue(const double min) {
+      void setMinimalColorValue(const DoubleParam min) {
         minimalColorValue=min;
       }
 
       /** Set the maximal color value.
        * See also minimalColorValue
        */
-      void setMaximalColorValue(const double max) {
+      void setMaximalColorValue(const DoubleParam max) {
         maximalColorValue=max;
       }
 
@@ -55,7 +55,7 @@ namespace OpenMBV {
        * If this value is set, the color given to the append function
        * (as last element of the data row) is overwritten with this value.
        */
-      void setStaticColor(const double col) {
+      void setStaticColor(const DoubleParam col) {
         staticColor=col;
       }
 
@@ -63,7 +63,7 @@ namespace OpenMBV {
        * If this value is set, the color given to the append function
        * (as last element of the data row) is overwritten with this value.
        */
-      void setDynamicColor(const double col) {
+      void setDynamicColor(const DoubleParam col) {
         dynamicColor=col;
       }
 

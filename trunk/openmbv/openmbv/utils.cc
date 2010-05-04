@@ -19,17 +19,18 @@
 
 #include "config.h"
 #include "utils.h"
-#include <map>
 #include <Inventor/SoInput.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <sstream>
+#include <iostream>
 #include "SoSpecial.h"
 
 using namespace std;
 
 bool Utils::init=false;
+map<string, double> Utils::simpleParameter;
 
 void Utils::initialize() {
   if(init==true) return;
@@ -63,16 +64,38 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
   return i->second;
 }
 
+void Utils::addSimpleParameter(std::string name, double value) {
+  simpleParameter[name]=value;
+}
+
+void Utils::clearSimpleParameters() {
+  simpleParameter.clear();
+}
+
+// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
+double Utils::toDouble(string str) {
+  if(str=="nan" || str=="NAN" || str=="NaN")
+    return nan("");
+  map<string,double>::iterator i=simpleParameter.find(str);
+  if(i!=simpleParameter.end())
+    return i->second;
+  stringstream stream(str);
+  double d;
+  stream>>d;
+  return d;
+}
+
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
 vector<double> Utils::toVector(string str) {
   for(size_t i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
   stringstream stream(str);
-  double d;
+  string dstr;
   vector<double> ret;
   while(1) {
-    stream>>d;
+    stream>>dstr;
     if(stream.fail()) break;
+    double d=toDouble(dstr);
     ret.push_back(d);
   }
   return ret;

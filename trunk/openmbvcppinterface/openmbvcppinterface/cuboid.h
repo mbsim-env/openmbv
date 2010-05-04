@@ -27,21 +27,26 @@ namespace OpenMBV {
   /** A cuboid */
   class Cuboid : public RigidBody {
     protected:
-      std::vector<double> length;
+      std::vector<DoubleParam> length;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
       /** Default constructor */
       Cuboid();
 
-      /** Set the length of the cuboid */
+      // for convenience
       void setLength(const std::vector<double>& length_) {
+        length=toVectorDoubleParam(length_);
+      } 
+
+      /** Set the length of the cuboid */
+      void setLength(const std::vector<DoubleParam>& length_) {
         assert(length_.size()==3);
         length=length_;
       } 
 
       /** Set the length of the cuboid */
-      void setLength(double x, double y, double z) {
-        std::vector<double> length_;
+      void setLength(DoubleParam x, DoubleParam y, DoubleParam z) {
+        std::vector<DoubleParam> length_;
         length_.push_back(x);
         length_.push_back(y);
         length_.push_back(z);

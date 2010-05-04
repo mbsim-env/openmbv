@@ -27,21 +27,21 @@ namespace OpenMBV {
   /** A frame; A coordinate system */
   class Frame : public RigidBody {
     protected:
-      double size;
-      double offset;
+      DoubleParam size;
+      DoubleParam offset;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
       /** Default constructor */
       Frame();
 
       /** Set the length of the three axis, represended by lines in red, green and blue color. */
-      void setSize(double size_) { size=size_; }
+      void setSize(DoubleParam size_) { size=size_; }
 
       /** Set the offset of the thre axis.
        * A offset of 0 means, that the axis/lines are intersecting in there mid points.
        * A offset of 1 menas, that the axis/lines are intersecting at there start points.
        */
-      void setOffset(double offset_) { offset=offset_; }
+      void setOffset(DoubleParam offset_) { offset=offset_; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

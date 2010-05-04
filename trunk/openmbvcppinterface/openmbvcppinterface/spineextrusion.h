@@ -60,11 +60,12 @@ namespace OpenMBV {
         return numberOfSpinePoints;
       }
 
-      /** Set a new contour to the extrusion. */
+      /** Set the 2D contour (cross-section) of the extrusion.
+       * The contour (polygon) points must be in clockwise order. */
       void setContour(std::vector<PolygonPoint*> *contour_) { contour = contour_; }
 
       /** Set the scale factor of the body. */
-      void setScaleFactor(const double scale) {
+      void setScaleFactor(const DoubleParam scale) {
         scaleFactor=scale;
       }
 
@@ -88,7 +89,7 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
 
       /** Scale factor of the body. */
-      double scaleFactor;
+      DoubleParam scaleFactor;
 
       /** Write XML file for not time-dependent data. */
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");

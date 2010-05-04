@@ -37,7 +37,7 @@ namespace OpenMBV {
         absGEqTwo
       };
       WindingRule windingRule;
-      double height;
+      DoubleParam height;
       std::vector<std::vector<PolygonPoint*>*> contour;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
@@ -55,7 +55,7 @@ namespace OpenMBV {
       /** Set the height of the extrusion.
        * The extrusion is along the normal of the cross section area (local z-axis).
        */
-      void setHeight(float height_) {
+      void setHeight(DoubleParam height_) {
         height=height_;
       }
 

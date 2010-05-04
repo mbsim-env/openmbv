@@ -41,7 +41,7 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   TiXmlElement *e=element->FirstChildElement(OPENMBVNS"contour");
   vector<vector<double> > contour=Utils::toMatrix(e->GetText());
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  double scaleValue=Utils::toVector(e->GetText())[0];
+  double scaleValue=Utils::toDouble(e->GetText());
 
   // create so
   // material
