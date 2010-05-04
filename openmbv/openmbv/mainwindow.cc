@@ -680,6 +680,10 @@ bool MainWindow::openFile(string fileName) {
     return false;
   }
 
+  // clear old parameters and fill new ones if parameter file exist
+  Utils::clearSimpleParameters();
+  readSimpleParameterFile(fileName.substr(0,fileName.length()-(env?13:9)));
+
   H5::Group *h5Parent=0;
   if(!env) {
     // open HDF5
@@ -706,7 +710,28 @@ bool MainWindow::openFile(string fileName) {
   // apply object filter
   if(filter->text()!="") filterObjectList();
 
+  // clear parameters
+  Utils::clearSimpleParameters();
+
   return true;
+}
+
+void MainWindow::readSimpleParameterFile(string fileName) {
+  TiXmlDocument *paramdoc=new TiXmlDocument;
+  if(QFile((fileName+".ombv.param.xml").c_str()).exists()) {
+    paramdoc->LoadFile(fileName+".ombv.param.xml"); TiXml_PostLoadFile(paramdoc);
+    TiXmlElement *e=paramdoc->FirstChildElement();
+    map<string,string> dummy;
+    incorporateNamespace(e,dummy);
+
+    for(e=e->FirstChildElement(); e!=0; e=e->NextSiblingElement()) {
+      if(e->ValueStr()!=MBXMLUTILSPARAMNS"scalarParameter") {
+        cerr<<"WARNING! Only 'scalarParameter's are allowed in simple parameter file."<<endl;
+        continue;
+      }
+      Utils::addSimpleParameter(e->Attribute("name"), Utils::toDouble(e->GetText()));
+    }
+  }
 }
 
 void MainWindow::openFileDialog() {

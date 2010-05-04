@@ -11,6 +11,7 @@ libopenmbvcppinterface_la_CPPFLAGS = -DTIXML_USE_STL
 libopenmbvcppinterface_la_SOURCES = object.cc \
   objectfactory.cc\
   body.cc \
+  doubleparam.cc \
   dynamiccoloredbody.cc \
   group.cc \
   rigidbody.cc \
@@ -34,6 +35,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
   body.h \
+  doubleparam.h \
   dynamiccoloredbody.h \
   group.h \
   rigidbody.h \

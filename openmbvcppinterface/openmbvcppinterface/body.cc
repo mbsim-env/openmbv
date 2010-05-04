@@ -143,3 +143,10 @@ vector<vector<double> > Body::getMat(TiXmlElement *e, unsigned int rows, unsigne
 void Body::initializeUsingXML(TiXmlElement *element) {
   Object::initializeUsingXML(element);
 }
+
+std::vector<DoubleParam> Body::toVectorDoubleParam(std::vector<double> v) {
+  std::vector<DoubleParam> p(v.size(),0.0);
+  for(size_t i=0; i<v.size(); i++)
+    p[i]=v[i];
+  return p;
+}

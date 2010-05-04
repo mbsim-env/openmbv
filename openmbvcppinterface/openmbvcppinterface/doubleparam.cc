@@ -17,37 +17,40 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <openmbvcppinterface/object.h>
-#include <openmbvcppinterface/group.h>
-#include <assert.h>
+#include <openmbvcppinterface/doubleparam.h>
+#include <cmath>
 
-using namespace std;
 using namespace OpenMBV;
+using namespace std;
 
-map<string, double> Object::simpleParameter;
-
-Object::Object() : name(""), enableStr("true"), parent(0), hdf5Group(0) {
+DoubleParam::DoubleParam(int value_) : value((double)value_), paramStr("") {
 }
 
-Object::~Object() {
-  if(hdf5Group) delete hdf5Group;
+DoubleParam::DoubleParam(double value_) : value(value_), paramStr("") {
 }
 
-string Object::getFullName() {
-  if(parent)
-    return parent->getFullName()+"/"+name;
+DoubleParam::DoubleParam(std::string paramStr_) : value(0), paramStr(paramStr_) {
+}
+
+DoubleParam::DoubleParam(char *paramStr_) : value(0), paramStr(paramStr_) {
+}
+
+DoubleParam::DoubleParam(const char *paramStr_) : value(0), paramStr(paramStr_) {
+}
+
+DoubleParam::operator double() {
+  if(paramStr=="")
+    return value;
+  else if(paramStr=="nan" || paramStr=="NaN" || paramStr=="NAN")
+    return NAN;
   else
-    return name;
+    return NAN;
 }
 
-void Object::initializeUsingXML(TiXmlElement *element) {
-  setName(element->Attribute("name"));
-}
-
-void Object::clearSimpleParameters() {
-  simpleParameter.clear();
-}
-
-void Object::addSimpleParameter(std::string name, double value) {
-  simpleParameter[name]=value;
+std::ostream& OpenMBV::operator<<(std::ostream &os, const DoubleParam v) {
+  if(v.paramStr=="")
+    os<<v.value;
+  else
+    os<<v.paramStr;
+  return os;
 }

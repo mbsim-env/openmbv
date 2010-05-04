@@ -36,7 +36,7 @@ namespace OpenMBV {
 
       /** Set the limit crease angle for drawing crease edges. 
        * If less 0 do not draw crease edges. Default: -1 */
-      void setCreaseEdges(double creaseAngle_) { creaseAngle=creaseAngle_; }
+      void setCreaseEdges(DoubleParam creaseAngle_) { creaseAngle=creaseAngle_; }
 
       /** Draw boundary edges or not? Default: false */
       void setBoundaryEdges(bool b) { boundaryEdges=b; }
@@ -45,7 +45,7 @@ namespace OpenMBV {
       virtual void initializeUsingXML(TiXmlElement *element);
     protected:
       std::string ivFileName;
-      double creaseAngle;
+      DoubleParam creaseAngle;
       bool boundaryEdges;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
   };

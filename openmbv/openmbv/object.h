@@ -35,6 +35,7 @@
 #include <Inventor/nodes/SoTranslation.h>
 
 #define OPENMBVNS "{http://openmbv.berlios.de/OpenMBV}"
+#define MBXMLUTILSPARAMNS "{http://openmbv.berlios.de/MBXMLUtils/parameter}"
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT

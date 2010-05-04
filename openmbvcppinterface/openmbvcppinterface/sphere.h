@@ -27,14 +27,14 @@ namespace OpenMBV {
   /** A spehere */
   class Sphere : public RigidBody {
     protected:
-      double radius;
+      DoubleParam radius;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
       /** Default constructor */
       Sphere();
 
       /** Set the radius of the shpere */
-      void setRadius(double radius_) {
+      void setRadius(DoubleParam radius_) {
         radius=radius_;
       } 
 

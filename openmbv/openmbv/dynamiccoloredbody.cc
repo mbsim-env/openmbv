@@ -36,10 +36,8 @@ DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Paren
   else
     maximalColorValue=1;
   e=element->FirstChildElement(OPENMBVNS"staticColor");
-  if(e) {
-    QByteArray tmp(e->GetText()); 
-    staticColor=tmp.toDouble();
-  }
+  if(e)
+    staticColor=Utils::toDouble(e->GetText());
   else
     staticColor=nan("");
 }

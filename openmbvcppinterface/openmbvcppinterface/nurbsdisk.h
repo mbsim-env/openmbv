@@ -44,17 +44,17 @@ namespace OpenMBV {
       virtual ~NurbsDisk();
 
       /** Set the scale factor of the body. */
-      void setScaleFactor(const double scale) {
+      void setScaleFactor(const DoubleParam scale) {
         scaleFactor=scale;
       }
 
       /** Set the number of points drawn between the nodes. */
-      void setDrawDegree(const double drawDegree_) {
+      void setDrawDegree(const DoubleParam drawDegree_) {
         drawDegree=drawDegree_;
       }
 
       /** Set the inner and outer radius of the disk. */
-      void setRadii(float Ri_, float Ro_) {
+      void setRadii(DoubleParam Ri_, DoubleParam Ro_) {
         Ri=Ri_;
         Ro=Ro_;
       }
@@ -114,13 +114,13 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
 
       /** Scale factor of the body. */
-      double scaleFactor;
+      DoubleParam scaleFactor;
 
       /** Number of points drawn between the nodes. */
-      double drawDegree;
+      DoubleParam drawDegree;
 
       /** Inner and outer radius of disk */
-      float Ri, Ro;
+      DoubleParam Ri, Ro;
 
       /** Knot vector for azimuthal and radial direction */
       float *KnotVecAzimuthal, *KnotVecRadial;

@@ -39,7 +39,7 @@ namespace OpenMBV {
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      double springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
+      DoubleParam springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
     public:
       /** Default Constructor */
       CoilSpring();
@@ -49,13 +49,13 @@ namespace OpenMBV {
       
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
+        if(!std::isnan((double)dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
-      void setSpringRadius(double radius) { springRadius=radius; }
-      void setCrossSectionRadius(double radius) { crossSectionRadius=radius; }
-      void setScaleFactor(double scale) { scaleFactor=scale; }
-      void setNumberOfCoils(double nr) { numberOfCoils=nr; }
+      void setSpringRadius(DoubleParam radius) { springRadius=radius; }
+      void setCrossSectionRadius(DoubleParam radius) { crossSectionRadius=radius; }
+      void setScaleFactor(DoubleParam scale) { scaleFactor=scale; }
+      void setNumberOfCoils(DoubleParam nr) { numberOfCoils=nr; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

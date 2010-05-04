@@ -84,6 +84,7 @@ void Group::createHDF5File() {
 }
 
 void Group::initializeXML() {
+  // write .ombv.xml file
   ofstream xmlFile((name+".ombv.xml").c_str());
   xmlFile<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
   xmlFile<<"<Group name=\""<<name<<"\" expand=\""<<expandStr<<"\" enable=\""<<enableStr<<"\""<<endl<<
@@ -93,6 +94,17 @@ void Group::initializeXML() {
       object[i]->writeXMLFile(xmlFile, "  ");
   xmlFile<<"</Group>"<<endl;
   xmlFile.close();
+
+  // write .ombv.param.xml file if simple parameters exist
+  if(simpleParameter.size()>0) {
+    ofstream xmlFile((name+".ombv.param.xml").c_str());
+    xmlFile<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<endl;
+    xmlFile<<"<parameter xmlns=\"http://openmbv.berlios.de/MBXMLUtils/parameter\">"<<endl;
+      for(map<string,double>::iterator i=simpleParameter.begin(); i!=simpleParameter.end(); i++)
+        xmlFile<<"  <scalarParameter name=\""<<i->first<<"\">"<<i->second<<"</scalarParameter>"<<endl;
+    xmlFile<<"</parameter>"<<endl;
+    xmlFile.close();
+  }
 }
 
 void Group::initializeH5() {

@@ -22,6 +22,7 @@
 #include <fstream>
 #include <openmbvcppinterface/group.h>
 #include <H5Cpp.h>
+#include <openmbvcppinterface/doubleparam.h>
 
 using namespace std;
 using namespace OpenMBV;

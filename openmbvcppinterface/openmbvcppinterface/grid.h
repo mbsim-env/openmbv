@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A grid in x-y-Plane */
   class Grid : public RigidBody {
     protected:
-      double xSize, ySize;
+      DoubleParam xSize, ySize;
       unsigned int nx, ny;
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
     public:
@@ -35,12 +35,12 @@ namespace OpenMBV {
       Grid();
 
       /** Set the length in x-direction*/
-      void setXSize(double length_) {
+      void setXSize(DoubleParam length_) {
         xSize=length_;
       } 
 
       /** Set the length in y-direction*/
-      void setYSize(double length_) {
+      void setYSize(DoubleParam length_) {
         ySize=length_;
       } 
 

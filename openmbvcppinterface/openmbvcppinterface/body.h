@@ -60,6 +60,8 @@ namespace OpenMBV {
 
       static std::vector<double> toVector(std::string str);
       static std::vector<std::vector<double> > toMatrix(std::string str);
+
+      static std::vector<DoubleParam> toVectorDoubleParam(std::vector<double> v);
   };
 
 }

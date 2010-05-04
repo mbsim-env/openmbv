@@ -45,7 +45,7 @@ namespace OpenMBV {
       void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      double headDiameter, headLength, diameter, scaleLength;
+      DoubleParam headDiameter, headLength, diameter, scaleLength;
       Type type;
     public:
       /** Default Constructor */
@@ -57,28 +57,28 @@ namespace OpenMBV {
       /** Append the data \p row to the end of the dataset */
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
+        if(!std::isnan((double)dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
-      void setArrowHead(float diameter, float length) {
+      void setArrowHead(DoubleParam diameter, DoubleParam length) {
         headDiameter=diameter;
         headLength=length;
       }
 
       /** Set the diameter of the arrow head (which is a cone) */
-      void setHeadDiameter(float diameter) {
+      void setHeadDiameter(DoubleParam diameter) {
         headDiameter=diameter;
       }
 
       /** Set the length of the arrow head (which is a cone) */
-      void setHeadLength(float length) {
+      void setHeadLength(DoubleParam length) {
         headLength=length;
       }
 
       /** Set the diameter of the arrow (which is a cylinder) */
-      void setDiameter(float diameter_) {
+      void setDiameter(DoubleParam diameter_) {
         diameter=diameter_;
       }
       
@@ -93,7 +93,7 @@ namespace OpenMBV {
       }
 
       /** Scale the length of the arrow */
-      void setScaleLength(double scale) {
+      void setScaleLength(DoubleParam scale) {
         scaleLength=scale;
       }
 
