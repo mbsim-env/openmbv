@@ -48,6 +48,8 @@ void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
     oldColor=col;
     double m=1/(maximalColorValue-minimalColorValue);
     col=m*col-m*minimalColorValue;
+    if(col<0) col=0;
+    if(col>1) col=1;
     mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
     mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
   }
