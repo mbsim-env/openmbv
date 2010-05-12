@@ -70,6 +70,28 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 CPPFLAGS=$SAVE_CPPFLAGS
 LIBS=$SAVE_LIBS
 
+# get octave m and oct dirs without octave prefix
+# (A workaround, because octave uses absoulute fix path)
+AC_ARG_WITH([octave-config-path],
+  [  --with-octave-config-path=PATHTOOCTAVECONFIG  The path to the 'octave-config' program.],
+  [octaveconfigpath="$withval"],[octaveconfigpath=""])
+AC_PATH_PROG([octaveconfig],[octave-config],[no],[$octaveconfigpath:$prefix/bin:$PATH])
+test $octaveconfig = "no" && AC_MSG_ERROR([octave-config not found])
+OCTAVEPREFIX="$($octaveconfig -p PREFIX)"
+AC_SUBST([OCTAVEPREFIX])
+OCTPREFIXLEN=${#OCTAVEPREFIX}
+OCTDIRS="${OCTDIRS}\"$($octaveconfig --m-site-dir | sed -re "s/^.{$OCTPREFIXLEN}//")\""
+OCTDIRS="${OCTDIRS},\"$($octaveconfig --oct-site-dir | sed -re "s/^.{$OCTPREFIXLEN}//")\""
+NROCTDIR=2
+for I in LOCALVEROCTFILEDIR LOCALAPIOCTFILEDIR LOCALOCTFILEDIR OCTFILEDIR FCNFILEDIR LOCALAPIFCNFILEDIR LOCALFCNFILEDIR LOCALVERFCNFILEDIR; do
+  OCTDIRS="${OCTDIRS},\"$($octaveconfig -p $I | sed -re "s/^.{$OCTPREFIXLEN}//")\""
+  NROCTDIR="$[[$NROCTDIR+1]]"
+done
+AC_SUBST([OCTDIRS])
+AC_SUBST([NROCTDIR])
+
+
+
 dnl Helper functions to convert path to windows
 dirtowin() {
   echo $(cd $1 && pwd -W 2> /dev/null)
