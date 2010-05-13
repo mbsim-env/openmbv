@@ -77,14 +77,14 @@ AC_ARG_WITH([octave-config-path],
   [octaveconfigpath="$withval"],[octaveconfigpath=""])
 AC_PATH_PROG([octaveconfig],[octave-config],[no],[$octaveconfigpath:$prefix/bin:$PATH])
 test $octaveconfig = "no" && AC_MSG_ERROR([octave-config not found])
-OCTAVEPREFIX="$($octaveconfig -p PREFIX)"
+OCTAVEPREFIX="$($octaveconfig -p PREFIX | sed -re 's|\\|/|g')"
 AC_SUBST([OCTAVEPREFIX])
 OCTPREFIXLEN=${#OCTAVEPREFIX}
-OCTDIRS="${OCTDIRS}\"$($octaveconfig --m-site-dir | sed -re "s/^.{$OCTPREFIXLEN}//")\""
-OCTDIRS="${OCTDIRS},\"$($octaveconfig --oct-site-dir | sed -re "s/^.{$OCTPREFIXLEN}//")\""
+OCTDIRS="${OCTDIRS}\"$($octaveconfig --m-site-dir | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
+OCTDIRS="${OCTDIRS},\"$($octaveconfig --oct-site-dir | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
 NROCTDIR=2
 for I in LOCALVEROCTFILEDIR LOCALAPIOCTFILEDIR LOCALOCTFILEDIR OCTFILEDIR FCNFILEDIR LOCALAPIFCNFILEDIR LOCALFCNFILEDIR LOCALVERFCNFILEDIR; do
-  OCTDIRS="${OCTDIRS},\"$($octaveconfig -p $I | sed -re "s/^.{$OCTPREFIXLEN}//")\""
+  OCTDIRS="${OCTDIRS},\"$($octaveconfig -p $I | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
   NROCTDIR="$[[$NROCTDIR+1]]"
 done
 AC_SUBST([OCTDIRS])
