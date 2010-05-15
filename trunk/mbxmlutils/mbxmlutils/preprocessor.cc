@@ -20,7 +20,6 @@ using namespace std;
 string SCHEMADIR;
 string XMLDIR;
 string OCTAVEDIR;
-string OCTAVEPREFIX;
 
 char *nslocation;
 
@@ -416,8 +415,6 @@ int main(int argc, char *argv[]) {
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env;
   OCTAVEDIR=OCTAVEDIR_DEFAULT;
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env;
-  OCTAVEPREFIX=OCTAVEPREFIX_DEFAULT;
-  if((env=getenv("MBXMLUTILSOCTAVEPREFIX"))) OCTAVEPREFIX=env;
 
   // initialize octave
   const char *octave_argv[2]={"dummy", "-q"};
@@ -426,15 +423,8 @@ int main(int argc, char *argv[]) {
   disable_stderr();
   eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // 1/0 is error
   error_state=0;
-  eval_string("rmpath(path)",true,dummy,0);
-  error_state=0;
   eval_string("addpath(\""+OCTAVEDIR+"\");",true,dummy,0);
   error_state=0;
-  // add fixed octave search path (m and oct)
-  for(int i=0; i<NROCTDIR; i++) {
-    eval_string("addpath(genpath(\""+OCTAVEPREFIX+OCTDIR[i]+"\"))",true,dummy,0);
-    error_state=0;
-  }
   enable_stderr();
 
   // preserve whitespace and newline in TiXmlText nodes

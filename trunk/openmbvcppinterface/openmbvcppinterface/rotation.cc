@@ -25,13 +25,17 @@ using namespace std;
 using namespace OpenMBV;
 
 Rotation::Rotation() : RigidBody(),
+  startAngle(0),
+  endAngle(2*M_PI),
   contour(0) {
   }
 
 void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
   xmlFile<<indent<<"<Rotation name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
   RigidBody::writeXMLFile(xmlFile, indent+"  ");
-  if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent, contour);
+  xmlFile<<indent<<"  <startAngle>"<<startAngle<<"</startAngle>"<<endl;
+  xmlFile<<indent<<"  <endAngle>"<<endAngle<<"</endAngle>"<<endl;
+  if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
   xmlFile<<indent<<"</Rotation>"<<endl;
 }
 
@@ -39,6 +43,10 @@ void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
 void Rotation::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"startAngle");
+  if(e) startAngle=getDouble(e);
+  e=element->FirstChildElement(OPENMBVNS"endAngle");
+  if(e) endAngle=getDouble(e);
   e=element->FirstChildElement(OPENMBVNS"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
 }

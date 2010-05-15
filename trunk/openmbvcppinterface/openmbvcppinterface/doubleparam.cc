@@ -18,6 +18,7 @@
 */
 
 #include <openmbvcppinterface/doubleparam.h>
+#include <openmbvcppinterface/object.h>
 #include <cmath>
 
 using namespace OpenMBV;
@@ -36,6 +37,18 @@ DoubleParam::DoubleParam(char *paramStr_) : value(0), paramStr(paramStr_) {
 }
 
 DoubleParam::DoubleParam(const char *paramStr_) : value(0), paramStr(paramStr_) {
+}
+
+DoubleParam::DoubleParam(std::string paramStr_, double value_) : value(value_), paramStr(paramStr_) {
+  Object::addSimpleParameter(paramStr, value);
+}
+
+DoubleParam::DoubleParam(char *paramStr_, double value_) : value(value_), paramStr(paramStr_) {
+  Object::addSimpleParameter(paramStr, value);
+}
+
+DoubleParam::DoubleParam(const char *paramStr_, double value_) : value(value_), paramStr(paramStr_) {
+  Object::addSimpleParameter(paramStr, value);
 }
 
 DoubleParam::operator double() {

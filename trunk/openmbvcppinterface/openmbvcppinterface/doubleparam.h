@@ -36,6 +36,9 @@ namespace OpenMBV {
       DoubleParam(std::string paramStr_);
       DoubleParam(char *paramStr_);
       DoubleParam(const char *paramStr_);
+      DoubleParam(std::string paramStr_, double value_);
+      DoubleParam(char *paramStr_, double value_);
+      DoubleParam(const char *paramStr_, double value_);
       operator double();
       friend std::ostream& operator<<(std::ostream &os, const DoubleParam v);
   };
