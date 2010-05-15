@@ -70,25 +70,8 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 CPPFLAGS=$SAVE_CPPFLAGS
 LIBS=$SAVE_LIBS
 
-# get octave m and oct dirs without octave prefix
-# (A workaround, because octave uses absoulute fix path)
-AC_ARG_WITH([octave-config-path],
-  [  --with-octave-config-path=PATHTOOCTAVECONFIG  The path to the 'octave-config' program.],
-  [octaveconfigpath="$withval"],[octaveconfigpath=""])
-AC_PATH_PROG([octaveconfig],[octave-config],[no],[$octaveconfigpath:$prefix/bin:$PATH])
-test $octaveconfig = "no" && AC_MSG_ERROR([octave-config not found])
-OCTAVEPREFIX="$($octaveconfig -p PREFIX | sed -re 's|\\|/|g')"
-AC_SUBST([OCTAVEPREFIX])
-OCTPREFIXLEN=${#OCTAVEPREFIX}
-OCTDIRS="${OCTDIRS}\"$($octaveconfig --m-site-dir | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
-OCTDIRS="${OCTDIRS},\"$($octaveconfig --oct-site-dir | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
-NROCTDIR=2
-for I in LOCALVEROCTFILEDIR LOCALAPIOCTFILEDIR LOCALOCTFILEDIR OCTFILEDIR FCNFILEDIR LOCALAPIFCNFILEDIR LOCALFCNFILEDIR LOCALVERFCNFILEDIR; do
-  OCTDIRS="${OCTDIRS},\"$($octaveconfig -p $I | sed -re "s|\\\|/|g;s/^.{$OCTPREFIXLEN}//")\""
-  NROCTDIR="$[[$NROCTDIR+1]]"
-done
-AC_SUBST([OCTDIRS])
-AC_SUBST([NROCTDIR])
+# The prefix for octave m and oct file search path can be changed
+# using the octave envvar OCTAVE_HOME.
 
 
 

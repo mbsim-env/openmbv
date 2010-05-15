@@ -199,6 +199,8 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
+          <xs:element name="startAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="endAngle" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="contour" type="pv:lengthMatrix"/>
         </xs:sequence> 
       </xs:extension>

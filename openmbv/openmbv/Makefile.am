@@ -22,12 +22,13 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   cuboid.cc\
   cube.cc\
   extrusion.cc\
+  rotation.cc\
   sphere.cc\
   invisiblebody.cc\
   frustum.cc\
   ivbody.cc\
   frame.cc\
-	grid.cc\
+  grid.cc\
   group.cc\
   main.cc\
   mainwindow.cc\
@@ -63,12 +64,13 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   cuboid.moc.cc\
   cube.moc.cc\
   extrusion.moc.cc\
+  rotation.moc.cc\
   sphere.moc.cc\
   invisiblebody.moc.cc\
   frustum.moc.cc\
   ivbody.moc.cc\
   frame.moc.cc\
-	grid.moc.cc\
+  grid.moc.cc\
   group.moc.cc\
   body.moc.cc\
   dynamiccoloredbody.moc.cc
@@ -85,6 +87,7 @@ noinst_HEADERS = openmbv.qrc\
   cuboid.h\
   cube.h\
   extrusion.h\
+  rotation.h\
   sphere.h\
   invisiblebody.h\
   frustum.h\
@@ -102,15 +105,15 @@ noinst_HEADERS = openmbv.qrc\
   nurbsdisk.h \
   IndexedTesselationFace.h
 
-# BEGIN generate openmbv.qrc from openbv.qrc.myin
+# BEGIN generate openmbv.qrc from openbv.qrc.in_sed
 # Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
 openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
 	FILES=""; \
 	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
-	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>"; \
+	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>\n    "; \
 	done; \
 	for F in $$(ls -1 @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
-	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>"; \
+	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>\n    "; \
 	done; \
 	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc
 # END generate openmbv.qrc from openbv.qrc.myin

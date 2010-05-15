@@ -47,7 +47,7 @@ Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pa
   e=e->NextSiblingElement();
   double innerTopRadius=Utils::toVector(e->GetText())[0];
 
-  const int N=25;
+  const int N=20;
 
   // create so
   // two side render if height==0

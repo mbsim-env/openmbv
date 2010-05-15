@@ -5,8 +5,8 @@ function openmbvappenddataset(hdf5filename, path, data, chunk, h5import)
 %path:        path of the dataset in the HDF5 file
 %data:        data in matrix from
 %chunk:       [optional] chunk size (default: 10)
-%h5import:    [optional] h5import command including full path (defaualt: h5import)
-%             The h5import command is search in the Octave/Matlab path.
+%h5import:    [optional] h5import command including full path (default: h5import)
+%             The h5import command is searched in the Octave/Matlab path.
 %
 %Append the 2D dataset <data> to the HDF5 file <hdf5filename> at the HDF5
 %path specified by <path>. The delimiter for the path is '/'. <path> must

@@ -25,6 +25,7 @@
 #include "cube.h"
 #include "cuboid.h"
 #include "extrusion.h"
+#include "rotation.h"
 #include "frame.h"
 #include "grid.h"
 #include "frustum.h"
@@ -56,6 +57,8 @@ Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIte
     return new Cuboid(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Extrusion")
     return new Extrusion(element, h5Parent, parentItem, soParent);
+  else if(element->ValueStr()==OPENMBVNS"Rotation")
+    return new Rotation(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Grid")
     return new Grid(element, h5Parent, parentItem, soParent);
   else if(element->ValueStr()==OPENMBVNS"Frame")
