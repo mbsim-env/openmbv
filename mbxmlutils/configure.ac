@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([mbxmlutils],[1.0.0],[mafriedrich@users.berlios.de])
+AC_INIT([mbxmlutils],[1.1.0],[mafriedrich@users.berlios.de])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([xsd2html/addDoxygenToXsd.xsl])
 AC_CONFIG_HEADERS([config.h])
