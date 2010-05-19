@@ -217,12 +217,12 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
   QLabel *filterL=new QLabel("Filter:");
-  filterL->setToolTip("Enter a regular expression to filter the object list.");
+  filterL->setToolTip("Filter the object list, showing only objects with object-names matching the entered regular expression.\n\nNOTE:\nIf the search string starts with ':', search objects of a type equal to the string after ':'.\nIf the search string starts with '::', search objects of a type or derived from a type equal to the string after '::'.");
   filterL->setStatusTip(filterL->toolTip());
   objectListLO->addWidget(filterL, 0,0);
   filter=new QLineEdit;
-  filter->setToolTip("Enter a regular expression to filter the object list.");
-  filter->setStatusTip(filter->toolTip());
+  filter->setToolTip(filterL->toolTip());
+  filter->setStatusTip(filterL->toolTip());
   objectListLO->addWidget(filter, 0,1);
   connect(filter,SIGNAL(returnPressed()),this,SLOT(filterObjectList()));
   objectList = new QTreeWidget(objectListDW);
@@ -1479,19 +1479,29 @@ void MainWindow::showWorldFrameSlot() {
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
+int MainWindow::mySearch(const QRegExp& filterRegExp, Object *item) {
+  // return -1, if not found or >=0 if found
+  if(item==objectList->invisibleRootItem()) return -1;
+  if(filterRegExp.pattern().startsWith("::"))
+    return item->inherits(filterRegExp.pattern().mid(2).toStdString().c_str())?0:-1;
+  else if(filterRegExp.pattern().startsWith(":"))
+    return item->metaObject()->className()==filterRegExp.pattern().mid(1)?0:-1;
+  else
+    return filterRegExp.indexIn(item->text(0));
+}
 // MainWindow::filterObjectList(...) and MainWindow::searchObjectList(...) are also used in h5plotserie.
 // If changes are made here, please do the same changes in HDF5Serie, h5plotserie
 void MainWindow::filterObjectList() {
   QRegExp filterRegExp(filter->text());
-  searchObjectList(objectList->invisibleRootItem(), filterRegExp);
+  searchObjectList((Object*)objectList->invisibleRootItem(), filterRegExp);
 }
-void MainWindow::searchObjectList(QTreeWidgetItem *item, const QRegExp& filterRegExp) {
+void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
   for(int i=0; i<item->childCount(); i++) {
     // search recursive
-    searchObjectList(item->child(i), filterRegExp);
+    searchObjectList((Object*)item->child(i), filterRegExp);
     // set color
     QColor c=item->child(i)->foreground(0).color();
-    c.setRed(filterRegExp.indexIn(item->child(i)->text(0))<0?255:0);
+    c.setRed(mySearch(filterRegExp,(Object*)item->child(i))<0?255:0);
     item->child(i)->setForeground(0, QBrush(c));
     // if all children and children children are red, collapse
     int count=0;
@@ -1508,7 +1518,7 @@ void MainWindow::searchObjectList(QTreeWidgetItem *item, const QRegExp& filterRe
        (item->child(i)->childCount()==0 && item->child(i)->foreground(0).color().red()==255)) {
       bool hide=true;
       for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
-        if(filterRegExp.indexIn(it->text(0))>=0) { hide=false; break; }
+        if(mySearch(filterRegExp,(Object*)it)>=0) { hide=false; break; }
       item->child(i)->setHidden(hide);
     }
   }

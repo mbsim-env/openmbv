@@ -106,6 +106,7 @@ class MainWindow : public QMainWindow {
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
     QLineEdit *filter;
+    int mySearch(const QRegExp& filterRegExp, Object *item);
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -156,7 +157,7 @@ class MainWindow : public QMainWindow {
     void toggleFullScreenSlot();
     void toggleDecorationSlot();
     void filterObjectList();
-    void searchObjectList(QTreeWidgetItem *item, const QRegExp&);
+    void searchObjectList(Object *item, const QRegExp&);
     void expandToDepth1() { 
       for(int i=0; i<objectList->invisibleRootItem()->childCount(); i++)
         objectList->invisibleRootItem()->child(i)->setExpanded(false); 
