@@ -29,14 +29,22 @@ namespace OpenMBV {
   class CompoundRigidBody : public RigidBody {
     protected:
       std::vector<RigidBody*> rigidBody;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
     public:
       /** Default constructor */
       CompoundRigidBody();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "CompoundRigidBody"; }
+
       /** Add a RigidBody to this compound */
       void addRigidBody(RigidBody* rigidBody_) {
         rigidBody.push_back(rigidBody_);
+      }
+
+      std::vector<RigidBody*> getRigidBodies() {
+        return rigidBody;
       }
 
       /** Initializes the time invariant part of the object using a XML node */

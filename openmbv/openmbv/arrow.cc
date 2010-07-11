@@ -24,10 +24,12 @@
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
+#include "openmbvcppinterface/arrow.h"
 
 using namespace std;
 
-Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
+Arrow::Arrow(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+  arrow=(OpenMBV::Arrow*)obj;
   iconFile=":/arrow.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
@@ -42,21 +44,9 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   }
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"diameter");
-  double diameter=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  double headDiameter=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  headLength=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  string type_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
-  if(type_=="line") type=line;
-  else if(type_=="fromHead") type=fromHead;
-  else if(type_=="toHead") type=toHead;
-  else type=bothHeads;
-  if(type!=toHead) printf("Only toHead is implemented yet!!!\n"); //TODO
-  e=e->NextSiblingElement();
-  scaleLength=Utils::toVector(e->GetText())[0];
+  if(arrow->getType()!=OpenMBV::Arrow::toHead) printf("Only toHead is implemented yet!!!\n"); //TODO
+  headLength=arrow->getHeadLength();
+  scaleLength=arrow->getScaleLength();
 
   // create so
   // path
@@ -71,7 +61,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   pathSep->addChild(pathCoord);
   pathLine=new SoLineSet;
   pathSep->addChild(pathLine);
-  soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  soPathSwitch->whichChild.setValue(arrow->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   pathMaxFrameRead=-1;
 
   // Arrow
@@ -99,7 +89,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // cone
   SoCone *cone1=new SoCone;
   soSep->addChild(cone1);
-  cone1->bottomRadius.setValue(headDiameter/2);
+  cone1->bottomRadius.setValue(arrow->getHeadDiameter()/2);
   cone1->height.setValue(headLength);
   // trans2
   SoTranslation *trans2=new SoTranslation;
@@ -115,7 +105,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // cylinder
   SoCylinder *cylinder=new SoCylinder;
   soSep->addChild(cylinder);
-  cylinder->radius.setValue(diameter/2);
+  cylinder->radius.setValue(arrow->getDiameter()/2);
   cylinder->height.setValue(headLength);
 
   // outline
@@ -125,12 +115,12 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   SoCylinder *coneOL1=new SoCylinder;
   soOutLineSep->addChild(coneOL1);
   coneOL1->height.setValue(0);
-  coneOL1->radius.setValue(headDiameter/2);
+  coneOL1->radius.setValue(arrow->getHeadDiameter()/2);
   coneOL1->parts.setValue(SoCylinder::SIDES);
   SoCylinder *coneOL2=new SoCylinder;
   soOutLineSep->addChild(coneOL2);
   coneOL2->height.setValue(0);
-  coneOL2->radius.setValue(diameter/2);
+  coneOL2->radius.setValue(arrow->getDiameter()/2);
   coneOL2->parts.setValue(SoCylinder::SIDES);
   soOutLineSep->addChild(scale2);
   SoTranslation *transLO2=new SoTranslation;
@@ -141,6 +131,7 @@ Arrow::Arrow(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parent
   // GUI
   path=new QAction(Utils::QIconCached(":/path.svg"),"Draw Path of To-Point", this);
   path->setCheckable(true);
+  path->setChecked(arrow->getPath());
   path->setObjectName("Arrow::path");
   connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
 }
@@ -216,10 +207,13 @@ QString Arrow::getInfo() {
 void Arrow::pathSlot() {
   if(path->isChecked()) {
     soPathSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    arrow->setPath(true);
     update();
   }
-  else
+  else {
     soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    arrow->setPath(true);
+  }
 }
 
 QMenu* Arrow::createMenu() {

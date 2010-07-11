@@ -29,27 +29,34 @@ namespace OpenMBV {
   /** Rotation of a cross section area */
   class Rotation : public RigidBody {
     protected:
-      DoubleParam startAngle, endAngle;
+      ScalarParameter startAngle, endAngle;
       std::vector<PolygonPoint*> *contour;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Rotation();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Rotation"; }
+
       /** Set start angle of the rotation (Default: 0). */
-      void setStartAngle(DoubleParam angle) {
-        startAngle=angle;
+      void setStartAngle(ScalarParameter angle) {
+        set(startAngle,angle);
       }
+
+      double getStartAngle() { return get(startAngle); }
 
       /** Set end angle of the rotation (Default: 2*pi). */
-      void setEndAngle(DoubleParam angle) {
-        endAngle=angle;
+      void setEndAngle(ScalarParameter angle) {
+        set(endAngle,angle);
       }
 
+      double getEndAngle() { return get(endAngle); }
+
       /** Set start and end angle of the rotation (Default 0-2*pi). */
-      void setAngle(DoubleParam startAngle_, DoubleParam endAngle_) {
-        startAngle=startAngle_;
-        endAngle=endAngle_;
+      void setAngle(ScalarParameter startAngle_, ScalarParameter endAngle_) {
+        set(startAngle,startAngle_);
+        set(endAngle,endAngle_);
       }
 
       /** Set cross section area of the rotation.
@@ -58,6 +65,8 @@ namespace OpenMBV {
       void setContour(std::vector<PolygonPoint*> *contour_) {
         contour=contour_;
       }
+
+      std::vector<PolygonPoint*>* getContour() { return contour; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

@@ -29,9 +29,8 @@ Extrusion::Extrusion() : RigidBody(),
   height(1) {
   }
 
-void Extrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Extrusion name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-  RigidBody::writeXMLFile(xmlFile, indent+"  ");
+TiXmlElement *Extrusion::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
   string windingRuleStr;
   switch(windingRule) {
     case odd: windingRuleStr="odd"; break;
@@ -40,11 +39,11 @@ void Extrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) 
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  xmlFile<<indent<<"  <windingRule>\""<<windingRuleStr<<"\"</windingRule>"<<endl;
-  xmlFile<<indent<<"  <height>"<<height<<"</height>"<<endl;
+  addElementText(e, "windingRule", "\""+windingRuleStr+"\"");
+  addElementText(e, "height", height);
   for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
-    PolygonPoint::serializePolygonPointContour(xmlFile, indent, (*i));
-  xmlFile<<indent<<"</Extrusion>"<<endl;
+    PolygonPoint::serializePolygonPointContour(e, *i);
+  return 0;
 }
 
 

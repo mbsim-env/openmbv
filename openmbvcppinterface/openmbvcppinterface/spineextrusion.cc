@@ -43,12 +43,11 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
     }
   }
 
-void SpineExtrusion::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<SpineExtrusion name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-  DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
-  if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
-  xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
-  xmlFile<<indent<<"</SpineExtrusion>"<<endl;
+TiXmlElement* SpineExtrusion::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
+  addElementText(e, "scaleFactor", scaleFactor);
+  return 0;
 }
 
 void SpineExtrusion::createHDF5File() {
@@ -71,6 +70,8 @@ void SpineExtrusion::createHDF5File() {
 void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"contour");
+  setContour(PolygonPoint::initializeUsingXML(e));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
 }

@@ -27,10 +27,9 @@ using namespace OpenMBV;
 InvisibleBody::InvisibleBody() : RigidBody() {
 }
 
-void InvisibleBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<InvisibleBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-  xmlFile<<indent<<"</InvisibleBody>"<<endl;
+TiXmlElement* InvisibleBody::writeXMLFile(TiXmlNode *parent) {
+  RigidBody::writeXMLFile(parent);
+  return 0;
 }
 
 void InvisibleBody::initializeUsingXML(TiXmlElement *element) {

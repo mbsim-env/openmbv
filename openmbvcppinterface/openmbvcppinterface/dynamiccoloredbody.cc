@@ -33,11 +33,12 @@ DynamicColoredBody::DynamicColoredBody() : Body(),
 
 DynamicColoredBody::~DynamicColoredBody() {}
 
-void DynamicColoredBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  Body::writeXMLFile(xmlFile, indent);
-  xmlFile<<indent<<"<minimalColorValue>"<<minimalColorValue<<"</minimalColorValue>"<<endl;
-  xmlFile<<indent<<"<maximalColorValue>"<<maximalColorValue<<"</maximalColorValue>"<<endl;
-  xmlFile<<indent<<"<staticColor>"<<staticColor<<"</staticColor>"<<endl;
+TiXmlElement* DynamicColoredBody::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=Body::writeXMLFile(parent);
+  addElementText(e, "minimalColorValue", minimalColorValue, 0);
+  addElementText(e, "maximalColorValue", maximalColorValue, 1);
+  addElementText(e, "staticColor", staticColor, nan(""));
+  return e;
 }
 
 void DynamicColoredBody::initializeUsingXML(TiXmlElement *element) {

@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "body.h"
-#include "tinyxml.h"
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <H5Cpp.h>
@@ -37,7 +36,7 @@ class Path : public Body {
     SoLineSet *line;
     int maxFrameRead;
   public:
-    Path(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Path(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
 };
 

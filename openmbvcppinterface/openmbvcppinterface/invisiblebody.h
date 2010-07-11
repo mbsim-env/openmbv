@@ -27,10 +27,13 @@ namespace OpenMBV {
   /** A invisible body */
   class InvisibleBody : public RigidBody {
     protected:
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       InvisibleBody();
+
+      /** Retrun the class name */
+      std::string getClassName() { return "InvisibleBody"; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

@@ -1,8 +1,4 @@
-if COND_MBXMLUTILS
-  MAYBE_SCHEMA = schema
-endif
-
-SUBDIRS = openmbvtinyxml openmbv $(MAYBE_SCHEMA)
+SUBDIRS = openmbv
 
 
 

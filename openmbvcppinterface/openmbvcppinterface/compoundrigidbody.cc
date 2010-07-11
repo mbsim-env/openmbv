@@ -28,12 +28,11 @@ using namespace OpenMBV;
 CompoundRigidBody::CompoundRigidBody() : RigidBody() {
 }
 
-void CompoundRigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<CompoundRigidBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    for(unsigned int i=0; i<rigidBody.size(); i++)
-      rigidBody[i]->writeXMLFile(xmlFile, indent+"  ");
-  xmlFile<<indent<<"</CompoundRigidBody>"<<endl;
+TiXmlElement* CompoundRigidBody::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  for(unsigned int i=0; i<rigidBody.size(); i++)
+    rigidBody[i]->writeXMLFile(e);
+  return 0;
 }
 
 void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
@@ -47,4 +46,9 @@ void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
     addRigidBody(rb);
     e=e->NextSiblingElement();
   }
+}
+
+void CompoundRigidBody::collectParameter(map<string, double>& sp, map<string, vector<double> >& vp, map<string, vector<vector<double> > >& mp, bool collectAlsoSeparateGroup) {
+  for(size_t i=0; i<rigidBody.size(); i++)
+    rigidBody[i]->collectParameter(sp, vp, mp);
 }

@@ -36,18 +36,16 @@
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
 #include "utils.h"
+#include "openmbvcppinterface/body.h"
 
 using namespace std;
 
 bool Body::existFiles=false;
 Body *Body::timeUpdater=0;
 
-Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
+Body::Body(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, h5Parent, parentItem, soParent) {
+  body=(OpenMBV::Body*)obj;
   if(h5Parent) {
-    // read XML
-    TiXmlElement *e=element->FirstChildElement(OPENMBVNS"hdf5Link");
-    if(e); // hdf5Link
-
     // register callback function on frame change
     SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
     sensor->attach(MainWindow::getInstance()->getFrame());
@@ -58,7 +56,7 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   soOutLineSwitch=new SoSwitch;
   soOutLineSwitch->ref(); // add to scene must be done by derived class
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
-    soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   else
     soOutLineSwitch->whichChild.connectFrom(&((Body*)parentItem)->soOutLineSwitch->whichChild);
   soOutLineSep=new SoSeparator;
@@ -77,12 +75,17 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     // draw method
     drawStyle=new SoDrawStyle;
     soSep->addChild(drawStyle);
+    switch(body->getDrawMethod()) {
+      case OpenMBV::Body::filled: drawStyle->style.setValue(SoDrawStyle::FILLED); break;
+      case OpenMBV::Body::lines: drawStyle->style.setValue(SoDrawStyle::LINES); break;
+      case OpenMBV::Body::points: drawStyle->style.setValue(SoDrawStyle::POINTS); break;
+    }
   
     // GUI
     // draw outline action
     outLine=new QAction(Utils::QIconCached(":/outline.svg"),"Draw Out-Line", this);
     outLine->setCheckable(true);
-    outLine->setChecked(true);
+    outLine->setChecked(body->getOutLine());
     outLine->setObjectName("Body::outLine");
     connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
     // draw method action
@@ -91,15 +94,19 @@ Body::Body(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     drawMethodLine=new QAction(Utils::QIconCached(":/lines.svg"),"Draw Style: Lines", drawMethod);
     drawMethodPoint=new QAction(Utils::QIconCached(":/points.svg"),"Draw Style: Points", drawMethod);
     drawMethodPolygon->setCheckable(true);
-    drawMethodPolygon->setData(QVariant(filled));
+    drawMethodPolygon->setData(QVariant(OpenMBV::Body::filled));
     drawMethodPolygon->setObjectName("Body::drawMethodPolygon");
     drawMethodLine->setCheckable(true);
-    drawMethodLine->setData(QVariant(lines));
+    drawMethodLine->setData(QVariant(OpenMBV::Body::lines));
     drawMethodLine->setObjectName("Body::drawMethodLine");
     drawMethodPoint->setCheckable(true);
-    drawMethodPoint->setData(QVariant(points));
+    drawMethodPoint->setData(QVariant(OpenMBV::Body::points));
     drawMethodPoint->setObjectName("Body::drawMethodPoint");
-    drawMethodPolygon->setChecked(true);
+    switch(body->getDrawMethod()) {
+      case OpenMBV::Body::filled: drawMethodPolygon->setChecked(true); break;
+      case OpenMBV::Body::lines: drawMethodLine->setChecked(true); break;
+      case OpenMBV::Body::points: drawMethodPoint->setChecked(true); break;
+    }
     connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
   }
 }
@@ -125,20 +132,30 @@ QMenu* Body::createMenu() {
 }
 
 void Body::outLineSlot() {
-  if(outLine->isChecked())
+  if(outLine->isChecked()) {
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_ALL);
-  else
+    body->setOutLine(true);
+  }
+  else {
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    body->setOutLine(false);
+  }
 }
 
 void Body::drawMethodSlot(QAction* action) {
-  DrawStyle ds=(DrawStyle)action->data().toInt();
-  if(ds==filled)
+  OpenMBV::Body::DrawStyle ds=(OpenMBV::Body::DrawStyle)action->data().toInt();
+  if(ds==OpenMBV::Body::filled) {
     drawStyle->style.setValue(SoDrawStyle::FILLED);
-  else if(ds==lines)
+    body->setDrawMethod(OpenMBV::Body::filled);
+  }
+  else if(ds==OpenMBV::Body::lines) {
     drawStyle->style.setValue(SoDrawStyle::LINES);
-  else
+    body->setDrawMethod(OpenMBV::Body::lines);
+  }
+  else {
     drawStyle->style.setValue(SoDrawStyle::POINTS);
+    body->setDrawMethod(OpenMBV::Body::points);
+  }
 }
 
 // number of rows / dt

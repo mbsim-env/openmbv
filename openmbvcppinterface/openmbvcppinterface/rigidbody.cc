@@ -22,14 +22,14 @@
 #include <fstream>
 #include <openmbvcppinterface/group.h>
 #include <H5Cpp.h>
-#include <openmbvcppinterface/doubleparam.h>
+#include <openmbvcppinterface/simpleparameter.h>
 
 using namespace std;
 using namespace OpenMBV;
 
-RigidBody::RigidBody() : DynamicColoredBody(),
-  initialTranslation(3, 0),
-  initialRotation(3, 0),
+RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), 
+  initialTranslation(vector<double>(3, 0)),
+  initialRotation(vector<double>(3, 0)),
   scaleFactor(1),
   data(0) {
 }
@@ -38,15 +38,15 @@ RigidBody::~RigidBody() {
   if(!hdf5LinkBody && data) delete data;
 }
 
-void RigidBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  DynamicColoredBody::writeXMLFile(xmlFile, indent);
-  xmlFile<<indent<<"<initialTranslation>["<<initialTranslation[0]<<";"
-                                       <<initialTranslation[1]<<";"
-                                       <<initialTranslation[2]<<"]</initialTranslation>"<<endl;
-  xmlFile<<indent<<"<initialRotation>["<<initialRotation[0]<<";"
-                                    <<initialRotation[1]<<";"
-                                    <<initialRotation[2]<<"]</initialRotation>"<<endl;
-  xmlFile<<indent<<"<scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
+TiXmlElement* RigidBody::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  addAttribute(e, "localFrame", localFrameStr, "false");
+  addAttribute(e, "referenceFrame", referenceFrameStr, "false");
+  addAttribute(e, "path", pathStr, "false");
+  addElementText(e, "initialTranslation", initialTranslation);
+  addElementText(e, "initialRotation", initialRotation);
+  addElementText(e, "scaleFactor", scaleFactor);
+  return e;
 }
 
 void RigidBody::createHDF5File() {
@@ -68,6 +68,15 @@ void RigidBody::createHDF5File() {
 
 void RigidBody::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
+  if(element->Attribute("localFrame") && 
+     (element->Attribute("localFrame")==string("true") || element->Attribute("localFrame")==string("1")))
+    setLocalFrame(true);
+  if(element->Attribute("referenceFrame") && 
+     (element->Attribute("referenceFrame")==string("true") || element->Attribute("referenceFrame")==string("1")))
+    setReferenceFrame(true);
+  if(element->Attribute("path") && 
+     (element->Attribute("path")==string("true") || element->Attribute("path")==string("1")))
+    setPath(true);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   setInitialTranslation(getVec(e,3));

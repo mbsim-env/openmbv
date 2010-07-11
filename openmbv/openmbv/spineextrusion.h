@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
-#include "tinyxml.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
 #include <H5Cpp.h>
@@ -38,7 +37,7 @@ class SpineExtrusion : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    SpineExtrusion(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    SpineExtrusion(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();

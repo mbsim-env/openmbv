@@ -23,24 +23,22 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
 #include "utils.h"
+#include "openmbvcppinterface/sphere.h"
 
 using namespace std;
 
-Sphere::Sphere(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Sphere::Sphere(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Sphere *s=(OpenMBV::Sphere*)obj;
   iconFile=":/sphere.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"radius");
-  double radius=Utils::toVector(e->GetText())[0];
-
   // create so
   SoSphere *sphere=new SoSphere;
-  sphere->radius.setValue(radius);
+  sphere->radius.setValue(s->getRadius());
   soSepRigidBody->addChild(sphere);
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(2*radius,2*radius,2*radius);
-  localFrameScale->scaleFactor.setValue(2*radius,2*radius,2*radius);
+  refFrameScale->scaleFactor.setValue(2*s->getRadius(),2*s->getRadius(),2*s->getRadius());
+  localFrameScale->scaleFactor.setValue(2*s->getRadius(),2*s->getRadius(),2*s->getRadius());
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);

@@ -32,15 +32,14 @@ Frustum::Frustum() : RigidBody(),
   innerTopRadius(0) {
 }
 
-void Frustum::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Frustum name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <baseRadius>"<<baseRadius<<"</baseRadius>"<<endl;
-    xmlFile<<indent<<"  <topRadius>"<<topRadius<<"</topRadius>"<<endl;
-    xmlFile<<indent<<"  <height>"<<height<<"</height>"<<endl;
-    xmlFile<<indent<<"  <innerBaseRadius>"<<innerBaseRadius<<"</innerBaseRadius>"<<endl;
-    xmlFile<<indent<<"  <innerTopRadius>"<<innerTopRadius<<"</innerTopRadius>"<<endl;
-  xmlFile<<indent<<"</Frustum>"<<endl;
+TiXmlElement* Frustum::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "baseRadius", baseRadius);
+  addElementText(e, "topRadius", topRadius);
+  addElementText(e, "height", height);
+  addElementText(e, "innerBaseRadius", innerBaseRadius);
+  addElementText(e, "innerTopRadius", innerTopRadius);
+  return 0;
 }
 
 void Frustum::initializeUsingXML(TiXmlElement *element) {

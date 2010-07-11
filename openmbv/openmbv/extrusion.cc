@@ -27,32 +27,26 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <vector>
 #include "utils.h"
-#include "utils.h"
+#include "openmbvcppinterface/extrusion.h"
 
 using namespace std;
 
-Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Extrusion::Extrusion(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
   iconFile=":/extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"windingRule");
-  string windingRule_=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+  OpenMBV::Extrusion::WindingRule windingRule_=e->getWindingRule();
   int windingRule=GLU_TESS_WINDING_ODD;
-  if(windingRule_=="odd") windingRule=GLU_TESS_WINDING_ODD; 
-  if(windingRule_=="nonZero") windingRule=GLU_TESS_WINDING_NONZERO;
-  if(windingRule_=="positive") windingRule=GLU_TESS_WINDING_POSITIVE;
-  if(windingRule_=="negative") windingRule=GLU_TESS_WINDING_NEGATIVE;
-  if(windingRule_=="absGEqTwo") windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
-  e=e->NextSiblingElement();
-  double height=Utils::toVector(e->GetText())[0];
+  if(windingRule_==OpenMBV::Extrusion::odd) windingRule=GLU_TESS_WINDING_ODD; 
+  if(windingRule_==OpenMBV::Extrusion::nonzero) windingRule=GLU_TESS_WINDING_NONZERO;
+  if(windingRule_==OpenMBV::Extrusion::positive) windingRule=GLU_TESS_WINDING_POSITIVE;
+  if(windingRule_==OpenMBV::Extrusion::negative) windingRule=GLU_TESS_WINDING_NEGATIVE;
+  if(windingRule_==OpenMBV::Extrusion::absGEqTwo) windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
+  double height=e->getHeight();
   if(fabs(height)<1e-13) height=0;
-  e=e->NextSiblingElement();
-  vector<vector<vector<double> > > contour;
-  while(e && e->ValueStr()==OPENMBVNS"contour") {
-    contour.push_back(Utils::toMatrix(e->GetText()));
-    e=e->NextSiblingElement();
-  }
+  std::vector<std::vector<OpenMBV::PolygonPoint*>* > contour=e->getContours();
 
   // create so
   // outline
@@ -99,22 +93,22 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     int nr=0;
     soOutLineSep->addChild(ol3);
     //
-    for(r=0; r<contour[c].size(); r++) {
-      size_t rn=r+1; if(rn>=contour[c].size()) rn=0;
-      size_t rp; if(r>=1) rp=r-1; else rp=contour[c].size()-1;
-      v->point.set1Value(2*r+0, contour[c][r][0], contour[c][r][1], 0);
-      v->point.set1Value(2*r+1, contour[c][r][0], contour[c][r][1], height);
+    for(r=0; r<contour[c]->size(); r++) {
+      size_t rn=r+1; if(rn>=contour[c]->size()) rn=0;
+      size_t rp; if(r>=1) rp=r-1; else rp=contour[c]->size()-1;
+      v->point.set1Value(2*r+0, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), 0);
+      v->point.set1Value(2*r+1, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), height);
       if(height!=0) {
-        SbVec3f n1(contour[c][r][1]-contour[c][rp][1],contour[c][rp][0]-contour[c][r][0],0); n1.normalize();
-        SbVec3f n2(contour[c][rn][1]-contour[c][r][1],contour[c][r][0]-contour[c][rn][0],0); n2.normalize();
-        if(((int)(contour[c][r][2]+0.5))!=1)
+        SbVec3f n1((*contour[c])[r]->getYComponent()-(*contour[c])[rp]->getYComponent(),(*contour[c])[rp]->getXComponent()-(*contour[c])[r]->getXComponent(),0); n1.normalize();
+        SbVec3f n2((*contour[c])[rn]->getYComponent()-(*contour[c])[r]->getYComponent(),(*contour[c])[r]->getXComponent()-(*contour[c])[rn]->getXComponent(),0); n2.normalize();
+        if(((int)((*contour[c])[r]->getBorderValue()+0.5))!=1)
           n1=n2=n1+n2;
         n->vector.set1Value(2*r+0, n1);
         n->vector.set1Value(2*r+1, n2);
       }
       ol1->coordIndex.set1Value(r, 2*r+0);
       ol2->coordIndex.set1Value(r, 2*r+1);
-      if(((int)(contour[c][r][2]+0.5))==1) {
+      if(((int)((*contour[c])[r]->getBorderValue()+0.5))==1) {
         ol3->coordIndex.set1Value(nr++, 2*r+0);
         ol3->coordIndex.set1Value(nr++, 2*r+1);
         ol3->coordIndex.set1Value(nr++, -1);
@@ -144,10 +138,10 @@ Extrusion::Extrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   gluTessBeginPolygon(Utils::tess, soTess);
   for(size_t c=0; c<contour.size(); c++) {
     gluTessBeginContour(Utils::tess);
-    for(size_t r=0; r<contour[c].size(); r++) {
+    for(size_t r=0; r<contour[c]->size(); r++) {
       GLdouble *v=new GLdouble[3];
-      v[0]=contour[c][r][0];
-      v[1]=contour[c][r][1];
+      v[0]=(*contour[c])[r]->getXComponent();
+      v[1]=(*contour[c])[r]->getYComponent();
       v[2]=0;
       gluTessVertex(Utils::tess, v, v);
     }

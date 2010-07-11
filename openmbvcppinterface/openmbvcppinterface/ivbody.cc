@@ -27,13 +27,12 @@ using namespace OpenMBV;
 IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 }
 
-void IvBody::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<IvBody name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <ivFileName>\""<<ivFileName<<"\"</ivFileName>"<<endl;
-    xmlFile<<indent<<"  <creaseAngle>"<<creaseAngle<<"</creaseAngle>"<<endl;
-    xmlFile<<indent<<"  <boundaryEdges>"<<boundaryEdges<<"</boundaryEdges>"<<endl;
-  xmlFile<<indent<<"</IvBody>"<<endl;
+TiXmlElement* IvBody::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "ivFileName", "\""+ivFileName+"\"");
+  addElementText(e, "creaseAngle", creaseAngle, -1);
+  addElementText(e, "boundaryEdges", boundaryEdges, false);
+  return 0;
 }
 
 void IvBody::initializeUsingXML(TiXmlElement *element) {

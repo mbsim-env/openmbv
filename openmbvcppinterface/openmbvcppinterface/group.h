@@ -22,6 +22,7 @@
 
 #include <openmbvcppinterface/object.h>
 #include <vector>
+#include <map>
 #include <H5Cpp.h>
 
 namespace OpenMBV {
@@ -32,41 +33,87 @@ namespace OpenMBV {
     protected:
       std::vector<Object*> object;
       std::string expandStr;
-      bool separateFile;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      std::string fileName;
+      bool separateFile, topLevelFile;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void readSimpleParameter(std::string filename);
+      void writeSimpleParameter(std::string filename);
+      void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
     public:
       /** Default constructor */
       Group();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Group"; }
+
       /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
 
+      bool getExpand() { return expandStr=="true"?true:false; }
+
       /** Add a object to this object container */
       void addObject(Object* object);
+
+      std::vector<Object*> getObjects() {
+        return object;
+      }
       
       /** Plot a separate xml and h5 file for this group if truee */
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
+
+      bool getSeparateFile() { return separateFile; }
+
+      void setTopLevelFile(bool b) { topLevelFile=b; }
+      bool getTopLevelFile() { return topLevelFile; }
+
+      // fileName is only set if separateFile is true
+      std::string getFileName() { return fileName; }
       
       /** Initialisze/Write the XML file.
-       * Call this function for the root node of the tree to create the XML file.
+       * Call this function for the root node of the tree to create/write/ the XML file.
        */
-      void initializeXML();
+      void writeXML();
+      /** DEPRECATED use writeXML() */
+      void initializeXML() { std::cerr<<"WARNING! OpenMBV::Group::initializeXML() is deprecated. Please use OpenMBV::Group::writeXML() instead."<<std::endl; writeXML(); }
+
+      /** Read the XML file.
+       * Call this function to read an OpenMBV XML file and creating the Object tree.
+       */
+      static Group* readXML(std::string fileName);
       
-      /** Initialisze the h5 file.
+      /** Initialisze/Write the h5 file.
        * Call this function for the root node of the tree to init the h5 file.
+       * (Only the h5 tree i written, but do data. Use append() to write date to h5 file after calling this function)
        */
-      void initializeH5();
-      
-      /** Initialisze the tree (XML and h5).
-       * Call this function for the root node of the tree before starting writing.
+      void writeH5();
+      /** DEPRECATED use writeH5() */
+      void initializeH5() { std::cerr<<"WARNING! OpenMBV::Group::initializeH5() is deprecated. Please use OpenMBV::Group::writeH5() instead."<<std::endl; writeH5(); }
+
+      /** Initialisze/Wrtie the tree (XML and h5).
+       * This function simply calls writeXML() and writeH5().
        */
+      void write() { writeXML(); writeH5(); }
+      /** DEPRECATED use write() */
       void initialize() { initializeXML(); initializeH5(); }
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.
        */
       void terminate();
+
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
+
+      /** return the first Group in the tree which is an separateFile */
+      Group* getSeparateGroup() { return separateFile?this:parent->getSeparateGroup(); }
+
+      /** return the top level Group (this Group is an topLevelFile */
+      Group* getTopLevelGroup() { return topLevelFile?this:parent->getTopLevelGroup(); }
+
+      double getScalarParameter(std::string name);
+      std::vector<double> getVectorParameter(std::string name);
+      std::vector<std::vector<double> > getMatrixParameter(std::string name);
   };
 
 }

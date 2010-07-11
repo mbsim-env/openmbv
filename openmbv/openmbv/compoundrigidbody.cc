@@ -21,20 +21,19 @@
 #include "compoundrigidbody.h"
 #include "objectfactory.h"
 #include "utils.h"
+#include "openmbvcppinterface/compoundrigidbody.h"
 
 using namespace std;
 
-CompoundRigidBody::CompoundRigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::CompoundRigidBody* crb=(OpenMBV::CompoundRigidBody*)obj;
   iconFile=":/compoundrigidbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  e=e->NextSiblingElement(); // first rigidbody
-  while(e!=0) {
-    ObjectFactory(e, 0, this, soSepRigidBody);
-    e=e->NextSiblingElement(); // next rigidbody
-  }
+  vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
+  for(size_t i=0; i<rb.size(); i++)
+    ObjectFactory(rb[i], 0, this, soSepRigidBody);
 
   // create so
 

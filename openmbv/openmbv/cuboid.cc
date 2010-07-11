@@ -23,25 +23,23 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
 #include "utils.h"
+#include "openmbvcppinterface/cuboid.h"
 
 using namespace std;
 
-Cuboid::Cuboid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Cuboid::Cuboid(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Cuboid *c=(OpenMBV::Cuboid*)obj;
   iconFile=":/cuboid.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"length");
-  vector<double> length=Utils::toVector(e->GetText());
-
   // create so
   SoCube *cuboid=new SoCube;
-  cuboid->width.setValue(length[0]);
-  cuboid->height.setValue(length[1]);
-  cuboid->depth.setValue(length[2]);
+  cuboid->width.setValue(c->getLength()[0]);
+  cuboid->height.setValue(c->getLength()[1]);
+  cuboid->depth.setValue(c->getLength()[2]);
   soSepRigidBody->addChild(cuboid);
   // scale ref/localFrame
-  double size=min(length[0],min(length[1],length[2]));
+  double size=min(c->getLength()[0],min(c->getLength()[1],c->getLength()[2]));
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);
 

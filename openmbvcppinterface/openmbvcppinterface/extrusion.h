@@ -28,7 +28,7 @@ namespace OpenMBV {
 
   /** A extrusion of a cross section area (with holes) */
   class Extrusion : public RigidBody {
-    protected:
+    public:
       enum WindingRule {
         odd,
         nonzero,
@@ -36,13 +36,17 @@ namespace OpenMBV {
         negative,
         absGEqTwo
       };
+    protected:
       WindingRule windingRule;
-      DoubleParam height;
+      ScalarParameter height;
       std::vector<std::vector<PolygonPoint*>*> contour;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement *writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Extrusion();
+
+      /** Retrun the class name */
+      std::string getClassName() { return "Extrusion"; }
 
       /** Set the OpenGL winding rule for the tesselation of the cross section area.
        * Allowable values are "odd", "nonzero", "positive", "negative" and "absGEqTwo".
@@ -52,12 +56,16 @@ namespace OpenMBV {
         windingRule=windingRule_;
       }
 
+      WindingRule getWindingRule() { return windingRule; }
+
       /** Set the height of the extrusion.
        * The extrusion is along the normal of the cross section area (local z-axis).
        */
-      void setHeight(DoubleParam height_) {
-        height=height_;
+      void setHeight(ScalarParameter height_) {
+        set(height,height_);
       }
+      
+      double getHeight() { return get(height); }
 
       /** Clear all previously added contours. */
       void clearContours() {
@@ -69,6 +77,10 @@ namespace OpenMBV {
        */
       void addContour(std::vector<PolygonPoint*> *contour_) {
         contour.push_back(contour_);
+      }
+
+      std::vector<std::vector<PolygonPoint*>* > getContours() {
+        return contour;
       }
 
       /** Initializes the time invariant part of the object using a XML node */

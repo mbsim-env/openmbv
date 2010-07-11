@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include "mainwindow.h"
+#include "openmbvcppinterface/group.h"
 #include "compoundrigidbody.h"
 #include "utils.h"
 
@@ -30,17 +31,14 @@ using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
-  bool enable=true;
-  if(element->Attribute("enable") && (element->Attribute("enable")==string("false") || element->Attribute("enable")==string("0")))
-    enable=false;
-
+Object::Object(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
+  object=obj;
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
     parentItem->addChild(this);
 
     // enable or disable
-    if((dynamic_cast<Object*>(parentItem)==0 && enable) || (enable && ((Object*)parentItem)->drawThisPath)) {
+    if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
       drawThisPath=true;
       QColor c=foreground(0).color();
       c.setAlpha(255);
@@ -55,16 +53,16 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   }
   
   // h5 group
-  if(element->Parent()->ToDocument() || h5Parent==0)
+  if((obj->getClassName()=="Group" && ((OpenMBV::Group*)obj)->getTopLevelFile()) || h5Parent==0)
     h5Group=h5Parent;
   else
-    h5Group=new H5::Group(h5Parent->openGroup(element->Attribute("name")));
+    h5Group=new H5::Group(h5Parent->openGroup(obj->getName()));
 
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
   soParent->addChild(soSwitch); // parent so
   soSwitch->ref();
-  soSwitch->whichChild.setValue(enable?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  soSwitch->whichChild.setValue(obj->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soSep=new SoSeparator;
   soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
@@ -72,7 +70,7 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   // switch for bounding box
   soBBoxSwitch=new SoSwitch;
   MainWindow::getInstance()->getSceneRootBBox()->addChild(soBBoxSwitch);
-  soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  soBBoxSwitch->whichChild.setValue(obj->getBoundingBox()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soBBoxSep=new SoSeparator;
   soBBoxSwitch->addChild(soBBoxSep);
   soBBoxTrans=new SoTranslation;
@@ -87,17 +85,18 @@ Object::Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *pare
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
     objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
-  setText(0, element->Attribute("name"));
+  setText(0, obj->getName().c_str());
 
   // GUI draw action
   draw=new QAction(Utils::QIconCached(":/drawobject.svg"),"Draw Object", this);
   draw->setCheckable(true);
-  draw->setChecked(enable);
+  draw->setChecked(obj->getEnable());
   draw->setObjectName("Object::draw");
   connect(draw,SIGNAL(changed()),this,SLOT(drawSlot()));
   // GUI bbox action
   bbox=new QAction(Utils::QIconCached(":/bbox.svg"),"Show Bounding Box", this);
   bbox->setCheckable(true);
+  bbox->setChecked(obj->getBoundingBox());
   bbox->setObjectName("Object::bbox");
   connect(bbox,SIGNAL(changed()),this,SLOT(bboxSlot()));
 }
@@ -116,10 +115,12 @@ QMenu* Object::createMenu() {
 void Object::drawSlot() {
   if(draw->isChecked()) {
     soSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    object->setEnable(true);
     setEnableRecursive(true);
   }
   else {
     soSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    object->setEnable(false);
     setEnableRecursive(false);
   }
 }
@@ -127,10 +128,13 @@ void Object::drawSlot() {
 void Object::bboxSlot() {
   if(bbox->isChecked()) {
     soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    object->setBoundingBox(true);
     soSep->touch(); // force an update
   }
-  else
+  else {
     soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    object->setBoundingBox(false);
+  }
 }
 
 // set drawThisPath recursivly and colorisze the font

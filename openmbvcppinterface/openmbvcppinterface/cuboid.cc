@@ -25,16 +25,13 @@ using namespace std;
 using namespace OpenMBV;
 
 Cuboid::Cuboid() : RigidBody(),
-  length(3, 1) {
+  length(vector<double>(3, 1)) {
 }
 
-void Cuboid::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Cuboid name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <length>["<<length[0]<<";"
-                               <<length[1]<<";"
-                               <<length[2]<<"]</length>"<<endl;
-  xmlFile<<indent<<"</Cuboid>"<<endl;
+TiXmlElement* Cuboid::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "length", length);
+  return 0;
 }
 
 void Cuboid::initializeUsingXML(TiXmlElement *element) {

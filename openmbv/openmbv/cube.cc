@@ -23,26 +23,24 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <vector>
 #include "utils.h"
+#include "openmbvcppinterface/cube.h"
 
 using namespace std;
 
-Cube::Cube(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Cube::Cube(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Cube *c=(OpenMBV::Cube*)obj;
   iconFile=":/cube.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"length");
-  double length=Utils::toVector(e->GetText())[0];
-
   // create so
   SoCube *cube=new SoCube;
-  cube->width.setValue(length);
-  cube->height.setValue(length);
-  cube->depth.setValue(length);
+  cube->width.setValue(c->getLength());
+  cube->height.setValue(c->getLength());
+  cube->depth.setValue(c->getLength());
   soSepRigidBody->addChild(cube);
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(length,length,length);
-  localFrameScale->scaleFactor.setValue(length,length,length);
+  refFrameScale->scaleFactor.setValue(c->getLength(),c->getLength(),c->getLength());
+  localFrameScale->scaleFactor.setValue(c->getLength(),c->getLength(),c->getLength());
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);

@@ -19,27 +19,17 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
+#include "openmbvcppinterface/dynamiccoloredbody.h"
 #include "utils.h"
 
 using namespace std;
 
-DynamicColoredBody::DynamicColoredBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent), color(0), oldColor(nan("")) {
+DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(obj, h5Parent, parentItem, soParent), color(0), oldColor(nan("")) {
+  OpenMBV::DynamicColoredBody *dcb=(OpenMBV::DynamicColoredBody*)obj;
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
-  if(e)
-    minimalColorValue=Utils::toVector(e->GetText())[0];
-  else
-    minimalColorValue=0;
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
-  if(e)
-    maximalColorValue=Utils::toVector(e->GetText())[0];
-  else
-    maximalColorValue=1;
-  e=element->FirstChildElement(OPENMBVNS"staticColor");
-  if(e)
-    staticColor=Utils::toDouble(e->GetText());
-  else
-    staticColor=nan("");
+  minimalColorValue=dcb->getMinimalColorValue();
+  maximalColorValue=dcb->getMaximalColorValue();
+  staticColor=dcb->getStaticColor();
 }
 
 void DynamicColoredBody::setColor(SoMaterial *mat, double col) {

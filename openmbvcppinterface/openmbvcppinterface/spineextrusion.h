@@ -48,6 +48,9 @@ namespace OpenMBV {
       /** destructor */
       virtual ~SpineExtrusion();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "SpineExtrusion"; }
+
       /** Set the number of spine points used for extrusion along a path.
        */
       void setNumberOfSpinePoints(const int num) {
@@ -64,10 +67,14 @@ namespace OpenMBV {
        * The contour (polygon) points must be in clockwise order. */
       void setContour(std::vector<PolygonPoint*> *contour_) { contour = contour_; }
 
+      std::vector<PolygonPoint*>* getContour() { return contour; }
+
       /** Set the scale factor of the body. */
-      void setScaleFactor(const DoubleParam scale) {
-        scaleFactor=scale;
+      void setScaleFactor(const ScalarParameter scale) {
+        set(scaleFactor,scale);
       }
+
+      double getScaleFactor() { return get(scaleFactor); }
 
       /** Append a data vector to the h5 datsset */
       void append(std::vector<double>& row) { 
@@ -89,10 +96,10 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
 
       /** Scale factor of the body. */
-      DoubleParam scaleFactor;
+      ScalarParameter scaleFactor;
 
       /** Write XML file for not time-dependent data. */
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

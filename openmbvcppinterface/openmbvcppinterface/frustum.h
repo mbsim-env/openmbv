@@ -27,36 +27,49 @@ namespace OpenMBV {
   /** A frustum (with a frustum hole) */
   class Frustum : public RigidBody {
     protected:
-      DoubleParam baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      ScalarParameter baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Frustum();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Frustum"; }
+
       /** Set the radius of the outer side at the base (bottom) */
-      void setBaseRadius(DoubleParam radius) {
-        baseRadius=radius;
+      void setBaseRadius(ScalarParameter radius) {
+        set(baseRadius,radius);
       } 
+
+      double getBaseRadius() { return get(baseRadius); }
 
       /** Set the radius of the outer side at the top. */
-      void setTopRadius(DoubleParam radius) {
-        topRadius=radius;
+      void setTopRadius(ScalarParameter radius) {
+        set(topRadius,radius);
       } 
+
+      double getTopRadius() { return get(topRadius); }
 
       /** Set height of the frustum */
-      void setHeight(DoubleParam height_) {
-        height=height_;
+      void setHeight(ScalarParameter height_) {
+        set(height,height_);
       } 
+
+      double getHeight() { return get(height); }
 
       /** Set the radius of the inner side at the base (bottom). */
-      void setInnerBaseRadius(DoubleParam radius) {
-        innerBaseRadius=radius;
+      void setInnerBaseRadius(ScalarParameter radius) {
+        set(innerBaseRadius,radius);
       } 
 
+      double getInnerBaseRadius() { return get(innerBaseRadius); }
+
       /** Set the radius of the inner side at the top. */
-      void setInnerTopRadius(DoubleParam radius) {
-        innerTopRadius=radius;
+      void setInnerTopRadius(ScalarParameter radius) {
+        set(innerTopRadius,radius);
       } 
+
+      double getInnerTopRadius() { return get(innerTopRadius); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

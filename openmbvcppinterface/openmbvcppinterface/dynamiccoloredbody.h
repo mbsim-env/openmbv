@@ -27,10 +27,10 @@ namespace OpenMBV {
   /** Abstract base class for all dynamically colored bodies */
   class DynamicColoredBody : public Body {
     protected:
-      DoubleParam minimalColorValue, maximalColorValue;
-      DoubleParam staticColor;
-      DoubleParam dynamicColor;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      ScalarParameter minimalColorValue, maximalColorValue;
+      ScalarParameter staticColor;
+      double dynamicColor;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       DynamicColoredBody();
 
@@ -40,32 +40,40 @@ namespace OpenMBV {
        * The color value of the body in linearly mapped between minimalColorValue
        * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).
        */
-      void setMinimalColorValue(const DoubleParam min) {
-        minimalColorValue=min;
+      void setMinimalColorValue(const ScalarParameter min) {
+        set(minimalColorValue,min);
       }
+
+      double getMinimalColorValue() { return get(minimalColorValue); }
 
       /** Set the maximal color value.
        * See also minimalColorValue
        */
-      void setMaximalColorValue(const DoubleParam max) {
-        maximalColorValue=max;
+      void setMaximalColorValue(const ScalarParameter max) {
+        set(maximalColorValue,max);
       }
+
+      double getMaximalColorValue() { return get(maximalColorValue); }
 
       /** Set a static color for the body.
        * If this value is set, the color given to the append function
        * (as last element of the data row) is overwritten with this value.
        */
-      void setStaticColor(const DoubleParam col) {
-        staticColor=col;
+      void setStaticColor(const ScalarParameter col) {
+        set(staticColor,col);
       }
+
+      double getStaticColor() { return get(staticColor); }
 
       /** Set the color for the body dynamically.
        * If this value is set, the color given to the append function
        * (as last element of the data row) is overwritten with this value.
        */
-      void setDynamicColor(const DoubleParam col) {
+      void setDynamicColor(const double col) {
         dynamicColor=col;
       }
+
+      double getDynamicColor() { return dynamicColor; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

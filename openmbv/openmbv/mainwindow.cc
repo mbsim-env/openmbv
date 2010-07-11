@@ -18,6 +18,8 @@
 */
 
 #include "config.h"
+#include <openmbvcppinterface/group.h>
+#include <openmbvcppinterface/cube.h>
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
@@ -52,8 +54,6 @@
 #include "object.h"
 #include "cuboid.h"
 #include "group.h"
-#include "tinyxml.h"
-#include "tinynamespace.h"
 #include "objectfactory.h"
 #include <string>
 #include <set>
@@ -680,10 +680,6 @@ bool MainWindow::openFile(string fileName) {
     return false;
   }
 
-  // clear old parameters and fill new ones if parameter file exist
-  Utils::clearSimpleParameters();
-  readSimpleParameterFile(fileName.substr(0,fileName.length()-(env?13:9)));
-
   H5::Group *h5Parent=0;
   if(!env) {
     // open HDF5
@@ -691,18 +687,15 @@ bool MainWindow::openFile(string fileName) {
     h5Parent=(H5::Group*)h5File;
   }
   // read XML
-  TiXmlDocument doc;
-  doc.LoadFile(fileName); TiXml_PostLoadFile(&doc);
-  map<string,string> dummy;
-  incorporateNamespace(doc.FirstChildElement(), dummy);
-  Object *object=ObjectFactory(doc.FirstChildElement(), h5Parent, objectList->invisibleRootItem(), sceneRoot);
+  OpenMBV::Group* rootGroup=OpenMBV::Group::readXML(fileName);
+
+  // Duplicate OpenMBVCppInterface tree using OpenMBV tree
+  Object *object=ObjectFactory(rootGroup, h5Parent, objectList->invisibleRootItem(), sceneRoot);
   object->setText(0, fileName.c_str());
   if(!env)
     object->getIconFile()=":/h5file.svg";
-  else {
+  else
     object->getIconFile()=":/envfile.svg";
-    object->setExpanded(false);
-  }
   object->setIcon(0, Utils::QIconCached(object->getIconFile().c_str()));
 
   // force a update
@@ -710,28 +703,7 @@ bool MainWindow::openFile(string fileName) {
   // apply object filter
   if(filter->text()!="") filterObjectList();
 
-  // clear parameters
-  Utils::clearSimpleParameters();
-
   return true;
-}
-
-void MainWindow::readSimpleParameterFile(string fileName) {
-  TiXmlDocument *paramdoc=new TiXmlDocument;
-  if(QFile((fileName+".ombv.param.xml").c_str()).exists()) {
-    paramdoc->LoadFile(fileName+".ombv.param.xml"); TiXml_PostLoadFile(paramdoc);
-    TiXmlElement *e=paramdoc->FirstChildElement();
-    map<string,string> dummy;
-    incorporateNamespace(e,dummy);
-
-    for(e=e->FirstChildElement(); e!=0; e=e->NextSiblingElement()) {
-      if(e->ValueStr()!=MBXMLUTILSPARAMNS"scalarParameter") {
-        cerr<<"WARNING! Only 'scalarParameter's are allowed in simple parameter file."<<endl;
-        continue;
-      }
-      Utils::addSimpleParameter(e->Attribute("name"), Utils::toDouble(e->GetText()));
-    }
-  }
 }
 
 void MainWindow::openFileDialog() {
@@ -1047,7 +1019,7 @@ void MainWindow::frameOrCameraSensorCB(void *data, SoSensor* sensor) {
   if(sensor==me->engDrawingOrientationSensor) orientationChanged=true;
 
   if(frameChanged==true || firstCall==true) {
-    if(edges) delete edges;
+    delete edges;
     edges=NULL;
     SoCoordinate3 *soEdgeCoordOld=me->soEdgeCoord;
     me->shilouetteSep->replaceChild(soEdgeCoordOld, me->soEdgeCoord=Utils::preCalculateEdges(me->sceneRoot, edges));

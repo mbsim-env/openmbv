@@ -35,14 +35,13 @@ CoilSpring::~CoilSpring() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-void CoilSpring::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<CoilSpring name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <numberOfCoils>"<<numberOfCoils<<"</numberOfCoils>"<<endl;
-    xmlFile<<indent<<"  <springRadius>"<<springRadius<<"</springRadius>"<<endl;
-    xmlFile<<indent<<"  <crossSectionRadius>"<<crossSectionRadius<<"</crossSectionRadius>"<<endl;
-    xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
-  xmlFile<<indent<<"</CoilSpring>"<<endl;
+TiXmlElement *CoilSpring::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  addElementText(e, "numberOfCoils", numberOfCoils);
+  addElementText(e, "springRadius", springRadius);
+  addElementText(e, "crossSectionRadius", crossSectionRadius);
+  addElementText(e, "scaleFactor", scaleFactor);
+  return 0;
 }
 
 void CoilSpring::createHDF5File() {

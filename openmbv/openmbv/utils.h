@@ -56,8 +56,6 @@ class Utils {
     static void tessVertexCB(GLdouble *vertex);
     static void tessEndCB(void);
 
-    static std::map<std::string, double> simpleParameter;
-
   public:
     static void initialize();
 
@@ -69,13 +67,6 @@ class Utils {
     /** Use SoDBreadAllCached(filename) instead of SoDBreadAll(filename) everywhere
      * to cache the iv-file parsing and scene generation */
     static SoSeparator* SoDBreadAllCached(const std::string &filename);
-
-    /** string to vector */
-    static void addSimpleParameter(std::string name, double value);
-    static void clearSimpleParameters();
-    static double toDouble(std::string str);
-    static std::vector<double> toVector(std::string str);
-    static std::vector<std::vector<double> > toMatrix(std::string str);
 
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale);
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) { SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale); }

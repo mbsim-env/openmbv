@@ -23,13 +23,12 @@
 #include "config.h"
 #include "rigidbody.h"
 #include <string>
-#include "tinyxml.h"
 #include <H5Cpp.h>
 
 class IvBody : public RigidBody {
   Q_OBJECT
   public:
-    IvBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    IvBody(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

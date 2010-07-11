@@ -31,23 +31,32 @@ namespace OpenMBV {
       /** Default constructor */
       IvBody();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "IvBody"; }
+
       /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
 
+      std::string getIvFileName() { return ivFileName; }
+
       /** Set the limit crease angle for drawing crease edges. 
        * If less 0 do not draw crease edges. Default: -1 */
-      void setCreaseEdges(DoubleParam creaseAngle_) { creaseAngle=creaseAngle_; }
+      void setCreaseEdges(ScalarParameter creaseAngle_) { set(creaseAngle,creaseAngle_); }
+
+      double getCreaseEdges() { return get(creaseAngle); }
 
       /** Draw boundary edges or not? Default: false */
       void setBoundaryEdges(bool b) { boundaryEdges=b; }
+
+      bool getBoundaryEdges() { return boundaryEdges; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
     protected:
       std::string ivFileName;
-      DoubleParam creaseAngle;
+      ScalarParameter creaseAngle;
       bool boundaryEdges;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
   };
 
 }

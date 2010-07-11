@@ -23,20 +23,12 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
+#include "openmbvcppinterface/grid.h"
 
-Grid::Grid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Grid::Grid(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
   iconFile=":/grid.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
-
-//  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"xSize");
-  double dx=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"ySize");
-  double dy=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"nx");
-  int nx=int(Utils::toVector(e->GetText())[0]+.5);
-  e=element->FirstChildElement(OPENMBVNS"ny");
-  int ny=int(Utils::toVector(e->GetText())[0]+.5);
 
   SoSeparator *sep = new SoSeparator;
 
@@ -53,13 +45,13 @@ Grid::Grid(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
   SoCoordinate3 *coord=new SoCoordinate3;
   sep->addChild(coord);
   int counter=0;
-  for (int i=0; i<ny; i++) {
-    coord->point.set1Value(counter++, -dx/2., dy/2.-double(i)*dy/double(ny-1), 0);
-    coord->point.set1Value(counter++, dx/2., dy/2.-double(i)*dy/double(ny-1), 0);
+  for (int i=0; i<g->getYNumber(); i++) {
+    coord->point.set1Value(counter++, -g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
+    coord->point.set1Value(counter++, g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
   }
-  for (int i=0; i<nx; i++) {
-    coord->point.set1Value(counter++, -dx/2.+double(i)*dx/double(nx-1), dy/2., 0);
-    coord->point.set1Value(counter++, -dx/2.+double(i)*dx/double(nx-1), -dy/2., 0);
+  for (int i=0; i<g->getXNumber(); i++) {
+    coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), g->getYSize()/2., 0);
+    coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), -g->getYSize()/2., 0);
   }
   
   for (int i=0; i<counter; i+=2) {

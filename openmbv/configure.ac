@@ -57,6 +57,9 @@ fi
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin)
 
+dnl OpenMBVCppInterface
+PKG_CHECK_MODULES(OPENMBVCPPINTERFACE, openmbvcppinterface)
+
 dnl SoQt
 AC_ARG_WITH(soqt_prefix,
   [  --with-soqt-prefix=PFX  Prefix where SoQt is installed],
@@ -98,10 +101,11 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([MBXMLUTILSSCHEMADIR],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
   AC_SUBST([MBXMLUTILSBINDIR],[$(pkg-config mbxmlutils --variable BINDIR)])
   AC_SUBST([MBXMLUTILSDOCDIR],[$(pkg-config mbxmlutils --variable DOCDIR)])
+  AC_SUBST([OPENMBVCPPINTERFACEINCDIR],[$(pkg-config mbxmlutils --variable includedir)])
 fi
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror"
 
-AC_CONFIG_FILES([Makefile openmbvtinyxml/Makefile openmbv/Makefile schema/Makefile doc/Makefile])
+AC_CONFIG_FILES([Makefile openmbv/Makefile doc/Makefile doc/Doxyfile])
 
 AC_OUTPUT

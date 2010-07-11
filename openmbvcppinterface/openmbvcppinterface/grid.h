@@ -27,32 +27,43 @@ namespace OpenMBV {
   /** A grid in x-y-Plane */
   class Grid : public RigidBody {
     protected:
-      DoubleParam xSize, ySize;
+      ScalarParameter xSize, ySize;
       unsigned int nx, ny;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Grid();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Grid"; }
+
       /** Set the length in x-direction*/
-      void setXSize(DoubleParam length_) {
-        xSize=length_;
+      void setXSize(ScalarParameter length_) {
+        set(xSize,length_);
       } 
 
+      double getXSize() { return get(xSize); }
+
       /** Set the length in y-direction*/
-      void setYSize(DoubleParam length_) {
-        ySize=length_;
+      void setYSize(ScalarParameter length_) {
+        set(ySize,length_);
       } 
+
+      double getYSize() { return get(ySize); }
 
       /** Set the number of lines in x-direction*/
       void setXNumber(unsigned int n_) {
         nx=n_;
       }
 
+      int getXNumber() { return nx; }
+
       /** Set the number of lines in x-direction*/
       void setYNumber(unsigned int n_) {
         ny=n_;
       }
+      int getYNumber() { return ny; }
+
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

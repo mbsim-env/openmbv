@@ -28,14 +28,13 @@ Grid::Grid() : RigidBody(),
   xSize(1), ySize(1), nx(10), ny(10) {
 }
 
-void Grid::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Grid name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <xSize>"<<xSize<<"</xSize>"<<endl;
-    xmlFile<<indent<<"  <ySize>"<<ySize<<"</ySize>"<<endl;
-    xmlFile<<indent<<"  <nx>"<<nx<<"</nx>"<<endl;
-    xmlFile<<indent<<"  <ny>"<<ny<<"</ny>"<<endl;
-  xmlFile<<indent<<"</Grid>"<<endl;
+TiXmlElement* Grid::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "xSize", xSize);
+  addElementText(e, "ySize", ySize);
+  addElementText(e, "nx", nx);
+  addElementText(e, "ny", ny);
+  return 0;
 }
 
 void Grid::initializeUsingXML(TiXmlElement *element) {
@@ -46,7 +45,7 @@ void Grid::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"ySize");
   setYSize(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"nx");
-  setXNumber((unsigned int)(getDouble(e)+.1));
+  setXNumber((unsigned int)(atof(e->FirstChild()->ValueStr().c_str())+.1));
   e=element->FirstChildElement(OPENMBVNS"ny");
-  setYNumber((unsigned int)(getDouble(e)+.1));
+  setYNumber((unsigned int)(atof(e->FirstChild()->ValueStr().c_str())+.1));
 }

@@ -26,7 +26,7 @@
 
 using namespace std;
 
-InvisibleBody::InvisibleBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+InvisibleBody::InvisibleBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
   iconFile=":/invisiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 

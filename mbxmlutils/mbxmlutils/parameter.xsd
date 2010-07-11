@@ -18,7 +18,7 @@
               <xs:extension base="pv:string">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
-                    <xs:restriction base="xs:ID">
+                    <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
                     </xs:restriction>
                   </xs:simpleType>
@@ -33,7 +33,7 @@
               <xs:extension base="pv:nounitScalar">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
-                    <xs:restriction base="xs:ID">
+                    <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
                     </xs:restriction>
                   </xs:simpleType>
@@ -48,7 +48,7 @@
               <xs:extension base="pv:nounitVector">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
-                    <xs:restriction base="xs:ID">
+                    <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
                     </xs:restriction>
                   </xs:simpleType>
@@ -63,7 +63,7 @@
               <xs:extension base="pv:nounitMatrix">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
-                    <xs:restriction base="xs:ID">
+                    <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
                     </xs:restriction>
                   </xs:simpleType>

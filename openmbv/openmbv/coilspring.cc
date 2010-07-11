@@ -21,10 +21,12 @@
 #include "coilspring.h"
 #include "mainwindow.h"
 #include "utils.h"
+#include "openmbvcppinterface/coilspring.h"
 
 using namespace std;
 
-CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
+CoilSpring::CoilSpring(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::CoilSpring *c=(OpenMBV::CoilSpring*)obj;
   iconFile=":/coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
@@ -39,14 +41,7 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
   }
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
-  numberOfCoils=(int)Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"springRadius");
-  springRadius=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
-  double crossSectionRadius=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  scaleValue=Utils::toVector(e->GetText())[0];
+  scaleValue=c->getScaleFactor();
 
   // create so
   // body
@@ -63,15 +58,15 @@ CoilSpring::CoilSpring(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetIt
   // cross section
   extrusion->crossSection.setNum(iCircSegments+1);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(int i=0;i<=iCircSegments;i++) cs[i] = SbVec2f(crossSectionRadius*cos(i*2.*M_PI/iCircSegments), -crossSectionRadius*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
+  for(int i=0;i<=iCircSegments;i++) cs[i] = SbVec2f(c->getCrossSectionRadius()*cos(i*2.*M_PI/iCircSegments), -c->getCrossSectionRadius()*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 
   // initialise spine 
   spine = new float[3*(numberOfSpinePoints+1)];
   for(int i=0;i<=numberOfSpinePoints;i++) {
-    spine[3*i] = springRadius*cos(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
-    spine[3*i+1] = springRadius*sin(i*numberOfCoils*2.*M_PI/numberOfSpinePoints);
+    spine[3*i] = c->getSpringRadius()*cos(i*c->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
+    spine[3*i+1] = c->getSpringRadius()*sin(i*c->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
     spine[3*i+2] = 0.;
   }
   extrusion->spine.setValuesPointer(numberOfSpinePoints+1,spine);

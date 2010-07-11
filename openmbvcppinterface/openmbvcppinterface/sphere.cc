@@ -28,11 +28,10 @@ Sphere::Sphere() : RigidBody(),
   radius(1) {
 }
 
-void Sphere::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Sphere name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <radius>"<<radius<<"</radius>"<<endl;
-  xmlFile<<indent<<"</Sphere>"<<endl;
+TiXmlElement* Sphere::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "radius", radius);
+  return 0;
 }
 
 void Sphere::initializeUsingXML(TiXmlElement *element) {

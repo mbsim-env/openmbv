@@ -28,11 +28,10 @@ Cube::Cube() : RigidBody(),
   length(1) {
 }
 
-void Cube::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Cube name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    RigidBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <length>"<<length<<"</length>"<<endl;
-  xmlFile<<indent<<"</Cube>"<<endl;
+TiXmlElement* Cube::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "length", length);
+  return 0;
 }
 
 void Cube::initializeUsingXML(TiXmlElement *element) {
