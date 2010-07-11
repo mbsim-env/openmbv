@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "object.h"
-#include "tinyxml.h"
+#include "openmbvcppinterface/object.h"
 #include <H5Cpp.h>
 
-Object *ObjectFactory(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem* parentItem, SoGroup *soParent);
+Object *ObjectFactory(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem* parentItem, SoGroup *soParent);

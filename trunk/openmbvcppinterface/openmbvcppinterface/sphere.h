@@ -27,16 +27,21 @@ namespace OpenMBV {
   /** A spehere */
   class Sphere : public RigidBody {
     protected:
-      DoubleParam radius;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      ScalarParameter radius;
+      TiXmlElement *writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Sphere();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Sphere"; }
+
       /** Set the radius of the shpere */
-      void setRadius(DoubleParam radius_) {
-        radius=radius_;
+      void setRadius(ScalarParameter radius_) {
+        set(radius,radius_);
       } 
+
+      double getRadius() { return get(radius); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

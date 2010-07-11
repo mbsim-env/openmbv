@@ -40,24 +40,34 @@ namespace OpenMBV {
       /** constructor */ 
       NurbsDisk(); 
 
+      /** Retrun the class name */
+      std::string getClassName() { return "NurbsDisk"; }
+
       /** destructor */
       virtual ~NurbsDisk();
 
       /** Set the scale factor of the body. */
-      void setScaleFactor(const DoubleParam scale) {
-        scaleFactor=scale;
+      void setScaleFactor(const ScalarParameter scale) {
+        set(scaleFactor,scale);
       }
+
+      double getScaleFactor() { return get(scaleFactor); }
 
       /** Set the number of points drawn between the nodes. */
-      void setDrawDegree(const DoubleParam drawDegree_) {
-        drawDegree=drawDegree_;
+      void setDrawDegree(const ScalarParameter drawDegree_) {
+        set(drawDegree,drawDegree_);
       }
 
+      double getDrawDegree() { return get(drawDegree); }
+
       /** Set the inner and outer radius of the disk. */
-      void setRadii(DoubleParam Ri_, DoubleParam Ro_) {
-        Ri=Ri_;
-        Ro=Ro_;
+      void setRadii(ScalarParameter Ri_, ScalarParameter Ro_) {
+        set(Ri,Ri_);
+        set(Ro,Ro_);
       }
+
+      double getRi() { return get(Ri); }
+      double getRo() { return get(Ro); }
 
       /** Set the azimuthal knot vector. 
        * These values should be set to the optimal circle values.
@@ -66,6 +76,8 @@ namespace OpenMBV {
         KnotVecAzimuthal=KnotVecAzimuthal_;
       }
 
+      float* getKnotVecAzimuthal() { return KnotVecAzimuthal; }
+
       /** Set the radial knot vector. 
        * These value should be set to 1 each, resulting in a B-Spline curve.
        */
@@ -73,35 +85,49 @@ namespace OpenMBV {
         KnotVecRadial=KnotVecRadial_;
       }
 
+      float* getKnotVecRadial() { return KnotVecRadial; }
+
       /** Set the azimuthal number of finite elements used for drawing. */
       void setElementNumberAzimuthal(int ElementNumberAzimuthal_) {
         ElementNumberAzimuthal=ElementNumberAzimuthal_;
       }
+
+      int getElementNumberAzimuthal() { return ElementNumberAzimuthal; }
 
       /** Set the radial number of finite elements used for drawing. */
       void setElementNumberRadial(int ElementNumberRadial_) {
         ElementNumberRadial=ElementNumberRadial_;
       }
 
+      int getElementNumberRadial() { return ElementNumberRadial; }
+
       /** Set the degree of the interpolating splines in radial direction. */
       void setInterpolationDegreeRadial(int InterpolationDegreeRadial_) {
         InterpolationDegreeRadial=InterpolationDegreeRadial_;
       }
+
+      int getInterpolationDegreeRadial() { return InterpolationDegreeRadial; }
 
       /** Set the degree of the interpolating splines in azimuthal direction. */
       void setInterpolationDegreeAzimuthal(int InterpolationDegreeAzimuthal_) {
         InterpolationDegreeAzimuthal=InterpolationDegreeAzimuthal_;
       }
 
+      int getInterpolationDegreeAzimuthal() { return InterpolationDegreeAzimuthal; }
+
       /** Set the global vector of the normal of the disk */
       void setDiskNormal(float *DiskNormal_) {
         DiskNormal=DiskNormal_;
       }
 
+      float* getDiskNormal() { return DiskNormal; }
+
       /** Set the point in the center of the disk */
       void setDiskPoint(float *DiskPoint_) {
         DiskPoint=DiskPoint_;
       }
+
+      float* getDiskPoint() { return DiskPoint; }
 
       /** Append a data vector to the h5 datsset */
       void append(std::vector<double>& row) { 
@@ -114,13 +140,13 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
 
       /** Scale factor of the body. */
-      DoubleParam scaleFactor;
+      ScalarParameter scaleFactor;
 
       /** Number of points drawn between the nodes. */
-      DoubleParam drawDegree;
+      ScalarParameter drawDegree;
 
       /** Inner and outer radius of disk */
-      DoubleParam Ri, Ro;
+      ScalarParameter Ri, Ro;
 
       /** Knot vector for azimuthal and radial direction */
       float *KnotVecAzimuthal, *KnotVecRadial;
@@ -138,7 +164,7 @@ namespace OpenMBV {
       float *DiskPoint;
 
       /** Write XML file for not time-dependent data. */
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

@@ -22,20 +22,16 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include "utils.h"
+#include "openmbvcppinterface/frame.h"
 
-Frame::Frame(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Frame::Frame(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
   iconFile=":/frame.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"size");
-  double size=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  double offset=Utils::toVector(e->GetText())[0];
-
   // create so
-  soSepRigidBody->addChild(Utils::soFrame(size, offset, true));
+  soSepRigidBody->addChild(Utils::soFrame(f->getSize(), f->getOffset(), true));
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(size,size,size);
-  localFrameScale->scaleFactor.setValue(size,size,size);
+  refFrameScale->scaleFactor.setValue(f->getSize(),f->getSize(),f->getSize());
+  localFrameScale->scaleFactor.setValue(f->getSize(),f->getSize(),f->getSize());
 }

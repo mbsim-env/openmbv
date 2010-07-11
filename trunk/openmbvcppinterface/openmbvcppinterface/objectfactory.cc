@@ -1,4 +1,5 @@
 #include "openmbvcppinterface/objectfactory.h"
+#include "openmbvcppinterface/group.h"
 #include "openmbvcppinterface/cuboid.h"
 #include "openmbvcppinterface/coilspring.h"
 #include "openmbvcppinterface/frustum.h"
@@ -20,6 +21,7 @@ namespace OpenMBV {
 
   Object* ObjectFactory::createObject(TiXmlElement *element) {
     if(element==0) return 0;
+    if(element->ValueStr()==OPENMBVNS"Group") return new Group;
     if(element->ValueStr()==OPENMBVNS"Cuboid") return new Cuboid;
     if(element->ValueStr()==OPENMBVNS"CoilSpring") return new CoilSpring;
     if(element->ValueStr()==OPENMBVNS"Frustum") return new Frustum;

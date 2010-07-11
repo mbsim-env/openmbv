@@ -21,6 +21,7 @@ int main() {
 
     Cuboid c2;
     c2.setName("mycubeaa");
+    c2.setLength(VectorParameter("length3",vector<double>(3,1.5)));
     g.addObject(&c2);
 
     Group subg;
@@ -31,6 +32,8 @@ int main() {
       Cuboid cX;
       cX.setName("mycubeX");
       subg.addObject(&cX);
+      cX.setScaleFactor(ScalarParameter("scale",2));
+      cX.setLocalFrame(true);
 
       Cuboid c;
       c.setName("mycubeaa");
@@ -49,10 +52,12 @@ int main() {
 
     Cube cube;
     cube.setName("mycube");
+    cube.setLength(ScalarParameter("length",5));
     g.addObject(&cube);
 
     Frame frame;
     frame.setName("myframe");
+    frame.setSize(2);
     g.addObject(&frame);
 
     Arrow arrow;
@@ -97,7 +102,7 @@ int main() {
     g.addObject(&crg);
 
 
-  g.initialize();
+  g.write();
 
   vector<double> row(8);
   for(int i=0; i<10; i++) {
@@ -112,5 +117,6 @@ int main() {
     rotation.append(row);
     invisiblebody.append(row);
     coilspring.append(row);
+    crg.append(row);
   }
 }

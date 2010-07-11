@@ -32,7 +32,7 @@ class DynamicColoredBody : public Body {
     void setColor(SoMaterial *mat, double col);
     double getColor() { return color; }
   public:
-    DynamicColoredBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    DynamicColoredBody(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     QString getInfo();
 };
 

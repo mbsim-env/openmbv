@@ -23,16 +23,24 @@
 #include "config.h"
 #include "object.h"
 #include <string>
-#include "tinyxml.h"
 #include <H5Cpp.h>
+
+namespace OpenMBV {
+  class Group;
+}
 
 class Group : public Object {
   Q_OBJECT
   protected:
     virtual void update() {}
+    QAction *saveFile;
+    OpenMBV::Group *grp;
   public:
-    Group(TiXmlElement *element, H5::Group *h5parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Group(OpenMBV::Object *obj, H5::Group *h5parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
+    QMenu* createMenu();
+  protected slots:
+    void saveFileSlot();
 };
 
 #endif

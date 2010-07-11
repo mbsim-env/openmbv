@@ -19,7 +19,6 @@
 
 #include "config.h"
 #include "ivbody.h"
-#include "tinynamespace.h"
 #include <Inventor/nodes/SoFile.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 
@@ -29,25 +28,20 @@
 
 #include <vector>
 #include "utils.h"
+#include "openmbvcppinterface/ivbody.h"
+#include "openmbvcppinterface/group.h"
 
 using namespace std;
 
-IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+IvBody::IvBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
   iconFile=":/ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  double creaseAngle=-1;
-  bool boundaryEdges=false;
-
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"ivFileName");
-  string fileName=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+  string fileName=ivb->getIvFileName();
   // fix relative path name of file to be included (will hopefully work also on windows)
-  fileName=fixPath(e->GetDocument()->ValueStr(), fileName);
-  e=element->FirstChildElement(OPENMBVNS"creaseAngle");
-  if(e) creaseAngle=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
-  if(e) boundaryEdges=(e->GetText()==string("true") || e->GetText()==string("1"))?true:false;
+  fileName=OpenMBV::Object::fixPath(ivb->getSeparateGroup()->getFileName(), fileName);
 
   // create so
   SoGroup *soIv=Utils::SoDBreadAllCached(fileName.c_str());
@@ -69,11 +63,11 @@ IvBody::IvBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *pare
   localFrameScale->scaleFactor.setValue(size,size,size);
 
   // outline
-  if(creaseAngle>=0 || boundaryEdges) {
+  if(ivb->getCreaseEdges()>=0 || ivb->getBoundaryEdges()) {
     Utils::Edges *edges=NULL;
     soSepRigidBody->addChild(soOutLineSwitch);
     soOutLineSep->addChild(Utils::preCalculateEdgesCached(soIv, edges));
-    if(creaseAngle>=0) soOutLineSep->addChild(Utils::calculateCreaseEdges(creaseAngle, edges));
-    if(boundaryEdges) soOutLineSep->addChild(Utils::calculateBoundaryEdges(edges));
+    if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(Utils::calculateCreaseEdges(ivb->getCreaseEdges(), edges));
+    if(ivb->getBoundaryEdges()) soOutLineSep->addChild(Utils::calculateBoundaryEdges(edges));
   }
 }

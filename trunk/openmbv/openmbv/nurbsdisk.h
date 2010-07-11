@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
-#include "tinyxml.h"
 
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SoPrimitiveVertex.h> 
@@ -48,7 +47,7 @@ class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    NurbsDisk(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    NurbsDisk(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();

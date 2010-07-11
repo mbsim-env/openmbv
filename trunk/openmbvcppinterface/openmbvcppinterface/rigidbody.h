@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
 #include <cmath>
-#include <openmbvcppinterface/doubleparam.h>
+#include <openmbvcppinterface/simpleparameter.h>
 
 namespace OpenMBV {
 
@@ -68,10 +68,11 @@ namespace OpenMBV {
   class RigidBody : public DynamicColoredBody {
     friend class CompoundRigidBody;
     protected:
-      std::vector<DoubleParam> initialTranslation;
-      std::vector<DoubleParam> initialRotation;
-      DoubleParam scaleFactor;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      std::string localFrameStr, referenceFrameStr, pathStr;
+      VectorParameter initialTranslation;
+      VectorParameter initialRotation;
+      ScalarParameter scaleFactor;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       H5::VectorSerie<double>* data;
     public:
@@ -80,20 +81,38 @@ namespace OpenMBV {
 
       ~RigidBody();
 
+      /** Draw local frame of this object in the viewer if true (the default) */
+      void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
+
+      bool getLocalFrame() { return localFrameStr=="true"?true:false; }
+
+      /** Draw reference frame of this object in the viewer if true (the default) */
+      void setReferenceFrame(bool f) { referenceFrameStr=(f==true)?"true":"false"; }
+
+      bool getReferenceFrame() { return referenceFrameStr=="true"?true:false; }
+
+      /** Draw path of this object in the viewer if true (the default) */
+      void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
+
+      bool getPath() { return pathStr=="true"?true:false; }
+
       /** Set initial translaton between the local frame of the body and the reference frame */
-      void setInitialTranslation(const std::vector<DoubleParam> &initTrans) {
-        assert(initTrans.size()==3);
-        initialTranslation=initTrans;
+      void setInitialTranslation(const VectorParameter &initTrans) {
+        assert(initTrans.getParamStr()!="" || initTrans.getValue().size()==3);
+        set(initialTranslation,initTrans);
       }
 
-      // for convenience
-      void setInitialTranslation(const std::vector<double>& initTrans) {
-        initialTranslation=toVectorDoubleParam(initTrans);
-      } 
+      /** Set initial translaton between the local frame of the body and the reference frame */
+      void setInitialTranslation(const std::vector<double> &initTrans) {
+        assert(initTrans.size()==3);
+        set(initialTranslation,initTrans);
+      }
+
+      std::vector<double> getInitialTranslation() { return get(initialTranslation); }
 
       /** Set initial translaton between the local frame of the body and the reference frame */
-      void setInitialTranslation(DoubleParam x, DoubleParam y, DoubleParam z) {
-        std::vector<DoubleParam> initTrans;
+      void setInitialTranslation(double x, double y, double z) {
+        std::vector<double> initTrans;
         initTrans.push_back(x);
         initTrans.push_back(y);
         initTrans.push_back(z);
@@ -103,21 +122,26 @@ namespace OpenMBV {
       /** Set initial rotation between the local frame of the body and the reference frame.
        * Use cardan angles to represent the transformation matrix
        */
-      void setInitialRotation(const std::vector<DoubleParam>& initRot) {
-        assert(initRot.size()==3);
-        initialRotation=initRot;
+      void setInitialRotation(const VectorParameter& initRot) {
+        assert(initRot.getParamStr()!="" || initRot.getValue().size()==3);
+        set(initialRotation,initRot);
       }
-
-      // for convenience
-      void setInitialRotation(const std::vector<double>& initRot) {
-        initialRotation=toVectorDoubleParam(initRot);
-      } 
 
       /** Set initial rotation between the local frame of the body and the reference frame.
        * Use cardan angles to represent the transformation matrix
        */
-      void setInitialRotation(DoubleParam a, DoubleParam b, DoubleParam g) {
-        std::vector<DoubleParam> initRot;
+      void setInitialRotation(const std::vector<double>& initRot) {
+        assert(initRot.size()==3);
+        set(initialRotation,initRot);
+      }
+
+      std::vector<double> getInitialRotation() { return get(initialRotation); }
+
+      /** Set initial rotation between the local frame of the body and the reference frame.
+       * Use cardan angles to represent the transformation matrix
+       */
+      void setInitialRotation(double a, double b, double g) {
+        std::vector<double> initRot;
         initRot.push_back(a);
         initRot.push_back(b);
         initRot.push_back(g);
@@ -125,14 +149,16 @@ namespace OpenMBV {
       }
 
       /** Set the scale factor of the body */
-      void setScaleFactor(const DoubleParam scale) {
-        scaleFactor=scale;
+      void setScaleFactor(const ScalarParameter scale) {
+        set(scaleFactor,scale);
       }
+
+      double getScaleFactor() { return get(scaleFactor); }
 
       /** Append a data vector the the h5 datsset */
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan((double)dynamicColor)) row[7]=dynamicColor;
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
 

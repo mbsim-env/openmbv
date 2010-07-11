@@ -30,7 +30,6 @@
 using namespace std;
 
 bool Utils::init=false;
-map<string, double> Utils::simpleParameter;
 
 void Utils::initialize() {
   if(init==true) return;
@@ -62,58 +61,6 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
     return myIvBodyCache[filename]=SoDB::readAll(&in);
   }
   return i->second;
-}
-
-void Utils::addSimpleParameter(std::string name, double value) {
-  simpleParameter[name]=value;
-}
-
-void Utils::clearSimpleParameters() {
-  simpleParameter.clear();
-}
-
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
-double Utils::toDouble(string str) {
-  if(str=="nan" || str=="NAN" || str=="NaN")
-    return nan("");
-  map<string,double>::iterator i=simpleParameter.find(str);
-  if(i!=simpleParameter.end())
-    return i->second;
-  stringstream stream(str);
-  double d;
-  stream>>d;
-  return d;
-}
-
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
-vector<double> Utils::toVector(string str) {
-  for(size_t i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
-  stringstream stream(str);
-  string dstr;
-  vector<double> ret;
-  while(1) {
-    stream>>dstr;
-    if(stream.fail()) break;
-    double d=toDouble(dstr);
-    ret.push_back(d);
-  }
-  return ret;
-}
-
-// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
-vector<vector<double> > Utils::toMatrix(string str) {
-  vector<vector<double> > ret;
-  for(size_t i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
-  bool br=false;
-  while(1) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(toVector(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
 }
 
 // convenience: create frame so

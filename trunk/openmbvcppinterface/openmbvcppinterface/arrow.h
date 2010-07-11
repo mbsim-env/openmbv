@@ -35,17 +35,19 @@ namespace OpenMBV {
    * "to" point x, "to" point y,
    * "to" point z, delta x, delta y, delta z, color */
   class Arrow : public DynamicColoredBody {
-    protected:
+    public:
       enum Type {
         line,
         fromHead,
         toHead,
         bothHeads
       };
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+    protected:
+      std::string pathStr;
+      TiXmlElement *writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      DoubleParam headDiameter, headLength, diameter, scaleLength;
+      ScalarParameter headDiameter, headLength, diameter, scaleLength;
       Type type;
     public:
       /** Default Constructor */
@@ -53,34 +55,48 @@ namespace OpenMBV {
 
       /** Destructor */
       virtual ~Arrow();
+
+      /** Retrun the class name */
+      std::string getClassName() { return "Arrow"; }
+
+      /** Draw path of this object in the viewer if true (the default) */
+      void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
+
+      bool getPath() { return pathStr=="true"?true:false; }
       
       /** Append the data \p row to the end of the dataset */
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan((double)dynamicColor)) row[7]=dynamicColor;
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
-      void setArrowHead(DoubleParam diameter, DoubleParam length) {
-        headDiameter=diameter;
-        headLength=length;
+      void setArrowHead(ScalarParameter diameter, ScalarParameter length) {
+        set(headDiameter,diameter);
+        set(headLength,length);
       }
 
       /** Set the diameter of the arrow head (which is a cone) */
-      void setHeadDiameter(DoubleParam diameter) {
-        headDiameter=diameter;
+      void setHeadDiameter(ScalarParameter diameter) {
+        set(headDiameter,diameter);
       }
+
+      double getHeadDiameter() { return get(headDiameter); }
 
       /** Set the length of the arrow head (which is a cone) */
-      void setHeadLength(DoubleParam length) {
-        headLength=length;
+      void setHeadLength(ScalarParameter length) {
+        set(headLength,length);
       }
 
+      double getHeadLength() { return get(headLength); }
+
       /** Set the diameter of the arrow (which is a cylinder) */
-      void setDiameter(DoubleParam diameter_) {
-        diameter=diameter_;
+      void setDiameter(ScalarParameter diameter_) {
+        set(diameter,diameter_);
       }
+
+      double getDiameter() { return get(diameter); }
       
       /** Set the type of the arrow.
        * Use "line" to draw the arrow as a simple line;
@@ -91,11 +107,15 @@ namespace OpenMBV {
       void setType(Type type_) {
         type=type_;
       }
+      
+      Type getType() { return type; }
 
       /** Scale the length of the arrow */
-      void setScaleLength(DoubleParam scale) {
-        scaleLength=scale;
+      void setScaleLength(ScalarParameter scale) {
+        set(scaleLength,scale);
       }
+
+      double getScaleLength() { return get(scaleLength); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

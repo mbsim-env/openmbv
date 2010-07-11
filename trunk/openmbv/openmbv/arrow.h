@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
-#include "tinyxml.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
@@ -31,6 +30,10 @@
 #include <QtGui/QMenu>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
+
+namespace OpenMBV {
+  class Arrow;
+}
 
 class Arrow : public DynamicColoredBody {
   Q_OBJECT
@@ -41,6 +44,7 @@ class Arrow : public DynamicColoredBody {
         toHead,
         bothHeads
       };
+    OpenMBV::Arrow *arrow;
     Type type;
     QAction *path;
     SoSwitch *soPathSwitch;
@@ -57,7 +61,7 @@ class Arrow : public DynamicColoredBody {
     std::vector<double> data;
     double length, scaleLength;
   public:
-    Arrow(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Arrow(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
     QMenu* createMenu();
   public slots:

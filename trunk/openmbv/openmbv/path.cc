@@ -22,10 +22,12 @@
 #include "mainwindow.h"
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
+#include "openmbvcppinterface/path.h"
 
 using namespace std;
 
-Path::Path(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(element, h5Parent, parentItem, soParent) {
+Path::Path(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Path* p=(OpenMBV::Path*)obj;
   iconFile=":/path.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
@@ -39,13 +41,9 @@ Path::Path(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentIt
     resetAnimRange(rows, dt);
   }
   
-  // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"color");
-  vector<double> color=Utils::toVector(e->GetText());
-
   // create so
   SoBaseColor *col=new SoBaseColor;
-  col->rgb.setValue(color[0], color[1], color[2]);
+  col->rgb.setValue(p->getColor()[0], p->getColor()[1], p->getColor()[2]);
   soSep->addChild(col);
   coord=new SoCoordinate3;
   soSep->addChild(coord);

@@ -22,13 +22,12 @@
 
 #include "config.h"
 #include "rigidbody.h"
-#include "tinyxml.h"
 #include <H5Cpp.h>
 
 class CompoundRigidBody : public RigidBody {
   Q_OBJECT
   public:
-    CompoundRigidBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    CompoundRigidBody(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

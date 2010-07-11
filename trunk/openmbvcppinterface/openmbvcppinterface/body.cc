@@ -23,18 +23,35 @@
 #include <H5Cpp.h>
 #include <openmbvcppinterface/group.h>
 #include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
-#include <cmath>
 
 using namespace std;
 using namespace OpenMBV;
 
-Body::Body() : Object(),
-  hdf5LinkBody(0) {
+Body::Body() : Object(), outLineStr("true"), drawMethod(filled),
+  hdf5LinkBody(0), hdf5LinkStr("") {
 }
 
-void Body::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  if(hdf5LinkBody)
-    xmlFile<<indent<<"<hdf5Link ref=\""<<getRelPathTo(hdf5LinkBody)<<"\"/>"<<endl;
+TiXmlElement* Body::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=Object::writeXMLFile(parent);
+  addAttribute(e, "outLine", outLineStr, "true");
+  string dm;
+  switch(drawMethod) {
+    case filled: dm="filled"; break;
+    case lines: dm="lines"; break;
+    case points: dm="points"; break;
+  }
+  addAttribute(e, "drawMethod", dm, "filled");
+  if(hdf5LinkBody) {
+    TiXmlElement *ee=new TiXmlElement("hdf5Link");
+    e->LinkEndChild(ee);
+    ee->SetAttribute("ref", getRelPathTo(hdf5LinkBody));
+  }
+  else if(hdf5LinkStr!="") {
+    TiXmlElement *ee=new TiXmlElement("hdf5Link");
+    e->LinkEndChild(ee);
+    ee->SetAttribute("ref", hdf5LinkStr);
+  }
+  return e;
 }
 
 void Body::createHDF5File() {
@@ -64,89 +81,17 @@ std::string Body::getRelPathTo(Body* destBody) {
 void Body::terminate() {
 }
 
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
-vector<double> Body::toVector(string str) {
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
-  stringstream stream(str);
-  double d;
-  vector<double> ret;
-  while(1) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
-  return ret;
-}
-
-// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
-vector<vector<double> > Body::toMatrix(string str) {
-  vector<vector<double> > ret;
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
-  bool br=false;
-  while(1) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(toVector(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
-}
-
-double Body::getDouble(TiXmlElement *e) {
-  vector<vector<double> > m=toMatrix(e->GetText());
-  if(m.size()==1 && m[0].size()==1)
-    return m[0][0];
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a scalar was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
-  }
-  return NAN;
-}
-
-vector<double> Body::getVec(TiXmlElement *e, unsigned int rows) {
-  vector<vector<double> > m=toMatrix(e->GetText());
-  if((rows==0 || m.size()==rows) && m[0].size()==1) {
-    vector<double> v;
-    for(unsigned int i=0; i<m.size(); i++)
-      v.push_back(m[i][0]);
-    return v;
-  }
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a vector of size "<<rows<<" was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
-  }
-  return vector<double>();
-}
-
-vector<vector<double> > Body::getMat(TiXmlElement *e, unsigned int rows, unsigned int cols) {
-  vector<vector<double> > m=toMatrix(e->GetText());
-  if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
-    return m;
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a matrix of size "<<rows<<"x"<<cols<<" was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
-  }
-  return vector<vector<double> >();
-}
-
 void Body::initializeUsingXML(TiXmlElement *element) {
   Object::initializeUsingXML(element);
-}
-
-std::vector<DoubleParam> Body::toVectorDoubleParam(std::vector<double> v) {
-  std::vector<DoubleParam> p(v.size(),0.0);
-  for(size_t i=0; i<v.size(); i++)
-    p[i]=v[i];
-  return p;
+  TiXmlElement *e;
+  if(element->Attribute("outLine") && 
+     (element->Attribute("outLine")==string("false") || element->Attribute("outLine")==string("0")))
+    setOutLine(false);
+  if(element->Attribute("drawMethod")) {
+    if(element->Attribute("drawMethod")==string("filled")) setDrawMethod(filled);
+    if(element->Attribute("drawMethod")==string("lines")) setDrawMethod(lines);
+    if(element->Attribute("drawMethod")==string("points")) setDrawMethod(points);
+  }
+  if((e=element->FirstChildElement(OPENMBVNS"hdf5Link")))
+    hdf5LinkStr=e->Attribute("ref");
 }

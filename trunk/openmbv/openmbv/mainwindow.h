@@ -82,7 +82,6 @@ class MainWindow : public QMainWindow {
     QTextEdit *objectInfo;
     QSpinBox *frameSB;
     bool openFile(std::string fileName);
-    void readSimpleParameterFile(std::string fileName);
     SoQtMyViewer *glViewer;
     void viewParallel(ViewSide side);
     SoShadowGroup *sceneRoot;

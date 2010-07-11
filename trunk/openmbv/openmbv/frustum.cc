@@ -27,25 +27,22 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include "utils.h"
+#include "openmbvcppinterface/frustum.h"
 
 using namespace std;
 
-Frustum::Frustum(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Frustum::Frustum(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Frustum *f=(OpenMBV::Frustum*)obj;
   iconFile=":/frustum.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"baseRadius");
-  double baseRadius=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  double topRadius=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  double height=Utils::toVector(e->GetText())[0];
+  double baseRadius=f->getBaseRadius();
+  double topRadius=f->getTopRadius();
+  double height=f->getHeight();
   if(fabs(height)<1e-13) height=0;
-  e=e->NextSiblingElement();
-  double innerBaseRadius=Utils::toVector(e->GetText())[0];
-  e=e->NextSiblingElement();
-  double innerTopRadius=Utils::toVector(e->GetText())[0];
+  double innerBaseRadius=f->getInnerBaseRadius();
+  double innerTopRadius=f->getInnerTopRadius();
 
   const int N=20;
 

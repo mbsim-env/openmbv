@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "dynamiccoloredbody.h"
-#include "tinyxml.h"
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
@@ -34,11 +33,16 @@
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
+namespace OpenMBV {
+  class RigidBody;
+}
+
 class SoCenterballDragger;
 
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
+    OpenMBV::RigidBody *rigidBody;
     QAction *localFrame, *referenceFrame, *path, *dragger, *moveCameraWith;
     SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch, *soDraggerSwitch;
     SoCoordinate3 *pathCoord;
@@ -58,7 +62,7 @@ class RigidBody : public DynamicColoredBody {
     SoRotation *initRot;
     SoCenterballDragger *soDragger;
   public:
-    RigidBody(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    RigidBody(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:

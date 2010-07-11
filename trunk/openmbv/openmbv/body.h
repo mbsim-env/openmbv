@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "object.h"
-#include "tinyxml.h"
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <H5Cpp.h>
 #include <QtGui/QActionGroup>
@@ -37,15 +36,18 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include "utils.h"
 
+namespace OpenMBV {
+  class Body;
+}
+
 class Body : public Object {
   Q_OBJECT
   private:
-    enum DrawStyle { filled, lines, points };
     SoDrawStyle *drawStyle;
     static bool existFiles;
     static Body *timeUpdater; // the body who updates the time string in the scene window
   public:
-    Body(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Body(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     virtual double update()=0; // return the current time
@@ -55,6 +57,7 @@ class Body : public Object {
   protected slots:
     void drawMethodSlot(QAction* action);
   protected:
+    OpenMBV::Body *body;
     SoSwitch *soOutLineSwitch;
     SoSeparator *soOutLineSep;
     QAction *outLine;

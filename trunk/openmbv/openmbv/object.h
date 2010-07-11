@@ -21,10 +21,10 @@
 #define _OBJECT_H_
 
 #include "config.h"
+#include <openmbvcppinterface/object.h>
 #include <QtGui/QTreeWidgetItem>
 #include <string>
 #include <vector>
-#include "tinyxml.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>
@@ -34,12 +34,14 @@
 #include <Inventor/sensors/SoNodeSensor.h>
 #include <Inventor/nodes/SoTranslation.h>
 
-#define OPENMBVNS "{http://openmbv.berlios.de/OpenMBV}"
-#define MBXMLUTILSPARAMNS "{http://openmbv.berlios.de/MBXMLUtils/parameter}"
+namespace OpenMBV {
+  class Object;
+}
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
   protected:
+    OpenMBV::Object *object;
     SoSwitch *soSwitch;
     SoSeparator *soSep;
     QAction *draw;
@@ -53,7 +55,7 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string iconFile;
     static std::map<SoNode*,Object*> objectMap;
   public:
-    Object(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Object(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     std::string getPath();

@@ -24,20 +24,17 @@
 using namespace std;
 using namespace OpenMBV;
 
-Path::Path() : Body() {
+Path::Path() : Body(), color(vector<double>(3,1)) {
 }
 
 Path::~Path() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-void Path::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Path name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    Body::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <color>["<<color[0]<<";"
-                                 <<color[1]<<";"
-                                 <<color[2]<<"]</color>"<<endl;
-  xmlFile<<indent<<"</Path>"<<endl;
+TiXmlElement* Path::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=Body::writeXMLFile(parent);
+  addElementText(e, "color", color);
+  return 0;
 }
 
 void Path::createHDF5File() {

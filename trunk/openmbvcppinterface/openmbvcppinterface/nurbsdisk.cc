@@ -46,24 +46,23 @@ NurbsDisk::~NurbsDisk() {
   if(KnotVecRadial) { delete[] KnotVecRadial; KnotVecRadial=0; }
 }
 
-void NurbsDisk::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<NurbsDisk name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-  DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
-  xmlFile<<indent<<"  <scaleFactor>"<<scaleFactor<<"</scaleFactor>"<<endl;
-  xmlFile<<indent<<"  <drawDegree>"<<drawDegree<<"</drawDegree>"<<endl;  
-  xmlFile<<indent<<"  <innerRadius>"<<Ri<<"</innerRadius>"<<endl;
-  xmlFile<<indent<<"  <outerRadius>"<<Ro<<"</outerRadius>"<<endl;
-  xmlFile<<indent<<"  <knotVecAzimuthal>[";
-  for(int i=0;i<ElementNumberAzimuthal +1+2*InterpolationDegreeAzimuthal;i++) { xmlFile << KnotVecAzimuthal[i] <<";"; }
-  xmlFile << "]</knotVecAzimuthal>"  <<endl;
-  xmlFile<<indent<<"  <knotVecRadial>[";
-  for(int i=0;i<ElementNumberRadial+1+InterpolationDegreeRadial+1;i++) { xmlFile << KnotVecRadial[i] <<";" ; }
-  xmlFile << "]</knotVecRadial>"  <<endl;
-  xmlFile<<indent<<"  <elementNumberAzimuthal>"<<ElementNumberAzimuthal<<"</elementNumberAzimuthal>"<<endl;
-  xmlFile<<indent<<"  <elementNumberRadial>"<<ElementNumberRadial<<"</elementNumberRadial>"<<endl;
-  xmlFile<<indent<<"  <interpolationDegreeRadial>"<<InterpolationDegreeRadial<<"</interpolationDegreeRadial>"<<endl;
-  xmlFile<<indent<<"  <interpolationDegreeAzimuthal>"<<InterpolationDegreeAzimuthal<<"</interpolationDegreeAzimuthal>"<<endl;
-  xmlFile<<indent<<"</NurbsDisk>"<<endl;
+TiXmlElement *NurbsDisk::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  addElementText(e, "scaleFactor", scaleFactor);
+  addElementText(e, "drawDegree", drawDegree);
+  addElementText(e, "innerRadius", Ri);
+  addElementText(e, "outerRadius", Ro);
+  string str="[";
+  for(int i=0;i<ElementNumberAzimuthal +1+2*InterpolationDegreeAzimuthal;i++) str+=numtostr(KnotVecAzimuthal[i])+";";
+  addElementText(e, "knotVecAzimuthal", str+"]");
+  str="[";
+  for(int i=0;i<ElementNumberRadial+1+InterpolationDegreeRadial+1;i++) str+=numtostr(KnotVecRadial[i])+";";
+  addElementText(e, "knotVecRadial", str+"]");
+  addElementText(e, "elementNumberAzimuthal", ElementNumberAzimuthal);
+  addElementText(e, "elementNumberRadial", ElementNumberRadial);
+  addElementText(e, "interpolationDegreeRadial", InterpolationDegreeRadial);
+  addElementText(e, "InterpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
+  return 0;
 }
 
 void NurbsDisk::createHDF5File() {
@@ -79,7 +78,7 @@ void NurbsDisk::createHDF5File() {
       columns.push_back("y"+numtostr(i));
       columns.push_back("z"+numtostr(i));
     }
-    for(int i=0;i<ElementNumberAzimuthal*drawDegree*2;i++) {
+    for(int i=0;i<ElementNumberAzimuthal*get(drawDegree)*2;i++) {
       columns.push_back("x"+numtostr(i+NodeDofs));
       columns.push_back("y"+numtostr(i+NodeDofs));
       columns.push_back("z"+numtostr(i+NodeDofs));    

@@ -27,16 +27,21 @@ namespace OpenMBV {
   /** A cube */
   class Cube : public RigidBody {
     protected:
-      DoubleParam length;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      ScalarParameter length;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Cube();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Cube"; }
+
       /** Set the length of the cube (x, y and z)*/
-      void setLength(DoubleParam length_) {
-        length=length_;
+      void setLength(ScalarParameter length_) {
+        set(length,length_);
       } 
+
+      double getLength() { return get(length); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

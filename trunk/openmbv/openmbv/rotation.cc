@@ -23,29 +23,20 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include "openmbvcppinterface/rotation.h"
 
 using namespace std;
 
-Rotation::Rotation(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(element, h5Parent, parentItem, soParent) {
+Rotation::Rotation(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::Rotation* rot=(OpenMBV::Rotation*)obj;
   iconFile=":/rotation.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   // read XML
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"startAngle");
-  float startAngle=0;
-  if(e)
-    startAngle=Utils::toDouble(e->GetText());
-  e=element->FirstChildElement(OPENMBVNS"endAngle");
-  float endAngle=2*M_PI;
-  if(e)
-    endAngle=Utils::toDouble(e->GetText());
-  e=element->FirstChildElement(OPENMBVNS"contour");
-  vector<vector<double> > contour;
-  contour=Utils::toMatrix(e->GetText());
+  vector<OpenMBV::PolygonPoint*>* contour=rot->getContour();
 
   // create so
-  int open=fabs(endAngle-startAngle-2*M_PI)<1e-6?0:1;
+  int open=fabs(rot->getEndAngle()-rot->getStartAngle()-2*M_PI)<1e-6?0:1;
   // coord, normal, face
   SoCoordinate3 *v=new SoCoordinate3;
   soSepRigidBody->addChild(v);
@@ -68,7 +59,7 @@ Rotation::Rotation(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *
     // normal
     SoNormal *n1=new SoNormal;
     soSepRigidBody->addChild(n1);
-    n1->vector.set1Value(0, sin(startAngle), 0, -cos(startAngle));
+    n1->vector.set1Value(0, sin(rot->getStartAngle()), 0, -cos(rot->getStartAngle()));
     // face
     csf1=new IndexedTesselationFace;
     soSepRigidBody->addChild(csf1);
@@ -77,7 +68,7 @@ Rotation::Rotation(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *
     // normal
     SoNormal *n2=new SoNormal;
     soSepRigidBody->addChild(n2);
-    n2->vector.set1Value(0, -sin(endAngle), 0, cos(endAngle));
+    n2->vector.set1Value(0, -sin(rot->getEndAngle()), 0, cos(rot->getEndAngle()));
     // face
     csf2=new IndexedTesselationFace;
     soSepRigidBody->addChild(csf2);
@@ -90,21 +81,21 @@ Rotation::Rotation(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *
     soOutLineSep->addChild(csl2);
   }
   // coord, normal, face
-  unsigned int cs=contour.size();
-  const unsigned int rs=(unsigned int)(20/2/M_PI*(endAngle-startAngle))+open;
+  unsigned int cs=contour->size();
+  const unsigned int rs=(unsigned int)(20/2/M_PI*(rot->getEndAngle()-rot->getStartAngle()))+open;
   int nrv=0, nrf=0, nrn=0, nrl=0, nrcsf=0, nrcsl=0;
   for(unsigned int c=0; c<cs; c++) {
     unsigned int cn=c+1; if(cn>=cs) cn=0;
     unsigned int cp; if(c==0) cp=cs-1; else cp=c-1;
     for(unsigned int r=0; r<rs; r++) {
       unsigned int rn=r+1; if(rn>=rs) rn=0;
-      double a=startAngle+(endAngle-startAngle)/(rs-open)*r;
+      double a=rot->getStartAngle()+(rot->getEndAngle()-rot->getStartAngle())/(rs-open)*r;
       // coord
-      v->point.set1Value(nrv++, contour[c][0]*cos(a),contour[c][1],contour[c][0]*sin(a));
+      v->point.set1Value(nrv++, (*contour)[c]->getXComponent()*cos(a),(*contour)[c]->getYComponent(),(*contour)[c]->getXComponent()*sin(a));
       // normal
-      SbVec2f np(contour[c][1]-contour[cp][1],contour[cp][0]-contour[c][0]); np.normalize(); //x-y-plane
-      SbVec2f nn(contour[cn][1]-contour[c][1],contour[c][0]-contour[cn][0]); nn.normalize(); //x-y-plane
-      if(((int)(contour[c][2]+0.5))!=1)
+      SbVec2f np((*contour)[c]->getYComponent()-(*contour)[cp]->getYComponent(),(*contour)[cp]->getXComponent()-(*contour)[c]->getXComponent()); np.normalize(); //x-y-plane
+      SbVec2f nn((*contour)[cn]->getYComponent()-(*contour)[c]->getYComponent(),(*contour)[c]->getXComponent()-(*contour)[cn]->getXComponent()); nn.normalize(); //x-y-plane
+      if(((int)((*contour)[c]->getBorderValue()+0.5))!=1)
         nn=np=nn+np;
       n->vector.set1Value(nrn++, np[0]*cos(a),np[1],np[0]*sin(a));
       n->vector.set1Value(nrn++, nn[0]*cos(a),nn[1],nn[0]*sin(a));
@@ -122,11 +113,11 @@ Rotation::Rotation(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *
         f->normalIndex.set1Value(nrf++, -1);
       }
       // line
-      if(((int)(contour[c][2]+0.5))==1)
+      if(((int)((*contour)[c]->getBorderValue()+0.5))==1)
         l->coordIndex.set1Value(nrl++, rs*c+r);
     }
     // line
-    if(((int)(contour[c][2]+0.5))==1) {
+    if(((int)((*contour)[c]->getBorderValue()+0.5))==1) {
       if(!open)
         l->coordIndex.set1Value(nrl++, rs*c+0);
       l->coordIndex.set1Value(nrl++, -1);

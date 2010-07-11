@@ -27,21 +27,28 @@ namespace OpenMBV {
   /** A frame; A coordinate system */
   class Frame : public RigidBody {
     protected:
-      DoubleParam size;
-      DoubleParam offset;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      ScalarParameter size;
+      ScalarParameter offset;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     public:
       /** Default constructor */
       Frame();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Frame"; }
+
       /** Set the length of the three axis, represended by lines in red, green and blue color. */
-      void setSize(DoubleParam size_) { size=size_; }
+      void setSize(ScalarParameter size_) { set(size,size_); }
+
+      double getSize() { return get(size); }
 
       /** Set the offset of the thre axis.
        * A offset of 0 means, that the axis/lines are intersecting in there mid points.
        * A offset of 1 menas, that the axis/lines are intersecting at there start points.
        */
-      void setOffset(DoubleParam offset_) { offset=offset_; }
+      void setOffset(ScalarParameter offset_) { set(offset,offset_); }
+
+      double getOffset() { return get(offset); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

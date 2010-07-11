@@ -19,49 +19,75 @@
 
 #include "config.h"
 #include "group.h"
+#include <QtGui/QMenu>
 #include "objectfactory.h"
 #include "mainwindow.h"
 #include "compoundrigidbody.h"
+#include "openmbvcppinterface/group.h"
 #include <string>
 #include "utils.h"
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
-Group::Group(TiXmlElement* element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(element, h5Parent, parentItem, soParent) {
+Group::Group(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, h5Parent, parentItem, soParent) {
+  grp=(OpenMBV::Group*)obj;
   iconFile=":/group.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // expand or collapse
-    if(element->Attribute("expand")==0)
-      setExpanded(true);
-    else
-      if((element->Attribute("expand")==string("true") || element->Attribute("expand")==string("1")))
-        setExpanded(true);
-      else
-        setExpanded(false);
+    setExpanded(grp->getExpand());
   }
 
   // if xml:base attribute exist => new sub file
-  if(element->Attribute("xml:base")) {
+  if(grp->getSeparateFile()) {
     iconFile=":/h5file.svg";
     setIcon(0, Utils::QIconCached(iconFile.c_str()));
-    setText(0, element->Attribute("xml:base"));
+    setText(0, grp->getFileName().c_str());
   }
   // read XML
-  TiXmlElement *e=element->FirstChildElement();
-  while(e!=0) {
-    if(e->ValueStr()==OPENMBVNS"Group" && e->FirstChildElement()==0) { e=e->NextSiblingElement(); continue; } // a hack for openmbvdeleterows.sh
-    ObjectFactory(e, h5Group, this, soSep);
-    e=e->NextSiblingElement();
+  vector<OpenMBV::Object*> child=grp->getObjects();
+  for(unsigned int i=0; i<child.size(); i++) {
+    if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
+    ObjectFactory(child[i], h5Group, this, soSep);
   }
 
   // hide groups without childs
   if(childCount()==0) setHidden(true);
+
+  // GUI
+  saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-File", this);
+  saveFile->setObjectName("Group::saveFile");
+  connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
 }
 
 QString Group::getInfo() {
   return Object::getInfo()+
          QString("-----<br/>")+
          QString("<b>Number of Children:</b> %1<br/>").arg(childCount());
+}
+
+QMenu* Group::createMenu() {
+  QMenu* menu=Object::createMenu();
+  if(grp->getSeparateFile()) {
+    menu->addSeparator()->setText("Properties from: Group");
+    menu->addAction(saveFile);
+  }
+  return menu;
+}
+
+void Group::saveFileSlot() {
+  if(QMessageBox::warning(0, "Overwrite XML-File", QString(
+       "Save current object porperties in XML-File.\n"
+       "\n"
+       "Saving will overwrite the following files:\n"
+       "- OpenMBV-XML-File '%1'\n"
+       "- OpenMBV-Parameter-XML-file '%2'\n"
+       "- all included OpenMBV-XML-Files\n"
+       "- all dedicated OpenMBV-Parameter-XML-Files")
+        .arg(grp->getFileName().c_str())
+        .arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
+       QMessageBox::Save | QMessageBox::Cancel)==QMessageBox::Save)
+    grp->writeXML();
 }

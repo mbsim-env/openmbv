@@ -24,44 +24,51 @@
 #include <sstream>
 #include <vector>
 #include <openmbvcppinterface/object.h>
+#include "openmbvcppinterface/simpleparameter.h"
 
 namespace OpenMBV {
 
   /** Abstract base class for all bodies */
   class Body : public Object {
+    public:
+      enum DrawStyle { filled, lines, points };
     private:
       std::string getRelPathTo(Body* destBody);
     protected:
+      std::string outLineStr;
+      DrawStyle drawMethod;
       Body* hdf5LinkBody;
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      std::string hdf5LinkStr;
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       void terminate();
     public:
       /** Default constructor */
       Body();
 
+      /** Retrun the class name */
+      std::string getClassName() { return "Body"; }
+
       /** Link this body with dest in the HDF5 file */
       void setHDF5LinkTarget(Body* dest) { hdf5LinkBody=dest; }
+      
+      Body* getHDF5LinkTarget() { return hdf5LinkBody; }
 
       /** Returns if this body is linked to another */
-      bool isHDF5Link() { return hdf5LinkBody!=0; }
+      bool isHDF5Link() { return (hdf5LinkBody!=0 || hdf5LinkStr!=""); }
+
+      /** Draw outline of this object in the viewer if true (the default) */
+      void setOutLine(bool ol) { outLineStr=(ol==true)?"true":"false"; }
+
+      bool getOutLine() { return outLineStr=="true"?true:false; }
+
+      /** Draw method/style of this object in the viewer (default: filled) */
+      void setDrawMethod(DrawStyle ds) { drawMethod=ds; }
+
+      DrawStyle getDrawMethod() { return drawMethod; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
-
-      // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-      static double getDouble(TiXmlElement *e);
-      static std::vector<double> getVec(TiXmlElement *e, unsigned int rows=0);
-      static std::vector<std::vector<double> > getMat(TiXmlElement *e, unsigned int rows=0, unsigned int cols=0);
-
-    protected:
-      static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
-      static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
-
-      static std::vector<double> toVector(std::string str);
-      static std::vector<std::vector<double> > toMatrix(std::string str);
-
-      static std::vector<DoubleParam> toVectorDoubleParam(std::vector<double> v);
   };
 
 }

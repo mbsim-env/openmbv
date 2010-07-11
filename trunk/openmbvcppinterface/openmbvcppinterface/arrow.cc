@@ -24,7 +24,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-Arrow::Arrow() : DynamicColoredBody(),
+Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
   data(0),
   headDiameter(0.5),
   headLength(0.75),
@@ -37,22 +37,22 @@ Arrow::~Arrow() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-void Arrow::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Arrow name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-    DynamicColoredBody::writeXMLFile(xmlFile, indent+"  ");
-    xmlFile<<indent<<"  <diameter>"<<diameter<<"</diameter>"<<endl;
-    xmlFile<<indent<<"  <headDiameter>"<<headDiameter<<"</headDiameter>"<<endl;
-    xmlFile<<indent<<"  <headLength>"<<headLength<<"</headLength>"<<endl;
-    string typeStr;
-    switch(type) {
-      case line: typeStr="line"; break;
-      case fromHead: typeStr="fromHead"; break;
-      case toHead: typeStr="toHead"; break;
-      case bothHeads: typeStr="bothHeads"; break;
-    }
-    xmlFile<<indent<<"  <type>\""<<typeStr<<"\"</type>"<<endl;
-    xmlFile<<indent<<"  <scaleLength>"<<scaleLength<<"</scaleLength>"<<endl;
-  xmlFile<<indent<<"</Arrow>"<<endl;
+TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  addAttribute(e, "path", pathStr, "false");
+  addElementText(e, "diameter", diameter);
+  addElementText(e, "headDiameter", headDiameter);
+  addElementText(e, "headLength", headLength);
+  string typeStr;
+  switch(type) {
+    case line: typeStr="line"; break;
+    case fromHead: typeStr="fromHead"; break;
+    case toHead: typeStr="toHead"; break;
+    case bothHeads: typeStr="bothHeads"; break;
+  }
+  addElementText(e, "type", "\""+typeStr+"\"");
+  addElementText(e, "scaleLength", scaleLength);
+  return 0;
 }
 
 void Arrow::createHDF5File() {
@@ -74,6 +74,9 @@ void Arrow::createHDF5File() {
 
 void Arrow::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
+  if(element->Attribute("path") && 
+     (element->Attribute("path")==string("true") || element->Attribute("path")==string("1")))
+    setPath(true);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"diameter");
   setDiameter(getDouble(e));

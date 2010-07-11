@@ -24,10 +24,12 @@
 
 #include <Inventor/nodes/SoMaterial.h>
 #include "utils.h"
+#include "openmbvcppinterface/nurbsdisk.h"
 
 using namespace std;
 
-NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
+NurbsDisk::NurbsDisk(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+  OpenMBV::NurbsDisk* nd=(OpenMBV::NurbsDisk*)obj;
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   if(h5Group) {
@@ -39,25 +41,22 @@ NurbsDisk::NurbsDisk(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   }
 
   // read XML
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"drawDegree");
-  drawDegree=(int)Utils::toVector(e->GetText())[0];  
-  e=element->FirstChildElement(OPENMBVNS"elementNumberAzimuthal");
-  nj=(int)Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"elementNumberRadial");
-  nr=(int)Utils::toVector(e->GetText())[0]; 
-  e=element->FirstChildElement(OPENMBVNS"interpolationDegreeRadial");
-  degRadial=(int)Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"interpolationDegreeAzimuthal");
-  degAzimuthal=(int)Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"innerRadius");
-  innerRadius=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"outerRadius");
-  outerRadius=Utils::toVector(e->GetText())[0];
-  e=element->FirstChildElement(OPENMBVNS"knotVecAzimuthal");
-  knotVecAzimuthal=Utils::toVector(e->GetText());
-  e=element->FirstChildElement(OPENMBVNS"knotVecRadial");
-  knotVecRadial=Utils::toVector(e->GetText());  
+  drawDegree=nd->getDrawDegree();
+  nj=nd->getElementNumberAzimuthal();
+  nr=nd->getElementNumberRadial();
+  degRadial=nd->getInterpolationDegreeRadial();
+  degAzimuthal=nd->getInterpolationDegreeAzimuthal();
+  innerRadius=nd->getRi();
+  outerRadius=nd->getRo();
+  float *dummy;
+  dummy=nd->getKnotVecAzimuthal();
+  knotVecAzimuthal.clear();
+  for(int i=0; i<nj+1+2*degAzimuthal; i++)
+    knotVecAzimuthal.push_back(dummy[i]);
+  dummy=nd->getKnotVecRadial();
+  knotVecRadial.clear();
+  for(int i=0; i<nr+2+degRadial+1; i++)
+    knotVecRadial.push_back(dummy[i]);
 
   nurbsLength = (nr+1)*(nj+degAzimuthal);
 

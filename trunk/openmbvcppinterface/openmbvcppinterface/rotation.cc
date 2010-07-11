@@ -30,13 +30,12 @@ Rotation::Rotation() : RigidBody(),
   contour(0) {
   }
 
-void Rotation::writeXMLFile(std::ofstream& xmlFile, const std::string& indent) {
-  xmlFile<<indent<<"<Rotation name=\""<<name<<"\" enable=\""<<enableStr<<"\">"<<endl;
-  RigidBody::writeXMLFile(xmlFile, indent+"  ");
-  xmlFile<<indent<<"  <startAngle>"<<startAngle<<"</startAngle>"<<endl;
-  xmlFile<<indent<<"  <endAngle>"<<endAngle<<"</endAngle>"<<endl;
-  if(contour) PolygonPoint::serializePolygonPointContour(xmlFile, indent+"  ", contour);
-  xmlFile<<indent<<"</Rotation>"<<endl;
+TiXmlElement* Rotation::writeXMLFile(TiXmlNode *parent) {
+  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, "startAngle", startAngle, 0);
+  addElementText(e, "endAngle", endAngle, 2*M_PI);
+  if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
+  return 0;
 }
 
 
@@ -44,9 +43,9 @@ void Rotation::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"startAngle");
-  if(e) startAngle=getDouble(e);
+  if(e) setStartAngle(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"endAngle");
-  if(e) endAngle=getDouble(e);
+  if(e) setEndAngle(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
 }

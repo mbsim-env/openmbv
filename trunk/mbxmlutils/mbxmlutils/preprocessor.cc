@@ -66,8 +66,8 @@ int toOctave(TiXmlElement *&e) {
       if(row->NextSiblingElement()) mat+=";\n";
     }
     mat+="]";
-    TiXmlText *text=new TiXmlText(mat);
-    e->Parent()->InsertEndChild(*text);
+    TiXmlText text(mat);
+    e->Parent()->InsertEndChild(text);
     e->Parent()->RemoveChild(e);
     e=0;
     return 0;
@@ -79,8 +79,8 @@ int toOctave(TiXmlElement *&e) {
       if(ele->NextSiblingElement()) vec+=";";
     }
     vec+="]";
-    TiXmlText *text=new TiXmlText(vec);
-    e->Parent()->InsertEndChild(*text);
+    TiXmlText text(vec);
+    e->Parent()->InsertEndChild(text);
     e->Parent()->RemoveChild(e);
     e=0;
     return 0;

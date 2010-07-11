@@ -37,29 +37,30 @@ namespace OpenMBV {
   class PolygonPoint {
     public:
       /** constructor */
-      PolygonPoint(DoubleParam x_, DoubleParam y_, int b_) : x(x_), y(y_), b(b_) {}
+      PolygonPoint(double x_, double y_, int b_) : x(x_), y(y_), b(b_) {}
 
       /* GETTER / SETTER */
-      DoubleParam getXComponent() { return x; } 
-      DoubleParam getYComponent() { return y; } 
+      double getXComponent() { return x; } 
+      double getYComponent() { return y; } 
       int getBorderValue() { return b; }
       /***************************************************/
 
       /* CONVENIENCE */
       /** write vector of polygon points to XML file */
-      static void serializePolygonPointContour(std::ofstream& xmlFile, const std::string& indent, const std::vector<PolygonPoint*> *cont) {
-        xmlFile<<indent<<"<contour>"<<std::endl;
-        xmlFile<<indent<<"  [ ";
+      static void serializePolygonPointContour(TiXmlElement *parent, const std::vector<PolygonPoint*> *cont) {
+        std::string str;
+        str="[ ";
         for(std::vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
-          if(j!=cont->begin()) xmlFile<<indent<<"    ";
-          xmlFile<<(*j)->getXComponent() <<", "<<(*j)->getYComponent() <<", "<<(*j)->getBorderValue();
-          if(j+1!=cont->end()) xmlFile<<";"<<std::endl; else xmlFile<<" ]"<<std::endl;
+          str+=Object::numtostr((*j)->getXComponent())+", "+Object::numtostr((*j)->getYComponent())+", "+Object::numtostr((*j)->getBorderValue());
+          if(j+1!=cont->end()) str+=";    "; else str+=" ]";
         }
-        xmlFile<<indent<<"</contour>"<<std::endl;
+        Object::addElementText(parent, "contour", str);
       }
 
       static std::vector<PolygonPoint*>* initializeUsingXML(TiXmlElement *element) {
-        std::vector<std::vector<double> > mat=Body::getMat(element);
+        MatrixParameter matParam=Body::getMat(element);
+        assert(matParam.getParamStr()=="" && "Only numeric values are allowd for contours (vector<PolygonPoint*>)");
+        std::vector<std::vector<double> > mat=matParam.getValue();
         std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
         for(size_t r=0; r<mat.size(); r++) {
           PolygonPoint *pp=new PolygonPoint(mat[r][0], mat[r][1], (int)(mat[r][2]));
@@ -69,7 +70,7 @@ namespace OpenMBV {
       }
 
     private:
-      DoubleParam x, y;
+      double x, y;
       int b;
   };
 

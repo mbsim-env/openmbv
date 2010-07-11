@@ -21,7 +21,7 @@
 #define _OPENMBV_PATH_H_
 
 #include <openmbvcppinterface/body.h>
-#include <openmbvcppinterface/doubleparam.h>
+#include <openmbvcppinterface/simpleparameter.h>
 #include <hdf5serie/vectorserie.h>
 #include <vector>
 
@@ -35,16 +35,19 @@ namespace OpenMBV {
    * world frame: time, x, y, z */
   class Path : public Body {
     protected:
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      std::vector<DoubleParam> color;
+      VectorParameter color;
     public:
       /** Default constructor */
       Path();
       
       /** Destructor */
       virtual ~Path();
+
+      /** Retrun the class name */
+      std::string getClassName() { return "Path"; }
 
       /** Append a data vector the to hf dataset */
       void append(const std::vector<double>& row) {
@@ -56,24 +59,31 @@ namespace OpenMBV {
        * Use a vector with tree double representing reg, green and blue as paremter.
        * red, green and blue runs form 0 to 1
        */
-      void setColor(const std::vector<DoubleParam>& color_) {
-        assert(color_.size()==3);
-        color=color_;
+      void setColor(const VectorParameter& color_) {
+        assert(color_.getParamStr()!="" || color_.getValue().size()==3);
+        set(color,color_);
       }
 
-      // for convenience
+      /** Set the color of the paht.
+       * Use a vector with tree double representing reg, green and blue as paremter.
+       * red, green and blue runs form 0 to 1
+       */
       void setColor(const std::vector<double>& color_) {
-        color=toVectorDoubleParam(color_);
-      } 
+        assert(color_.size()==3);
+        set(color,color_);
+      }
+
+      std::vector<double> getColor() { return get(color); }
 
       /** Set the color of the paht.
        * red, green and blue runs form 0 to 1
        */
-      void setColor(DoubleParam red, DoubleParam green, DoubleParam blue) {
-        color.clear();
-        color.push_back(red);
-        color.push_back(green);
-        color.push_back(blue);
+      void setColor(double red, double green, double blue) {
+        std::vector<double> c;
+        c.push_back(red);
+        c.push_back(green);
+        c.push_back(blue);
+        color=c;
       }
 
       /** Initializes the time invariant part of the object using a XML node */

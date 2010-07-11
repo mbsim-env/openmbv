@@ -22,10 +22,12 @@
 #include "mainwindow.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include "utils.h"
+#include "openmbvcppinterface/spineextrusion.h"
 
 using namespace std;
 
-SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent), numberOfSpinePoints(0) {
+SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent), numberOfSpinePoints(0) {
+  OpenMBV::SpineExtrusion *se=(OpenMBV::SpineExtrusion*)obj;
   //h5 dataset
   h5Data=new H5::VectorSerie<double>;
   if(h5Group) {
@@ -38,10 +40,7 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   }
 
   // read XML
-  TiXmlElement *e=element->FirstChildElement(OPENMBVNS"contour");
-  vector<vector<double> > contour=Utils::toMatrix(e->GetText());
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  double scaleValue=Utils::toDouble(e->GetText());
+  vector<OpenMBV::PolygonPoint*>* contour=se->getContour();
 
   // create so
   // material
@@ -58,15 +57,15 @@ SpineExtrusion::SpineExtrusion(TiXmlElement *element, H5::Group *h5Parent, QTree
   // scale
   extrusion->scale.setNum(numberOfSpinePoints);
   SbVec2f *sc = extrusion->scale.startEditing();
-  for(int i=0;i<numberOfSpinePoints;i++) sc[i] = SbVec2f(scaleValue,scaleValue); // first x-scale / second z-scale
+  for(int i=0;i<numberOfSpinePoints;i++) sc[i] = SbVec2f(se->getScaleFactor(),se->getScaleFactor()); // first x-scale / second z-scale
   extrusion->scale.finishEditing();
   extrusion->scale.setDefault(FALSE);
 
   // cross section
-  extrusion->crossSection.setNum(contour.size()+1);
+  extrusion->crossSection.setNum(contour->size()+1);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(size_t i=0;i<contour.size();i++) cs[i] = SbVec2f(contour[i][0], contour[i][1]); // clockwise in local coordinate system
-  cs[contour.size()] =  SbVec2f(contour[0][0], contour[0][1]); // closed cross section
+  for(size_t i=0;i<contour->size();i++) cs[i] = SbVec2f((*contour)[i]->getXComponent(), (*contour)[i]->getYComponent()); // clockwise in local coordinate system
+  cs[contour->size()] =  SbVec2f((*contour)[0]->getXComponent(), (*contour)[0]->getYComponent()); // closed cross section
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 

@@ -31,10 +31,12 @@
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <QtGui/QMenu>
 #include "utils.h"
+#include "openmbvcppinterface/rigidbody.h"
 
 using namespace std;
 
-RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(element, h5Parent, parentItem, soParent) {
+RigidBody::RigidBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+  rigidBody=(OpenMBV::RigidBody*)obj;
   if(h5Parent) {
     //h5 dataset
     h5Data=new H5::VectorSerie<double>;
@@ -46,15 +48,6 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
       resetAnimRange(rows, dt);
     }
   }
-  
-  // read XML
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"initialTranslation");
-  vector<double> initTransValue=Utils::toVector(e->GetText());
-  e=e->NextSiblingElement();
-  vector<double> initRotValue=Utils::toVector(e->GetText());
-  e=e->NextSiblingElement();
-  double scaleValue=Utils::toVector(e->GetText())[0];
 
   // create so
 
@@ -71,7 +64,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     pathSep->addChild(pathCoord);
     pathLine=new SoLineSet;
     pathSep->addChild(pathLine);
-    soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    soPathSwitch->whichChild.setValue(rigidBody->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
     pathMaxFrameRead=-1;
   
     // translation (from hdf5)
@@ -99,7 +92,7 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
     soReferenceFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soReferenceFrameSwitch);
     soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
-    soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
     refFrameScale=new SoScale;
@@ -119,19 +112,19 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
   // initial translation
   initTrans=new SoTranslation;
   grp->addChild(initTrans);
-  initTrans->translation.setValue(initTransValue[0],initTransValue[1],initTransValue[2]); // this is later changed to connectFrom if the dragger exists
+  initTrans->translation.setValue(rigidBody->getInitialTranslation()[0],rigidBody->getInitialTranslation()[1],rigidBody->getInitialTranslation()[2]); // this is later changed to connectFrom if the dragger exists
 
   // initial rotation
   initRot=new SoRotation;
   grp->addChild(initRot);
-  initRot->rotation.setValue(Utils::cardan2Rotation(SbVec3f(initRotValue[0],initRotValue[1],initRotValue[2])).invert()); // this is later changed to connectFrom if the dragger exists
+  initRot->rotation.setValue(Utils::cardan2Rotation(SbVec3f(rigidBody->getInitialRotation()[0],rigidBody->getInitialRotation()[1],rigidBody->getInitialRotation()[2])).invert()); // this is later changed to connectFrom if the dragger exists
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
     soLocalFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soLocalFrameSwitch);
     soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
-    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   
     // mat (from hdf5)
     mat=new SoMaterial;
@@ -146,21 +139,24 @@ RigidBody::RigidBody(TiXmlElement *element, H5::Group *h5Parent, QTreeWidgetItem
 
   // initial scale
   SoScale *scale=new SoScale;
-  scale->scaleFactor.setValue(scaleValue,scaleValue,scaleValue);
+  scale->scaleFactor.setValue(rigidBody->getScaleFactor(),rigidBody->getScaleFactor(),rigidBody->getScaleFactor());
   soSepRigidBody->addChild(scale);
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
     localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
     localFrame->setCheckable(true);
+    localFrame->setChecked(rigidBody->getLocalFrame());
     localFrame->setObjectName("RigidBody::localFrame");
     connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
     referenceFrame=new QAction(Utils::QIconCached(":/referenceframe.svg"),"Draw Reference Frame", this);
     referenceFrame->setCheckable(true);
+    referenceFrame->setChecked(rigidBody->getReferenceFrame());
     referenceFrame->setObjectName("RigidBody::referenceFrame");
     connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
     path=new QAction(Utils::QIconCached(":/path.svg"),"Draw Path of Reference Frame", this);
     path->setCheckable(true);
+    path->setChecked(rigidBody->getPath());
     path->setObjectName("RigidBody::path");
     connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
     dragger=new QAction(Utils::QIconCached(":/centerballdragger.svg"),"Show Init. Trans./Rot. Dragger", this);
@@ -186,26 +182,37 @@ QMenu* RigidBody::createMenu() {
 }
 
 void RigidBody::localFrameSlot() {
-  if(localFrame->isChecked())
+  if(localFrame->isChecked()) {
     soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
-  else
+    rigidBody->setLocalFrame(true);
+  }
+  else {
     soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    rigidBody->setLocalFrame(false);
+  }
 }
 
 void RigidBody::referenceFrameSlot() {
-  if(referenceFrame->isChecked())
+  if(referenceFrame->isChecked()) {
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
-  else
+    rigidBody->setReferenceFrame(false);
+  }
+  else {
     soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    rigidBody->setReferenceFrame(false);
+  }
 }
 
 void RigidBody::pathSlot() {
   if(path->isChecked()) {
     soPathSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    rigidBody->setPath(true);
     update();
   }
-  else
+  else {
     soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    rigidBody->setPath(false);
+  }
 }
 
 void RigidBody::draggerSlot() {

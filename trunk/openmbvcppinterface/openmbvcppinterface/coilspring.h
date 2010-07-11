@@ -36,26 +36,33 @@ namespace OpenMBV {
    * "from" point z, "to" point x, "to" point y, "to" point z, color */
   class CoilSpring : public DynamicColoredBody {
     protected:
-      void writeXMLFile(std::ofstream& xmlFile, const std::string& indent="");
+      TiXmlElement *writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       H5::VectorSerie<double>* data;
-      DoubleParam springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
+      ScalarParameter springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
     public:
       /** Default Constructor */
       CoilSpring();
       
       /** Destructor */
       virtual ~CoilSpring();
+
+      /** Retrun the class name */
+      std::string getClassName() { return "CoilSpring"; }
       
       void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan((double)dynamicColor)) row[7]=dynamicColor;
+        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
-      void setSpringRadius(DoubleParam radius) { springRadius=radius; }
-      void setCrossSectionRadius(DoubleParam radius) { crossSectionRadius=radius; }
-      void setScaleFactor(DoubleParam scale) { scaleFactor=scale; }
-      void setNumberOfCoils(DoubleParam nr) { numberOfCoils=nr; }
+      void setSpringRadius(ScalarParameter radius) { set(springRadius,radius); }
+      double getSpringRadius() { return get(springRadius); }
+      void setCrossSectionRadius(ScalarParameter radius) { set(crossSectionRadius,radius); }
+      double getCrossSectionRadius() { return get(crossSectionRadius); }
+      void setScaleFactor(ScalarParameter scale) { set(scaleFactor,scale); }
+      double getScaleFactor() { return get(scaleFactor); }
+      void setNumberOfCoils(ScalarParameter nr) { set(numberOfCoils,nr); }
+      double getNumberOfCoils() { return get(numberOfCoils); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
