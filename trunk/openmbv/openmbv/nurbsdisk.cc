@@ -41,7 +41,7 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem 
   }
 
   // read XML
-  drawDegree=nd->getDrawDegree();
+  drawDegree=(int)(nd->getDrawDegree());
   nj=nd->getElementNumberAzimuthal();
   nr=nd->getElementNumberRadial();
   degRadial=nd->getInterpolationDegreeRadial();
