@@ -67,7 +67,7 @@ AC_ARG_WITH(soqt_prefix,
    SOQT_LIBS="-L$withval/lib -lSoQt"],
   [SOQT_CFLAGS="-I$prefix/include"
    SOQT_LIBS="-L$prefix/lib -lSoQt"])
-OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $SOQT_CFLAGS $QT_CFLAGS"
+OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $SOQT_CFLAGS $QT_CFLAGS $(pkg-config Coin --cflags-only-I)"
 AC_CHECK_HEADERS([Inventor/Qt/SoQt.h], [],
   [AC_MSG_ERROR([Can not find SoQt c++ header Inventor/Qt/SoQt.h])])
 CPPFLAGS=$OLD
