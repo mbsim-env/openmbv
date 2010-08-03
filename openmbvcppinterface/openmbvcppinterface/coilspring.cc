@@ -61,6 +61,14 @@ void CoilSpring::createHDF5File() {
   }
 }
 
+void CoilSpring::openHDF5File() {
+  DynamicColoredBody::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}
+
 void CoilSpring::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;

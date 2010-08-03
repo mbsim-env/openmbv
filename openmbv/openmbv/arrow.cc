@@ -28,20 +28,16 @@
 
 using namespace std;
 
-Arrow::Arrow(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
   arrow=(OpenMBV::Arrow*)obj;
   iconFile=":/arrow.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  int rows=arrow->getRows();
+  double dt;
+  if(rows>=2) dt=arrow->getRow(1)[0]-arrow->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
 
   // read XML
   if(arrow->getType()!=OpenMBV::Arrow::toHead) printf("Only toHead is implemented yet!!!\n"); //TODO
@@ -137,11 +133,9 @@ Arrow::Arrow(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentI
 }
 
 double Arrow::update() {
-  if(h5Group==0) return 0;
-
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   // read from hdf5
-  data=h5Data->getRow(frame);
+  data=arrow->getRow(frame);
   
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
@@ -150,7 +144,7 @@ double Arrow::update() {
   // path
   if(path->isChecked()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> localData=h5Data->getRow(i);
+      vector<double> localData=arrow->getRow(i);
       if(length<1e-10)
         if(i-1<0)
           pathCoord->point.set1Value(i, 0, 0, 0); // dont known what coord to write; using 0

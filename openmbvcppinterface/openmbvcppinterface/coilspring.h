@@ -38,6 +38,7 @@ namespace OpenMBV {
     protected:
       TiXmlElement *writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       H5::VectorSerie<double>* data;
       ScalarParameter springRadius, crossSectionRadius, scaleFactor, numberOfCoils;
     public:
@@ -55,6 +56,10 @@ namespace OpenMBV {
         if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
+
+      int getRows() { return data->getRows(); }
+      std::vector<double> getRow(int i) { return data->getRow(i); }
+
       void setSpringRadius(ScalarParameter radius) { set(springRadius,radius); }
       double getSpringRadius() { return get(springRadius); }
       void setCrossSectionRadius(ScalarParameter radius) { set(crossSectionRadius,radius); }

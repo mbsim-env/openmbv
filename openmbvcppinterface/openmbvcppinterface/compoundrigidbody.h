@@ -41,6 +41,8 @@ namespace OpenMBV {
       /** Add a RigidBody to this compound */
       void addRigidBody(RigidBody* rigidBody_) {
         rigidBody.push_back(rigidBody_);
+        rigidBody_->parent=0;
+        rigidBody_->compound=this;
       }
 
       std::vector<RigidBody*> getRigidBodies() {

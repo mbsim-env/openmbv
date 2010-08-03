@@ -135,6 +135,9 @@ namespace OpenMBV {
         data->append(row);
       }
 
+      int getRows() { return data->getRows(); }
+      std::vector<double> getRow(int i) { return data->getRow(i); }
+
     protected:
       /** Each row comprises [time,]. */
       H5::VectorSerie<double>* data;
@@ -168,6 +171,7 @@ namespace OpenMBV {
 
       /** Write H5 file for time-dependent data. */
       void createHDF5File();
+      void openHDF5File();
   };
 
 }

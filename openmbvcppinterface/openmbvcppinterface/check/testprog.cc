@@ -10,12 +10,19 @@
 #include <openmbvcppinterface/invisiblebody.h>
 #include <openmbvcppinterface/coilspring.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
+#include <openmbvcppinterface/ivbody.h>
 #include <iostream>
 
 using namespace OpenMBV;
 using namespace std;
 
+void walkHierarchy(Group *grp);
+
 int main() {
+
+  cout<<"CREATE"<<endl;
+  {
+
   Group g;
   g.setName("mygrp");
 
@@ -23,6 +30,11 @@ int main() {
     c2.setName("mycubeaa");
     c2.setLength(VectorParameter("length3",vector<double>(3,1.5)));
     g.addObject(&c2);
+
+    IvBody iv;
+    iv.setName("myiv");
+    iv.setIvFileName("ivcube.iv");
+    g.addObject(&iv);
 
     Group subg;
     subg.setName("mysubgrp");
@@ -98,7 +110,14 @@ int main() {
     
     CompoundRigidBody crg;
     crg.setName("mycrg");
-    crg.addRigidBody(&rotation);
+      Rotation rotationc;
+      rotationc.setName("myrotationc");
+      rotationc.setContour(&contour);
+    crg.addRigidBody(&rotationc);
+      IvBody ivc;
+      ivc.setName("myivc");
+      ivc.setIvFileName("ivcube.iv");
+    crg.addRigidBody(&ivc);
     g.addObject(&crg);
 
 
@@ -106,7 +125,9 @@ int main() {
 
   vector<double> row(8);
   for(int i=0; i<10; i++) {
+    row[1]=i/10.0;
     c2.append(row);
+    iv.append(row);
     cX.append(row);
     cube.append(row);
     frame.append(row);
@@ -118,5 +139,25 @@ int main() {
     invisiblebody.append(row);
     coilspring.append(row);
     crg.append(row);
+  }
+
+  }
+  cout<<"WALKHIERARCHY"<<endl;
+  {
+
+  walkHierarchy(Group::read("mygrp.ombv.xml"));
+
+  }
+}
+
+void walkHierarchy(Group *grp) {
+  cout<<grp->getFullName()<<endl;
+  vector<Object*> obj=grp->getObjects();
+  for(size_t i=0; i<obj.size(); i++) {
+    if(obj[i]->getClassName()=="Group")
+      walkHierarchy((Group*)obj[i]);
+    else {
+      cout<<obj[i]->getFullName()<<" [rows="<<((Body*)obj[i])->getRows()<<"]"<<endl;
+    }
   }
 }

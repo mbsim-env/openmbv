@@ -61,18 +61,7 @@ dnl OpenMBVCppInterface
 PKG_CHECK_MODULES(OPENMBVCPPINTERFACE, openmbvcppinterface)
 
 dnl SoQt
-AC_ARG_WITH(soqt_prefix,
-  [  --with-soqt-prefix=PFX  Prefix where SoQt is installed],
-  [SOQT_CFLAGS="-I$withval/include"
-   SOQT_LIBS="-L$withval/lib -lSoQt"],
-  [SOQT_CFLAGS="-I$prefix/include"
-   SOQT_LIBS="-L$prefix/lib -lSoQt"])
-OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $SOQT_CFLAGS $QT_CFLAGS $(pkg-config Coin --cflags-only-I)"
-AC_CHECK_HEADERS([Inventor/Qt/SoQt.h], [],
-  [AC_MSG_ERROR([Can not find SoQt c++ header Inventor/Qt/SoQt.h])])
-CPPFLAGS=$OLD
-AC_SUBST([SOQT_CFLAGS])
-AC_SUBST([SOQT_LIBS])
+PKG_CHECK_MODULES(SOQT, SoQt)
 
 dnl HDF5Serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)

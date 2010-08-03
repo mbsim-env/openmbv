@@ -31,7 +31,7 @@
 
 using namespace std;
 
-Extrusion::Extrusion(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
   OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
   iconFile=":/extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

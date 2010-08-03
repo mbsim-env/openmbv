@@ -27,7 +27,7 @@
 class Frame : public RigidBody {
   Q_OBJECT
   public:
-    Frame(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Frame(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

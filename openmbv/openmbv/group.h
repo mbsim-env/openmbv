@@ -36,7 +36,7 @@ class Group : public Object {
     QAction *saveFile;
     OpenMBV::Group *grp;
   public:
-    Group(OpenMBV::Object *obj, H5::Group *h5parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
     QMenu* createMenu();
   protected slots:

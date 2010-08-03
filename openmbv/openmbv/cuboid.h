@@ -28,7 +28,7 @@
 class Cuboid : public RigidBody {
   Q_OBJECT
   public:
-    Cuboid(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Cuboid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

@@ -35,18 +35,14 @@
 
 using namespace std;
 
-RigidBody::RigidBody(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
+RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
   rigidBody=(OpenMBV::RigidBody*)obj;
-  if(h5Parent) {
-    //h5 dataset
-    h5Data=new H5::VectorSerie<double>;
-    if(h5Group) {
-      h5Data->open(*h5Group, "data");
-      int rows=h5Data->getRows();
-      double dt;
-      if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-      resetAnimRange(rows, dt);
-    }
+  //h5 dataset
+  if(rigidBody->getParent()) { // do nothing for rigidbodies inside a compoundrigidbody
+    int rows=rigidBody->getRows();
+    double dt;
+    if(rows>=2) dt=rigidBody->getRow(1)[0]-rigidBody->getRow(0)[0]; else dt=0;
+    resetAnimRange(rows, dt);
   }
 
   // create so
@@ -246,10 +242,9 @@ void RigidBody::moveCameraWithSlot() {
 }
 
 double RigidBody::update() {
-  if(h5Group==0) return 0;
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=h5Data->getRow(frame);
+  vector<double> data=rigidBody->getRow(frame);
   
   // set scene values
   translation->translation.setValue(data[1], data[2], data[3]);
@@ -265,7 +260,7 @@ double RigidBody::update() {
   // path
   if(path->isChecked()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> data=h5Data->getRow(i);
+      vector<double> data=rigidBody->getRow(i);
       pathCoord->point.set1Value(i, data[1], data[2], data[3]);
     }
     pathMaxFrameRead=frame;

@@ -31,6 +31,10 @@
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
 
+namespace OpenMBV {
+  class CoilSpring;
+}
+
 /**
  * \brief class for drawing simple helix springs
  * \author Thorsten Schindler
@@ -42,7 +46,7 @@ class CoilSpring : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    CoilSpring(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    CoilSpring(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
@@ -78,11 +82,10 @@ class CoilSpring : public DynamicColoredBody {
     /** scale factor */
     double scaleValue;
 
-    /** local h5 data set copy */
-    H5::VectorSerie<double> *h5Data;
-
     /** update method invoked at each time step */
     virtual double update();
+
+    OpenMBV::CoilSpring *coilSpring;
 };
 
 #endif /* _COILSPRING_H_ */

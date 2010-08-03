@@ -66,6 +66,13 @@ void SpineExtrusion::createHDF5File() {
   }
 }
 
+void SpineExtrusion::openHDF5File() {
+  DynamicColoredBody::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}
 
 void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);

@@ -30,7 +30,7 @@
 
 using namespace std;
 
-Group::Group(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, h5Parent, parentItem, soParent) {
+Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent) {
   grp=(OpenMBV::Group*)obj;
   iconFile=":/group.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
@@ -50,7 +50,7 @@ Group::Group(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentI
   vector<OpenMBV::Object*> child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
     if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
-    ObjectFactory(child[i], h5Group, this, soSep);
+    ObjectFactory(child[i], this, soSep);
   }
 
   // hide groups without childs

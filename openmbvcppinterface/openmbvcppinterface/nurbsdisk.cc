@@ -96,3 +96,10 @@ void NurbsDisk::createHDF5File() {
   }
 }
 
+void NurbsDisk::openHDF5File() {
+  DynamicColoredBody::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}

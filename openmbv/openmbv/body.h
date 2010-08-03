@@ -47,7 +47,7 @@ class Body : public Object {
     static bool existFiles;
     static Body *timeUpdater; // the body who updates the time string in the scene window
   public:
-    Body(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     virtual double update()=0; // return the current time

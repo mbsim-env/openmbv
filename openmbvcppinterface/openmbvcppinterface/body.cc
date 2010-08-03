@@ -61,6 +61,10 @@ void Body::createHDF5File() {
     parent->hdf5Group->link(H5L_TYPE_SOFT, getRelPathTo(hdf5LinkBody), name);
 }
 
+void Body::openHDF5File() {
+  hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+}
+
 std::string Body::getRelPathTo(Body* destBody) {
   // create relative path to destination
   string dest=destBody->getFullName();

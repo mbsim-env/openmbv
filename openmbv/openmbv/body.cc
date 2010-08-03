@@ -43,9 +43,9 @@ using namespace std;
 bool Body::existFiles=false;
 Body *Body::timeUpdater=0;
 
-Body::Body(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, h5Parent, parentItem, soParent) {
+Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent) {
   body=(OpenMBV::Body*)obj;
-  if(h5Parent) {
+  if(obj->getParent()) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
     SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
     sensor->attach(MainWindow::getInstance()->getFrame());
