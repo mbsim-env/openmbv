@@ -55,13 +55,12 @@ class Arrow : public DynamicColoredBody {
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;
     virtual double update();
-    H5::VectorSerie<double> *h5Data;
     SoScale *scale1, *scale2;
     double headLength;
     std::vector<double> data;
     double length, scaleLength;
   public:
-    Arrow(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
     QMenu* createMenu();
   public slots:

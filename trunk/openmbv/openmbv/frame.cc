@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "openmbvcppinterface/frame.h"
 
-Frame::Frame(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, h5Parent, parentItem, soParent) {
+Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
   OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
   iconFile=":/frame.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

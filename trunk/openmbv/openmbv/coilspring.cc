@@ -25,23 +25,19 @@
 
 using namespace std;
 
-CoilSpring::CoilSpring(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
-  OpenMBV::CoilSpring *c=(OpenMBV::CoilSpring*)obj;
+CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+  coilSpring=(OpenMBV::CoilSpring*)obj;
   iconFile=":/coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  int rows=coilSpring->getRows();
+  double dt;
+  if(rows>=2) dt=coilSpring->getRow(1)[0]-coilSpring->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
 
   // read XML
-  scaleValue=c->getScaleFactor();
+  scaleValue=coilSpring->getScaleFactor();
 
   // create so
   // body
@@ -58,15 +54,15 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetIte
   // cross section
   extrusion->crossSection.setNum(iCircSegments+1);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(int i=0;i<=iCircSegments;i++) cs[i] = SbVec2f(c->getCrossSectionRadius()*cos(i*2.*M_PI/iCircSegments), -c->getCrossSectionRadius()*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
+  for(int i=0;i<=iCircSegments;i++) cs[i] = SbVec2f(coilSpring->getCrossSectionRadius()*cos(i*2.*M_PI/iCircSegments), -coilSpring->getCrossSectionRadius()*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 
   // initialise spine 
   spine = new float[3*(numberOfSpinePoints+1)];
   for(int i=0;i<=numberOfSpinePoints;i++) {
-    spine[3*i] = c->getSpringRadius()*cos(i*c->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
-    spine[3*i+1] = c->getSpringRadius()*sin(i*c->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
+    spine[3*i] = coilSpring->getSpringRadius()*cos(i*coilSpring->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
+    spine[3*i+1] = coilSpring->getSpringRadius()*sin(i*coilSpring->getNumberOfCoils()*2.*M_PI/numberOfSpinePoints);
     spine[3*i+2] = 0.;
   }
   extrusion->spine.setValuesPointer(numberOfSpinePoints+1,spine);
@@ -91,10 +87,9 @@ QString CoilSpring::getInfo() {
 }
 
 double CoilSpring::update() {
-  if(h5Group==0) return 0;
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=h5Data->getRow(frame);
+  std::vector<double> data=coilSpring->getRow(frame);
 
   // translation / rotation
   fromPoint->translation.setValue(data[1],data[2],data[3]);

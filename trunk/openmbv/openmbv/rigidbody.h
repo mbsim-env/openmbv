@@ -53,7 +53,6 @@ class RigidBody : public DynamicColoredBody {
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
     SoMaterial *mat;
-    H5::VectorSerie<double> *h5Data;
     SoScale *refFrameScale, *localFrameScale;
     static void draggerFinishCB(void *, SoDragger*);
     static void draggerMoveCB(void *, SoDragger*);
@@ -62,7 +61,7 @@ class RigidBody : public DynamicColoredBody {
     SoRotation *initRot;
     SoCenterballDragger *soDragger;
   public:
-    RigidBody(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:

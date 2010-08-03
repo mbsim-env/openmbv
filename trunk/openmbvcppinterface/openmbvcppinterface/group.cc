@@ -98,6 +98,15 @@ void Group::createHDF5File() {
   }
 }
 
+void Group::openHDF5File() {
+  if(topLevelFile)
+    hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
+  else
+    hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+  for(unsigned int i=0; i<object.size(); i++)
+    object[i]->openHDF5File();
+}
+
 void Group::writeXML() {
   if(fileName=="") fileName=name+".ombv.xml";
   separateFile=true;
@@ -167,6 +176,10 @@ Group* Group::readXML(std::string fileName) {
   rootGroup->initializeUsingXML(doc.FirstChildElement());
   rootGroup->setTopLevelFile(true);
   return rootGroup;
+}
+
+void Group::readH5(Group *rootGrp) {
+  rootGrp->openHDF5File();
 }
 
 void Group::readSimpleParameter(std::string filename) {

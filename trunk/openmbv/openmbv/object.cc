@@ -31,7 +31,7 @@ using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
+Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
   object=obj;
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
@@ -52,12 +52,6 @@ Object::Object(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *paren
     }
   }
   
-  // h5 group
-  if((obj->getClassName()=="Group" && ((OpenMBV::Group*)obj)->getTopLevelFile()) || h5Parent==0)
-    h5Group=h5Parent;
-  else
-    h5Group=new H5::Group(h5Parent->openGroup(obj->getName()));
-
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
   soParent->addChild(soSwitch); // parent so

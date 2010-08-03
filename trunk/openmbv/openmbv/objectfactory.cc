@@ -42,41 +42,41 @@
 
 using namespace std;
 
-Object *ObjectFactory(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) {
+Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) {
   if(obj->getClassName()=="Group")
-    return new Group(obj, h5Parent, parentItem, soParent);
+    return new Group(obj, parentItem, soParent);
   else if(obj->getClassName()=="Arrow")
-    return new Arrow(obj, h5Parent, parentItem, soParent);
+    return new Arrow(obj, parentItem, soParent);
   else if(obj->getClassName()=="CoilSpring")
-    return new CoilSpring(obj, h5Parent, parentItem, soParent);
+    return new CoilSpring(obj, parentItem, soParent);
   else if(obj->getClassName()=="CompoundRigidBody")
-    return new CompoundRigidBody(obj, h5Parent, parentItem, soParent);
+    return new CompoundRigidBody(obj, parentItem, soParent);
   else if(obj->getClassName()=="Cube")
-    return new Cube(obj, h5Parent, parentItem, soParent);
+    return new Cube(obj, parentItem, soParent);
   else if(obj->getClassName()=="Cuboid")
-    return new Cuboid(obj, h5Parent, parentItem, soParent);
+    return new Cuboid(obj, parentItem, soParent);
   else if(obj->getClassName()=="Extrusion")
-    return new Extrusion(obj, h5Parent, parentItem, soParent);
+    return new Extrusion(obj, parentItem, soParent);
   else if(obj->getClassName()=="Rotation")
-    return new Rotation(obj, h5Parent, parentItem, soParent);
+    return new Rotation(obj, parentItem, soParent);
   else if(obj->getClassName()=="Grid")
-    return new Grid(obj, h5Parent, parentItem, soParent);
+    return new Grid(obj, parentItem, soParent);
   else if(obj->getClassName()=="Frame")
-    return new Frame(obj, h5Parent, parentItem, soParent);
+    return new Frame(obj, parentItem, soParent);
   else if(obj->getClassName()=="Frustum")
-    return new Frustum(obj, h5Parent, parentItem, soParent);
+    return new Frustum(obj, parentItem, soParent);
   else if(obj->getClassName()=="IvBody")
-    return new IvBody(obj, h5Parent, parentItem, soParent);
+    return new IvBody(obj, parentItem, soParent);
   else if(obj->getClassName()=="InvisibleBody")
-    return new InvisibleBody(obj, h5Parent, parentItem, soParent);
+    return new InvisibleBody(obj, parentItem, soParent);
   else if(obj->getClassName()=="NurbsDisk")
-    return new NurbsDisk(obj, h5Parent, parentItem, soParent);
+    return new NurbsDisk(obj, parentItem, soParent);
   else if(obj->getClassName()=="Path")
-    return new Path(obj, h5Parent, parentItem, soParent);
+    return new Path(obj, parentItem, soParent);
   else if(obj->getClassName()=="Sphere")
-    return new Sphere(obj, h5Parent, parentItem, soParent);
+    return new Sphere(obj, parentItem, soParent);
   else if(obj->getClassName()=="SpineExtrusion")
-    return new SpineExtrusion(obj, h5Parent, parentItem, soParent);
+    return new SpineExtrusion(obj, parentItem, soParent);
   QString str("ERROR: Unknown OpenMBV::Object: %1"); str=str.arg(obj->getClassName().c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;

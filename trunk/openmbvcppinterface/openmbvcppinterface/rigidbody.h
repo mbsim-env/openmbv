@@ -29,6 +29,8 @@
 
 namespace OpenMBV {
 
+  class CompoundRigidBody;
+
   /** \brief Abstract base class for all rigid bodies
    *
    * Each rigid body has a body fixed local coordinate system L
@@ -74,7 +76,9 @@ namespace OpenMBV {
       ScalarParameter scaleFactor;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       H5::VectorSerie<double>* data;
+      CompoundRigidBody *compound;
     public:
       /** Default constructor */
       RigidBody();
@@ -162,8 +166,14 @@ namespace OpenMBV {
         data->append(row);
       }
 
+      int getRows() { return data->getRows(); }
+      std::vector<double> getRow(int i) { return data->getRow(i); }
+
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      Group* getSeparateGroup();
+      Group* getTopLevelGroup();
   };
 
 }

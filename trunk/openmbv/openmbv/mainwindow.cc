@@ -680,17 +680,14 @@ bool MainWindow::openFile(string fileName) {
     return false;
   }
 
-  H5::Group *h5Parent=0;
-  if(!env) {
-    // open HDF5
-    H5::FileSerie *h5File=new H5::FileSerie(fileName.substr(0,fileName.length()-string(".ombv.xml").length())+".ombv.h5", H5F_ACC_RDONLY);
-    h5Parent=(H5::Group*)h5File;
-  }
   // read XML
   OpenMBV::Group* rootGroup=OpenMBV::Group::readXML(fileName);
+  // open HDF5
+  if(!env)
+    OpenMBV::Group::readH5(rootGroup);
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
-  Object *object=ObjectFactory(rootGroup, h5Parent, objectList->invisibleRootItem(), sceneRoot);
+  Object *object=ObjectFactory(rootGroup, objectList->invisibleRootItem(), sceneRoot);
   object->setText(0, fileName.c_str());
   if(!env)
     object->getIconFile()=":/h5file.svg";

@@ -35,6 +35,10 @@
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
 
+namespace OpenMBV {
+  class NurbsDisk;
+}
+
 /**
  * \brief class for bodies with NURBS surface and primitive closure
  * \author Kilian Grundl
@@ -47,7 +51,7 @@ class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    NurbsDisk(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    NurbsDisk(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
@@ -80,11 +84,10 @@ class NurbsDisk : public DynamicColoredBody {
     /** primitive closures */
     SoIndexedFaceSet *faceSet;
 
-    /** local h5 data set copy */
-    H5::VectorSerie<double> *h5Data;
-
     /** update method invoked at each time step */
     virtual double update();
+
+    OpenMBV::NurbsDisk *nurbsDisk;
 };
 
 #endif /* _NURBSDISK_H_ */

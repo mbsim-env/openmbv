@@ -28,7 +28,7 @@
 class Sphere : public RigidBody {
   Q_OBJECT
   public:
-    Sphere(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Sphere(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

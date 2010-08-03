@@ -46,7 +46,6 @@ class Object : public QObject, public QTreeWidgetItem {
     SoSeparator *soSep;
     QAction *draw;
     bool drawThisPath;
-    H5::Group *h5Group;
     SoSwitch *soBBoxSwitch;
     SoSeparator *soBBoxSep;
     SoTranslation *soBBoxTrans;
@@ -55,7 +54,7 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string iconFile;
     static std::map<SoNode*,Object*> objectMap;
   public:
-    Object(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     std::string getPath();

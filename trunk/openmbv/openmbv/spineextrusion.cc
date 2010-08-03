@@ -26,21 +26,17 @@
 
 using namespace std;
 
-SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent), numberOfSpinePoints(0) {
-  OpenMBV::SpineExtrusion *se=(OpenMBV::SpineExtrusion*)obj;
+SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent), numberOfSpinePoints(0) {
+  spineExtrusion=(OpenMBV::SpineExtrusion*)obj;
   //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    numberOfSpinePoints = int((h5Data->getRow(1).size()-1)/4);
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
+  int rows=spineExtrusion->getRows();
+  double dt;
+  if(rows>=2) dt=spineExtrusion->getRow(1)[0]-spineExtrusion->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
 
   // read XML
-  vector<OpenMBV::PolygonPoint*>* contour=se->getContour();
+  vector<OpenMBV::PolygonPoint*>* contour=spineExtrusion->getContour();
 
   // create so
   // material
@@ -57,7 +53,7 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeW
   // scale
   extrusion->scale.setNum(numberOfSpinePoints);
   SbVec2f *sc = extrusion->scale.startEditing();
-  for(int i=0;i<numberOfSpinePoints;i++) sc[i] = SbVec2f(se->getScaleFactor(),se->getScaleFactor()); // first x-scale / second z-scale
+  for(int i=0;i<numberOfSpinePoints;i++) sc[i] = SbVec2f(spineExtrusion->getScaleFactor(),spineExtrusion->getScaleFactor()); // first x-scale / second z-scale
   extrusion->scale.finishEditing();
   extrusion->scale.setDefault(FALSE);
 
@@ -83,10 +79,9 @@ QString SpineExtrusion::getInfo() {
 }
 
 double SpineExtrusion::update() {
-  if(h5Group==0) return 0;
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=h5Data->getRow(frame);
+  std::vector<double> data=spineExtrusion->getRow(frame);
 
   // set spine
   extrusion->spine.setNum(numberOfSpinePoints);

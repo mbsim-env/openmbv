@@ -28,32 +28,28 @@
 
 using namespace std;
 
-NurbsDisk::NurbsDisk(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, h5Parent, parentItem, soParent) {
-  OpenMBV::NurbsDisk* nd=(OpenMBV::NurbsDisk*)obj;
+NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+  nurbsDisk=(OpenMBV::NurbsDisk*)obj;
   //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  int rows=nurbsDisk->getRows();
+  double dt;
+  if(rows>=2) dt=nurbsDisk->getRow(1)[0]-nurbsDisk->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
 
   // read XML
-  drawDegree=(int)(nd->getDrawDegree());
-  nj=nd->getElementNumberAzimuthal();
-  nr=nd->getElementNumberRadial();
-  degRadial=nd->getInterpolationDegreeRadial();
-  degAzimuthal=nd->getInterpolationDegreeAzimuthal();
-  innerRadius=nd->getRi();
-  outerRadius=nd->getRo();
+  drawDegree=(int)(nurbsDisk->getDrawDegree());
+  nj=nurbsDisk->getElementNumberAzimuthal();
+  nr=nurbsDisk->getElementNumberRadial();
+  degRadial=nurbsDisk->getInterpolationDegreeRadial();
+  degAzimuthal=nurbsDisk->getInterpolationDegreeAzimuthal();
+  innerRadius=nurbsDisk->getRi();
+  outerRadius=nurbsDisk->getRo();
   float *dummy;
-  dummy=nd->getKnotVecAzimuthal();
+  dummy=nurbsDisk->getKnotVecAzimuthal();
   knotVecAzimuthal.clear();
   for(int i=0; i<nj+1+2*degAzimuthal; i++)
     knotVecAzimuthal.push_back(dummy[i]);
-  dummy=nd->getKnotVecRadial();
+  dummy=nurbsDisk->getKnotVecRadial();
   knotVecRadial.clear();
   for(int i=0; i<nr+2+degRadial+1; i++)
     knotVecRadial.push_back(dummy[i]);
@@ -158,10 +154,9 @@ QString NurbsDisk::getInfo() {
 }
 
 double NurbsDisk::update() {
-  if(h5Group==0) return 0;
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=h5Data->getRow(frame);
+  std::vector<double> data=nurbsDisk->getRow(frame);
 
   // set points
   controlPts->point.setNum(nurbsLength+nj*drawDegree*4);

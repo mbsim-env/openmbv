@@ -26,24 +26,20 @@
 
 using namespace std;
 
-Path::Path(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(obj, h5Parent, parentItem, soParent) {
-  OpenMBV::Path* p=(OpenMBV::Path*)obj;
+Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(obj, parentItem, soParent) {
+  path=(OpenMBV::Path*)obj;
   iconFile=":/path.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
   //h5 dataset
-  h5Data=new H5::VectorSerie<double>;
-  if(h5Group) {
-    h5Data->open(*h5Group, "data");
-    int rows=h5Data->getRows();
-    double dt;
-    if(rows>=2) dt=h5Data->getRow(1)[0]-h5Data->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  int rows=path->getRows();
+  double dt;
+  if(rows>=2) dt=path->getRow(1)[0]-path->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
   
   // create so
   SoBaseColor *col=new SoBaseColor;
-  col->rgb.setValue(p->getColor()[0], p->getColor()[1], p->getColor()[2]);
+  col->rgb.setValue(path->getColor()[0], path->getColor()[1], path->getColor()[2]);
   soSep->addChild(col);
   coord=new SoCoordinate3;
   soSep->addChild(coord);
@@ -53,12 +49,11 @@ Path::Path(OpenMBV::Object *obj, H5::Group *h5Parent, QTreeWidgetItem *parentIte
 }
 
 double Path::update() {
-  if(h5Group==0) return 0;
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=h5Data->getRow(frame);
+  vector<double> data=path->getRow(frame);
   for(int i=maxFrameRead+1; i<=frame; i++) {
-    vector<double> data=h5Data->getRow(i);
+    vector<double> data=path->getRow(i);
     coord->point.set1Value(i, data[1], data[2], data[3]);
   }
   maxFrameRead=frame;

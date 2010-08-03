@@ -46,6 +46,7 @@ namespace OpenMBV {
       std::string pathStr;
       TiXmlElement *writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       H5::VectorSerie<double>* data;
       ScalarParameter headDiameter, headLength, diameter, scaleLength;
       Type type;
@@ -70,6 +71,9 @@ namespace OpenMBV {
         if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
         data->append(row);
       }
+
+      int getRows() { return data->getRows(); }
+      std::vector<double> getRow(int i) { return data->getRow(i); }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
       void setArrowHead(ScalarParameter diameter, ScalarParameter length) {

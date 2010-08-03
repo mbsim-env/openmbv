@@ -54,6 +54,7 @@ namespace OpenMBV {
       virtual TiXmlElement *writeXMLFile(TiXmlNode *parent);
 
       virtual void createHDF5File()=0;
+      virtual void openHDF5File()=0;
       H5::Group *hdf5Group;
       virtual void terminate()=0;
 
@@ -106,6 +107,8 @@ namespace OpenMBV {
 
       /** return the top level Group (this Group is an topLevelFile */
       Group* getTopLevelGroup();
+
+      Group* getParent() { return parent; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
       static std::string fixPath(std::string oldFile, std::string newFile) { return ::fixPath(oldFile, newFile); }

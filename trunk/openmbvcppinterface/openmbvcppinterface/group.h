@@ -37,6 +37,7 @@ namespace OpenMBV {
       bool separateFile, topLevelFile;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       void readSimpleParameter(std::string filename);
       void writeSimpleParameter(std::string filename);
       void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
@@ -90,12 +91,21 @@ namespace OpenMBV {
       /** DEPRECATED use writeH5() */
       void initializeH5() { std::cerr<<"WARNING! OpenMBV::Group::initializeH5() is deprecated. Please use OpenMBV::Group::writeH5() instead."<<std::endl; writeH5(); }
 
+      /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
+       */
+      static void readH5(Group *rootGrp);
+
       /** Initialisze/Wrtie the tree (XML and h5).
        * This function simply calls writeXML() and writeH5().
        */
       void write() { writeXML(); writeH5(); }
       /** DEPRECATED use write() */
       void initialize() { initializeXML(); initializeH5(); }
+
+      /** Read the tree (XML and h5).
+       * This function simply calls readXML() and readH5().
+       */
+      static Group* read(const std::string& filename) { Group *rootGrp=readXML(filename); readH5(rootGrp); return rootGrp; }
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.

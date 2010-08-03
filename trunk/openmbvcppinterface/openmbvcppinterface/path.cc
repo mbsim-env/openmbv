@@ -50,6 +50,14 @@ void Path::createHDF5File() {
   }
 }
 
+void Path::openHDF5File() {
+  Body::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}
+
 void Path::initializeUsingXML(TiXmlElement *element) {
   Body::initializeUsingXML(element);
   TiXmlElement *e;

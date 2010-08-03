@@ -23,6 +23,7 @@
 #include <openmbvcppinterface/group.h>
 #include <H5Cpp.h>
 #include <openmbvcppinterface/simpleparameter.h>
+#include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;
 using namespace OpenMBV;
@@ -31,7 +32,8 @@ RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), reference
   initialTranslation(vector<double>(3, 0)),
   initialRotation(vector<double>(3, 0)),
   scaleFactor(1),
-  data(0) {
+  data(0),
+  compound(0) {
 }
 
 RigidBody::~RigidBody() {
@@ -66,6 +68,14 @@ void RigidBody::createHDF5File() {
   }
 }
 
+void RigidBody::openHDF5File() {
+  DynamicColoredBody::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}
+
 void RigidBody::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   if(element->Attribute("localFrame") && 
@@ -84,4 +94,12 @@ void RigidBody::initializeUsingXML(TiXmlElement *element) {
   setInitialRotation(getVec(e,3));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
+}
+
+Group* RigidBody::getSeparateGroup() {
+  return compound?compound->parent->getSeparateGroup():parent->getSeparateGroup();
+}
+
+Group* RigidBody::getTopLevelGroup() {
+  return compound?compound->parent->getTopLevelGroup():parent->getTopLevelGroup();
 }

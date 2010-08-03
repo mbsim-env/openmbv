@@ -41,6 +41,7 @@ namespace OpenMBV {
       std::string hdf5LinkStr;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       void terminate();
     public:
       /** Default constructor */
@@ -69,6 +70,23 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      /** Pure virtual function to append a vector<double> row to the data.
+       * NOTE that this is an convinience function, because most OpenMBV data is
+       * of this type. If you do not need this spezial type, simple define this function
+       * with empty body and create your own spezific append function
+       */
+      virtual void append(std::vector<double>& row)=0;
+
+      /** Get the number of rows of the default data.
+       * NOTE: see also append()
+       */
+      virtual int getRows()=0;
+
+      /** Get row number i of the default data.
+       * NOTE: see also append()
+       */
+      virtual std::vector<double> getRow(int i)=0;
   };
 
 }

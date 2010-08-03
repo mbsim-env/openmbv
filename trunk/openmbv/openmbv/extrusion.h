@@ -28,7 +28,7 @@
 class Extrusion : public RigidBody {
   Q_OBJECT
   public:
-    Extrusion(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Extrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 };
 
 #endif

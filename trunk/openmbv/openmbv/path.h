@@ -27,16 +27,20 @@
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
+namespace OpenMBV {
+  class Path;
+}
+
 class Path : public Body {
   Q_OBJECT
   protected:
     virtual double update();
-    H5::VectorSerie<double> *h5Data;
     SoCoordinate3 *coord;
     SoLineSet *line;
     int maxFrameRead;
+    OpenMBV::Path *path;
   public:
-    Path(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QString getInfo();
 };
 

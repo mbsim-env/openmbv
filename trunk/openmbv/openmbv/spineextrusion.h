@@ -28,6 +28,10 @@
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
 
+namespace OpenMBV {
+  class SpineExtrusion;
+}
+
 /**
  * \brief class for extrusion along a curve
  * \author Thorsten Schindler
@@ -37,7 +41,7 @@ class SpineExtrusion : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    SpineExtrusion(OpenMBV::Object* obj, H5::Group *h5Parent, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    SpineExtrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
@@ -51,12 +55,11 @@ class SpineExtrusion : public DynamicColoredBody {
 
     /** twist axis */
     SbVec3f *twistAxis;
-
-    /** local h5 data set copy */
-    H5::VectorSerie<double> *h5Data;
   
     /** update method invoked at each time step */
     virtual double update();
+
+    OpenMBV::SpineExtrusion *spineExtrusion;
 };
 
 #endif /* _SPINEEXTRUSION_H_ */

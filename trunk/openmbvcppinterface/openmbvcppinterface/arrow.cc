@@ -72,6 +72,14 @@ void Arrow::createHDF5File() {
   }
 }
 
+void Arrow::openHDF5File() {
+  DynamicColoredBody::openHDF5File();
+  if(!hdf5LinkBody) {
+    data=new H5::VectorSerie<double>;
+    data->open(*hdf5Group,"data");
+  }
+}
+
 void Arrow::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   if(element->Attribute("path") && 

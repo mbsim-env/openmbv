@@ -37,6 +37,7 @@ namespace OpenMBV {
     protected:
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
+      void openHDF5File();
       H5::VectorSerie<double>* data;
       VectorParameter color;
     public:
@@ -50,10 +51,13 @@ namespace OpenMBV {
       std::string getClassName() { return "Path"; }
 
       /** Append a data vector the to hf dataset */
-      void append(const std::vector<double>& row) {
+      void append(std::vector<double>& row) {
         assert(data!=0 && row.size()==4);
         data->append(row);
       }
+
+      int getRows() { return data->getRows(); }
+      std::vector<double> getRow(int i) { return data->getRow(i); }
 
       /** Set the color of the paht.
        * Use a vector with tree double representing reg, green and blue as paremter.
