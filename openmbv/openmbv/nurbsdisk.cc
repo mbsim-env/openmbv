@@ -44,7 +44,7 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   degAzimuthal=nurbsDisk->getInterpolationDegreeAzimuthal();
   innerRadius=nurbsDisk->getRi();
   outerRadius=nurbsDisk->getRo();
-  float *dummy;
+  vector<double> dummy;
   dummy=nurbsDisk->getKnotVecAzimuthal();
   knotVecAzimuthal.clear();
   for(int i=0; i<nj+1+2*degAzimuthal; i++)
@@ -146,7 +146,7 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
   // faces
   faceSet=new SoIndexedFaceSet;
-  soSep->addChild(faceSet);  
+  //soSep->addChild(faceSet);  
 }
 
 QString NurbsDisk::getInfo() {
@@ -175,19 +175,22 @@ double NurbsDisk::update() {
 
   // vector of the position of the disk (midpoint of base circle, not midplane!)
   float DiskPosition[3];
-  for(int i=0;i<3;i++) DiskPosition[i]=data[1+nurbsLength*3+2*nj*drawDegree*3+i];
+  for(int i=0;i<3;i++) {
+    DiskPosition[i]=data[1+nurbsLength*3+2*nj*drawDegree*3+i];
+  }
 
   // rotary matrix
   float Orientation[3][3];
   for(int i=0;i<3;i++) 
-    for(int j=0;j<3;j++) 
+    for(int j=0;j<3;j++) { 
       Orientation[i][j]=data[1+nurbsLength*3+2*nj*drawDegree*3+3+i*3+j];
+    }
 
   // point for sides and back of the disk for visualisation
   float pointtmp[3], point[3];
   for(int i=0; i<nj*drawDegree;i++) {
     float Phi=2*M_PI*i/((nj)*drawDegree);
-    
+
     //inner Ring
     point[0]=cos(Phi) * innerRadius;
     point[1]=sin(Phi) * innerRadius;

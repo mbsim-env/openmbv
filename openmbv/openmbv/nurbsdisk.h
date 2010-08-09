@@ -15,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+   */
 
 #ifndef _NURBSDISK_H_
 #define _NURBSDISK_H_
@@ -46,6 +46,8 @@ namespace OpenMBV {
  * \author Thorsten Schindler
  * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
  * \date 2009-08-17 visualisation / contour (Grundl / Missel / Schindler)
+ * \date 2010-08-09 adapt to new concept of Markus Friedrich (Schindler)
+ * \todo face sets TODO
  */
 class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
@@ -62,7 +64,7 @@ class NurbsDisk : public DynamicColoredBody {
 
     /** interpolation degree radial and azimuthal */
     int degRadial, degAzimuthal;
-   
+
     /** number of intermediate points between finite element nodes for visualisation */
     int drawDegree;
 
