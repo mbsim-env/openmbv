@@ -15,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+   */
 
 #ifndef _OPENMBV_NURBSDISK_H_
 #define _OPENMBV_NURBSDISK_H_
@@ -34,6 +34,7 @@ namespace OpenMBV {
    * \author Thorsten Schindler
    * \date 2009-05-20 initial commit (Grundl / Missel / Schindler)
    * \date 2009-08-16 visualisation / contour (Grundl / Missel / Schindler)
+   * \date 2010-08-09 adapt to new concept of Markus Friedrich (Schindler)
    */
   class NurbsDisk : public DynamicColoredBody {
     public:
@@ -72,48 +73,56 @@ namespace OpenMBV {
       /** Set the azimuthal knot vector. 
        * These values should be set to the optimal circle values.
        */
-      void setKnotVecAzimuthal(float *KnotVecAzimuthal_) {
-        KnotVecAzimuthal=KnotVecAzimuthal_;
+      void setKnotVecAzimuthal(const std::vector<double> &KnotVecAzimuthal_) {
+        set(KnotVecAzimuthal,KnotVecAzimuthal_);
       }
 
-      float* getKnotVecAzimuthal() { return KnotVecAzimuthal; }
+      void setKnotVecAzimuthal(const VectorParameter &KnotVecAzimuthal_) {
+        set(KnotVecAzimuthal,KnotVecAzimuthal_);
+      }
+
+      std::vector<double> getKnotVecAzimuthal() { return get(KnotVecAzimuthal); }
 
       /** Set the radial knot vector. 
        * These value should be set to 1 each, resulting in a B-Spline curve.
        */
-      void setKnotVecRadial(float *KnotVecRadial_) {
-        KnotVecRadial=KnotVecRadial_;
+      void setKnotVecRadial(const std::vector<double> &KnotVecRadial_) {
+        set(KnotVecRadial,KnotVecRadial_);
       }
 
-      float* getKnotVecRadial() { return KnotVecRadial; }
+      void setKnotVecRadial(const VectorParameter &KnotVecRadial_) {
+        set(KnotVecRadial,KnotVecRadial_);
+      }
+
+      std::vector<double> getKnotVecRadial() { return get(KnotVecRadial); }
 
       /** Set the azimuthal number of finite elements used for drawing. */
-      void setElementNumberAzimuthal(int ElementNumberAzimuthal_) {
-        ElementNumberAzimuthal=ElementNumberAzimuthal_;
+      void setElementNumberAzimuthal(ScalarParameter ElementNumberAzimuthal_) {
+        set(ElementNumberAzimuthal,ElementNumberAzimuthal_);
       }
 
-      int getElementNumberAzimuthal() { return ElementNumberAzimuthal; }
+      int getElementNumberAzimuthal() { return get(ElementNumberAzimuthal); }
 
       /** Set the radial number of finite elements used for drawing. */
-      void setElementNumberRadial(int ElementNumberRadial_) {
-        ElementNumberRadial=ElementNumberRadial_;
+      void setElementNumberRadial(ScalarParameter ElementNumberRadial_) {
+        set(ElementNumberRadial,ElementNumberRadial_);
       }
 
-      int getElementNumberRadial() { return ElementNumberRadial; }
+      int getElementNumberRadial() { return get(ElementNumberRadial); }
 
       /** Set the degree of the interpolating splines in radial direction. */
-      void setInterpolationDegreeRadial(int InterpolationDegreeRadial_) {
-        InterpolationDegreeRadial=InterpolationDegreeRadial_;
+      void setInterpolationDegreeRadial(ScalarParameter InterpolationDegreeRadial_) {
+        set(InterpolationDegreeRadial,InterpolationDegreeRadial_);
       }
 
-      int getInterpolationDegreeRadial() { return InterpolationDegreeRadial; }
+      int getInterpolationDegreeRadial() { return get(InterpolationDegreeRadial); }
 
       /** Set the degree of the interpolating splines in azimuthal direction. */
-      void setInterpolationDegreeAzimuthal(int InterpolationDegreeAzimuthal_) {
-        InterpolationDegreeAzimuthal=InterpolationDegreeAzimuthal_;
+      void setInterpolationDegreeAzimuthal(ScalarParameter InterpolationDegreeAzimuthal_) {
+        set(InterpolationDegreeAzimuthal,InterpolationDegreeAzimuthal_);
       }
 
-      int getInterpolationDegreeAzimuthal() { return InterpolationDegreeAzimuthal; }
+      int getInterpolationDegreeAzimuthal() { return get(InterpolationDegreeAzimuthal); }
 
       /** Set the global vector of the normal of the disk */
       void setDiskNormal(float *DiskNormal_) {
@@ -138,6 +147,9 @@ namespace OpenMBV {
       int getRows() { return data->getRows(); }
       std::vector<double> getRow(int i) { return data->getRow(i); }
 
+      /** Initializes the time invariant part of the object using a XML node */
+      virtual void initializeUsingXML(TiXmlElement *element);
+
     protected:
       /** Each row comprises [time,]. */
       H5::VectorSerie<double>* data;
@@ -151,14 +163,14 @@ namespace OpenMBV {
       /** Inner and outer radius of disk */
       ScalarParameter Ri, Ro;
 
-      /** Knot vector for azimuthal and radial direction */
-      float *KnotVecAzimuthal, *KnotVecRadial;
-
       /** Number of finite elements in azimuthal and radial direction */
-      int ElementNumberAzimuthal, ElementNumberRadial;
+      ScalarParameter ElementNumberAzimuthal, ElementNumberRadial;
 
       /** Degree of interpolating spline polynomials in radial and azimuthal direction */
-      int InterpolationDegreeRadial, InterpolationDegreeAzimuthal;
+      ScalarParameter InterpolationDegreeAzimuthal, InterpolationDegreeRadial;
+
+      /** Knot vector for azimuthal and radial direction */
+      VectorParameter KnotVecAzimuthal, KnotVecRadial;
 
       /** Normal of the disk in global coordinates */
       float *DiskNormal;

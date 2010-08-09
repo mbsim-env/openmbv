@@ -24,7 +24,7 @@
 
 namespace OpenMBV {
 
-  /** A spehere */
+  /** A sphere */
   class Sphere : public RigidBody {
     protected:
       ScalarParameter radius;
