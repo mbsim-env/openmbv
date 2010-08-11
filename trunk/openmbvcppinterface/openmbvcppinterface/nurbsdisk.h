@@ -101,29 +101,28 @@ namespace OpenMBV {
         set(ElementNumberAzimuthal,ElementNumberAzimuthal_);
       }
 
-      int getElementNumberAzimuthal() { return get(ElementNumberAzimuthal); }
+      int getElementNumberAzimuthal() { return int(get(ElementNumberAzimuthal)); }
 
       /** Set the radial number of finite elements used for drawing. */
       void setElementNumberRadial(ScalarParameter ElementNumberRadial_) {
         set(ElementNumberRadial,ElementNumberRadial_);
       }
 
-      int getElementNumberRadial() { return get(ElementNumberRadial); }
+      int getElementNumberRadial() { return int(get(ElementNumberRadial)); }
 
       /** Set the degree of the interpolating splines in radial direction. */
       void setInterpolationDegreeRadial(ScalarParameter InterpolationDegreeRadial_) {
         set(InterpolationDegreeRadial,InterpolationDegreeRadial_);
       }
 
-      int getInterpolationDegreeRadial() { return get(InterpolationDegreeRadial); }
+      int getInterpolationDegreeRadial() { return int(get(InterpolationDegreeRadial)); }
 
       /** Set the degree of the interpolating splines in azimuthal direction. */
       void setInterpolationDegreeAzimuthal(ScalarParameter InterpolationDegreeAzimuthal_) {
         set(InterpolationDegreeAzimuthal,InterpolationDegreeAzimuthal_);
       }
 
-      int getInterpolationDegreeAzimuthal() { return get(InterpolationDegreeAzimuthal); }
-
+      int getInterpolationDegreeAzimuthal() { return int(get(InterpolationDegreeAzimuthal)); }
       /** Set the global vector of the normal of the disk */
       void setDiskNormal(float *DiskNormal_) {
         DiskNormal=DiskNormal_;
