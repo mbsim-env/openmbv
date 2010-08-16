@@ -124,6 +124,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   
     // mat (from hdf5)
     mat=new SoMaterial;
+    setColor(mat, 0);
     soSepRigidBody->addChild(mat);
     mat->shininess.setValue(0.9);
     if(!isnan(staticColor)) setColor(mat, staticColor);
@@ -242,6 +243,8 @@ void RigidBody::moveCameraWithSlot() {
 }
 
 double RigidBody::update() {
+  if(rigidBody->getRows()==-1) return 0; // do nothing for environement objects
+
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   vector<double> data=rigidBody->getRow(frame);

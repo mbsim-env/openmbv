@@ -56,7 +56,7 @@ namespace OpenMBV {
         data->append(row);
       }
 
-      int getRows() { return data->getRows(); }
+      int getRows() { return data?data->getRows():-1; }
       std::vector<double> getRow(int i) { return data->getRow(i); }
 
       /** Set the color of the paht.
