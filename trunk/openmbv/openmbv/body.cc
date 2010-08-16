@@ -160,22 +160,24 @@ void Body::drawMethodSlot(QAction* action) {
 
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {
-  if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
-    MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
-    if(existFiles) {
-      QString str("WARNING! Resetting maximal frame number!");
-      MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-      cout<<str.toStdString()<<endl;
+  if(numOfRows>=0) {
+    if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
+      MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
+      if(existFiles) {
+        QString str("WARNING! Resetting maximal frame number!");
+        MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
+        cout<<str.toStdString()<<endl;
+      }
     }
-  }
-  if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
-    MainWindow::getInstance()->getDeltaTime()=dt;
-    if(existFiles) {
-      QString str("WARNING! dt in HDF5 datas are not the same!");
-      MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-      cout<<str.toStdString()<<endl;
+    if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
+      MainWindow::getInstance()->getDeltaTime()=dt;
+      if(existFiles) {
+        QString str("WARNING! dt in HDF5 datas are not the same!");
+        MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
+        cout<<str.toStdString()<<endl;
+      }
     }
+    timeUpdater=this;
+    existFiles=true;
   }
-  timeUpdater=this;
-  existFiles=true;
 }

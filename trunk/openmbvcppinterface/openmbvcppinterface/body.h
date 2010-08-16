@@ -79,6 +79,7 @@ namespace OpenMBV {
       virtual void append(std::vector<double>& row)=0;
 
       /** Get the number of rows of the default data.
+       * Returns -1, if no default data is avaliable.
        * NOTE: see also append()
        */
       virtual int getRows()=0;
