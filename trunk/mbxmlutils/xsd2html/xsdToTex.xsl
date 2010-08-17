@@ -306,7 +306,7 @@ A indent indicates child elements for a given element.
     <xsl:if test="@name">
       &amp; \lstinline[basicstyle=\bf\ttfamily]|<xsl:value-of select="@name"/>|
       <xsl:if test="@use='required'">\textit{[required]}</xsl:if>
-      <xsl:if test="@use!='required'">\textit{[optional]}</xsl:if>
+      <xsl:if test="@use!='required' or not(@use)">\textit{[optional]}</xsl:if>
       (Type: \hyperref[<xsl:value-of select="@type"/>]{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|})\\
     </xsl:if>
     <xsl:if test="@ref">
