@@ -53,6 +53,7 @@ class Object : public QObject, public QTreeWidgetItem {
     QAction *bbox;
     std::string iconFile;
     static std::map<SoNode*,Object*> objectMap;
+    bool searchMatched;
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     virtual QMenu* createMenu();
@@ -62,6 +63,9 @@ class Object : public QObject, public QTreeWidgetItem {
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
     static std::map<SoNode*,Object*>& getObjectMap() { return objectMap; }
+    void updateTextColor();
+    bool getSearchMatched() { return searchMatched; }
+    void setSearchMatched(bool m) { searchMatched=m; }
   public slots:
     void drawSlot();
     void bboxSlot();
