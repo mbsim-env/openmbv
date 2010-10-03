@@ -1469,22 +1469,21 @@ void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
     // search recursive
     searchObjectList((Object*)item->child(i), filterRegExp);
     // set color
-    QColor c=item->child(i)->foreground(0).color();
-    c.setRed(mySearch(filterRegExp,(Object*)item->child(i))<0?255:0);
-    item->child(i)->setForeground(0, QBrush(c));
+    ((Object*)item->child(i))->setSearchMatched(mySearch(filterRegExp,(Object*)item->child(i))>=0);
+    ((Object*)item->child(i))->updateTextColor();
     // if all children and children children are red, collapse
     int count=0;
     for(int j=0; j<item->child(i)->childCount(); j++)
-      if((item->child(i)->child(j)->childCount()!=0 && item->child(i)->child(j)->foreground(0).color().red()==255 && 
+      if((item->child(i)->child(j)->childCount()!=0 && !(((Object*)(item->child(i)->child(j)))->getSearchMatched()) && 
           item->child(i)->child(j)->isExpanded()==false) ||
-         (item->child(i)->child(j)->childCount()==0 && item->child(i)->child(j)->foreground(0).color().red()==255))
+         (item->child(i)->child(j)->childCount()==0 && !(((Object*)(item->child(i)->child(j)))->getSearchMatched())))
         count++;
     item->child(i)->setExpanded(count!=item->child(i)->childCount());
     // hide
     item->child(i)->setHidden(false);
-    if((item->child(i)->childCount()!=0 && item->child(i)->foreground(0).color().red()==255 && 
+    if((item->child(i)->childCount()!=0 && !(((Object*)(item->child(i)))->getSearchMatched()) && 
         item->child(i)->isExpanded()==false) ||
-       (item->child(i)->childCount()==0 && item->child(i)->foreground(0).color().red()==255)) {
+       (item->child(i)->childCount()==0 && !(((Object*)(item->child(i)))->getSearchMatched()))) {
       bool hide=true;
       for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
         if(mySearch(filterRegExp,(Object*)it)>=0) { hide=false; break; }

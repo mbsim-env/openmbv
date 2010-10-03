@@ -20,6 +20,7 @@
 #include "config.h"
 #include "object.h"
 #include <QtGui/QMenu>
+#include <QtGui/QApplication>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include "mainwindow.h"
@@ -31,25 +32,18 @@ using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true) {
+Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
   object=obj;
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
     parentItem->addChild(this);
 
     // enable or disable
-    if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
+    if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
       drawThisPath=true;
-      QColor c=foreground(0).color();
-      c.setAlpha(255);
-      setForeground(0, QBrush(c));
-    }
-    else {
+    else
       drawThisPath=false;
-      QColor c=foreground(0).color();
-      c.setAlpha(128);
-      setForeground(0, QBrush(c));
-    }
+    updateTextColor();
   }
   
   // craete so basics (Separator)
@@ -134,21 +128,16 @@ void Object::bboxSlot() {
 // set drawThisPath recursivly and colorisze the font
 void Object::setEnableRecursive(bool enable) {
   if(enable && draw->isChecked() && (QTreeWidgetItem::parent()?((Object*)QTreeWidgetItem::parent())->drawThisPath:true)) {
-    QColor c=foreground(0).color();
-    c.setAlpha(255);
-    setForeground(0, QBrush(c));
     drawThisPath=true;
     for(int i=0; i<childCount(); i++)
       ((Object*)child(i))->setEnableRecursive(enable);
   }
   if(!enable) {
-    QColor c=foreground(0).color();
-    c.setAlpha(128);
-    setForeground(0, QBrush(c));
     drawThisPath=false;
     for(int i=0; i<childCount(); i++)
       ((Object*)child(i))->setEnableRecursive(enable);
   }
+  updateTextColor();
 }
 
 string Object::getPath() {
@@ -175,4 +164,17 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     object->soBBox->depth.setValue(z2-z1);
     object->soBBoxTrans->translation.setValue((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
   }
+}
+
+void Object::updateTextColor() {
+  if(drawThisPath)
+    if(searchMatched)
+      setForeground(0, QBrush(QApplication::style()->standardPalette().color(QPalette::Active, QPalette::Text)));
+    else
+      setForeground(0, QBrush(QColor(255,0,0)));
+  else
+    if(searchMatched)
+      setForeground(0, QBrush(QApplication::style()->standardPalette().color(QPalette::Disabled, QPalette::Text)));
+    else
+      setForeground(0, QBrush(QColor(128,0,0)));
 }
