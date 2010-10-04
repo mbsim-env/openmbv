@@ -24,6 +24,7 @@
 #include <list>
 #include <string>
 #include <algorithm>
+#include <locale.h>
 
 using namespace std;
 
@@ -37,6 +38,9 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
+  // Only the standard C locale is supported
+  QLocale::setDefault(QLocale::C);
+  setlocale(LC_ALL, "C");
 
   list<string> arg;
   for(int i=1; i<argc; i++)
