@@ -13,6 +13,7 @@
 using namespace std;
 
 const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i) {
+  if(e==NULL) return NULL;
   if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i==0)
     return e->ToElement();
   else if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i>0 && e->Parent())
