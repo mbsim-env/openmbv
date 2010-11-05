@@ -168,6 +168,7 @@ void octaveEvalRet(string str, TiXmlElement *e=NULL) {
       throw string("'ret' not defined in octave statement list: "+str);
     }
   }
+  if(e) if(chdir(savedPath)!=0) throw(1);
 }
 
 enum ValueType {
