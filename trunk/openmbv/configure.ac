@@ -29,6 +29,7 @@ fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 LDFLAGS="-Wl,--no-undefined $LDFLAGS"
+CXXFLAGS="-std=c++0x"
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
