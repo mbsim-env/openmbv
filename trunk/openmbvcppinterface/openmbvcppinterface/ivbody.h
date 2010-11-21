@@ -39,13 +39,15 @@ namespace OpenMBV {
 
       std::string getIvFileName() { return ivFileName; }
 
-      /** Set the limit crease angle for drawing crease edges. 
-       * If less 0 do not draw crease edges. Default: -1 */
+      /** Set the limit crease angle for the calculation of crease edges. 
+       * If less 0 do not calculate crease edges. Default: -1,
+       * The crease edges are drawn as outline in OpenMBV. */
       void setCreaseEdges(ScalarParameter creaseAngle_) { set(creaseAngle,creaseAngle_); }
 
       double getCreaseEdges() { return get(creaseAngle); }
 
-      /** Draw boundary edges or not? Default: false */
+      /** Calculate and draw boundary edges or not? Default: false.
+       * The boundary edges are drawn as outline in OpenMBV. */
       void setBoundaryEdges(bool b) { boundaryEdges=b; }
 
       bool getBoundaryEdges() { return boundaryEdges; }

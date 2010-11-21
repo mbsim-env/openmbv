@@ -9,6 +9,12 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
 
+dnl force strict standard conformance
+CPPFLAGS="$CPPFLAGS -Wall -Werror -pedantic-errors"
+CFLAGS="$CFLAGS -std=iso9899:1990"
+CXXFLAGS="$CXXFLAGS -std=c++98"
+LDFLAGS="-Wl,--no-undefined"
+
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
@@ -20,8 +26,6 @@ AC_PATH_PROG([doxygen],[doxygen],[no],[$doxygenpath:$PATH])
 if test $doxygen = "no" ; then
   AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
 fi
-
-CPPFLAGS="$CPPFLAGS -Wall -Werror"
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])

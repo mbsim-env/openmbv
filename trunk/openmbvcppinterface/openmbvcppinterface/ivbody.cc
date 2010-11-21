@@ -30,7 +30,7 @@ IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 TiXmlElement* IvBody::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
   addElementText(e, "ivFileName", "\""+ivFileName+"\"");
-  addElementText(e, "creaseAngle", creaseAngle, -1);
+  addElementText(e, "creaseEdges", creaseAngle, -1);
   addElementText(e, "boundaryEdges", boundaryEdges, false);
   return 0;
 }
@@ -40,7 +40,7 @@ void IvBody::initializeUsingXML(TiXmlElement *element) {
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"ivFileName");
   setIvFileName(string(e->GetText()).substr(1,string(e->GetText()).length()-2));
-  e=element->FirstChildElement(OPENMBVNS"creaseAngle");
+  e=element->FirstChildElement(OPENMBVNS"creaseEdges");
   if(e) setCreaseEdges(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
   if(e) setBoundaryEdges((e->GetText()==string("true") || e->GetText()==string("1"))?true:false);

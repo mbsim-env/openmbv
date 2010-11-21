@@ -90,6 +90,7 @@
           </xs:element>
         </xs:sequence> 
         <xs:attribute name="outLine" type="xs:boolean" default="true"/>
+        <xs:attribute name="shilouetteEdge" type="xs:boolean" default="false"/>
         <xs:attribute name="drawMethod" default="filled">
           <xs:simpleType>
             <xs:restriction base="xs:token">
@@ -201,7 +202,7 @@
       <xs:extension base="RigidBodyType">
         <xs:sequence>
           <xs:element name="ivFileName" type="pv:string"/>
-          <xs:element name="creaseEdges" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="boundaryEdges" type="xs:boolean" minOccurs="0"/>
         </xs:sequence> 
       </xs:extension>

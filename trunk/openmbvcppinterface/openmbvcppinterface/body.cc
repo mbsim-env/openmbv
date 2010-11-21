@@ -27,13 +27,14 @@
 using namespace std;
 using namespace OpenMBV;
 
-Body::Body() : Object(), outLineStr("true"), drawMethod(filled),
+Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
   hdf5LinkBody(0), hdf5LinkStr("") {
 }
 
 TiXmlElement* Body::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=Object::writeXMLFile(parent);
   addAttribute(e, "outLine", outLineStr, "true");
+  addAttribute(e, "shilouetteEdge", shilouetteEdgeStr, "false");
   string dm;
   switch(drawMethod) {
     case filled: dm="filled"; break;
@@ -91,6 +92,9 @@ void Body::initializeUsingXML(TiXmlElement *element) {
   if(element->Attribute("outLine") && 
      (element->Attribute("outLine")==string("false") || element->Attribute("outLine")==string("0")))
     setOutLine(false);
+  if(element->Attribute("shilouetteEdge") && 
+     (element->Attribute("shilouetteEdge")==string("true") || element->Attribute("shilouetteEdge")==string("1")))
+    setShilouetteEdge(true);
   if(element->Attribute("drawMethod")) {
     if(element->Attribute("drawMethod")==string("filled")) setDrawMethod(filled);
     if(element->Attribute("drawMethod")==string("lines")) setDrawMethod(lines);

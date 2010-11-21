@@ -35,7 +35,7 @@ namespace OpenMBV {
     private:
       std::string getRelPathTo(Body* destBody);
     protected:
-      std::string outLineStr;
+      std::string outLineStr, shilouetteEdgeStr;
       DrawStyle drawMethod;
       Body* hdf5LinkBody;
       std::string hdf5LinkStr;
@@ -62,6 +62,11 @@ namespace OpenMBV {
       void setOutLine(bool ol) { outLineStr=(ol==true)?"true":"false"; }
 
       bool getOutLine() { return outLineStr=="true"?true:false; }
+
+      /** Draw shilouette edges of this object in the viewer if true (the default) */
+      void setShilouetteEdge(bool ol) { shilouetteEdgeStr=(ol==true)?"true":"false"; }
+
+      bool getShilouetteEdge() { return shilouetteEdgeStr=="true"?true:false; }
 
       /** Draw method/style of this object in the viewer (default: filled) */
       void setDrawMethod(DrawStyle ds) { drawMethod=ds; }
