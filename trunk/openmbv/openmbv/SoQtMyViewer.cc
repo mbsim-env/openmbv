@@ -80,10 +80,10 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
 }
 
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
-  // if X is down unset viewing
+  // if D is down unset viewing
   if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {
     SoKeyboardEvent *e=(SoKeyboardEvent*)event;
-    if(e->getKey()==SoKeyboardEvent::X) {
+    if(e->getKey()==SoKeyboardEvent::D) {
       if(e->getState()==SoKeyboardEvent::DOWN)
         setViewing(false);
       else if(e->getState()==SoKeyboardEvent::UP)

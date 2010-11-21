@@ -192,10 +192,10 @@ double Arrow::update() {
 QString Arrow::getInfo() {
   if(data.size()==0) update();
   return DynamicColoredBody::getInfo()+
-         QString("-----<br/>")+
+         QString("<hr width=\"10000\"/>")+
          QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]).arg(data[2]).arg(data[3])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]).arg(data[5]).arg(data[6])+
-         QString("<b>Length:</b> %1<br/>").arg(length/scaleLength);
+         QString("<b>Length:</b> %1").arg(length/scaleLength);
 }
 
 void Arrow::pathSlot() {

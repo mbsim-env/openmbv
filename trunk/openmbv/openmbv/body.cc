@@ -28,6 +28,7 @@
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoCamera.h>
 #include "SoSpecial.h"
 #include <QtGui/QMenu>
 #include "mainwindow.h"
@@ -43,7 +44,7 @@ using namespace std;
 bool Body::existFiles=false;
 Body *Body::timeUpdater=0;
 
-Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent) {
+Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent), shilouetteEdgeFirstCall(true), shilouetteEdgeStruct(NULL) {
   body=(OpenMBV::Body*)obj;
   if(obj->getParent()) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
@@ -64,12 +65,24 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
   SoLightModel *lm=new SoLightModel;
   soOutLineSep->addChild(lm);
   lm->model.setValue(SoLightModel::BASE_COLOR);
-  SoBaseColor *color=new SoBaseColor;
-  soOutLineSep->addChild(color);
-  color->rgb.setValue(0,0,0);
-  SoDrawStyle *style=new SoDrawStyle;
-  style->style.setValue(SoDrawStyle::LINES);
-  soOutLineSep->addChild(style);
+  soOutLineSep->addChild(MainWindow::getInstance()->getOlseColor());
+  soOutLineSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
+
+  // switch for shilouette edge
+  soShilouetteEdgeSwitch=new SoSwitch;
+  soSep->addChild(soShilouetteEdgeSwitch);
+  soShilouetteEdgeSwitch->whichChild.setValue(body->getShilouetteEdge()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  soShilouetteEdgeSep=new SoSeparator;
+  soShilouetteEdgeSwitch->addChild(soShilouetteEdgeSep);
+  SoLightModel *lm2=new SoLightModel;
+  soShilouetteEdgeSep->addChild(lm2);
+  lm2->model.setValue(SoLightModel::BASE_COLOR);
+  soShilouetteEdgeSep->addChild(MainWindow::getInstance()->getOlseColor());
+  soShilouetteEdgeSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
+  soShilouetteEdgeCoord=new SoCoordinate3;
+  soShilouetteEdgeSep->addChild(soShilouetteEdgeCoord);
+  soShilouetteEdge=new SoIndexedLineSet;
+  soShilouetteEdgeSep->addChild(soShilouetteEdge);
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // draw method
@@ -88,6 +101,12 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
     outLine->setChecked(body->getOutLine());
     outLine->setObjectName("Body::outLine");
     connect(outLine,SIGNAL(changed()),this,SLOT(outLineSlot()));
+    // draw shilouette edge action
+    shilouetteEdge=new QAction(Utils::QIconCached(":/shilouetteedge.svg"),"Draw Shilouette Edge", this);
+    shilouetteEdge->setCheckable(true);
+    shilouetteEdge->setChecked(body->getShilouetteEdge());
+    shilouetteEdge->setObjectName("Body::shilouetteEdge");
+    connect(shilouetteEdge,SIGNAL(changed()),this,SLOT(shilouetteEdgeSlot()));
     // draw method action
     drawMethod=new QActionGroup(this);
     drawMethodPolygon=new QAction(Utils::QIconCached(":/filled.svg"),"Draw Style: Filled", drawMethod);
@@ -109,6 +128,11 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
     }
     connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
   }
+
+  // register callback function for shilouette edges
+  shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+  shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+  emit shilouetteEdgeSlot();
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
@@ -124,6 +148,7 @@ QMenu* Body::createMenu() {
   QMenu* menu=Object::createMenu();
   menu->addSeparator()->setText("Properties from: Body");
   menu->addAction(outLine);
+  menu->addAction(shilouetteEdge);
   menu->addSeparator();
   menu->addAction(drawMethodPolygon);
   menu->addAction(drawMethodLine);
@@ -139,6 +164,22 @@ void Body::outLineSlot() {
   else {
     soOutLineSwitch->whichChild.setValue(SO_SWITCH_NONE);
     body->setOutLine(false);
+  }
+}
+
+void Body::shilouetteEdgeSlot() {
+  if(shilouetteEdge->isChecked()) {
+    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    body->setShilouetteEdge(true);
+    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+    shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
+    MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
+  }
+  else {
+    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    body->setShilouetteEdge(false);
+    shilouetteEdgeFrameSensor->detach();
+    shilouetteEdgeOrientationSensor->detach();
   }
 }
 
@@ -180,4 +221,33 @@ void Body::resetAnimRange(int numOfRows, double dt) {
     timeUpdater=this;
     existFiles=true;
   }
+}
+
+void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
+  Body *me=(Body*)data;
+  bool frameChanged=false;
+  if(sensor==me->shilouetteEdgeFrameSensor) frameChanged=true;
+  bool orientationChanged=false;
+  if(sensor==me->shilouetteEdgeOrientationSensor) orientationChanged=true;
+
+  if(frameChanged==true || me->shilouetteEdgeFirstCall==true) {
+    delete me->shilouetteEdgeStruct;
+    me->shilouetteEdgeStruct=NULL;
+    SoCoordinate3 *soEdgeCoordOld=me->soShilouetteEdgeCoord;
+    int outLineSaved=me->soOutLineSwitch->whichChild.getValue(); // save outline
+    me->soOutLineSwitch->whichChild.setValue(SO_SWITCH_NONE); // disable outline
+    me->soShilouetteEdgeSep->replaceChild(soEdgeCoordOld, me->soShilouetteEdgeCoord=Utils::preCalculateEdges(me->soSep, me->shilouetteEdgeStruct));
+    me->soOutLineSwitch->whichChild.setValue(outLineSaved); // restore outline
+  }
+
+  if(frameChanged==true || orientationChanged==true || me->shilouetteEdgeFirstCall==true) {
+    SbRotation r=MainWindow::getInstance()->glViewer->getCamera()->orientation.getValue(); // camera orientation
+    r*=((SoSFRotation*)(MainWindow::getInstance()->cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+    SbVec3f n;
+    r.multVec(SbVec3f(0,0,-1),n); // a vector normal to the viewport in the world frame
+    SoIndexedLineSet *soShilouetteEdgeOld=me->soShilouetteEdge;
+    me->soShilouetteEdgeSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=Utils::calculateShilouetteEdge(n, me->shilouetteEdgeStruct));
+  }
+
+  me->shilouetteEdgeFirstCall=false;
 }

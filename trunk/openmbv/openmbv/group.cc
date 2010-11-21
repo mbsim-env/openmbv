@@ -64,8 +64,8 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
 
 QString Group::getInfo() {
   return Object::getInfo()+
-         QString("-----<br/>")+
-         QString("<b>Number of Children:</b> %1<br/>").arg(childCount());
+         QString("<hr width=\"10000\"/>")+
+         QString("<b>Number of Children:</b> %1").arg(childCount());
 }
 
 QMenu* Group::createMenu() {

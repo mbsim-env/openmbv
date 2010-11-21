@@ -67,6 +67,6 @@ QString Path::getInfo() {
   float x, y, z;
   coord->point.getValues(frame)->getValue(x, y, z);
   return Body::getInfo()+
-         QString("-----<br/>")+
-         QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z);
+         QString("<hr width=\"10000\"/>")+
+         QString("<b>Position:</b> %1, %2, %3").arg(x).arg(y).arg(z);
 }

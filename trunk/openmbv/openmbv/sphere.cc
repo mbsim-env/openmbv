@@ -37,8 +37,8 @@ Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   sphere->radius.setValue(s->getRadius());
   soSepRigidBody->addChild(sphere);
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(2*s->getRadius(),2*s->getRadius(),2*s->getRadius());
-  localFrameScale->scaleFactor.setValue(2*s->getRadius(),2*s->getRadius(),2*s->getRadius());
+  refFrameScale->scaleFactor.setValue(2*s->getRadius()*s->getScaleFactor(),2*s->getRadius()*s->getScaleFactor(),2*s->getRadius()*s->getScaleFactor());
+  localFrameScale->scaleFactor.setValue(2*s->getRadius()*s->getScaleFactor(),2*s->getRadius()*s->getScaleFactor(),2*s->getRadius()*s->getScaleFactor());
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);

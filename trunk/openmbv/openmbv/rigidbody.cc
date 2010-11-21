@@ -277,12 +277,12 @@ QString RigidBody::getInfo() {
   float x, y, z;
   translation->translation.getValue().getValue(x,y,z);
   return DynamicColoredBody::getInfo()+
-         QString("-----<br/>")+
+         QString("<hr width=\"10000\"/>")+
          QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(rotationAlpha->angle.getValue())
                                                     .arg(rotationBeta->angle.getValue())
                                                     .arg(rotationGamma->angle.getValue())+
-         QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;<br/>").arg(rotationAlpha->angle.getValue()*180/M_PI)
+         QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;").arg(rotationAlpha->angle.getValue()*180/M_PI)
                                                     .arg(rotationBeta->angle.getValue()*180/M_PI)
                                                     .arg(rotationGamma->angle.getValue()*180/M_PI);
 }

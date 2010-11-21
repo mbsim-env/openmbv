@@ -46,6 +46,12 @@ class Body : public Object {
     SoDrawStyle *drawStyle;
     static bool existFiles;
     static Body *timeUpdater; // the body who updates the time string in the scene window
+    SoFieldSensor *shilouetteEdgeFrameSensor, *shilouetteEdgeOrientationSensor;
+    static void shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor);
+    SoCoordinate3 *soShilouetteEdgeCoord;
+    SoIndexedLineSet *soShilouetteEdge;
+    bool shilouetteEdgeFirstCall;
+    Utils::Edges *shilouetteEdgeStruct;
   public:
     Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
     static void frameSensorCB(void *data, SoSensor*);
@@ -54,16 +60,18 @@ class Body : public Object {
     void resetAnimRange(int numOfRows, double dt);
   public slots:
     void outLineSlot();
+    void shilouetteEdgeSlot();
   protected slots:
     void drawMethodSlot(QAction* action);
   protected:
     OpenMBV::Body *body;
-    SoSwitch *soOutLineSwitch;
-    SoSeparator *soOutLineSep;
-    QAction *outLine;
+    SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
+    SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
+    QAction *outLine, *shilouetteEdge;
     QActionGroup *drawMethod;
     QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
     friend class IndexedTesselationFace;
+    friend class MainWindow;
 };
 
 #endif

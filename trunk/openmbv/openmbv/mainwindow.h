@@ -50,9 +50,12 @@
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
+  friend class Body;
   private:
     static MainWindow *instance;
-    enum ViewSide { top, bottom, front, back, right, left };
+    enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,
+                    rotateXpWorld, rotateXmWorld, rotateYpWorld, rotateYmWorld, rotateZpWorld, rotateZmWorld,
+                    rotateXpScreen, rotateXmScreen, rotateYpScreen, rotateYmScreen, rotateZpScreen, rotateZmScreen };
     enum Mode { no, rotate, translate, zoom };
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
@@ -64,18 +67,9 @@ class MainWindow : public QMainWindow {
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
     SoSwitch *worldFrameSwitch;
-
-    // Objects for global shilouette/crease/boundary geometry
-    SoSwitch *shilouetteSW;
-    SoSeparator *shilouetteSep;
-    SoCoordinate3 *soEdgeCoord;
-    SoIndexedLineSet *soShilouetteEdge;
-    SoIndexedLineSet *soCreaseEdge;
-    SoIndexedLineSet *soBoundaryEdge;
-    static void frameOrCameraSensorCB(void *data, SoSensor*);
-    SoFieldSensor *engDrawingFrameSensor, *engDrawingOrientationSensor;
-    double engDrawingCreaseAngle;
-    SoDrawStyle *engDrawingLineWidth;
+    SoSwitch *engDrawing;
+    SoDrawStyle *olseDrawStyle;
+    SoBaseColorHeavyOverride *olseColor;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
@@ -83,7 +77,7 @@ class MainWindow : public QMainWindow {
     QSpinBox *frameSB;
     bool openFile(std::string fileName);
     SoQtMyViewer *glViewer;
-    void viewParallel(ViewSide side);
+    void viewChange(ViewSide side);
     SoShadowGroup *sceneRoot;
     QTimer *animTimer;
     QTime *time;
@@ -102,6 +96,7 @@ class MainWindow : public QMainWindow {
 #endif
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
+    QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
     QLineEdit *filter;
@@ -117,12 +112,29 @@ class MainWindow : public QMainWindow {
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
     void releaseCameraFromBodySlot();
     void showWorldFrameSlot();
-    void viewTopSlot() { viewParallel(top); }
-    void viewBottomSlot() { viewParallel(bottom); }
-    void viewFrontSlot() { viewParallel(front); }
-    void viewBackSlot() { viewParallel(back); }
-    void viewRightSlot() { viewParallel(right); }
-    void viewLeftSlot() { viewParallel(left); }
+    void shadowRenderingSlot();
+
+    void viewTopSlot() { viewChange(top); }
+    void viewBottomSlot() { viewChange(bottom); }
+    void viewFrontSlot() { viewChange(front); }
+    void viewBackSlot() { viewChange(back); }
+    void viewRightSlot() { viewChange(right); }
+    void viewLeftSlot() { viewChange(left); }
+    void viewIsometricSlot() { viewChange(isometric); }
+    void viewDimetricSlot() { viewChange(dimetric); }
+    void viewRotateXpWorld() { viewChange(rotateXpWorld); }
+    void viewRotateXmWorld() { viewChange(rotateXmWorld); }
+    void viewRotateYpWorld() { viewChange(rotateYpWorld); }
+    void viewRotateYmWorld() { viewChange(rotateYmWorld); }
+    void viewRotateZpWorld() { viewChange(rotateZpWorld); }
+    void viewRotateZmWorld() { viewChange(rotateZmWorld); }
+    void viewRotateXpScreen() { viewChange(rotateXpScreen); }
+    void viewRotateXmScreen() { viewChange(rotateXmScreen); }
+    void viewRotateYpScreen() { viewChange(rotateYpScreen); }
+    void viewRotateYmScreen() { viewChange(rotateYmScreen); }
+    void viewRotateZpScreen() { viewChange(rotateZpScreen); }
+    void viewRotateZmScreen() { viewChange(rotateZmScreen); }
+
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
     void heavyWorkSlot();
@@ -146,6 +158,8 @@ class MainWindow : public QMainWindow {
     void speedDownSlot();
     void topBGColor();
     void bottomBGColor();
+    void olseColorSlot();
+    void olseLineWidthSlot();
     void loadWindowState(std::string filename="");
     void saveWindowState();
     void loadCamera(std::string filename="");
@@ -170,7 +184,7 @@ class MainWindow : public QMainWindow {
     void expandToDepth8() { objectList->expandToDepth(6); }
     void expandToDepth9() { objectList->expandToDepth(7); }
     void toggleEngDrawingViewSlot();
-    void toggleEngDrawingViewRecursion(QTreeWidgetItem *obj, bool enable);
+    void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
   public:
     MainWindow(std::list<std::string>& arg);
     void updateScene() { glViewer->getSceneManager()->render(); }
@@ -190,6 +204,8 @@ class MainWindow : public QMainWindow {
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
     bool getEnableFullScreen() { return enableFullScreen; }
     void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
+    SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
+    SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
 };
 
 #endif

@@ -266,7 +266,7 @@ SoIndexedLineSet* Utils::calculateShilouetteEdge(const SbVec3f &n, const Edges *
       int nib=edges->ei2vini[i].ni[1];
       int vai=edges->ei2vini[i].vai;
       int vbi=edges->ei2vini[i].vbi;
-      if(edges->normal[nia]->dot(n)*edges->normal[nib]->dot(n)<0) {
+      if(edges->normal[nia]->dot(n)*edges->normal[nib]->dot(n)<=0) {
         ls->coordIndex.set1Value(nr++, vai);
         ls->coordIndex.set1Value(nr++, vbi);
         ls->coordIndex.set1Value(nr++, -1);

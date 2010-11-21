@@ -149,7 +149,7 @@ string Object::getPath() {
 
 QString Object::getInfo() {
   return QString("<b>Path:</b> %1<br/>").arg(getPath().c_str())+
-         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2<br/>").arg(iconFile.c_str()).arg(metaObject()->className());
+         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2").arg(iconFile.c_str()).arg(metaObject()->className());
 }
 
 void Object::nodeSensorCB(void *data, SoSensor*) {

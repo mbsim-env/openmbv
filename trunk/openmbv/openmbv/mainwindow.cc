@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
 #include <QtGui/QDockWidget>
+#include <QtGui/QInputDialog>
 #include <QtGui/QMenuBar>
 #include <QtGui/QGridLayout>
 #include <QtGui/QFileDialog>
@@ -72,8 +73,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
-  engDrawingCreaseAngle=30*M_PI/180;
-
   list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
@@ -120,47 +119,23 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   sceneRoot->ref();
   sceneRoot->isActive.setValue(false);
   sceneRoot->precision.setValue(1.0);
-  SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons 1 unit in background
+  SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons in background
   sceneRoot->addChild(offset);
-  offset->units.setValue(10);
+  offset->factor.setValue(2.0);
+  offset->units.setValue(0);
 
-  // Switch/Separator for global shilouette/crease/boundary edge geometry
-  shilouetteSW=new SoSwitch;
-  sceneRoot->addChild(shilouetteSW);
-  shilouetteSW->whichChild.setValue(SO_SWITCH_NONE);
-  shilouetteSep=new SoSeparator;
-  shilouetteSW->addChild(shilouetteSep);
-  SoLightModel *lm2=new SoLightModel;
-  shilouetteSep->addChild(lm2);
-  lm2->model.setValue(SoLightModel::BASE_COLOR);
-  SoBaseColor *color2=new SoBaseColor;
-  shilouetteSep->addChild(color2);
-  color2->rgb.setValue(0,0,0);
-  engDrawingLineWidth=new SoDrawStyle;
-  shilouetteSep->addChild(engDrawingLineWidth);
-  soEdgeCoord=new SoCoordinate3;
-  shilouetteSep->addChild(soEdgeCoord);
-  soShilouetteEdge=new SoIndexedLineSet;
-  shilouetteSep->addChild(soShilouetteEdge);
-  soShilouetteEdge->coordIndex.set1Value(0, -1);
-  soCreaseEdge=new SoIndexedLineSet;
-  shilouetteSep->addChild(soCreaseEdge);
-  soCreaseEdge->coordIndex.set1Value(0, -1);
-  soBoundaryEdge=new SoIndexedLineSet;
-  shilouetteSep->addChild(soBoundaryEdge);
-  soBoundaryEdge->coordIndex.set1Value(0, -1);
   // Switch for global shilouette/crease/boundary override elements
-  SoSwitch *shilouetteSW2=new SoSwitch;
-  sceneRoot->addChild(shilouetteSW2);
-  shilouetteSW2->whichChild.connectFrom(&shilouetteSW->whichChild);
+  engDrawing=new SoSwitch;
+  sceneRoot->addChild(engDrawing);
+  engDrawing->whichChild.setValue(SO_SWITCH_NONE);
   SoLightModel *lm3=new SoLightModel;
-  shilouetteSW2->addChild(lm3);
   lm3->model.setValue(SoLightModel::BASE_COLOR);
   lm3->setOverride(true);
-  SoMaterial *color3=new SoMaterial;
-  shilouetteSW2->addChild(color3);
-  color3->diffuseColor.setValue(1,1,1);
-  color3->setOverride(true);
+  engDrawing->addChild(lm3);
+  SoBaseColor *bc=new SoBaseColor;
+  bc->rgb.setValue(1,1,1);
+  bc->setOverride(true);
+  engDrawing->addChild(bc);
 
   // Move the world system such that the camera is constant relative the the body
   // with moves with the camera; if not, don't move the world system.
@@ -311,32 +286,69 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   QMenu *sceneViewMenu=new QMenu("Scene View", menuBar());
   QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached(":/viewall.svg"),"View All", this, SLOT(viewAllSlot()), QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
-  sceneViewMenu->addSeparator()->setText("Parallel View");
-  QAction *topViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/topview.svg"),"Top-View", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached(":/axialview.svg"),"Axial View");
+  QAction *topViewAct=axialView->addAction(Utils::QIconCached(":/topview.svg"),"Top", this, SLOT(viewTopSlot()), QKeySequence("T"));
   addAction(topViewAct); // must work also if menu bar is invisible
-  QAction *bottomViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/bottomview.svg"),"Bottom-View", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  QAction *bottomViewAct=axialView->addAction(Utils::QIconCached(":/bottomview.svg"),"Bottom", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
   addAction(bottomViewAct); // must work also if menu bar is invisible
-  QAction *frontViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/frontview.svg"),"Front-View", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  QAction *frontViewAct=axialView->addAction(Utils::QIconCached(":/frontview.svg"),"Front", this, SLOT(viewFrontSlot()), QKeySequence("F"));
   addAction(frontViewAct); // must work also if menu bar is invisible
-  QAction *backViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/backview.svg"),"Back-View", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  QAction *backViewAct=axialView->addAction(Utils::QIconCached(":/backview.svg"),"Back", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
   addAction(backViewAct); // must work also if menu bar is invisible
-  QAction *rightViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/rightview.svg"),"Right-View", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  QAction *rightViewAct=axialView->addAction(Utils::QIconCached(":/rightview.svg"),"Right", this, SLOT(viewRightSlot()), QKeySequence("R"));
   addAction(rightViewAct); // must work also if menu bar is invisible
-  QAction *leftViewAct=sceneViewMenu->addAction(Utils::QIconCached(":/leftview.svg"),"Left-View", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
+  QAction *leftViewAct=axialView->addAction(Utils::QIconCached(":/leftview.svg"),"Left", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
   addAction(leftViewAct); // must work also if menu bar is invisible
+  QMenu *spaceView=sceneViewMenu->addMenu(Utils::QIconCached(":/spaceview.svg"),"Space View");
+  QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached(":/isometricview.svg"),"Isometric", this, SLOT(viewIsometricSlot()));
+  QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached(":/dimetricview.svg"),"Dimetric", this, SLOT(viewDimetricSlot()));
+  // QKeySequence("D") is used by SoQtMyViewer for dragger manipulation
+  QMenu *rotateView=sceneViewMenu->addMenu(Utils::QIconCached(":/rotateview.svg"),"Rotate View");
+  act=rotateView->addAction("+10deg About World-X-Axis", this, SLOT(viewRotateXpWorld()), QKeySequence("X"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About World-X-Axis", this, SLOT(viewRotateXmWorld()), QKeySequence("Shift+X"));
+  addAction(act);
+  act=rotateView->addAction("+10deg About World-Y-Axis", this, SLOT(viewRotateYpWorld()), QKeySequence("Y"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About World-Y-Axis", this, SLOT(viewRotateYmWorld()), QKeySequence("Shift+Y"));
+  addAction(act);
+  act=rotateView->addAction("+10deg About World-Z-Axis", this, SLOT(viewRotateZpWorld()), QKeySequence("Z"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About World-Z-Axis", this, SLOT(viewRotateZmWorld()), QKeySequence("Shift+Z"));
+  addAction(act);
+  rotateView->addSeparator();
+  act=rotateView->addAction("+10deg About Screen-X-Axis", this, SLOT(viewRotateXpScreen()), QKeySequence("Ctrl+X"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About Screen-X-Axis", this, SLOT(viewRotateXmScreen()), QKeySequence("Ctrl+Shift+X"));
+  addAction(act);
+  act=rotateView->addAction("+10deg About Screen-Y-Axis", this, SLOT(viewRotateYpScreen()), QKeySequence("Ctrl+Y"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About Screen-Y-Axis", this, SLOT(viewRotateYmScreen()), QKeySequence("Ctrl+Shift+Y"));
+  addAction(act);
+  act=rotateView->addAction("+10deg About Screen-Z-Axis", this, SLOT(viewRotateZpScreen()), QKeySequence("Ctrl+Z"));
+  addAction(act);
+  act=rotateView->addAction("-10deg About Screen-Z-Axis", this, SLOT(viewRotateZmScreen()), QKeySequence("Ctrl+Shift+Z"));
+  addAction(act);
   sceneViewMenu->addSeparator();
   act=sceneViewMenu->addAction(Utils::QIconCached(":/frame.svg"),"World Frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
   act->setCheckable(true);
+  sceneViewMenu->addAction(Utils::QIconCached(":/olselinewidth.svg"),"Outline and Shilouette Edge Line Width...", this, SLOT(olseLineWidthSlot()));
+  sceneViewMenu->addAction(Utils::QIconCached(":/olsecolor.svg"),"Outline and Shilouette Edge Color...", this, SLOT(olseColorSlot()));
+  sceneViewMenu->addSeparator();
   QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  addAction(cameraAct); // must work also if menu bar is invisible
   sceneViewMenu->addAction(Utils::QIconCached(":/camerabody.svg"),"Release Camera From Move With Body", this, SLOT(releaseCameraFromBodySlot()));
-  QAction *engDrawingView=sceneViewMenu->addAction(Utils::QIconCached(":/engdrawing.svg"),"Engineering Drawing", this, SLOT(toggleEngDrawingViewSlot()));
-  engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled!");
+  sceneViewMenu->addSeparator();
+  engDrawingView=sceneViewMenu->addAction(Utils::QIconCached(":/engdrawing.svg"),"Engineering Drawing", this, SLOT(toggleEngDrawingViewSlot()));
+  engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
   engDrawingView->setStatusTip(engDrawingView->toolTip());
   engDrawingView->setCheckable(true);
-  addAction(cameraAct); // must work also if menu bar is invisible
-  sceneViewMenu->addSeparator();
-  sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
-  sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
+  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Top Background Color...", this, SLOT(topBGColor()));
+  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Bottom Background Color...", this, SLOT(bottomBGColor()));
+  act=sceneViewMenu->addAction(Utils::QIconCached(":/shadowrendering.svg"),"Shadow Rendering", this, SLOT(shadowRenderingSlot()));
+  act->setToolTip("A SoDirectionalLight or other shadow generating light source must be added.");
+  act->setStatusTip(act->toolTip());
+  act->setCheckable(true);
   menuBar()->addMenu(sceneViewMenu);
 
   // gui view menu
@@ -383,6 +395,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   viewTB->addAction(backViewAct);
   viewTB->addAction(rightViewAct);
   viewTB->addAction(leftViewAct);
+  viewTB->addSeparator();
+  viewTB->addAction(isometriViewAct);
+  viewTB->addAction(dimetricViewAct);
   viewTB->addSeparator();
   viewTB->addAction(cameraAct);
 
@@ -478,10 +493,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
   sensor->attach(frame);
 
-  // register callback function on frame change
-  engDrawingFrameSensor=new SoFieldSensor(frameOrCameraSensorCB, this);
-  engDrawingOrientationSensor=new SoFieldSensor(frameOrCameraSensorCB, this);
-
   // animation timer
   animTimer=new QTimer(this);
   connect(animTimer, SIGNAL(timeout()), this, SLOT(heavyWorkSlot()));
@@ -495,22 +506,40 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
     arg.erase(i);
   }
 
-  // crease angle for engineering drawing
-  if((i=std::find(arg.begin(), arg.end(), "--edcreaseangle"))!=arg.end()) {
+  // line width for outline and shilouette edges
+  olseDrawStyle=new SoDrawStyle;
+  olseDrawStyle->style.setValue(SoDrawStyle::LINES);
+  olseDrawStyle->lineWidth.setValue(1);
+  if((i=std::find(arg.begin(), arg.end(), "--olselinewidth"))!=arg.end()) {
     i2=i; i2++;
-    engDrawingCreaseAngle=QString(i2->c_str()).toDouble()*M_PI/180;
+    olseDrawStyle->lineWidth.setValue(QString(i2->c_str()).toDouble());
     arg.erase(i); arg.erase(i2);
   }
 
-  // line width for engineering drawing edges
-  if((i=std::find(arg.begin(), arg.end(), "--edlinewidth"))!=arg.end()) {
+  // color for outline and shilouette edges
+  olseColor=new SoBaseColorHeavyOverride;
+  olseColor->rgb.set1Value(0, 0,0,0);
+  if((i=std::find(arg.begin(), arg.end(), "--olsecolor"))!=arg.end()) {
     i2=i; i2++;
-    engDrawingLineWidth->lineWidth.setValue(QString(i2->c_str()).toDouble());
+    QColor color(i2->c_str());
+    if(color.isValid()) {
+      QRgb rgb=color.rgb();
+      olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    }
     arg.erase(i); arg.erase(i2);
   }
 
   // background color
   if((i=std::find(arg.begin(), arg.end(), "--topbgcolor"))!=arg.end()) {
+    i2=i; i2++;
+    QColor color(i2->c_str());
+    if(color.isValid()) {
+      QRgb rgb=color.rgb();
+      bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+      fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    }
+    arg.erase(i); arg.erase(i2);
   }
   if((i=std::find(arg.begin(), arg.end(), "--bottombgcolor"))!=arg.end()) {
     i2=i; i2++;
@@ -835,17 +864,128 @@ void MainWindow::aboutOpenMBV() {
   );
 }
 
-void MainWindow::viewParallel(ViewSide side) {
+void MainWindow::viewChange(ViewSide side) {
+  SbRotation r, r2;
+  SbVec3f n;
   switch(side) {
-    case top:    glViewer->getCamera()->position.setValue(0,0,+1); break;
-    case bottom: glViewer->getCamera()->position.setValue(0,0,-1); break;
-    case front:  glViewer->getCamera()->position.setValue(0,-1,0); break;
-    case back:   glViewer->getCamera()->position.setValue(0,+1,0); break;
-    case right:  glViewer->getCamera()->position.setValue(+1,0,0); break;
-    case left:   glViewer->getCamera()->position.setValue(-1,0,0); break;
+    case top:
+      glViewer->getCamera()->position.setValue(0,0,+1);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,1,0));
+      glViewer->viewAll();
+      break;
+    case bottom:
+      glViewer->getCamera()->position.setValue(0,0,-1);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,1,0));
+      glViewer->viewAll();
+      break;
+    case front:
+      glViewer->getCamera()->position.setValue(0,-1,0);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      glViewer->viewAll();
+      break;
+    case back:
+      glViewer->getCamera()->position.setValue(0,+1,0);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      glViewer->viewAll();
+      break;
+    case right:
+      glViewer->getCamera()->position.setValue(+1,0,0);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      glViewer->viewAll();
+      break;
+    case left:
+      glViewer->getCamera()->position.setValue(-1,0,0);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      glViewer->viewAll();
+      break;
+    case isometric:
+      glViewer->getCamera()->position.setValue(1,1,1);
+      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      glViewer->viewAll();
+      break;
+    case dimetric:
+      glViewer->getCamera()->orientation.setValue(Utils::cardan2Rotation(SbVec3f(-1.227769277146394,0,1.227393504015536)));
+      glViewer->viewAll();
+      break;
+    case rotateXpWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(-1,0,0), 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateXmWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(-1,0,0), -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateYpWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(0,-1,0), 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateYmWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(0,-1,0), -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateZpWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(0,0,-1), 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateZmWorld:
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(SbVec3f(0,0,-1), -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateXpScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(-1,0,0),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateXmScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(-1,0,0),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateYpScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(0,-1,0),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateYmScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(0,-1,0),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateZpScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(0,0,-1),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, 10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
+    case rotateZmScreen:
+      r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
+      r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
+      r2.multVec(SbVec3f(0,0,-1),n);
+      r=glViewer->getCamera()->orientation.getValue();
+      r*=SbRotation(n, -10*M_PI/180);
+      glViewer->getCamera()->orientation.setValue(r);
+      break;
   }
-  glViewer->getCamera()->pointAt(SbVec3f(0,0,0));
-  glViewer->viewAll();
 }
 
 bool MainWindow::soQtEventCB(const SoEvent *const event) {
@@ -1004,39 +1144,6 @@ void MainWindow::frameSensorCB(void *data, SoSensor*) {
   me->setObjectInfo(me->objectList->currentItem());
   me->timeSlider->setValue(MainWindow::instance->getFrame()->getValue());
   me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
-}
-
-void MainWindow::frameOrCameraSensorCB(void *data, SoSensor* sensor) {
-  MainWindow *me=(MainWindow*)data;
-  static bool firstCall=true;
-  static Utils::Edges *edges=NULL;
-  bool frameChanged=false;
-  if(sensor==me->engDrawingFrameSensor) frameChanged=true;
-  bool orientationChanged=false;
-  if(sensor==me->engDrawingOrientationSensor) orientationChanged=true;
-
-  if(frameChanged==true || firstCall==true) {
-    delete edges;
-    edges=NULL;
-    SoCoordinate3 *soEdgeCoordOld=me->soEdgeCoord;
-    me->shilouetteSep->replaceChild(soEdgeCoordOld, me->soEdgeCoord=Utils::preCalculateEdges(me->sceneRoot, edges));
-
-    SoIndexedLineSet *soCreaseEdgeOld=me->soCreaseEdge;
-    me->shilouetteSep->replaceChild(soCreaseEdgeOld, me->soCreaseEdge=Utils::calculateCreaseEdges(me->engDrawingCreaseAngle,edges));
-    SoIndexedLineSet *soBoundaryEdgeOld=me->soBoundaryEdge;
-    me->shilouetteSep->replaceChild(soBoundaryEdgeOld, me->soBoundaryEdge=Utils::calculateBoundaryEdges(edges));
-    }
-
-  if(frameChanged==true || orientationChanged==true || firstCall==true) {
-    SbRotation r=me->glViewer->getCamera()->orientation.getValue(); // camera orientation
-    r*=((SoSFRotation*)(me->cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
-    SbVec3f n;
-    r.multVec(SbVec3f(0,0,-1),n); // a vector normal to the viewport in the world frame
-    SoIndexedLineSet *soShilouetteEdgeOld=me->soShilouetteEdge;
-    me->shilouetteSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=Utils::calculateShilouetteEdge(n, edges));
-  }
-
-  firstCall=false;
 }
 
 void MainWindow::fpsCB() {
@@ -1299,6 +1406,19 @@ void MainWindow::bottomBGColor() {
   fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
 }
 
+void MainWindow::olseColorSlot() {
+  float r,g,b;
+  olseColor->rgb.getValues(0)->getValue(r,g,b);
+  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
+  if(!color.isValid()) return;
+  QRgb rgb=color.rgb();
+  olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+}
+
+void MainWindow::olseLineWidthSlot() {
+  olseDrawStyle->lineWidth.setValue(QInputDialog::getDouble(this, "Outline and Shilouette Edge...", "Line Width: ", olseDrawStyle->lineWidth.getValue()));
+}
+
 void MainWindow::loadWindowState(string filename) {
   if(filename=="") {
     QString fn=QFileDialog::getOpenFileName(0, "Load Window State", ".", "*.ombv.wst");
@@ -1448,6 +1568,13 @@ void MainWindow::showWorldFrameSlot() {
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
+void MainWindow::shadowRenderingSlot() {
+  if(sceneRoot->isActive.getValue())
+    sceneRoot->isActive.setValue(false);
+  else
+    sceneRoot->isActive.setValue(true);
+}
+
 int MainWindow::mySearch(const QRegExp& filterRegExp, Object *item) {
   // return -1, if not found or >=0 if found
   if(item==objectList->invisibleRootItem()) return -1;
@@ -1492,32 +1619,43 @@ void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
   }
 }
 
-void MainWindow::toggleEngDrawingViewRecursion(QTreeWidgetItem *obj, bool enable) {
+void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge) {
   for(int i=0; i<obj->childCount(); i++) {
     QAction *act=((Object*)obj->child(i))->findChild<QAction*>("Body::outLine");
-    if(act) act->setChecked(enable);
-    MainWindow::toggleEngDrawingViewRecursion(obj->child(i), enable);
+    if(act) act->setChecked(enableOutLine);
+    act=((Object*)obj->child(i))->findChild<QAction*>("Body::shilouetteEdge");
+    if(act) act->setChecked(enableShilouetteEdge);
+    setOutLineAndShilouetteEdgeRecursive(obj->child(i), enableOutLine, enableShilouetteEdge);
   }
 }
 void MainWindow::toggleEngDrawingViewSlot() {
   static SoMFColor bgColorSaved;
-  if(shilouetteSW->whichChild.getValue()==SO_SWITCH_NONE) {
-    shilouetteSW->whichChild.setValue(SO_SWITCH_ALL);
-    engDrawingFrameSensor->attach(frame);
-    engDrawingOrientationSensor->attach(&glViewer->getCamera()->orientation);
+  static SoMFColor fgColorBottomSaved, fgColorTopSaved;
+  if(engDrawingView->isChecked()) {
+    // save bg color
     bgColorSaved=*bgColor;
+    fgColorBottomSaved=*fgColorBottom;
+    fgColorTopSaved=*fgColorTop;
+    // set new bg color
     bgColor->set1Value(0, 1.0,1.0,1.0);
     bgColor->set1Value(1, 1.0,1.0,1.0);
     bgColor->set1Value(2, 1.0,1.0,1.0);
     bgColor->set1Value(3, 1.0,1.0,1.0);
-    MainWindow::toggleEngDrawingViewRecursion(objectList->invisibleRootItem(), false);
-    frame->touch();
+    fgColorBottom->set1Value(0, 0,0,0);
+    fgColorTop->set1Value(0, 0,0,0);
+    engDrawing->whichChild.setValue(SO_SWITCH_ALL); // enable engineering drawing
+    setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, true); // enable outline and shilouetteEdge
+    glViewer->getCamera()->orientation.touch(); // redraw, like for a camera change
+    topBGColorAct->setEnabled(false);
+    bottomBGColorAct->setEnabled(false);
   }
   else {
-    shilouetteSW->whichChild.setValue(SO_SWITCH_NONE);
-    engDrawingFrameSensor->detach();
-    engDrawingOrientationSensor->detach();
-    *bgColor=bgColorSaved;
-    MainWindow::toggleEngDrawingViewRecursion(objectList->invisibleRootItem(), true);
+    *bgColor=bgColorSaved; // restore bg color
+    *fgColorBottom=fgColorBottomSaved;
+    *fgColorTop=fgColorTopSaved;
+    engDrawing->whichChild.setValue(SO_SWITCH_NONE); // disable engineering drawing
+    setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, false); // enable outline and disable shilouetteEdge
+    topBGColorAct->setEnabled(true);
+    bottomBGColorAct->setEnabled(true);
   }
 }

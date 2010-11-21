@@ -54,7 +54,8 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   // cross section
   extrusion->crossSection.setNum(iCircSegments+1);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(int i=0;i<=iCircSegments;i++) cs[i] = SbVec2f(coilSpring->getCrossSectionRadius()*cos(i*2.*M_PI/iCircSegments), -coilSpring->getCrossSectionRadius()*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
+  for(int i=0;i<iCircSegments;i++) cs[i] = SbVec2f(coilSpring->getCrossSectionRadius()*cos(i*2.*M_PI/iCircSegments), -coilSpring->getCrossSectionRadius()*sin(i*2.*M_PI/iCircSegments)); // clockwise in local coordinate system
+  cs[iCircSegments]=cs[0]; // close cross section: uses exact the same point: helpfull for "binary space partitioning container"
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 
@@ -74,16 +75,16 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   extrusion->ccw=TRUE; // vertex ordering counterclockwise?
   extrusion->beginCap=TRUE; // front side at begin of the spine
   extrusion->endCap=TRUE; // front side at end of the spine
-  extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
+  extrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
 }
 
 QString CoilSpring::getInfo() {
   float x, y, z;
   fromPoint->translation.getValue().getValue(x,y,z);
   return DynamicColoredBody::getInfo()+
-         QString("-----<br/>")+
+         QString("<hr width=\"10000\"/>")+
          QString("<b>From Point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
-         QString("<b>Length:</b> %1<br/>").arg(spine[2*numberOfSpinePoints-3+2]);
+         QString("<b>Length:</b> %1").arg(spine[2*numberOfSpinePoints-3+2]);
 }
 
 double CoilSpring::update() {

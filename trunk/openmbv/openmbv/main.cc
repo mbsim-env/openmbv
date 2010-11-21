@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
         <<"               [--wst <file>] [--camera <file>] [--fullscreen] [--shadows]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
-        <<"               [--headlight <file>] [--edcreaseangle <angle>]"<<endl
-        <<"               [--edlinewidth <width>] [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"               [--headlight <file>] [--olselinewidth] [--olsecolor #XXXXXX]"<<endl
+        <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
         <<"                 (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen     Start in full screen mode"<<endl
         <<"--shadows        Enable shadows"<<endl
-        <<"--edcreaseangle  Crease angle for engineering drawing in degree (Default 30)"<<endl
-        <<"--edlinewidth    Line width for engineering drawing edges (Default 1)"<<endl
+        <<"--olselinewidth  Line width of outlines and shilouette edges"<<endl
+        <<"--olsecolor      Color of outlines and shilouette edges"<<endl
         <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                 in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>           Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;
