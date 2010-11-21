@@ -47,7 +47,7 @@ void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
 
 QString DynamicColoredBody::getInfo() {
   return Body::getInfo()+
-         QString("-----<br/>")+
-         QString("<b>Color:</b> %1<br/>").arg(getColor());
+         QString("<hr width=\"10000\"/>")+
+         QString("<b>Color:</b> %1").arg(getColor());
 }
 

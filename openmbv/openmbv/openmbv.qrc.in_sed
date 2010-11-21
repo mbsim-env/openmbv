@@ -17,15 +17,21 @@
     <file>viewall.svg</file>
     <file>camera.svg</file>
     <file>camerabody.svg</file>
+    <file>axialview.svg</file>
     <file>topview.svg</file>
     <file>bottomview.svg</file>
     <file>frontview.svg</file>
     <file>backview.svg</file>
     <file>leftview.svg</file>
     <file>rightview.svg</file>
+    <file>spaceview.svg</file>
+    <file>isometricview.svg</file>
+    <file>dimetricview.svg</file>
+    <file>rotateview.svg</file>
     <file>drawobject.svg</file>
     <file>bbox.svg</file>
     <file>outline.svg</file>
+    <file>shilouetteedge.svg</file>
     <file>filled.svg</file>
     <file>lines.svg</file>
     <file>points.svg</file>
@@ -45,6 +51,7 @@
     <file>arrow.svg</file>
     <file>centerballdragger.svg</file>
     <file>bgcolor.svg</file>
+    <file>shadowrendering.svg</file>
     <file>loadwst.svg</file>
     <file>savewst.svg</file>
     <file>loadcamera.svg</file>
@@ -52,6 +59,8 @@
     <file>engdrawing.svg</file>
     <file>help.svg</file>
     <file>compoundrigidbody.svg</file>
+    <file>olselinewidth.svg</file>
+    <file>olsecolor.svg</file>
     <file>guihelp.xhtml</file>
     <file alias="http___openmbv_berlios_de_OpenMBV/index.xhtml">../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml</file>
     PNGFILESTOINCLUDE

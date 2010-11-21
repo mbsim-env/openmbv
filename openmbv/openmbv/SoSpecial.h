@@ -22,11 +22,24 @@
 
 #include "config.h"
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/elements/SoOverrideElement.h>
+#include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 
 class SoSepNoPickNoBBox : public SoSeparator {
   public:
     void rayPick(SoRayPickAction *action) {}
     void getBoundingBox(SoGetBoundingBoxAction *action) {}
+};
+
+// equals SoBaseColor but the color is uses even if the override flag is set
+class SoBaseColorHeavyOverride : public SoBaseColor {
+  public:
+    void GLRender(SoGLRenderAction *action) {
+      SoState *state=action->getState(); // get state
+      SoOverrideElement::setDiffuseColorOverride(state, this, false); // disable override
+      SoBaseColor::GLRender(action); // render
+    }
 };
 
 #endif

@@ -28,6 +28,8 @@ if test "_$host_os" = "_mingw32"; then
 fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
+LDFLAGS="-Wl,--no-undefined $LDFLAGS"
+
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc

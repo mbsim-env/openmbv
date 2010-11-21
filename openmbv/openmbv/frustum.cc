@@ -167,7 +167,7 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
     }
   }
   // scale ref/localFrame
-  double size=min(2*max(baseRadius,topRadius),height);
+  double size=min(2*max(baseRadius,topRadius),height)*f->getScaleFactor();
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);
   

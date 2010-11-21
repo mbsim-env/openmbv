@@ -39,8 +39,8 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
   cube->depth.setValue(c->getLength());
   soSepRigidBody->addChild(cube);
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(c->getLength(),c->getLength(),c->getLength());
-  localFrameScale->scaleFactor.setValue(c->getLength(),c->getLength(),c->getLength());
+  refFrameScale->scaleFactor.setValue(c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor());
+  localFrameScale->scaleFactor.setValue(c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor());
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);

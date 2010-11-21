@@ -32,6 +32,6 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // create so
   soSepRigidBody->addChild(Utils::soFrame(f->getSize(), f->getOffset(), true));
   // scale ref/localFrame
-  refFrameScale->scaleFactor.setValue(f->getSize(),f->getSize(),f->getSize());
-  localFrameScale->scaleFactor.setValue(f->getSize(),f->getSize(),f->getSize());
+  refFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
+  localFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
 }

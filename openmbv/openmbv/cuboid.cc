@@ -39,7 +39,7 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   cuboid->depth.setValue(c->getLength()[2]);
   soSepRigidBody->addChild(cuboid);
   // scale ref/localFrame
-  double size=min(c->getLength()[0],min(c->getLength()[1],c->getLength()[2]));
+  double size=min(c->getLength()[0],min(c->getLength()[1],c->getLength()[2]))*c->getScaleFactor();
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);
 

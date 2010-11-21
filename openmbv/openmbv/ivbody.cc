@@ -58,7 +58,7 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   bboxAction.apply(soSepRigidBody);
   float x1,y1,z1,x2,y2,z2;
   bboxAction.getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
-  double size=min(x2-x1,min(y2-y1,z2-z1));
+  double size=min(x2-x1,min(y2-y1,z2-z1))*ivb->getScaleFactor();
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);
 
