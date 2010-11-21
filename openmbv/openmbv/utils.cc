@@ -25,6 +25,7 @@
 #include <Inventor/actions/SoCallbackAction.h>
 #include <sstream>
 #include <iostream>
+#include <unordered_map>
 #include "SoSpecial.h"
 
 using namespace std;
@@ -45,22 +46,22 @@ void Utils::initialize() {
 }
 
 const QIcon& Utils::QIconCached(const QString& filename) {
-  static map<QString, QIcon> myIconCache;
-  map<QString, QIcon>::iterator i=myIconCache.find(filename);
-  if(i==myIconCache.end())
-    return myIconCache[filename]=QIcon(filename);
-  return i->second;
+  static unordered_map<string, QIcon> myIconCache;
+  pair<unordered_map<string, QIcon>::iterator, bool> ins=myIconCache.insert(pair<string, QIcon>(filename.toStdString(), QIcon()));
+  if(ins.second)
+    return ins.first->second=QIcon(filename);
+  return ins.first->second;
 }
 
 SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
-  static map<string, SoSeparator*> myIvBodyCache;
-  map<string, SoSeparator*>::iterator i=myIvBodyCache.find(filename);
-  if(i==myIvBodyCache.end()) {
+  static unordered_map<string, SoSeparator*> myIvBodyCache;
+  pair<unordered_map<string, SoSeparator*>::iterator, bool> ins=myIvBodyCache.insert(pair<string, SoSeparator*>(filename, (SoSeparator*)NULL));
+  if(ins.second) {
     SoInput in;
     in.openFile(filename.c_str());
-    return myIvBodyCache[filename]=SoDB::readAll(&in);
+    return ins.first->second=SoDB::readAll(&in);
   }
-  return i->second;
+  return ins.first->second;
 }
 
 // convenience: create frame so
