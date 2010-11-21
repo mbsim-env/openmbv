@@ -18,6 +18,9 @@ if test "_$host_os" = "_mingw32" ; then
   LIBS="$LIBS -lregex"
 fi
 
+LDFLAGS="-Wl,--no-undefined"
+CXXFLAGS="-std=c++0x"
+
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
 dnl Check for xslt

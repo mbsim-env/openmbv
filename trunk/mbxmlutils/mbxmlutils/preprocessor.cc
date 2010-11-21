@@ -4,6 +4,8 @@
 #include <fstream>
 #include <unistd.h>
 #include <stdlib.h>
+#include <unordered_map>
+#include <unordered_set>
 #include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
 #include <octave/oct.h>
@@ -51,13 +53,31 @@ void enable_stderr() {
 }
 
 // validate file using schema (currently by libxml)
-int validate(const string &schema, const char *file) {
-  xmlDoc *doc;
+int validate(const string &schema, const string &file) {
   cout<<"Parse and validate "<<file<<endl;
-  doc=xmlParseFile(file);
+
+  // cache alread validated files
+  static unordered_set<string> validatedCache;
+  pair<unordered_set<string>::iterator, bool> ins2=validatedCache.insert(file);
+  if(!ins2.second)
+    return 0;
+
+  xmlDoc *doc;
+  doc=xmlParseFile(file.c_str());
   if(!doc) return 1;
   if(xmlXIncludeProcess(doc)<0) return 1;
-  int ret=xmlSchemaValidateDoc(xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema.c_str()))), doc);
+
+  // cache compiled schema
+  xmlSchemaValidCtxtPtr compiledSchema;
+  static unordered_map<string, xmlSchemaValidCtxtPtr> compiledSchemaCache;
+  pair<unordered_map<string, xmlSchemaValidCtxtPtr>::iterator, bool> ins=compiledSchemaCache.insert(pair<string, xmlSchemaValidCtxtPtr>(schema, compiledSchema));
+  if(ins.second)
+    compiledSchema=ins.first->second=xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema.c_str())));
+  else
+    compiledSchema=ins.first->second;
+
+  int ret=xmlSchemaValidateDoc(compiledSchema, doc); // validate using compiled/cached schema
+
   xmlFreeDoc(doc);
   if(ret!=0) return ret;
   return 0;
@@ -109,11 +129,17 @@ int toOctave(TiXmlElement *&e) {
 map<string, octave_value> currentParam;
 // stack of parameters
 stack<map<string, octave_value> > paramStack;
+vector<int> currentParamHash;
 
 // add a parameter to the parameter list (used by octavePushParam and octavePopParams)
-void octaveAddParam(string paramName, octave_value value) {
+void octaveAddParam(const string &paramName, const octave_value& value) {
   // add paramter to parameter list if a parameter of the same name dose not exist in the list
   currentParam[paramName]=value;
+  if(paramStack.size()>=currentParamHash.size()) {
+    currentParamHash.resize(paramStack.size()+1);
+    currentParamHash[paramStack.size()]=0;
+  }
+  currentParamHash[paramStack.size()]++;
 }
 
 // push all parameters from list to a parameter stack
@@ -123,14 +149,9 @@ void octavePushParams() {
 
 // pop all parameters from list from the parameter stack
 void octavePopParams() {
-  // clear octave
-  symbol_table::clear_variables();
   // restore previous parameter list
   currentParam=paramStack.top();
   paramStack.pop();
-  // restore parameters from prefix
-  for(map<string, octave_value>::iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    symbol_table::varref(i->first)=i->second;
 }
 
 #define PATHLENGTH 10240
@@ -142,6 +163,25 @@ void octaveEvalRet(string str, TiXmlElement *e=NULL) {
   // delete trailing new lines in str
   for(unsigned int j=str.length()-1; j>=0 && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j--)
     str[j]=' ';
+
+  // a cache
+  if(paramStack.size()>=currentParamHash.size()) {
+    currentParamHash.resize(paramStack.size()+1);
+    currentParamHash[paramStack.size()]=0;
+  }
+  stringstream s; s<<paramStack.size()<<";"<<currentParamHash[paramStack.size()]<<";"; string id=s.str();
+  static unordered_map<string, octave_value> cache;
+  pair<unordered_map<string, octave_value>::iterator, bool> ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
+  if(!ins.second) {
+    symbol_table::varref("ret")=ins.first->second;
+    return;
+  }
+
+  // clear octave
+  symbol_table::clear_variables();
+  // restore current parameters
+  for(map<string, octave_value>::iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+    symbol_table::varref(i->first)=i->second;
 
   char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
@@ -169,6 +209,8 @@ void octaveEvalRet(string str, TiXmlElement *e=NULL) {
     }
   }
   if(e) if(chdir(savedPath)!=0) throw(1);
+
+  ins.first->second=symbol_table::varval("ret"); // add to cache
 }
 
 enum ValueType {
@@ -178,7 +220,7 @@ enum ValueType {
   MatrixType,
   StringType
 };
-void checkType(octave_value val, ValueType expectedType) {
+void checkType(const octave_value& val, ValueType expectedType) {
   ValueType type;
   // get type of val
   if(val.is_scalar_type() && val.is_real_type())
@@ -254,7 +296,6 @@ int fillParam(TiXmlElement *e) {
     // evaluate parameter
     for(vector<Param>::iterator i=j; i!=param.end(); i++) {
       disable_stderr();
-      octavePushParams();
       int err=0;
       octave_value ret;
       try { 
@@ -266,11 +307,9 @@ int fillParam(TiXmlElement *e) {
                        i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
       }
       catch(...) { err=1; }
-      octavePopParams();
       enable_stderr();
       if(err==0) { // if no error
         octaveAddParam(i->name, ret); // add param to list
-        symbol_table::varref(i->name)=ret; // set param in octave
         vector<Param>::iterator isave=i-1; // delete param from vector
         bool restorej=j==i;
         param.erase(i);
@@ -281,7 +320,6 @@ int fillParam(TiXmlElement *e) {
   if(param.size()>0) { // if parameters are left => error
     cout<<"Error in one of the following parameters or infinit loop in this parameters:\n";
     for(size_t i=0; i<param.size(); i++) {
-      octavePushParams();
       try {
         octaveEvalRet(param[i].equ, param[i].ele); // output octave error
         octave_value ret=symbol_table::varval("ret");
@@ -291,7 +329,6 @@ int fillParam(TiXmlElement *e) {
                        param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
       }
       catch(string str) { cout<<str<<endl; }
-      octavePopParams();
       TiXml_location(param[i].ele, "", ": "+param[i].name+": "+param[i].equ); // output location of element
     }
     return 1;
@@ -333,10 +370,10 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
       // evaluate count using parameters
       int count=1;
       if(e->Attribute("count")) {
-        octavePushParams();
         octaveEvalRet(e->Attribute("count"), e);
-        count=atoi(octaveGetRet(ScalarType).c_str());
-        octavePopParams();
+        octave_value v=symbol_table::varval("ret");
+        checkType(v, ScalarType);
+        count=round(v.double_value());
       }
   
       // couter name
@@ -344,17 +381,18 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
       if(e->Attribute("counterName"))
         counterName=e->Attribute("counterName");
   
+      TiXmlDocument *enewdoc=NULL;
       TiXmlElement *enew;
       // validate/load if file is given
       if(file!="") {
-        if(validate(nslocation, file.c_str())!=0) {
+        if(validate(nslocation, file)!=0) {
           TiXml_location(e, "  included by: ", "");
           return 1;
         }
         cout<<"Read "<<file<<endl;
-        TiXmlDocument *doc=new TiXmlDocument;
-        doc->LoadFile(file.c_str()); TiXml_PostLoadFile(doc);
-        enew=doc->FirstChildElement();
+        TiXmlDocument *enewdoc=new TiXmlDocument;
+        enewdoc->LoadFile(file.c_str()); TiXml_PostLoadFile(enewdoc);
+        enew=enewdoc->FirstChildElement();
         incorporateNamespace(enew, nsprefix);
         // convert embeded file to octave notation
         cout<<"Process xml[Matrix|Vector] elements in "<<file<<endl;
@@ -391,7 +429,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
         else { // parameter from href attribute
           string paramFile=e->FirstChildElement()->Attribute("href");
           // validate local parameter file
-          if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile.c_str())!=0) {
+          if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile)!=0) {
             TiXml_location(e->FirstChildElement(), "  included by: ", "");
             return 1;
           }
@@ -414,13 +452,10 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
         
         octave_value o((double)i);
         octaveAddParam(counterName, o);
-        symbol_table::varref(counterName)=o;
-        octavePushParams();
-        octavePushParams();
         octaveEvalRet(onlyif, e);
-        string onlyifStr=octaveGetRet(ScalarType);
-        octavePopParams();
-        if(onlyifStr=="1") {
+        octave_value v=symbol_table::varval("ret");
+        checkType(v, ScalarType);
+        if(round(v.double_value())==1) {
           cout<<"Embed "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
           else e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
@@ -435,8 +470,11 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
         }
         else
           cout<<"Skip embeding "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
-        octavePopParams();
       }
+      if(enewdoc)
+        delete enewdoc;
+      else
+        delete enew;
       octavePopParams();
       return 0;
     }
@@ -445,21 +483,27 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
       // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
       // schema aware processor is needed!
       if(e->GetText()) {
-        octavePushParams();
+        // eval text node
         octaveEvalRet(e->GetText(), e);
-        if(e->Attribute("unit") || e->Attribute("convertUnit"))
-          symbol_table::varref("value")=symbol_table::varref("ret");
-        if(e->Attribute("unit")) {
-          octaveEvalRet(units[e->Attribute("unit")]);
-          e->RemoveAttribute("unit");
+        // convert unit
+        if(e->Attribute("unit") || e->Attribute("convertUnit")) {
+          map<string, octave_value> savedCurrentParam;
+          savedCurrentParam=currentParam; // save parameters
+          currentParam.clear(); // clear parameters
+          octaveAddParam("value", symbol_table::varval("ret")); // add 'value=ret', since unit-conversion used 'value'
+          if(e->Attribute("unit")) { // convert with predefined unit
+            octaveEvalRet(units[e->Attribute("unit")]);
+            e->RemoveAttribute("unit");
+          }
+          if(e->Attribute("convertUnit")) { // convert with user defined unit
+            octaveEvalRet(e->Attribute("convertUnit"));
+            e->RemoveAttribute("convertUnit");
+          }
+          currentParam=savedCurrentParam; // restore parameter
         }
-        if(e->Attribute("convertUnit")) {
-          octaveEvalRet(e->Attribute("convertUnit"));
-          e->RemoveAttribute("convertUnit");
-        }
+        // wrtie eval to xml
         e->FirstChild()->SetValue(octaveGetRet());
         e->FirstChild()->ToText()->SetCDATA(false);
-        octavePopParams();
       }
     
       // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
@@ -471,10 +515,8 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
           int i;
           while((i=s.find('{'))>=0) {
             int j=s.find('}');
-            octavePushParams();
             octaveEvalRet(s.substr(i+1,j-i-1), e);
-            s=s.substr(0,i)+octaveGetRet()+s.substr(j+1);
-            octavePopParams();
+            s=s.substr(0,i)+octaveGetRet(ScalarType)+s.substr(j+1);
           }
           a->SetValue(s);
         }
@@ -494,7 +536,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
   return 0;
 }
 
-string extractFileName(string dirfilename) {
+string extractFileName(const string& dirfilename) {
   int i1=(int)dirfilename.find_last_of('/');
   int i2=(int)dirfilename.find_last_of('\\');
   i1=(i1==(int)string::npos?-1:(int)i1);
@@ -551,6 +593,7 @@ int main(int argc, char *argv[]) {
     // initialize the parameter stack
     symbol_table::clear_variables();
     currentParam.clear();
+    currentParamHash.clear();
 
     char *paramxml=argv[3*nr+1];
     char *mainxml=argv[3*nr+2];
@@ -561,7 +604,8 @@ int main(int argc, char *argv[]) {
       if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramxml)!=0) return 1;
 
     // read parameter file
-    TiXmlElement *paramxmlroot=0;
+    TiXmlDocument *paramxmldoc=NULL;
+    TiXmlElement *paramxmlroot=NULL;
     if(string(paramxml)!="none") {
       cout<<"Read "<<paramxml<<endl;
       TiXmlDocument *paramxmldoc=new TiXmlDocument;
@@ -582,6 +626,7 @@ int main(int argc, char *argv[]) {
       cout<<"Generate octave parameter string from "<<paramxml<<endl;
       if(fillParam(paramxmlroot)!=0) return 1;
     }
+    if(paramxmldoc) delete paramxmldoc;
 
     // THIS IS A WORKAROUND! See before.
     // get units
@@ -598,6 +643,7 @@ int main(int argc, char *argv[]) {
         }
         units[el2->Attribute("name")]=el2->GetText();
       }
+    delete mmdoc;
 
     // validate main file
     if(validate(nslocation, mainxml)!=0) return 1;
@@ -622,9 +668,10 @@ int main(int argc, char *argv[]) {
     TiXml_addLineNrAsProcessingInstruction(mainxmlroot);
     unIncorporateNamespace(mainxmlroot, nsprefix);
     mainxmldoc->SaveFile(".pp."+string(extractFileName(mainxml)));
+    delete mainxmldoc;
 
     // validate preprocessed file
-    if(validate(nslocation, (".pp."+string(extractFileName(mainxml))).c_str())!=0) return 1;
+    if(validate(nslocation, ".pp."+string(extractFileName(mainxml)))!=0) return 1;
   }
 
   return 0;
