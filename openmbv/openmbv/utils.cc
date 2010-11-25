@@ -25,7 +25,12 @@
 #include <Inventor/actions/SoCallbackAction.h>
 #include <sstream>
 #include <iostream>
-#include <unordered_map>
+#ifdef HAVE_UNORDERED_MAP
+#  include <unordered_map>
+#else
+#  include <map>
+#  define unordered_map map
+#endif
 #include "SoSpecial.h"
 
 using namespace std;

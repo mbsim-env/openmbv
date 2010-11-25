@@ -14,11 +14,14 @@ AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([pow])
 AC_CHECK_FUNCS([sqrt])
+AC_CHECK_FUNCS([setlocale])
 AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([locale.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
+AC_TYPE_INT32_T
 
 dnl check host
 AC_CANONICAL_HOST
@@ -29,7 +32,7 @@ fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 LDFLAGS="-Wl,--no-undefined $LDFLAGS"
-CXXFLAGS="-std=c++0x"
+AC_CHECK_HEADERS([unordered_map])
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
