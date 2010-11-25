@@ -4,8 +4,18 @@
 #include <fstream>
 #include <unistd.h>
 #include <stdlib.h>
-#include <unordered_map>
-#include <unordered_set>
+#ifdef HAVE_UNORDERED_MAP
+#  include <unordered_map>
+#else
+#  include <map>
+#  define unordered_map map
+#endif
+#ifdef HAVE_UNORDERED_SET
+#  include <unordered_set>
+#else
+#  include <set>
+#  define unordered_set set
+#endif
 #include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
 #include <octave/oct.h>
