@@ -9,6 +9,18 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_LANG([C++])
 
+dnl By autoscan
+AC_CHECK_FUNCS([dup2])
+AC_CHECK_FUNCS([getcwd])
+AC_CHECK_FUNCS([memmove])
+AC_CHECK_FUNCS([strchr]) 
+AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_TYPES([ptrdiff_t])
+AC_C_INLINE
+AC_FUNC_MALLOC
+AC_HEADER_STDBOOL
+AC_TYPE_SIZE_T
+
 dnl Check for MinGW
 AC_CANONICAL_HOST
 if test "_$host_os" = "_mingw32" ; then
@@ -19,7 +31,7 @@ if test "_$host_os" = "_mingw32" ; then
 fi
 
 LDFLAGS="-Wl,--no-undefined"
-CXXFLAGS="-std=c++0x"
+AC_CHECK_HEADERS([unordered_map unordered_set])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
