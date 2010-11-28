@@ -328,9 +328,19 @@
     <xs:complexContent>
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
+          <xs:element name="type" minOccurs="0">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;tube&quot;"/>
+                <xs:enumeration value="&quot;scaledTube&quot;"/>
+                <xs:enumeration value="&quot;polyline&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
           <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
           <xs:element name="springRadius" type="pv:lengthScalar"/>
-          <xs:element name="crossSectionRadius" type="pv:lengthScalar"/>
+          <xs:element name="crossSectionRadius" type="pv:lengthScalar" minOccurs="0"/>
+          <xs:element name="nominalLength" type="pv:lengthScalar" minOccurs="0"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
         </xs:sequence> 
       </xs:extension>

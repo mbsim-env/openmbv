@@ -79,6 +79,7 @@ class MainWindow : public QMainWindow {
     SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
     SoShadowGroup *sceneRoot;
+    SoComplexity *complexity;
     QTimer *animTimer;
     QTime *time;
     QDoubleSpinBox *speedSB;
@@ -185,6 +186,8 @@ class MainWindow : public QMainWindow {
     void expandToDepth9() { objectList->expandToDepth(7); }
     void toggleEngDrawingViewSlot();
     void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
+    void complexityType();
+    void complexityValue();
   public:
     MainWindow(std::list<std::string>& arg);
     void updateScene() { glViewer->getSceneManager()->render(); }

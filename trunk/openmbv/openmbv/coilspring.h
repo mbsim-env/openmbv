@@ -58,6 +58,9 @@ class CoilSpring : public DynamicColoredBody {
     /** extrusion body */
     SoVRMLExtrusion *extrusion;
 
+    SoScale *scale;
+    SoSwitch *soSwitch;
+
     /** translation of helix */
     SoTranslation* fromPoint;
 
@@ -74,7 +77,7 @@ class CoilSpring : public DynamicColoredBody {
     int numberOfCoils;
 
     /** number of spine points */
-    static const int numberOfSpinePoints = 120;
+    static const int numberOfSpinePointsPerCoil = 120;
 
     /** cross section resolution */
     static const int iCircSegments = 20;
@@ -82,10 +85,20 @@ class CoilSpring : public DynamicColoredBody {
     /** scale factor */
     double scaleValue;
 
+    double nominalLength, N;
+
     /** update method invoked at each time step */
     virtual double update();
 
     OpenMBV::CoilSpring *coilSpring;
+
+    QMenu* createMenu();
+
+    QActionGroup *typeAct;
+    QAction *typeTube, *typeScaledTube, *typePolyline;
+
+  protected slots:
+    void typeSlot(QAction *action);
 };
 
 #endif /* _COILSPRING_H_ */
