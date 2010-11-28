@@ -26,9 +26,11 @@ using namespace OpenMBV;
 
 CoilSpring::CoilSpring() : DynamicColoredBody(),
   springRadius(1),
-  crossSectionRadius(0.1),
+  crossSectionRadius(-1),
   scaleFactor(1),
-  numberOfCoils(3) {
+  numberOfCoils(3),
+  nominalLength(-1),
+  type(tube) {
 }
 
 CoilSpring::~CoilSpring() {
@@ -37,9 +39,17 @@ CoilSpring::~CoilSpring() {
 
 TiXmlElement *CoilSpring::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  string typeStr;
+  switch(type) {
+    case tube: typeStr="tube"; break;
+    case scaledTube: typeStr="scaledTube"; break;
+    case polyline: typeStr="polyline"; break;
+  }
+  addElementText(e, "type", "\""+typeStr+"\"");
   addElementText(e, "numberOfCoils", numberOfCoils);
   addElementText(e, "springRadius", springRadius);
   addElementText(e, "crossSectionRadius", crossSectionRadius);
+  addElementText(e, "nominalLength", nominalLength);
   addElementText(e, "scaleFactor", scaleFactor);
   return 0;
 }
@@ -72,12 +82,21 @@ void CoilSpring::openHDF5File() {
 void CoilSpring::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   TiXmlElement *e;
+  e=element->FirstChildElement(OPENMBVNS"type");
+  if(e) {
+    string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+    if(typeStr=="tube") setType(tube);
+    if(typeStr=="scaledTube") setType(scaledTube);
+    if(typeStr=="polyline") setType(polyline);
+  }
   e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
   setNumberOfCoils(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"springRadius");
   setSpringRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
   setCrossSectionRadius(getDouble(e));
+  e=element->FirstChildElement(OPENMBVNS"nominalLength");
+  if(e) setNominalLength(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
 }

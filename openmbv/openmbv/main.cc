@@ -64,33 +64,37 @@ int main(int argc, char *argv[])
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
         <<"               [--wst <file>] [--camera <file>] [--fullscreen] [--shadows]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
-        <<"               [--headlight <file>] [--olselinewidth] [--olsecolor #XXXXXX]"<<endl
+        <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
+        <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
+        <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
         <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
-        <<"-h|--help        Shows this help"<<endl
-        <<"--play           Start animation after loading"<<endl
-        <<"--speed          Set the animation speed"<<endl
-        <<"--lastframe      View last frame after loading"<<endl
-        <<"--topbgcolor     The color on the top of the background (red, green, blue value"<<endl
-        <<"                 in hex)"<<endl
-        <<"--bottombgcolor  The color on the bottom (see also --topbgcolor)"<<endl
-        <<"--closeall       Start with all widgets closed except scene widget"<<endl
-        <<"--nodecoration   Disable the window decoration (Titel/Border/...)"<<endl
-        <<"--geometry       Set the main(window) geometry"<<endl
-        <<"--wst            Load the given (main)window state file"<<endl
-        <<"--camera         Load the given camera file (*.iv)"<<endl
-        <<"                 (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
-        <<"--headlight      Load the given head light file (*.iv)"<<endl
-        <<"                 (Must be of type DirectionalLight)"<<endl
-        <<"--fullscreen     Start in full screen mode"<<endl
-        <<"--shadows        Enable shadows"<<endl
-        <<"--olselinewidth  Line width of outlines and shilouette edges"<<endl
-        <<"--olsecolor      Color of outlines and shilouette edges"<<endl
-        <<"<dir>            Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
-        <<"                 in <dir>. Only fully preprocessed xml files are allowd."<<endl
-        <<"<file>           Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;
+        <<"-h|--help          Shows this help"<<endl
+        <<"--play             Start animation after loading"<<endl
+        <<"--speed            Set the animation speed"<<endl
+        <<"--lastframe        View last frame after loading"<<endl
+        <<"--topbgcolor       The color on the top of the background (red, green, blue value"<<endl
+        <<"                   in hex)"<<endl
+        <<"--bottombgcolor    The color on the bottom (see also --topbgcolor)"<<endl
+        <<"--closeall         Start with all widgets closed except scene widget"<<endl
+        <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
+        <<"--geometry         Set the main(window) geometry"<<endl
+        <<"--wst              Load the given (main)window state file"<<endl
+        <<"--camera           Load the given camera file (*.iv)"<<endl
+        <<"                   (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
+        <<"--headlight        Load the given head light file (*.iv)"<<endl
+        <<"                   (Must be of type DirectionalLight)"<<endl
+        <<"--fullscreen       Start in full screen mode"<<endl
+        <<"--shadows          Enable shadows"<<endl
+        <<"--olselinewidth    Line width of outlines and shilouette edges"<<endl
+        <<"--olsecolor        Color of outlines and shilouette edges"<<endl
+        <<"--complexitytype   The complexity type (see inventor SoComplexity.type)"<<endl
+        <<"--complexityvalue  The complexity value [0..100] (see inventor SoComplexity.value)"<<endl
+        <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
+        <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
+        <<"<file>             Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }

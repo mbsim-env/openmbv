@@ -51,6 +51,7 @@
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/actions/SoWriteAction.h>
+#include <Inventor/nodes/SoComplexity.h>
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -123,6 +124,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   sceneRoot->addChild(offset);
   offset->factor.setValue(2.0);
   offset->units.setValue(0);
+  complexity=new SoComplexity;
+  sceneRoot->addChild(complexity);
 
   // Switch for global shilouette/crease/boundary override elements
   engDrawing=new SoSwitch;
@@ -334,6 +337,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   act->setCheckable(true);
   sceneViewMenu->addAction(Utils::QIconCached(":/olselinewidth.svg"),"Outline and Shilouette Edge Line Width...", this, SLOT(olseLineWidthSlot()));
   sceneViewMenu->addAction(Utils::QIconCached(":/olsecolor.svg"),"Outline and Shilouette Edge Color...", this, SLOT(olseColorSlot()));
+  sceneViewMenu->addAction(Utils::QIconCached(":/complexitytype.svg"),"Complexity Type...", this, SLOT(complexityType()));
+  sceneViewMenu->addAction(Utils::QIconCached(":/complexityvalue.svg"),"Complexity Value...", this, SLOT(complexityValue()));
   sceneViewMenu->addSeparator();
   QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached(":/camera.svg"),"Toggle Camera Type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
@@ -513,6 +518,22 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if((i=std::find(arg.begin(), arg.end(), "--olselinewidth"))!=arg.end()) {
     i2=i; i2++;
     olseDrawStyle->lineWidth.setValue(QString(i2->c_str()).toDouble());
+    arg.erase(i); arg.erase(i2);
+  }
+
+  // complexity
+  complexity->type.setValue(SoComplexity::SCREEN_SPACE);
+  if((i=std::find(arg.begin(), arg.end(), "--complexitytype"))!=arg.end()) {
+    i2=i; i2++;
+    if(*i2=="objectspace") complexity->type.setValue(SoComplexity::OBJECT_SPACE);
+    if(*i2=="screenspace") complexity->type.setValue(SoComplexity::SCREEN_SPACE);
+    if(*i2=="boundingbox") complexity->type.setValue(SoComplexity::BOUNDING_BOX);
+    arg.erase(i); arg.erase(i2);
+  }
+  complexity->value.setValue(0.2);
+  if((i=std::find(arg.begin(), arg.end(), "--complexityvalue"))!=arg.end()) {
+    i2=i; i2++;
+    complexity->value.setValue(QString(i2->c_str()).toDouble()/100);
     arg.erase(i); arg.erase(i2);
   }
 
@@ -1658,4 +1679,21 @@ void MainWindow::toggleEngDrawingViewSlot() {
     topBGColorAct->setEnabled(true);
     bottomBGColorAct->setEnabled(true);
   }
+}
+
+void MainWindow::complexityType() {
+  QStringList typeItems;
+  typeItems<<"Object Space"<<"Screen Space"<<"Bounding Box";
+  int current;
+  if(complexity->type.getValue()==SoComplexity::OBJECT_SPACE) current=0;
+  if(complexity->type.getValue()==SoComplexity::SCREEN_SPACE) current=1;
+  if(complexity->type.getValue()==SoComplexity::BOUNDING_BOX) current=2;
+  QString typeStr=QInputDialog::getItem(this, "Complexity...", "Type: ", typeItems, current, false);
+  if(typeStr=="Object Space") complexity->type.setValue(SoComplexity::OBJECT_SPACE);
+  if(typeStr=="Screen Space") complexity->type.setValue(SoComplexity::SCREEN_SPACE);
+  if(typeStr=="Bounding Box") complexity->type.setValue(SoComplexity::BOUNDING_BOX);
+}
+
+void MainWindow::complexityValue() {
+  complexity->value.setValue(QInputDialog::getDouble(this, "Complexity...", "Value: ", complexity->value.getValue()*100, 0, 100, 1)/100);
 }
