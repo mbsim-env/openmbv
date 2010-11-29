@@ -62,6 +62,8 @@
     <file>olselinewidth.svg</file>
     <file>olsecolor.svg</file>
     <file>guihelp.xhtml</file>
+    <file>complexitytype.svg</file>
+    <file>complexityvalue.svg</file>
     <file alias="http___openmbv_berlios_de_OpenMBV/index.xhtml">../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml</file>
     PNGFILESTOINCLUDE
   </qresource>
