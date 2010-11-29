@@ -78,7 +78,7 @@ int validate(const string &schema, const string &file) {
   if(xmlXIncludeProcess(doc)<0) return 1;
 
   // cache compiled schema
-  xmlSchemaValidCtxtPtr compiledSchema;
+  xmlSchemaValidCtxtPtr compiledSchema=NULL;
   static unordered_map<string, xmlSchemaValidCtxtPtr> compiledSchemaCache;
   pair<unordered_map<string, xmlSchemaValidCtxtPtr>::iterator, bool> ins=compiledSchemaCache.insert(pair<string, xmlSchemaValidCtxtPtr>(schema, compiledSchema));
   if(ins.second)
@@ -383,7 +383,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
         octaveEvalRet(e->Attribute("count"), e);
         octave_value v=symbol_table::varval("ret");
         checkType(v, ScalarType);
-        count=round(v.double_value());
+        count=int(round(v.double_value()));
       }
   
       // couter name
