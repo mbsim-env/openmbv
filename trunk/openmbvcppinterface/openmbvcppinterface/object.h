@@ -130,12 +130,14 @@ namespace OpenMBV {
 
       template <class T>
       void addElementText(TiXmlElement *parent, std::string name, T value, double def) {
-        if(!(value==def || (isnan(def) && isnan(value)))) addElementText(parent, name, value);
+        if(!(value==def || (isnan(def) && isnan(value))))
+          addElementText(parent, name, value);
       }
 
       template <class T>
       void addElementText(TiXmlElement *parent, std::string name, SimpleParameter<T> value, double def) {
-        if(!(get(value)==def || (isnan(def) && isnan(get(value))))) addElementText(parent, name, value);
+        if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
+          addElementText(parent, name, value);
       }
 
       template <class T>

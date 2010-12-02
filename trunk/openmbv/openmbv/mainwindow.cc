@@ -208,6 +208,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
+  connect(objectList,SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(collapseItem(QTreeWidgetItem*)));
+  connect(objectList,SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(expandItem(QTreeWidgetItem*)));
   connect(new QShortcut(QKeySequence("1"),this), SIGNAL(activated()), this, SLOT(expandToDepth1()));
   connect(new QShortcut(QKeySequence("2"),this), SIGNAL(activated()), this, SLOT(expandToDepth2()));
   connect(new QShortcut(QKeySequence("3"),this), SIGNAL(activated()), this, SLOT(expandToDepth3()));
@@ -1696,4 +1698,14 @@ void MainWindow::complexityType() {
 
 void MainWindow::complexityValue() {
   complexity->value.setValue(QInputDialog::getDouble(this, "Complexity...", "Value: ", complexity->value.getValue()*100, 0, 100, 1)/100);
+}
+
+void MainWindow::collapseItem(QTreeWidgetItem* item) {
+  Group *grp=(Group*)item;
+  grp->setExpanded(false);
+}
+
+void MainWindow::expandItem(QTreeWidgetItem* item) {
+  Group *grp=(Group*)item;
+  grp->setExpanded(true);
 }

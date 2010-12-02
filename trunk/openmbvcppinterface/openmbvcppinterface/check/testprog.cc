@@ -83,6 +83,8 @@ int main() {
     Sphere sphere;
     sphere.setName("mysphere");
     g.addObject(&sphere);
+    sphere.setMaximalColorValue(ScalarParameter("maxcolor",8));
+    sphere.setMinimalColorValue(ScalarParameter("mincolor",5));
     
     Extrusion extrusion;
     extrusion.setName("myextrusion");
