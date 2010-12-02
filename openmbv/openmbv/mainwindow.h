@@ -172,6 +172,8 @@ class MainWindow : public QMainWindow {
     void toggleDecorationSlot();
     void filterObjectList();
     void searchObjectList(Object *item, const QRegExp&);
+    void collapseItem(QTreeWidgetItem* item);
+    void expandItem(QTreeWidgetItem* item);
     void expandToDepth1() { 
       for(int i=0; i<objectList->invisibleRootItem()->childCount(); i++)
         objectList->invisibleRootItem()->child(i)->setExpanded(false); 

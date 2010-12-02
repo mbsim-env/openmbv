@@ -127,12 +127,12 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
       case OpenMBV::Body::points: drawMethodPoint->setChecked(true); break;
     }
     connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
-  }
 
-  // register callback function for shilouette edges
-  shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-  shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-  emit shilouetteEdgeSlot();
+    // register callback function for shilouette edges
+    shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+    shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+    emit shilouetteEdgeSlot();
+  }
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
