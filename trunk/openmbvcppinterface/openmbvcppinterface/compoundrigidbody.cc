@@ -49,6 +49,7 @@ void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
 }
 
 void CompoundRigidBody::collectParameter(map<string, double>& sp, map<string, vector<double> >& vp, map<string, vector<vector<double> > >& mp, bool collectAlsoSeparateGroup) {
+  Object::collectParameter(sp, vp, mp);
   for(size_t i=0; i<rigidBody.size(); i++)
     rigidBody[i]->collectParameter(sp, vp, mp);
 }
