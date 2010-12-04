@@ -44,8 +44,10 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   fileName=OpenMBV::Object::fixPath(ivb->getSeparateGroup()->getFileName(), fileName);
 
   // create so
+  SoSeparator *sep=new SoSeparator; // to enable caching
+  soSepRigidBody->addChild(sep);
   SoGroup *soIv=Utils::SoDBreadAllCached(fileName.c_str());
-  soSepRigidBody->addChild(soIv);
+  sep->addChild(soIv);
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {

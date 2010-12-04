@@ -132,6 +132,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   else { // a dummmy localFrameScale
     localFrameScale=new SoScale;
     localFrameScale->ref();
+    mat=static_cast<CompoundRigidBody*>(parentItem)->mat;
   }
 
   // initial scale
