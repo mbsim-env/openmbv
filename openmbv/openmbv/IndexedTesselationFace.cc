@@ -33,6 +33,27 @@ IndexedTesselationFace::IndexedTesselationFace(int numChilderen) : SoGroup(numCh
 IndexedTesselationFace::~IndexedTesselationFace() {
 }
 
+void IndexedTesselationFace::write(SoWriteAction *action) {
+  // the internal added children must not be write out
+
+  // save all internal children
+  int nr=getNumChildren();
+  SoNode **child=new SoNode*[nr];
+  for(int i=0; i<nr; i++) {
+    child[i]=getChild(i);
+    child[i]->ref();
+  }
+  // remove all internal children and write out without any internal children
+  removeAllChildren();
+  SoGroup::write(action);
+  // restore all internal children
+  for(int i=0; i<nr; i++) {
+    addChild(child[i]);
+    child[i]->unref();
+  }
+  delete[]child;
+}
+
 SbBool IndexedTesselationFace::readChildren(SoInput *in) {
   // if attributes are read, generate the children using gluTess
 

@@ -39,7 +39,8 @@ class SoQtMyViewer : public SoQtExaminerViewer {
     // for text in viewport
 
     SoSeparator *fgSep, *bgSep;
-    SoTranslation *timeTrans, *ombvTrans;
+    SoTranslation *timeTrans, *ombvTrans, *ombvLogoTrans;
+    SoScale *ombvLogoScale;
 
     friend class MainWindow;
 };

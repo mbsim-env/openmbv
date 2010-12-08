@@ -1183,7 +1183,7 @@ void MainWindow::fpsCB() {
   static float fpsOut=0;
   fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
   if(fpsMax>1e-15 && fpsOut>0.9*fpsMax)
-    fps->setText(QString("FPS: >25(max)"));
+    fps->setText(QString("FPS: >%1(max)").arg(fpsMax, 0, 'f', 1));
   else
     fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
 
@@ -1208,8 +1208,8 @@ void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     int dframe=(int)(dT/deltaTime);// frame increment since play click
-    int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
-    frame->setValue(frame_); // set frame => update scene
+    unsigned int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
+    if(frame->getValue()!=frame_) frame->setValue(frame_); // set frame => update scene
     //glViewer->render(); // force rendering
   }
 }
