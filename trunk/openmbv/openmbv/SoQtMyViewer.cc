@@ -27,7 +27,10 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <QApplication>
+#include <QIcon>
 #include "mainwindow.h"
 
 SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
@@ -63,12 +66,14 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   // foreground
   fgSep=new SoSeparator;
   fgSep->ref();
+  // time (top left)
   timeTrans=new SoTranslation;
   fgSep->addChild(timeTrans);
   SoBaseColor *soFgColorTop=new SoBaseColor;
   fgSep->addChild(soFgColorTop);
   soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
   fgSep->addChild(MainWindow::getInstance()->getTimeString());
+  // ombvText (bottom left)
   ombvTrans=new SoTranslation;
   fgSep->addChild(ombvTrans);
   SoText2 *text2=new SoText2;
@@ -77,6 +82,38 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
   fgSep->addChild(text2);
   text2->string.setValue("OpenMBV [http://openmbv.berlios.de]");
+  // ombvLogo (bottom right)
+  ombvLogoTrans=new SoTranslation;
+  fgSep->addChild(ombvLogoTrans);
+  ombvLogoScale=new SoScale;
+  fgSep->addChild(ombvLogoScale);
+  SoMaterial *cc=new SoMaterial;
+  fgSep->addChild(cc);
+  cc->emissiveColor.setValue(1,1,1);
+  cc->transparency.setValue(0.6);
+  SoTexture2 *ombvLogoTex=new SoTexture2;
+  fgSep->addChild(ombvLogoTex);
+  QIcon icon(":/openmbv.svg");
+  QImage image=icon.pixmap(100,100).toImage();
+  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
+  ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
+  ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
+  SoCoordinate3 *ombvCoords=new SoCoordinate3;
+  fgSep->addChild(ombvCoords);
+  double size=0.15; // the logo filles maximal "size" of the screen
+  ombvCoords->point.set1Value(0, 0, 0, 0);
+  ombvCoords->point.set1Value(1, 0, size, 0);
+  ombvCoords->point.set1Value(2, -size, size, 0);
+  ombvCoords->point.set1Value(3, -size, 0, 0);
+  SoTextureCoordinate2 *tc=new SoTextureCoordinate2;
+  fgSep->addChild(tc);
+  tc->point.set1Value(0, 1, 1);
+  tc->point.set1Value(1, 1, 0);
+  tc->point.set1Value(2, 0, 0);
+  tc->point.set1Value(3, 0, 1);
+  SoFaceSet *ombvLogo=new SoFaceSet;
+  fgSep->addChild(ombvLogo);
+  ombvLogo->numVertices.set1Value(0, 4);
 }
 
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
@@ -111,6 +148,8 @@ void SoQtMyViewer::actualRedraw(void) {
   getViewportRegion().getWindowSize().getValue(x, y);
   timeTrans->translation.setValue(-1+2.0/x*3,1-2.0/y*15,0);
   ombvTrans->translation.setValue(0,-1+2.0/y*15 -1+2.0/y*3,0);
+  ombvLogoTrans->translation.setValue(+1-2.0/x*3 +1-2.0/x*3, 0,0);
+  ombvLogoScale->scaleFactor.setValue(x>y?(float)y/x:1,y>x?(float)x/y:1,1);
   getGLRenderAction()->apply(fgSep);
 
   // update fps
