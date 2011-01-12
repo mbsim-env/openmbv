@@ -1686,7 +1686,7 @@ void MainWindow::toggleEngDrawingViewSlot() {
 void MainWindow::complexityType() {
   QStringList typeItems;
   typeItems<<"Object Space"<<"Screen Space"<<"Bounding Box";
-  int current;
+  int current=0;
   if(complexity->type.getValue()==SoComplexity::OBJECT_SPACE) current=0;
   if(complexity->type.getValue()==SoComplexity::SCREEN_SPACE) current=1;
   if(complexity->type.getValue()==SoComplexity::BOUNDING_BOX) current=2;

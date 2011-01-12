@@ -84,7 +84,7 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   polylineSep->addChild(polylineCoord);
   SoLineSet *polyline=new SoLineSet;
   polylineSep->addChild(polyline);
-  polyline->numVertices.setValue(numberOfSpinePointsPerCoil*N);
+  polyline->numVertices.setValue(int(numberOfSpinePointsPerCoil*N));
 
   // type
   OpenMBV::CoilSpring::Type type=coilSpring->getType();
@@ -114,9 +114,9 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
     spine[3*i+2] = 0;
     scaledSpine[3*i+2] = i*nominalLength/numberOfSpinePointsPerCoil/N;
   }
-  extrusion->spine.setValuesPointer(numberOfSpinePointsPerCoil*N+1,spine);
-  scaledExtrusion->spine.setValuesPointer(numberOfSpinePointsPerCoil*N+1,scaledSpine);
-  polylineCoord->point.setValuesPointer(numberOfSpinePointsPerCoil*N+1,scaledSpine);
+  extrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),spine);
+  scaledExtrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
+  polylineCoord->point.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
   extrusion->spine.setDefault(FALSE);
   scaledExtrusion->spine.setDefault(FALSE);
 
