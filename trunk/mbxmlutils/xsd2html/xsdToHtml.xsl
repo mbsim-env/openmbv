@@ -11,6 +11,8 @@
 
   <xsl:param name="PROJECT"/>
   <xsl:param name="INCLUDEDOXYGEN"/>
+  <xsl:param name="DATETIME"/>
+  <xsl:param name="MBXMLUTILSVERSION"/>
 
 
 
@@ -59,6 +61,8 @@
         *.elementsequencecolor { color:red }
         ul.elementchild { list-style-type:none;padding-left:4ex }
         ul.elementsofclass { list-style-type:none;padding:0 }
+
+        p.footer { text-align:right;font-size:0.7em }
 
         span.expandcollapsecontent { cursor:nw-resize;color:blue;font-family:monospace;font-weight:bold;font-size:1.25em }
         div.expandcollapseexample { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic;padding-top:2em }
@@ -242,6 +246,8 @@
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
+    <hr/>
+    <p class="footer">Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/></p>
     </body></html>
   </xsl:template>
 

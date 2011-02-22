@@ -7,6 +7,9 @@
   <!-- If changes in this file are made, then the analog changes must
        be done in the file measurementToTex.xsl -->
 
+  <xsl:param name="DATETIME"/>
+  <xsl:param name="MBXMLUTILSVERSION"/>
+
   <!-- output method -->
   <xsl:output method="xml"
     encoding="UTF-8"
@@ -200,6 +203,8 @@ The attributes <span style="font-family:monospace">count</span> and <span style=
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
+    <hr/>
+    <p style="text-align:right;font-size:0.7em">Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/></p>
     </body></html>
   </xsl:template>
 

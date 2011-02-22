@@ -70,6 +70,8 @@ rm -rf $HTMLDIR
 @XSLTPROC@ --novalid --output $HTMLDIR/index.xhtml \
   --param PROJECT "'$PROJECT'" \
   --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
+  --param DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
+  --param MBXMLUTILSVERSION "'@VERSION@'" \
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
