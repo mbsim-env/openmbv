@@ -22,7 +22,7 @@ dist_xml_DATA = measurement.xml
 # generate measurement documentation
 physicalvariable/physicalvariable.tex: measurement.xml measurementToTex.xsl measurementToHtml.xsl .measurement.xml.isvalid physicalvariable.xsd
 	DIR=$$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$$|\1|p' physicalvariable.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g') || exit 1; \
-	@XSLTPROC@ --output $$DIR/index.xhtml measurementToHtml.xsl measurement.xml || exit 1; \
+	@XSLTPROC@ --output $$DIR/index.xhtml --param DATETIME "'$$(date "+%a %b %d %Y %H:%M:%S")'" --param MBXMLUTILSVERSION "'@VERSION@'" measurementToHtml.xsl measurement.xml || exit 1; \
 	@XMLLINT@ --noout --schema xhtml1-transitional.xsd $$DIR/index.xhtml || (rm $$DIR/index.xhtml; exit 1)
 	@XSLTPROC@ --output physicalvariable/physicalvariable.tex measurementToTex.xsl measurement.xml
 	cd physicalvariable || exit 1; \
