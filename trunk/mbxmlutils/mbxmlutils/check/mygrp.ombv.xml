@@ -4,41 +4,41 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://openmbv.berlios.de/OpenMBV /home/markus/project/MBSim/openmbv/schema/openmbv.xsd"
   xmlns:xi="http://www.w3.org/2001/XInclude">
-  <Cuboid name="mycubeaa" expand="true">
+  <Cuboid name="mycubeaa">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>[1;1;1]</length>
   </Cuboid>
   <xi:include href="mygrp.mysubgrp.ombv.xml"/>
-  <Cuboid name="mycube3" expand="true">
+  <Cuboid name="mycube3">
     <hdf5Link ref="mysubgrp/mycubeX"/>
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>[1;1;1]</length>
   </Cuboid>
-  <Cube name="mycube" expand="true">
+  <Cube name="mycube">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>1</length>
   </Cube>
-  <Frame name="myframe" expand="true">
+  <Frame name="myframe">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <size>1</size>
     <offset>1</offset>
   </Frame>
-  <Arrow name="myarrow" expand="true">
+  <Arrow name="myarrow">
     <diameter>1</diameter>
     <headDiameter>0.5</headDiameter>
     <headLength>0.75</headLength>
-    <type>toHead</type>
+    <type>"toHead"</type>
     <scaleLength>1</scaleLength>
   </Arrow>
-  <Frustum name="mycylinder" expand="true">
+  <Frustum name="mycylinder">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
@@ -48,17 +48,17 @@
     <innerBaseRadius>0</innerBaseRadius>
     <innerTopRadius>0</innerTopRadius>
   </Frustum>
-  <Sphere name="mysphere" expand="true">
+  <Sphere name="mysphere">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <radius>1</radius>
   </Sphere>
-  <Extrusion name="myextrusion" expand="true">
+  <Extrusion name="myextrusion">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
-    <windingRule>odd</windingRule>
+    <windingRule>"odd"</windingRule>
     <height>1</height>
     <contour>
       [ 0.6, 0.2, 0;
@@ -71,7 +71,7 @@
         0.6, 0.2, 0 ]
     </contour>
   </Extrusion>
-  <Rotation name="myrotation" expand="true">
+  <Rotation name="myrotation">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
@@ -81,22 +81,22 @@
         0.6, 0.2, 0 ]
     </contour>
   </Rotation>
-  <InvisibleBody name="myinvisiblebody" expand="true">
+  <InvisibleBody name="myinvisiblebody">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
   </InvisibleBody>
-  <CoilSpring name="mycoilspring" expand="true">
+  <CoilSpring name="mycoilspring">
     <numberOfCoils>0</numberOfCoils>
     <springRadius>1</springRadius>
     <crossSectionRadius>0.1</crossSectionRadius>
     <scaleFactor>1</scaleFactor>
   </CoilSpring>
-  <CompoundRigidBody name="mycrg" expand="true">
+  <CompoundRigidBody name="mycrg">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
-    <Rotation name="myrotation" expand="true">
+    <Rotation name="myrotation">
       <initialTranslation>
         <pv:xmlVector>
           <pv:ele>2.6</pv:ele>
@@ -104,7 +104,7 @@
           <pv:ele>2.4*7</pv:ele>
         </pv:xmlVector>
       </initialTranslation>
-      <initialRotation>ret=load('/home/markus/project/MBSim/testv.dat')</initialRotation>
+      <initialRotation>ret=load('testv.dat')</initialRotation>
       <scaleFactor>1</scaleFactor>
       <contour>
         [ 0.6, 0.2, 0;
