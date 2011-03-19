@@ -5,9 +5,9 @@
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
-    <length>[1;1;1]</length>
+    <length>[1;1;1]*2</length>
   </Cuboid>
-  <Cuboid name="mycubeaa">
+  <Cuboid name="mycubeaa{1+5*3}">
     <hdf5Link ref="mycubeX"/>
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
