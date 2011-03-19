@@ -55,9 +55,16 @@ test $xmllint = "no" && AC_MSG_ERROR([xmllint not found])
 AC_SUBST([XMLLINT],[$xmllint])
 
 dnl Check for octave
+# user supplied path to mkoctfile
 AC_ARG_WITH([mkoctfile-path],
   [  --with-mkoctfile-path=PATHTOMKOCTFILE  The path to the 'mkoctfile' program.],
   [mkoctfilepath="$withval"],[mkoctfilepath=""])
+# user supplied libraries for static linking against octave
+# add static version of octave DLD (*.oct) files here
+AC_ARG_WITH([octave-dld],
+  [  --with-octave-dld=STATICLIBARCHIV  Add STATICLIBARCHIV between -loctinterp and -loctave liker flags. (This is only used if static octave DLD (*.oct) files should be included)],
+  [STATICOCTAVEDLDLIB="$withval"],[STATICOCTAVEDLDLIB=""])
+# get mkoctfile program
 AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$mkoctfilepath:$prefix/bin:$PATH])
 test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
 AC_SUBST([MKOCTFILE],[$mkoctfile])
@@ -66,7 +73,18 @@ AC_PATH_PROG([CXX],[$($MKOCTFILE -p CXX)],[no],[$mkoctfilepath:$mkoctfilepath/..
 test $CXX = "no" && AC_MSG_ERROR([mkoctfile compiler not found])
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($MKOCTFILE -p INCFLAGS) | sed -re 's|\\|/|g')"
-MKOCTFILE_LIBS="$(echo $($MKOCTFILE -p RLD_FLAG) $($MKOCTFILE -p LFLAGS) $($MKOCTFILE -p OCTAVE_LIBS) | sed -re 's|\\|/|g')"
+MKOCTFILE_LIBS="$(echo \
+  $(unset RLD_FLAG; $MKOCTFILE -p RLD_FLAG) \
+  $(unset LFLAGS; $MKOCTFILE -p LFLAGS) \
+  $(unset LIBOCTINTERP; $MKOCTFILE -p LIBOCTINTERP) \
+  $STATICOCTAVEDLDLIB \
+  $(unset LIBOCTAVE; $MKOCTFILE -p LIBOCTAVE) \
+  $(unset LIBCRUFT; $MKOCTFILE -p LIBCRUFT) \
+  $(unset FFTW_LIBS; $MKOCTFILE -p FFTW_LIBS) \
+  $(unset BLAS_LIBS; $MKOCTFILE -p BLAS_LIBS) \
+  $(unset FLIBS; $MKOCTFILE -p FLIBS) \
+  $(unset LIBS; $MKOCTFILE -p LIBS) \
+  | sed -re 's|\\|/|g')"
 AC_SUBST([MKOCTFILE_CFLAGS])
 AC_SUBST([MKOCTFILE_LIBS])
 # try to compile a octave stand alone program
