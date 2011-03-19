@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Group name="mysubgrp" xmlns="http://openmbv.berlios.de/OpenMBV"
+<Group name="mysubgrp" expand="false" xmlns="http://openmbv.berlios.de/OpenMBV"
   xmlns:xi="http://www.w3.org/2001/XInclude">
-  <Cuboid name="mycubeX" expand="true">
+  <Cuboid name="mycubeX">
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>[1;1;1]</length>
   </Cuboid>
-  <Cuboid name="mycubeaa" expand="true">
+  <Cuboid name="mycubeaa">
     <hdf5Link ref="mycubeX"/>
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>[1;1;1]</length>
   </Cuboid>
-  <Cuboid name="mycubeZ" expand="true">
+  <Cuboid name="mycubeZ">
     <hdf5Link ref="mycubeX"/>
     <initialTranslation>[0;0;0]</initialTranslation>
     <initialRotation>[0;0;0]</initialRotation>
