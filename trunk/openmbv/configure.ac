@@ -99,7 +99,7 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([OPENMBVCPPINTERFACEINCDIR],[$(pkg-config mbxmlutils --variable includedir)])
 fi
 
-CPPFLAGS="$CPPFLAGS -Wall -Werror"
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-non-virtual-dtor"
 
 AC_CONFIG_FILES([Makefile openmbv/Makefile doc/Makefile doc/Doxyfile])
 
