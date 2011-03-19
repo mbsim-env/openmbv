@@ -1,4 +1,4 @@
-SUBDIRS = octave
+SUBDIRS = octave check
 
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils
@@ -41,6 +41,12 @@ install-data-local:
 # generate physicalvariable.xsd
 physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
 	@XSLTPROC@ --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
+# link some files required for the "check" target to the "check" directory
+	test -d check/http___openmbv_berlios_de_MBXMLUtils || mkdir check/http___openmbv_berlios_de_MBXMLUtils
+	(cd check/http___openmbv_berlios_de_MBXMLUtils; \
+	ln -fs ../../physicalvariable.xsd .; \
+	ln -fs ../../xml.xsd .; \
+	ln -fs ../../parameter.xsd .)
 
 
 
