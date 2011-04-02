@@ -1499,11 +1499,12 @@ void MainWindow::loadCamera(string filename) {
   SoInput input;
   input.openFile(filename.c_str());
   SoBase *newCamera;
-  if(SoBase::read(&input, newCamera, SoOrthographicCamera::getClassTypeId())) {
+  SoBase::read(&input, newCamera, SoCamera::getClassTypeId());
+  if(newCamera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     glViewer->setCameraType(SoOrthographicCamera::getClassTypeId());
     glViewer->myChangeCameraValues((SoCamera*)newCamera);
   }
-  else if(SoBase::read(&input, newCamera, SoPerspectiveCamera::getClassTypeId())) {
+  else if(newCamera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
     glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
     glViewer->myChangeCameraValues((SoCamera*)newCamera);
   }

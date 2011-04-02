@@ -45,7 +45,6 @@ class Body : public Object {
   private:
     SoDrawStyle *drawStyle;
     static bool existFiles;
-    static Body *timeUpdater; // the body who updates the time string in the scene window
     SoFieldSensor *shilouetteEdgeFrameSensor, *shilouetteEdgeOrientationSensor;
     static void shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor);
     SoCoordinate3 *soShilouetteEdgeCoord;
