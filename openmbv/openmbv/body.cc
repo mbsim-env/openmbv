@@ -42,7 +42,6 @@
 using namespace std;
 
 bool Body::existFiles=false;
-Body *Body::timeUpdater=0;
 
 Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent), shilouetteEdgeFirstCall(true), shilouetteEdgeStruct(NULL) {
   body=(OpenMBV::Body*)obj;
@@ -137,11 +136,14 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
 
 void Body::frameSensorCB(void *data, SoSensor*) {
   Body* me=(Body*)data;
-  double time=0;
+  static double time=0;
+  double newTime=time;
   if(me->drawThisPath) 
-    time=me->update();
-  if(timeUpdater==me)
+    newTime=me->update();
+  if(newTime!=time) { // only on first time change
+    time=newTime;
     MainWindow::getInstance()->setTime(time);
+  }
 }
 
 QMenu* Body::createMenu() {
@@ -218,7 +220,6 @@ void Body::resetAnimRange(int numOfRows, double dt) {
         cout<<str.toStdString()<<endl;
       }
     }
-    timeUpdater=this;
     existFiles=true;
   }
 }
