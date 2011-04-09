@@ -128,17 +128,9 @@ namespace OpenMBV {
         parent->LinkEndChild(new TiXmlElement(name))->LinkEndChild(new TiXmlText(oss.str()));
       }
 
-      template <class T>
-      void addElementText(TiXmlElement *parent, std::string name, T value, double def) {
-        if(!(value==def || (isnan(def) && isnan(value))))
-          addElementText(parent, name, value);
-      }
+      void addElementText(TiXmlElement *parent, std::string name, double value, double def);
 
-      template <class T>
-      void addElementText(TiXmlElement *parent, std::string name, SimpleParameter<T> value, double def) {
-        if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
-          addElementText(parent, name, value);
-      }
+      void addElementText(TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def);
 
       template <class T>
       static void addAttribute(TiXmlNode *node, std::string name, T value) {

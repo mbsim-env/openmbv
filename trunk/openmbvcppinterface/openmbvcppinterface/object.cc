@@ -212,3 +212,13 @@ void Object::collectParameter(map<string, double>& sp, map<string, vector<double
   for(map<string, vector<vector<double> > >::iterator i=matrixParameter.begin(); i!=matrixParameter.end(); i++)
     mp[i->first]=i->second;
 }
+
+void Object::addElementText(TiXmlElement *parent, std::string name, double value, double def) {
+  if(!(value==def || (isnan(def) && isnan(value))))
+    addElementText(parent, name, value);
+}
+
+void Object::addElementText(TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def) {
+  if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
+    addElementText(parent, name, value);
+}

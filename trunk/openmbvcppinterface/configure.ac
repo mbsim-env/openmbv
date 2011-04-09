@@ -12,8 +12,7 @@ AC_LANG([C++])
 dnl force strict standard conformance
 CPPFLAGS="$CPPFLAGS -Wall -Werror -pedantic-errors -Wno-long-long"
 CFLAGS="$CFLAGS -std=iso9899:1990"
-CXXFLAGS="$CXXFLAGS -std=c++98"
-LDFLAGS="-Wl,--no-undefined"
+LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
