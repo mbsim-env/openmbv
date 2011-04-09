@@ -27,10 +27,9 @@ if test "_$host_os" = "_mingw32" ; then
   # MINGW is already in use by octave header
   AC_DEFINE([MBXMLUTILS_MINGW], [1], [Host System is MinGW/MSys])
   CPPFLAGS="$CPPFLAGS -DMBXMLUTILS_MINGW"
-  LIBS="$LIBS -lregex"
 fi
 
-LDFLAGS="-Wl,--no-undefined"
+LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 AC_CHECK_HEADERS([unordered_map unordered_set])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
