@@ -112,6 +112,7 @@ openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/index.x
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>\n    "; \
 	done; \
 	for F in $$(ls -1 @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
+          pwd -W &> /dev/null && F=$$(cd $$(dirname $$F); echo $$(pwd -W)/$$(basename $$F)); \
 	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>\n    "; \
 	done; \
 	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc

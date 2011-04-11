@@ -37,9 +37,9 @@ AC_CHECK_HEADERS([unordered_map])
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc
-test -x "$MOC" || MOC=$(pkg-config --variable moc_location QtCore)
-test -x "$UIC" || UIC=$(pkg-config --variable uic_location QtCore)
-test -x "$RCC" || RCC=${MOC%*/*}/rcc
+test -z $MOC && { MOC=$(pkg-config.exe --variable moc_location QtCore) || MOC=moc; }
+test -z $UIC && { UIC=$(pkg-config.exe --variable uic_location QtCore) || UIC=uic; }
+test -z $RCC && { RCC=$(dirname $(which $MOC))/rcc || RCC=rcc; }
 AC_SUBST([MOC])
 AC_SUBST([UIC])
 AC_SUBST([RCC])
@@ -96,7 +96,14 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([MBXMLUTILSSCHEMADIR],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
   AC_SUBST([MBXMLUTILSBINDIR],[$(pkg-config mbxmlutils --variable BINDIR)])
   AC_SUBST([MBXMLUTILSDOCDIR],[$(pkg-config mbxmlutils --variable DOCDIR)])
-  AC_SUBST([OPENMBVCPPINTERFACEINCDIR],[$(pkg-config mbxmlutils --variable includedir)])
+  OPENMBVCPPINTERFACEINCDIR=$(pkg-config openmbvcppinterface --variable includedir)
+  AC_SUBST([OPENMBVCPPINTERFACEINCDIR])
+  if test "_$WIN32" = "_yes"; then
+    OPENMBVCPPINTERFACEINCDIR_native=$(cd $OPENMBVCPPINTERFACEINCDIR; pwd -W)
+  else
+    OPENMBVCPPINTERFACEINCDIR_native=$OPENMBVCPPINTERFACEINCDIR
+  fi
+  AC_SUBST([OPENMBVCPPINTERFACEINCDIR_native])
 fi
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-non-virtual-dtor"

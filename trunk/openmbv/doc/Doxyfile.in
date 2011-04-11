@@ -1,7 +1,7 @@
-INPUT                  = @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface
+INPUT                  = @OPENMBVCPPINTERFACEINCDIR_native@/openmbvcppinterface
 FILE_PATTERNS          = *.h
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 GENERATE_XML           = YES
 XML_PROGRAMLISTING     = NO
-IMAGE_PATH             = @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface
+IMAGE_PATH             = @OPENMBVCPPINTERFACEINCDIR_native@/openmbvcppinterface
