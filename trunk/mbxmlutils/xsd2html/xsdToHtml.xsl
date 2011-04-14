@@ -117,7 +117,7 @@
       <li>1 <a name="introduction-content" href="#introduction">Introduction</a></li>
       <li>2 <a name="nomenclature-content" href="#nomenclature">Nomenclature</a>
         <ul class="content">
-          <li>2.1 <a name="aelement-content" href="#aelement">A element</a></li>
+          <li>2.1 <a name="aelement-content" href="#aelement">An element</a></li>
           <li>2.2 <a name="achoice-content" href="#achoice">A choice of element</a></li>
           <li>2.3 <a name="asequence-content" href="#asequence">A sequence of elements</a></li>
           <li>2.4 <a name="nested-content" href="#nested">Nested sequences/choices</a></li>
@@ -161,7 +161,7 @@
     <h2>1 <a name="introduction" href="#introduction-content">Introduction:</a></h2>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
     <h2>2 <a name="nomenclature" href="#nomenclature-content">Nomenclature:</a></h2>
-    <h3>2.1 <a name="aelement" href="#aelement-content">A element</a></h3>
+    <h3>2.1 <a name="aelement" href="#aelement-content">An element</a></h3>
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
     <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
