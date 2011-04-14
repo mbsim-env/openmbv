@@ -117,7 +117,7 @@
 \chapter{Nomenclature}
 \label{nomenclature}
 
-\section{A element}
+\section{An element}
 \begin{tabular}{l}
   \lstinline[basicstyle=\bf\ttfamily]|&lt;ElementName&gt;| \textit{[0-2]} (Type: \lstinline[basicstyle=\ttfamily]|elementType|)\\
   \hspace{2ex}\lstinline[basicstyle=\bf\ttfamily]|attrName1| \textit{[required]} (Type: \lstinline[basicstyle=\ttfamily]|typeOfTheAttribute|)\\
