@@ -32,7 +32,6 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/SbBSPTree.h>
-#include <Inventor/lists/SbVec3fList.h>
 #include <GL/glu.h>
 
 /** Utilitiy class */
@@ -43,7 +42,7 @@ class Utils {
     static void triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3);
     struct EI2VINI {
       int vai, vbi; // index of the vertex at the line begin and end
-      std::vector<int> ni; // index of all normal vectors of faces, which join this edge
+      std::vector<SbVec3f> fv; // vector in the face plane ortho to the edge (vb-va)
     };
 
     // tess
@@ -79,9 +78,9 @@ class Utils {
       private:
         SbBSPTree vertex; // a 3D float space paritioning for all vertex
         SbBSPTree edge; // a 2D interger space paritioning for all edges (ABUSES the class SbBSPTree)
-        SbVec3fList normal; // a 1D array for the normals of all faces
         std::vector<EI2VINI> ei2vini; // a 1D array for all edges
     };
+    static SbVec3f v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3);
     /** Use preCalculateEdgesCached(...) instead of preCalculateEdges(...) everywhere
      * to cache the calculte of edges */
     static SoCoordinate3* preCalculateEdgesCached(SoGroup *grp, Edges *&edges);
