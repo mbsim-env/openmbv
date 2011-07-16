@@ -43,13 +43,16 @@ using namespace std;
 
 bool Body::existFiles=false;
 
-Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent), shilouetteEdgeFirstCall(true), shilouetteEdgeStruct(NULL) {
+Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
   body=(OpenMBV::Body*)obj;
+  frameSensor=NULL;
+  shilouetteEdgeFrameSensor=NULL;
+  shilouetteEdgeOrientationSensor=NULL;
   if(obj->getParent()) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
-    SoFieldSensor *sensor=new SoFieldSensor(frameSensorCB, this);
-    sensor->attach(MainWindow::getInstance()->getFrame());
-    sensor->setPriority(0); // is needed for png export
+    frameSensor=new SoFieldSensor(frameSensorCB, this);
+    frameSensor->attach(MainWindow::getInstance()->getFrame());
+    frameSensor->setPriority(0); // is needed for png export
   }
 
   // switch for outline
@@ -132,6 +135,13 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
     shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
     emit shilouetteEdgeSlot();
   }
+}
+
+Body::~Body() {
+  delete edgeCalc;
+  delete frameSensor;
+  delete shilouetteEdgeFrameSensor;
+  delete shilouetteEdgeOrientationSensor;
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
@@ -226,29 +236,37 @@ void Body::resetAnimRange(int numOfRows, double dt) {
 
 void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
   Body *me=(Body*)data;
-  bool frameChanged=false;
-  if(sensor==me->shilouetteEdgeFrameSensor) frameChanged=true;
-  bool orientationChanged=false;
-  if(sensor==me->shilouetteEdgeOrientationSensor) orientationChanged=true;
+  bool preproces=sensor==me->shilouetteEdgeFrameSensor || me->shilouetteEdgeFirstCall==true;
+  bool shilouetteCalc=sensor==me->shilouetteEdgeFrameSensor || sensor==me->shilouetteEdgeOrientationSensor || me->shilouetteEdgeFirstCall==true;
+  me->shilouetteEdgeFirstCall=false;
 
-  if(frameChanged==true || me->shilouetteEdgeFirstCall==true) {
-    delete me->shilouetteEdgeStruct;
-    me->shilouetteEdgeStruct=NULL;
-    SoCoordinate3 *soEdgeCoordOld=me->soShilouetteEdgeCoord;
+  SoCoordinate3 *soEdgeCoordOld=NULL;
+  SoIndexedLineSet *soShilouetteEdgeOld=NULL;
+  SbVec3f n;
+  if(preproces) { // new preprocessing required: do all except preprocessing and coord exchange
+    soEdgeCoordOld=me->soShilouetteEdgeCoord;
     int outLineSaved=me->soOutLineSwitch->whichChild.getValue(); // save outline
     me->soOutLineSwitch->whichChild.setValue(SO_SWITCH_NONE); // disable outline
-    me->soShilouetteEdgeSep->replaceChild(soEdgeCoordOld, me->soShilouetteEdgeCoord=Utils::preCalculateEdges(me->soSep, me->shilouetteEdgeStruct));
+    delete me->edgeCalc;
+    me->edgeCalc=new EdgeCalculation(me->soSep, false); // collect edge data
     me->soOutLineSwitch->whichChild.setValue(outLineSaved); // restore outline
   }
-
-  if(frameChanged==true || orientationChanged==true || me->shilouetteEdgeFirstCall==true) {
+  if(shilouetteCalc) { // new shilouette edge required: to all except shilouette edge calculation and line set exchange
     SbRotation r=MainWindow::getInstance()->glViewer->getCamera()->orientation.getValue(); // camera orientation
     r*=((SoSFRotation*)(MainWindow::getInstance()->cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
-    SbVec3f n;
     r.multVec(SbVec3f(0,0,-1),n); // a vector normal to the viewport in the world frame
-    SoIndexedLineSet *soShilouetteEdgeOld=me->soShilouetteEdge;
-    me->soShilouetteEdgeSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=Utils::calculateShilouetteEdge(n, me->shilouetteEdgeStruct));
+    soShilouetteEdgeOld=me->soShilouetteEdge;
   }
-
-  me->shilouetteEdgeFirstCall=false;
+  { // THREAD THIS OUT in further development: preproces and edge calculation
+    if(preproces)
+      me->edgeCalc->preproces(false); // preproces
+    if(shilouetteCalc)
+      me->edgeCalc->calcShilouetteEdges(n); // calc shilouette edges for normal n
+  }
+  { // WAIT FOR PREVIOUS THREAD in further development: exchange coord and line set
+    if(preproces)
+      me->soShilouetteEdgeSep->replaceChild(soEdgeCoordOld, me->soShilouetteEdgeCoord=me->edgeCalc->getCoordinates()); // replace coords
+    if(shilouetteCalc)
+      me->soShilouetteEdgeSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=me->edgeCalc->getShilouetteEdges()); // replace shilouette edges
+  }
 }

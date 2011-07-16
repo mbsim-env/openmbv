@@ -135,11 +135,14 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
   SoGroup *soTess=new SoGroup;
   soTess->ref();
+  vector<GLdouble*> vPtr;
+  vPtr.reserve(contour.size()*contour[0]->size()*2);
   gluTessBeginPolygon(Utils::tess, soTess);
   for(size_t c=0; c<contour.size(); c++) {
     gluTessBeginContour(Utils::tess);
     for(size_t r=0; r<contour[c]->size(); r++) {
-      GLdouble *v=new GLdouble[3];
+      GLdouble *v=new GLdouble[3]; // is deleted later using vPtr
+      vPtr.push_back(v);
       v[0]=(*contour[c])[r]->getXComponent();
       v[1]=(*contour[c])[r]->getYComponent();
       v[2]=0;
@@ -148,6 +151,9 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     gluTessEndContour(Utils::tess);
   }
   gluTessEndPolygon(Utils::tess);
+  // now we can delete all v
+  for(unsigned int i=0; i<vPtr.size(); i++)
+    delete[]vPtr[0];
   // normal binding
   SoNormalBinding *nb=new SoNormalBinding;
   soSepRigidBody->addChild(nb);

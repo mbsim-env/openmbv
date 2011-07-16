@@ -27,9 +27,11 @@
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 
 #include <vector>
-#include "utils.h"
+#include "edgecalculation.h"
 #include "openmbvcppinterface/ivbody.h"
 #include "openmbvcppinterface/group.h"
+
+#include <QtConcurrentRun>
 
 using namespace std;
 
@@ -37,6 +39,8 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
   iconFile=":/ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  edgeCalc=NULL;
+  watchPreCalculateEdgesResult=NULL;
 
   // read XML
   string fileName=ivb->getIvFileName();
@@ -66,10 +70,34 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   // outline
   if(ivb->getCreaseEdges()>=0 || ivb->getBoundaryEdges()) {
-    Utils::Edges *edges=NULL;
     soSepRigidBody->addChild(soOutLineSwitch);
-    soOutLineSep->addChild(Utils::preCalculateEdgesCached(soIv, edges));
-    if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(Utils::calculateCreaseEdges(ivb->getCreaseEdges(), edges));
-    if(ivb->getBoundaryEdges()) soOutLineSep->addChild(Utils::calculateBoundaryEdges(edges));
+    // get data for edge calculation from scene
+    edgeCalc=new EdgeCalculation(soIv);
+    // pre calculate edges, calculate crease edges and boundary edges in thread and call addEdgesToScene if finished
+    watchPreCalculateEdgesResult=new QFutureWatcher<void>;
+    connect(watchPreCalculateEdgesResult, SIGNAL(finished()), this, SLOT(addEdgesToScene())); // run addEdgesToScene if ready
+    QFuture<void> preCalculateEdgesResult=QtConcurrent::run(this, &IvBody::calculateEdges); // calculate all in a thread
+    watchPreCalculateEdgesResult->setFuture(preCalculateEdgesResult); // watch thread
   }
+}
+
+IvBody::~IvBody() {
+  delete edgeCalc;
+  delete watchPreCalculateEdgesResult;
+}
+
+void IvBody::calculateEdges() {
+  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)object;
+  cout<<"Started edge calculation for "<<ivb->getFullName()<<" in a thread: ";
+  edgeCalc->preproces(true);
+  if(ivb->getCreaseEdges()>=0) edgeCalc->calcCreaseEdges(ivb->getCreaseEdges());
+  if(ivb->getBoundaryEdges()) edgeCalc->calcBoundaryEdges();
+}
+
+void IvBody::addEdgesToScene() {
+  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)object;
+  soOutLineSep->addChild(edgeCalc->getCoordinates());
+  if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
+  if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
+  cout<<"Finished edge calculation for "<<ivb->getFullName()<<" and added to scene."<<endl;
 }

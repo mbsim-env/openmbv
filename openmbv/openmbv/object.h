@@ -54,8 +54,10 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string iconFile;
     static std::map<SoNode*,Object*> objectMap;
     bool searchMatched;
+    SoNodeSensor *nodeSensor;
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    virtual ~Object();
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);
     std::string getPath();

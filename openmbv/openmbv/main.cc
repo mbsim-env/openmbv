@@ -25,6 +25,7 @@
 #include <string>
 #include <algorithm>
 #include <locale.h>
+#include <QThreadPool>
 
 using namespace std;
 
@@ -37,6 +38,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+  QThreadPool::globalInstance()->setMaxThreadCount(100000); // use many threads, since they may wait for each other
   QApplication app(argc, argv);
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);

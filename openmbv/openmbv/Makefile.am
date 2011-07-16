@@ -34,6 +34,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   exportdialog.cc\
   object.cc\
   utils.cc\
+  edgecalculation.cc\
   path.cc\
   arrow.cc\
   objectfactory.cc\
@@ -78,6 +79,7 @@ noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
   object.h\
   utils.h\
+  edgecalculation.h\
   path.h\
   arrow.h\
   rigidbody.h\

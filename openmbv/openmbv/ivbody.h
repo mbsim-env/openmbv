@@ -24,11 +24,22 @@
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+#include <QFutureWatcher>
+
+class EdgeCalculation;
 
 class IvBody : public RigidBody {
   Q_OBJECT
   public:
     IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    ~IvBody();
+
+  private:
+    EdgeCalculation *edgeCalc;
+    QFutureWatcher<void> *watchPreCalculateEdgesResult;
+    void calculateEdges();
+  private slots:
+    void addEdgesToScene();
 };
 
 #endif

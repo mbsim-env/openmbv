@@ -30,11 +30,10 @@
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include "IndexedTesselationFace.h"
-#include <Inventor/SbBSPTree.h>
-#include <Inventor/SbVec3i32.h>
 #include <Inventor/lists/SbVec3fList.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include "utils.h"
+#include "edgecalculation.h"
 
 namespace OpenMBV {
   class Body;
@@ -47,12 +46,15 @@ class Body : public Object {
     static bool existFiles;
     SoFieldSensor *shilouetteEdgeFrameSensor, *shilouetteEdgeOrientationSensor;
     static void shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor);
+    // for shilouetteEdge
     SoCoordinate3 *soShilouetteEdgeCoord;
     SoIndexedLineSet *soShilouetteEdge;
     bool shilouetteEdgeFirstCall;
-    Utils::Edges *shilouetteEdgeStruct;
+    EdgeCalculation *edgeCalc;
+    SoFieldSensor *frameSensor;
   public:
     Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    ~Body();
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();
     virtual double update()=0; // return the current time

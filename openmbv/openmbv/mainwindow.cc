@@ -98,7 +98,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // main widget
   QWidget *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
-  QGridLayout *mainLO=new QGridLayout();
+  QGridLayout *mainLO=new QGridLayout(mainWG);
   mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
   // gl viewer
@@ -189,8 +189,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
   objectListDW->setObjectName("Objects");
-  QWidget *objectListWG=new QWidget;
-  QGridLayout *objectListLO=new QGridLayout;
+  QWidget *objectListWG=new QWidget(this);
+  QGridLayout *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
