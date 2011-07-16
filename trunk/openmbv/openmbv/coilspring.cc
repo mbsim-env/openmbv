@@ -107,7 +107,7 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
 
   // initialise spine 
   spine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
-  float *scaledSpine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
+  scaledSpine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
   for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
     scaledSpine[3*i]=spine[3*i] = R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
     scaledSpine[3*i+1]=spine[3*i+1] = R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
@@ -154,6 +154,11 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
     case OpenMBV::CoilSpring::polyline: typePolyline->setChecked(true); break;
   }
   connect(typeAct,SIGNAL(triggered(QAction*)),this,SLOT(typeSlot(QAction*)));
+}
+
+CoilSpring::~CoilSpring() {
+  delete[]spine;
+  delete[]scaledSpine;
 }
 
 QString CoilSpring::getInfo() {

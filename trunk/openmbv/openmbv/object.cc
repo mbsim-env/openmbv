@@ -66,8 +66,8 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   soBBox=new SoCube;
   soBBoxSep->addChild(soBBox);
   // register callback function on node change
-  SoNodeSensor *sensor=new SoNodeSensor(nodeSensorCB, this);
-  sensor->attach(soSep);
+  nodeSensor=new SoNodeSensor(nodeSensorCB, this);
+  nodeSensor->attach(soSep);
 
   // add to map for finding this object by the soSep SoNode
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
@@ -87,6 +87,10 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   bbox->setChecked(obj->getBoundingBox());
   bbox->setObjectName("Object::bbox");
   connect(bbox,SIGNAL(changed()),this,SLOT(bboxSlot()));
+}
+
+Object::~Object() {
+  delete nodeSensor;
 }
 
 QMenu* Object::createMenu() {

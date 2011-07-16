@@ -19,12 +19,7 @@
 
 #include "config.h"
 #include "utils.h"
-#include <Inventor/SoInput.h>
-#include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/actions/SoCallbackAction.h>
-#include <sstream>
-#include <iostream>
 #ifdef HAVE_UNORDERED_MAP
 #  include <unordered_map>
 #else
@@ -35,11 +30,11 @@
 
 using namespace std;
 
-bool Utils::init=false;
+bool Utils::initialized=false;
 
 void Utils::initialize() {
-  if(init==true) return;
-  init=true;
+  if(initialized==true) return;
+  initialized=true;
 
   // tess
 # ifndef WIN32
@@ -164,132 +159,6 @@ SbVec3f Utils::rotation2Cardan(const SbRotation& R) {
     g=atan2(M[1][0],M[1][1]);
   }
   return SbVec3f(a,b,g);
-}
-
-struct CoordEdge { 
-  SoCoordinate3 *coord;
-  Utils::Edges *edges;
-};
-SoCoordinate3* Utils::preCalculateEdgesCached(SoGroup *grp, Utils::Edges *&edges) {
-  static std::map<SoGroup*, CoordEdge> myCache;
-  std::map<SoGroup*, CoordEdge>::iterator i=myCache.find(grp);
-  if(i==myCache.end()) {
-    CoordEdge ce;
-    ce.coord=Utils::preCalculateEdges(grp, edges);
-    ce.edges=edges;
-    return (myCache[grp]=ce).coord;
-  }
-  edges=i->second.edges;
-  return i->second.coord;
-}
-
-// return v13 in direction ortogonal to v12 (returned vec is normalized)
-SbVec3f Utils::v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3) {
-  SbVec3f v12=v2-v1;
-  SbVec3f v13=v3-v1;
-  SbVec3f ret=v13-v13.dot(v12)/v12.dot(v12)*v12;
-  ret.normalize();
-  return ret;
-}
-
-void Utils::triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3) {
-  Utils::Edges* edges=(Utils::Edges*)data;
-  // get coordinates of points
-  SbVec3f v1=vp1->getPoint();
-  SbVec3f v2=vp2->getPoint();
-  SbVec3f v3=vp3->getPoint();
-  // convert coordinates to frame of the action
-  SbMatrix mm=action->getModelMatrix();
-  mm.multVecMatrix(v1, v1);
-  mm.multVecMatrix(v2, v2);
-  mm.multVecMatrix(v3, v3);
-  // add point and get point index
-  unsigned int v1i=edges->vertex.addPoint(v1);
-  unsigned int v2i=edges->vertex.addPoint(v2);
-  unsigned int v3i=edges->vertex.addPoint(v3);
-  // add edge and get edge index
-#define addEdge(i,j) addPoint(SbVec3f(i<j?i:j,i<j?j:i,0)) // smaller index first, larger index second, dummy third index
-  unsigned int e1i=edges->edge.addEdge(v1i, v2i);
-  unsigned int e2i=edges->edge.addEdge(v2i, v3i);
-  unsigned int e3i=edges->edge.addEdge(v3i, v1i);
-#undef addEdge
-  // add vai,vbi,fv[...]
-  Utils::EI2VINI *x;
-#define expand(ei) if(ei>=edges->ei2vini.size()) edges->ei2vini.resize(ei+1);
-//expand size; get new/current element; set vai;    set vbi;    append fv;
-  expand(e1i); x=&edges->ei2vini[e1i];  x->vai=v1i; x->vbi=v2i; x->fv.push_back(v13OrthoTov12(v1, v2, v3));
-  expand(e2i); x=&edges->ei2vini[e2i];  x->vai=v2i; x->vbi=v3i; x->fv.push_back(v13OrthoTov12(v2, v3, v1));
-  expand(e3i); x=&edges->ei2vini[e3i];  x->vai=v3i; x->vbi=v1i; x->fv.push_back(v13OrthoTov12(v3, v1, v2));
-#undef expand
-}
-
-SoCoordinate3* Utils::preCalculateEdges(SoGroup *sep, Utils::Edges *&edges) {
-  if(edges==NULL) edges=new Utils::Edges;
-  // get all triangles
-  SoCallbackAction cba;
-  cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, edges);
-  cba.apply(sep);
-  // clean edges->edge (is not longer needed)
-  edges->edge.clear();
-  // return vertex
-  SoCoordinate3 *soEdgeVertex=new SoCoordinate3;
-  soEdgeVertex->point.setValuesPointer(edges->vertex.numPoints(), edges->vertex.getPointsArrayPtr());
-  return soEdgeVertex;
-}
-
-SoIndexedLineSet* Utils::calculateCreaseEdges(const double creaseAngle, const Utils::Edges *edges) {
-  SoIndexedLineSet *soCreaseEdge=new SoIndexedLineSet;
-  int nr=0;
-  for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
-    // only draw crease edge if two faces belongs to this edge
-    if(edges->ei2vini[i].fv.size()==2) {
-      int vai=edges->ei2vini[i].vai; // index of edge start
-      int vbi=edges->ei2vini[i].vbi; // index of edge end
-      // draw crease edge if angle between fv[0] and fv[1] is < pi-creaseAngle
-      if(edges->ei2vini[i].fv[0].dot(edges->ei2vini[i].fv[1])>-cos(creaseAngle)) {
-        soCreaseEdge->coordIndex.set1Value(nr++, vai);
-        soCreaseEdge->coordIndex.set1Value(nr++, vbi);
-        soCreaseEdge->coordIndex.set1Value(nr++, -1);
-      }
-    }
-  }
-  return soCreaseEdge;
-}
-
-SoIndexedLineSet* Utils::calculateBoundaryEdges(const Utils::Edges *edges) {
-  SoIndexedLineSet *soBoundaryEdge=new SoIndexedLineSet;
-  int nr=0;
-  for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
-    // draw boundary edge if only one face belongs to this edge
-    if(edges->ei2vini[i].fv.size()==1) {
-      soBoundaryEdge->coordIndex.set1Value(nr++, edges->ei2vini[i].vai);
-      soBoundaryEdge->coordIndex.set1Value(nr++, edges->ei2vini[i].vbi);
-      soBoundaryEdge->coordIndex.set1Value(nr++, -1);
-    }
-  }
-  return soBoundaryEdge;
-}
-
-SoIndexedLineSet* Utils::calculateShilouetteEdge(const SbVec3f &n, const Edges *edges) {
-  SoIndexedLineSet *ls=new SoIndexedLineSet;
-  int nr=0;
-  for(unsigned int i=0; i<edges->ei2vini.size(); i++) {
-    // only draw shilouette edge if two faces belongs to this edge
-    if(edges->ei2vini[i].fv.size()==2) {
-      int vai=edges->ei2vini[i].vai; // index of edge start
-      int vbi=edges->ei2vini[i].vbi; // index of edge end
-      SbVec3f v12=edges->vertex.getPoint(vbi)-edges->vertex.getPoint(vai); // edge vector
-      SbVec3f n0=v12.cross(edges->ei2vini[i].fv[0]); // normal of face 0
-      SbVec3f n1=edges->ei2vini[i].fv[1].cross(v12); // normal of face 1
-      // draw shilouette edge if the face normals to different screen z directions (one i z+ one in z-)
-      if(n0.dot(n)*n1.dot(n)<=0) {
-        ls->coordIndex.set1Value(nr++, vai);
-        ls->coordIndex.set1Value(nr++, vbi);
-        ls->coordIndex.set1Value(nr++, -1);
-      }
-    }
-  }
-  return ls;
 }
 
 // for tess
