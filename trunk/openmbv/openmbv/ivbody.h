@@ -24,7 +24,7 @@
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
-#include <QFutureWatcher>
+#include <QThread>
 
 class EdgeCalculation;
 
@@ -36,8 +36,15 @@ class IvBody : public RigidBody {
 
   private:
     EdgeCalculation *edgeCalc;
-    QFutureWatcher<void> *watchPreCalculateEdgesResult;
     void calculateEdges();
+    class CalculateEdgesThread : public QThread {
+      public:
+        CalculateEdgesThread(IvBody *ivBody_) : ivBody(ivBody_) {}
+      protected:
+        void run() { ivBody->calculateEdges(); }
+        IvBody *ivBody;
+    };
+    CalculateEdgesThread calculateEdgesThread;
   private slots:
     void addEdgesToScene();
 };

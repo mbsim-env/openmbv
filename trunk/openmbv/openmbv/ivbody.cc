@@ -35,12 +35,11 @@
 
 using namespace std;
 
-IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent), calculateEdgesThread(this) {
   OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
   iconFile=":/ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
   edgeCalc=NULL;
-  watchPreCalculateEdgesResult=NULL;
 
   // read XML
   string fileName=ivb->getIvFileName();
@@ -74,16 +73,13 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     // get data for edge calculation from scene
     edgeCalc=new EdgeCalculation(soIv);
     // pre calculate edges, calculate crease edges and boundary edges in thread and call addEdgesToScene if finished
-    watchPreCalculateEdgesResult=new QFutureWatcher<void>;
-    connect(watchPreCalculateEdgesResult, SIGNAL(finished()), this, SLOT(addEdgesToScene())); // run addEdgesToScene if ready
-    QFuture<void> preCalculateEdgesResult=QtConcurrent::run(this, &IvBody::calculateEdges); // calculate all in a thread
-    watchPreCalculateEdgesResult->setFuture(preCalculateEdgesResult); // watch thread
+    connect(&calculateEdgesThread, SIGNAL(finished()), this, SLOT(addEdgesToScene()));
+    calculateEdgesThread.start(QThread::IdlePriority);
   }
 }
 
 IvBody::~IvBody() {
   delete edgeCalc;
-  delete watchPreCalculateEdgesResult;
 }
 
 void IvBody::calculateEdges() {
