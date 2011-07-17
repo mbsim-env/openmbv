@@ -25,6 +25,8 @@
 #include <Inventor/SbVec2i32.h>
 #include <iostream>
 #include <map>
+#include <QSemaphore>
+#include <QThread>
 
 using namespace std;
 
@@ -184,6 +186,11 @@ void EdgeCalculation::preproces(bool printMessage) {
   }
   if(!useCache || ins.second) {
     // ADD A NEW ELEMENT
+
+    // allow only QThread::idealThreadCount() threads to run in parallel
+    static QSemaphore maxThreads(QThread::idealThreadCount());
+    maxThreads.acquire();
+
     if(printMessage)
       cout<<"Calculating edges!"<<endl;
 
@@ -226,6 +233,7 @@ void EdgeCalculation::preproces(bool printMessage) {
       ins.first->second=preData; // set preprocessed data in cache
       mapRWLock.unlock();
     }
+    maxThreads.release();
     return;
   }
 
