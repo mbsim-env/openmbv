@@ -233,9 +233,9 @@ enum ValueType {
 void checkType(const octave_value& val, ValueType expectedType) {
   ValueType type;
   // get type of val
-  if(val.is_scalar_type() && val.is_real_type())
+  if(val.is_scalar_type() && val.is_real_type() && (val.is_string()!=1))
     type=ScalarType;
-  else if(val.is_matrix_type() && val.is_real_type()) {
+  else if(val.is_matrix_type() && val.is_real_type() && (val.is_string()!=1)) {
     Matrix m=val.matrix_value();
     type=m.cols()==1?VectorType:MatrixType;
   }
@@ -263,11 +263,11 @@ string octaveGetRet(ValueType expectedType=ArbitraryType) {
   ostringstream ret;
   ret.precision(machinePrec);
   ValueType type;
-  if(o.is_scalar_type() && o.is_real_type()) {
+  if(o.is_scalar_type() && o.is_real_type() && (o.is_string()!=1)) {
     type=ScalarType;
     ret<<o.double_value();
   }
-  else if(o.is_matrix_type() && o.is_real_type()) {
+  else if(o.is_matrix_type() && o.is_real_type() && (o.is_string()!=1)) {
     Matrix m=o.matrix_value();
     type=m.cols()==1?VectorType:MatrixType;
     ret<<"[";
