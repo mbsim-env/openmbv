@@ -4,7 +4,7 @@ xml/index.xml: @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.x
 	doxygen
 
 openmbv/openmbv.tex: xml/index.xml
-	@MBXMLUTILSBINDIR@/mbxmlutils-xsd2html @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd xml @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface OpenMBV OpenMBV:: true
+	@MBXMLUTILSBINDIR@/mbxmlutils-xsd2html @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd xml @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface OpenMBV OpenMBV::
 
 
 install:
