@@ -8,7 +8,6 @@
        be done in the file xstToHtml.xsl -->
 
   <xsl:param name="PROJECT"/>
-  <xsl:param name="INCLUDEDOXYGEN"/>
 
 
 
@@ -439,30 +438,28 @@ A indent indicates child elements for a given element.
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
-      <xsl:if test="@source='doxygen'"><xsl:text>
+    <!-- print info about Doxygen documentation only if other docu exist -->
+    <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])>0"><xsl:text>
 
-        \textbf{The following part is the C++ API docucmentation from Doxygen}
+      \textbf{Doxygen documentation}
 
-      </xsl:text></xsl:if><xsl:text>
+    </xsl:text></xsl:if><xsl:text>
 
 </xsl:text><xsl:apply-templates mode="CLONEDOC"/>
-    </xsl:if>
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
-      \hspace{3ex}
-      \begin{minipage}[b]{\linewidth}
-        <xsl:if test="@source='doxygen'"><xsl:text>
+    \hspace{3ex}
+    \begin{minipage}[b]{\linewidth}
+      <!-- print info about Doxygen documentation only if other docu exist -->
+      <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])>0"><xsl:text>
 
-          \textbf{The following part is the C++ API docucmentation from Doxygen}
+        \textbf{Doxygen documentation}
 
-        </xsl:text></xsl:if>
-        <xsl:apply-templates mode="CLONEDOC"/>
-      \end{minipage}\\[1ex]
-    </xsl:if>
+      </xsl:text></xsl:if>
+      <xsl:apply-templates mode="CLONEDOC"/>
+    \end{minipage}\\[1ex]
   </xsl:template>
 
 
