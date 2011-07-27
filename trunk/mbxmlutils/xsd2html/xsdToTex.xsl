@@ -474,7 +474,13 @@ A indent indicates child elements for a given element.
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template mode="CLONEDOC" match="text()"><xsl:text> </xsl:text><xsl:value-of select="normalize-space(.)"/></xsl:template>
+  <xsl:template mode="CLONEDOC" match="text()"><xsl:text> </xsl:text>
+    <xsl:call-template name="replace">
+      <xsl:with-param name="text" select="normalize-space(.)"/>
+      <xsl:with-param name="from" select="'_'"/>
+      <xsl:with-param name="to" select="'\_'"/>
+    </xsl:call-template>
+  </xsl:template>
 
   <xsl:template mode="CLONEDOC" match="html:div[@class='para']|html:p"><xsl:text>
 
@@ -532,5 +538,26 @@ A indent indicates child elements for a given element.
     <xsl:if test="contains(@href,':')">\hyperref[<xsl:value-of select="substring-after(@href,':')"/>]{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:if>
     <xsl:if test="not(contains(@href,':'))">\hyperref[<xsl:value-of select="@href"/>]{<xsl:apply-templates mode="CLONEDOC"/>}</xsl:if>
   </xsl:template>
+
+  <!-- BEGIN: HELPER FUNCTINOS -->
+  <xsl:template name="replace">
+    <xsl:param name="text"/>
+    <xsl:param name="from"/>
+    <xsl:param name="to"/>
+    <xsl:choose>
+      <xsl:when test="contains($text, $from)">
+        <xsl:value-of select="concat(substring-before($text, $from), $to)"/>
+        <xsl:call-template name="replace">
+          <xsl:with-param name="text" select="substring-after($text, $from)"/>
+          <xsl:with-param name="from" select="$from"/>
+          <xsl:with-param name="to" select="$to"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!-- END: HELPER FUNCTINOS -->
  
 </xsl:stylesheet>
