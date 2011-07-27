@@ -10,7 +10,6 @@
        be done in the file xstToTex.xsl -->
 
   <xsl:param name="PROJECT"/>
-  <xsl:param name="INCLUDEDOXYGEN"/>
   <xsl:param name="DATETIME"/>
   <xsl:param name="MBXMLUTILSVERSION"/>
 
@@ -53,8 +52,10 @@
         *.element { font-family:monospace;font-weight:bold }
         *.type { font-family:monospace }
         *.attribute { font-family:monospace;font-weight:bold;margin-left:2ex }
-        *.elementdocu { padding-left:3ex;margin:0;margin-bottom:1ex }
-        *.classdocu { margin-top:2ex;margin-bottom:2ex }
+        *.elementdocu { }
+        *.elementdocuall { padding-left:3ex;margin:0;margin-bottom:1ex }
+        *.classdocu { }
+        *.classdocuall { margin-top:2ex;margin-bottom:2ex }
         ul.elementchoice { list-style-type:none;border-left-style:solid;border-left-color:blue;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
         *.elementchoicecolor { color:blue }
         ul.elementsequence { list-style-type:none;border-left-style:solid;border-left-color:red;padding:0.1ex;margin-top:0.25ex;margin-bottom:0.25ex }
@@ -66,6 +67,7 @@
 
         span.expandcollapsecontent { cursor:nw-resize;color:blue;font-family:monospace;font-weight:bold;font-size:1.25em }
         div.expandcollapseexample { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic;padding-top:2em }
+        div.expandcollapsedoxygen { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic }
       </style>
       <script type="text/javascript">
         <![CDATA[
@@ -98,7 +100,7 @@
         function collapseexamplesonload() {
           var pre=document.getElementsByTagName("pre");
           for(var i=0; i<pre.length; i++) {
-            if(pre[i].getAttribute("class")=="expandcollapseexample") {
+            if(pre[i].getAttribute("class")=="expandcollapsethisexample") {
               var c=pre[i].previousSibling;
               pre[i].style.display="none";
               c.firstChild.data="Expand Example...:";
@@ -106,10 +108,34 @@
             }
           }
         }
+        function expandcollapsedoxygen(c) {
+          var pre=c.nextSibling;
+          if(pre.style.display=="") {
+            pre.style.display="none";
+            c.firstChild.data="Expand Doxygen documentation...:";
+            c.style.cursor="s-resize";
+          }
+          else {
+            pre.style.display="";
+            c.firstChild.data="Collapse Doxygen documentation:";
+            c.style.cursor="n-resize";
+          }
+        }
+        function collapsedoxygenonload() {
+          var pre=document.getElementsByTagName("div");
+          for(var i=0; i<pre.length; i++) {
+            if(pre[i].getAttribute("class")=="expandcollapsethisdoxygen") {
+              var c=pre[i].previousSibling;
+              pre[i].style.display="none";
+              c.firstChild.data="Expand Doxygen documentation...:";
+              c.style.cursor="s-resize";
+            }
+          }
+        }
         ]]>
       </script>
     </head>
-    <body onload="collapseexamplesonload()">
+    <body onload="collapseexamplesonload();collapsedoxygenonload()">
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <p>XML-Namespace: <i><xsl:value-of select="/xs:schema/@targetNamespace"/></i></p>
     <h2>Contents</h2>
@@ -165,7 +191,7 @@
     <p><span class="element">&lt;ElementName&gt;</span> <span class="occurance">[0-2]</span> (Type: <span class="type">elementType</span>)
     <br/><span class="attribute">attrName1</span> <span class="occurance">[required]</span> (Type: <span class="type">typeOfTheAttribute</span>)
     <br/><span class="attribute">attrName2</span> <span class="occurance">[optional]</span> (Type: <span class="type">typeOfTheAttribute</span>)</p>
-    <p class="elementdocu">
+    <p class="elementdocuall">
       Documentation of the element.
     </p>
     <p>The upper nomenclature defines a XML element named <span class="element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="type">elementType</span>.<br/>
@@ -349,7 +375,9 @@
       </td></tr>
     </table>
     <!-- class documentation -->
-    <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
+    <div class="classdocuall">
+      <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
+    </div>
     <!-- child elements -->
     <p>Child Elements:</p>
     <!-- child elements for not base class -->
@@ -368,7 +396,7 @@
     <!-- BEGIN show example xml code -->
     <xsl:if test="not(@abstract) or @abstract='false'">
       <div class="expandcollapseexample" onclick="expandcollapseexample(this)">Collapse Example:</div>
-      <pre class="expandcollapseexample">
+      <pre class="expandcollapsethisexample">
       <xsl:apply-templates mode="EXAMPLEELEMENT" select=".">
         <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))"/>
         <!-- this FULLNAME is equal to select="@name" with full namespace awareness -->
@@ -539,7 +567,9 @@
         <xsl:apply-templates mode="ELEMENTATTRIBUTE" select="xs:complexType/xs:attribute"/>
       </xsl:if>
       <!-- documentation -->
-      <xsl:apply-templates mode="ELEMENTANNOTATION" select="xs:annotation/xs:documentation"/>
+      <div class="elementdocuall">
+        <xsl:apply-templates mode="ELEMENTANNOTATION" select="xs:annotation/xs:documentation"/>
+      </div>
       <!-- children -->
       <xsl:if test="@name and not(@type)">
         <xsl:apply-templates mode="SIMPLECONTENT" select="xs:complexType"/>
@@ -564,20 +594,42 @@
 
   <!-- documentation -->
   <xsl:template mode="CLASSANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
-      <xsl:if test="@source='doxygen'">
-        <div class="classdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
-      </xsl:if>
+    <!-- add Doxygen documentation dynamically (expand-/colapse-able) if other docucmentation is available -->
+    <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])>0">
+      <div class="expandcollapsedoxygen" onclick="expandcollapsedoxygen(this)">Collapse Doxygen docucmentation:</div>
+      <div class="expandcollapsethisdoxygen">
+        <div class="classdocu"><xsl:apply-templates mode="CLONEDOC"/></div>
+      </div>
+    </xsl:if>
+    <!-- add Doxygen documentation staticlly if no other docucmentation is available -->
+    <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])=0">
+      <div class="classdocu"><xsl:apply-templates mode="CLONEDOC"/></div>
+    </xsl:if>
+    <!-- always add other documentation statically -->
+    <xsl:if test="@source!='doxygen' or not(@source)">
       <div class="classdocu"><xsl:apply-templates mode="CLONEDOC"/></div>
     </xsl:if>
   </xsl:template>
 
   <!-- documentation -->
   <xsl:template mode="ELEMENTANNOTATION" match="xs:annotation/xs:documentation">
-    <xsl:if test="@source!='doxygen' or not(@source) or $INCLUDEDOXYGEN='true'">
-      <xsl:if test="@source='doxygen'">
-        <div class="elementdocu"><b>The following part is the C++ API docucmentation from Doxygen</b></div>
-      </xsl:if>
+    <!-- add Doxygen documentation dynamically (expand-/colapse-able) if other docucmentation is available -->
+    <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])>0">
+      <div class="expandcollapsedoxygen" onclick="expandcollapsedoxygen(this)">Collapse Doxygen docucmentation:</div>
+      <div class="expandcollapsethisdoxygen">
+        <div class="elementdocu">
+          <xsl:apply-templates mode="CLONEDOC"/>
+        </div>
+      </div>
+    </xsl:if>
+    <!-- add Doxygen documentation staticlly if no other docucmentation is available -->
+    <xsl:if test="@source='doxygen' and count(../xs:documentation[@source!='doxygen' or not(@source)])=0">
+      <div class="elementdocu">
+        <xsl:apply-templates mode="CLONEDOC"/>
+      </div>
+    </xsl:if>
+    <!-- always add other documentation statically -->
+    <xsl:if test="@source!='doxygen' or not(@source)">
       <div class="elementdocu">
         <xsl:apply-templates mode="CLONEDOC"/>
       </div>

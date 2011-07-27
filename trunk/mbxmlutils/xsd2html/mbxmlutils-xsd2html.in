@@ -1,15 +1,17 @@
 #! /bin/sh
 
-if [ $# -ne 6 ]; then
+if [ $# -ne 5 -a $# -ne 6 ]; then
   echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
-  echo "                           <ProjectName> <DocygenPrefix> <IncludeDoxygen>"
+  echo "                           <ProjectName> <DocygenPrefix>"
   echo "  InXsdFile: Input xsd file which should be converted to html"
   echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
   echo "                   corrospondending documentation"
   echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
   echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
   echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
-  echo "  IncludeDoxygen: If true, include the doxygen part in the documentation"
+  if [ $# -eq 6 ]; then
+    echo "  NOTE: the 6-th parameter is deprecated, please remove it!"
+  fi
   exit
 fi
 
@@ -18,7 +20,6 @@ DOXYGENDOCDIR=$2 #"/home/markus/project/MBSim/openmbv/doc_/xml"
 FIGUREDIR=$3
 PROJECT=$4 #"OpenMBV"
 DOXYGENCLASSPREFIX=$5 #"OpenMBV::"
-INCLUDEDOXYGEN=$6
 
 
 if [ ! -e $FILE ]; then
@@ -34,29 +35,25 @@ BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
 BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
 
-if [ $INCLUDEDOXYGEN = "true" ]; then
-  echo "Combine Doxygen XML documentation"
-  echo "  In file: $DOXYGENDOCDIR/index.xml"
-  echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
-  echo "  Out file: .$PROJECT.doxygen.xml"
-  @XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
-  echo "DONE"
-  
-  echo "Add Doxygen class and element function documentation to XML Schema"
-  echo "  In file: $FILE"
-  echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
-  echo "  Out file: $BASENAME.doxygen.xsd"
-  @XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
-    --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
-    --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
-    --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
-    --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
-    @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
-  echo "DONE"
-else
-  echo "Do not add Doxygen class docu"
-  cp $FILE $BASENAME.doxygen.xsd
-fi
+
+echo "Combine Doxygen XML documentation"
+echo "  In file: $DOXYGENDOCDIR/index.xml"
+echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
+echo "  Out file: .$PROJECT.doxygen.xml"
+@XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
+echo "DONE"
+
+echo "Add Doxygen class and element function documentation to XML Schema"
+echo "  In file: $FILE"
+echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
+echo "  Out file: $BASENAME.doxygen.xsd"
+@XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
+  --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
+  --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
+  --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
+  --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
+  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
+echo "DONE"
 
 
 
@@ -69,7 +66,6 @@ echo "  Out file: $HTMLDIR/index.xhtml"
 rm -rf $HTMLDIR
 @XSLTPROC@ --novalid --output $HTMLDIR/index.xhtml \
   --param PROJECT "'$PROJECT'" \
-  --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   --param DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
   --param MBXMLUTILSVERSION "'@VERSION@'" \
   @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
@@ -127,7 +123,6 @@ echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
 echo "  Out file: $BASENAME2/$BASENAME2.tex"
 @XSLTPROC@ --novalid --output $BASENAME2/$BASENAME2.tex \
   --param PROJECT "'$PROJECT'" \
-  --param INCLUDEDOXYGEN "'$INCLUDEDOXYGEN'" \
   @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
 echo "DONE"
 
