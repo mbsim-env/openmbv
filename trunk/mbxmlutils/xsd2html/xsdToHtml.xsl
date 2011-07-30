@@ -64,6 +64,7 @@
         ul.elementsofclass { list-style-type:none;padding:0 }
 
         p.footer { text-align:right;font-size:0.7em }
+        img.w3cvalid { border:0;vertical-align:top }
 
         span.expandcollapsecontent { cursor:nw-resize;color:blue;font-family:monospace;font-weight:bold;font-size:1.25em }
         div.expandcollapseexample { cursor:n-resize;color:blue;font-size:0.75em;font-style:italic;padding-top:2em }
@@ -273,7 +274,15 @@
     </xsl:apply-templates>
 
     <hr/>
-    <p class="footer">Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/></p>
+    <p class="footer">
+      <a href="http://validator.w3.org/check?uri=referer">
+        <img class="w3cvalid" src="http://www.w3.org/Icons/valid-xhtml10-blue" alt="Valid XHTML 1.0 Transitional"/>
+      </a>
+      <a href="http://jigsaw.w3.org/css-validator/check/referer">
+        <img class="w3cvalid" src="http://jigsaw.w3.org/css-validator/images/vcss-blue" alt="Valid CSS!"/>
+      </a>
+      Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
+    </p>
     </body></html>
   </xsl:template>
 
