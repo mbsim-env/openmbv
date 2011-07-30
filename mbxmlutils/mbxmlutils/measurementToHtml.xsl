@@ -204,7 +204,15 @@ The attributes <span style="font-family:monospace">count</span> and <span style=
     </xsl:apply-templates>
 
     <hr/>
-    <p style="text-align:right;font-size:0.7em">Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/></p>
+    <p style="text-align:right;font-size:0.7em">
+      <a href="http://validator.w3.org/check?uri=referer">
+        <img style="border:0;vertical-align:top" src="http://www.w3.org/Icons/valid-xhtml10-blue" alt="Valid XHTML 1.0 Transitional"/>
+      </a>
+      <a href="http://jigsaw.w3.org/css-validator/check/referer">
+        <img style="border:0;vertical-align:top" src="http://jigsaw.w3.org/css-validator/images/vcss-blue" alt="Valid CSS!"/>
+      </a>
+      Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
+    </p>
     </body></html>
   </xsl:template>
 
