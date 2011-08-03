@@ -104,9 +104,13 @@ while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
 EOF
   sed -rne "$[$B+2],$[$E-1]p" equation.txt >> equation.tex
   echo '\end{document}' >> equation.tex
-  latex -help >& /dev/null && latex equation.tex || echo "Skip generation of png-equations (LaTeX not found)"
-  latex -help >& /dev/null && dvips -E -o equation.eps equation.dvi || echo ""
-  latex -help >& /dev/null && gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || echo ""
+  if latex -help >& /dev/null; then
+    latex -halt-on-error -file-line-error equation.tex || exit 1
+    dvips -E -o equation.eps equation.dvi || exit 1
+    gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || exit 1
+  else
+    echo "WARNING: Skip generation of png-equations for HTML documentation (latex, dvips or gs not found in PATH)"
+  fi
   mv $FILE $HTMLDIR/$FILE
   sed -rne "$[$E+1],\$p" equation.txt >> equation.txt.new
   mv equation.txt.new equation.txt
@@ -136,8 +140,12 @@ echo "  In file: $BASENAME2/$BASENAME2.tex"
 echo "  Out file: $BASENAME2/$BASENAME2.ps"
 OLDDIR=$(pwd)
 cd $BASENAME2
-latex -help >& /dev/null && latex -interaction errorstopmode $BASENAME2.tex || echo "Skip running LaTeX"
-latex -help >& /dev/null && latex $BASENAME2.tex >& /dev/null || echo "Skip running LaTeX"
-latex -help >& /dev/null && latex $BASENAME2.tex >& /dev/null || echo "Skip running LaTeX"
-latex -help >& /dev/null && dvips -o $BASENAME2.ps $BASENAME2.dvi || echo "Skip running LaTeX"
+if latex -help >& /dev/null; then
+  latex -halt-on-error -file-line-error $BASENAME2.tex || exit 1
+  latex $BASENAME2.tex >& /dev/null # second, silent run to resolve references
+  latex $BASENAME2.tex >& /dev/null # third, silent run to resolve references
+  dvips -o $BASENAME2.ps $BASENAME2.dvi || echo "WARNING: Skip running dvips (dvips not found in PATH)" || exit 1
+else
+  echo "WARNING: Skip running LaTeX for LaTeX documentation (latex command not found in PATH)"
+fi
 cd $OLDDIR
