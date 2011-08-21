@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #ifdef HAVE_UNORDERED_MAP
 #  include <unordered_map>
@@ -22,6 +23,9 @@
 #include <octave/octave.h>
 #include <octave/parse.h>
 #include "env.h"
+#ifdef MBXMLUTILS_MINGW // Windows
+#  include "Windows.h"
+#endif
 // #include <config.h> conflict with octave header
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
@@ -571,14 +575,32 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  // get path of this executable
+  char exePath[4096];
+#ifdef MBXMLUTILS_MINGW // Windows
+  GetModuleFileName(NULL, exePath, sizeof(exePath));
+  *strrchr(exePath, '/')=0; // remove the program name
+#else // Linux
+  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
+  exePath[exePathLength]=0; // null terminate
+  *strrchr(exePath, '/')=0; // remove the program name
+#endif
+
   // check for environment variables (none default installation)
+  struct stat st;
   char *env;
-  SCHEMADIR=SCHEMADIR_DEFAULT;
-  if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env;
-  XMLDIR=XMLDIR_DEFAULT;
-  if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env;
-  OCTAVEDIR=OCTAVEDIR_DEFAULT;
-  if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env;
+  SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
+  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=string(exePath)+"/../share/mbxmlutils/schema"; // use rel path if build configuration dose not work
+  if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env; // overwrite with envvar if exist
+  XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
+  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=string(exePath)+"/../share/mbxmlutils/xml"; // use rel path if build configuration dose not work
+  if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
+  OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
+  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=string(exePath)+"/../share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
+  // OCTAVE_HOME
+  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"share/octave").c_str(), &st)==0)
+    setenv("OCTAVE_HOME", exePath, 1); 
 
   // initialize octave
   char **octave_argv=(char**)malloc(2*sizeof(char*));

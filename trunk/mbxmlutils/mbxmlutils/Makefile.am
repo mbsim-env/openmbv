@@ -58,5 +58,5 @@ CLEANFILES = .measurement.xml.isvalid index.xhtml measurement/measurement.tex ph
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = $(LIBXML2_CFLAGS) -DTIXML_USE_STL $(MKOCTFILE_CFLAGS)
-mbxmlutilspp_LDFLAGS = -L../mbxmlutilstinyxml
+mbxmlutilspp_LDFLAGS = -L../mbxmlutilstinyxml -Wl,-rpath -Wl,\$$ORIGIN/../lib
 mbxmlutilspp_LDADD = $(LIBXML2_LIBS) -lmbxmlutilstinyxml $(MKOCTFILE_LIBS)
