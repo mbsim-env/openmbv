@@ -599,8 +599,8 @@ int main(int argc, char *argv[]) {
   if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=string(exePath)+"/../share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
-  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"share/octave").c_str(), &st)==0)
-    setenv("OCTAVE_HOME", exePath, 1); 
+  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0)
+    setenv("OCTAVE_HOME", (string(exePath)+"/..").c_str(), 1); 
 
   // initialize octave
   char **octave_argv=(char**)malloc(2*sizeof(char*));
