@@ -579,6 +579,7 @@ int main(int argc, char *argv[]) {
   char exePath[4096];
 #ifdef MBXMLUTILS_MINGW // Windows
   GetModuleFileName(NULL, exePath, sizeof(exePath));
+  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
 #else // Linux
   int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
@@ -600,7 +601,7 @@ int main(int argc, char *argv[]) {
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
   if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0)
-    setenv("OCTAVE_HOME", (string(exePath)+"/..").c_str(), 1); 
+    putenv((string("OCTAVE_HOME=")+exePath+"/..").c_str()); 
 
   // initialize octave
   char **octave_argv=(char**)malloc(2*sizeof(char*));
