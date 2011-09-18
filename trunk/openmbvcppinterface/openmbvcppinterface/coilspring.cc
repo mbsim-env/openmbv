@@ -25,6 +25,7 @@ using namespace std;
 using namespace OpenMBV;
 
 CoilSpring::CoilSpring() : DynamicColoredBody(),
+  data(0),
   springRadius(1),
   crossSectionRadius(-1),
   scaleFactor(1),

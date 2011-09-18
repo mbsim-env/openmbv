@@ -29,19 +29,19 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   contour(0),
   data(0), 
   scaleFactor(1) {
-  }
+}
 
-  SpineExtrusion::~SpineExtrusion() {
-    if(!hdf5LinkBody && data) { delete data; data=0; }
-    if(contour) { 
-      for(unsigned int i=0;i<contour->size();i++) {
-        delete (*contour)[i];
-        (*contour)[i]=0;
-      }
-      delete contour;
-      contour=0;
+SpineExtrusion::~SpineExtrusion() {
+  if(!hdf5LinkBody && data) { delete data; data=0; }
+  if(contour) { 
+    for(unsigned int i=0;i<contour->size();i++) {
+      delete (*contour)[i];
+      (*contour)[i]=0;
     }
+    delete contour;
+    contour=0;
   }
+}
 
 TiXmlElement* SpineExtrusion::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
