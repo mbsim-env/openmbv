@@ -33,6 +33,11 @@ using namespace std;
 Group::Group() : Object(), expandStr("true"), separateFile(false), topLevelFile(false) {
 }
 
+Group::~Group() {
+  for(unsigned int i=0; i<object.size(); i++)
+    delete object[i];
+}
+
 void Group::addObject(Object* newObject) {
   assert(newObject->name!="");
   for(unsigned int i=0; i<object.size(); i++)
@@ -183,12 +188,12 @@ void Group::readH5(Group *rootGrp) {
 }
 
 void Group::readSimpleParameter(std::string filename) {
-  TiXmlDocument *paramdoc=new TiXmlDocument;
+  TiXmlDocument paramdoc;
   FILE *f=fopen(filename.c_str(),"r");
   if(f!=NULL) {
     fclose(f);
-    paramdoc->LoadFile(filename); TiXml_PostLoadFile(paramdoc);
-    TiXmlElement *e=paramdoc->FirstChildElement();
+    paramdoc.LoadFile(filename); TiXml_PostLoadFile(&paramdoc);
+    TiXmlElement *e=paramdoc.FirstChildElement();
     map<string,string> dummy;
     incorporateNamespace(e,dummy);
 
