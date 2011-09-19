@@ -45,7 +45,7 @@ namespace OpenMBV {
       /** Default constructor */
       Group();
 
-      ~Group();
+      virtual ~Group();
 
       /** Retrun the class name */
       std::string getClassName() { return "Group"; }
