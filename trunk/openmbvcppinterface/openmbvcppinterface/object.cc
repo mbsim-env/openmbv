@@ -31,7 +31,7 @@ Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), p
 }
 
 Object::~Object() {
-  delete hdf5Group;
+  if(hdf5Group!=0) { delete hdf5Group; hdf5Group=0; }
 }
 
 string Object::getFullName() {

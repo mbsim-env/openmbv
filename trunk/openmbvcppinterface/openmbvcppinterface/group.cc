@@ -34,8 +34,8 @@ Group::Group() : Object(), expandStr("true"), separateFile(false), topLevelFile(
 }
 
 Group::~Group() {
-  for(unsigned int i=0; i<object.size(); i++)
-    delete object[i];
+  //for(unsigned int i=0; i<object.size(); i++)
+  //  delete object[i];
 }
 
 void Group::addObject(Object* newObject) {
