@@ -31,7 +31,7 @@
 
 using namespace std;
 
-Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
   iconFile=":/extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
@@ -58,9 +58,9 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
   }
   SoSeparator *side=new SoSeparator;
+  soSepRigidBody->addChild(side);
   if(height!=0) {
     // side
-    soSepRigidBody->addChild(side);
     // shape hint
     SoShapeHints *sh=new SoShapeHints;
     side->addChild(sh);
@@ -164,6 +164,7 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   n->vector.set1Value(0, 0, 0, -1);
   // base
   soSepRigidBody->addChild(soTess);
+  soTess->unref();
   if(height!=0) {
     // trans
     SoTranslation *t=new SoTranslation;

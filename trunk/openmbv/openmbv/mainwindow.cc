@@ -515,6 +515,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // line width for outline and shilouette edges
   olseDrawStyle=new SoDrawStyle;
+  olseDrawStyle->ref();
   olseDrawStyle->style.setValue(SoDrawStyle::LINES);
   olseDrawStyle->lineWidth.setValue(1);
   if((i=std::find(arg.begin(), arg.end(), "--olselinewidth"))!=arg.end()) {
@@ -541,6 +542,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // color for outline and shilouette edges
   olseColor=new SoBaseColorHeavyOverride;
+  olseColor->ref();
   olseColor->rgb.set1Value(0, 0,0,0);
   if((i=std::find(arg.begin(), arg.end(), "--olsecolor"))!=arg.end()) {
     i2=i; i2++;
@@ -718,7 +720,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if(lastframeArg) lastFrameAct->trigger();
 }
 
-bool MainWindow::openFile(string fileName) {
+bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
+  // default parameter
+  if(parentItem==NULL) parentItem=objectList->invisibleRootItem();
+  if(soParent==NULL) soParent=sceneRoot;
+
   // check file type
   bool env;
   if(fileName.length()>string(".ombv.xml").length() && fileName.substr(fileName.length()-string(".ombv.xml").length())==".ombv.xml")
@@ -739,7 +745,7 @@ bool MainWindow::openFile(string fileName) {
     OpenMBV::Group::readH5(rootGroup);
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
-  Object *object=ObjectFactory(rootGroup, objectList->invisibleRootItem(), sceneRoot);
+  Object *object=ObjectFactory(rootGroup, parentItem, soParent, ind);
   object->setText(0, fileName.c_str());
   if(!env)
     object->getIconFile()=":/h5file.svg";
@@ -1302,6 +1308,7 @@ void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileNa
     image.save(fileName.c_str(), "png");
     delete[]buf;
   }
+  root->unref();
 }
 
 void MainWindow::exportCurrentAsPNG() {

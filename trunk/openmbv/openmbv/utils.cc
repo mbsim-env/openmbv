@@ -71,7 +71,6 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
     sep=new SoSeparator;
   else
     sep=new SoSepNoPickNoBBox;
-  sep->ref();
 
   SoBaseColor *col;
   SoLineSet *line;

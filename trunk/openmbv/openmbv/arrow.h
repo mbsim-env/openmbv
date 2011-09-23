@@ -60,7 +60,7 @@ class Arrow : public DynamicColoredBody {
     std::vector<double> data;
     double length, scaleLength;
   public:
-    Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
     QMenu* createMenu();
   public slots:

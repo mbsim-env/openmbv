@@ -35,7 +35,7 @@
 
 using namespace std;
 
-IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent), calculateEdgesThread(this) {
+IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind), calculateEdgesThread(this) {
   OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
   iconFile=":/ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

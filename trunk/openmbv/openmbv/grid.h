@@ -27,7 +27,7 @@
 class Grid : public RigidBody {
   Q_OBJECT
   public:
-    Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
 
 #endif

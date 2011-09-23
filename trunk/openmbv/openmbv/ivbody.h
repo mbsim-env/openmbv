@@ -31,7 +31,7 @@ class EdgeCalculation;
 class IvBody : public RigidBody {
   Q_OBJECT
   public:
-    IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~IvBody();
 
   private:

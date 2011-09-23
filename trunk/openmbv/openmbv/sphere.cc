@@ -27,7 +27,7 @@
 
 using namespace std;
 
-Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Sphere *s=(OpenMBV::Sphere*)obj;
   iconFile=":/sphere.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

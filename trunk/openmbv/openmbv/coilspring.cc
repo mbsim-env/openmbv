@@ -26,7 +26,7 @@
 
 using namespace std;
 
-CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   coilSpring=(OpenMBV::CoilSpring*)obj;
   iconFile=":/coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

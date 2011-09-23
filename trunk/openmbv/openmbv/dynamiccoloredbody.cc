@@ -24,7 +24,7 @@
 
 using namespace std;
 
-DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Body(obj, parentItem, soParent), color(0), oldColor(nan("")) {
+DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(nan("")) {
   OpenMBV::DynamicColoredBody *dcb=(OpenMBV::DynamicColoredBody*)obj;
   // read XML
   minimalColorValue=dcb->getMinimalColorValue();

@@ -28,7 +28,7 @@
 
 using namespace std;
 
-NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   nurbsDisk=(OpenMBV::NurbsDisk*)obj;
   //h5 dataset
   int rows=nurbsDisk->getRows();
@@ -146,7 +146,12 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
   // faces
   faceSet=new SoIndexedFaceSet;
+  faceSet->ref();
   //soSep->addChild(faceSet);  
+}
+
+NurbsDisk::~NurbsDisk() {
+  faceSet->unref();
 }
 
 QString NurbsDisk::getInfo() {

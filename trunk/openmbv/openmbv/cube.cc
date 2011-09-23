@@ -27,7 +27,7 @@
 
 using namespace std;
 
-Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Cube *c=(OpenMBV::Cube*)obj;
   iconFile=":/cube.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

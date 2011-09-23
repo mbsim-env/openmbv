@@ -28,7 +28,7 @@
 class Cube : public RigidBody {
   Q_OBJECT
   public:
-    Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
 
 #endif

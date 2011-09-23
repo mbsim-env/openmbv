@@ -31,7 +31,7 @@
 
 using namespace std;
 
-Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Frustum *f=(OpenMBV::Frustum*)obj;
   iconFile=":/frustum.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

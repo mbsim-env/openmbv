@@ -45,9 +45,6 @@ namespace OpenMBV {
       /** constructor */
       SpineExtrusion();
 
-      /** destructor */
-      virtual ~SpineExtrusion();
-
       /** Retrun the class name */
       std::string getClassName() { return "SpineExtrusion"; }
 
@@ -89,6 +86,9 @@ namespace OpenMBV {
       virtual void initializeUsingXML(TiXmlElement *element);
 
     protected:
+      /** destructor */
+      virtual ~SpineExtrusion();
+
       /** Number of spine points used for extrusion along a path. */
       int numberOfSpinePoints;
 

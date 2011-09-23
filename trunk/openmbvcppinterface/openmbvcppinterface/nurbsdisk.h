@@ -44,9 +44,6 @@ namespace OpenMBV {
       /** Retrun the class name */
       std::string getClassName() { return "NurbsDisk"; }
 
-      /** destructor */
-      virtual ~NurbsDisk();
-
       /** Set the scale factor of the body. */
       void setScaleFactor(const ScalarParameter scale) {
         set(scaleFactor,scale);
@@ -150,6 +147,9 @@ namespace OpenMBV {
       virtual void initializeUsingXML(TiXmlElement *element);
 
     protected:
+      /** destructor */
+      virtual ~NurbsDisk();
+
       /** Each row comprises [time,]. */
       H5::VectorSerie<double>* data;
 

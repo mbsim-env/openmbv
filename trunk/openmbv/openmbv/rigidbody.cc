@@ -35,8 +35,9 @@
 
 using namespace std;
 
-RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem_, soParent, ind) {
   rigidBody=(OpenMBV::RigidBody*)obj;
+  parentItem=parentItem_;
   //h5 dataset
   if(rigidBody->getParent()) { // do nothing for rigidbodies inside a compoundrigidbody
     int rows=rigidBody->getRows();
@@ -88,6 +89,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     soReferenceFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soReferenceFrameSwitch);
     soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
+    refFrameScale->ref();
     soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
@@ -120,6 +122,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     soLocalFrameSwitch=new SoSwitch;
     soSepRigidBody->addChild(soLocalFrameSwitch);
     soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
+    localFrameScale->ref();
     soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   
     // mat (from hdf5)
@@ -165,6 +168,13 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   }
+}
+
+RigidBody::~RigidBody() {
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
+    rotation->unref();
+  refFrameScale->unref();
+  localFrameScale->unref();
 }
 
 QMenu* RigidBody::createMenu() {

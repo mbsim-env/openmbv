@@ -40,7 +40,7 @@ class Path : public Body {
     int maxFrameRead;
     OpenMBV::Path *path;
   public:
-    Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
 };
 

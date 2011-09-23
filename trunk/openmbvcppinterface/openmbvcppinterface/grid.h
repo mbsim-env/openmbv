@@ -30,6 +30,7 @@ namespace OpenMBV {
       ScalarParameter xSize, ySize;
       unsigned int nx, ny;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~Grid() {}
     public:
       /** Default constructor */
       Grid();

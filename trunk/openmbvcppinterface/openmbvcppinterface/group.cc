@@ -34,8 +34,8 @@ Group::Group() : Object(), expandStr("true"), separateFile(false), topLevelFile(
 }
 
 Group::~Group() {
-  //for(unsigned int i=0; i<object.size(); i++)
-  //  delete object[i];
+  for(unsigned int i=0; i<object.size(); i++)
+    delete object[i];
 }
 
 void Group::addObject(Object* newObject) {
@@ -249,4 +249,12 @@ void Group::collectParameter(map<string, double>& sp, map<string, vector<double>
   if(!separateFile || collectAlsoSeparateGroup)
     for(size_t i=0; i<object.size(); i++)
       object[i]->collectParameter(sp, vp, mp);
+}
+
+void Group::deleteObject(Object* obj) {
+  for(vector<Object*>::iterator i=object.begin(); i!=object.end(); i++)
+    if(*i==obj) {
+      object.erase(i);
+      break;
+    }
 }

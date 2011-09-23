@@ -79,11 +79,11 @@ namespace OpenMBV {
       void openHDF5File();
       H5::VectorSerie<double>* data;
       CompoundRigidBody *compound;
+
+      ~RigidBody();
     public:
       /** Default constructor */
       RigidBody();
-
-      ~RigidBody();
 
       /** Draw local frame of this object in the viewer if true (the default) */
       void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }

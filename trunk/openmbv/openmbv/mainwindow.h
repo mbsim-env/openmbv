@@ -33,6 +33,7 @@
 #include <QTime>
 #include <string>
 #include "body.h"
+#include "group.h"
 #include "SoSpecial.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
@@ -75,7 +76,6 @@ class MainWindow : public QMainWindow {
     QTreeWidget *objectList;
     QTextEdit *objectInfo;
     QSpinBox *frameSB;
-    bool openFile(std::string fileName);
     SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
     SoShadowGroup *sceneRoot;
@@ -192,6 +192,7 @@ class MainWindow : public QMainWindow {
     void complexityValue();
   public:
     MainWindow(std::list<std::string>& arg);
+    bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     static MainWindow*const getInstance() { return instance; }
     bool soQtEventCB(const SoEvent *const event);
@@ -211,6 +212,8 @@ class MainWindow : public QMainWindow {
     void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
+    SoShadowGroup* getSceneRoot() { return sceneRoot; }
+    int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
 };
 
 #endif

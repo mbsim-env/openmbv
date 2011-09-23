@@ -29,6 +29,7 @@ namespace OpenMBV {
     protected:
       ScalarParameter radius;
       TiXmlElement *writeXMLFile(TiXmlNode *parent);
+      ~Sphere() {}
     public:
       /** Default constructor */
       Sphere();

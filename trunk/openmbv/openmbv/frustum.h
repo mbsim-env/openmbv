@@ -28,7 +28,7 @@
 class Frustum : public RigidBody {
   Q_OBJECT
   public:
-    Frustum(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Frustum(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
 
 #endif

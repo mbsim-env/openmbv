@@ -28,6 +28,11 @@ using namespace OpenMBV;
 CompoundRigidBody::CompoundRigidBody() : RigidBody() {
 }
 
+CompoundRigidBody::~CompoundRigidBody() {
+  for(unsigned int i=0; i<rigidBody.size(); i++)
+    delete rigidBody[i];
+}
+
 TiXmlElement* CompoundRigidBody::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
   for(unsigned int i=0; i<rigidBody.size(); i++)

@@ -29,6 +29,7 @@ namespace OpenMBV {
     protected:
       ScalarParameter baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~Frustum() {}
     public:
       /** Default constructor */
       Frustum();

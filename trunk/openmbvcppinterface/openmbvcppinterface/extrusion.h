@@ -41,6 +41,7 @@ namespace OpenMBV {
       ScalarParameter height;
       std::vector<std::vector<PolygonPoint*>*> contour;
       TiXmlElement *writeXMLFile(TiXmlNode *parent);
+      ~Extrusion() {}
     public:
       /** Default constructor */
       Extrusion();

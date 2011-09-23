@@ -43,6 +43,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       void terminate();
+      ~Body() {}
     public:
       /** Default constructor */
       Body();

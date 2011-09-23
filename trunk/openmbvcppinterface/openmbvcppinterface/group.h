@@ -41,11 +41,14 @@ namespace OpenMBV {
       void readSimpleParameter(std::string filename);
       void writeSimpleParameter(std::string filename);
       void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
+
+      virtual ~Group();
     public:
       /** Default constructor */
       Group();
 
-      virtual ~Group();
+      /** It must be possible to delete the top level Group: use this function for therefore */
+      void destroy() const { delete this; }
 
       /** Retrun the class name */
       std::string getClassName() { return "Group"; }
@@ -57,6 +60,9 @@ namespace OpenMBV {
 
       /** Add a object to this object container */
       void addObject(Object* object);
+
+      /** Delelete object from this object container */
+      void deleteObject(Object* object);
 
       std::vector<Object*> getObjects() {
         return object;

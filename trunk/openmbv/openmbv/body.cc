@@ -29,6 +29,7 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoCamera.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include "SoSpecial.h"
 #include <QtGui/QMenu>
 #include "mainwindow.h"
@@ -43,7 +44,7 @@ using namespace std;
 
 bool Body::existFiles=false;
 
-Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
+Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
   body=(OpenMBV::Body*)obj;
   frameSensor=NULL;
   shilouetteEdgeFrameSensor=NULL;
@@ -138,10 +139,19 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent)
 }
 
 Body::~Body() {
+  // delete scene graph
+  SoSearchAction sa;
+  sa.setInterest(SoSearchAction::FIRST);
+  sa.setNode(soOutLineSwitch);
+  sa.apply(MainWindow::getInstance()->getSceneRoot());
+  SoPath *p=sa.getPath();
+  if(p) ((SoGroup*)p->getNodeFromTail(1))->removeChild(soOutLineSwitch);
+  // delete the rest
   delete edgeCalc;
   delete frameSensor;
   delete shilouetteEdgeFrameSensor;
   delete shilouetteEdgeOrientationSensor;
+  soOutLineSwitch->unref();
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {

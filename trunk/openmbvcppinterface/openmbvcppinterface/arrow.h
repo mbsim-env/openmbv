@@ -50,12 +50,12 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
       ScalarParameter headDiameter, headLength, diameter, scaleLength;
       Type type;
-    public:
-      /** Default Constructor */
-      Arrow();
 
       /** Destructor */
       virtual ~Arrow();
+    public:
+      /** Default Constructor */
+      Arrow();
 
       /** Retrun the class name */
       std::string getClassName() { return "Arrow"; }

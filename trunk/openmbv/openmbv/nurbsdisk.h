@@ -53,7 +53,9 @@ class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    NurbsDisk(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    NurbsDisk(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+
+    ~NurbsDisk();
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();

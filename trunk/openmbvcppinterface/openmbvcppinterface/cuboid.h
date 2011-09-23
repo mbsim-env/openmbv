@@ -29,6 +29,7 @@ namespace OpenMBV {
     protected:
       VectorParameter length;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~Cuboid() {}
     public:
       /** Default constructor */
       Cuboid();
