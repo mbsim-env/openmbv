@@ -56,7 +56,7 @@ class Object : public QObject, public QTreeWidgetItem {
     bool searchMatched;
     SoNodeSensor *nodeSensor;
   public:
-    Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
     virtual QMenu* createMenu();
     void setEnableRecursive(bool enable);

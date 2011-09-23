@@ -27,7 +27,10 @@
 class CompoundRigidBody : public RigidBody {
   Q_OBJECT
   public:
-    CompoundRigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    CompoundRigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    ~CompoundRigidBody();
+  private:
+    std::vector<RigidBody*> rigidBody;
 };
 
 #endif

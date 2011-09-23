@@ -23,6 +23,7 @@
 #include <QtGui/QApplication>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include "mainwindow.h"
 #include "openmbvcppinterface/group.h"
 #include "compoundrigidbody.h"
@@ -32,11 +33,14 @@ using namespace std;
 
 map<SoNode*,Object*> Object::objectMap;
 
-Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
+Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
   object=obj;
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
-    parentItem->addChild(this);
+    if(ind==-1 || ind>=parentItem->childCount())
+      parentItem->addChild(this); // insert as last element
+    else
+      parentItem->insertChild(ind, this); // insert at position ind
 
     // enable or disable
     if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
@@ -90,7 +94,21 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 }
 
 Object::~Object() {
+  // delete scene graph
+  SoSearchAction sa;
+  sa.setInterest(SoSearchAction::FIRST);
+  sa.setNode(soSwitch);
+  sa.apply(MainWindow::getInstance()->getSceneRoot());
+  SoPath *p=sa.getPath();
+  if(p) ((SoSwitch*)p->getNodeFromTail(1))->removeChild(soSwitch);
+  // delete bbox scene graph
+  sa.setNode(soBBoxSwitch);
+  sa.apply(MainWindow::getInstance()->getSceneRootBBox());
+  p=sa.getPath();
+  if(p) ((SoSwitch*)p->getNodeFromTail(1))->removeChild(soBBoxSwitch);
+  // delete the rest
   delete nodeSensor;
+  soSwitch->unref();
 }
 
 QMenu* Object::createMenu() {

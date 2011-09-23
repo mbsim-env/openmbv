@@ -61,7 +61,8 @@ class RigidBody : public DynamicColoredBody {
     SoRotation *initRot;
     SoCenterballDragger *soDragger;
   public:
-    RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
+    ~RigidBody();
     virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:
@@ -70,6 +71,8 @@ class RigidBody : public DynamicColoredBody {
     void pathSlot();
     void draggerSlot();
     void moveCameraWithSlot();
+  private:
+    QTreeWidgetItem *parentItem;
 };
 
 #endif

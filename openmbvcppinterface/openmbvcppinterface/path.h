@@ -40,12 +40,12 @@ namespace OpenMBV {
       void openHDF5File();
       H5::VectorSerie<double>* data;
       VectorParameter color;
-    public:
-      /** Default constructor */
-      Path();
       
       /** Destructor */
       virtual ~Path();
+    public:
+      /** Default constructor */
+      Path();
 
       /** Retrun the class name */
       std::string getClassName() { return "Path"; }

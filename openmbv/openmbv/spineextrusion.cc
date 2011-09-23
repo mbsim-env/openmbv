@@ -26,7 +26,7 @@
 
 using namespace std;
 
-SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent), numberOfSpinePoints(0) {
+SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0) {
   spineExtrusion=(OpenMBV::SpineExtrusion*)obj;
   //h5 dataset
   numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);

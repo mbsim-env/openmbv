@@ -25,7 +25,7 @@
 #include "utils.h"
 #include "openmbvcppinterface/grid.h"
 
-Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
   iconFile=":/grid.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

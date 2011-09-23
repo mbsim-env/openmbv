@@ -48,12 +48,12 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
       ScalarParameter springRadius, crossSectionRadius, scaleFactor, numberOfCoils, nominalLength;
       Type type;
-    public:
-      /** Default Constructor */
-      CoilSpring();
       
       /** Destructor */
       virtual ~CoilSpring();
+    public:
+      /** Default Constructor */
+      CoilSpring();
 
       /** Retrun the class name */
       std::string getClassName() { return "CoilSpring"; }

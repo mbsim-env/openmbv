@@ -28,6 +28,7 @@ namespace OpenMBV {
   class InvisibleBody : public RigidBody {
     protected:
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~InvisibleBody() {}
     public:
       /** Default constructor */
       InvisibleBody();

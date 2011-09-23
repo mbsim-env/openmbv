@@ -28,7 +28,7 @@
 class InvisibleBody : public RigidBody {
   Q_OBJECT
   public:
-    InvisibleBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    InvisibleBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
 
 #endif

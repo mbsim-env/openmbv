@@ -30,7 +30,7 @@
 
 using namespace std;
 
-Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : Object(obj, parentItem, soParent) {
+Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
   grp=(OpenMBV::Group*)obj;
   iconFile=":/group.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
@@ -50,7 +50,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   vector<OpenMBV::Object*> child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
     if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
-    ObjectFactory(child[i], this, soSep);
+    ObjectFactory(child[i], this, soSep, ind);
   }
 
   // hide groups without childs
@@ -60,6 +60,14 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-File", this);
   saveFile->setObjectName("Group::saveFile");
   connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
+
+  unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-File (alpha; may crash currently)", this);
+  unloadFile->setObjectName("Group::unloadFile");
+  connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
+
+  reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-File (alpha; may crash currently)", this);
+  reloadFile->setObjectName("Group::reloadFile");
+  connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
 }
 
 QString Group::getInfo() {
@@ -73,6 +81,8 @@ QMenu* Group::createMenu() {
   if(grp->getSeparateFile()) {
     menu->addSeparator()->setText("Properties from: Group");
     menu->addAction(saveFile);
+    menu->addAction(unloadFile);
+    menu->addAction(reloadFile);
   }
   return menu;
 }
@@ -90,4 +100,25 @@ void Group::saveFileSlot() {
         .arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
        QMessageBox::Save | QMessageBox::Cancel)==QMessageBox::Save)
     grp->writeXML();
+}
+
+void Group::unloadFileSlot() {
+  // delete the OpenMBVCppInterface
+  grp->destroy();
+  // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
+  // "delete this" is not good code but allowed and works here!
+  delete this; // should be the last action
+}
+
+void Group::reloadFileSlot() {
+  // save file name and ind of this in parent
+  string fileName=text(0).toStdString();
+  QTreeWidgetItem *parent=QTreeWidgetItem::parent();
+  int ind=parent?
+            parent->indexOfChild(this):
+            MainWindow::getInstance()->getRootItemIndexOfChild(this);
+  // unload
+  unloadFileSlot(); // NOTE: this calls "delete this" !!!
+  // load
+  MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:NULL, ind);
 }

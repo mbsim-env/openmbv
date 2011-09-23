@@ -33,14 +33,16 @@ class Group : public Object {
   Q_OBJECT
   protected:
     virtual void update() {}
-    QAction *saveFile;
+    QAction *saveFile, *unloadFile, *reloadFile;
     OpenMBV::Group *grp;
   public:
-    Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
     QMenu* createMenu();
   protected slots:
     void saveFileSlot();
+    void unloadFileSlot();
+    void reloadFileSlot();
 };
 
 #endif

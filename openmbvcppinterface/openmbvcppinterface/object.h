@@ -71,12 +71,12 @@ namespace OpenMBV {
       void set(MatrixParameter& dst, const MatrixParameter& src);
       
       virtual void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
-    public:
-      /** Default constructor */
-      Object();
 
       /** Virtual destructor */
       virtual ~Object();
+    public:
+      /** Default constructor */
+      Object();
 
       /** Retrun the class name */
       virtual std::string getClassName()=0;

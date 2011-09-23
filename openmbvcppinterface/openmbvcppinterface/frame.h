@@ -30,6 +30,7 @@ namespace OpenMBV {
       ScalarParameter size;
       ScalarParameter offset;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~Frame() {}
     public:
       /** Default constructor */
       Frame();

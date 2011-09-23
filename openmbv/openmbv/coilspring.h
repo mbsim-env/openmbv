@@ -46,7 +46,7 @@ class CoilSpring : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    CoilSpring(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    CoilSpring(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~CoilSpring();
 
     /** info string in spine extrusion pop-up menu */

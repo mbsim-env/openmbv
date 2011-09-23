@@ -27,7 +27,7 @@
 
 using namespace std;
 
-Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Rotation* rot=(OpenMBV::Rotation*)obj;
   iconFile=":/rotation.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

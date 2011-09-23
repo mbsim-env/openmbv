@@ -41,7 +41,7 @@ class SpineExtrusion : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    SpineExtrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    SpineExtrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();

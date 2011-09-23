@@ -25,7 +25,7 @@
 
 using namespace std;
 
-CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : RigidBody(obj, parentItem, soParent) {
+CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::CompoundRigidBody* crb=(OpenMBV::CompoundRigidBody*)obj;
   iconFile=":/compoundrigidbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
@@ -33,9 +33,14 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
   // read XML
   vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
-    ObjectFactory(rb[i], this, soSepRigidBody);
+    rigidBody.push_back((RigidBody*)ObjectFactory(rb[i], this, soSepRigidBody, ind));
 
   // create so
 
   // outline
+}
+
+CompoundRigidBody::~CompoundRigidBody() {
+  for(size_t i=0; i<rigidBody.size(); i++)
+    delete rigidBody[i];
 }

@@ -22,4 +22,4 @@
 #include "openmbvcppinterface/object.h"
 #include <H5Cpp.h>
 
-Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem* parentItem, SoGroup *soParent);
+Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);

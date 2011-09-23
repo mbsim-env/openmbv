@@ -31,10 +31,10 @@ namespace OpenMBV {
       ScalarParameter staticColor;
       double dynamicColor;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
-    public:
-      DynamicColoredBody();
 
       ~DynamicColoredBody();
+    public:
+      DynamicColoredBody();
 
       /** Set the minimal color value.
        * The color value of the body in linearly mapped between minimalColorValue

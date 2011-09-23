@@ -53,7 +53,7 @@ class Body : public Object {
     EdgeCalculation *edgeCalc;
     SoFieldSensor *frameSensor;
   public:
-    Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent);
+    Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~Body();
     static void frameSensorCB(void *data, SoSensor*);
     virtual QMenu* createMenu();

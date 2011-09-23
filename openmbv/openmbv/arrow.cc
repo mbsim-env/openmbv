@@ -28,7 +28,7 @@
 
 using namespace std;
 
-Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent) : DynamicColoredBody(obj, parentItem, soParent) {
+Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   arrow=(OpenMBV::Arrow*)obj;
   iconFile=":/arrow.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));

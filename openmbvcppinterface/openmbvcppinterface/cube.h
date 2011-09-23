@@ -29,6 +29,7 @@ namespace OpenMBV {
     protected:
       ScalarParameter length;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      ~Cube() {}
     public:
       /** Default constructor */
       Cube();
