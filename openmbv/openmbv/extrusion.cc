@@ -153,7 +153,7 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   gluTessEndPolygon(Utils::tess);
   // now we can delete all v
   for(unsigned int i=0; i<vPtr.size(); i++)
-    delete[]vPtr[0];
+    delete[]vPtr[i];
   // normal binding
   SoNormalBinding *nb=new SoNormalBinding;
   soSepRigidBody->addChild(nb);
