@@ -874,7 +874,7 @@ void MainWindow::aboutOpenMBV() {
     "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"
     "<h2>Authors:</h2>"
     "<ul>"
-    "  <li>Markus Friedrich <tt>&lt;mafriedrich@users.berlios.de&gt;</tt> (Maintainer)</li>"
+    "  <li>Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt> (Maintainer)</li>"
     "</ul>"
     "<h2>This program uses:</h2>"
     "<ul>"

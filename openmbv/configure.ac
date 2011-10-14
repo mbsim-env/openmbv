@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([openmbv],[3.1.0],[mafriedrich@users.berlios.de])
+AC_INIT([openmbv],[3.1.0],[friedrich.at.gc@googlemail.com])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([openmbv/object.h])
