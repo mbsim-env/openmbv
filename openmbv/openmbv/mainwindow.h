@@ -71,6 +71,7 @@ class MainWindow : public QMainWindow {
     SoSwitch *engDrawing;
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
+    int reloadTimeout;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
@@ -214,6 +215,7 @@ class MainWindow : public QMainWindow {
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoShadowGroup* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
+    int getReloadTimeout() { return reloadTimeout; }
 };
 
 #endif

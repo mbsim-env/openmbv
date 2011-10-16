@@ -47,8 +47,9 @@ namespace OpenMBV {
       /** Default constructor */
       Group();
 
-      /** It must be possible to delete the top level Group: use this function for therefore */
-      void destroy() const { delete this; }
+      /** It must be possible to delete the top level Group: use this function for therefore.
+       * If this object is was added into a parent object this object is first removed from this parent and then deleted. */
+      void destroy() const;
 
       /** Retrun the class name */
       std::string getClassName() { return "Group"; }
@@ -60,9 +61,6 @@ namespace OpenMBV {
 
       /** Add a object to this object container */
       void addObject(Object* object);
-
-      /** Delelete object from this object container */
-      void deleteObject(Object* object);
 
       std::vector<Object*> getObjects() {
         return object;
@@ -83,8 +81,6 @@ namespace OpenMBV {
        * Call this function for the root node of the tree to create/write/ the XML file.
        */
       void writeXML();
-      /** DEPRECATED use writeXML() */
-      void initializeXML() { std::cerr<<"WARNING! OpenMBV::Group::initializeXML() is deprecated. Please use OpenMBV::Group::writeXML() instead."<<std::endl; writeXML(); }
 
       /** Read the XML file.
        * Call this function to read an OpenMBV XML file and creating the Object tree.
@@ -96,8 +92,6 @@ namespace OpenMBV {
        * (Only the h5 tree i written, but do data. Use append() to write date to h5 file after calling this function)
        */
       void writeH5();
-      /** DEPRECATED use writeH5() */
-      void initializeH5() { std::cerr<<"WARNING! OpenMBV::Group::initializeH5() is deprecated. Please use OpenMBV::Group::writeH5() instead."<<std::endl; writeH5(); }
 
       /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
        */
@@ -107,8 +101,6 @@ namespace OpenMBV {
        * This function simply calls writeXML() and writeH5().
        */
       void write() { writeXML(); writeH5(); }
-      /** DEPRECATED use write() */
-      void initialize() { initializeXML(); initializeH5(); }
 
       /** Read the tree (XML and h5).
        * This function simply calls readXML() and readH5().

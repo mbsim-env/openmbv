@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
   i=find(arg.begin(), arg.end(), "-h");
   i2=find(arg.begin(), arg.end(), "--help");
   if(i!=arg.end() || i2!=arg.end()) {
+        // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
     cout<<"OpenMBV - Open Multi Body Viewer"<<endl
         <<""<<endl
         <<"Copyright (C) 2009 Markus Friedrich <friedrich.at.gc@googlemail.com"<<endl
@@ -68,7 +69,9 @@ int main(int argc, char *argv[])
         <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
         <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
         <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
+        <<"               [--autoreload [<timeout>]]"<<endl
         <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
         <<""<<endl
@@ -76,8 +79,8 @@ int main(int argc, char *argv[])
         <<"--play             Start animation after loading"<<endl
         <<"--speed            Set the animation speed"<<endl
         <<"--lastframe        View last frame after loading"<<endl
-        <<"--topbgcolor       The color on the top of the background (red, green, blue value"<<endl
-        <<"                   in hex)"<<endl
+        <<"--topbgcolor       The color on the top of the background (red, green, blue"<<endl
+        <<"                   value in hex)"<<endl
         <<"--bottombgcolor    The color on the bottom (see also --topbgcolor)"<<endl
         <<"--closeall         Start with all widgets closed except scene widget"<<endl
         <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
@@ -85,6 +88,7 @@ int main(int argc, char *argv[])
         <<"--wst              Load the given (main)window state file"<<endl
         <<"--camera           Load the given camera file (*.iv)"<<endl
         <<"                   (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
+        // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<"--headlight        Load the given head light file (*.iv)"<<endl
         <<"                   (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen       Start in full screen mode"<<endl
@@ -92,10 +96,16 @@ int main(int argc, char *argv[])
         <<"--olselinewidth    Line width of outlines and shilouette edges"<<endl
         <<"--olsecolor        Color of outlines and shilouette edges"<<endl
         <<"--complexitytype   The complexity type (see inventor SoComplexity.type)"<<endl
-        <<"--complexityvalue  The complexity value [0..100] (see inventor SoComplexity.value)"<<endl
+        <<"--complexityvalue  The complexity value [0..100] (see inventor"<<endl
+        <<"                   SoComplexity.value)"<<endl
+        <<"--autoreload       Reload, every <timeout> milli seconds, files that have a"<<endl
+        <<"                   newer modification time than before. If <timeout> is omitted"<<endl
+        <<"                   a default value is used."<<endl
         <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
-        <<"<file>             Open/Load <file>. Only fully preprocessed xml files are allowd."<<endl;
+        <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
+        <<"                   are allowd."<<endl;
+        // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }

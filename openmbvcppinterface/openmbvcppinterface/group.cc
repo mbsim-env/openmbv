@@ -67,6 +67,8 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
       dir=dir.substr(0, pos+1);
     else
       dir="";
+    // write simple parameter file
+    writeSimpleParameter(dir+fullName+".ombv.xml");
     // create new xml file and write to it till now
     TiXmlDocument xmlFile(dir+fullName+".ombv.xml");
       xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
@@ -76,9 +78,9 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
       e->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
       for(unsigned int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(e);
+    // MFMF lock fileName for writing
     xmlFile.SaveFile();
-
-    writeSimpleParameter(dir+fullName+".ombv.xml");
+    // MFMF unlock fileName
   }
   return 0;
 }
@@ -97,25 +99,38 @@ void Group::createHDF5File() {
                        parent->hdf5Group->getId(), name.c_str(),
                        H5P_DEFAULT, H5P_DEFAULT);
     // create new h5 file land write to in till now
+    // MFMF lock <fullName>.ombv.h5 for writing
     hdf5Group=(H5::Group*)new H5::FileSerie(fullName+".ombv.h5", H5F_ACC_TRUNC);
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
+    hdf5Group->flush(H5F_SCOPE_GLOBAL);
+    // MFMF unlock <fullName>.ombv.h5 (NOTE: the tree is written and flushed but not data until now is added!)
   }
 }
 
 void Group::openHDF5File() {
   if(topLevelFile)
+    // MFMF lock getFileName().substr(0,getFileName().length()-4)+".h5" for reading
     hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
-  else
+  else {
+    if(separateFile) {
+      // MFMF lock getFileName().substr(0,getFileName().length()-4)+".h5" for reading
+    }
     hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+  }
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->openHDF5File();
+  if(topLevelFile || separateFile) {
+  // MFMF unlock getFileName().substr(0,getFileName().length()-4)+".h5"
+  }
 }
 
 void Group::writeXML() {
   if(fileName=="") fileName=name+".ombv.xml";
   separateFile=true;
   topLevelFile=true;
+  // write simple parameter file
+  writeSimpleParameter(fileName);
   // write .ombv.xml file
   setTopLevelFile(true);
   TiXmlDocument xmlFile(fileName);
@@ -126,16 +141,18 @@ void Group::writeXML() {
     parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(parent);
+  // MFMF lock fileName for writing
   xmlFile.SaveFile();
-
-  writeSimpleParameter(fileName);
+  // MFMF unlock fileName
 }
 
 void Group::writeH5() {
+  // MFMF lock <name>.ombv.h5 for writing
   hdf5Group=(H5::Group*)new H5::FileSerie(name+".ombv.h5", H5F_ACC_TRUNC);
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
   hdf5Group->flush(H5F_SCOPE_GLOBAL);
+  // MFMF unlock <name>.ombv.h5 (NOTE: the tree is written and flushed but not data until now is added!)
 }
 
 void Group::terminate() {
@@ -172,7 +189,10 @@ void Group::initializeUsingXML(TiXmlElement *element) {
 Group* Group::readXML(std::string fileName) {
   // read XML
   TiXmlDocument doc;
-  doc.LoadFile(fileName); TiXml_PostLoadFile(&doc);
+  // MFMF lock fileName for reading
+  doc.LoadFile(fileName);
+  // MFMF unlock fileName
+  TiXml_PostLoadFile(&doc);
   map<string,string> dummy;
   incorporateNamespace(doc.FirstChildElement(), dummy);
 
@@ -192,7 +212,8 @@ void Group::readSimpleParameter(std::string filename) {
   FILE *f=fopen(filename.c_str(),"r");
   if(f!=NULL) {
     fclose(f);
-    paramdoc.LoadFile(filename); TiXml_PostLoadFile(&paramdoc);
+    paramdoc.LoadFile(filename);
+    TiXml_PostLoadFile(&paramdoc);
     TiXmlElement *e=paramdoc.FirstChildElement();
     map<string,string> dummy;
     incorporateNamespace(e,dummy);
@@ -251,10 +272,14 @@ void Group::collectParameter(map<string, double>& sp, map<string, vector<double>
       object[i]->collectParameter(sp, vp, mp);
 }
 
-void Group::deleteObject(Object* obj) {
-  for(vector<Object*>::iterator i=object.begin(); i!=object.end(); i++)
-    if(*i==obj) {
-      object.erase(i);
-      break;
-    }
+void Group::destroy() const {
+  // delete this object from parent if parent exists
+  if(parent)
+    for(vector<Object*>::iterator i=parent->object.begin(); i!=parent->object.end(); i++)
+      if(*i==this) {
+        parent->object.erase(i);
+        break;
+      }
+  // destroy this object
+  delete this;
 }
