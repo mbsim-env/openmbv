@@ -142,7 +142,9 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
     string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
     // for a xi:include element include the href file in the tree
     TiXmlDocument docInclude;
+    // MFMF lock newFile for reading
     docInclude.LoadFile(newFile);
+    // MFMF unlock newFile
     incorporateNamespace(docInclude.FirstChildElement(), nsprefix);
     docInclude.FirstChildElement()->SetAttribute("xml:base", newFile);
 

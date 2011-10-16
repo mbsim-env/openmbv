@@ -24,6 +24,8 @@
 #include "object.h"
 #include <string>
 #include <H5Cpp.h>
+#include <QtCore/QFileInfo>
+#include <QtCore/QDateTime>
 
 namespace OpenMBV {
   class Group;
@@ -35,6 +37,9 @@ class Group : public Object {
     virtual void update() {}
     QAction *saveFile, *unloadFile, *reloadFile;
     OpenMBV::Group *grp;
+    QTimer *reloadTimer;
+    QFileInfo *xmlFileInfo, *h5FileInfo;
+    QDateTime xmlLastModified, h5LastModified;
   public:
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
@@ -43,6 +48,7 @@ class Group : public Object {
     void saveFileSlot();
     void unloadFileSlot();
     void reloadFileSlot();
+    void reloadFileSlotIfNewer();
 };
 
 #endif

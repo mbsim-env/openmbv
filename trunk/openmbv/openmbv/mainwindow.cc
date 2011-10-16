@@ -672,6 +672,20 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
     arg.erase(i); arg.erase(i2);
   }
 
+  // auto reload
+  reloadTimeout=0;
+  if((i=std::find(arg.begin(), arg.end(), "--autoreload"))!=arg.end()) {
+    i2=i; i2++;
+    char *error;
+    reloadTimeout=strtol(i2->c_str(), &error, 10);
+    if(reloadTimeout<0) reloadTimeout=250;
+    arg.erase(i);
+    if(error && strlen(error)==0)
+      arg.erase(i2);
+    else
+      reloadTimeout=250;
+  }
+
   // read XML files
   if(arg.empty()) arg.push_back("."); // if called without argument load current dir
   QDir dir;
@@ -869,7 +883,7 @@ void MainWindow::helpHomeXML() {
 void MainWindow::aboutOpenMBV() {
   QMessageBox::about(this, "About OpenMBV",
     "<h1>OpenMBV - Open Multi Body Viewer</h1>"
-    "<p>Copyright &copy; Markus Friedrich <tt>&lt;mafriedrich@user.berlios.de&gt;</tt><p/>"
+    "<p>Copyright &copy; Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt><p/>"
     "<p>Licensed under the General Public License (see file COPYING).</p>"
     "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"
     "<h2>Authors:</h2>"
@@ -881,7 +895,7 @@ void MainWindow::aboutOpenMBV() {
     "  <li>'Qt - A cross-platform application and UI framework' by Nokia from <tt>http://www.qtsoftware.com</tt> (License: GPL/LGPL)</li>"
     "  <li>'Coin - An OpenGL based, retained mode 3D graphics rendering library' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
     "  <li>'SoQt - A Qt GUI component toolkit library for Coin' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
-    "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://hdf5serie.berlios.de</tt> (License: LGPL)</li>"
+    "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://code.google.com/p/hdf5serie</tt> (License: LGPL)</li>"
     "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
     "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
 #ifdef HAVE_QWT_WHEEL_H

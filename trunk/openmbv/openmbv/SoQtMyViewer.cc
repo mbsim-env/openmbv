@@ -81,7 +81,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   fgSep->addChild(soFgColorBottom);
   soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
   fgSep->addChild(text2);
-  text2->string.setValue("OpenMBV [http://openmbv.berlios.de]");
+  text2->string.setValue("OpenMBV [http://code.google.com/p/openmbv]");
   // ombvLogo (bottom right)
   ombvLogoTrans=new SoTranslation;
   fgSep->addChild(ombvLogoTrans);

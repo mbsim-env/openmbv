@@ -50,7 +50,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   vector<OpenMBV::Object*> child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
     if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
-    ObjectFactory(child[i], this, soSep, ind);
+    ObjectFactory(child[i], this, soSep, -1);
   }
 
   // hide groups without childs
@@ -68,6 +68,19 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-File (alpha; may crash currently)", this);
   reloadFile->setObjectName("Group::reloadFile");
   connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
+
+  // timer for reloading file automatically
+  reloadTimer=NULL;
+  // if reloading is enabled and this Group is a separate file create timer
+  if(MainWindow::getInstance()->getReloadTimeout()>0 && grp->getSeparateFile()) {
+    xmlFileInfo=new QFileInfo(text(0));
+    h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
+    xmlLastModified=xmlFileInfo->lastModified();
+    h5LastModified=h5FileInfo->lastModified();
+    reloadTimer=new QTimer(this);
+    connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
+    reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
+  }
 }
 
 QString Group::getInfo() {
@@ -103,7 +116,7 @@ void Group::saveFileSlot() {
 }
 
 void Group::unloadFileSlot() {
-  // delete the OpenMBVCppInterface
+  // if grp has a parent, remove grp from parent and delete grp
   grp->destroy();
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
   // "delete this" is not good code but allowed and works here!
@@ -121,4 +134,14 @@ void Group::reloadFileSlot() {
   unloadFileSlot(); // NOTE: this calls "delete this" !!!
   // load
   MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:NULL, ind);
+}
+
+void Group::reloadFileSlotIfNewer() {
+  xmlFileInfo->refresh();
+  h5FileInfo->refresh();
+  if(xmlFileInfo->lastModified()>xmlLastModified && h5FileInfo->lastModified()>h5LastModified) {
+    xmlLastModified=xmlFileInfo->lastModified();
+    h5LastModified=h5FileInfo->lastModified();
+    reloadFileSlot();
+  }
 }
