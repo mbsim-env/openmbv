@@ -6,4 +6,8 @@ dist_octave_DATA = cardan.m \
 		   rotateAboutX.m\
 		   rotateAboutY.m\
 		   rotateAboutZ.m\
-		   euler.m
+		   euler.m\
+		   calculateAreaByDiameter.m\
+		   calculateAreaByRadius.m\
+		   deg2rad.m\
+		   rad2deg.m
