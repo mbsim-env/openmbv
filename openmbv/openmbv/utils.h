@@ -30,6 +30,12 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <GL/glu.h>
 
+#ifdef WIN32
+#  define CALLMETHOD __stdcall
+#else
+#  define CALLMETHOD
+#endif
+
 /** Utilitiy class */
 class Utils {
   public:
@@ -80,9 +86,9 @@ class Utils {
     static SoTriangleStripSet *tessTriangleStrip;
     static SoIndexedFaceSet *tessTriangleFan;
     static SoCoordinate3 *tessCoord;
-    static void tessBeginCB(GLenum type, void *data);
-    static void tessVertexCB(GLdouble *vertex);
-    static void tessEndCB(void);
+    static void CALLMETHOD tessBeginCB(GLenum type, void *data);
+    static void CALLMETHOD tessVertexCB(GLdouble *vertex);
+    static void CALLMETHOD tessEndCB(void);
 };
 
 #endif
