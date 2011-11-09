@@ -37,12 +37,9 @@ void Utils::initialize() {
   initialized=true;
 
   // tess
-# ifndef WIN32
-#   define __stdcall
-# endif
-  gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (void (__stdcall *)())tessBeginCB);
-  gluTessCallback(tess, GLU_TESS_VERTEX, (void (__stdcall *)())tessVertexCB);
-  gluTessCallback(tess, GLU_TESS_END, (void (__stdcall *)())tessEndCB);
+  gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (void (CALLMETHOD *)())tessBeginCB);
+  gluTessCallback(tess, GLU_TESS_VERTEX, (void (CALLMETHOD *)())tessVertexCB);
+  gluTessCallback(tess, GLU_TESS_END, (void (CALLMETHOD *)())tessEndCB);
 }
 
 const QIcon& Utils::QIconCached(const QString& filename) {
