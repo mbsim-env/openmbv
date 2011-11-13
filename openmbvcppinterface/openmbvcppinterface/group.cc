@@ -26,6 +26,9 @@
 #include <fstream>
 #include <H5Cpp.h>
 #include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
+#ifdef HAVE_BOOST_FILE_LOCK
+#  include <boost/interprocess/sync/file_lock.hpp>
+#endif
 
 using namespace OpenMBV;
 using namespace std;
@@ -78,9 +81,7 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
       e->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
       for(unsigned int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(e);
-    // MFMF lock fileName for writing
     xmlFile.SaveFile();
-    // MFMF unlock fileName
   }
   return 0;
 }
@@ -99,38 +100,25 @@ void Group::createHDF5File() {
                        parent->hdf5Group->getId(), name.c_str(),
                        H5P_DEFAULT, H5P_DEFAULT);
     // create new h5 file land write to in till now
-    // MFMF lock <fullName>.ombv.h5 for writing
     hdf5Group=(H5::Group*)new H5::FileSerie(fullName+".ombv.h5", H5F_ACC_TRUNC);
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
-    hdf5Group->flush(H5F_SCOPE_GLOBAL);
-    // MFMF unlock <fullName>.ombv.h5 (NOTE: the tree is written and flushed but not data until now is added!)
   }
 }
 
 void Group::openHDF5File() {
   if(topLevelFile)
-    // MFMF lock getFileName().substr(0,getFileName().length()-4)+".h5" for reading
     hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
-  else {
-    if(separateFile) {
-      // MFMF lock getFileName().substr(0,getFileName().length()-4)+".h5" for reading
-    }
+  else
     hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
-  }
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->openHDF5File();
-  if(topLevelFile || separateFile) {
-  // MFMF unlock getFileName().substr(0,getFileName().length()-4)+".h5"
-  }
 }
 
 void Group::writeXML() {
   if(fileName=="") fileName=name+".ombv.xml";
   separateFile=true;
   topLevelFile=true;
-  // write simple parameter file
-  writeSimpleParameter(fileName);
   // write .ombv.xml file
   setTopLevelFile(true);
   TiXmlDocument xmlFile(fileName);
@@ -141,18 +129,32 @@ void Group::writeXML() {
     parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(parent);
-  // MFMF lock fileName for writing
+#ifdef HAVE_BOOST_FILE_LOCK
+  FILE *f=fopen(fileName.c_str(), "w"); fclose(f); // create the file to prevent file_lock to fail
+  boost::interprocess::file_lock fileLock(fileName.c_str());
+  fileLock.lock();
+#endif
+  // write simple parameter file
+  writeSimpleParameter(fileName);
   xmlFile.SaveFile();
-  // MFMF unlock fileName
+#ifdef HAVE_BOOST_FILE_LOCK
+  fileLock.unlock();
+#endif
 }
 
 void Group::writeH5() {
-  // MFMF lock <name>.ombv.h5 for writing
+#ifdef HAVE_BOOST_FILE_LOCK
+  FILE *f=fopen((name+".ombv.h5").c_str(), "w"); fclose(f); // create the file to prevent file_lock to fail
+  boost::interprocess::file_lock fileLock((name+".ombv.h5").c_str());
+  fileLock.lock();
+#endif
   hdf5Group=(H5::Group*)new H5::FileSerie(name+".ombv.h5", H5F_ACC_TRUNC);
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
   hdf5Group->flush(H5F_SCOPE_GLOBAL);
-  // MFMF unlock <name>.ombv.h5 (NOTE: the tree is written and flushed but not data until now is added!)
+#ifdef HAVE_BOOST_FILE_LOCK
+  fileLock.unlock();
+#endif
 }
 
 void Group::terminate() {
@@ -189,9 +191,14 @@ void Group::initializeUsingXML(TiXmlElement *element) {
 Group* Group::readXML(std::string fileName) {
   // read XML
   TiXmlDocument doc;
-  // MFMF lock fileName for reading
+#ifdef HAVE_BOOST_FILE_LOCK
+  boost::interprocess::file_lock fileLock(fileName.c_str());
+  fileLock.lock_sharable();
+#endif
   doc.LoadFile(fileName);
-  // MFMF unlock fileName
+#ifdef HAVE_BOOST_FILE_LOCK
+  fileLock.unlock_sharable();
+#endif
   TiXml_PostLoadFile(&doc);
   map<string,string> dummy;
   incorporateNamespace(doc.FirstChildElement(), dummy);
@@ -204,7 +211,14 @@ Group* Group::readXML(std::string fileName) {
 }
 
 void Group::readH5(Group *rootGrp) {
+#ifdef HAVE_BOOST_FILE_LOCK
+  boost::interprocess::file_lock fileLock((rootGrp->getFileName().substr(0,rootGrp->getFileName().length()-4)+".h5").c_str());
+  fileLock.lock_sharable();
+#endif
   rootGrp->openHDF5File();
+#ifdef HAVE_BOOST_FILE_LOCK
+  fileLock.unlock_sharable();
+#endif
 }
 
 void Group::readSimpleParameter(std::string filename) {

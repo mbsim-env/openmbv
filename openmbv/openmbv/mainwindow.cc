@@ -184,6 +184,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   timeSlider=new QSlider(Qt::Vertical, this);
   mainLO->addWidget(timeSlider, 0, 1);
   timeSlider->setMinimum(0);
+  timeSlider->setMaximum(0);
   connect(timeSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateFrame(int)));
 
   // object list dock widget

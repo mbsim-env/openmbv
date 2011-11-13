@@ -61,25 +61,27 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   saveFile->setObjectName("Group::saveFile");
   connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
 
-  unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-File (alpha; may crash currently)", this);
-  unloadFile->setObjectName("Group::unloadFile");
-  connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
+  if(grp->getTopLevelFile()) {
+    unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-File", this);
+    unloadFile->setObjectName("Group::unloadFile");
+    connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
 
-  reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-File (alpha; may crash currently)", this);
-  reloadFile->setObjectName("Group::reloadFile");
-  connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
+    reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-File", this);
+    reloadFile->setObjectName("Group::reloadFile");
+    connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
 
-  // timer for reloading file automatically
-  reloadTimer=NULL;
-  // if reloading is enabled and this Group is a separate file create timer
-  if(MainWindow::getInstance()->getReloadTimeout()>0 && grp->getSeparateFile()) {
-    xmlFileInfo=new QFileInfo(text(0));
-    h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
-    xmlLastModified=xmlFileInfo->lastModified();
-    h5LastModified=h5FileInfo->lastModified();
-    reloadTimer=new QTimer(this);
-    connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
-    reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
+    // timer for reloading file automatically
+    reloadTimer=NULL;
+    // if reloading is enabled and this Group is a separate file create timer
+    if(MainWindow::getInstance()->getReloadTimeout()>0) {
+      xmlFileInfo=new QFileInfo(text(0));
+      h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
+      xmlLastModified=xmlFileInfo->lastModified();
+      h5LastModified=h5FileInfo->lastModified();
+      reloadTimer=new QTimer(this);
+      connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
+      reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
+    }
   }
 }
 
@@ -94,6 +96,8 @@ QMenu* Group::createMenu() {
   if(grp->getSeparateFile()) {
     menu->addSeparator()->setText("Properties from: Group");
     menu->addAction(saveFile);
+  }
+  if(grp->getTopLevelFile()) {
     menu->addAction(unloadFile);
     menu->addAction(reloadFile);
   }
