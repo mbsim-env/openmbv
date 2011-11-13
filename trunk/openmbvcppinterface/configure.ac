@@ -17,6 +17,15 @@ LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
+dnl Include path for Boost
+AC_ARG_WITH([boost-inc],
+  [  --with-boost-inc=PATH  The path Boost include directory.],
+  [CPPFLAGS="$CPPFLAGS -I$withval"])
+
+dnl Check for Boost file locking
+AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
+  [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found])])
+
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
   [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],

@@ -223,7 +223,7 @@ void Body::drawMethodSlot(QAction* action) {
 
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {
-  if(numOfRows>=0) {
+  if(numOfRows>0) {
     if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
       MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
       if(existFiles) {
