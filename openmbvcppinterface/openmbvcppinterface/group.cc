@@ -17,6 +17,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "config.h"
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/body.h>
 #include <openmbvcppinterface/objectfactory.h>
@@ -122,13 +123,13 @@ void Group::writeXML() {
   // write .ombv.xml file
   setTopLevelFile(true);
   TiXmlDocument xmlFile(fileName);
-    xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-    TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
-    addAttribute(parent, "expand", expandStr, "true");
-    parent->SetAttribute("xmlns", OPENMBVNS_);
-    parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->writeXMLFile(parent);
+  xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
+  TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
+  addAttribute(parent, "expand", expandStr, "true");
+  parent->SetAttribute("xmlns", OPENMBVNS_);
+  parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
+  for(unsigned int i=0; i<object.size(); i++)
+    object[i]->writeXMLFile(parent);
 #ifdef HAVE_BOOST_FILE_LOCK
   FILE *f=fopen(fileName.c_str(), "w"); fclose(f); // create the file to prevent file_lock to fail
   boost::interprocess::file_lock fileLock(fileName.c_str());
