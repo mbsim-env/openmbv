@@ -266,14 +266,11 @@ string octaveGetRet(ValueType expectedType=ArbitraryType) {
 
   ostringstream ret;
   ret.precision(machinePrec);
-  ValueType type;
   if(o.is_scalar_type() && o.is_real_type() && (o.is_string()!=1)) {
-    type=ScalarType;
     ret<<o.double_value();
   }
   else if(o.is_matrix_type() && o.is_real_type() && (o.is_string()!=1)) {
     Matrix m=o.matrix_value();
-    type=m.cols()==1?VectorType:MatrixType;
     ret<<"[";
     for(int i=0; i<m.rows(); i++) {
       for(int j=0; j<m.cols(); j++)
@@ -282,7 +279,6 @@ string octaveGetRet(ValueType expectedType=ArbitraryType) {
     }
   }
   else if(o.is_string()) {
-    type=StringType;
     ret<<"\""<<o.string_value()<<"\"";
   }
   else { // if not scalar, matrix or string => error
