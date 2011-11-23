@@ -96,7 +96,7 @@ string tinyNamespaceCompStr;
 bool comp(pair<string,string> p) {
   if(p.second==tinyNamespaceCompStr) return true; else return false;
 }
-void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns) {
+void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns, ostream *dependencies) {
   // overwrite existing namespace prefixes with new ones
   // save a list of ALL ns->prefix mappings in nsprefix (this map can be used in unIncorporateNamespace)
   TiXmlAttribute* a=e->FirstAttribute();
@@ -140,10 +140,13 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
 
   if(e->ValueStr()=="{http://www.w3.org/2001/XInclude}include") {
     string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
+    if(dependencies!=NULL)
+      (*dependencies)<<newFile<<endl;
     // for a xi:include element include the href file in the tree
     TiXmlDocument docInclude;
     docInclude.LoadFile(newFile);
-    incorporateNamespace(docInclude.FirstChildElement(), nsprefix);
+    map<string, string> dummy;
+    incorporateNamespace(docInclude.FirstChildElement(), nsprefix, dummy, dependencies);
     docInclude.FirstChildElement()->SetAttribute("xml:base", newFile);
 
     // include a processing instruction with the line number of the original element
@@ -159,7 +162,7 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
     TiXmlElement* c=e->FirstChildElement();
     while(c!=0) {
       TiXmlElement* cNext=c->NextSiblingElement();
-      incorporateNamespace(c, nsprefix, prefixns);
+      incorporateNamespace(c, nsprefix, prefixns, dependencies);
       c=cNext;
     }
   }

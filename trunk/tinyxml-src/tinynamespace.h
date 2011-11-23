@@ -40,8 +40,10 @@ void TiXml_deletePIandComm(TiXmlElement *e);
  * in XML.
  * This function also embeds the file referenced by a 'xi:include href="..."'
  * element in the node tree.
+ * If dependencies is not NULL a new line separated list of files this file
+ * depends on is appended to dependencies.
  */
-void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>());
+void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>(), std::ostream *dependencies=NULL);
 
 /* Changes recursivly every element name from e.g.
  * '{http://my.host.org/mynamespace}:localname' to
