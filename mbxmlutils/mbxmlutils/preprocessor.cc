@@ -730,8 +730,8 @@ int main(int argc, char *argv[]) {
   // do_octave_atexit must be called on error and no error before leaving
   catch(...) {
     do_octave_atexit();
+    return 1;
   }
   do_octave_atexit();
-
   return 0;
 }
