@@ -27,14 +27,13 @@
 #include <fstream>
 #include <H5Cpp.h>
 #include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
-#ifdef HAVE_BOOST_FILE_LOCK
-#  include <boost/interprocess/sync/file_lock.hpp>
-#endif
 
 using namespace OpenMBV;
 using namespace std;
 
-Group::Group() : Object(), expandStr("true"), separateFile(false), topLevelFile(false) {
+static string dirOfTopLevelFile(Group *grp);
+
+Group::Group() : Object(), expandStr("true"), separateFile(false) {
 }
 
 Group::~Group() {
@@ -58,23 +57,19 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
       object[i]->writeXMLFile(e);
   }
   else {
+    // use the fullName as file name of a separateFile Group with '/' replaced by '.'
     string fullName=getFullName();
     for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
     // create link (embed) in current xml file
     TiXmlElement *inc=new TiXmlElement("xi:include");
     parent->LinkEndChild(inc);
     inc->SetAttribute("href", fullName+".ombv.xml");
-    // get directory of top level file
-    string dir=getTopLevelGroup()->getFileName();
-    size_t pos=dir.find_last_of('/');
-    if(pos!=string::npos)
-      dir=dir.substr(0, pos+1);
-    else
-      dir="";
+    fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
     // write simple parameter file
-    writeSimpleParameter(dir+fullName+".ombv.xml");
+    writeSimpleParameter();
     // create new xml file and write to it till now
-    TiXmlDocument xmlFile(dir+fullName+".ombv.xml");
+    // use the directory of the topLevelFile and the above fullName
+    TiXmlDocument xmlFile(fileName);
       xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
       TiXmlElement *e=Object::writeXMLFile(&xmlFile);
       addAttribute(e, "expand", expandStr, "true");
@@ -100,15 +95,17 @@ void Group::createHDF5File() {
     H5Lcreate_external((fullName+".ombv.h5").c_str(), "/",
                        parent->hdf5Group->getId(), name.c_str(),
                        H5P_DEFAULT, H5P_DEFAULT);
-    // create new h5 file land write to in till now
-    hdf5Group=(H5::Group*)new H5::FileSerie(fullName+".ombv.h5", H5F_ACC_TRUNC);
+    // create new h5 file and write to in till now
+    // use the directory of the topLevelFile and the above fullName
+    fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
+    hdf5Group=(H5::Group*)new H5::FileSerie(fileName.substr(0,fileName.length()-4)+".h5", H5F_ACC_TRUNC);
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
   }
 }
 
 void Group::openHDF5File() {
-  if(topLevelFile)
+  if(parent==NULL)
     hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
   else
     hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
@@ -117,11 +114,9 @@ void Group::openHDF5File() {
 }
 
 void Group::writeXML() {
-  if(fileName=="") fileName=name+".ombv.xml";
+  assert(parent==NULL);
   separateFile=true;
-  topLevelFile=true;
   // write .ombv.xml file
-  setTopLevelFile(true);
   TiXmlDocument xmlFile(fileName);
   xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
   TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
@@ -130,32 +125,18 @@ void Group::writeXML() {
   parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->writeXMLFile(parent);
-#ifdef HAVE_BOOST_FILE_LOCK
-  FILE *f=fopen(fileName.c_str(), "w"); fclose(f); // create the file to prevent file_lock to fail
-  boost::interprocess::file_lock fileLock(fileName.c_str());
-  fileLock.lock();
-#endif
   // write simple parameter file
-  writeSimpleParameter(fileName);
+  writeSimpleParameter();
   xmlFile.SaveFile();
-#ifdef HAVE_BOOST_FILE_LOCK
-  fileLock.unlock();
-#endif
 }
 
 void Group::writeH5() {
-#ifdef HAVE_BOOST_FILE_LOCK
-  FILE *f=fopen((name+".ombv.h5").c_str(), "w"); fclose(f); // create the file to prevent file_lock to fail
-  boost::interprocess::file_lock fileLock((name+".ombv.h5").c_str());
-  fileLock.lock();
-#endif
-  hdf5Group=(H5::Group*)new H5::FileSerie(name+".ombv.h5", H5F_ACC_TRUNC);
+  assert(parent==NULL);
+  string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
+  hdf5Group=(H5::Group*)new H5::FileSerie(h5FileName, H5F_ACC_TRUNC);
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
-  hdf5Group->flush(H5F_SCOPE_GLOBAL);
-#ifdef HAVE_BOOST_FILE_LOCK
-  fileLock.unlock();
-#endif
+  H5::FileSerie::flushAllFiles();
 }
 
 void Group::terminate() {
@@ -176,7 +157,7 @@ void Group::initializeUsingXML(TiXmlElement *element) {
   if(element->Attribute("xml:base")) {
     setSeparateFile(true);
     fileName=element->Attribute("xml:base");
-    readSimpleParameter(fileName.substr(0,fileName.length()-4)+".param.xml");
+    readSimpleParameter();
   }
 
   TiXmlElement *e;
@@ -189,45 +170,31 @@ void Group::initializeUsingXML(TiXmlElement *element) {
   }
 }
 
-Group* Group::readXML(std::string fileName) {
+void Group::readXML() {
+  assert(parent==NULL);
   // read XML
   TiXmlDocument doc;
-#ifdef HAVE_BOOST_FILE_LOCK
-  boost::interprocess::file_lock fileLock(fileName.c_str());
-  fileLock.lock_sharable();
-#endif
   doc.LoadFile(fileName);
-#ifdef HAVE_BOOST_FILE_LOCK
-  fileLock.unlock_sharable();
-#endif
   TiXml_PostLoadFile(&doc);
   map<string,string> dummy;
   incorporateNamespace(doc.FirstChildElement(), dummy);
 
   // read XML using OpenMBVCppInterface
-  Group *rootGroup=new OpenMBV::Group;
-  rootGroup->initializeUsingXML(doc.FirstChildElement());
-  rootGroup->setTopLevelFile(true);
-  return rootGroup;
+  initializeUsingXML(doc.FirstChildElement());
 }
 
-void Group::readH5(Group *rootGrp) {
-#ifdef HAVE_BOOST_FILE_LOCK
-  boost::interprocess::file_lock fileLock((rootGrp->getFileName().substr(0,rootGrp->getFileName().length()-4)+".h5").c_str());
-  fileLock.lock_sharable();
-#endif
-  rootGrp->openHDF5File();
-#ifdef HAVE_BOOST_FILE_LOCK
-  fileLock.unlock_sharable();
-#endif
+void Group::readH5() {
+  assert(parent==NULL);
+  openHDF5File();
 }
 
-void Group::readSimpleParameter(std::string filename) {
+void Group::readSimpleParameter() {
+  string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
   TiXmlDocument paramdoc;
-  FILE *f=fopen(filename.c_str(),"r");
+  FILE *f=fopen(paramFileName.c_str(),"r");
   if(f!=NULL) {
     fclose(f);
-    paramdoc.LoadFile(filename);
+    paramdoc.LoadFile(paramFileName);
     TiXml_PostLoadFile(&paramdoc);
     TiXmlElement *e=paramdoc.FirstChildElement();
     map<string,string> dummy;
@@ -256,11 +223,14 @@ vector<vector<double> > Group::getMatrixParameter(std::string name) {
   return matrixParameter[name];
 }
 
-void Group::writeSimpleParameter(std::string fileName) {
+void Group::writeSimpleParameter() {
+  // collect parameters
   collectParameter(scalarParameter, vectorParameter, matrixParameter, true);
   // write .ombv.param.xml file if simple parameters exist
-  if(scalarParameter.size()>0 || vectorParameter.size()>0 || matrixParameter.size()>0) {
-    TiXmlDocument xmlDoc(fileName.substr(0,fileName.length()-4)+".param.xml");
+  if(separateFile &&
+     (scalarParameter.size()>0 || vectorParameter.size()>0 || matrixParameter.size()>0)) {
+    string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
+    TiXmlDocument xmlDoc(paramFileName);
       xmlDoc.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
       TiXmlElement *rootEle=new TiXmlElement("parameter");
       xmlDoc.LinkEndChild(rootEle);
@@ -297,4 +267,68 @@ void Group::destroy() const {
       }
   // destroy this object
   delete this;
+}
+
+void Group::lock(bool exclusive) {
+  assert(parent==NULL);
+#ifdef HAVE_BOOST_FILE_LOCK
+  size_t pos=fileName.find_last_of('/');
+  string baseName;
+  if(pos!=string::npos)
+    baseName=fileName.substr(pos+1);
+  else
+    baseName=fileName;
+  string lockFileName=dirOfTopLevelFile(this)+"."+baseName.substr(0, baseName.length()-4)+".lock";
+  lockFile=fopen(lockFileName.c_str(), "w"); // create a dummy file for locking
+  lockFileLock=new boost::interprocess::file_lock(lockFileName.c_str());
+  if(exclusive) {
+    lockFileLock->lock();
+    lockedExclusive=true;
+  }
+  else {
+    lockFileLock->lock_sharable();
+    lockedExclusive=false;
+  }
+#endif
+}
+
+void Group::unlock() {
+  assert(parent==NULL);
+#ifdef HAVE_BOOST_FILE_LOCK
+  if(lockedExclusive)
+    lockFileLock->unlock();
+  else
+    lockFileLock->unlock_sharable();
+  delete lockFileLock;
+  lockFileLock=NULL;
+  fclose(lockFile); // close dummy lock file
+#endif
+}
+
+string dirOfTopLevelFile(Group *grp) {
+  // get directory of top level file
+  string dir=grp->getTopLevelGroup()->getFileName();
+  size_t pos=dir.find_last_of('/');
+  if(pos!=string::npos)
+    dir=dir.substr(0, pos+1);
+  else
+    dir="";
+  return dir;
+}
+
+void Group::write(bool writeXMLFile, bool writeH5File) {
+  // use element name as base filename if fileName was not set
+  if(fileName=="") fileName=name+".ombv.xml";
+
+  lock(true);
+  if(writeXMLFile) writeXML();
+  if(writeH5File)  writeH5();
+  unlock();
+}
+
+void Group::read(bool readXMLFile, bool readH5File) {
+  lock(false);
+  if(readXMLFile) readXML();
+  if(readH5File)  readH5();
+  unlock();
 }

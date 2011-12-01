@@ -105,7 +105,7 @@ namespace OpenMBV {
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup();
 
-      /** return the top level Group (this Group is an topLevelFile */
+      /** return the top level Group */
       Group* getTopLevelGroup();
 
       Group* getParent() { return parent; }

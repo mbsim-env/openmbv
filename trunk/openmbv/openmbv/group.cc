@@ -61,7 +61,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   saveFile->setObjectName("Group::saveFile");
   connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
 
-  if(grp->getTopLevelFile()) {
+  if(grp->getParent()==NULL) {
     unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-File", this);
     unloadFile->setObjectName("Group::unloadFile");
     connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
@@ -97,7 +97,7 @@ QMenu* Group::createMenu() {
     menu->addSeparator()->setText("Properties from: Group");
     menu->addAction(saveFile);
   }
-  if(grp->getTopLevelFile()) {
+  if(grp->getParent()==NULL) {
     menu->addAction(unloadFile);
     menu->addAction(reloadFile);
   }
@@ -116,7 +116,7 @@ void Group::saveFileSlot() {
         .arg(grp->getFileName().c_str())
         .arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
        QMessageBox::Save | QMessageBox::Cancel)==QMessageBox::Save)
-    grp->writeXML();
+    grp->write(true, false);
 }
 
 void Group::unloadFileSlot() {

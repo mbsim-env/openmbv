@@ -28,7 +28,21 @@ using namespace OpenMBV;
 Extrusion::Extrusion() : RigidBody(),
   windingRule(odd),
   height(1) {
+}
+
+Extrusion::~Extrusion() {
+  for(unsigned int i=0;i<contour.size();i++) {
+    std::vector<PolygonPoint*> *curContour=contour[i];
+    if(curContour) { 
+      for(unsigned int i=0;i<curContour->size();i++) {
+        delete (*curContour)[i];
+        (*curContour)[i]=0;
+      }
+      delete curContour;
+      curContour=0;
+    }
   }
+}
 
 TiXmlElement *Extrusion::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);

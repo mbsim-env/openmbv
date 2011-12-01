@@ -32,7 +32,7 @@ namespace OpenMBV {
       ScalarParameter startAngle, endAngle;
       std::vector<PolygonPoint*> *contour;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
-      ~Rotation() {}
+      ~Rotation();
     public:
       /** Default constructor */
       Rotation();

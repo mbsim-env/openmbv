@@ -8,4 +8,4 @@ Description: A library to create OpenMBV input files.
 Requires: hdf5serie
 Version: @VERSION@
 Libs: -L${libdir} -lopenmbvcppinterface -lopenmbvcppinterfacetinyxml
-Cflags: -I${includedir} -DTIXML_USE_STL
+Cflags: -I${includedir} -DTIXML_USE_STL @DEFINES@
