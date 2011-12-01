@@ -754,10 +754,9 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   }
 
   // read XML
-  OpenMBV::Group* rootGroup=OpenMBV::Group::readXML(fileName);
-  // open HDF5
-  if(!env)
-    OpenMBV::Group::readH5(rootGroup);
+  OpenMBV::Group* rootGroup=new OpenMBV::Group;
+  rootGroup->setFileName(fileName);
+  rootGroup->read(true, !env);
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
   Object *object=ObjectFactory(rootGroup, parentItem, soParent, ind);

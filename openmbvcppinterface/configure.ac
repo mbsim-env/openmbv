@@ -14,6 +14,8 @@ CPPFLAGS="$CPPFLAGS -Wall -Werror -pedantic-errors -Wno-long-long"
 CFLAGS="$CFLAGS -std=iso9899:1990"
 LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 
+AC_SUBST([DEFINES])
+
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
@@ -24,7 +26,7 @@ AC_ARG_WITH([boost-inc],
 
 dnl Check for Boost file locking
 AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
-  [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found])])
+  [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found]) DEFINES="$DEFINES -DHAVE_BOOST_FILE_LOCK"])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],

@@ -24,6 +24,9 @@
 #include <vector>
 #include <map>
 #include <H5Cpp.h>
+#ifdef HAVE_BOOST_FILE_LOCK
+#  include <boost/interprocess/sync/file_lock.hpp>
+#endif
 
 namespace OpenMBV {
 
@@ -33,16 +36,47 @@ namespace OpenMBV {
     protected:
       std::vector<Object*> object;
       std::string expandStr;
-      std::string fileName;
-      bool separateFile, topLevelFile;
+      std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
+      bool separateFile;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       void openHDF5File();
-      void readSimpleParameter(std::string filename);
-      void writeSimpleParameter(std::string filename);
+      void readSimpleParameter();
+      void writeSimpleParameter();
       void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
 
       virtual ~Group();
+
+#ifdef HAVE_BOOST_FILE_LOCK
+      // used for locking
+      FILE *lockFile; // dummy file used for locking
+      bool lockedExclusive; // true = write locked; false = read locked
+      boost::interprocess::file_lock *lockFileLock;
+#endif
+
+      /** Initialisze/Write the XML file.
+       * Call this function for the root node of the tree to create/write/ the XML file.
+       */
+      void writeXML();
+
+      /** Read the XML file.
+       * Call this function to read an OpenMBV XML file and creating the Object tree.
+       */
+      void readXML();
+      
+      /** Initialisze/Write the h5 file.
+       * Call this function for the root node of the tree to init the h5 file.
+       * (Only the h5 tree i written, but do data. Use append() to write date to h5 file after calling this function)
+       */
+      void writeH5();
+
+      /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
+       */
+      void readH5();
+
+      void lock(bool exclusive=false);
+      void unlock();
+
     public:
       /** Default constructor */
       Group();
@@ -71,41 +105,23 @@ namespace OpenMBV {
 
       bool getSeparateFile() { return separateFile; }
 
-      void setTopLevelFile(bool b) { topLevelFile=b; }
-      bool getTopLevelFile() { return topLevelFile; }
-
-      // fileName is only set if separateFile is true
+      /** Returns the file name of the .ombv.xml file of this separateFile Group
+       * including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
       
-      /** Initialisze/Write the XML file.
-       * Call this function for the root node of the tree to create/write/ the XML file.
-       */
-      void writeXML();
-
-      /** Read the XML file.
-       * Call this function to read an OpenMBV XML file and creating the Object tree.
-       */
-      static Group* readXML(std::string fileName);
+      /** Sets the file name of the .ombv.xml file of this separateFile Group
+       * including the absolute or relatvie path */
+      void setFileName(const std::string &fn) { fileName=fn; }
       
-      /** Initialisze/Write the h5 file.
-       * Call this function for the root node of the tree to init the h5 file.
-       * (Only the h5 tree i written, but do data. Use append() to write date to h5 file after calling this function)
-       */
-      void writeH5();
-
-      /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
-       */
-      static void readH5(Group *rootGrp);
-
       /** Initialisze/Wrtie the tree (XML and h5).
        * This function simply calls writeXML() and writeH5().
        */
-      void write() { writeXML(); writeH5(); }
+      void write(bool writeXMLFile=true, bool writeH5File=true);
 
       /** Read the tree (XML and h5).
        * This function simply calls readXML() and readH5().
        */
-      static Group* read(const std::string& filename) { Group *rootGrp=readXML(filename); readH5(rootGrp); return rootGrp; }
+      void read(bool readXMLFile=true, bool readH5File=true);
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.
@@ -118,8 +134,8 @@ namespace OpenMBV {
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup() { return separateFile?this:parent->getSeparateGroup(); }
 
-      /** return the top level Group (this Group is an topLevelFile */
-      Group* getTopLevelGroup() { return topLevelFile?this:parent->getTopLevelGroup(); }
+      /** return the top level Group */
+      Group* getTopLevelGroup() { return parent==NULL?this:parent->getTopLevelGroup(); }
 
       double getScalarParameter(std::string name);
       std::vector<double> getVectorParameter(std::string name);

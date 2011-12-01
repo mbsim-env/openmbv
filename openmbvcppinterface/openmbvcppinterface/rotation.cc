@@ -29,7 +29,18 @@ Rotation::Rotation() : RigidBody(),
   startAngle(0),
   endAngle(2*M_PI),
   contour(0) {
+}
+
+Rotation::~Rotation() {
+  if(contour) { 
+    for(unsigned int i=0;i<contour->size();i++) {
+      delete (*contour)[i];
+      (*contour)[i]=0;
+    }
+    delete contour;
+    contour=0;
   }
+}
 
 TiXmlElement* Rotation::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
