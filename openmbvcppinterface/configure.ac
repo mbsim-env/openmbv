@@ -22,7 +22,7 @@ PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
   [  --with-boost-inc=PATH  The path Boost include directory.],
-  [CPPFLAGS="$CPPFLAGS -I$withval"])
+  [CPPFLAGS="$CPPFLAGS -I$withval"; DEFINES="$DEFINES -I$withval"])
 
 dnl Check for Boost file locking
 AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
