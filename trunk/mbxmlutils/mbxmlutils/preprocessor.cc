@@ -606,8 +606,11 @@ int main(int argc, char *argv[]) {
   if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=string(exePath)+"/../share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
-  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0)
-    setenv("OCTAVE_HOME", (string(exePath)+"/..").c_str(), 1); // setenv copy the string args in contrast to putenv (this is required here)
+  string OCTAVE_HOME; // the string for putenv must has program life time
+  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0) {
+    OCTAVE_HOME=string("OCTAVE_HOME=")+exePath+"/..";
+    putenv(OCTAVE_HOME.c_str());
+  }
 
   try {
     // initialize octave
