@@ -607,7 +607,7 @@ int main(int argc, char *argv[]) {
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
   if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0)
-    putenv((char*)((string("OCTAVE_HOME=")+exePath+"/..").c_str())); 
+    setenv("OCTAVE_HOME", (string(exePath)+"/..").c_str(), 1); // setenv copy the string args in contrast to putenv (this is required here)
 
   try {
     // initialize octave
