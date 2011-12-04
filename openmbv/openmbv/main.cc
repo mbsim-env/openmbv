@@ -38,11 +38,6 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  QApplication app(argc, argv);
-  // Only the standard C locale is supported
-  QLocale::setDefault(QLocale::C);
-  setlocale(LC_ALL, "C");
-
   list<string> arg;
   for(int i=1; i<argc; i++)
     arg.push_back(argv[i]);
@@ -109,6 +104,11 @@ int main(int argc, char *argv[])
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }
+
+  QApplication app(argc, argv);
+  // Only the standard C locale is supported
+  QLocale::setDefault(QLocale::C);
+  setlocale(LC_ALL, "C");
 
   MainWindow mainWindow(arg);
   mainWindow.show();
