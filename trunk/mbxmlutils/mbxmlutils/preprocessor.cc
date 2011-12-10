@@ -609,7 +609,7 @@ int main(int argc, char *argv[]) {
   string OCTAVE_HOME; // the string for putenv must has program life time
   if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0) {
     OCTAVE_HOME=string("OCTAVE_HOME=")+exePath+"/..";
-    putenv(OCTAVE_HOME.c_str());
+    putenv((char*)OCTAVE_HOME.c_str());
   }
 
   try {
