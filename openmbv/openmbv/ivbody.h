@@ -25,6 +25,7 @@
 #include <string>
 #include <H5Cpp.h>
 #include <QThread>
+#include "openmbvcppinterface/ivbody.h"
 
 class EdgeCalculation;
 
@@ -36,12 +37,15 @@ class IvBody : public RigidBody {
 
   private:
     EdgeCalculation *edgeCalc;
-    void calculateEdges();
+    void calculateEdges(std::string fullName, double creaseEdges, bool boundaryEdges);
     class CalculateEdgesThread : public QThread {
       public:
         CalculateEdgesThread(IvBody *ivBody_) : ivBody(ivBody_) {}
       protected:
-        void run() { ivBody->calculateEdges(); }
+        void run() {
+          OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)(ivBody->object);
+          ivBody->calculateEdges(ivb->getFullName(), ivb->getCreaseEdges(), ivb->getBoundaryEdges());
+        }
         IvBody *ivBody;
     };
     CalculateEdgesThread calculateEdgesThread;

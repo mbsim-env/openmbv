@@ -72,7 +72,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
 
     // timer for reloading file automatically
     reloadTimer=NULL;
-    // if reloading is enabled and this Group is a separate file create timer
+    // if reloading is enabled and this Group is a toplevel file create timer
     if(MainWindow::getInstance()->getReloadTimeout()>0) {
       xmlFileInfo=new QFileInfo(text(0));
       h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");

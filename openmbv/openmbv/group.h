@@ -46,9 +46,10 @@ class Group : public Object {
     QMenu* createMenu();
   protected slots:
     void saveFileSlot();
-    void unloadFileSlot();
-    void reloadFileSlot();
     void reloadFileSlotIfNewer();
+    void reloadFileSlot();
+  public slots:
+    void unloadFileSlot();
 };
 
 #endif

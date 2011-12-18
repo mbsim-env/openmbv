@@ -193,6 +193,7 @@ class MainWindow : public QMainWindow {
     void complexityValue();
   public:
     MainWindow(std::list<std::string>& arg);
+    ~MainWindow();
     bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     static MainWindow*const getInstance() { return instance; }

@@ -43,7 +43,6 @@ class Body : public Object {
   Q_OBJECT
   private:
     SoDrawStyle *drawStyle;
-    static bool existFiles;
     SoFieldSensor *shilouetteEdgeFrameSensor, *shilouetteEdgeOrientationSensor;
     static void shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor);
     // for shilouetteEdge
@@ -62,6 +61,7 @@ class Body : public Object {
   public slots:
     void outLineSlot();
     void shilouetteEdgeSlot();
+    static std::map<SoNode*,Body*>& getBodyMap() { return bodyMap; }
   protected slots:
     void drawMethodSlot(QAction* action);
   protected:
@@ -71,6 +71,7 @@ class Body : public Object {
     QAction *outLine, *shilouetteEdge;
     QActionGroup *drawMethod;
     QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
+    static std::map<SoNode*,Body*> bodyMap;
     friend class IndexedTesselationFace;
     friend class MainWindow;
 };
