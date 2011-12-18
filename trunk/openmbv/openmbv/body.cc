@@ -42,7 +42,7 @@
 
 using namespace std;
 
-bool Body::existFiles=false;
+map<SoNode*,Body*> Body::bodyMap;
 
 Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
   body=(OpenMBV::Body*)obj;
@@ -88,6 +88,9 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   soShilouetteEdgeSep->addChild(soShilouetteEdge);
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
+    // add to map for finding this object by the soSep SoNode
+    bodyMap.insert(pair<SoNode*, Body*>(soSep,this));
+
     // draw method
     drawStyle=new SoDrawStyle;
     soSep->addChild(drawStyle);
@@ -152,6 +155,17 @@ Body::~Body() {
   delete shilouetteEdgeFrameSensor;
   delete shilouetteEdgeOrientationSensor;
   soOutLineSwitch->unref();
+
+  // remove from map
+  for(map<SoNode*,Body*>::iterator it=bodyMap.begin(); it!=bodyMap.end(); it++)
+    if(it->second==this) {
+      bodyMap.erase(it);
+      break;
+    }
+
+  // the last Body should reset timeSlider maximum to 0
+  if(bodyMap.size()==0)
+    MainWindow::getInstance()->timeSlider->setMaximum(0);
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
@@ -224,6 +238,7 @@ void Body::drawMethodSlot(QAction* action) {
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {
   if(numOfRows>0) {
+    bool existFiles=MainWindow::getInstance()->getTimeSlider()->maximum()>0;
     if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
       MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
       if(existFiles) {
@@ -240,7 +255,6 @@ void Body::resetAnimRange(int numOfRows, double dt) {
         cout<<str.toStdString()<<endl;
       }
     }
-    existFiles=true;
   }
 }
 

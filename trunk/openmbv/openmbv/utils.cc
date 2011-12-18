@@ -56,7 +56,9 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
   if(ins.second) {
     SoInput in;
     in.openFile(filename.c_str());
-    return ins.first->second=SoDB::readAll(&in);
+    ins.first->second=SoDB::readAll(&in);
+    ins.first->second->ref(); // increment reference count to prevent a delete for cached entries
+    return ins.first->second;
   }
   return ins.first->second;
 }

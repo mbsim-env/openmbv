@@ -79,15 +79,18 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 }
 
 IvBody::~IvBody() {
+  calculateEdgesThread.wait(); // wait for thread to finish
   delete edgeCalc;
 }
 
-void IvBody::calculateEdges() {
-  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)object;
-  cout<<"Started edge calculation for "<<ivb->getFullName()<<" in a thread: ";
+void IvBody::calculateEdges(string fullName, double creaseEdges, bool boundaryEdges) {
+  // NOTE: It is not allowed here to use any variables of OpenMBV::IvBody since this class may aleady be
+  // delete by a destructor call of a parent object of this object.
+  // (OpenMBV::~Group deletes all children)
+  cout<<"Started edge calculation for "<<fullName<<" in a thread: ";
   edgeCalc->preproces(true);
-  if(ivb->getCreaseEdges()>=0) edgeCalc->calcCreaseEdges(ivb->getCreaseEdges());
-  if(ivb->getBoundaryEdges()) edgeCalc->calcBoundaryEdges();
+  if(creaseEdges>=0) edgeCalc->calcCreaseEdges(creaseEdges);
+  if(boundaryEdges) edgeCalc->calcBoundaryEdges();
 }
 
 void IvBody::addEdgesToScene() {

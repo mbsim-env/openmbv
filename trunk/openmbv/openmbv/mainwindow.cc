@@ -735,6 +735,12 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if(lastframeArg) lastFrameAct->trigger();
 }
 
+MainWindow::~MainWindow() {
+  // unload all top level files before exit (from last to first since the unload removes the element from the list)
+  for(int i=objectList->invisibleRootItem()->childCount()-1; i>=0; i--)
+    ((Group*)(objectList->invisibleRootItem()->child(i)))->unloadFileSlot();
+}
+
 bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
   // default parameter
   if(parentItem==NULL) parentItem=objectList->invisibleRootItem();
@@ -1071,8 +1077,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         SoPath *path=pickedPoints[i]->getPath();
         bool found=false;
         for(int j=path->getLength()-1; j>=0; j--) {
-          map<SoNode*,Object*>::iterator it=Object::getObjectMap().find(path->getNode(j));
-          if(it!=Object::getObjectMap().end()) {
+          map<SoNode*,Body*>::iterator it=Body::getBodyMap().find(path->getNode(j));
+          if(it!=Body::getBodyMap().end()) {
             pickedObject.insert(it->second);
             found=true;
             break;
@@ -1231,6 +1237,21 @@ void MainWindow::heavyWorkSlot() {
     unsigned int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
     if(frame->getValue()!=frame_) frame->setValue(frame_); // set frame => update scene
     //glViewer->render(); // force rendering
+  }
+  else if(lastFrameAct->isChecked()) {
+    // get number of rows of first none enviroment body
+    int currentNumOfRows=-1;
+    map<SoNode*,Body*>::iterator it=Body::getBodyMap().begin();
+    while(it!=Body::getBodyMap().end() && (currentNumOfRows=((OpenMBV::Body*)(it->second->object))->getRows())==-1)
+      it++;
+    if(currentNumOfRows==-1) return;
+    // update if a new row is available
+    if(currentNumOfRows-1!=timeSlider->maximum()) {
+      timeSlider->setMaximum(currentNumOfRows-1);
+      // show the last but one frame since the last frame may not be wrote for all Bodies till now
+      timeSlider->setValue(currentNumOfRows-2);
+      frame->setValue(currentNumOfRows-2);
+    }
   }
 }
 
@@ -1397,10 +1418,16 @@ void MainWindow::lastFrameSCSlot() {
     return;
   }
 
-  printf("Not implemented yet!!!!!!!!!!!!!!\n");
+  // show last frame
+  timeSlider->setValue(timeSlider->maximum()-1);
+  frame->setValue(timeSlider->maximum()-1);
+
   stopAct->setChecked(false);
   playAct->setChecked(false);
-  animTimer->stop();
+  if(fpsMax<1e-15)
+    animTimer->start();
+  else
+    animTimer->start((int)(1000/fpsMax));
 }
 
 void MainWindow::playSCSlot() {

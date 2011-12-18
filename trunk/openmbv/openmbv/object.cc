@@ -31,8 +31,6 @@
 
 using namespace std;
 
-map<SoNode*,Object*> Object::objectMap;
-
 Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
   object=obj;
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
@@ -72,10 +70,6 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // register callback function on node change
   nodeSensor=new SoNodeSensor(nodeSensorCB, this);
   nodeSensor->attach(soSep);
-
-  // add to map for finding this object by the soSep SoNode
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
-    objectMap.insert(pair<SoNode*, Object*>(soSep,this));
 
   setText(0, obj->getName().c_str());
 

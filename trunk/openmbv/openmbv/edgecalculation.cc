@@ -171,8 +171,10 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
 }
 
 EdgeCalculation::~EdgeCalculation() {
-  if(!useCache)
+  if(!useCache) {
+    preData.coord->unref(); // decrement reference count if not a cached entry
     delete preData.edgeIndFPV;
+  }
 }
 
 void EdgeCalculation::preproces(bool printMessage) {
@@ -181,6 +183,7 @@ void EdgeCalculation::preproces(bool printMessage) {
   pair<map<SoGroup*, PreprocessedData>::iterator, bool> ins;
   if(useCache) {
     mapRWLock.lockForWrite(); // STL map is not thread safe => serialize
+    grp->ref(); // increment reference count to prevent a delete for cached entries
     ins=myCache.insert(pair<SoGroup*, PreprocessedData>(grp, preData)); // if not exist, add empty preData
     mapRWLock.unlock();
   }
@@ -226,6 +229,7 @@ void EdgeCalculation::preproces(bool printMessage) {
     delete vertex; // is no longer required and was allocate in getEdgeData
     // shift vertex points from BSP to preData.coord->point
     preData.coord=new SoCoordinate3FromBSPTree(uniqVertex);
+    preData.coord->ref(); // increment reference count to prevent a delete for cached entries
 
     if(useCache) {
       mapRWLock.lockForWrite(); // STL map is not thread safe => serialize

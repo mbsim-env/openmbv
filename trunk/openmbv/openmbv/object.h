@@ -52,7 +52,6 @@ class Object : public QObject, public QTreeWidgetItem {
     SoCube *soBBox;
     QAction *bbox;
     std::string iconFile;
-    static std::map<SoNode*,Object*> objectMap;
     bool searchMatched;
     SoNodeSensor *nodeSensor;
   public:
@@ -64,7 +63,6 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string &getIconFile() { return iconFile; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
-    static std::map<SoNode*,Object*>& getObjectMap() { return objectMap; }
     void updateTextColor();
     bool getSearchMatched() { return searchMatched; }
     void setSearchMatched(bool m) { searchMatched=m; }
