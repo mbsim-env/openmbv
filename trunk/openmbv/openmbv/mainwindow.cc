@@ -1268,13 +1268,13 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileName, bool transparent) {
+void MainWindow::exportAsPNG(short width, short height, std::string fileName, bool transparent) {
+  static SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
+  myRenderer.setViewportRegion(SbViewportRegion(width, height));
   if(transparent)
     myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
   else
     myRenderer.setComponents(SoOffscreenRenderer::RGB);
-  short width, height;
-  myRenderer.getViewportRegion().getWindowSize().getValue(width, height);
 
   // root separator for export
   SoSeparator *root=new SoSeparator;
@@ -1304,7 +1304,12 @@ void MainWindow::exportAsPNG(SoOffscreenRenderer &myRenderer, std::string fileNa
   // add foreground
   root->addChild(glViewer->fgSep);
   // render
-  myRenderer.render(root);
+  SbBool ok=myRenderer.render(root);
+  if(!ok) {
+    QMessageBox::warning(this, "PNG Export Warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
+    root->unref();
+    return;
+  }
 
   if(transparent) {
     unsigned char *buf=new unsigned char[width*height*4];
@@ -1356,8 +1361,7 @@ void MainWindow::exportCurrentAsPNG() {
   cout<<str.toStdString()<<endl;
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
-  SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
-  exportAsPNG(myRenderer, dialog.getFileName().toStdString(), dialog.getTransparent());
+  exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
   str="Done";
   statusBar()->showMessage(str, 10000);
   cout<<str.toStdString()<<endl;
@@ -1391,13 +1395,12 @@ void MainWindow::exportSequenceAsPNG() {
   int lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
-  SoOffscreenRenderer myRenderer(SbViewportRegion(width,height));
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
     cout<<str.toStdString()<<endl;
     frame->setValue(frame_);
-    exportAsPNG(myRenderer, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+    exportAsPNG(width, height, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
   QString str("Done");
   statusBar()->showMessage(str, 10000);

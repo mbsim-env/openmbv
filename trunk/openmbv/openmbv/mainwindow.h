@@ -145,7 +145,7 @@ class MainWindow : public QMainWindow {
     void speedWheelChanged(int value);
     void speedWheelPressed();
     void speedWheelReleased();
-    void exportAsPNG(SoOffscreenRenderer &myrendere, std::string fileName, bool transparent);
+    void exportAsPNG(short width, short height, std::string fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
