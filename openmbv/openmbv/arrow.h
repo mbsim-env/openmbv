@@ -38,20 +38,14 @@ namespace OpenMBV {
 class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
-    enum Type {
-        line,
-        fromHead,
-        toHead,
-        bothHeads
-      };
     OpenMBV::Arrow *arrow;
-    Type type;
     QAction *path;
     SoSwitch *soPathSwitch;
-    SoCoordinate3 *pathCoord;
+    SoCoordinate3 *pathCoord, *lineCoord;
     SoLineSet *pathLine;
     SoMaterial *mat;
-    SoTranslation *toPoint;
+    SoBaseColor *baseColor;
+    SoTranslation *toPoint, *bTrans;
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;
     virtual double update();

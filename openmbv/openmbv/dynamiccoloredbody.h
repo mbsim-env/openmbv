@@ -23,13 +23,14 @@
 #include "config.h"
 #include "body.h"
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoBaseColor.h>
 
 class DynamicColoredBody : public Body {
   Q_OBJECT
   protected:
     double minimalColorValue, maximalColorValue, staticColor;
     double color,oldColor;
-    void setColor(SoMaterial *mat, double col);
+    void setColor(SoMaterial *mat, double col, SoBaseColor *base=NULL);
     double getColor() { return color; }
   public:
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
