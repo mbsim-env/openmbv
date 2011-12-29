@@ -1303,7 +1303,12 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
   glViewer->ombvTrans->translation.setValue(0,-1+2.0/height*15 -1+2.0/height*3,0);
   // add foreground
   root->addChild(glViewer->fgSep);
-  // render
+  // update/redraw glViewer: this is required to update e.g. the clipping planes before offscreen rendering
+  // (SoOffscreenRenderer does not update the clipping planes but SoQtViewer does so!)
+  // (it gives the side effect, that the user sees the current exported frame)
+  // (the double rendering does not lead to permormance problems)
+  glViewer->redraw();
+  // render offscreen
   SbBool ok=myRenderer.render(root);
   if(!ok) {
     QMessageBox::warning(this, "PNG Export Warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
@@ -1386,7 +1391,7 @@ void MainWindow::exportSequenceAsPNG() {
       "Some video-frames would contain the same data,\n"
       "because the animation speed is to slow,\n"
       "and/or the framerate is to high\n"
-      "and/or the time-intervall of the data files is to high.\n"
+      "and/or the time-intervall of the data files is to large.\n"
       "\n"
       "Continue anyway?", QMessageBox::Yes, QMessageBox::No);
     if(ret==QMessageBox::No) return;
