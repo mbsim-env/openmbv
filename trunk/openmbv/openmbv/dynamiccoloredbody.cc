@@ -32,7 +32,7 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   staticColor=dcb->getStaticColor();
 }
 
-void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
+void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base) {
   if(oldColor!=col) {
     color=col;
     oldColor=col;
@@ -40,8 +40,9 @@ void DynamicColoredBody::setColor(SoMaterial *mat, double col) {
     col=m*col-m*minimalColorValue;
     if(col<0) col=0;
     if(col>1) col=1;
-    mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
-    mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
+    if(base) base->rgb.setHSVValue((1-col)*2/3,1,1);
+    if(mat) mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
+    if(mat) mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
   }
 }
 

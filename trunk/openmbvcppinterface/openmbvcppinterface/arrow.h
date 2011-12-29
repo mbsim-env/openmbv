@@ -40,7 +40,10 @@ namespace OpenMBV {
         line,
         fromHead,
         toHead,
-        bothHeads
+        bothHeads,
+        fromDoubleHead,
+        toDoubleHead,
+        bothDoubleHeads
       };
     protected:
       std::string pathStr;
@@ -107,6 +110,9 @@ namespace OpenMBV {
        * Use "fromHead" to draw the arrow with a head at the 'from' point;
        * Use "toHead" to draw the arrow with a head at the 'to' point;
        * Use "bothHeads" to draw the arrow with a head at the 'from' and 'to' point;
+       * Use "fromDoubleHead" to draw the arrow with a double head at the 'from' point;
+       * Use "toDoubleHead" to draw the arrow with a double head at the 'to' point;
+       * Use "bothDoubleHeads" to draw the arrow with a double head at the 'from' and 'to' point;
        */
       void setType(Type type_) {
         type=type_;

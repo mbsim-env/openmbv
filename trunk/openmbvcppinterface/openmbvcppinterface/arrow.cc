@@ -46,10 +46,13 @@ TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
   addElementText(e, "headLength", headLength);
   string typeStr;
   switch(type) {
-    case line: typeStr="line"; break;
-    case fromHead: typeStr="fromHead"; break;
-    case toHead: typeStr="toHead"; break;
-    case bothHeads: typeStr="bothHeads"; break;
+    case line:            typeStr="line";            break;
+    case fromHead:        typeStr="fromHead";        break;
+    case toHead:          typeStr="toHead";          break;
+    case bothHeads:       typeStr="bothHeads";       break;
+    case fromDoubleHead:  typeStr="fromDoubleHead";  break;
+    case toDoubleHead:    typeStr="toDoubleHead";    break;
+    case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
   addElementText(e, "type", "\""+typeStr+"\"");
   addElementText(e, "scaleLength", scaleLength);
@@ -95,10 +98,13 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   setHeadLength(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"type");
   string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
-  if(typeStr=="line") setType(line);
-  if(typeStr=="fromHead") setType(fromHead);
-  if(typeStr=="toHead") setType(toHead);
-  if(typeStr=="bothHeads") setType(bothHeads);
+  if(typeStr=="line")            setType(line);
+  if(typeStr=="fromHead")        setType(fromHead);
+  if(typeStr=="toHead")          setType(toHead);
+  if(typeStr=="bothHeads")       setType(bothHeads);
+  if(typeStr=="fromDoubleHead")  setType(fromDoubleHead);
+  if(typeStr=="toDoubleHead")    setType(toDoubleHead);
+  if(typeStr=="bothDoubleHeads") setType(bothDoubleHeads);
   e=element->FirstChildElement(OPENMBVNS"scaleLength");
   setScaleLength(getDouble(e));
 }

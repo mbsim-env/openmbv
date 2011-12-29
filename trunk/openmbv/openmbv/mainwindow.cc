@@ -122,8 +122,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   sceneRoot->precision.setValue(1.0);
   SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons in background
   sceneRoot->addChild(offset);
-  offset->factor.setValue(2.0);
-  offset->units.setValue(0);
+  offset->factor.setValue(0.0);
+  offset->units.setValue(1000);
   complexity=new SoComplexity;
   sceneRoot->addChild(complexity);
 
