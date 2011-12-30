@@ -33,7 +33,7 @@ using namespace std;
 
 static string dirOfTopLevelFile(Group *grp);
 
-Group::Group() : Object(), expandStr("true"), separateFile(false) {
+Group::Group() : Object(), expandStr("true"), separateFile(false), lockFileLock(NULL) {
 }
 
 Group::~Group() {
@@ -280,6 +280,10 @@ void Group::lock(bool exclusive) {
     baseName=fileName;
   string lockFileName=dirOfTopLevelFile(this)+"."+baseName.substr(0, baseName.length()-4)+".lock";
   lockFile=fopen(lockFileName.c_str(), "w"); // create a dummy file for locking
+  if(lockFile==NULL) {
+    cout<<"WARNING! Can not create lock file "<<lockFileName<<": Continue without file locking."<<endl;
+    return;
+  }
   lockFileLock=new boost::interprocess::file_lock(lockFileName.c_str());
   if(exclusive) {
     lockFileLock->lock();
@@ -295,6 +299,7 @@ void Group::lock(bool exclusive) {
 void Group::unlock() {
   assert(parent==NULL);
 #ifdef HAVE_BOOST_FILE_LOCK
+  if(lockFileLock==NULL) return;
   if(lockedExclusive)
     lockFileLock->unlock();
   else
