@@ -440,7 +440,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
         if(e->FirstChildElement()->FirstChildElement()) // inline parameter
           fillParam(e->FirstChildElement()->FirstChildElement());
         else { // parameter from href attribute
-          string paramFile=e->FirstChildElement()->Attribute("href");
+          string paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->FirstChildElement()->Attribute("href"));
           // validate local parameter file
           if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile)!=0) {
             TiXml_location(e->FirstChildElement(), "  included by: ", "");
