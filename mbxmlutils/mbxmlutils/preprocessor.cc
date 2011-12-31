@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include "dirent.h"
 #ifdef HAVE_UNORDERED_MAP
 #  include <unordered_map>
 #else
@@ -34,10 +35,8 @@
 using namespace std;
 
 string SCHEMADIR;
-string XMLDIR;
-string OCTAVEDIR;
 
-char *nslocation;
+string nslocation;
 
 int machinePrec;
 
@@ -65,6 +64,15 @@ void enable_stderr() {
     dup2(orgstderr, fileno(stderr));
     close(orgstderr);
   }
+}
+
+void addFilesInDir(ostringstream &dependencies, string dir, string ext) {
+  dirent *file;
+  DIR *d=opendir(dir.c_str());
+  while((file=readdir(d))!=NULL)
+    if(ext==file->d_name+(strlen(file->d_name)-2)) // ext matches
+      dependencies<<file->d_name<<endl;
+  closedir(d);
 }
 
 // validate file using schema (currently by libxml)
@@ -441,6 +449,8 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
           fillParam(e->FirstChildElement()->FirstChildElement());
         else { // parameter from href attribute
           string paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->FirstChildElement()->Attribute("href"));
+          // add local parameter file to dependencies
+          dependencies<<paramFile<<endl;
           // validate local parameter file
           if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile)!=0) {
             TiXml_location(e->FirstChildElement(), "  included by: ", "");
@@ -559,16 +569,22 @@ string extractFileName(const string& dirfilename) {
 }
 
 int main(int argc, char *argv[]) {
-  if(argc<=3 ||
-     ( strcmp(argv[1], "--dependencies")!=0 && (argc-1)%3!=0) ||
-     ( strcmp(argv[1], "--dependencies")==0 && (argc-3)%3!=0)) {
+  // convert argv to list
+  list<string> arg;
+  for(int i=1; i<argc; i++)
+    arg.push_back(argv[i]);
+
+  // help message
+  if(arg.size()<3) {
     cout<<"Usage:"<<endl
-        <<"mbxmlutilspp [--dependencies <dep-file-name>]"<<endl
+        <<"mbxmlutilspp [--dependencies <dep-file-name>] [--mpath <dir> [--mpath <dir> ]]"<<endl
         <<"              <param-file> [dir/]<main-file> <namespace-location-of-main-file>"<<endl
-        <<"             [<param-file> [dir/]<main-file> <namespace-location-of-main-file>] ..."<<endl
+        <<"             [<param-file> [dir/]<main-file> <namespace-location-of-main-file>]"<<endl
+        <<"             ..."<<endl
         <<""<<endl
         <<"  --dependencies    Write a newline separated list of dependent files including"<<endl
         <<"                    <param-file> and <main-file> to <dep-file-name>"<<endl
+        <<"  --mpath           Add <dir> to the octave search path for m-files"<<endl
         <<""<<endl
         <<"  The output file is named '.pp.<main-file>'."<<endl
         <<"  Use 'none' if not <param-file> is avaliabel."<<endl
@@ -594,6 +610,8 @@ int main(int argc, char *argv[]) {
 #endif
 
   // check for environment variables (none default installation)
+  string XMLDIR;
+  string OCTAVEDIR;
   struct stat st;
   char *env;
   SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
@@ -630,30 +648,50 @@ int main(int argc, char *argv[]) {
     for(machineEps=1.0; (1.0+machineEps)>1.0; machineEps*=0.5);
     machineEps*=2.0;
     machinePrec=(int)(-log(machineEps)/log(10))+1;
+
+    list<string>::iterator i, i2;
   
-    int startArg=1;
-    if(strcmp(argv[1], "--dependencies")==0)
-      startArg=3;
+    // dependency file
     ostringstream dependencies;
+    string depFileName="";
+    if((i=std::find(arg.begin(), arg.end(), "--dependencies"))!=arg.end()) {
+      i2=i; i2++;
+      depFileName=(*i2);
+      arg.erase(i); arg.erase(i2);
+    }
+
+    // mpath
+    do {
+      if((i=std::find(arg.begin(), arg.end(), "--mpath"))!=arg.end()) {
+        i2=i; i2++;
+        // add to octave search path
+        eval_string("addpath(\""+*i2+"\");",true,dummy,0); // statement list
+        // add m-files in mpath dir to dependencies
+        addFilesInDir(dependencies, *i2, ".m");
+        arg.erase(i); arg.erase(i2);
+      }
+    }
+    while(i!=arg.end());
+
     // loop over all files
-    for(int nr=0; nr<(argc-startArg)/3; nr++) {
+    while(arg.size()>0) {
       // initialize the parameter stack
       symbol_table::clear_variables();
       currentParam.clear();
       currentParamHash.clear();
   
-      char *paramxml=argv[3*nr+startArg+0];
-      char *mainxml=argv[3*nr+startArg+1];
-      nslocation=argv[3*nr+startArg+2];
+      string paramxml=*arg.begin(); arg.erase(arg.begin());
+      string mainxml=*arg.begin(); arg.erase(arg.begin());
+      nslocation=*arg.begin(); arg.erase(arg.begin());
   
       // validate parameter file
-      if(string(paramxml)!="none")
+      if(paramxml!="none")
         if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramxml)!=0) throw(1);
   
       // read parameter file
       TiXmlDocument *paramxmldoc=NULL;
       TiXmlElement *paramxmlroot=NULL;
-      if(string(paramxml)!="none") {
+      if(paramxml!="none") {
         cout<<"Read "<<paramxml<<endl;
         TiXmlDocument *paramxmldoc=new TiXmlDocument;
         paramxmldoc->LoadFile(paramxml); TiXml_PostLoadFile(paramxmldoc);
@@ -664,13 +702,13 @@ int main(int argc, char *argv[]) {
       }
   
       // convert parameter file to octave notation
-      if(string(paramxml)!="none") {
+      if(paramxml!="none") {
         cout<<"Process xml[Matrix|Vector] elements in "<<paramxml<<endl;
         if(toOctave(paramxmlroot)!=0) throw(1);
       }
   
       // generate octave parameter string
-      if(string(paramxml)!="none") {
+      if(paramxml!="none") {
         cout<<"Generate octave parameter string from "<<paramxml<<endl;
         if(fillParam(paramxmlroot)!=0) throw(1);
       }
@@ -724,8 +762,8 @@ int main(int argc, char *argv[]) {
     }
   
     // output dependencies?
-    if(strcmp(argv[1], "--dependencies")==0) {
-      ofstream dependenciesFile(argv[2]);
+    if(depFileName!="") {
+      ofstream dependenciesFile(depFileName.c_str());
       dependenciesFile<<dependencies.str();
       dependenciesFile.close();
     }

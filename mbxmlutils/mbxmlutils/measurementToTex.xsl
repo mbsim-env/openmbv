@@ -22,6 +22,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[dvips]{hyperref}
 \usepackage{listings}
+\usepackage{amsmath}
 \setlength{\parskip}{1em}
 \setlength{\parindent}{0mm}
 
@@ -189,6 +190,59 @@ if 1 &amp; 2, x=9; else x=8; end
 ret=myfunc(m1/2);
 ]]&gt;
 \end{verbatim}
+
+The following m-functions extent the octave functionality being useful for several applications:
+\begin{description}
+  \item[$T=\texttt{rotateAboutX}(\phi)$:]
+    Returns the transformation matrix by angle $\phi$ around the x-axis:
+    \begin{equation*}
+      T=\left[\begin{array}{ccc}
+      1 &amp; 0 &amp; 0 \\
+      0 &amp; \cos(\phi) &amp; -\sin(\phi) \\
+      0 &amp; \sin(\phi) &amp; \cos(\phi)
+      \end{array}\right]
+    \end{equation*}
+  \item[$T=\texttt{rotateAboutY}(\phi)$:]
+    Returns the transformation matrix by angle $\phi$ around the y-axis:
+    \begin{equation*}
+      T=\left[\begin{array}{ccc}
+      \cos(\phi) &amp; 0 &amp; \sin(\phi) \\
+      0 &amp; 1 &amp; 0 \\
+      -\sin(\phi) &amp; 0 &amp; \cos(\phi)
+      \end{array}\right]
+    \end{equation*}
+  \item[$T=\texttt{rotateAboutZ}(\phi)$:]
+    Returns the transformation matrix by angle $\phi$ around the z-axis:
+    \begin{equation*}
+      T=\left[\begin{array}{ccc}
+      \cos(\phi) &amp; -\sin(\phi) &amp; 0 \\
+      \sin(\phi) &amp; \cos(\phi) &amp; 0 \\
+      0 &amp; 0 &amp; 1
+      \end{array}\right]
+    \end{equation*}
+  \item[$T=\texttt{cardan}(\alpha,\beta,\gamma)$:]
+    Returns the cardan transformation matrix:
+    \begin{equation*}
+      T=\left[\begin{array}{ccc}
+      \cos(\beta)\cos(\gamma) &amp; -\cos(\beta)\sin(\gamma) &amp; \sin(\beta) \\
+      \cos(\alpha)\sin(\gamma)+\sin(\alpha)\sin(\beta)\cos(\gamma) &amp; \cos(\alpha)\cos(\gamma)-\sin(\alpha)\sin(\beta)\sin(\gamma) &amp; -\sin(\alpha)\cos(\beta) \\
+      \sin(\alpha)\sin(\gamma)-\cos(\alpha)\sin(\beta)\cos(\gamma) &amp; \cos(\alpha)\sin(\beta)\sin(\gamma)+\sin(\alpha)\cos(\gamma) &amp; \cos(\alpha)\cos(\beta)
+      \end{array}\right]
+    \end{equation*}
+  \item[$T=\texttt{euler}(\Phi,\theta,\phi)$:]
+    Returns the Euler transformation matrix:
+    \begin{equation*}
+      T=\left[\begin{array}{ccc}
+      \cos(\phi)\cos(\Phi)-\sin(\phi)\cos(\theta)\sin(\Phi) &amp; -\cos(\phi)\cos(\theta)\sin(\Phi)-\sin(\phi)\cos(\Phi) &amp; \sin(\theta)\sin(\Phi) \\
+      \cos(\phi)\sin(\Phi)+\sin(\phi)\cos(\theta)\cos(\Phi) &amp; \cos(\phi)\cos(\theta)\cos(\Phi)-\sin(\phi)\sin(\Phi) &amp; -\sin(\theta)\cos(\Phi) \\
+      \sin(\phi)\sin(\theta) &amp; \cos(\phi)\sin(\theta) &amp; \cos(\theta)
+      \end{array}\right]
+    \end{equation*}
+  \item[$r=\texttt{rad2deg}(a)$:]
+    Returns $r=a\frac{180}{\pi}$
+  \item[$r=\texttt{deg2rad}(a)$:]
+    Returns $r=a\frac{\pi}{180}$
+\end{description}
 
 \chapter{Embeding}
 \label{embed}
