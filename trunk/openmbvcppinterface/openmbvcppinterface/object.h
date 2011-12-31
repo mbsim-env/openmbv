@@ -21,7 +21,6 @@
 #define _OPENMBV_OBJECT_H_
 
 #include <string>
-#include <math.h>
 #include <H5Cpp.h>
 #include <sstream>
 #include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"

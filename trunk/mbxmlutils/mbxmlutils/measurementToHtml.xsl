@@ -24,7 +24,22 @@
   <!-- for all direct root child elements (classes) -->
   <xsl:template match="/">
     <!-- html header -->
-    <html xml:lang="en" lang="en"><head><title>Physical Variable - XML Documentation</title></head><body>
+    <html xml:lang="en" lang="en">
+    <head>
+      <title>Physical Variable - XML Documentation</title>
+      <style type="text/css">
+        table.matrix td { 
+          padding-left:1ex; 
+          padding-right:1ex; 
+        }
+        table.matrix {
+          text-align:center;
+          border-left-style:solid;
+          border-right-style:solid;
+        }
+      </style>
+    </head>
+    <body>
     <h1>Physical Variable - XML Documentation</h1>
     <h2>Contents</h2>
     <ul>
@@ -173,6 +188,54 @@ if 1 &amp; 2, x=9; else x=8; end
 ret=myfunc(m1/2);
 ]]&gt;
 </pre>
+
+<p>The following m-functions extent the octave functionality being useful for several applications:</p>
+<dl>
+  <dt>T=<tt>rotateAboutX</tt>(&#x3C6;):</dt>
+  <dd>Returns the transformation matrix by angle &#x3C6; around the x-axis:
+    <table class="matrix">
+      <tr><td><tt>1</tt></td><td><tt>0</tt></td><td><tt>0</tt></td></tr>
+      <tr><td><tt>0</tt></td><td><tt>cos(&#x3C6;)</tt></td><td><tt>-sin(&#x3C6;)</tt></td></tr>
+      <tr><td><tt>0</tt></td><td><tt>sin(&#x3C6;)</tt></td><td><tt>cos(&#x3C6;)</tt></td></tr>
+    </table>
+  </dd>
+  <dt>T=<tt>rotateAboutY</tt>(&#x3C6;):</dt>
+  <dd>Returns the transformation matrix by angle &#x3C6; around the y-axis:
+    <table class="matrix">
+      <tr><td><tt>cos(&#x3C6;)</tt></td><td><tt>0</tt></td><td><tt>sin(&#x3C6;)</tt></td></tr>
+      <tr><td><tt>0</tt></td><td><tt>1</tt></td><td><tt>0</tt></td></tr>
+      <tr><td><tt>-sin(&#x3C6;)</tt></td><td><tt>0</tt></td><td><tt>cos(&#x3C6;)</tt></td></tr>
+    </table>
+  </dd>
+  <dt>T=<tt>rotateAboutZ</tt>(&#x3C6;):</dt>
+  <dd>Returns the transformation matrix by angle &#x3C6; around the z-axis:
+    <table class="matrix">
+      <tr><td><tt>cos(&#x3C6;)</tt></td><td><tt>-sin(&#x3C6;)</tt></td><td><tt>0</tt></td></tr>
+      <tr><td><tt>sin(&#x3C6;)</tt></td><td><tt>cos(&#x3C6;)</tt></td><td><tt>0</tt></td></tr>
+      <tr><td><tt>0</tt></td><td><tt>0</tt></td><td><tt>1</tt></td></tr>
+    </table>
+  </dd>
+  <dt>T=<tt>cardan</tt>(&#x3B1;,&#x3B2;,&#x3B3;):</dt>
+  <dd>Returns the cardan transformation matrix:
+    <table class="matrix">
+      <tr><td><tt>cos(&#x3B2;)cos(&#x3B3;)</tt></td><td><tt>-cos(&#x3B2;)sin(&#x3B3;)</tt></td><td><tt>sin(&#x3B2;)</tt></td></tr>
+      <tr><td><tt>cos(&#x3B1;)sin(&#x3B3;)+sin(&#x3B1;)sin(&#x3B2;)cos(&#x3B3;)</tt></td><td><tt>cos(&#x3B1;)cos(&#x3B3;)-sin(&#x3B1;)sin(&#x3B2;)sin(&#x3B3;)</tt></td><td><tt>-sin(&#x3B1;)cos(&#x3B2;)</tt></td></tr>
+      <tr><td><tt>sin(&#x3B1;)sin(&#x3B3;)-cos(&#x3B1;)sin(&#x3B2;)cos(&#x3B3;)</tt></td><td><tt>cos(&#x3B1;)sin(&#x3B2;)sin(&#x3B3;)+sin(&#x3B1;)cos(&#x3B3;)</tt></td><td><tt>cos(&#x3B1;)cos(&#x3B2;)</tt></td></tr>
+    </table>
+  </dd>
+  <dt>T=<tt>euler</tt>(&#x3A6;,&#x3B8;,&#x3C6;):</dt>
+  <dd>Returns the Euler transformation matrix:
+    <table class="matrix">
+      <tr><td><tt>cos(&#x3C6;)cos(&#x3A6;)-sin(&#x3C6;)cos(&#x3B8;)sin(&#x3A6;)</tt></td><td><tt>-cos(&#x3C6;)cos(&#x3B8;)sin(&#x3A6;)-sin(&#x3C6;)cos(&#x3A6;)</tt></td><td><tt>sin(&#x3B8;)sin(&#x3A6;)</tt></td></tr>
+      <tr><td><tt>cos(&#x3C6;)sin(&#x3A6;)+sin(&#x3C6;)cos(&#x3B8;)cos(&#x3A6;)</tt></td><td><tt>cos(&#x3C6;)cos(&#x3B8;)cos(&#x3A6;)-sin(&#x3C6;)sin(&#x3A6;)</tt></td><td><tt>-sin(&#x3B8;)cos(&#x3A6;)</tt></td></tr>
+      <tr><td><tt>sin(&#x3C6;)sin(&#x3B8;)</tt></td><td><tt>cos(&#x3C6;)sin(&#x3B8;)</tt></td><td><tt>cos(&#x3B8;)</tt></td></tr>
+    </table>
+  </dd>
+  <dt>r=<tt>rad2deg</tt>(a):</dt>
+  <dd>Returns r=a*180/pi</dd>
+  <dt>r=<tt>deg2rad</tt>(a):</dt>
+  <dd>Returns r=a*pi/180</dd>
+</dl>
 
     <h2><a name="embed" href="#embed-content">Embeding</a></h2>
     <p>Using the <span style="font-family:monospace">&lt;pv:embed&gt;</span> element, where the prefix <span style="font-family:monospace">pv</span> is mapped to the namespace-uri <span style="font-family:monospace">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
