@@ -33,8 +33,11 @@ using namespace std;
 
 static string dirOfTopLevelFile(Group *grp);
 
-Group::Group() : Object(), expandStr("true"), separateFile(false), lockFileLock(NULL) {
-}
+Group::Group() : Object(), expandStr("true"), separateFile(false)
+#ifdef HAVE_BOOST_FILE_LOCK                 
+, lockFileLock(NULL)
+#endif
+{}
 
 Group::~Group() {
   for(unsigned int i=0; i<object.size(); i++)
