@@ -24,6 +24,9 @@
 #include "dynamiccoloredbody.h"
 
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/SoPrimitiveVertex.h> 
 #include <Inventor/nodes/SoIndexedNurbsSurface.h> 
 #include <Inventor/nodes/SoComplexity.h>
@@ -60,7 +63,18 @@ class NurbsDisk : public DynamicColoredBody {
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
 
+    virtual QMenu* createMenu();
+
   protected:
+    QAction *localFrame;
+    SoSwitch *soLocalFrameSwitch;
+    SoScale *localFrameScale;
+    SoSeparator *soSepNurbsDisk;
+
+    SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
+    SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
+    SoTranslation *translation;
+
     /** number of elements in azimuthal and radial direction */
     int nj, nr;
 
@@ -92,6 +106,9 @@ class NurbsDisk : public DynamicColoredBody {
     virtual double update();
 
     OpenMBV::NurbsDisk *nurbsDisk;
+
+    public slots:
+    	void localFrameSlot();
 };
 
 #endif /* _NURBSDISK_H_ */

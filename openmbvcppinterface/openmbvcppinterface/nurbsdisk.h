@@ -44,6 +44,12 @@ namespace OpenMBV {
       /** Retrun the class name */
       std::string getClassName() { return "NurbsDisk"; }
 
+
+      /** Draw reference frame of this object in the viewer if true (the default) */
+      void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
+
+      bool getLocalFrame() { return localFrameStr=="true"?true:false; }
+
       /** Set the scale factor of the body. */
       void setScaleFactor(const ScalarParameter scale) {
         set(scaleFactor,scale);
@@ -152,6 +158,11 @@ namespace OpenMBV {
 
       /** Each row comprises [time,]. */
       H5::VectorSerie<double>* data;
+
+      /**
+       * \brief String that contains, whether reference Frame should be drawn (="True") or not (="False")
+       */
+      std::string localFrameStr;
 
       /** Scale factor of the body. */
       ScalarParameter scaleFactor;
