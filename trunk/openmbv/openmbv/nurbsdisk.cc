@@ -21,6 +21,7 @@
 
 #include "nurbsdisk.h"
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 
 #include <Inventor/nodes/SoMaterial.h>
 #include "utils.h"
@@ -148,6 +149,42 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   faceSet=new SoIndexedFaceSet;
   faceSet->ref();
   //soSep->addChild(faceSet);  
+
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
+	  // translation (from hdf5)
+	  translation=new SoTranslation;
+	  soSep->addChild(translation);
+
+	  // rotation (from hdf5)
+	  rotationAlpha=new SoRotationXYZ;
+	  rotationAlpha->axis=SoRotationXYZ::X;
+	  soSep->addChild(rotationAlpha);
+	  rotationBeta=new SoRotationXYZ;
+	  rotationBeta->axis=SoRotationXYZ::Y;
+	  soSep->addChild(rotationBeta);
+	  rotationGamma=new SoRotationXYZ;
+	  rotationGamma->axis=SoRotationXYZ::Z;
+	  soSep->addChild(rotationGamma);
+	  rotation=new SoRotation;
+	  rotation->ref(); // do not add to scene graph (only for convinience)
+
+	  // till now the scene graph should be static (except color). So add a SoSeparator for caching
+	  soSepNurbsDisk=new SoSeparator;
+	  soSep->addChild(soSepNurbsDisk);
+
+	  // reference frame
+	  soLocalFrameSwitch=new SoSwitch;
+	  soSepNurbsDisk->addChild(soLocalFrameSwitch);
+	  soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
+	  localFrameScale->ref();
+	  soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+
+	  localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
+	  localFrame->setCheckable(true);
+	  localFrame->setChecked(nurbsDisk->getLocalFrame());
+	  localFrame->setObjectName("NurbsDisk::localFrame");
+	  connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
+  }
 }
 
 NurbsDisk::~NurbsDisk() {
@@ -158,38 +195,56 @@ QString NurbsDisk::getInfo() {
   return DynamicColoredBody::getInfo();
 }
 
+void NurbsDisk::localFrameSlot() {
+  if(localFrame->isChecked()) {
+    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    nurbsDisk->setLocalFrame(true);
+  }
+  else {
+    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    nurbsDisk->setLocalFrame(false);
+  }
+}
+
+QMenu* NurbsDisk::createMenu() {
+	QMenu* menu=DynamicColoredBody::createMenu();
+	menu->addSeparator()->setText("Properties from: NurbsDisk");
+	menu->addAction(localFrame);
+
+	return menu;
+}
+
 double NurbsDisk::update() {
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   std::vector<double> data=nurbsDisk->getRow(frame);
 
+  // vector of the position of the disk (midpoint of base circle, not midplane!)
+  translation->translation.setValue(data[1], data[2], data[3]);
+
+  // set scene values
+  rotationAlpha->angle.setValue(data[4]);
+  rotationBeta->angle.setValue(data[5]);
+  rotationGamma->angle.setValue(data[6]);
+  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotation matrix (needed for move camera with body)
+
+  // rotary matrix
+  SbMatrix Orientation = Utils::cardan2Orientation(SbVec3f(data[4], data[5], data[6]));
+
   // set points
   controlPts->point.setNum(nurbsLength+nj*drawDegree*4);
   SbVec3f *pointData = controlPts->point.startEditing();
   for(int i=0;i<nurbsLength+nj*drawDegree;i++) {  // control points + visualisation points of the inner ring
-    pointData[i][0]=data[i*3+1];
-    pointData[i][1]=data[i*3+2];
-    pointData[i][2]=data[i*3+3];
+    pointData[i][0]=data[i*3+1+6];
+    pointData[i][1]=data[i*3+2+6];
+    pointData[i][2]=data[i*3+3+6];
   }
 
   for(int i=nurbsLength+nj*drawDegree;i<nurbsLength+2*nj*drawDegree;i++) { // visualisation points of the outer ring
-    pointData[i+2*nj*drawDegree][0]=data[i*3+1];
-    pointData[i+2*nj*drawDegree][1]=data[i*3+2];
-    pointData[i+2*nj*drawDegree][2]=data[i*3+3];
+    pointData[i+2*nj*drawDegree][0]=data[i*3+1+6];
+    pointData[i+2*nj*drawDegree][1]=data[i*3+2+6];
+    pointData[i+2*nj*drawDegree][2]=data[i*3+3+6];
   }
-
-  // vector of the position of the disk (midpoint of base circle, not midplane!)
-  float DiskPosition[3];
-  for(int i=0;i<3;i++) {
-    DiskPosition[i]=data[1+nurbsLength*3+2*nj*drawDegree*3+i];
-  }
-
-  // rotary matrix
-  float Orientation[3][3];
-  for(int i=0;i<3;i++) 
-    for(int j=0;j<3;j++) { 
-      Orientation[i][j]=data[1+nurbsLength*3+2*nj*drawDegree*3+3+i*3+j];
-    }
 
   // point for sides and back of the disk for visualisation
   float pointtmp[3], point[3];
@@ -201,18 +256,18 @@ double NurbsDisk::update() {
     point[1]=sin(Phi) * innerRadius;
     point[2]=0.;
     for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2]; 
-    pointData[nurbsLength+(nj)*1*drawDegree+i][0]=pointtmp[0]+DiskPosition[0];
-    pointData[nurbsLength+(nj)*1*drawDegree+i][1]=pointtmp[1]+DiskPosition[1];
-    pointData[nurbsLength+(nj)*1*drawDegree+i][2]=pointtmp[2]+DiskPosition[2];
+    pointData[nurbsLength+(nj)*1*drawDegree+i][0]=pointtmp[0]+translation->translation.getValue()[0];
+    pointData[nurbsLength+(nj)*1*drawDegree+i][1]=pointtmp[1]+translation->translation.getValue()[1];
+    pointData[nurbsLength+(nj)*1*drawDegree+i][2]=pointtmp[2]+translation->translation.getValue()[2];
 
     // outer Ring
     point[0]=cos(Phi) * outerRadius;
     point[1]=sin(Phi) * outerRadius;
     point[2]=0.;
     for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][0]=pointtmp[0]+DiskPosition[0];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][1]=pointtmp[1]+DiskPosition[1];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][2]=pointtmp[2]+DiskPosition[2];
+    pointData[nurbsLength+(nj)*2*drawDegree+i][0]=pointtmp[0]+translation->translation.getValue()[0];
+    pointData[nurbsLength+(nj)*2*drawDegree+i][1]=pointtmp[1]+translation->translation.getValue()[1];
+    pointData[nurbsLength+(nj)*2*drawDegree+i][2]=pointtmp[2]+translation->translation.getValue()[2];
   }
   controlPts->point.finishEditing();
   controlPts->point.setDefault(FALSE);
@@ -238,6 +293,7 @@ double NurbsDisk::update() {
   }
   faceSet->coordIndex.finishEditing();
   faceSet->coordIndex.setDefault(FALSE);
+
   return data[0];
 }
 

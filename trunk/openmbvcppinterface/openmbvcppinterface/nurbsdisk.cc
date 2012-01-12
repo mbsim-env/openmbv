@@ -27,6 +27,7 @@ using namespace OpenMBV;
 
 NurbsDisk::NurbsDisk() : DynamicColoredBody(),
   data(0), 
+  localFrameStr("false"),
   scaleFactor(1),
   drawDegree(1),
   Ri(0.),
@@ -72,6 +73,18 @@ void NurbsDisk::createHDF5File() {
     int NodeDofs;
     NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal()); 
     columns.push_back("Time");
+
+    //Global position (position of center of gravity)
+    columns.push_back("Pos_x");
+    columns.push_back("Pos_y");
+    columns.push_back("Pos_z");
+
+    //Global orientation (= Cardan angles for orientation of COG)
+    columns.push_back("Rot_alpha");
+    columns.push_back("Rot_beta");
+    columns.push_back("Rot_gamma");
+
+    //coordinates of control points
     for(int i=0;i<NodeDofs;i++) { 
       columns.push_back("x"+numtostr(i));
       columns.push_back("y"+numtostr(i));
@@ -81,14 +94,6 @@ void NurbsDisk::createHDF5File() {
       columns.push_back("x"+numtostr(i+NodeDofs));
       columns.push_back("y"+numtostr(i+NodeDofs));
       columns.push_back("z"+numtostr(i+NodeDofs));    
-    }
-    columns.push_back("Pos x");
-    columns.push_back("Pos y");
-    columns.push_back("Pos z"); 
-    for(int i=0;i<3;i++) {
-      for(int j=0;j<3;j++) {
-        columns.push_back("Rot "+numtostr(i)+numtostr(j));
-      }
     }
 
     data->create(*hdf5Group,"data",columns);

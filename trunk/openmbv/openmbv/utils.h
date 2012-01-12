@@ -69,6 +69,11 @@ class Utils {
     /** Convenienc function to convert a rotation matrix to cardan angles */
     static SbVec3f rotation2Cardan(const SbRotation& r);
 
+    /**
+     * \brief function to convert cardan angles to orentation matrix in R^3x3
+     */
+    static SbMatrix cardan2Orientation(const SbVec3f& AlphaBetaGamma);
+
 
 
     // TESSELATION

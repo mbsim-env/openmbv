@@ -265,7 +265,7 @@ double RigidBody::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotatoin matrix (needed for move camera with body)
+  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotation matrix (needed for move camera with body)
 
   // do not change "mat" if color has not changed to prevent
   // invalidating the render cache of the geometry.
