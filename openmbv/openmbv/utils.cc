@@ -146,7 +146,7 @@ SbRotation Utils::cardan2Rotation(const SbVec3f &c) {
 SbVec3f Utils::rotation2Cardan(const SbRotation& R) {
   SbMatrix M;
   R.getValue(M);
-  float a, b, g;    
+  float a, b, g;
   b=asin(M[0][2]);
   double nenner=cos(b);
   if (nenner>1e-10) {
@@ -157,24 +157,6 @@ SbVec3f Utils::rotation2Cardan(const SbRotation& R) {
     g=atan2(M[1][0],M[1][1]);
   }
   return SbVec3f(a,b,g);
-}
-
-SbMatrix Utils::cardan2Orientation(const SbVec3f& AlphaBetaGamma) {
-	SbMatrix M;
-	const float& a = AlphaBetaGamma[0];
-	const float& b = AlphaBetaGamma[1];
-	const float& c = AlphaBetaGamma[2];
-	M[0][0] = cos(b) * cos(c);
-	M[0][1] = -cos(b) * sin(c);
-	M[0][2] = sin(b);
-	M[1][0] = cos(a)*sin(c) + sin(a)*sin(b)*cos(c);
-	M[1][1] = cos(a)*cos(c)-sin(a)*sin(b)*sin(c);
-	M[1][2] = -sin(a)*cos(b);
-	M[2][0] = sin(a)*sin(c)-cos(a)*sin(b)*cos(c);
-	M[2][1] = sin(a)*cos(c)+cos(a)*sin(b)*sin(c);
-	M[2][2] = cos(a)*cos(b);
-
-	return M;
 }
 
 // for tess

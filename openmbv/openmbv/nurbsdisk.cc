@@ -21,7 +21,6 @@
 
 #include "nurbsdisk.h"
 #include "mainwindow.h"
-#include "compoundrigidbody.h"
 
 #include <Inventor/nodes/SoMaterial.h>
 #include "utils.h"
@@ -89,7 +88,7 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
   surface->vKnotVector.setNum(nr+1+degRadial+1);
   float* knotVecRadial_ = surface->vKnotVector.startEditing();
-  for(int i=0;i<nr+1+degRadial+1;i++) 
+  for(int i=0;i<nr+1+degRadial+1;i++)
     knotVecRadial_[i]=knotVecRadial[i];
   surface->vKnotVector.finishEditing();
   surface->vKnotVector.setDefault(FALSE);
@@ -103,23 +102,23 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
   surface->uKnotVector.setNum(nj+1+2*degAzimuthal);
   float* knotVecAzimuthal_ = surface->uKnotVector.startEditing();
-  for(int i=0;i<nj+1+2*degAzimuthal;i++) 
+  for(int i=0;i<nj+1+2*degAzimuthal;i++)
     knotVecAzimuthal_[i]=knotVecAzimuthal[i];
   surface->uKnotVector.finishEditing();
   surface->uKnotVector.setDefault(FALSE);
 
   //surface->coordIndex.setNum(16);
   //int32_t *nurbsIndices = surface->coordIndex.startEditing();
-  //for(int i=0;i<4;i++) 
-  //  for(int j=0;j<4;j++) 
+  //for(int i=0;i<4;i++)
+  //  for(int j=0;j<4;j++)
   //    nurbsIndices[i*4+j]=i*4+j;
   //surface->coordIndex.finishEditing();
   //surface->coordIndex.setDefault(FALSE);
 
   surface->coordIndex.setNum(nurbsLength);
   int32_t *nurbsIndices = surface->coordIndex.startEditing();
-  for(int i=0;i<(nr+1);i++) 
-    for(int j=0;j<(nj+degAzimuthal);j++) 
+  for(int i=0;i<(nr+1);i++)
+    for(int j=0;j<(nj+degAzimuthal);j++)
       nurbsIndices[i*(nj+degAzimuthal)+j]=(i+1)*(nj+degAzimuthal)-1-j;
   surface->coordIndex.finishEditing();
   surface->coordIndex.setDefault(FALSE);
@@ -148,47 +147,47 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   // faces
   faceSet=new SoIndexedFaceSet;
   faceSet->ref();
-  //soSep->addChild(faceSet);  
+  //soSep->addChild(faceSet);
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-	  // translation (from hdf5)
-	  translation=new SoTranslation;
-	  soSep->addChild(translation);
+  // translation (from hdf5)
+  translation=new SoTranslation;
+  soSep->addChild(translation);
 
-	  // rotation (from hdf5)
-	  rotationAlpha=new SoRotationXYZ;
-	  rotationAlpha->axis=SoRotationXYZ::X;
-	  soSep->addChild(rotationAlpha);
-	  rotationBeta=new SoRotationXYZ;
-	  rotationBeta->axis=SoRotationXYZ::Y;
-	  soSep->addChild(rotationBeta);
-	  rotationGamma=new SoRotationXYZ;
-	  rotationGamma->axis=SoRotationXYZ::Z;
-	  soSep->addChild(rotationGamma);
-	  rotation=new SoRotation;
-	  rotation->ref(); // do not add to scene graph (only for convinience)
+  // rotation (from hdf5)
+  rotationAlpha=new SoRotationXYZ;
+  rotationAlpha->axis=SoRotationXYZ::X;
+  soSep->addChild(rotationAlpha);
+  rotationBeta=new SoRotationXYZ;
+  rotationBeta->axis=SoRotationXYZ::Y;
+  soSep->addChild(rotationBeta);
+  rotationGamma=new SoRotationXYZ;
+  rotationGamma->axis=SoRotationXYZ::Z;
+  soSep->addChild(rotationGamma);
+  rotation=new SoRotation;
+  rotation->ref(); // do not add to scene graph (only for convenience)
 
-	  // till now the scene graph should be static (except color). So add a SoSeparator for caching
-	  soSepNurbsDisk=new SoSeparator;
-	  soSep->addChild(soSepNurbsDisk);
+  // till now the scene graph should be static (except color). So add a SoSeparator for caching
+  soSepNurbsDisk=new SoSeparator;
+  soSep->addChild(soSepNurbsDisk);
 
-	  // reference frame
-	  soLocalFrameSwitch=new SoSwitch;
-	  soSepNurbsDisk->addChild(soLocalFrameSwitch);
-	  soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
-	  localFrameScale->ref();
-	  soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  // reference frame
+  soLocalFrameSwitch=new SoSwitch;
+  soSepNurbsDisk->addChild(soLocalFrameSwitch);
+  soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
+  localFrameScale->ref();
+  soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
-	  localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
-	  localFrame->setCheckable(true);
-	  localFrame->setChecked(nurbsDisk->getLocalFrame());
-	  localFrame->setObjectName("NurbsDisk::localFrame");
-	  connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-  }
+  localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
+  localFrame->setCheckable(true);
+  localFrame->setChecked(nurbsDisk->getLocalFrame());
+  localFrame->setObjectName("NurbsDisk::localFrame");
+  connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
 }
 
 NurbsDisk::~NurbsDisk() {
   faceSet->unref();
+  localFrameScale->unref();
+  rotation->unref();
 }
 
 QString NurbsDisk::getInfo() {
@@ -229,7 +228,9 @@ double NurbsDisk::update() {
   rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotation matrix (needed for move camera with body)
 
   // rotary matrix
-  SbMatrix Orientation = Utils::cardan2Orientation(SbVec3f(data[4], data[5], data[6]));
+  SbMatrix Orientation;
+  rotation->rotation.getValue().getValue(Orientation);
+
 
   // set points
   controlPts->point.setNum(nurbsLength+nj*drawDegree*4);
@@ -255,7 +256,7 @@ double NurbsDisk::update() {
     point[0]=cos(Phi) * innerRadius;
     point[1]=sin(Phi) * innerRadius;
     point[2]=0.;
-    for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2]; 
+    for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2];
     pointData[nurbsLength+(nj)*1*drawDegree+i][0]=pointtmp[0]+translation->translation.getValue()[0];
     pointData[nurbsLength+(nj)*1*drawDegree+i][1]=pointtmp[1]+translation->translation.getValue()[1];
     pointData[nurbsLength+(nj)*1*drawDegree+i][2]=pointtmp[2]+translation->translation.getValue()[2];
@@ -275,8 +276,8 @@ double NurbsDisk::update() {
   // faces
   faceSet->coordIndex.setNum((nj*drawDegree)*3*5);
   int32_t *faceValues = faceSet->coordIndex.startEditing();
-  for(int j=0;j<3;j++) { // inner ring up-down ; circle - hollow down ; outer down-up  
-    for(int i=0;i<(nj*drawDegree-1);i++) { 
+  for(int j=0;j<3;j++) { // inner ring up-down ; circle - hollow down ; outer down-up
+    for(int i=0;i<(nj*drawDegree-1);i++) {
       faceValues[j*nj*drawDegree*5+i*5+0]=nurbsLength+(nj*drawDegree)*(j)+i;
       faceValues[j*nj*drawDegree*5+i*5+1]=nurbsLength+(nj*drawDegree)*(j)+i+1;
       faceValues[j*nj*drawDegree*5+i*5+2]=nurbsLength+(nj*drawDegree)*(j+1)+i+1;

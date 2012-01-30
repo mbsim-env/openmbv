@@ -26,7 +26,7 @@ using namespace std;
 using namespace OpenMBV;
 
 NurbsDisk::NurbsDisk() : DynamicColoredBody(),
-  data(0), 
+  data(0),
   localFrameStr("false"),
   scaleFactor(1),
   drawDegree(1),
@@ -48,6 +48,7 @@ NurbsDisk::~NurbsDisk() {
 
 TiXmlElement *NurbsDisk::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+  addElementText(e, "localFrame", localFrameStr);
   addElementText(e, "scaleFactor", scaleFactor);
   addElementText(e, "drawDegree", drawDegree);
   addElementText(e, "innerRadius", Ri);
@@ -71,7 +72,7 @@ void NurbsDisk::createHDF5File() {
     data=new H5::VectorSerie<double>;
     vector<string> columns;
     int NodeDofs;
-    NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal()); 
+    NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
     columns.push_back("Time");
 
     //Global position (position of center of gravity)
@@ -85,7 +86,7 @@ void NurbsDisk::createHDF5File() {
     columns.push_back("Rot_gamma");
 
     //coordinates of control points
-    for(int i=0;i<NodeDofs;i++) { 
+    for(int i=0;i<NodeDofs;i++) {
       columns.push_back("x"+numtostr(i));
       columns.push_back("y"+numtostr(i));
       columns.push_back("z"+numtostr(i));
@@ -93,7 +94,7 @@ void NurbsDisk::createHDF5File() {
     for(int i=0;i<getElementNumberAzimuthal()*get(drawDegree)*2;i++) {
       columns.push_back("x"+numtostr(i+NodeDofs));
       columns.push_back("y"+numtostr(i+NodeDofs));
-      columns.push_back("z"+numtostr(i+NodeDofs));    
+      columns.push_back("z"+numtostr(i+NodeDofs));
     }
 
     data->create(*hdf5Group,"data",columns);
@@ -110,6 +111,10 @@ void NurbsDisk::openHDF5File() {
 
 void NurbsDisk::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
+  if(element->Attribute("localFrame") &&
+     (element->Attribute("localFrame")==string("true") || element->Attribute("localFrame")==string("1")))
+    setLocalFrame(true);
+
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
