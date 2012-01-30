@@ -40,7 +40,7 @@
 class Utils {
   public:
     // INITIALIZATION
-    
+
     /** initialize the Utils class. Must be called before any member is used. */
     static void initialize();
 
@@ -52,7 +52,7 @@ class Utils {
      * to cache the parsing of e.g. SVG files. This lead to a speedup
      * (at app init) by a factor of 11 in my test case. */
     static const QIcon& QIconCached(const QString& filename);
-    
+
     /** Use SoDBreadAllCached(filename) instead of SoDBreadAll(filename) everywhere
      * to cache the iv-file parsing and scene generation */
     static SoSeparator* SoDBreadAllCached(const std::string &filename);
@@ -63,22 +63,15 @@ class Utils {
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) {
       SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale);
     }
-    
+
     /** Convenienc function to convert cardan angles to a rotation matrix */
     static SbRotation cardan2Rotation(const SbVec3f& c);
     /** Convenienc function to convert a rotation matrix to cardan angles */
     static SbVec3f rotation2Cardan(const SbRotation& r);
 
-    /**
-     * \brief function to convert cardan angles to orentation matrix in R^3x3
-     */
-    static SbMatrix cardan2Orientation(const SbVec3f& AlphaBetaGamma);
-
-
 
     // TESSELATION
     static GLUtesselator *tess;
-
 
 
   private:

@@ -353,6 +353,7 @@
   <xs:complexType name="NurbsDiskType">
     <xs:complexContent>
       <xs:extension base="DynamicColoredBodyType">
+        <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
         <xs:sequence>
           <xs:element name="drawDegree" type="pv:nounitScalar"/>
           <xs:element name="innerRadius" type="pv:lengthScalar"/>
