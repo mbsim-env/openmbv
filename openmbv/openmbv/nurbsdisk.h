@@ -27,11 +27,11 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
-#include <Inventor/SoPrimitiveVertex.h> 
-#include <Inventor/nodes/SoIndexedNurbsSurface.h> 
+#include <Inventor/SoPrimitiveVertex.h>
+#include <Inventor/nodes/SoIndexedNurbsSurface.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoShapeHints.h> 
+#include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoSeparator.h>
 
 #include <H5Cpp.h>
@@ -66,7 +66,7 @@ class NurbsDisk : public DynamicColoredBody {
     virtual QMenu* createMenu();
 
   protected:
-    QAction *localFrame;
+    QAction *localFrame, *moveCameraWith;
     SoSwitch *soLocalFrameSwitch;
     SoScale *localFrameScale;
     SoSeparator *soSepNurbsDisk;
@@ -96,7 +96,15 @@ class NurbsDisk : public DynamicColoredBody {
     /** NURBS surface */
     SoIndexedNurbsSurface *surface;
 
-    /** NURBS Control Points and Points for sides and back of the disk */
+    /**
+     * \brief NURBS control-points and points for sides and back (=midplane) of the disk
+     *
+     * For the indexing of these points:
+     * The first points (with the number of "nurbsLength") in this array are the control points of the NURBS-surface
+     * Besides the points for the side/flank/facet are saved:
+     *    - at first the points of the inner ring with its points on the surface and the points on the midplane
+     *    - then the points of the outer ring with its points on the surface and the points on the midplane
+     */
     SoCoordinate3 *controlPts;
 
     /** primitive closures */
@@ -109,6 +117,7 @@ class NurbsDisk : public DynamicColoredBody {
 
     public slots:
     	void localFrameSlot();
+    	void moveCameraWithSlot();
 };
 
 #endif /* _NURBSDISK_H_ */

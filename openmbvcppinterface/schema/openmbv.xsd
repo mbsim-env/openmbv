@@ -352,19 +352,20 @@
   <xs:element name="NurbsDisk" substitutionGroup="DynamicColoredBody" type="NurbsDiskType"/>
   <xs:complexType name="NurbsDiskType">
     <xs:complexContent>
-      <xs:extension base="DynamicColoredBodyType">
-        <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
+      <xs:extension base="DynamicColoredBodyType">        
         <xs:sequence>
+          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
           <xs:element name="drawDegree" type="pv:nounitScalar"/>
           <xs:element name="innerRadius" type="pv:lengthScalar"/>
           <xs:element name="outerRadius" type="pv:lengthScalar"/>
-          <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
-          <xs:element name="knotVecRadial" type="pv:lengthVector"/>
           <xs:element name="elementNumberAzimuthal" type="pv:nounitScalar"/>
           <xs:element name="elementNumberRadial" type="pv:nounitScalar"/>
-          <xs:element name="interpolationDegreeRadial" type="pv:nounitScalar"/>
           <xs:element name="interpolationDegreeAzimuthal" type="pv:nounitScalar"/>
+          <xs:element name="interpolationDegreeRadial" type="pv:nounitScalar"/>
+          <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
+          <xs:element name="knotVecRadial" type="pv:lengthVector"/>
         </xs:sequence> 
+        <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

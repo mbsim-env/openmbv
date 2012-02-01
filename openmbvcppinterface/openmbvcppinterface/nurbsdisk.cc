@@ -48,7 +48,6 @@ NurbsDisk::~NurbsDisk() {
 
 TiXmlElement *NurbsDisk::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
-  addElementText(e, "localFrame", localFrameStr);
   addElementText(e, "scaleFactor", scaleFactor);
   addElementText(e, "drawDegree", drawDegree);
   addElementText(e, "innerRadius", Ri);
@@ -63,6 +62,8 @@ TiXmlElement *NurbsDisk::writeXMLFile(TiXmlNode *parent) {
   str="[";
   for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=numtostr(KnotVecRadial.getValue()[i])+";";
   addElementText(e, "knotVecRadial", str+numtostr(KnotVecRadial.getValue()[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
+
+  addAttribute(e, "localFrame", localFrameStr, "false");
   return 0;
 }
 
@@ -111,14 +112,10 @@ void NurbsDisk::openHDF5File() {
 
 void NurbsDisk::initializeUsingXML(TiXmlElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
-  if(element->Attribute("localFrame") &&
-     (element->Attribute("localFrame")==string("true") || element->Attribute("localFrame")==string("1")))
-    setLocalFrame(true);
-
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
-  addElementText(e, "drawDegree", drawDegree);
+  e=element->FirstChildElement(OPENMBVNS"drawDegree");
   setDrawDegree(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"innerRadius");
   set(Ri,getDouble(e));
@@ -136,5 +133,9 @@ void NurbsDisk::initializeUsingXML(TiXmlElement *element) {
   setKnotVecAzimuthal(getVec(e,getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()));
   e=element->FirstChildElement(OPENMBVNS"knotVecRadial");
   setKnotVecRadial(getVec(e,getElementNumberRadial()+1+getInterpolationDegreeRadial()+1));
+
+  if(element->Attribute("localFrame") &&
+     (element->Attribute("localFrame")==string("true") || element->Attribute("localFrame")==string("1")))
+    setLocalFrame(true);
 }
 

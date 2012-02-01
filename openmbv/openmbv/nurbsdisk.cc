@@ -147,7 +147,7 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   // faces
   faceSet=new SoIndexedFaceSet;
   faceSet->ref();
-  //soSep->addChild(faceSet);
+  soSep->addChild(faceSet);
 
   // translation (from hdf5)
   translation=new SoTranslation;
@@ -177,11 +177,17 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   localFrameScale->ref();
   soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
+  //add option to show local frame of body (with rigid body movement)
   localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
   localFrame->setCheckable(true);
   localFrame->setChecked(nurbsDisk->getLocalFrame());
   localFrame->setObjectName("NurbsDisk::localFrame");
   connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
+
+  //Add option to move camera with body
+  moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);
+  moveCameraWith->setObjectName("RigidBody::moveCameraWith");
+  connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
 }
 
 NurbsDisk::~NurbsDisk() {
@@ -205,18 +211,23 @@ void NurbsDisk::localFrameSlot() {
   }
 }
 
+void NurbsDisk::moveCameraWithSlot() {
+  MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
+}
+
 QMenu* NurbsDisk::createMenu() {
 	QMenu* menu=DynamicColoredBody::createMenu();
 	menu->addSeparator()->setText("Properties from: NurbsDisk");
 	menu->addAction(localFrame);
+	menu->addAction(moveCameraWith);
 
 	return menu;
 }
 
 double NurbsDisk::update() {
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=nurbsDisk->getRow(frame);
+  int frame = MainWindow::getInstance()->getFrame()->getValue();
+  std::vector<double> data = nurbsDisk->getRow(frame);
 
   // vector of the position of the disk (midpoint of base circle, not midplane!)
   translation->translation.setValue(data[1], data[2], data[3]);
@@ -225,76 +236,168 @@ double NurbsDisk::update() {
   rotationAlpha->angle.setValue(data[4]);
   rotationBeta->angle.setValue(data[5]);
   rotationGamma->angle.setValue(data[6]);
-  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotation matrix (needed for move camera with body)
+  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4], data[5], data[6])).inverse()); // set rotation matrix (needed for move camera with body)
 
   // rotary matrix
   SbMatrix Orientation;
   rotation->rotation.getValue().getValue(Orientation);
+  Orientation = Orientation.transpose();
 
+  // read and set control points
+  //number of control points:
+  // - nurbsLength for every control point
+  // - "nj*drawDegree" for every point on the inner and outer ring (factor 2) on the surface and and the midplane (factor 2) --> factor 4
+  controlPts->point.setNum(nurbsLength + 4 * nj*drawDegree);
 
-  // set points
-  controlPts->point.setNum(nurbsLength+nj*drawDegree*4);
   SbVec3f *pointData = controlPts->point.startEditing();
-  for(int i=0;i<nurbsLength+nj*drawDegree;i++) {  // control points + visualisation points of the inner ring
-    pointData[i][0]=data[i*3+1+6];
-    pointData[i][1]=data[i*3+2+6];
-    pointData[i][2]=data[i*3+3+6];
+
+  //control points
+  for (int i = 0; i < nurbsLength; i++) {
+    pointData[i][0] = data[7 + i * 3 + 0];
+    pointData[i][1] = data[7 + i * 3 + 1];
+    pointData[i][2] = data[7 + i * 3 + 2];
   }
 
-  for(int i=nurbsLength+nj*drawDegree;i<nurbsLength+2*nj*drawDegree;i++) { // visualisation points of the outer ring
-    pointData[i+2*nj*drawDegree][0]=data[i*3+1+6];
-    pointData[i+2*nj*drawDegree][1]=data[i*3+2+6];
-    pointData[i+2*nj*drawDegree][2]=data[i*3+3+6];
+  //inner ring
+
+  //points at the surface (inner ring)
+  for(int i = nurbsLength; i < nurbsLength + nj*drawDegree; i++) {
+    pointData[i][0] = data[7 + i * 3 + 0];
+    pointData[i][1] = data[7 + i * 3 + 1];
+    pointData[i][2] = data[7 + i * 3 + 2];
   }
 
-  // point for sides and back of the disk for visualisation
-  float pointtmp[3], point[3];
-  for(int i=0; i<nj*drawDegree;i++) {
-    float Phi=2*M_PI*i/((nj)*drawDegree);
+  //points at the midplane (inner ring)
+  for(int i = nurbsLength + nj*drawDegree; i < nurbsLength + 2* nj*drawDegree; i++) {
+    //point on the midplane in local frame
+    double Phi = 2 * M_PI * (i -nurbsLength + nj*drawDegree)  / ((nj) * drawDegree);
+    double point[3];
 
-    //inner Ring
-    point[0]=cos(Phi) * innerRadius;
-    point[1]=sin(Phi) * innerRadius;
-    point[2]=0.;
-    for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2];
-    pointData[nurbsLength+(nj)*1*drawDegree+i][0]=pointtmp[0]+translation->translation.getValue()[0];
-    pointData[nurbsLength+(nj)*1*drawDegree+i][1]=pointtmp[1]+translation->translation.getValue()[1];
-    pointData[nurbsLength+(nj)*1*drawDegree+i][2]=pointtmp[2]+translation->translation.getValue()[2];
+    point[0] = cos(Phi) * innerRadius;
+    point[1] = sin(Phi) * innerRadius;
+    point[2] = 0.;
 
-    // outer Ring
-    point[0]=cos(Phi) * outerRadius;
-    point[1]=sin(Phi) * outerRadius;
-    point[2]=0.;
-    for(int j=0;j<3;j++) pointtmp[j]=Orientation[j][0]*point[0]+Orientation[j][1]*point[1]+Orientation[j][2]*point[2];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][0]=pointtmp[0]+translation->translation.getValue()[0];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][1]=pointtmp[1]+translation->translation.getValue()[1];
-    pointData[nurbsLength+(nj)*2*drawDegree+i][2]=pointtmp[2]+translation->translation.getValue()[2];
+    //transform to world frame
+    double pointtmp[3];
+    for (int j = 0; j < 3; j++)
+      pointtmp[j] = Orientation[j][0] * point[0] + Orientation[j][1] * point[1] + Orientation[j][2] * point[2];
+
+    pointData[i][0] = pointtmp[0] + data[1];
+    pointData[i][1] = pointtmp[1] + data[2];
+    pointData[i][2] = pointtmp[2] + data[3];
   }
+
+  //outer ring
+
+  //points at the surface (outer ring)
+  for(int i = nurbsLength + 2 * nj*drawDegree; i < nurbsLength + 3 * nj * drawDegree; i++) {
+    int index = i - nj*drawDegree;
+    pointData[i][0] = data[7 + index * 3 + 0];
+    pointData[i][1] = data[7 + index * 3 + 1];
+    pointData[i][2] = data[7 + index * 3 + 2];
+  }
+
+  //points at the midplane (inner ring)
+  for(int i = nurbsLength + 3 * nj*drawDegree; i < nurbsLength + 4 * nj*drawDegree; i++) {
+
+    //point on the midplane in local frame
+    double Phi = 2 * M_PI * (i - nurbsLength + 3 * nj*drawDegree) / ((nj) * drawDegree);
+    double point[3];
+
+    point[0] = cos(Phi) * outerRadius;
+    point[1] = sin(Phi) * outerRadius;
+    point[2] = 0.;
+
+
+    //transform to world frame
+    double pointtmp[3];
+    for (int j = 0; j < 3; j++)
+      pointtmp[j] = Orientation[j][0] * point[0] + Orientation[j][1] * point[1] + Orientation[j][2] * point[2];
+
+    pointData[i][0] = pointtmp[0] + data[1];
+    pointData[i][1] = pointtmp[1] + data[2];
+    pointData[i][2] = pointtmp[2] + data[3];
+  }
+
   controlPts->point.finishEditing();
   controlPts->point.setDefault(FALSE);
 
-  // faces
-  faceSet->coordIndex.setNum((nj*drawDegree)*3*5);
-  int32_t *faceValues = faceSet->coordIndex.startEditing();
-  for(int j=0;j<3;j++) { // inner ring up-down ; circle - hollow down ; outer down-up
-    for(int i=0;i<(nj*drawDegree-1);i++) {
-      faceValues[j*nj*drawDegree*5+i*5+0]=nurbsLength+(nj*drawDegree)*(j)+i;
-      faceValues[j*nj*drawDegree*5+i*5+1]=nurbsLength+(nj*drawDegree)*(j)+i+1;
-      faceValues[j*nj*drawDegree*5+i*5+2]=nurbsLength+(nj*drawDegree)*(j+1)+i+1;
-      faceValues[j*nj*drawDegree*5+i*5+3]=nurbsLength+(nj*drawDegree)*(j+1)+i;
-      faceValues[j*nj*drawDegree*5+i*5+4]=-1;
+
+  //indexing the face set
+  vector<int> num;
+  num.push_back(5 * nj * drawDegree); //number of points for the midplane
+  num.push_back(5 * nj * drawDegree); //number of face sets on the inner ring
+  num.push_back(5 * nj * drawDegree); //number of face sets on the outer ring
+  faceSet->coordIndex.setNum(num[0] + num[1] + num[2]);
+
+  //5 entries in build one quad (4 points and one "-1" entry to show that the face is finished
+  //Remark: The order of the indices decides which side is colored and which side is black / dark
+  int32_t *faceIndices = faceSet->coordIndex.startEditing();
+
+  //midplane
+  for(int i=0; i < num[0]; i+=5) {
+    int index = i/5;
+    if(index < nj*drawDegree-1) {
+      faceIndices[i] = nurbsLength + 3 * nj*drawDegree + index; //outer ring
+      faceIndices[i+1] =   nurbsLength + nj*drawDegree + index; //inner ring
+      faceIndices[i+2] = nurbsLength + nj*drawDegree + 1 +  index; //inner ring
+      faceIndices[i+3] = nurbsLength + 3 * nj*drawDegree + 1 + index ; //outer ring
+    }
+    else {//ringclosure
+      faceIndices[i]   = nurbsLength + 3 * nj*drawDegree + index; //outer ring
+      faceIndices[i+1] = nurbsLength + nj*drawDegree + index; //inner ring
+      faceIndices[i+2] = nurbsLength + nj*drawDegree; //inner ring
+      faceIndices[i+3] = nurbsLength + 3 * nj*drawDegree; //outer ring
+
     }
 
-    // changeover from last point to first point
-    faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+0]=nurbsLength+(nj*drawDegree)*(j)+(nj*drawDegree-1);
-    faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+1]=nurbsLength+(nj*drawDegree)*(j);
-    faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+2]=nurbsLength+(nj*drawDegree)*(j+1);
-    faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+3]=nurbsLength+(nj*drawDegree)*(j+1)+(nj*drawDegree-1);
-    faceValues[j*nj*drawDegree*5+(nj*drawDegree-1)*5+4]=-1;
+    faceIndices[i+4] = -1;
   }
+
+
+  //inner ring
+  for(int i = num[0]; i < num[0]+num[1]; i+=5) {
+    int index = (i-num[0])/5;
+    if(index < nj*drawDegree-1) {
+      faceIndices[i] = nurbsLength + nj*drawDegree + index; //midplane
+      faceIndices[i+1] = nurbsLength + index; //surface
+      faceIndices[i+2] = nurbsLength + 1 + index ; //surface
+      faceIndices[i+3] = nurbsLength + nj*drawDegree + 1 +  index; //midplane
+    }
+    else {//ringclosure
+      faceIndices[i] = nurbsLength + nj*drawDegree + index; //midplane
+      faceIndices[i+1] = nurbsLength + index; //surface
+      faceIndices[i+2] = nurbsLength; //surface
+      faceIndices[i+3] = nurbsLength + nj*drawDegree; //midplane
+    }
+
+    faceIndices[i+4] = -1;
+  }
+
+  //outer ring
+  for(int i = num[0]+num[1]; i < num[0]+num[1]+num[2]; i+=5) {
+    int index = (i-num[0]-num[1])/5;
+    if(index < nj*drawDegree-1) {
+      faceIndices[i]   = nurbsLength + 2 * nj*drawDegree +  index; //surface
+      faceIndices[i+1] = nurbsLength + 3 * nj*drawDegree + index; //midplane
+      faceIndices[i+2] = nurbsLength + 3 * nj*drawDegree + 1 +  index; //midplane
+      faceIndices[i+3] = nurbsLength + 2 * nj*drawDegree + 1 + index ; //surface
+
+    }
+    else {//ringclosure
+      faceIndices[i]   = nurbsLength + 2 * nj*drawDegree + index; //surface
+      faceIndices[i+1] = nurbsLength + 3 * nj*drawDegree + index; //midplane
+      faceIndices[i+2] = nurbsLength + 3 * nj*drawDegree; //midplane
+      faceIndices[i+3] = nurbsLength + 2 * nj*drawDegree; //surface
+    }
+
+    faceIndices[i+4] = -1;
+  }
+
+
   faceSet->coordIndex.finishEditing();
   faceSet->coordIndex.setDefault(FALSE);
 
-  return data[0];
+  return data[0]; //return time
 }
 
