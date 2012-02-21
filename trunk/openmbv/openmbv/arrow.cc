@@ -202,6 +202,18 @@ double Arrow::update() {
   // read from hdf5
   data=arrow->getRow(frame);
 
+  // convert data from fromHead representation to toHead representation
+  if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
+  {
+    // to-point_new=to-point_old-dv_old; dv_new=-dv_old
+    data[1]-=data[4]*arrow->getScaleLength();
+    data[2]-=data[5]*arrow->getScaleLength();
+    data[3]-=data[6]*arrow->getScaleLength();
+    data[4]*=-1.0;
+    data[5]*=-1.0;
+    data[6]*=-1.0;
+  }
+
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
   length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
@@ -245,18 +257,6 @@ double Arrow::update() {
 
   // type!=line: draw arrow
 
-  // convert data from fromHead representation to toHead representation
-  if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
-  {
-    // to-point_new=to-point_old-dv_old; dv_new=-dv_old
-    data[1]-=data[4]*scaleLength;
-    data[2]-=data[5]*scaleLength;
-    data[3]-=data[6]*scaleLength;
-    data[4]*=-1.0;
-    data[5]*=-1.0;
-    data[6]*=-1.0;
-  }
-  
   // for type==bothHeads: set translation of second arrow and draw two arrows with half length
   if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
     bTrans->translation.setValue(0, length, 0);
@@ -289,10 +289,22 @@ double Arrow::update() {
 
 QString Arrow::getInfo() {
   if(data.size()==0) update();
+
+  // convert data back from toHead to fromHead if type==fromHead or fromDoubleHead
+  double drFactor=1;
+  double toMove[]={0, 0, 0};
+  if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
+  {
+    drFactor=-1;
+    toMove[0]=-data[4]*arrow->getScaleLength();
+    toMove[1]=-data[5]*arrow->getScaleLength();
+    toMove[2]=-data[6]*arrow->getScaleLength();
+  }
+
   return DynamicColoredBody::getInfo()+
          QString("<hr width=\"10000\"/>")+
-         QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]).arg(data[2]).arg(data[3])+
-         QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]).arg(data[5]).arg(data[6])+
+         QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
+         QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
          QString("<b>Length:</b> %1").arg(length/scaleLength);
 }
 
