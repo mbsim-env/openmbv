@@ -117,7 +117,6 @@ void Group::openHDF5File() {
 }
 
 void Group::writeXML() {
-  assert(parent==NULL);
   separateFile=true;
   // write .ombv.xml file
   TiXmlDocument xmlFile(fileName);
@@ -134,7 +133,6 @@ void Group::writeXML() {
 }
 
 void Group::writeH5() {
-  assert(parent==NULL);
   string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
   hdf5Group=(H5::Group*)new H5::FileSerie(h5FileName, H5F_ACC_TRUNC);
   for(unsigned int i=0; i<object.size(); i++)
@@ -174,7 +172,6 @@ void Group::initializeUsingXML(TiXmlElement *element) {
 }
 
 void Group::readXML() {
-  assert(parent==NULL);
   // read XML
   TiXmlDocument doc;
   doc.LoadFile(fileName);
@@ -187,7 +184,6 @@ void Group::readXML() {
 }
 
 void Group::readH5() {
-  assert(parent==NULL);
   openHDF5File();
 }
 
@@ -273,7 +269,6 @@ void Group::destroy() const {
 }
 
 void Group::lock(bool exclusive) {
-  assert(parent==NULL);
 #ifdef HAVE_BOOST_FILE_LOCK
   size_t pos=fileName.find_last_of('/');
   string baseName;
@@ -300,7 +295,6 @@ void Group::lock(bool exclusive) {
 }
 
 void Group::unlock() {
-  assert(parent==NULL);
 #ifdef HAVE_BOOST_FILE_LOCK
   if(lockFileLock==NULL) return;
   if(lockedExclusive)
