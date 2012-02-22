@@ -1127,7 +1127,9 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           Object *object=(Object*)(objectList->currentItem());
           QMenu* menu=object->createMenu();
           QAction *currentAct=menu->exec(QCursor::pos());
-          if(currentAct) {
+          // if a action is not NULL and the action has a object name trigger also the actions with
+          // the same name of all other selected objects
+          if(currentAct && currentAct->objectName()!="") {
             QList<QTreeWidgetItem*> obj=objectList->selectedItems();
             for(int i=0; i<obj.size(); i++) {
               QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
