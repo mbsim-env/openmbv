@@ -52,6 +52,7 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   soSwitch=new SoSwitch;
   soParent->addChild(soSwitch); // parent so
   soSwitch->ref();
+  soSwitch->whichChild.setValue(obj->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soSep=new SoSeparator;
   soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
@@ -59,6 +60,7 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // switch for bounding box
   soBBoxSwitch=new SoSwitch;
   MainWindow::getInstance()->getSceneRootBBox()->addChild(soBBoxSwitch);
+  soBBoxSwitch->whichChild.setValue(obj->getBoundingBox()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soBBoxSep=new SoSeparator;
   soBBoxSwitch->addChild(soBBoxSep);
   soBBoxTrans=new SoTranslation;
@@ -72,10 +74,10 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   setText(0, obj->getName().c_str());
 
   // GUI draw/bbox editor
-  draw=new BoolEditor(this, Utils::QIconCached(":/drawobject.svg"), "Draw Object", &soSwitch->whichChild);
+  draw=new BoolEditor(this, Utils::QIconCached(":/drawobject.svg"), "Draw Object");
   draw->setOpenMBVParameter(obj, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
   connect(draw->getAction(),SIGNAL(toggled(bool)),this,SLOT(setEnableRecursive(bool))); // a special action is required for enable/disable
-  bbox=new BoolEditor(this, Utils::QIconCached(":/bbox.svg"), "Show Bounding Box", &soBBoxSwitch->whichChild);
+  bbox=new BoolEditor(this, Utils::QIconCached(":/bbox.svg"), "Show Bounding Box");
   bbox->setOpenMBVParameter(obj, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
   connect(bbox->getAction(),SIGNAL(changed()),this,SLOT(bboxSlot()));
 }

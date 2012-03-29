@@ -175,9 +175,10 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   soSepNurbsDisk->addChild(soLocalFrameSwitch);
   soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
   localFrameScale->ref();
+  soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   //add option to show local frame of body (with rigid body movement)
-  localFrame=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"),"Draw Local Frame",&soLocalFrameSwitch->whichChild);
+  localFrame=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"),"Draw Local Frame");
   localFrame->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getLocalFrame, &OpenMBV::NurbsDisk::setLocalFrame);
 
   //Add option to move camera with body

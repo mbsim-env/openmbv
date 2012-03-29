@@ -37,9 +37,9 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // create so
   SoCube *cube=new SoCube;
   cube->width.setValue(c->getLength());
-  cube->height.connectFrom(&cube->width);
-  cube->depth.connectFrom(&cube->width);
-  lengthEditor=new FloatEditor(this, QIcon(), "Length", &cube->width);
+  cube->height.setValue(c->getLength());
+  cube->depth.setValue(c->getLength());
+  lengthEditor=new FloatEditor(this, QIcon(), "Length");
   lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cube::getLength, &OpenMBV::Cube::setLength);
   lengthEditor->setRange(0, DBL_MAX);
   lengthEditor->setStep(0.01);

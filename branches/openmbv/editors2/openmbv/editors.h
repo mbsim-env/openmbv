@@ -35,13 +35,12 @@ class Editor : public QObject {
     /*! Get the action to activate this Editor */
     QAction *getAction() { return action; }
 
-  signals:
-    void valueChanged();
-
   protected:
     std::string name;
     QObject *parent;
     QAction *action;
+    std::string groupName();
+    void replaceObject();
 };
 
 
@@ -53,14 +52,16 @@ class BoolEditor : public Editor {
   Q_OBJECT
 
   public:
-    /*! Constructor.
-     * soBool_ is syncronized with this Editor */
-    BoolEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoSFInt32 *soBool_);
+    /*! Constructor. */
+    BoolEditor(QObject *parent_, const QIcon &icon, const std::string &name);
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBV>
     void setOpenMBVParameter(OMBV *ombv_, bool (OMBV::*getter)(), void (OMBV::*setter)(bool));
+
+    /*! Set the scene object which should be synced */
+    void setSo(SoSFInt32 *soBool_) { soBool=soBool_; }
 
   protected slots:
     void valueChangedSlot(bool);
@@ -98,6 +99,7 @@ class WidgetEditor : public Editor {
 
 /*! A QDockWidget which collects and displays all WidgetEditors being currently activated */
 class WidgetEditorCollector : public QDockWidget {
+  friend class WidgetEditor;
   protected:
     WidgetEditorCollector();
     static WidgetEditorCollector *instance;
@@ -126,22 +128,24 @@ class FloatEditor : public WidgetEditor {
   Q_OBJECT
 
   public:
-    /*! Constructor.
-     * soValue_ is syncronized with this Editor */
-    FloatEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoSFFloat *soValue_);
-    /*! Constructor with SoMFFloat */
-    FloatEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoMFFloat *soValue_);
+    /*! Constructor. */
+    FloatEditor(QObject *parent_, const QIcon &icon, const std::string &name);
 
     /*! Set the valid range of the double value */
-    void setRange(double min, double max) { spinBox->setRange(min, max); }
+    void setRange(double min, double max) { spinBox->blockSignals(true); spinBox->setRange(min, max); spinBox->blockSignals(false); }
 
     /*! Set step size of the double value */
-    void setStep(double step) { spinBox->setSingleStep(step); }
+    void setStep(double step) { spinBox->blockSignals(true); spinBox->setSingleStep(step); spinBox->blockSignals(false); }
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBV>
     void setOpenMBVParameter(OMBV *ombv_, double (OMBV::*getter)(), void (OMBV::*setter)(OpenMBV::ScalarParameter));
+
+    /*! Set the scene object which should be synced */
+    void setSo(SoSFFloat *soValue_) { soValue=soValue_; }
+    /*! Set the scene object which should be synced */
+    void setSo(SoMFFloat *soValue_) { soValue=soValue_; }
 
   protected slots:
     void valueChangedSlot(double newValue);
@@ -177,13 +181,8 @@ class Vec3fEditor : public WidgetEditor {
   Q_OBJECT
 
   public:
-    /*! Constructor.
-     * soValue_ is syncronized with this Editor */
-    Vec3fEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoSFVec3f *soValue_);
-
-    /*! Constructor.
-     * The scalars soX_, soY_ and soZ_ are syncronized with this Editor */
-    Vec3fEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoSFFloat *soX_, SoSFFloat *soY_, SoSFFloat *soZ_);
+    /*! Constructor. */
+    Vec3fEditor(QObject *parent_, const QIcon &icon, const std::string &name);
 
     /*! Set the valid range of the double values */
     void setRange(double min, double max) { for(int i=0; i<3; i++) spinBox[i]->setRange(min, max); }
@@ -196,6 +195,12 @@ class Vec3fEditor : public WidgetEditor {
     template<class OMBV>
     void setOpenMBVParameter(OMBV *ombv_, std::vector<double> (OMBV::*getter)(),
                                           void (OMBV::*setter)(double x, double y, double z));
+
+    /*! Set the scene object which should be synced */
+    void setSo(SoSFVec3f *soValue_) { soValue=soValue_; }
+    /*! Set the scene object which should be synced */
+    void setSo(SoSFFloat *soX_, SoSFFloat *soY_, SoSFFloat *soZ_) { so[0]=soX_; so[1]=soY_; so[2]=soZ_; }
+
   protected slots:
     void valueChangedSlot();
 
@@ -272,7 +277,7 @@ void BoolEditor::setOpenMBVParameter(OMBV *ombv_, bool (OMBV::*getter)(), void (
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   if(ombvGetter) {
-    soBool->setValue(ombvGetter()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+    if(soBool) soBool->setValue(ombvGetter()?SO_SWITCH_ALL:SO_SWITCH_NONE);
     action->setChecked(ombvGetter());
   }
 }
@@ -287,7 +292,9 @@ void FloatEditor::setOpenMBVParameter(OMBV *ombv_, double (OMBV::*getter)(), voi
   ombvSetter=boost::bind(setter, ombv_, _1);
   if(ombvGetter) {
     setValue(ombvGetter());
+    spinBox->blockSignals(true);
     spinBox->setValue(ombvGetter());
+    spinBox->blockSignals(false);
   }
 }
 
@@ -303,7 +310,7 @@ void Vec3fEditor::setOpenMBVParameter(OMBV *ombv_, std::vector<double> (OMBV::*g
     std::vector<double> vec=ombvGetter();
     if(soValue)
       soValue->setValue(vec[0], vec[1], vec[2]);
-    else {
+    else if(so[0]) {
       so[0]->setValue(vec[0]);
       so[1]->setValue(vec[1]);
       so[2]->setValue(vec[2]);

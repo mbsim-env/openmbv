@@ -48,12 +48,12 @@ class Arrow : public DynamicColoredBody {
     SoTranslation *toPoint, *bTrans;
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;
-    SoScale *scale1, *scale2;
-    std::vector<double> data;
-    double length;
-    FloatEditor *diameterEditor, *headLengthEditor, *headDiameterEditor, *scaleLengthEditor;
-  protected slots:
     virtual double update();
+    SoScale *scale1, *scale2;
+    double headLength;
+    std::vector<double> data;
+    double length, scaleLength;
+    FloatEditor *diameterEditor, *headLengthEditor, *headDiameterEditor, *scaleLengthEditor;
   public:
     Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

@@ -39,7 +39,7 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   cuboid->width.setValue(c->getLength()[0]);
   cuboid->height.setValue(c->getLength()[1]);
   cuboid->depth.setValue(c->getLength()[2]);
-  lengthEditor=new Vec3fEditor(this, QIcon(), "Length", &cuboid->width, &cuboid->height, &cuboid->depth);
+  lengthEditor=new Vec3fEditor(this, QIcon(), "Length");
   lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
   lengthEditor->setRange(0, DBL_MAX);
   lengthEditor->setStep(0.01);

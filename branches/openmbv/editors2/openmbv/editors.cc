@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <cfloat>
 #include <mainwindow.h>
+#include <objectfactory.h>
 #include <Inventor/nodes/SoSurroundScale.h>
 
 using namespace std;
@@ -26,11 +27,42 @@ Editor::Editor(QObject *parent_, const QIcon& icon, const string &name_) : QObje
   action->setObjectName((string(parent->metaObject()->className())+"::"+name).c_str());
 }
 
+string Editor::groupName() {
+  // return the group name of this Editor (all editor are grouped according this name)
+  // The group name is constructed by the Path (if parent is a Object) and then by the class name.
+  string grpName;
+  Object *obj=dynamic_cast<Object*>(parent);
+  if(obj)
+    grpName=obj->getPath()+": ";
+  grpName+=parent->metaObject()->className();
+  return grpName;
+}
+
+void Editor::replaceObject() {
+  Object *obj=dynamic_cast<Object*>(parent);
+  if(!obj)
+    return;
+
+  // re-add this object using the same OpenMBVCppInterface Object arrow
+  QTreeWidgetItem *parent=obj->QTreeWidgetItem::parent();
+  int ind=parent?
+            parent->indexOfChild(static_cast<QTreeWidgetItem*>(obj)):
+            MainWindow::getInstance()->getRootItemIndexOfChild(static_cast<Group*>(obj));
+cout<<"MFMF1 "<<this<<endl;
+  ObjectFactory(obj->object, parent, static_cast<Object*>(parent)->soSep, ind);
+cout<<"MFMF2 "<<this<<endl;
+  // delete this object (it is replaced by the above newly added)
+  // but do not remove the OpenMBVCppInterface Object arrow
+//MFMF  delete obj;
+  // update the scene
+  MainWindow::getInstance()->frame->touch();
+}
 
 
 
 
-BoolEditor::BoolEditor(QObject *parent_, const QIcon& icon, const string &name, SoSFInt32 *soBool_) : Editor(parent_, icon, name), soBool(soBool_) {
+
+BoolEditor::BoolEditor(QObject *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name), soBool(NULL) {
   // make the action from Editor checkable and use this as bool editor
   connect(action, SIGNAL(toggled(bool)), this, SLOT(valueChangedSlot(bool)));
   action->setText(name.c_str());
@@ -38,9 +70,9 @@ BoolEditor::BoolEditor(QObject *parent_, const QIcon& icon, const string &name, 
 }
 
 void BoolEditor::valueChangedSlot(bool checked) {
-  soBool->setValue(checked?SO_SWITCH_ALL:SO_SWITCH_NONE); // set so
+  if(soBool) soBool->setValue(checked?SO_SWITCH_ALL:SO_SWITCH_NONE); // set so
   if(ombvSetter) ombvSetter(checked); // set OpenMBV
-  emit valueChanged(); // trigger valueChanged signal of Editor
+//MFMF  replaceObject();
 }
 
 
@@ -62,6 +94,19 @@ WidgetEditor::WidgetEditor(QObject *parent_, const QIcon& icon, const string &na
   layout->addWidget(close, 0, 0);
   close->setFixedSize(close->sizeHint());
   connect(close, SIGNAL(clicked()), action, SLOT(toggle()));
+
+  // replace a previously added WidgetEditor in WidgetEditorCollector of the same name, if exist
+  // (this is done to replace this editor if the OpenMBV Object is exchanged! e.g. a value change in the editor
+  // added a new OpenMBV Object and then deletes the old OpenMBV Object (NOTE first add and then delete Object))
+  pair<multimap<string, WidgetEditor*>::iterator, multimap<string, WidgetEditor*>::iterator> range;
+  range=WidgetEditorCollector::getInstance()->handledEditors.equal_range(groupName());
+cout<<"MFMF this "<<this<<endl;
+  for(multimap<string, WidgetEditor*>::iterator i=range.first; i!=range.second; i++)
+    if(i->second->name==name) { // equal editor found
+cout<<"MFMF remove "<<i->second<<endl;
+      WidgetEditorCollector::getInstance()->removeEditor(i->second); // remove old editor
+      WidgetEditorCollector::getInstance()->addEditor(this); // add new editor
+    }
 }
 
 WidgetEditor::~WidgetEditor() {
@@ -97,6 +142,7 @@ WidgetEditorCollector::WidgetEditorCollector() : QDockWidget() {
   scrollWidget->setLayout(layout);
   // add the Dock to the MainWindow
   MainWindow::getInstance()->addDockWidget(Qt::BottomDockWidgetArea,this);
+  close(); // do not show the DockWidget on creation
 }
 
 WidgetEditorCollector *WidgetEditorCollector::getInstance() {
@@ -107,13 +153,8 @@ WidgetEditorCollector *WidgetEditorCollector::getInstance() {
 }
 
 void WidgetEditorCollector::addEditor(WidgetEditor *editor) {
-  // sort all WidgetEditors by Path (if parent is a Object) and then by the class name
-  string sort;
-  Object *obj=dynamic_cast<Object*>(editor->parent);
-  if(obj)
-    sort=obj->getPath()+": ";
-  sort+=editor->parent->metaObject()->className();
-  handledEditors.insert(pair<string, WidgetEditor*>(sort, editor)); // stores all active WidgetEditors
+  // sort all WidgetEditors by groupName
+  handledEditors.insert(pair<string, WidgetEditor*>(editor->groupName(), editor)); // stores all active WidgetEditors
   // update Dock using all active WidgetEditors given in handledEditors 
   updateLayout();
   // open the editor and show newly added widget
@@ -165,11 +206,7 @@ void WidgetEditorCollector::updateLayout() {
 
 
 
-FloatEditor::FloatEditor(QObject *parent_, const QIcon& icon, const string &name, SoSFFloat *soValue_) : WidgetEditor(parent_, icon, name), soValue(soValue_) {
-  constructor(name);
-}
-
-FloatEditor::FloatEditor(QObject *parent_, const QIcon& icon, const string &name, SoMFFloat *soValue_) : WidgetEditor(parent_, icon, name), soValue(soValue_) {
+FloatEditor::FloatEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name), soValue(NULL) {
   constructor(name);
 }
 
@@ -188,20 +225,15 @@ void FloatEditor::constructor(const string &name) {
 void FloatEditor::valueChangedSlot(double newValue) {
   setValue(newValue); // set so
   if(ombvSetter) ombvSetter(newValue); // set OpenMBV
-  emit valueChanged(); // trigger valueChanged signal of Editor
+  replaceObject();
 }
 
 
 
 
 
-Vec3fEditor::Vec3fEditor(QObject *parent_, const QIcon& icon, const string &name, SoSFVec3f *soValue_) : WidgetEditor(parent_, icon, name), soValue(soValue_) {
+Vec3fEditor::Vec3fEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name), soValue(NULL) {
   so[0]=NULL; so[1]=NULL; so[2]=NULL;
-  constructor(name);
-}
-
-Vec3fEditor::Vec3fEditor(QObject *parent_, const QIcon& icon, const string &name, SoSFFloat *soX_, SoSFFloat *soY_, SoSFFloat *soZ_) : WidgetEditor(parent_, icon, name), soValue(NULL) {
-  so[0]=soX_; so[1]=soY_; so[2]=soZ_;
   constructor(name);
 }
 
@@ -228,15 +260,15 @@ void Vec3fEditor::valueChangedSlot() {
   // set so
   if(soValue)
     soValue->setValue(x, y, z);
-  else {
+  else if(so[0]) {
     so[0]->setValue(x);
     so[1]->setValue(y);
     so[2]->setValue(z);
   }
   // set OpenMBV
   if(ombvSetter) ombvSetter(x, y, z);
-  // trigger valueChanged signal of Editor
-  emit valueChanged();
+
+//MFMF  replaceObject();
 }
 
 
@@ -304,8 +336,8 @@ void TransRotEditor::valueChangedSlot() {
     m.setTransform(soTranslation->getValue(), soRotation->getValue(), SbVec3f(1,1,1));
     soDragger->setMotionMatrix(m);
   }
-  // trigger valueChanged signal of Editor
-  emit valueChanged();
+
+//MFMF  replaceObject();
 }
 
 void TransRotEditor::draggerSlot(bool newValue) {
@@ -361,8 +393,6 @@ void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
   MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
     arg(t[0],0,'f',6).arg(t[1],0,'f',6).arg(t[2],0,'f',6).
     arg(v[0],0,'f',6).arg(v[1],0,'f',6).arg(v[2],0,'f',6));
-  // trigger valueChanged signal of Editor
-  emit me->valueChanged();
 }
 
 void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
@@ -374,6 +404,4 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
         <<"Translation: ["<<me->spinBox[0]->value()<<", "<<me->spinBox[1]->value()<<", "<<me->spinBox[2]->value()<<"]"<<endl
         <<"Rotation: ["<<me->spinBox[3]->value()*M_PI/180<<", "<<me->spinBox[4]->value()*M_PI/180<<", "<<me->spinBox[5]->value()*M_PI/180<<"]"<<endl;
   }
-  // trigger valueChanged signal of Editor
-  emit me->valueChanged();
 }

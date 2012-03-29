@@ -25,7 +25,6 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
 #include "openmbvcppinterface/arrow.h"
-#include <Inventor/engines/SoCalculator.h>
 #include <cfloat>
 
 using namespace std;
@@ -41,37 +40,11 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   if(rows>=2) dt=arrow->getRow(1)[0]-arrow->getRow(0)[0]; else dt=0;
   resetAnimRange(rows, dt);
 
-  // read XML and calcualte all expressions for the Arrow
-  #define diameter calc->a
-  #define headLength calc->b
-  #define headDiameter calc->c
-  #define diameterHalf calc->oa
-  #define headDiameterHalf calc->ob
-  #define dTranslateVecY calc->oA // [0, +headLength*(headDiameter-diameter)/headDiameter, 0]
-  #define negdTranslateVecY calc->oB // -dTranslate
-  #define negHeadLengthHalfVecY calc->oC
-  #define negHeadLengthVecY calc->oD
-  SoCalculator *calc=new SoCalculator;
-  diameterEditor=new FloatEditor(this, QIcon(), "Diameter", &calc->a);
-  diameterEditor->setRange(0, DBL_MAX);
-  diameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getDiameter, &OpenMBV::Arrow::setDiameter);
-  headLengthEditor=new FloatEditor(this, QIcon(), "Head Length", &calc->b);
-  headLengthEditor->setRange(0, DBL_MAX);
-  headLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadLength, &OpenMBV::Arrow::setHeadLength);
-  connect(headLengthEditor, SIGNAL(valueChanged()), this, SLOT(update()));
-  headDiameterEditor=new FloatEditor(this, QIcon(), "Head Diameter", &calc->c);
-  headDiameterEditor->setRange(0, DBL_MAX);
-  headDiameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadDiameter, &OpenMBV::Arrow::setHeadDiameter);
-  scaleLengthEditor=new FloatEditor(this, QIcon(), "Scale Length", static_cast<SoSFFloat*>(NULL));
-  scaleLengthEditor->setRange(0, DBL_MAX);
-  scaleLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getScaleLength, &OpenMBV::Arrow::setScaleLength);
-  connect(scaleLengthEditor, SIGNAL(valueChanged()), this, SLOT(update()));
-  calc->expression.set1Value(0, "oa=a/2");
-  calc->expression.set1Value(1, "ob=c/2");
-  calc->expression.set1Value(2, "oA=vec3f(0, +b*(c-a)/c, 0)");
-  calc->expression.set1Value(3, "oB=vec3f(0, -b*(c-a)/c, 0)");
-  calc->expression.set1Value(4, "oC=vec3f(0, -b/2, 0)");
-  calc->expression.set1Value(5, "oD=vec3f(0, -b, 0)");
+  // read XML
+  headLength=arrow->getHeadLength();
+  scaleLength=arrow->getScaleLength();
+  double headDiameter=arrow->getHeadDiameter();
+  double diameter=arrow->getDiameter();
 
   // create so
   // path
@@ -86,6 +59,7 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   pathSep->addChild(pathCoord);
   pathLine=new SoLineSet;
   pathSep->addChild(pathLine);
+  soPathSwitch->whichChild.setValue(arrow->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   pathMaxFrameRead=-1;
 
 
@@ -141,55 +115,57 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     // trans1
     SoTranslation *trans1=new SoTranslation;
     arrowSep->addChild(trans1);
-    trans1->translation.connectFrom(&negHeadLengthHalfVecY);
+    trans1->translation.setValue(0, -headLength/2, 0);
     // cone
     SoCone *cone1=new SoCone;
     arrowSep->addChild(cone1);
-    cone1->bottomRadius.connectFrom(&headDiameterHalf);
-    cone1->height.connectFrom(&headLength);
+    cone1->bottomRadius.setValue(headDiameter/2);
+    cone1->height.setValue(headLength);
     // add the head twice for double heads
     SoTranslation *dTrans=NULL;
+    double dTranslate=0;
     if(arrow->getType()==OpenMBV::Arrow::fromDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::toDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       dTrans=new SoTranslation;
       arrowSep->addChild(dTrans);
-      dTrans->translation.connectFrom(&negdTranslateVecY);
+      dTranslate=headLength*(headDiameter-diameter)/headDiameter;
+      dTrans->translation.setValue(0, -dTranslate, 0);
       arrowSep->addChild(cone1);
       dTrans=new SoTranslation;
       arrowSep->addChild(dTrans);
-      dTrans->translation.connectFrom(&dTranslateVecY);
+      dTrans->translation.setValue(0, dTranslate, 0);
     }
     // trans2
     SoTranslation *trans2=new SoTranslation;
     arrowSep->addChild(trans2);
-    trans2->translation.connectFrom(&negHeadLengthHalfVecY);
+    trans2->translation.setValue(0, -headLength/2, 0);
     // scale only arrow not head (l>2*headLength)
     scale2=new SoScale;
     arrowSep->addChild(scale2);
     // trans2
     SoTranslation *trans3=new SoTranslation;
     arrowSep->addChild(trans3);
-    trans3->translation.connectFrom(&negHeadLengthHalfVecY);
+    trans3->translation.setValue(0, -headLength/2, 0);
     // cylinder
     SoCylinder *cylinder=new SoCylinder;
     arrowSep->addChild(cylinder);
-    cylinder->radius.connectFrom(&diameterHalf);
-    cylinder->height.connectFrom(&headLength);
+    cylinder->radius.setValue(diameter/2);
+    cylinder->height.setValue(headLength);
 
     // outline
     SoTranslation *transLO1=new SoTranslation;
     soOutLineSep->addChild(transLO1);
-    transLO1->translation.connectFrom(&negHeadLengthVecY);
+    transLO1->translation.setValue(0, -headLength, 0);
     SoCylinder *cylOL1=new SoCylinder;
     soOutLineSep->addChild(cylOL1);
     cylOL1->height.setValue(0);
-    cylOL1->radius.connectFrom(&headDiameterHalf);
+    cylOL1->radius.setValue(headDiameter/2);
     cylOL1->parts.setValue(SoCylinder::SIDES);
     SoCylinder *cylOL2=new SoCylinder;
     soOutLineSep->addChild(cylOL2);
     cylOL2->height.setValue(0);
-    cylOL2->radius.connectFrom(&diameterHalf);
+    cylOL2->radius.setValue(diameter/2);
     cylOL2->parts.setValue(SoCylinder::SIDES);
     // add the head outline twice for double heads
     if(arrow->getType()==OpenMBV::Arrow::fromDoubleHead ||
@@ -197,37 +173,26 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
        arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       dTrans=new SoTranslation;
       soOutLineSep->addChild(dTrans);
-      dTrans->translation.connectFrom(&negdTranslateVecY);
+      dTrans->translation.setValue(0, -dTranslate, 0);
       soOutLineSep->addChild(cylOL1);
       soOutLineSep->addChild(cylOL2);
       dTrans=new SoTranslation;
       soOutLineSep->addChild(dTrans);
-      dTrans->translation.connectFrom(&dTranslateVecY);
+      dTrans->translation.setValue(0, dTranslate, 0);
     }
     // for type==bothHeads do not draw the middle outline circle
     if(arrow->getType()!=OpenMBV::Arrow::bothHeads && arrow->getType()!=OpenMBV::Arrow::bothDoubleHeads) {
       soOutLineSep->addChild(scale2);
       SoTranslation *transLO2=new SoTranslation;
       soOutLineSep->addChild(transLO2);
-      transLO2->translation.connectFrom(&negHeadLengthVecY);
+      transLO2->translation.setValue(0, -headLength, 0);
       soOutLineSep->addChild(cylOL2);
     }
   }
  
   // GUI
-  path=new BoolEditor(this, Utils::QIconCached(":/path.svg"),"Draw Path of To-Point", &soPathSwitch->whichChild);
+  path=new BoolEditor(this, Utils::QIconCached(":/path.svg"),"Draw Path of To-Point");
   path->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
-  connect(path->getAction(),SIGNAL(changed()),this,SLOT(update())); // a special action is required by path
-
-  #undef diameter
-  #undef headLength
-  #undef headDiameter
-  #undef diameterHalf
-  #undef headDiameterHalf
-  #undef dTranslateVecY
-  #undef negdTranslateVecY
-  #undef negHeadLengthHalfVecY
-  #undef negHeadLengthVecY
 }
 
 double Arrow::update() {
@@ -249,7 +214,7 @@ double Arrow::update() {
 
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
-  length=sqrt(dx*dx+dy*dy+dz*dz)*arrow->getScaleLength();
+  length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
 
   // path
   if(path->getAction()->isChecked()) {
@@ -284,7 +249,7 @@ double Arrow::update() {
   if(arrow->getType()==OpenMBV::Arrow::line) {
     if(isnan(staticColor)) setColor(NULL, data[7], baseColor);
     lineCoord->point.set1Value(0, data[1], data[2], data[3]); // to point
-    lineCoord->point.set1Value(1, data[1]-dx*arrow->getScaleLength(), data[2]-dy*arrow->getScaleLength(), data[3]-dz*arrow->getScaleLength()); // from point
+    lineCoord->point.set1Value(1, data[1]-dx*scaleLength, data[2]-dy*scaleLength, data[3]-dz*scaleLength); // from point
     return data[0];
   }
 
@@ -297,12 +262,12 @@ double Arrow::update() {
   }
 
   // scale factors
-  if(length<2*arrow->getHeadLength())
-    scale1->scaleFactor.setValue(length/2/arrow->getHeadLength(),length/2/arrow->getHeadLength(),length/2/arrow->getHeadLength());
+  if(length<2*headLength)
+    scale1->scaleFactor.setValue(length/2/headLength,length/2/headLength,length/2/headLength);
   else
     scale1->scaleFactor.setValue(1,1,1);
-  if(length>2*arrow->getHeadLength())
-    scale2->scaleFactor.setValue(1,(length-arrow->getHeadLength())/arrow->getHeadLength(),1);
+  if(length>2*headLength)
+    scale2->scaleFactor.setValue(1,(length-headLength)/headLength,1);
   else
     scale2->scaleFactor.setValue(1,1,1);
   // trans to To-Point
@@ -338,7 +303,7 @@ QString Arrow::getInfo() {
          QString("<hr width=\"10000\"/>")+
          QString("<b>To-Point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
-         QString("<b>Length:</b> %1").arg(length/arrow->getScaleLength());
+         QString("<b>Length:</b> %1").arg(length/scaleLength);
 }
 
 QMenu* Arrow::createMenu() {

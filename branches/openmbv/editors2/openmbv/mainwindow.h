@@ -52,6 +52,7 @@
 class MainWindow : public QMainWindow {
   Q_OBJECT
   friend class Body;
+  friend class Editor;//MFMF
   private:
     static MainWindow *instance;
     enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,

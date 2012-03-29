@@ -59,6 +59,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     pathSep->addChild(pathCoord);
     pathLine=new SoLineSet;
     pathSep->addChild(pathLine);
+    soPathSwitch->whichChild.setValue(rigidBody->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
     pathMaxFrameRead=-1;
   
     // translation (from hdf5)
@@ -87,6 +88,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     soSepRigidBody->addChild(soReferenceFrameSwitch);
     soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
     refFrameScale->ref();
+    soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   }
   else { // a dummmy refFrameScale
     refFrameScale=new SoScale;
@@ -113,6 +115,7 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     soSepRigidBody->addChild(soLocalFrameSwitch);
     soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
     localFrameScale->ref();
+    soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   
     // mat (from hdf5)
     mat=new SoMaterial;
@@ -134,11 +137,11 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
-    localFrameEditor=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"), "Draw Local Frame", &soLocalFrameSwitch->whichChild);
+    localFrameEditor=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"), "Draw Local Frame");
     localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
-    referenceFrame=new BoolEditor(this, Utils::QIconCached(":/referenceframe.svg"),"Draw Reference Frame", &soReferenceFrameSwitch->whichChild);
+    referenceFrame=new BoolEditor(this, Utils::QIconCached(":/referenceframe.svg"),"Draw Reference Frame");
     referenceFrame->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
-    path=new BoolEditor(this, Utils::QIconCached(":/path.svg"),"Draw Path of Reference Frame", &soPathSwitch->whichChild);
+    path=new BoolEditor(this, Utils::QIconCached(":/path.svg"),"Draw Path of Reference Frame");
     path->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
     connect(path->getAction(),SIGNAL(changed()),this,SLOT(update())); // special action required by path
     moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);

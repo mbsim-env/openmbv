@@ -59,7 +59,9 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // switch for outline
   soOutLineSwitch=new SoSwitch;
   soOutLineSwitch->ref(); // add to scene must be done by derived class
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)!=0)
+  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
+    soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  else
     soOutLineSwitch->whichChild.connectFrom(&((Body*)parentItem)->soOutLineSwitch->whichChild);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
@@ -72,6 +74,7 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // switch for shilouette edge
   soShilouetteEdgeSwitch=new SoSwitch;
   soSep->addChild(soShilouetteEdgeSwitch);
+  soShilouetteEdgeSwitch->whichChild.setValue(body->getShilouetteEdge()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soShilouetteEdgeSep=new SoSeparator;
   soShilouetteEdgeSwitch->addChild(soShilouetteEdgeSep);
   SoLightModel *lm2=new SoLightModel;
@@ -99,11 +102,11 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   
     // GUI
     // outline edge
-    outLine=new BoolEditor(this, Utils::QIconCached(":/outline.svg"),"Draw Out-Line", &soOutLineSwitch->whichChild);
+    outLine=new BoolEditor(this, Utils::QIconCached(":/outline.svg"),"Draw Out-Line");
     if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
       outLine->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
     // draw shilouette edge action
-    shilouetteEdge=new BoolEditor(this, Utils::QIconCached(":/shilouetteedge.svg"),"Draw Shilouette Edge", &soShilouetteEdgeSwitch->whichChild);
+    shilouetteEdge=new BoolEditor(this, Utils::QIconCached(":/shilouetteedge.svg"),"Draw Shilouette Edge");
     shilouetteEdge->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
     connect(shilouetteEdge->getAction(),SIGNAL(changed()),this,SLOT(shilouetteEdgeSlot()));// special action required for shiloutett edge
     // draw method action
