@@ -73,6 +73,7 @@ class MainWindow : public QMainWindow {
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
     int reloadTimeout;
+    SoFieldSensor *frameSensor;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;

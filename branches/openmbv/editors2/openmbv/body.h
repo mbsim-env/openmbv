@@ -34,6 +34,7 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include "utils.h"
 #include "edgecalculation.h"
+#include <editors.h>
 
 namespace OpenMBV {
   class Body;
@@ -59,20 +60,16 @@ class Body : public Object {
     virtual double update()=0; // return the current time
     void resetAnimRange(int numOfRows, double dt);
   public slots:
-    void shilouetteEdgeSlot();
     static std::map<SoNode*,Body*>& getBodyMap() { return bodyMap; }
-  protected slots:
-    void drawMethodSlot(QAction* action);
   protected:
     OpenMBV::Body *body;
     SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
     SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
-    BoolEditor *outLine, *shilouetteEdge;
-    QActionGroup *drawMethod;
-    QAction *drawMethodPolygon, *drawMethodLine, *drawMethodPoint;
     static std::map<SoNode*,Body*> bodyMap;
     friend class IndexedTesselationFace;
     friend class MainWindow;
+    BoolEditor *outLineEditor, *shilouetteEdgeEditor;
+    ComboBoxEditor *drawMethodEditor;
 };
 
 #endif

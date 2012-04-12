@@ -137,7 +137,7 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   // gui
   typeAct=new QActionGroup(this);
   typeTube=new QAction("Tube", typeAct);
-  typeScaledTube=new QAction("Scaled Tube", typeAct);
+  typeScaledTube=new QAction("Scaled tube", typeAct);
   typePolyline=new QAction("Polyline", typeAct);
   typeTube->setCheckable(true);
   typeTube->setData(QVariant(OpenMBV::CoilSpring::tube));
@@ -169,7 +169,7 @@ QString CoilSpring::getInfo() {
     scale->scaleFactor.getValue().getValue(sx, sy, sz);
   return DynamicColoredBody::getInfo()+
          QString("<hr width=\"10000\"/>")+
-         QString("<b>From Point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
+         QString("<b>From point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Length:</b> %1").arg(soSwitch->whichChild.getValue()==0?
                                           spine[3*int(numberOfSpinePointsPerCoil*N)+2]:
                                           sz*nominalLength);

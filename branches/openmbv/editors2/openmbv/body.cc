@@ -101,39 +101,26 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     }
   
     // GUI
-    // outline edge
-    outLine=new BoolEditor(this, Utils::QIconCached(":/outline.svg"),"Draw Out-Line");
-    if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
-      outLine->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
-    // draw shilouette edge action
-    shilouetteEdge=new BoolEditor(this, Utils::QIconCached(":/shilouetteedge.svg"),"Draw Shilouette Edge");
-    shilouetteEdge->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
-    connect(shilouetteEdge->getAction(),SIGNAL(changed()),this,SLOT(shilouetteEdgeSlot()));// special action required for shiloutett edge
-    // draw method action
-    drawMethod=new QActionGroup(this);
-    drawMethodPolygon=new QAction(Utils::QIconCached(":/filled.svg"),"Draw Style: Filled", drawMethod);
-    drawMethodLine=new QAction(Utils::QIconCached(":/lines.svg"),"Draw Style: Lines", drawMethod);
-    drawMethodPoint=new QAction(Utils::QIconCached(":/points.svg"),"Draw Style: Points", drawMethod);
-    drawMethodPolygon->setCheckable(true);
-    drawMethodPolygon->setData(QVariant(OpenMBV::Body::filled));
-    drawMethodPolygon->setObjectName("Body::drawMethodPolygon");
-    drawMethodLine->setCheckable(true);
-    drawMethodLine->setData(QVariant(OpenMBV::Body::lines));
-    drawMethodLine->setObjectName("Body::drawMethodLine");
-    drawMethodPoint->setCheckable(true);
-    drawMethodPoint->setData(QVariant(OpenMBV::Body::points));
-    drawMethodPoint->setObjectName("Body::drawMethodPoint");
-    switch(body->getDrawMethod()) {
-      case OpenMBV::Body::filled: drawMethodPolygon->setChecked(true); break;
-      case OpenMBV::Body::lines: drawMethodLine->setChecked(true); break;
-      case OpenMBV::Body::points: drawMethodPoint->setChecked(true); break;
-    }
-    connect(drawMethod,SIGNAL(triggered(QAction*)),this,SLOT(drawMethodSlot(QAction*)));
-
     // register callback function for shilouette edges
     shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
     shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-    emit shilouetteEdgeSlot();
+//MFMF    emit shilouetteEdgeSlot();
+
+    // GUI editors
+    outLineEditor=new BoolEditor(this, Utils::QIconCached(":/outline.svg"), "Draw out-line");
+    outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
+
+    shilouetteEdgeEditor=new BoolEditor(this, Utils::QIconCached(":/shilouetteedge.svg"), "Draw shilouette edge");
+    shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
+
+    drawMethodEditor=new ComboBoxEditor(this, Utils::QIconCached(":/MFMF.svg"), "Draw style",
+      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached(":/filled.svg"))
+                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached(":/lines.svg"))
+                                  (OpenMBV::Body::points, "Points", Utils::QIconCached(":/points.svg"))
+    );
+    drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
+
+    // MFMF hdf5link
   }
 }
 
@@ -179,42 +166,27 @@ void Body::frameSensorCB(void *data, SoSensor*) {
 QMenu* Body::createMenu() {
   QMenu* menu=Object::createMenu();
   menu->addSeparator()->setText("Properties from: Body");
-  menu->addAction(outLine->getAction());
-  menu->addAction(shilouetteEdge->getAction());
-  menu->addSeparator();
-  menu->addAction(drawMethodPolygon);
-  menu->addAction(drawMethodLine);
-  menu->addAction(drawMethodPoint);
+  menu->addAction(outLineEditor->getAction());
+  menu->addAction(shilouetteEdgeEditor->getAction());
+  menu->addAction(drawMethodEditor->getAction());
   return menu;
 }
 
-void Body::shilouetteEdgeSlot() {
-  if(shilouetteEdge->getAction()->isChecked()) {
-    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
-    shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
-    MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
-  }
-  else {
-    shilouetteEdgeFrameSensor->detach();
-    shilouetteEdgeOrientationSensor->detach();
-  }
-}
-
-void Body::drawMethodSlot(QAction* action) {
-  OpenMBV::Body::DrawStyle ds=(OpenMBV::Body::DrawStyle)action->data().toInt();
-  if(ds==OpenMBV::Body::filled) {
-    drawStyle->style.setValue(SoDrawStyle::FILLED);
-    body->setDrawMethod(OpenMBV::Body::filled);
-  }
-  else if(ds==OpenMBV::Body::lines) {
-    drawStyle->style.setValue(SoDrawStyle::LINES);
-    body->setDrawMethod(OpenMBV::Body::lines);
-  }
-  else {
-    drawStyle->style.setValue(SoDrawStyle::POINTS);
-    body->setDrawMethod(OpenMBV::Body::points);
-  }
-}
+//MFMFvoid Body::shilouetteEdgeSlot() {
+//MFMF  if(shilouetteEdge->isChecked()) {
+//MFMF    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
+//MFMF    body->setShilouetteEdge(true);
+//MFMF    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+//MFMF    shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
+//MFMF    MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
+//MFMF  }
+//MFMF  else {
+//MFMF    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
+//MFMF    body->setShilouetteEdge(false);
+//MFMF    shilouetteEdgeFrameSensor->detach();
+//MFMF    shilouetteEdgeOrientationSensor->detach();
+//MFMF  }
+//MFMF}
 
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {

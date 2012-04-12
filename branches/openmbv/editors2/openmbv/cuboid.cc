@@ -24,8 +24,6 @@
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/cuboid.h"
-#include <cfloat>
-#include <QMenu>
 
 using namespace std;
 
@@ -39,10 +37,6 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   cuboid->width.setValue(c->getLength()[0]);
   cuboid->height.setValue(c->getLength()[1]);
   cuboid->depth.setValue(c->getLength()[2]);
-  lengthEditor=new Vec3fEditor(this, QIcon(), "Length");
-  lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
-  lengthEditor->setRange(0, DBL_MAX);
-  lengthEditor->setStep(0.01);
   soSepRigidBody->addChild(cuboid);
   // scale ref/localFrame
   double size=min(c->getLength()[0],min(c->getLength()[1],c->getLength()[2]))*c->getScaleFactor();
@@ -52,11 +46,4 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(cuboid);
-}
-
-QMenu* Cuboid::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Cuboid");
-  menu->addAction(lengthEditor->getAction());
-  return menu;
 }

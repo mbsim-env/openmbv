@@ -29,9 +29,6 @@ class Cube : public RigidBody {
   Q_OBJECT
   public:
     Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QMenu* createMenu();
-  protected:
-    FloatEditor *lengthEditor;
 };
 
 #endif

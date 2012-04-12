@@ -39,7 +39,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   transparentRB.setText("Transparent");
   transparentRB.setChecked(true);
   dialogLO.addWidget(&transparentRB, row, 1, 1, 2);
-  colorRB.setText("Use Scene Color");
+  colorRB.setText("Use scene color");
   row++;
   dialogLO.addWidget(&colorRB, row, 1);
   if(sequence) {
@@ -87,7 +87,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
 }
 
 void ExportDialog::fileBrowser() {
-  QString name=QFileDialog::getSaveFileName(this, "Save to file", fileName.text(), "PNG-Image (*.png)");
+  QString name=QFileDialog::getSaveFileName(this, "Save to file", fileName.text(), "PNG-image (*.png)");
   if(name.isNull()) return;
   fileName.setText(name);
 }

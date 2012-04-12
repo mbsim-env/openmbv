@@ -73,13 +73,14 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   setText(0, obj->getName().c_str());
 
-  // GUI draw/bbox editor
-  draw=new BoolEditor(this, Utils::QIconCached(":/drawobject.svg"), "Draw Object");
-  draw->setOpenMBVParameter(obj, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
-  connect(draw->getAction(),SIGNAL(toggled(bool)),this,SLOT(setEnableRecursive(bool))); // a special action is required for enable/disable
-  bbox=new BoolEditor(this, Utils::QIconCached(":/bbox.svg"), "Show Bounding Box");
-  bbox->setOpenMBVParameter(obj, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
-  connect(bbox->getAction(),SIGNAL(changed()),this,SLOT(bboxSlot()));
+  //GUI editors
+  // MFMF name
+
+  enableEditor=new BoolEditor(this, Utils::QIconCached(":/drawobject.svg"), "Draw object");
+  enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
+
+  boundingBoxEditor=new BoolEditor(this, Utils::QIconCached(":/bbox.svg"), "Show bounding box");
+  boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
 }
 
 Object::~Object() {
@@ -101,33 +102,14 @@ Object::~Object() {
 }
 
 QMenu* Object::createMenu() {
-  QMenu *menu=new QMenu("Object Menu");
+  QMenu *menu=new QMenu("Object menu");
   QAction *dummy=new QAction("",menu);
   dummy->setEnabled(false);
   menu->addAction(dummy);
   menu->addSeparator()->setText("Properties from: Object");
-  menu->addAction(draw->getAction());
-  menu->addAction(bbox->getAction());
+  menu->addAction(enableEditor->getAction());
+  menu->addAction(boundingBoxEditor->getAction());
   return menu;
-}
-
-void Object::bboxSlot() {
-  soSep->touch(); // force an update
-}
-
-// set drawThisPath recursivly and colorisze the font
-void Object::setEnableRecursive(bool enable) {
-  if(enable && draw->getAction()->isChecked() && (QTreeWidgetItem::parent()?((Object*)QTreeWidgetItem::parent())->drawThisPath:true)) {
-    drawThisPath=true;
-    for(int i=0; i<childCount(); i++)
-      ((Object*)child(i))->setEnableRecursive(enable);
-  }
-  if(!enable) {
-    drawThisPath=false;
-    for(int i=0; i<childCount(); i++)
-      ((Object*)child(i))->setEnableRecursive(enable);
-  }
-  updateTextColor();
 }
 
 string Object::getPath() {
@@ -144,7 +126,7 @@ QString Object::getInfo() {
 
 void Object::nodeSensorCB(void *data, SoSensor*) {
   Object *object=(Object*)data;
-  if(object->bbox->getAction()->isChecked()) {
+  if(object->boundingBoxEditor->getAction()->isChecked()) {
     static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(object->soSep);
     float x1,y1,z1,x2,y2,z2;

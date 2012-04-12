@@ -30,6 +30,7 @@
 #include <QtGui/QMenu>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
+#include <editors.h>
 
 namespace OpenMBV {
   class Arrow;
@@ -54,6 +55,7 @@ class Arrow : public DynamicColoredBody {
     std::vector<double> data;
     double length, scaleLength;
     FloatEditor *diameterEditor, *headLengthEditor, *headDiameterEditor, *scaleLengthEditor;
+    ComboBoxEditor *typeEditor;
   public:
     Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

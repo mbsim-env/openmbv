@@ -29,42 +29,47 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoRotation.h>
+#include <Inventor/draggers/SoDragger.h>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
-#include <editors.h>
 
 namespace OpenMBV {
   class RigidBody;
 }
 
+class SoCenterballDragger;
+
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
     OpenMBV::RigidBody *rigidBody;
-    BoolEditor *localFrameEditor;
-    QAction *moveCameraWith;
-    BoolEditor *referenceFrame, *path;
-    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch;
+    QAction *localFrame, *referenceFrame, *path, *dragger, *moveCameraWith;
+    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch, *soDraggerSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
     int pathMaxFrameRead;
+    virtual double update();
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
     SoMaterial *mat;
     SoScale *refFrameScale, *localFrameScale;
+    static void draggerFinishCB(void *, SoDragger*);
+    static void draggerMoveCB(void *, SoDragger*);
     SoSeparator *soSepRigidBody;
     SoTranslation *initTrans;
     SoRotation *initRot;
-    TransRotEditor *transRotEditor;
+    SoCenterballDragger *soDragger;
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();
     virtual QMenu* createMenu();
     virtual QString getInfo();
-  protected slots:
-    virtual double update();
   public slots:
+    void localFrameSlot();
+    void referenceFrameSlot();
+    void pathSlot();
+    void draggerSlot();
     void moveCameraWithSlot();
   private:
     QTreeWidgetItem *parentItem;

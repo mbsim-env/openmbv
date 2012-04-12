@@ -116,6 +116,11 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   ombvLogo->numVertices.set1Value(0, 4);
 }
 
+SoQtMyViewer::~SoQtMyViewer() {
+  fgSep->unref();
+  bgSep->unref();
+}
+
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
   // if D is down unset viewing
   if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {

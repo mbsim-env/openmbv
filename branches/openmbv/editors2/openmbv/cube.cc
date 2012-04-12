@@ -24,8 +24,6 @@
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/cube.h"
-#include <cfloat>
-#include <QMenu>
 
 using namespace std;
 
@@ -39,10 +37,6 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   cube->width.setValue(c->getLength());
   cube->height.setValue(c->getLength());
   cube->depth.setValue(c->getLength());
-  lengthEditor=new FloatEditor(this, QIcon(), "Length");
-  lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cube::getLength, &OpenMBV::Cube::setLength);
-  lengthEditor->setRange(0, DBL_MAX);
-  lengthEditor->setStep(0.01);
   soSepRigidBody->addChild(cube);
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor(),c->getLength()*c->getScaleFactor());
@@ -51,11 +45,4 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(cube);
-}
-
-QMenu* Cube::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Cube");
-  menu->addAction(lengthEditor->getAction());
-  return menu;
 }

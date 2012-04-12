@@ -178,11 +178,14 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   //add option to show local frame of body (with rigid body movement)
-  localFrame=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"),"Draw Local Frame");
-  localFrame->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getLocalFrame, &OpenMBV::NurbsDisk::setLocalFrame);
+  localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw local frame", this);
+  localFrame->setCheckable(true);
+  localFrame->setChecked(nurbsDisk->getLocalFrame());
+  localFrame->setObjectName("NurbsDisk::localFrame");
+  connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
 
   //Add option to move camera with body
-  moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move Camera With This Body",this);
+  moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
   moveCameraWith->setObjectName("RigidBody::moveCameraWith");
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
 }
@@ -197,6 +200,17 @@ QString NurbsDisk::getInfo() {
   return DynamicColoredBody::getInfo();
 }
 
+void NurbsDisk::localFrameSlot() {
+  if(localFrame->isChecked()) {
+    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    nurbsDisk->setLocalFrame(true);
+  }
+  else {
+    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    nurbsDisk->setLocalFrame(false);
+  }
+}
+
 void NurbsDisk::moveCameraWithSlot() {
   MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
 }
@@ -204,7 +218,7 @@ void NurbsDisk::moveCameraWithSlot() {
 QMenu* NurbsDisk::createMenu() {
   QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: NurbsDisk");
-  menu->addAction(localFrame->getAction());
+	menu->addAction(localFrame);
   menu->addAction(moveCameraWith);
 
   return menu;

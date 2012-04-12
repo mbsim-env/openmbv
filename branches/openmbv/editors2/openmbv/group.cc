@@ -57,16 +57,16 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   if(childCount()==0) setHidden(true);
 
   // GUI
-  saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-File", this);
+  saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-file", this);
   saveFile->setObjectName("Group::saveFile");
   connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
 
   if(grp->getParent()==NULL) {
-    unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-File", this);
+    unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-file", this);
     unloadFile->setObjectName("Group::unloadFile");
     connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
 
-    reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-File", this);
+    reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-file", this);
     reloadFile->setObjectName("Group::reloadFile");
     connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
 
@@ -88,7 +88,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
 QString Group::getInfo() {
   return Object::getInfo()+
          QString("<hr width=\"10000\"/>")+
-         QString("<b>Number of Children:</b> %1").arg(childCount());
+         QString("<b>Number of children:</b> %1").arg(childCount());
 }
 
 QMenu* Group::createMenu() {
@@ -109,7 +109,7 @@ void Group::saveFileSlot() {
        "Save current object porperties in XML-File.\n"
        "\n"
        "Saving will overwrite the following files:\n"
-       "- OpenMBV-XML-File '%1'\n"
+       "- OpenMBV-XML-file '%1'\n"
        "- OpenMBV-Parameter-XML-file '%2'\n"
        "- all included OpenMBV-XML-Files\n"
        "- all dedicated OpenMBV-Parameter-XML-Files")

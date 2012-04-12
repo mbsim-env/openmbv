@@ -29,9 +29,6 @@ class Cuboid : public RigidBody {
   Q_OBJECT
   public:
     Cuboid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QMenu* createMenu();
-  protected:
-    Vec3fEditor *lengthEditor;
 };
 
 #endif

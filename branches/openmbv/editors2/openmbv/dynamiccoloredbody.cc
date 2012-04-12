@@ -21,6 +21,7 @@
 #include "dynamiccoloredbody.h"
 #include "openmbvcppinterface/dynamiccoloredbody.h"
 #include "utils.h"
+#include <QMenu>
 
 using namespace std;
 
@@ -30,6 +31,17 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   minimalColorValue=dcb->getMinimalColorValue();
   maximalColorValue=dcb->getMaximalColorValue();
   staticColor=dcb->getStaticColor();
+
+  // GUI
+  minimalColorValueEditor=new FloatEditor(this, QIcon(), "Minimal color value");
+  minimalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMinimalColorValue, &OpenMBV::DynamicColoredBody::setMinimalColorValue);
+
+  maximalColorValueEditor=new FloatEditor(this, QIcon(), "Maximal color value");
+  maximalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMaximalColorValue, &OpenMBV::DynamicColoredBody::setMaximalColorValue);
+
+  staticColorEditor=new FloatEditor(this, QIcon(), "Static color value");
+  staticColorEditor->setNaNText("not used");
+  staticColorEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getStaticColor, &OpenMBV::DynamicColoredBody::setStaticColor);
 }
 
 void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base) {
@@ -52,3 +64,11 @@ QString DynamicColoredBody::getInfo() {
          QString("<b>Color:</b> %1").arg(getColor());
 }
 
+QMenu* DynamicColoredBody::createMenu() {
+  QMenu* menu=Body::createMenu();
+  menu->addSeparator()->setText("Properties from: DynamicColoredBody");
+  menu->addAction(minimalColorValueEditor->getAction());
+  menu->addAction(maximalColorValueEditor->getAction());
+  menu->addAction(staticColorEditor->getAction());
+  return menu;
+}

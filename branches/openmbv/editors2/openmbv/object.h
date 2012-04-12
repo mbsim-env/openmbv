@@ -51,10 +51,10 @@ class Object : public QObject, public QTreeWidgetItem {
     SoSeparator *soBBoxSep;
     SoTranslation *soBBoxTrans;
     SoCube *soBBox;
-    BoolEditor *draw, *bbox;
     std::string iconFile;
     bool searchMatched;
     SoNodeSensor *nodeSensor;
+    BoolEditor *enableEditor, *boundingBoxEditor;
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
@@ -66,9 +66,6 @@ class Object : public QObject, public QTreeWidgetItem {
     void updateTextColor();
     bool getSearchMatched() { return searchMatched; }
     void setSearchMatched(bool m) { searchMatched=m; }
-  public slots:
-    void setEnableRecursive(bool enable);
-    void bboxSlot();
 };
 
 #endif

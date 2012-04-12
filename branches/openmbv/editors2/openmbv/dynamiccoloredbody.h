@@ -24,6 +24,7 @@
 #include "body.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <editors.h>
 
 class DynamicColoredBody : public Body {
   Q_OBJECT
@@ -32,9 +33,11 @@ class DynamicColoredBody : public Body {
     double color,oldColor;
     void setColor(SoMaterial *mat, double col, SoBaseColor *base=NULL);
     double getColor() { return color; }
+    FloatEditor *minimalColorValueEditor, *maximalColorValueEditor, *staticColorEditor;
   public:
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo();
+    QMenu* createMenu();
 };
 
 #endif
