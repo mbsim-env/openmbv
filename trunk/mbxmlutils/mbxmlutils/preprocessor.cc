@@ -71,7 +71,7 @@ void addFilesInDir(ostringstream &dependencies, string dir, string ext) {
   DIR *d=opendir(dir.c_str());
   while((file=readdir(d))!=NULL)
     if(ext==file->d_name+(strlen(file->d_name)-2)) // ext matches
-      dependencies<<file->d_name<<endl;
+      dependencies<<dir<<"/"<<file->d_name<<endl;
   closedir(d);
 }
 
@@ -664,8 +664,11 @@ int main(int argc, char *argv[]) {
     do {
       if((i=std::find(arg.begin(), arg.end(), "--mpath"))!=arg.end()) {
         i2=i; i2++;
+        // the search path is global: use absolute path
+        char curPath[PATHLENGTH];
+        string absmpath=fixPath(string(getcwd(curPath, PATHLENGTH))+"/", *i2);
         // add to octave search path
-        eval_string("addpath(\""+*i2+"\");",true,dummy,0); // statement list
+        eval_string("addpath(\""+absmpath+"\");",true,dummy,0); // statement list
         // add m-files in mpath dir to dependencies
         addFilesInDir(dependencies, *i2, ".m");
         arg.erase(i); arg.erase(i2);
