@@ -57,13 +57,13 @@ namespace OpenMBV {
         nx=n_;
       }
 
-      int getXNumber() { return nx; }
+      unsigned int getXNumber() { return nx; }
 
       /** Set the number of lines in x-direction*/
       void setYNumber(unsigned int n_) {
         ny=n_;
       }
-      int getYNumber() { return ny; }
+      unsigned int getYNumber() { return ny; }
 
 
       /** Initializes the time invariant part of the object using a XML node */
