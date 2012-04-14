@@ -24,6 +24,8 @@
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/cuboid.h"
+#include <QMenu>
+#include <cfloat>
 
 using namespace std;
 
@@ -46,4 +48,16 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(cuboid);
+
+  // GUI
+  lengthEditor=new Vec3fEditor(this, QIcon(), "Length (x, y, z)");
+  lengthEditor->setRange(0, DBL_MAX);
+  lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
+}
+
+QMenu* Cuboid::createMenu() {
+  QMenu* menu=RigidBody::createMenu();
+  menu->addSeparator()->setText("Properties from: Cuboid");
+  menu->addAction(lengthEditor->getAction());
+  return menu;
 }

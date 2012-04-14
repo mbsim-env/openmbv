@@ -23,15 +23,14 @@
 #include "compoundrigidbody.h"
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoSurroundScale.h>
 #include <Inventor/nodes/SoAntiSquish.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoMatrixTransform.h>
-#include <Inventor/draggers/SoCenterballDragger.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <QtGui/QMenu>
 #include "utils.h"
 #include "openmbvcppinterface/rigidbody.h"
+#include <cfloat>
 
 using namespace std;
 
@@ -98,24 +97,9 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     soSepRigidBody=soSep;
   }
 
-  // dragger for initial translation and rotation
-  SoGroup *grp=new SoGroup;
-  soSepRigidBody->addChild(grp);
-  soDraggerSwitch=new SoSwitch;
-  grp->addChild(soDraggerSwitch);
-  soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  // the dragger is added on the first click on the entry in the property menu (Because the constructor of the dragger takes a long time to execute (performace reason))
-  soDragger=0;
-
-  // initial translation
-  initTrans=new SoTranslation;
-  grp->addChild(initTrans);
-  initTrans->translation.setValue(rigidBody->getInitialTranslation()[0],rigidBody->getInitialTranslation()[1],rigidBody->getInitialTranslation()[2]); // this is later changed to connectFrom if the dragger exists
-
-  // initial rotation
-  initRot=new SoRotation;
-  grp->addChild(initRot);
-  initRot->rotation.setValue(Utils::cardan2Rotation(SbVec3f(rigidBody->getInitialRotation()[0],rigidBody->getInitialRotation()[1],rigidBody->getInitialRotation()[2])).invert()); // this is later changed to connectFrom if the dragger exists
+  // add a group for the initial translation/rotation here (the SoTranslation/SoRotation is added later by InitialTransRotEditor)
+  SoGroup *initTransRotGroup=new SoGroup;
+  soSepRigidBody->addChild(initTransRotGroup);
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // local frame
@@ -145,29 +129,29 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
 
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // GUI
-    localFrame=new QAction(Utils::QIconCached(":/localframe.svg"),"Draw Local Frame", this);
-    localFrame->setCheckable(true);
-    localFrame->setChecked(rigidBody->getLocalFrame());
-    localFrame->setObjectName("RigidBody::localFrame");
-    connect(localFrame,SIGNAL(changed()),this,SLOT(localFrameSlot()));
-    referenceFrame=new QAction(Utils::QIconCached(":/referenceframe.svg"),"Draw reference frame", this);
-    referenceFrame->setCheckable(true);
-    referenceFrame->setChecked(rigidBody->getReferenceFrame());
-    referenceFrame->setObjectName("RigidBody::referenceFrame");
-    connect(referenceFrame,SIGNAL(changed()),this,SLOT(referenceFrameSlot()));
-    path=new QAction(Utils::QIconCached(":/path.svg"),"Draw path of reference frame", this);
-    path->setCheckable(true);
-    path->setChecked(rigidBody->getPath());
-    path->setObjectName("RigidBody::path");
-    connect(path,SIGNAL(changed()),this,SLOT(pathSlot()));
-    dragger=new QAction(Utils::QIconCached(":/centerballdragger.svg"),"Show init. trans./rot. dragger", this);
-    dragger->setCheckable(true);
-    dragger->setObjectName("RigidBody::dragger");
-    connect(dragger,SIGNAL(changed()),this,SLOT(draggerSlot()));
     moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
+
+    // GUI editors
+    localFrameEditor=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
+    localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
+
+    referenceFrameEditor=new BoolEditor(this, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
+    referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
+
+    pathEditor=new BoolEditor(this, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
+    pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
+
+    scaleFactorEditor=new FloatEditor(this, QIcon(), "Scaling");
+    scaleFactorEditor->setRange(0, DBL_MAX);
+    scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
   }
+
+  // initial translation/rotation editor/dragger
+  initialTransRotEditor=new TransRotEditor(this, QIcon(), "Intial Translation/Rotation", initTransRotGroup);
+  initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
+                                                        &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation);
 }
 
 RigidBody::~RigidBody() {
@@ -180,73 +164,16 @@ RigidBody::~RigidBody() {
 QMenu* RigidBody::createMenu() {
   QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: RigidBody");
-  menu->addAction(localFrame);
-  menu->addAction(referenceFrame);
+  menu->addAction(localFrameEditor->getAction());
+  menu->addAction(referenceFrameEditor->getAction());
   menu->addSeparator();
-  menu->addAction(path);
-  menu->addAction(dragger);
+  menu->addAction(pathEditor->getAction());
   menu->addAction(moveCameraWith);
+  menu->addSeparator();
+  menu->addAction(initialTransRotEditor->getAction());
+  menu->addAction(initialTransRotEditor->getDraggerAction());
+  menu->addAction(scaleFactorEditor->getAction());
   return menu;
-}
-
-void RigidBody::localFrameSlot() {
-  if(localFrame->isChecked()) {
-    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    rigidBody->setLocalFrame(true);
-  }
-  else {
-    soLocalFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-    rigidBody->setLocalFrame(false);
-  }
-}
-
-void RigidBody::referenceFrameSlot() {
-  if(referenceFrame->isChecked()) {
-    soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    rigidBody->setReferenceFrame(false);
-  }
-  else {
-    soReferenceFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-    rigidBody->setReferenceFrame(false);
-  }
-}
-
-void RigidBody::pathSlot() {
-  if(path->isChecked()) {
-    soPathSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    rigidBody->setPath(true);
-    update();
-  }
-  else {
-    soPathSwitch->whichChild.setValue(SO_SWITCH_NONE);
-    rigidBody->setPath(false);
-  }
-}
-
-void RigidBody::draggerSlot() {
-  if(soDragger==0) {
-    soDragger=new SoCenterballDragger;
-    soDraggerSwitch->addChild(soDragger);
-    soDragger->addMotionCallback(draggerMoveCB, this);
-    soDragger->addFinishCallback(draggerFinishCB, this);
-    // initial translation from XML
-    soDragger->center=initTrans->translation;
-    // initial rotation from XML
-    soDragger->rotation=initRot->rotation;
-    // scale of the dragger
-    SoSurroundScale *draggerScale=new SoSurroundScale;
-    draggerScale->setDoingTranslations(false);//TODO?
-    draggerScale->numNodesUpToContainer.setValue(5);
-    draggerScale->numNodesUpToReset.setValue(4);
-    soDragger->setPart("surroundScale", draggerScale);
-
-    initTrans->translation.connectFrom(&soDragger->center);
-    initRot->rotation.connectFrom(&soDragger->rotation);
-  }
-  if(dragger->isChecked())
-    soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
-  else
-    soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
 }
 
 void RigidBody::moveCameraWithSlot() {
@@ -272,7 +199,7 @@ double RigidBody::update() {
   if(isnan(staticColor)) setColor(mat, data[7]);
 
   // path
-  if(path->isChecked()) {
+  if(pathEditor->getAction()->isChecked()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
       vector<double> data=rigidBody->getRow(i);
       pathCoord->point.set1Value(i, data[1], data[2], data[3]);
@@ -296,27 +223,4 @@ QString RigidBody::getInfo() {
          QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;").arg(rotationAlpha->angle.getValue()*180/M_PI)
                                                     .arg(rotationBeta->angle.getValue()*180/M_PI)
                                                     .arg(rotationGamma->angle.getValue()*180/M_PI);
-}
-
-void RigidBody::draggerMoveCB(void *, SoDragger *dragger_) {
-  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
-  float x,y,z;
-  dragger->center.getValue().getValue(x,y,z);
-  float a, b, g;
-  Utils::rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
-  MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
-    arg(x,0,'f',6).arg(y,0,'f',6).arg(z,0,'f',6).
-    arg(a,0,'f',6).arg(b,0,'f',6).arg(g,0,'f',6));
-}
-
-void RigidBody::draggerFinishCB(void *me_, SoDragger *dragger_) {
-  RigidBody* me=(RigidBody*)me_;
-  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
-  float x,y,z;
-  dragger->center.getValue().getValue(x,y,z);
-  float a, b, g;
-  Utils::rotation2Cardan(dragger->rotation.getValue().inverse()).getValue(a,b,g);
-  cout<<"New initial translation/rotation for: "<<me->getPath()<<endl
-      <<"Translation: ["<<x<<", "<<y<<", "<<z<<"]"<<endl
-      <<"Rotation: ["<<a<<", "<<b<<", "<<g<<"]"<<endl;
 }

@@ -43,7 +43,7 @@ class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
     OpenMBV::RigidBody *rigidBody;
-    QAction *localFrame, *referenceFrame, *path, *dragger, *moveCameraWith;
+    QAction *dragger, *moveCameraWith;
     SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch, *soDraggerSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
@@ -57,19 +57,16 @@ class RigidBody : public DynamicColoredBody {
     static void draggerFinishCB(void *, SoDragger*);
     static void draggerMoveCB(void *, SoDragger*);
     SoSeparator *soSepRigidBody;
-    SoTranslation *initTrans;
-    SoRotation *initRot;
     SoCenterballDragger *soDragger;
+    TransRotEditor *initialTransRotEditor;
+    FloatEditor *scaleFactorEditor;
+    BoolEditor *localFrameEditor, *referenceFrameEditor, *pathEditor;
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();
     virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:
-    void localFrameSlot();
-    void referenceFrameSlot();
-    void pathSlot();
-    void draggerSlot();
     void moveCameraWithSlot();
   private:
     QTreeWidgetItem *parentItem;

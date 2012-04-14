@@ -104,7 +104,17 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     // register callback function for shilouette edges
     shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
     shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-//MFMF    emit shilouetteEdgeSlot();
+    if(body->getShilouetteEdge()) {
+      soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
+      shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+      shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
+      MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
+    }
+    else {
+      soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
+      shilouetteEdgeFrameSensor->detach();
+      shilouetteEdgeOrientationSensor->detach();
+    }
 
     // GUI editors
     outLineEditor=new BoolEditor(this, Utils::QIconCached(":/outline.svg"), "Draw out-line");
@@ -113,7 +123,7 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     shilouetteEdgeEditor=new BoolEditor(this, Utils::QIconCached(":/shilouetteedge.svg"), "Draw shilouette edge");
     shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
 
-    drawMethodEditor=new ComboBoxEditor(this, Utils::QIconCached(":/MFMF.svg"), "Draw style",
+    drawMethodEditor=new ComboBoxEditor(this, Utils::QIconCached(":/lines.svg"), "Draw style",
       boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached(":/filled.svg"))
                                   (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached(":/lines.svg"))
                                   (OpenMBV::Body::points, "Points", Utils::QIconCached(":/points.svg"))
@@ -171,22 +181,6 @@ QMenu* Body::createMenu() {
   menu->addAction(drawMethodEditor->getAction());
   return menu;
 }
-
-//MFMFvoid Body::shilouetteEdgeSlot() {
-//MFMF  if(shilouetteEdge->isChecked()) {
-//MFMF    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
-//MFMF    body->setShilouetteEdge(true);
-//MFMF    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
-//MFMF    shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
-//MFMF    MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
-//MFMF  }
-//MFMF  else {
-//MFMF    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
-//MFMF    body->setShilouetteEdge(false);
-//MFMF    shilouetteEdgeFrameSensor->detach();
-//MFMF    shilouetteEdgeOrientationSensor->detach();
-//MFMF  }
-//MFMF}
 
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {

@@ -32,6 +32,7 @@
 #include "openmbvcppinterface/group.h"
 
 #include <QtConcurrentRun>
+#include <QMenu>
 
 using namespace std;
 
@@ -76,6 +77,20 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     connect(&calculateEdgesThread, SIGNAL(finished()), this, SLOT(addEdgesToScene()));
     calculateEdgesThread.start(QThread::IdlePriority);
   }
+
+  // GUI editors
+  ivFileNameEditor=new StringEditor(this, QIcon(), "IV file name");
+  ivFileNameEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getIvFileName, &OpenMBV::IvBody::setIvFileName);
+
+  creaseEdgesEditor=new FloatEditor(this, QIcon(), "Crease edges bound");
+  creaseEdgesEditor->setRange(0, 360); // degree
+  creaseEdgesEditor->setStep(10); // degree
+  creaseEdgesEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+  creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
+  creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);
+
+  boundaryEdgesEditor=new BoolEditor(this, QIcon(), "Draw boundary edges");
+  boundaryEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getBoundaryEdges, &OpenMBV::IvBody::setBoundaryEdges);
 }
 
 IvBody::~IvBody() {
@@ -99,4 +114,13 @@ void IvBody::addEdgesToScene() {
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
   cout<<"Finished edge calculation for "<<ivb->getFullName()<<" and added to scene."<<endl;
+}
+
+QMenu* IvBody::createMenu() {
+  QMenu* menu=RigidBody::createMenu();
+  menu->addSeparator()->setText("Properties from: IvBody");
+  menu->addAction(ivFileNameEditor->getAction());
+  menu->addAction(creaseEdgesEditor->getAction());
+  menu->addAction(boundaryEdgesEditor->getAction());
+  return menu;
 }

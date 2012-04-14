@@ -27,6 +27,7 @@
 #  define unordered_map map
 #endif
 #include "SoSpecial.h"
+#include <iostream>
 
 using namespace std;
 
@@ -55,10 +56,16 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
   pair<unordered_map<string, SoSeparator*>::iterator, bool> ins=myIvBodyCache.insert(pair<string, SoSeparator*>(filename, (SoSeparator*)NULL));
   if(ins.second) {
     SoInput in;
-    in.openFile(filename.c_str());
-    ins.first->second=SoDB::readAll(&in);
-    ins.first->second->ref(); // increment reference count to prevent a delete for cached entries
-    return ins.first->second;
+    if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
+      ins.first->second=SoDB::readAll(&in);
+      ins.first->second->ref(); // increment reference count to prevent a delete for cached entries
+      return ins.first->second;
+    }
+    else { // open failed, remove from cache and return a empty IV
+      cout<<"ERROR: Unable to find IV file "<<filename<<"."<<endl;
+      myIvBodyCache.erase(ins.first);
+      return new SoSeparator;
+    }
   }
   return ins.first->second;
 }

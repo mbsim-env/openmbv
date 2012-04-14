@@ -177,18 +177,29 @@ class MainWindow : public QMainWindow {
     void searchObjectList(Object *item, const QRegExp&);
     void collapseItem(QTreeWidgetItem* item);
     void expandItem(QTreeWidgetItem* item);
-    void expandToDepth1() { 
-      for(int i=0; i<objectList->invisibleRootItem()->childCount(); i++)
-        objectList->invisibleRootItem()->child(i)->setExpanded(false); 
+
+    // we use our own expandToDepth function since the Qt one does not emit the expand/collapse signal
+    void expandToDepth(QTreeWidgetItem *item, int depth) {
+      for(int i=0; i<item->childCount(); i++) {
+        if(depth>0) {
+          if(item->child(i)->childCount()>0) item->child(i)->setExpanded(true); 
+        }
+        else {
+          if(item->child(i)->childCount()>0) item->child(i)->setExpanded(false); 
+        }
+        expandToDepth(item->child(i), depth-1);
+      }
     }
-    void expandToDepth2() { objectList->expandToDepth(0); }
-    void expandToDepth3() { objectList->expandToDepth(1); }
-    void expandToDepth4() { objectList->expandToDepth(2); }
-    void expandToDepth5() { objectList->expandToDepth(3); }
-    void expandToDepth6() { objectList->expandToDepth(4); }
-    void expandToDepth7() { objectList->expandToDepth(5); }
-    void expandToDepth8() { objectList->expandToDepth(6); }
-    void expandToDepth9() { objectList->expandToDepth(7); }
+    void expandToDepth1() { expandToDepth(objectList->invisibleRootItem(), 0); }
+    void expandToDepth2() { expandToDepth(objectList->invisibleRootItem(), 1); }
+    void expandToDepth3() { expandToDepth(objectList->invisibleRootItem(), 2); }
+    void expandToDepth4() { expandToDepth(objectList->invisibleRootItem(), 3); }
+    void expandToDepth5() { expandToDepth(objectList->invisibleRootItem(), 4); }
+    void expandToDepth6() { expandToDepth(objectList->invisibleRootItem(), 5); }
+    void expandToDepth7() { expandToDepth(objectList->invisibleRootItem(), 6); }
+    void expandToDepth8() { expandToDepth(objectList->invisibleRootItem(), 7); }
+    void expandToDepth9() { expandToDepth(objectList->invisibleRootItem(), 8); }
+
     void toggleEngDrawingViewSlot();
     void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
     void complexityType();

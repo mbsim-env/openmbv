@@ -1776,10 +1776,10 @@ void MainWindow::complexityValue() {
 
 void MainWindow::collapseItem(QTreeWidgetItem* item) {
   Group *grp=(Group*)item;
-  grp->setExpanded(false);
+  grp->grp->setExpand(false);
 }
 
 void MainWindow::expandItem(QTreeWidgetItem* item) {
   Group *grp=(Group*)item;
-  grp->setExpanded(true);
+  grp->grp->setExpand(true);
 }

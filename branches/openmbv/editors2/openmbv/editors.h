@@ -8,9 +8,12 @@
 #include <Inventor/fields/SoSFVec3f.h>
 #include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/nodes/SoSwitch.h>
+#include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoTranslation.h>
 #include <QDoubleSpinBox>
 #include <QDockWidget>
 #include <QComboBox>
+#include <QLineEdit>
 #include <openmbvcppinterface/simpleparameter.h>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
@@ -138,6 +141,12 @@ class FloatEditor : public WidgetEditor {
     /*! Set the special value at min */
     void setNaNText(const std::string &value) { spinBox->blockSignals(true); spinBox->setSpecialValueText(value.c_str()); spinBox->blockSignals(false); }
 
+    /*! Set the suffix to display */
+    void setSuffix(const QString &value) { spinBox->blockSignals(true); spinBox->setSuffix(value); spinBox->blockSignals(false); }
+
+    /*! Set the conversion factor between the display value and the real value */
+    void setFactor(const double value) { factor=value; }
+
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
@@ -147,9 +156,36 @@ class FloatEditor : public WidgetEditor {
     void valueChangedSlot(double);
 
   protected:
+    double factor;
     QDoubleSpinBox *spinBox;
     boost::function<double ()> ombvGetter;
     boost::function<void (double)> ombvSetter;
+};
+
+
+
+
+
+/*! A Editor of type string */
+class StringEditor : public WidgetEditor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor. */
+    StringEditor(QObject *parent_, const QIcon &icon, const std::string &name);
+
+    /*! OpenMBVCppInterface syncronization.
+     * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string));
+
+  protected slots:
+    void valueChangedSlot();
+
+  protected:
+    QLineEdit *lineEdit;
+    boost::function<std::string ()> ombvGetter;
+    boost::function<void (std::string)> ombvSetter;
 };
 
 
@@ -183,89 +219,97 @@ class ComboBoxEditor : public WidgetEditor {
 
 
 
-///*! A Editor of type 3xdouble */
-//class Vec3fEditor : public WidgetEditor {
-//  Q_OBJECT
-//
-//  public:
-//    /*! Constructor. */
-//    Vec3fEditor(QObject *parent_, const QIcon &icon, const std::string &name);
-//
-//    /*! Set the valid range of the double values */
-//    void setRange(double min, double max) { for(int i=0; i<3; i++) spinBox[i]->setRange(min, max); }
-//
-//    /*! Set step size of the double values */
-//    void setStep(double step) { for(int i=0; i<3; i++) spinBox[i]->setSingleStep(step); }
-//
-//    /*! OpenMBVCppInterface syncronization.
-//     * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
-//    template<class OMBVClass>
-//    void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(),
-//                                               void (OMBVClass::*setter)(double x, double y, double z));
-//
-//    /*! Set the scene object which should be synced */
-//    void setSo(SoSFVec3f *soValue_) { soValue=soValue_; }
-//    /*! Set the scene object which should be synced */
-//    void setSo(SoSFFloat *soX_, SoSFFloat *soY_, SoSFFloat *soZ_) { so[0]=soX_; so[1]=soY_; so[2]=soZ_; }
-//
-//  protected slots:
-//    void valueChangedSlot();
-//
-//  protected:
-//    QDoubleSpinBox *spinBox[3];
-//    SoSFVec3f *soValue;
-//    SoSFFloat *so[3];
-//    boost::function<std::vector<double> ()> ombvGetter;
-//    boost::function<void (double, double, double)> ombvSetter;
-//};
-//
-//
-//
-//
-//
-///*! A special Editor to edit a (mechanical) relative translation and rotation between two frames incling a interactive Dragger. */
-//class TransRotEditor : public WidgetEditor {
-//  Q_OBJECT
-//
-//  public:
-//    /*! Constructor.
-//     * soTranslation_ and soRotation_ is syncronized with this Editor */
-//    TransRotEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoSFVec3f *soTranslation_, SoSFRotation *soRotation_);
-//
-//    /*! Set step size of the translation values (rotation is 10deg) */
-//    void setStep(double step) { for(int i=0; i<3; i++) spinBox[i]->setSingleStep(step); }
-//
-//    /*! OpenMBVCppInterface syncronization.
-//     * Use *Getter and *Setter of ombv_ to sync this Editor with OpenMBVCppInterface */
-//    template<class OMBVClass>
-//    void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(), 
-//                                               void (OMBVClass::*transSetter)(double x, double y, double z),
-//                                               std::vector<double> (OMBVClass::*rotGetter)(),
-//                                               void (OMBVClass::*rotSetter)(double x, double y, double z));
-//
-//    /*! Set the group this translation/rotation resizes in.
-//     * The Dragger must be added before the translation and rotation nodes referenced by the constructor. */
-//    void setDragger(SoGroup *draggerParent);
-//
-//    /*! return a action to active the Dragger */
-//    QAction *getDraggerAction() { return draggerAction; }
-//
-//  protected slots:
-//    void valueChangedSlot();
-//    void draggerSlot(bool newValue);
-//
-//  protected:
-//    QDoubleSpinBox *spinBox[6];
-//    SoSFVec3f *soTranslation;
-//    SoSFRotation *soRotation;
-//    boost::function<std::vector<double> ()> ombvTransGetter, ombvRotGetter;
-//    boost::function<void (double, double, double)> ombvTransSetter, ombvRotSetter;
-//    SoCenterballDragger *soDragger;
-//    SoSwitch *soDraggerSwitch;
-//    QAction *draggerAction;
-//    static void draggerMoveCB(void *, SoDragger *dragger_);
-//    static void draggerFinishedCB(void *, SoDragger *dragger_);
-//};
+/*! A Editor of type 3xdouble */
+class Vec3fEditor : public WidgetEditor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor. */
+    Vec3fEditor(QObject *parent_, const QIcon &icon, const std::string &name);
+
+    /*! Set the valid range of the double values */
+    void setRange(double min, double max) {
+      for(int i=0; i<3; i++) {
+        spinBox[i]->blockSignals(true);
+        spinBox[i]->setRange(min, max);
+        spinBox[i]->blockSignals(false);
+      }
+    }
+
+    /*! Set step size of the double values */
+    void setStep(double step) {
+      for(int i=0; i<3; i++) {
+        spinBox[i]->blockSignals(true);
+        spinBox[i]->setSingleStep(step);
+        spinBox[i]->blockSignals(false);
+      }
+    }
+
+    /*! OpenMBVCppInterface syncronization.
+     * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(),
+                                               void (OMBVClass::*setter)(double x, double y, double z));
+
+  protected slots:
+    void valueChangedSlot();
+
+  protected:
+    QDoubleSpinBox *spinBox[3];
+    boost::function<std::vector<double> ()> ombvGetter;
+    boost::function<void (double, double, double)> ombvSetter;
+};
+
+
+
+
+
+/*! A special Editor to edit a (mechanical) relative translation and rotation between two frames incling a interactive Dragger.
+ * Note: This Editor does NOT delete and renew the Object at each value change. */
+class TransRotEditor : public WidgetEditor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor.
+     * soTranslation_ and soRotation_ is syncronized with this Editor */
+    TransRotEditor(QObject *parent_, const QIcon &icon, const std::string &name, SoGroup *grp);
+
+    /*! Set step size of the translation values (rotation is 10deg) */
+    void setStep(double step) {
+      for(int i=0; i<3; i++) {
+        spinBox[i]->blockSignals(true);
+        spinBox[i]->setSingleStep(step);
+        spinBox[i]->blockSignals(false);
+      }
+    }
+
+    /*! OpenMBVCppInterface syncronization.
+     * Use *Getter and *Setter of ombv_ to sync this Editor with OpenMBVCppInterface */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(), 
+                                               void (OMBVClass::*transSetter)(double x, double y, double z),
+                                               std::vector<double> (OMBVClass::*rotGetter)(),
+                                               void (OMBVClass::*rotSetter)(double x, double y, double z));
+
+    /*! return a action to active the Dragger */
+    QAction *getDraggerAction() { return draggerAction; }
+
+  protected slots:
+    void valueChangedSlot();
+    void draggerSlot(bool newValue);
+
+  protected:
+    QDoubleSpinBox *spinBox[6];
+    SoTranslation *soTranslation;
+    SoRotation *soRotation;
+    boost::function<std::vector<double> ()> ombvTransGetter, ombvRotGetter;
+    boost::function<void (double, double, double)> ombvTransSetter, ombvRotSetter;
+    SoCenterballDragger *soDragger;
+    SoSwitch *soDraggerSwitch;
+    QAction *draggerAction;
+    static void draggerMoveCB(void *, SoDragger *dragger_);
+    static void draggerFinishedCB(void *, SoDragger *dragger_);
+};
 
 
 
@@ -300,10 +344,25 @@ void FloatEditor::setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*gett
   if(ombvGetter) {
     spinBox->blockSignals(true);
     if(spinBox->specialValueText()=="" || !isnan(ombvGetter()))
-      spinBox->setValue(ombvGetter());
+      spinBox->setValue(ombvGetter()/factor);
     else
       spinBox->setValue(spinBox->minimum());
     spinBox->blockSignals(false);
+  }
+}
+
+
+
+
+
+template<class OMBVClass>
+void StringEditor::setOpenMBVParameter(OMBVClass *ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string)) {
+  ombvGetter=boost::bind(getter, ombv_);
+  ombvSetter=boost::bind(setter, ombv_, _1);
+  if(ombvGetter) {
+    lineEdit->blockSignals(true);
+    lineEdit->setText(ombvGetter().c_str());
+    lineEdit->blockSignals(false);
   }
 }
 
@@ -326,47 +385,43 @@ void ComboBoxEditor::setOpenMBVParameter(OMBVClass *ombv_, OMBVEnum (OMBVClass::
 
 
 
-//template<class OMBVClass>
-//void Vec3fEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double x, double y, double z)) {
-//  ombvGetter=boost::bind(getter, ombv_);
-//  ombvSetter=boost::bind(setter, ombv_, _1, _2, _3);
-//  if(ombvGetter) {
-//    std::vector<double> vec=ombvGetter();
-//    if(soValue)
-//      soValue->setValue(vec[0], vec[1], vec[2]);
-//    else if(so[0]) {
-//      so[0]->setValue(vec[0]);
-//      so[1]->setValue(vec[1]);
-//      so[2]->setValue(vec[2]);
-//    }
-//    for(int i=0; i<3; i++)
-//      spinBox[i]->setValue(vec[i]);
-//  }
-//}
-//
-//
-//
-//
-//
-//template<class OMBVClass>
-//void TransRotEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(),
-//                                                           void (OMBVClass::*transSetter)(double x, double y, double z),
-//                                                           std::vector<double> (OMBVClass::*rotGetter)(),
-//                                                           void (OMBVClass::*rotSetter)(double x, double y, double z)) {
-//  ombvTransGetter=boost::bind(transGetter, ombv_);
-//  ombvTransSetter=boost::bind(transSetter, ombv_, _1, _2, _3);
-//  ombvRotGetter=boost::bind(rotGetter, ombv_);
-//  ombvRotSetter=boost::bind(rotSetter, ombv_, _1, _2, _3);
-//  if(ombvTransGetter && ombvRotGetter) {
-//    std::vector<double> trans=ombvTransGetter();
-//    std::vector<double> rot=ombvRotGetter();
-//    soTranslation->setValue(trans[0], trans[1], trans[2]);
-//    *soRotation=Utils::cardan2Rotation(SbVec3f(rot[0],rot[1],rot[2])).invert();
-//    for(int i=0; i<3; i++) {
-//      spinBox[i  ]->setValue(trans[i]);
-//      spinBox[i+3]->setValue(rot[i]*180/M_PI);
-//    }
-//  }
-//}
+template<class OMBVClass>
+void Vec3fEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double x, double y, double z)) {
+  ombvGetter=boost::bind(getter, ombv_);
+  ombvSetter=boost::bind(setter, ombv_, _1, _2, _3);
+  if(ombvGetter) {
+    std::vector<double> vec=ombvGetter();
+    for(int i=0; i<3; i++) {
+      spinBox[i]->blockSignals(true);
+      spinBox[i]->setValue(vec[i]);
+      spinBox[i]->blockSignals(false);
+    }
+  }
+}
+
+
+
+
+
+template<class OMBVClass>
+void TransRotEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(),
+                                                           void (OMBVClass::*transSetter)(double x, double y, double z),
+                                                           std::vector<double> (OMBVClass::*rotGetter)(),
+                                                           void (OMBVClass::*rotSetter)(double x, double y, double z)) {
+  ombvTransGetter=boost::bind(transGetter, ombv_);
+  ombvTransSetter=boost::bind(transSetter, ombv_, _1, _2, _3);
+  ombvRotGetter=boost::bind(rotGetter, ombv_);
+  ombvRotSetter=boost::bind(rotSetter, ombv_, _1, _2, _3);
+  if(ombvTransGetter && ombvRotGetter) {
+    std::vector<double> trans=ombvTransGetter();
+    std::vector<double> rot=ombvRotGetter();
+    soTranslation->translation.setValue(trans[0], trans[1], trans[2]);
+    soRotation->rotation=Utils::cardan2Rotation(SbVec3f(rot[0],rot[1],rot[2])).invert();
+    for(int i=0; i<3; i++) {
+      spinBox[i  ]->setValue(trans[i]);
+      spinBox[i+3]->setValue(rot[i]*180/M_PI);
+    }
+  }
+}
 
 #endif

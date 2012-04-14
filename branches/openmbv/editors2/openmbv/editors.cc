@@ -218,6 +218,7 @@ void WidgetEditorCollector::updateLayout() {
 
 FloatEditor::FloatEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
   // add the label and a spinbox for the value
+  factor=1;
   spinBox=new QDoubleSpinBox;
   spinBox->setSingleStep(0.01);
   spinBox->setRange(-DBL_MAX, DBL_MAX);
@@ -232,10 +233,29 @@ void FloatEditor::valueChangedSlot(double newValue) {
   if(ombvSetter)
   {
     if(spinBox->specialValueText()=="" || newValue!=spinBox->minimum())
-      ombvSetter(newValue); // set OpenMBV
+      ombvSetter(newValue*factor); // set OpenMBV
     else
       ombvSetter(nan("")); // set OpenMBV
   }
+  replaceObject();
+}
+
+
+
+
+
+StringEditor::StringEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
+  // add the label and a lineEdit for the value
+  lineEdit=new QLineEdit;
+  connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(valueChangedSlot()));
+  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
+  layout->addWidget(lineEdit, 0, 2);
+}
+
+void StringEditor::valueChangedSlot() {
+  if(ombvSetter)
+    ombvSetter(lineEdit->text().toStdString()); // set OpenMBV
+  lineEdit->blockSignals(true); // block signals to avoid double sending of the signal
   replaceObject();
 }
 
@@ -264,172 +284,157 @@ void ComboBoxEditor::valueChangedSlot(int newValue) {
 
 
 
-//Vec3fEditor::Vec3fEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name), soValue(NULL) {
-//  so[0]=NULL; so[1]=NULL; so[2]=NULL;
-//  // add the label and a 3 spinboxes for the values
-//  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
-//  for(int i=0; i<3; i++) {
-//    spinBox[i]=new QDoubleSpinBox;
-//    spinBox[i]->setSingleStep(0.01);
-//    spinBox[i]->setRange(-DBL_MAX, DBL_MAX);
-//    spinBox[i]->setDecimals(6);
-//    spinBox[i]->setFixedWidth(QFontMetrics(spinBox[i]->font()).width("-888.888888000"));
-//    connect(spinBox[i], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
-//    layout->addWidget(spinBox[i], 0, i+2);
-//  }
-//}
-//
-//void Vec3fEditor::valueChangedSlot() {
-//  // get values
-//  float x, y, z;
-//  x=spinBox[0]->value();
-//  y=spinBox[1]->value();
-//  z=spinBox[2]->value();
-//  // set so
-//  if(soValue)
-//    soValue->setValue(x, y, z);
-//  else if(so[0]) {
-//    so[0]->setValue(x);
-//    so[1]->setValue(y);
-//    so[2]->setValue(z);
-//  }
-//  // set OpenMBV
-//  if(ombvSetter) ombvSetter(x, y, z);
-//
-//  replaceObject();
-//}
-//
-//
-//
-//
-//
-//TransRotEditor::TransRotEditor(QObject *parent_, const QIcon& icon, const string &name, SoSFVec3f *soTranslation_, SoSFRotation *soRotation_) : WidgetEditor(parent_, icon, name), soTranslation(soTranslation_), soRotation(soRotation_) {
-//  // add the label and a 6 spinboxes for the 3 translations and 3 rotations
-//  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
-//  for(int i=0; i<3; i++) {
-//    spinBox[i  ]=new QDoubleSpinBox;
-//    spinBox[i+3]=new QDoubleSpinBox;
-//    spinBox[i  ]->setRange(-DBL_MAX, DBL_MAX);
-//    spinBox[i+3]->setRange(0, 360); // degree
-//    spinBox[i  ]->setSingleStep(0.01);
-//    spinBox[i+3]->setSingleStep(10);// degree
-//    spinBox[i  ]->setDecimals(6);
-//    spinBox[i+3]->setDecimals(4);
-//    spinBox[i  ]->setFixedWidth(QFontMetrics(spinBox[i  ]->font()).width("-888.888888000"));
-//    spinBox[i+3]->setFixedWidth(QFontMetrics(spinBox[i+3]->font()).width("-888.888888000"));
-//    spinBox[i+3]->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
-//    connect(spinBox[i  ], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
-//    connect(spinBox[i+3], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
-//    layout->addWidget(spinBox[i  ], 0, i+2);
-//    layout->addWidget(spinBox[i+3], 1, i+2);
-//  }
-//}
-//
-//void TransRotEditor::setDragger(SoGroup *draggerParent) {
-//  // dragger for initial translation and rotation
-//  soDraggerSwitch=new SoSwitch;
-//  draggerParent->addChild(soDraggerSwitch);
-//  soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
-//  // the dragger is added on the first click on the entry in the property menu (delayed create)
-//  // (Because the constructor of the dragger takes a long time to execute (performace reason))
-//  soDragger=NULL;
-//
-//  // create a action to active the Dragger
-//  draggerAction=new QAction(Utils::QIconCached(":/centerballdragger.svg"),(name+" Dragger").c_str(), this);
-//  draggerAction->setCheckable(true);
-//  draggerAction->setObjectName((string(parent->metaObject()->className())+"::"+name+".dragger").c_str());
-//  connect(draggerAction, SIGNAL(toggled(bool)), this, SLOT(draggerSlot(bool)));
-//}
-//
-//void TransRotEditor::valueChangedSlot() {
-//  // get values
-//  float x, y, z, a, b, g;
-//  x=spinBox[0]->value();
-//  y=spinBox[1]->value();
-//  z=spinBox[2]->value();
-//  a=spinBox[3]->value()*M_PI/180;
-//  b=spinBox[4]->value()*M_PI/180;
-//  g=spinBox[5]->value()*M_PI/180;
-//  // set so
-//  soTranslation->setValue(x, y, z);
-//  *soRotation=Utils::cardan2Rotation(SbVec3f(a, b, g)).invert();
-//  // set OpenMBV
-//  if(ombvTransSetter && ombvRotSetter) {
-//    ombvTransSetter(x, y, z);
-//    ombvRotSetter(a, b, g);
-//  }
-//  // set dragger
-//  if(soDragger) {
-//    SbMatrix m;
-//    m.setTransform(soTranslation->getValue(), soRotation->getValue(), SbVec3f(1,1,1));
-//    soDragger->setMotionMatrix(m);
-//  }
-//
-//  replaceObject();
-//}
-//
-//void TransRotEditor::draggerSlot(bool newValue) {
-//  if(soDragger==NULL) { // delayed create is now done
-//    soDragger=new SoCenterballDragger;
-//    soDraggerSwitch->addChild(soDragger);
-//    soDragger->addMotionCallback(draggerMoveCB, this);
-//    soDragger->addFinishCallback(draggerFinishedCB, this);
-//    // scale of the dragger
-//    SoSurroundScale *draggerScale=new SoSurroundScale;
-//    draggerScale->setDoingTranslations(false);
-//    draggerScale->numNodesUpToContainer.setValue(5);
-//    draggerScale->numNodesUpToReset.setValue(4);
-//    soDragger->setPart("surroundScale", draggerScale);
-//  }
-//  // switch the Dragger on of off depending on the Dragger action state
-//  if(newValue)
-//    soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
-//  else
-//    soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
-//}
-//
-//void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
-//  TransRotEditor *me=static_cast<TransRotEditor*>(data);
-//  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
-//  // get values
-//  SbVec3f t, s;
-//  SbRotation A, dummy;
-//  dragger->getMotionMatrix().getTransform(t, A, s, dummy);
-//  // set so
-//  me->soTranslation->setValue(t);
-//  me->soRotation->setValue(A);
-//  // set Qt
-//  for(int i=0; i<3; i++) {
-//    me->spinBox[i]->blockSignals(true);
-//    me->spinBox[i]->setValue(t[i]);
-//    me->spinBox[i]->blockSignals(false);
-//  }
-//  float v[3];
-//  Utils::rotation2Cardan(A.inverse()).getValue(v[0], v[1], v[2]);
-//  for(int i=0; i<3; i++) {
-//    me->spinBox[i+3]->blockSignals(true); // block signals to prevent endless loops
-//    if(v[i]<0) v[i]+=2*M_PI; // convert to positive angle (the spin box uses [0, 2*pi])
-//    me->spinBox[i+3]->setValue(v[i]*180/M_PI); // set the value
-//    me->spinBox[i+3]->blockSignals(false); // unblock all signals after setting the value
-//  }
-//  // set OpenMBV
-//  if(me->ombvTransSetter && me->ombvRotSetter) {
-//    me->ombvTransSetter(t[0], t[1], t[2]);
-//    me->ombvRotSetter(v[0], v[1], v[2]);
-//  }
-//  // show current trans/rot in status bar
-//  MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
-//    arg(t[0],0,'f',6).arg(t[1],0,'f',6).arg(t[2],0,'f',6).
-//    arg(v[0],0,'f',6).arg(v[1],0,'f',6).arg(v[2],0,'f',6));
-//}
-//
-//void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
-//  TransRotEditor *me=static_cast<TransRotEditor*>(data);
-//  // print final trans/rot to stdout for an Object
-//  Object *obj=dynamic_cast<Object*>(me->parent);
-//  if(obj) {
-//    cout<<"New initial translation/rotation for: "<<obj->getPath()<<endl
-//        <<"Translation: ["<<me->spinBox[0]->value()<<", "<<me->spinBox[1]->value()<<", "<<me->spinBox[2]->value()<<"]"<<endl
-//        <<"Rotation: ["<<me->spinBox[3]->value()*M_PI/180<<", "<<me->spinBox[4]->value()*M_PI/180<<", "<<me->spinBox[5]->value()*M_PI/180<<"]"<<endl;
-//  }
-//}
+Vec3fEditor::Vec3fEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
+  // add the label and a 3 spinboxes for the values
+  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
+  for(int i=0; i<3; i++) {
+    spinBox[i]=new QDoubleSpinBox;
+    spinBox[i]->setSingleStep(0.01);
+    spinBox[i]->setRange(-DBL_MAX, DBL_MAX);
+    spinBox[i]->setDecimals(6);
+    spinBox[i]->setFixedWidth(QFontMetrics(spinBox[i]->font()).width("-888.888888000"));
+    connect(spinBox[i], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    layout->addWidget(spinBox[i], 0, i+2);
+  }
+}
+
+void Vec3fEditor::valueChangedSlot() {
+  // set OpenMBV
+  if(ombvSetter) ombvSetter(spinBox[0]->value(), spinBox[1]->value(), spinBox[2]->value());
+  replaceObject();
+}
+
+
+
+
+
+TransRotEditor::TransRotEditor(QObject *parent_, const QIcon& icon, const string &name, SoGroup *grp) : WidgetEditor(parent_, icon, name), draggerAction(NULL) {
+  // add the label and a 6 spinboxes for the 3 translations and 3 rotations
+  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
+  for(int i=0; i<3; i++) {
+    spinBox[i  ]=new QDoubleSpinBox;
+    spinBox[i+3]=new QDoubleSpinBox;
+    spinBox[i  ]->setRange(-DBL_MAX, DBL_MAX);
+    spinBox[i+3]->setRange(0, 360); // degree
+    spinBox[i  ]->setSingleStep(0.01);
+    spinBox[i+3]->setSingleStep(10);// degree
+    spinBox[i  ]->setDecimals(6);
+    spinBox[i+3]->setDecimals(6);
+    spinBox[i  ]->setFixedWidth(QFontMetrics(spinBox[i  ]->font()).width("-888.888888000"));
+    spinBox[i+3]->setFixedWidth(QFontMetrics(spinBox[i+3]->font()).width("-888.888888000"));
+    spinBox[i+3]->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    connect(spinBox[i  ], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    connect(spinBox[i+3], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    layout->addWidget(spinBox[i  ], 0, i+2);
+    layout->addWidget(spinBox[i+3], 1, i+2);
+  }
+
+  // dragger for initial translation and rotation
+  soDraggerSwitch=new SoSwitch;
+  grp->addChild(soDraggerSwitch);
+  soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  // the dragger is added on the first click on the entry in the property menu (delayed create)
+  // (Because the constructor of the dragger takes a long time to execute (performace reason))
+  soDragger=NULL;
+  // create a action to active the Dragger
+  draggerAction=new QAction(Utils::QIconCached(":/centerballdragger.svg"),(name+" Dragger").c_str(), this);
+  draggerAction->setCheckable(true);
+  draggerAction->setObjectName((string(parent->metaObject()->className())+"::"+name+".dragger").c_str());
+  connect(draggerAction, SIGNAL(toggled(bool)), this, SLOT(draggerSlot(bool)));
+
+  soTranslation=new SoTranslation;
+  soRotation=new SoRotation;
+  grp->addChild(soTranslation);
+  grp->addChild(soRotation);
+}
+
+void TransRotEditor::valueChangedSlot() {
+  // get values
+  float x, y, z, a, b, g;
+  x=spinBox[0]->value();
+  y=spinBox[1]->value();
+  z=spinBox[2]->value();
+  a=spinBox[3]->value()*M_PI/180;
+  b=spinBox[4]->value()*M_PI/180;
+  g=spinBox[5]->value()*M_PI/180;
+  // set so
+  soTranslation->translation.setValue(x, y, z);
+  soRotation->rotation=Utils::cardan2Rotation(SbVec3f(a, b, g)).invert();
+  // set OpenMBV
+  if(ombvTransSetter && ombvRotSetter) {
+    ombvTransSetter(x, y, z);
+    ombvRotSetter(a, b, g);
+  }
+  // set dragger
+  if(soDragger) {
+    SbMatrix m;
+    m.setTransform(soTranslation->translation.getValue(), soRotation->rotation.getValue(), SbVec3f(1,1,1));
+    soDragger->setMotionMatrix(m);
+  }
+}
+
+void TransRotEditor::draggerSlot(bool newValue) {
+  if(soDragger==NULL) { // delayed create is now done
+    soDragger=new SoCenterballDragger;
+    soDraggerSwitch->addChild(soDragger);
+    soDragger->addMotionCallback(draggerMoveCB, this);
+    soDragger->addFinishCallback(draggerFinishedCB, this);
+    // scale of the dragger
+    SoSurroundScale *draggerScale=new SoSurroundScale;
+    draggerScale->setDoingTranslations(false);
+    draggerScale->numNodesUpToContainer.setValue(5);
+    draggerScale->numNodesUpToReset.setValue(4);
+    soDragger->setPart("surroundScale", draggerScale);
+  }
+  // switch the Dragger on of off depending on the Dragger action state
+  if(newValue)
+    soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  else
+    soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
+}
+
+void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
+  TransRotEditor *me=static_cast<TransRotEditor*>(data);
+  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
+  // get values
+  SbVec3f t, s;
+  SbRotation A, dummy;
+  dragger->getMotionMatrix().getTransform(t, A, s, dummy);
+  // set so
+  me->soTranslation->translation.setValue(t);
+  me->soRotation->rotation.setValue(A);
+  // set Qt
+  for(int i=0; i<3; i++) {
+    me->spinBox[i]->blockSignals(true);
+    me->spinBox[i]->setValue(t[i]);
+    me->spinBox[i]->blockSignals(false);
+  }
+  float v[3];
+  Utils::rotation2Cardan(A.inverse()).getValue(v[0], v[1], v[2]);
+  for(int i=0; i<3; i++) {
+    me->spinBox[i+3]->blockSignals(true); // block signals to prevent endless loops
+    if(v[i]<0) v[i]+=2*M_PI; // convert to positive angle (the spin box uses [0, 2*pi])
+    me->spinBox[i+3]->setValue(v[i]*180/M_PI); // set the value
+    me->spinBox[i+3]->blockSignals(false); // unblock all signals after setting the value
+  }
+  // set OpenMBV
+  if(me->ombvTransSetter && me->ombvRotSetter) {
+    me->ombvTransSetter(t[0], t[1], t[2]);
+    me->ombvRotSetter(v[0], v[1], v[2]);
+  }
+  // show current trans/rot in status bar
+  MainWindow::getInstance()->statusBar()->showMessage(QString("Trans: [%1, %2, %3]; Rot: [%4, %5, %6]").
+    arg(t[0],0,'f',6).arg(t[1],0,'f',6).arg(t[2],0,'f',6).
+    arg(v[0],0,'f',6).arg(v[1],0,'f',6).arg(v[2],0,'f',6));
+}
+
+void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
+  TransRotEditor *me=static_cast<TransRotEditor*>(data);
+  // print final trans/rot to stdout for an Object
+  Object *obj=dynamic_cast<Object*>(me->parent);
+  if(obj) {
+    cout<<"New initial translation/rotation for: "<<obj->getPath()<<endl
+        <<"Translation: ["<<me->spinBox[0]->value()<<", "<<me->spinBox[1]->value()<<", "<<me->spinBox[2]->value()<<"]"<<endl
+        <<"Rotation: ["<<me->spinBox[3]->value()*M_PI/180<<", "<<me->spinBox[4]->value()*M_PI/180<<", "<<me->spinBox[5]->value()*M_PI/180<<"]"<<endl;
+  }
+}
