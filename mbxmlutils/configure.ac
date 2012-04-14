@@ -54,6 +54,8 @@ test $xmllint = "no" && AC_MSG_ERROR([xmllint not found])
 AC_SUBST([XMLLINT],[$xmllint])
 
 dnl Check for octave
+# check for pthread and include if found
+AC_CHECK_LIB(pthread, pthread_mutexattr_init, LIBS="$LIBS -lpthread")
 # user supplied path to mkoctfile
 AC_ARG_WITH([mkoctfile-path],
   [  --with-mkoctfile-path=PATHTOMKOCTFILE  The path to the 'mkoctfile' program.],
