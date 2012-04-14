@@ -24,6 +24,8 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
 #include "openmbvcppinterface/grid.h"
+#include <QMenu>
+#include <cfloat>
 
 Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
@@ -45,11 +47,11 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   SoCoordinate3 *coord=new SoCoordinate3;
   sep->addChild(coord);
   int counter=0;
-  for (int i=0; i<g->getYNumber(); i++) {
+  for (unsigned int i=0; i<g->getYNumber(); i++) {
     coord->point.set1Value(counter++, -g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
     coord->point.set1Value(counter++, g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
   }
-  for (int i=0; i<g->getXNumber(); i++) {
+  for (unsigned int i=0; i<g->getXNumber(); i++) {
     coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), g->getYSize()/2., 0);
     coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), -g->getYSize()/2., 0);
   }
@@ -63,4 +65,31 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
 
   // create so
   soSepRigidBody->addChild(sep);
+
+  // GUI editors
+  xSizeEditor=new FloatEditor(this, QIcon(), "Grid x-size");
+  xSizeEditor->setRange(0, DBL_MAX);
+  xSizeEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getXSize, &OpenMBV::Grid::setXSize);
+
+  ySizeEditor=new FloatEditor(this, QIcon(), "Grid y-size");
+  ySizeEditor->setRange(0, DBL_MAX);
+  ySizeEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYSize, &OpenMBV::Grid::setYSize);
+
+  nxEditor=new IntEditor(this, QIcon(), "Number of x-grids");
+  nxEditor->setRange(0, INT_MAX);
+  nxEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getXNumber, &OpenMBV::Grid::setXNumber);
+
+  nyEditor=new IntEditor(this, QIcon(), "Number of y-grids");
+  nyEditor->setRange(0, INT_MAX);
+  nyEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYNumber, &OpenMBV::Grid::setYNumber);
+}
+
+QMenu* Grid::createMenu() {
+  QMenu* menu=RigidBody::createMenu();
+  menu->addSeparator()->setText("Properties from: Grid");
+  menu->addAction(xSizeEditor->getAction());
+  menu->addAction(ySizeEditor->getAction());
+  menu->addAction(nxEditor->getAction());
+  menu->addAction(nyEditor->getAction());
+  return menu;
 }

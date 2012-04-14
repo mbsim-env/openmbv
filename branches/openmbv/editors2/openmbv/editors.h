@@ -166,6 +166,39 @@ class FloatEditor : public WidgetEditor {
 
 
 
+/*! A Editor of type int */
+class IntEditor : public WidgetEditor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor. */
+    IntEditor(QObject *parent_, const QIcon &icon, const std::string &name);
+
+    /*! Set the valid range of the double value */
+    void setRange(int min, int max) { spinBox->blockSignals(true); spinBox->setRange(min, max); spinBox->blockSignals(false); }
+
+    /*! OpenMBVCppInterface syncronization.
+     * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int));
+ 
+    /*! unsigned int version of setOpenMBVParameter */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int));
+
+  protected slots:
+    void valueChangedSlot(int);
+
+  protected:
+    QSpinBox *spinBox;
+    boost::function<int ()> ombvGetter;
+    boost::function<void (int)> ombvSetter;
+};
+
+
+
+
+
 /*! A Editor of type string */
 class StringEditor : public WidgetEditor {
   Q_OBJECT
@@ -349,6 +382,26 @@ void FloatEditor::setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*gett
       spinBox->setValue(spinBox->minimum());
     spinBox->blockSignals(false);
   }
+}
+
+
+
+
+
+template<class OMBVClass>
+void IntEditor::setOpenMBVParameter(OMBVClass *ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int)) {
+  ombvGetter=boost::bind(getter, ombv_);
+  ombvSetter=boost::bind(setter, ombv_, _1);
+  if(ombvGetter) {
+    spinBox->blockSignals(true);
+    spinBox->setValue(ombvGetter());
+    spinBox->blockSignals(false);
+  }
+}
+
+template<class OMBVClass>
+void IntEditor::setOpenMBVParameter(OMBVClass *ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int)) {
+  setOpenMBVParameter(ombv_, reinterpret_cast<int (OMBVClass::*)()>(getter), reinterpret_cast<void (OMBVClass::*)(int)>(setter));
 }
 
 

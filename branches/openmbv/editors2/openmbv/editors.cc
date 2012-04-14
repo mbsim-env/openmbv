@@ -244,6 +244,26 @@ void FloatEditor::valueChangedSlot(double newValue) {
 
 
 
+IntEditor::IntEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
+  // add the label and a spinbox for the value
+  spinBox=new QSpinBox;
+  spinBox->setRange(INT_MIN, INT_MAX);
+  spinBox->setFixedWidth(QFontMetrics(spinBox->font()).width("-888888888000"));
+  connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(valueChangedSlot(int)));
+  layout->addWidget(new QLabel((name+":").c_str()), 0, 1);
+  layout->addWidget(spinBox, 0, 2);
+}
+
+void IntEditor::valueChangedSlot(int newValue) {
+  if(ombvSetter)
+    ombvSetter(newValue); // set OpenMBV
+  replaceObject();
+}
+
+
+
+
+
 StringEditor::StringEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
   // add the label and a lineEdit for the value
   lineEdit=new QLineEdit;

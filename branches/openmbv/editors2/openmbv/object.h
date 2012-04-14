@@ -41,7 +41,7 @@ namespace OpenMBV {
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
-  friend class Editor;//MFMF
+  friend class Editor;
   protected:
     OpenMBV::Object *object;
     SoSwitch *soSwitch;

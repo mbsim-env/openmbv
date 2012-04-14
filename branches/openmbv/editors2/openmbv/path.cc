@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include "utils.h"
 #include "openmbvcppinterface/path.h"
+#include <QMenu>
 
 using namespace std;
 
@@ -46,6 +47,18 @@ Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   line=new SoLineSet;
   soSep->addChild(line);
   maxFrameRead=-1;
+
+  // GUI editors
+  colorEditor=new Vec3fEditor(this, QIcon(), "Color");
+  colorEditor->setRange(0, 1);
+  colorEditor->setOpenMBVParameter(path, &OpenMBV::Path::getColor, &OpenMBV::Path::setColor);
+}
+
+QMenu* Path::createMenu() {
+  QMenu* menu=Body::createMenu();
+  menu->addSeparator()->setText("Properties from: Path");
+  menu->addAction(colorEditor->getAction());
+  return menu;
 }
 
 double Path::update() {

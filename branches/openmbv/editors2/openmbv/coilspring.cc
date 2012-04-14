@@ -23,10 +23,12 @@
 #include "utils.h"
 #include "openmbvcppinterface/coilspring.h"
 #include <Inventor/nodes/SoLineSet.h>
+#include <QMenu>
+#include <cfloat>
 
 using namespace std;
 
-CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
+CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
   coilSpring=(OpenMBV::CoilSpring*)obj;
   iconFile=":/coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
@@ -61,99 +63,122 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   soSep->addChild(fromPoint);
   rotation=new SoRotation;
   soSep->addChild(rotation);  
-  soSwitch=new SoSwitch;
-  soSep->addChild(soSwitch);
-  // tube
-  extrusion=new SoVRMLExtrusion;
-  soSwitch->addChild(extrusion);
-  // scaledTube
-  SoSeparator *scaledTubeSep=new SoSeparator;
-  soSwitch->addChild(scaledTubeSep);
-  scale=new SoScale;
-  scaledTubeSep->addChild(scale);
-  SoVRMLExtrusion *scaledExtrusion=new SoVRMLExtrusion;
-  scaledTubeSep->addChild(scaledExtrusion);
-  // polyline
-  SoSeparator *polylineSep=new SoSeparator;
-  soSwitch->addChild(polylineSep);
-  polylineSep->addChild(scale);
-  SoDrawStyle *ds=new SoDrawStyle;
-  polylineSep->addChild(ds);
-  ds->lineWidth.setValue(r);
-  SoCoordinate3 *polylineCoord=new SoCoordinate3;
-  polylineSep->addChild(polylineCoord);
-  SoLineSet *polyline=new SoLineSet;
-  polylineSep->addChild(polyline);
-  polyline->numVertices.setValue(int(numberOfSpinePointsPerCoil*N));
 
-  // type
-  OpenMBV::CoilSpring::Type type=coilSpring->getType();
-  if(type==OpenMBV::CoilSpring::tube) soSwitch->whichChild.setValue(0);
-  if(type==OpenMBV::CoilSpring::scaledTube) soSwitch->whichChild.setValue(1);
-  if(type==OpenMBV::CoilSpring::polyline) soSwitch->whichChild.setValue(2);
-
-  // cross section
-  extrusion->crossSection.setNum(iCircSegments+1);
-  scaledExtrusion->crossSection.setNum(iCircSegments+1);
-  SbVec2f *cs = extrusion->crossSection.startEditing();
-  SbVec2f *scs = scaledExtrusion->crossSection.startEditing();
-  for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
-    scs[i]=cs[i]=SbVec2f(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments));
-  scs[iCircSegments]=cs[iCircSegments]=cs[0]; // close cross section: uses exact the same point: helpfull for "binary space partitioning container"
-  extrusion->crossSection.finishEditing();
-  scaledExtrusion->crossSection.finishEditing();
-  extrusion->crossSection.setDefault(FALSE);
-  scaledExtrusion->crossSection.setDefault(FALSE);
-
-  // initialise spine 
-  spine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
-  scaledSpine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
-  for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
-    scaledSpine[3*i]=spine[3*i] = R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
-    scaledSpine[3*i+1]=spine[3*i+1] = R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
-    spine[3*i+2] = 0;
-    scaledSpine[3*i+2] = i*nominalLength/numberOfSpinePointsPerCoil/N;
-  }
-  extrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),spine);
-  scaledExtrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
-  polylineCoord->point.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
-  extrusion->spine.setDefault(FALSE);
-  scaledExtrusion->spine.setDefault(FALSE);
-
-  // additional flags
-  extrusion->solid=TRUE; // backface culling
-  scaledExtrusion->solid=TRUE; // backface culling
-  extrusion->convex=TRUE; // only convex polygons included in visualisation
-  scaledExtrusion->convex=TRUE; // only convex polygons included in visualisation
-  extrusion->ccw=TRUE; // vertex ordering counterclockwise?
-  scaledExtrusion->ccw=TRUE; // vertex ordering counterclockwise?
-  extrusion->beginCap=TRUE; // front side at begin of the spine
-  scaledExtrusion->beginCap=TRUE; // front side at begin of the spine
-  extrusion->endCap=TRUE; // front side at end of the spine
-  scaledExtrusion->endCap=TRUE; // front side at end of the spine
-  extrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
-  scaledExtrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
-
-  // gui
-  typeAct=new QActionGroup(this);
-  typeTube=new QAction("Tube", typeAct);
-  typeScaledTube=new QAction("Scaled tube", typeAct);
-  typePolyline=new QAction("Polyline", typeAct);
-  typeTube->setCheckable(true);
-  typeTube->setData(QVariant(OpenMBV::CoilSpring::tube));
-  typeTube->setObjectName("CoilSpring::typeTube");
-  typeScaledTube->setCheckable(true);
-  typeScaledTube->setData(QVariant(OpenMBV::CoilSpring::scaledTube));
-  typeScaledTube->setObjectName("CoilSpring::typeScaledTube");
-  typePolyline->setCheckable(true);
-  typePolyline->setData(QVariant(OpenMBV::CoilSpring::polyline));
-  typePolyline->setObjectName("CoilSpring::typePolyline");
   switch(coilSpring->getType()) {
-    case OpenMBV::CoilSpring::tube: typeTube->setChecked(true); break;
-    case OpenMBV::CoilSpring::scaledTube: typeScaledTube->setChecked(true); break;
-    case OpenMBV::CoilSpring::polyline: typePolyline->setChecked(true); break;
+    case OpenMBV::CoilSpring::tube: {
+      extrusion=new SoVRMLExtrusion;
+      soSep->addChild(extrusion);
+      // cross section
+      extrusion->crossSection.setNum(iCircSegments+1);
+      SbVec2f *cs = extrusion->crossSection.startEditing();
+      for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
+        cs[i]=SbVec2f(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments));
+      cs[iCircSegments]=cs[0]; // close cross section: uses exact the same point: helpfull for "binary space partitioning container"
+      extrusion->crossSection.finishEditing();
+      extrusion->crossSection.setDefault(FALSE);
+      // initialise spine 
+      spine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
+      for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
+        spine[3*i] = R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        spine[3*i+1] = R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        spine[3*i+2] = 0;
+      }
+      extrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),spine);
+      extrusion->spine.setDefault(FALSE);
+      // additional flags
+      extrusion->solid=TRUE; // backface culling
+      extrusion->convex=TRUE; // only convex polygons included in visualisation
+      extrusion->ccw=TRUE; // vertex ordering counterclockwise?
+      extrusion->beginCap=TRUE; // front side at begin of the spine
+      extrusion->endCap=TRUE; // front side at end of the spine
+      extrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
+      break;
+    }
+    case OpenMBV::CoilSpring::scaledTube: {
+      SoSeparator *scaledTubeSep=new SoSeparator;
+      soSep->addChild(scaledTubeSep);
+      scale=new SoScale;
+      scaledTubeSep->addChild(scale);
+      SoVRMLExtrusion *scaledExtrusion=new SoVRMLExtrusion;
+      scaledTubeSep->addChild(scaledExtrusion);
+      // cross section
+      scaledExtrusion->crossSection.setNum(iCircSegments+1);
+      SbVec2f *scs = scaledExtrusion->crossSection.startEditing();
+      for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
+        scs[i]=SbVec2f(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments));
+      scs[iCircSegments]=scs[0]; // close cross section: uses exact the same point: helpfull for "binary space partitioning container"
+      scaledExtrusion->crossSection.finishEditing();
+      scaledExtrusion->crossSection.setDefault(FALSE);
+      // initialise spine 
+      scaledSpine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
+      for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
+        scaledSpine[3*i]= R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        scaledSpine[3*i+1]= R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        scaledSpine[3*i+2] = i*nominalLength/numberOfSpinePointsPerCoil/N;
+      }
+      scaledExtrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
+      scaledExtrusion->spine.setDefault(FALSE);
+      // additional flags
+      scaledExtrusion->solid=TRUE; // backface culling
+      scaledExtrusion->convex=TRUE; // only convex polygons included in visualisation
+      scaledExtrusion->ccw=TRUE; // vertex ordering counterclockwise?
+      scaledExtrusion->beginCap=TRUE; // front side at begin of the spine
+      scaledExtrusion->endCap=TRUE; // front side at end of the spine
+      scaledExtrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
+      break;
+    }
+    case OpenMBV::CoilSpring::polyline: {
+      SoSeparator *polylineSep=new SoSeparator;
+      soSep->addChild(polylineSep);
+      scale=new SoScale;
+      polylineSep->addChild(scale);
+      SoDrawStyle *ds=new SoDrawStyle;
+      polylineSep->addChild(ds);
+      ds->lineWidth.setValue(r);
+      SoCoordinate3 *polylineCoord=new SoCoordinate3;
+      polylineSep->addChild(polylineCoord);
+      SoLineSet *polyline=new SoLineSet;
+      polylineSep->addChild(polyline);
+      polyline->numVertices.setValue(int(numberOfSpinePointsPerCoil*N));
+      // initialise spine 
+      scaledSpine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
+      for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
+        scaledSpine[3*i]= R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        scaledSpine[3*i+1]= R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
+        scaledSpine[3*i+2] = i*nominalLength/numberOfSpinePointsPerCoil/N;
+      }
+      polylineCoord->point.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),scaledSpine);
+      break;
+    }
   }
-  connect(typeAct,SIGNAL(triggered(QAction*)),this,SLOT(typeSlot(QAction*)));
+
+  // GUI editors
+  typeEditor=new ComboBoxEditor(this, QIcon(), "Type",
+    boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon())
+                                (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon())
+                                (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon())
+  );
+  typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
+
+  numberOfCoilsEditor=new FloatEditor(this, QIcon(), "Number of coils");
+  numberOfCoilsEditor->setRange(0, DBL_MAX);
+  numberOfCoilsEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNumberOfCoils, &OpenMBV::CoilSpring::setNumberOfCoils);
+
+  springRadiusEditor=new FloatEditor(this, QIcon(), "Coil spring radius");
+  springRadiusEditor->setRange(0, DBL_MAX);
+  springRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getSpringRadius, &OpenMBV::CoilSpring::setSpringRadius);
+
+  crossSectionRadiusEditor=new FloatEditor(this, QIcon(), "Cross section radius");
+  crossSectionRadiusEditor->setRange(0, DBL_MAX);
+  crossSectionRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getCrossSectionRadius, &OpenMBV::CoilSpring::setCrossSectionRadius);
+
+  nominalLengthEditor=new FloatEditor(this, QIcon(), "Nominal length");
+  nominalLengthEditor->setRange(0, DBL_MAX);
+  nominalLengthEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNominalLength, &OpenMBV::CoilSpring::setNominalLength);
+
+  scaleFactorEditor=new FloatEditor(this, QIcon(), "Scale factor");
+  scaleFactorEditor->setRange(0, DBL_MAX);
+  scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
 }
 
 CoilSpring::~CoilSpring() {
@@ -165,12 +190,12 @@ QString CoilSpring::getInfo() {
   float x, y, z;
   fromPoint->translation.getValue().getValue(x,y,z);
   float sx, sy, sz=0;
-  if(soSwitch->whichChild.getValue()!=0)
+  if(coilSpring->getType()!=OpenMBV::CoilSpring::tube)
     scale->scaleFactor.getValue().getValue(sx, sy, sz);
   return DynamicColoredBody::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>From point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
-         QString("<b>Length:</b> %1").arg(soSwitch->whichChild.getValue()==0?
+         QString("<b>Length:</b> %1").arg(coilSpring->getType()==OpenMBV::CoilSpring::tube?
                                           spine[3*int(numberOfSpinePointsPerCoil*N)+2]:
                                           sz*nominalLength);
 }
@@ -185,16 +210,16 @@ double CoilSpring::update() {
   SbVec3f distance(data[4]-data[1],data[5]-data[2],data[6]-data[3]);
   rotation->rotation.setValue(SbRotation(SbVec3f(0,0,1),distance));
 
-  switch(soSwitch->whichChild.getValue()) {
-    case 0:
+  switch(coilSpring->getType()) {
+    case OpenMBV::CoilSpring::tube:
       // tube 
       for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
         spine[3*i+2] = i*distance.length()*scaleValue/numberOfSpinePointsPerCoil/N;
       }
       extrusion->spine.touch();
       break;
-    case 1:
-    case 2:
+    case OpenMBV::CoilSpring::scaledTube:
+    case OpenMBV::CoilSpring::polyline:
       scale->scaleFactor.setValue(1,1,distance.length()*scaleValue/nominalLength);
       break;
   }
@@ -208,25 +233,11 @@ double CoilSpring::update() {
 QMenu* CoilSpring::createMenu() {
   QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: CoilSpring");
-  menu->addAction(typeTube);
-  menu->addAction(typeScaledTube);
-  menu->addAction(typePolyline);
+  menu->addAction(typeEditor->getAction());
+  menu->addAction(numberOfCoilsEditor->getAction());
+  menu->addAction(springRadiusEditor->getAction());
+  menu->addAction(crossSectionRadiusEditor->getAction());
+  menu->addAction(nominalLengthEditor->getAction());
+  menu->addAction(scaleFactorEditor->getAction());
   return menu;
-}
-
-void CoilSpring::typeSlot(QAction *action) {
-  OpenMBV::CoilSpring::Type type=(OpenMBV::CoilSpring::Type)action->data().toInt();
-  if(type==OpenMBV::CoilSpring::tube) {
-    soSwitch->whichChild.setValue(0);
-    coilSpring->setType(OpenMBV::CoilSpring::tube);
-  }
-  else if(type==OpenMBV::CoilSpring::scaledTube) {
-    soSwitch->whichChild.setValue(1);
-    coilSpring->setType(OpenMBV::CoilSpring::scaledTube);
-  }
-  else {
-    soSwitch->whichChild.setValue(2);
-    coilSpring->setType(OpenMBV::CoilSpring::polyline);
-  }
-  update();
 }

@@ -33,7 +33,7 @@ namespace OpenMBV {
 
 class Group : public Object {
   Q_OBJECT
-  friend class MainWindow;//MFMF
+  friend class MainWindow;
   protected:
     virtual void update() {}
     QAction *saveFile, *unloadFile, *reloadFile;

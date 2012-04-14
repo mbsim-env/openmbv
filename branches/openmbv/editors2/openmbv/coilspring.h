@@ -60,7 +60,6 @@ class CoilSpring : public DynamicColoredBody {
     SoVRMLExtrusion *extrusion;
 
     SoScale *scale;
-    SoSwitch *soSwitch;
 
     /** translation of helix */
     SoTranslation* fromPoint;
@@ -95,11 +94,8 @@ class CoilSpring : public DynamicColoredBody {
 
     QMenu* createMenu();
 
-    QActionGroup *typeAct;
-    QAction *typeTube, *typeScaledTube, *typePolyline;
-
-  protected slots:
-    void typeSlot(QAction *action);
+    ComboBoxEditor *typeEditor;
+    FloatEditor *numberOfCoilsEditor, *springRadiusEditor, *crossSectionRadiusEditor, *nominalLengthEditor, *scaleFactorEditor;
 };
 
 #endif /* _COILSPRING_H_ */

@@ -83,8 +83,8 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   ivFileNameEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getIvFileName, &OpenMBV::IvBody::setIvFileName);
 
   creaseEdgesEditor=new FloatEditor(this, QIcon(), "Crease edges bound");
-  creaseEdgesEditor->setRange(0, 360); // degree
-  creaseEdgesEditor->setStep(10); // degree
+  creaseEdgesEditor->setRange(0, 180); // degree
+  creaseEdgesEditor->setStep(5); // degree
   creaseEdgesEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
   creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
   creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);

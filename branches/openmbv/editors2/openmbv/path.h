@@ -39,9 +39,11 @@ class Path : public Body {
     SoLineSet *line;
     int maxFrameRead;
     OpenMBV::Path *path;
+    Vec3fEditor *colorEditor;
   public:
     Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
+    QMenu* createMenu();
 };
 
 #endif

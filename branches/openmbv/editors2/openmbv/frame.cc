@@ -23,6 +23,8 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include "utils.h"
 #include "openmbvcppinterface/frame.h"
+#include <QMenu>
+#include <cfloat>
 
 Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
@@ -34,4 +36,22 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
   localFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
+
+  // GUI editors
+  sizeEditor=new FloatEditor(this, QIcon(), "Size (length)");
+  sizeEditor->setRange(0, DBL_MAX);
+  sizeEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getSize, &OpenMBV::Frame::setSize);
+
+  offsetEditor=new FloatEditor(this, QIcon(), "Offset");
+  offsetEditor->setRange(0, 1);
+  offsetEditor->setStep(0.02);
+  offsetEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getOffset, &OpenMBV::Frame::setOffset);
+}
+
+QMenu* Frame::createMenu() {
+  QMenu* menu=RigidBody::createMenu();
+  menu->addSeparator()->setText("Properties from: Frame");
+  menu->addAction(sizeEditor->getAction());
+  menu->addAction(offsetEditor->getAction());
+  return menu;
 }
