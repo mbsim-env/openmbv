@@ -35,6 +35,7 @@
 #include "openmbvcppinterface/rotation.h"
 #include "openmbvcppinterface/sphere.h"
 #include "openmbvcppinterface/spineextrusion.h"
+#include "openmbvcppinterface/grid.h"
 
 using namespace std;
 
@@ -58,6 +59,7 @@ namespace OpenMBV {
     if(element->ValueStr()==OPENMBVNS"Rotation") return new Rotation;
     if(element->ValueStr()==OPENMBVNS"Sphere") return new Sphere;
     if(element->ValueStr()==OPENMBVNS"SpineExtrusion") return new SpineExtrusion;
+    if(element->ValueStr()==OPENMBVNS"Grid") return new Grid;
     return 0;
   }
   
