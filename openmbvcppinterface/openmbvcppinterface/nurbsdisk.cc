@@ -92,7 +92,7 @@ void NurbsDisk::createHDF5File() {
       columns.push_back("y"+numtostr(i));
       columns.push_back("z"+numtostr(i));
     }
-    for(int i=0;i<getElementNumberAzimuthal()*get(drawDegree)*2;i++) {
+    for(int i=0;i<getElementNumberAzimuthal()*drawDegree*2;i++) {
       columns.push_back("x"+numtostr(i+NodeDofs));
       columns.push_back("y"+numtostr(i+NodeDofs));
       columns.push_back("z"+numtostr(i+NodeDofs));
@@ -116,19 +116,19 @@ void NurbsDisk::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"drawDegree");
-  setDrawDegree(getDouble(e));
+  setDrawDegree(get(getDouble(e)));
   e=element->FirstChildElement(OPENMBVNS"innerRadius");
   set(Ri,getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"outerRadius");
   set(Ro,getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"elementNumberAzimuthal");
-  setElementNumberAzimuthal(getDouble(e));
+  setElementNumberAzimuthal(get(getDouble(e)));
   e=element->FirstChildElement(OPENMBVNS"elementNumberRadial");
-  setElementNumberRadial(getDouble(e));
+  setElementNumberRadial(get(getDouble(e)));
   e=element->FirstChildElement(OPENMBVNS"interpolationDegreeAzimuthal");
-  setInterpolationDegreeAzimuthal(getDouble(e));
+  setInterpolationDegreeAzimuthal(get(getDouble(e)));
   e=element->FirstChildElement(OPENMBVNS"interpolationDegreeRadial");
-  setInterpolationDegreeRadial(getDouble(e));
+  setInterpolationDegreeRadial(get(getDouble(e)));
   e=element->FirstChildElement(OPENMBVNS"knotVecAzimuthal");
   setKnotVecAzimuthal(getVec(e,getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()));
   e=element->FirstChildElement(OPENMBVNS"knotVecRadial");
