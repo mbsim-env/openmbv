@@ -244,6 +244,143 @@ void FloatEditor::valueChangedSlot(double newValue) {
 
 
 
+FloatMatrixEditor::FloatMatrixEditor(QObject *parent_, const QIcon& icon, const string &name, unsigned int rows_, unsigned int cols_) : WidgetEditor(parent_, icon, name) {
+  rows=rows_;
+  cols=cols_;
+  QPushButton *button;
+  int layoutCols=1;
+
+  // add label
+  layout->addWidget(new QLabel((name+":").c_str()), 0, layoutCols++);
+
+  // if rows==0 add a add and remove row button
+  if(rows==0) {
+    button=new QPushButton("Add row");
+    connect(button, SIGNAL(released()), this, SLOT(addRowSlot()));
+    layout->addWidget(button, 0, layoutCols++);
+
+    button=new QPushButton("Remove row");
+    connect(button, SIGNAL(released()), this, SLOT(removeRowSlot()));
+    layout->addWidget(button, 0, layoutCols++);
+  }
+  // if cols==0 add a add and remove col button
+  if(cols==0) {
+    button=new QPushButton("Add column");
+    connect(button, SIGNAL(released()), this, SLOT(addColumnSlot()));
+    layout->addWidget(button, 0, layoutCols++);
+
+    button=new QPushButton("Remove column");
+    connect(button, SIGNAL(released()), this, SLOT(removeColumnSlot()));
+    layout->addWidget(button, 0, layoutCols++);
+  }
+
+  table=new QTableWidget(rows, cols);
+  layout->addWidget(table, 1, 1, 1, layoutCols-1);
+}
+
+void FloatMatrixEditor::addRow() {
+  table->setRowCount(table->rowCount()+1);
+  for(int c=0; c<table->columnCount(); c++) {
+    QDoubleSpinBox *cell=new QDoubleSpinBox;
+    table->setCellWidget(table->rowCount()-1, c, cell);
+    cell->setSingleStep(0.01);
+    cell->setRange(-DBL_MAX, DBL_MAX);
+    cell->setDecimals(6);
+    cell->setFixedWidth(QFontMetrics(cell->font()).width("-888.888888000"));
+    connect(cell, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+  }
+}
+
+void FloatMatrixEditor::addRowSlot() {
+  addRow();
+  valueChangedSlot();
+}
+
+void FloatMatrixEditor::removeRowSlot() {
+  table->setRowCount(table->rowCount()-1);
+  valueChangedSlot();
+}
+
+void FloatMatrixEditor::addColumn() {
+  table->setColumnCount(table->columnCount()+1);
+  for(int r=0; r<table->rowCount(); r++) {
+    QDoubleSpinBox *cell=new QDoubleSpinBox;
+    table->setCellWidget(r, table->columnCount()-1, cell);
+    cell->setSingleStep(0.01);
+    cell->setRange(-DBL_MAX, DBL_MAX);
+    cell->setDecimals(6);
+    cell->setFixedWidth(QFontMetrics(cell->font()).width("-888.888888000"));
+    connect(cell, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+  }
+}
+
+void FloatMatrixEditor::addColumnSlot() {
+  addColumn();
+  valueChangedSlot();
+}
+
+void FloatMatrixEditor::removeColumnSlot() {
+  table->setColumnCount(table->columnCount()-1);
+  valueChangedSlot();
+}
+
+void FloatMatrixEditor::valueChangedSlot() {
+  // set OpenMBV if std::vector
+  if(ombvSetterVector && ombvGetterVector) {
+    // asserts
+    assert(cols==1 || rows==1);
+    std::vector<double> vec;
+    // get values from Qt
+    for(unsigned int i=0; i<(cols==1?table->rowCount():table->columnCount()); i++)
+      vec.push_back(static_cast<QDoubleSpinBox*>(table->cellWidget(cols==1?i:0, cols==1?0:i))->value());
+    // set values to OpenMBV
+    ombvSetterVector(vec);
+  }
+  // set OpenMBV if std::vector<std::vector>
+  if(ombvSetterMatrix && ombvGetterMatrix) {
+    // asserts
+    std::vector<std::vector<double> > mat;
+    // get values from Qt
+    for(int r=0; r<table->rowCount(); r++) {
+      std::vector<double> row;
+      for(int c=0; c<table->columnCount(); c++)
+        row.push_back(static_cast<QDoubleSpinBox*>(table->cellWidget(r, c))->value());
+      mat.push_back(row);
+    }
+    // set values to OpenMBV
+    ombvSetterMatrix(mat);
+  }
+  // set OpenMBV if PolygonPoint
+  if(ombvSetterPolygonPoint && ombvGetterPolygonPoint) {
+    // asserts
+    assert(cols==3);
+    vector<OpenMBV::PolygonPoint*>* contour;
+    // delete old heap PolygonPoints
+    contour=ombvGetterPolygonPoint();
+    for(unsigned int r=0; r<contour->size(); r++)
+      delete (*contour)[r];
+    delete contour;
+    // create new heap PolygonPoints
+    contour=new vector<OpenMBV::PolygonPoint*>;
+    // get values from Qt
+    for(int r=0; r<table->rowCount(); r++) {
+      OpenMBV::PolygonPoint *polyPoint=new OpenMBV::PolygonPoint(
+                               static_cast<QDoubleSpinBox*>(table->cellWidget(r, 0))->value(),
+                               static_cast<QDoubleSpinBox*>(table->cellWidget(r, 1))->value(),
+        static_cast<int>(round(static_cast<QDoubleSpinBox*>(table->cellWidget(r, 2))->value())));
+      contour->push_back(polyPoint);
+    }
+    // set values to OpenMBV
+    ombvSetterPolygonPoint(contour);
+  }
+
+  replaceObject();
+}
+
+
+
+
+
 IntEditor::IntEditor(QObject *parent_, const QIcon& icon, const string &name) : WidgetEditor(parent_, icon, name) {
   // add the label and a spinbox for the value
   spinBox=new QSpinBox;

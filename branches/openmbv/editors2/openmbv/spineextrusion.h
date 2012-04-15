@@ -45,6 +45,7 @@ class SpineExtrusion : public DynamicColoredBody {
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
+    QMenu* createMenu();
 
   protected:
     /** extrusion body */
@@ -60,6 +61,9 @@ class SpineExtrusion : public DynamicColoredBody {
     virtual double update();
 
     OpenMBV::SpineExtrusion *spineExtrusion;
+
+    FloatMatrixEditor *contourEditor;
+    FloatEditor *scaleFactorEditor;
 };
 
 #endif /* _SPINEEXTRUSION_H_ */

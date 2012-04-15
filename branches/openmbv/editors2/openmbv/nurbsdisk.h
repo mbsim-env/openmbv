@@ -66,7 +66,7 @@ class NurbsDisk : public DynamicColoredBody {
     virtual QMenu* createMenu();
 
   protected:
-    QAction *localFrame, *moveCameraWith;
+    QAction *moveCameraWith;
     SoSwitch *soLocalFrameSwitch;
     SoScale *localFrameScale;
     SoSeparator *soSepNurbsDisk;
@@ -115,8 +115,13 @@ class NurbsDisk : public DynamicColoredBody {
 
     OpenMBV::NurbsDisk *nurbsDisk;
 
+    BoolEditor *localFrameEditor;
+    FloatEditor *scaleFactorEditor, *innerRadiusEditor, *outerRadiusEditor;
+    IntEditor *drawDegreeEditor, *elementNumberAzimuthalEditor, *elementNumberRadialEditor,
+              *interpolationDegreeAzimuthalEditor, *interpolationDegreeRadialEditor;
+    FloatMatrixEditor *knotVecAzimuthalEditor, *knotVecRadialEditor;
+
     public slots:
-    	void localFrameSlot();
       void moveCameraWithSlot();
 };
 

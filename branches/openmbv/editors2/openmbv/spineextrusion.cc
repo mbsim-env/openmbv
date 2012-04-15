@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include "utils.h"
 #include "openmbvcppinterface/spineextrusion.h"
+#include <cfloat>
 
 using namespace std;
 
@@ -72,6 +73,22 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
   extrusion->beginCap=TRUE; // front side at begin of the spine
   extrusion->endCap=TRUE; // front side at end of the spine
   extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
+
+  // GUI editors
+  contourEditor=new FloatMatrixEditor(this, QIcon(), "Contour", 0, 3);
+  contourEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getContour, &OpenMBV::SpineExtrusion::setContour);
+
+  scaleFactorEditor=new FloatEditor(this, QIcon(), "Scale factor");
+  scaleFactorEditor->setRange(0, DBL_MAX);
+  scaleFactorEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getScaleFactor, &OpenMBV::SpineExtrusion::setScaleFactor);
+}
+
+QMenu* SpineExtrusion::createMenu() {
+  QMenu* menu=DynamicColoredBody::createMenu();
+  menu->addSeparator()->setText("Properties from: SpineExtrusion");
+  menu->addAction(contourEditor->getAction());
+  menu->addAction(scaleFactorEditor->getAction());
+  return menu;
 }
 
 QString SpineExtrusion::getInfo() {
