@@ -58,15 +58,25 @@ namespace OpenMBV {
       double getScaleFactor() { return get(scaleFactor); }
 
       /** Set the number of points drawn between the nodes. */
-      void setDrawDegree(const ScalarParameter drawDegree_) {
-        set(drawDegree,drawDegree_);
+      void setDrawDegree(int drawDegree_) {
+        drawDegree=drawDegree_;
       }
 
-      double getDrawDegree() { return get(drawDegree); }
+      int getDrawDegree() { return drawDegree; }
 
       /** Set the inner and outer radius of the disk. */
       void setRadii(ScalarParameter Ri_, ScalarParameter Ro_) {
         set(Ri,Ri_);
+        set(Ro,Ro_);
+      }
+
+      /** Set the inner radius of the disk. */
+      void setRi(ScalarParameter Ri_) {
+        set(Ri,Ri_);
+      }
+
+      /** Set the inner radius of the disk. */
+      void setRo(ScalarParameter Ro_) {
         set(Ro,Ro_);
       }
 
@@ -100,32 +110,32 @@ namespace OpenMBV {
       std::vector<double> getKnotVecRadial() { return get(KnotVecRadial); }
 
       /** Set the azimuthal number of finite elements used for drawing. */
-      void setElementNumberAzimuthal(ScalarParameter ElementNumberAzimuthal_) {
-        set(ElementNumberAzimuthal,ElementNumberAzimuthal_);
+      void setElementNumberAzimuthal(int ElementNumberAzimuthal_) {
+        ElementNumberAzimuthal=ElementNumberAzimuthal_;
       }
 
-      int getElementNumberAzimuthal() { return int(get(ElementNumberAzimuthal)); }
+      int getElementNumberAzimuthal() { return ElementNumberAzimuthal; }
 
       /** Set the radial number of finite elements used for drawing. */
-      void setElementNumberRadial(ScalarParameter ElementNumberRadial_) {
-        set(ElementNumberRadial,ElementNumberRadial_);
+      void setElementNumberRadial(int ElementNumberRadial_) {
+        ElementNumberRadial=ElementNumberRadial_;
       }
 
-      int getElementNumberRadial() { return int(get(ElementNumberRadial)); }
+      int getElementNumberRadial() { return ElementNumberRadial; }
 
       /** Set the degree of the interpolating splines in radial direction. */
-      void setInterpolationDegreeRadial(ScalarParameter InterpolationDegreeRadial_) {
-        set(InterpolationDegreeRadial,InterpolationDegreeRadial_);
+      void setInterpolationDegreeRadial(int InterpolationDegreeRadial_) {
+        InterpolationDegreeRadial=InterpolationDegreeRadial_;
       }
 
-      int getInterpolationDegreeRadial() { return int(get(InterpolationDegreeRadial)); }
+      int getInterpolationDegreeRadial() { return InterpolationDegreeRadial; }
 
       /** Set the degree of the interpolating splines in azimuthal direction. */
-      void setInterpolationDegreeAzimuthal(ScalarParameter InterpolationDegreeAzimuthal_) {
-        set(InterpolationDegreeAzimuthal,InterpolationDegreeAzimuthal_);
+      void setInterpolationDegreeAzimuthal(int InterpolationDegreeAzimuthal_) {
+        InterpolationDegreeAzimuthal=InterpolationDegreeAzimuthal_;
       }
 
-      int getInterpolationDegreeAzimuthal() { return int(get(InterpolationDegreeAzimuthal)); }
+      int getInterpolationDegreeAzimuthal() { return InterpolationDegreeAzimuthal; }
       /** Set the global vector of the normal of the disk */
       void setDiskNormal(float *DiskNormal_) {
         DiskNormal=DiskNormal_;
@@ -168,16 +178,16 @@ namespace OpenMBV {
       ScalarParameter scaleFactor;
 
       /** Number of points drawn between the nodes. */
-      ScalarParameter drawDegree;
+      int drawDegree;
 
       /** Inner and outer radius of disk */
       ScalarParameter Ri, Ro;
 
       /** Number of finite elements in azimuthal and radial direction */
-      ScalarParameter ElementNumberAzimuthal, ElementNumberRadial;
+      int ElementNumberAzimuthal, ElementNumberRadial;
 
       /** Degree of interpolating spline polynomials in radial and azimuthal direction */
-      ScalarParameter InterpolationDegreeAzimuthal, InterpolationDegreeRadial;
+      int InterpolationDegreeAzimuthal, InterpolationDegreeRadial;
 
       /** Knot vector for azimuthal and radial direction */
       VectorParameter KnotVecAzimuthal, KnotVecRadial;
