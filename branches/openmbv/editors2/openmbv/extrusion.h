@@ -29,6 +29,11 @@ class Extrusion : public RigidBody {
   Q_OBJECT
   public:
     Extrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    QMenu* createMenu();
+    ComboBoxEditor *windingRuleEditor;
+    FloatEditor *heightEditor;
+    //MFMF contours
 };
 
 #endif

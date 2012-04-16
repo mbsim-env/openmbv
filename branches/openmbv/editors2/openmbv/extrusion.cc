@@ -28,6 +28,8 @@
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/extrusion.h"
+#include <QMenu>
+#include <cfloat>
 
 using namespace std;
 
@@ -178,4 +180,26 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     soSepRigidBody->addChild(soTess);
   }
   // scale ref/localFrame
+ 
+  // GUI editors
+  windingRuleEditor=new ComboBoxEditor(this, QIcon(), "Winding rule",
+    boost::assign::tuple_list_of(OpenMBV::Extrusion::odd,        "Odd",             QIcon())
+                                (OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon())
+                                (OpenMBV::Extrusion::positive,   "Positive",        QIcon())
+                                (OpenMBV::Extrusion::negative,   "Negative",        QIcon())
+                                (OpenMBV::Extrusion::absGEqTwo,  "Abs. value >= 2", QIcon())
+  );
+  windingRuleEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getWindingRule, &OpenMBV::Extrusion::setWindingRule);
+
+  heightEditor=new FloatEditor(this, QIcon(), "Height");
+  heightEditor->setRange(0, DBL_MAX);
+  heightEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getHeight, &OpenMBV::Extrusion::setHeight);
+}
+
+QMenu* Extrusion::createMenu() {
+  QMenu* menu=RigidBody::createMenu();
+  menu->addSeparator()->setText("Properties from: Extrusion");
+  menu->addAction(windingRuleEditor->getAction());
+  menu->addAction(heightEditor->getAction());
+  return menu;
 }
