@@ -264,7 +264,7 @@
                 <xs:enumeration value="&quot;nonzero&quot;"/>
                 <xs:enumeration value="&quot;positive&quot;"/>
                 <xs:enumeration value="&quot;negative&quot;"/>
-                <xs:enumeration value="&quot;absGEqZero&quot;"/>
+                <xs:enumeration value="&quot;absGEqTwo&quot;"/>
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
