@@ -45,15 +45,12 @@ Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
 
-  // GUI editors
-  radiusEditor=new FloatEditor(this, QIcon(), "Radius");
-  radiusEditor->setRange(0, DBL_MAX);
-  radiusEditor->setOpenMBVParameter(s, &OpenMBV::Sphere::getRadius, &OpenMBV::Sphere::setRadius);
-}
-
-QMenu* Sphere::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Sphere");
-  menu->addAction(radiusEditor->getAction());
-  return menu;
+#if 0 
+  if(!clone) {
+    // GUI editors
+    FloatEditor *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
+    radiusEditor->setRange(0, DBL_MAX);
+    radiusEditor->setOpenMBVParameter(s, &OpenMBV::Sphere::getRadius, &OpenMBV::Sphere::setRadius);
+  }
+#endif
 }

@@ -28,10 +28,6 @@ class Grid : public RigidBody {
   Q_OBJECT
   public:
     Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    QMenu* createMenu();
-  protected:
-    FloatEditor *xSizeEditor, *ySizeEditor;
-    IntEditor *nxEditor, *nyEditor;
 };
 
 #endif

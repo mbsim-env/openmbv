@@ -21,6 +21,7 @@
 #include "object.h"
 #include <QtGui/QMenu>
 #include <QtGui/QApplication>
+#include <QtGui/QGridLayout>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -31,8 +32,11 @@
 
 using namespace std;
 
+set<Object*> Object::objects;
+
 Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
   object=obj;
+  objects.insert(this);
   if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
     // parent item
     if(ind==-1 || ind>=parentItem->childCount())
@@ -73,14 +77,25 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   setText(0, obj->getName().c_str());
 
+  propertiesAction=new QAction(QIcon(), "Properties...", this);
+  connect(propertiesAction, SIGNAL(triggered()), this, SLOT(propertiesSlot()));
+  clone=getClone();
+  if(!clone)
+    properties=new PropertyDialog();
+  else
+    properties=clone->properties;
+  properties->setParentObject(this);
+
   //GUI editors
-  // MFMF name
+  if(!clone) {
+    // MFMF name
 
-  enableEditor=new BoolEditor(this, Utils::QIconCached(":/drawobject.svg"), "Draw object");
-  enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
+    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached(":/drawobject.svg"), "Draw object");
+    enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
 
-  boundingBoxEditor=new BoolEditor(this, Utils::QIconCached(":/bbox.svg"), "Show bounding box");
-  boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
+    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached(":/bbox.svg"), "Show bounding box");
+    boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
+  }
 }
 
 Object::~Object() {
@@ -99,6 +114,9 @@ Object::~Object() {
   // delete the rest
   delete nodeSensor;
   soSwitch->unref();
+  if(!getClone())
+    delete properties;
+  objects.erase(this);
 }
 
 QMenu* Object::createMenu() {
@@ -107,8 +125,7 @@ QMenu* Object::createMenu() {
   dummy->setEnabled(false);
   menu->addAction(dummy);
   menu->addSeparator()->setText("Properties from: Object");
-  menu->addAction(enableEditor->getAction());
-  menu->addAction(boundingBoxEditor->getAction());
+  menu->addAction(propertiesAction);
   return menu;
 }
 
@@ -126,7 +143,7 @@ QString Object::getInfo() {
 
 void Object::nodeSensorCB(void *data, SoSensor*) {
   Object *object=(Object*)data;
-  if(object->boundingBoxEditor->getAction()->isChecked()) {
+  if(object->object->getBoundingBox()) {
     static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(object->soSep);
     float x1,y1,z1,x2,y2,z2;
@@ -149,4 +166,16 @@ void Object::updateTextColor() {
       setForeground(0, QBrush(QApplication::style()->standardPalette().color(QPalette::Disabled, QPalette::Text)));
     else
       setForeground(0, QBrush(QColor(128,0,0)));
+}
+
+void Object::propertiesSlot() {
+  properties->show();
+}
+
+Object *Object::getClone() {
+  set<Object*>::iterator it;
+  for(it=objects.begin(); it!=objects.end(); it++)
+    if(this!=(*it) && (*it)->object->getFullName()==object->getFullName())
+      break;
+  return it==objects.end()?NULL:*it;
 }

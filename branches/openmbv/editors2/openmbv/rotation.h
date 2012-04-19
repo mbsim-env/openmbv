@@ -29,10 +29,6 @@ class Rotation : public RigidBody {
   Q_OBJECT
   public:
     Rotation(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    QMenu* createMenu();
-  public:
-    FloatEditor *startAngleEditor, *endAngleEditor;
-    FloatMatrixEditor *contourEditor;
 };
 
 #endif

@@ -78,19 +78,23 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     calculateEdgesThread.start(QThread::IdlePriority);
   }
 
+#if 0 
   // GUI editors
-  ivFileNameEditor=new StringEditor(this, QIcon(), "IV file name");
-  ivFileNameEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getIvFileName, &OpenMBV::IvBody::setIvFileName);
+  if(!clone) {
+    StringEditor *ivFileNameEditor=new StringEditor(properties, QIcon(), "IV file name");
+    ivFileNameEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getIvFileName, &OpenMBV::IvBody::setIvFileName);
 
-  creaseEdgesEditor=new FloatEditor(this, QIcon(), "Crease edges bound");
-  creaseEdgesEditor->setRange(0, 180); // degree
-  creaseEdgesEditor->setStep(5); // degree
-  creaseEdgesEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
-  creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
-  creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);
+    FloatEditor *creaseEdgesEditor=new FloatEditor(properties, QIcon(), "Crease edges bound");
+    creaseEdgesEditor->setRange(0, 180); // degree
+    creaseEdgesEditor->setStep(5); // degree
+    creaseEdgesEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
+    creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);
 
-  boundaryEdgesEditor=new BoolEditor(this, QIcon(), "Draw boundary edges");
-  boundaryEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getBoundaryEdges, &OpenMBV::IvBody::setBoundaryEdges);
+    BoolEditor *boundaryEdgesEditor=new BoolEditor(properties, QIcon(), "Draw boundary edges");
+    boundaryEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getBoundaryEdges, &OpenMBV::IvBody::setBoundaryEdges);
+  }
+#endif
 }
 
 IvBody::~IvBody() {
@@ -114,13 +118,4 @@ void IvBody::addEdgesToScene() {
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
   cout<<"Finished edge calculation for "<<ivb->getFullName()<<" and added to scene."<<endl;
-}
-
-QMenu* IvBody::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: IvBody");
-  menu->addAction(ivFileNameEditor->getAction());
-  menu->addAction(creaseEdgesEditor->getAction());
-  menu->addAction(boundaryEdgesEditor->getAction());
-  return menu;
 }

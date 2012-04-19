@@ -152,33 +152,37 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
     }
   }
 
+#if 0 
   // GUI editors
-  typeEditor=new ComboBoxEditor(this, QIcon(), "Type",
-    boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon())
-                                (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon())
-                                (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon())
-  );
-  typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
+  if(!clone) {
+    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
+      boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon())
+                                  (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon())
+                                  (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon())
+    );
+    typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
 
-  numberOfCoilsEditor=new FloatEditor(this, QIcon(), "Number of coils");
-  numberOfCoilsEditor->setRange(0, DBL_MAX);
-  numberOfCoilsEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNumberOfCoils, &OpenMBV::CoilSpring::setNumberOfCoils);
+    FloatEditor *numberOfCoilsEditor=new FloatEditor(properties, QIcon(), "Number of coils");
+    numberOfCoilsEditor->setRange(0, DBL_MAX);
+    numberOfCoilsEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNumberOfCoils, &OpenMBV::CoilSpring::setNumberOfCoils);
 
-  springRadiusEditor=new FloatEditor(this, QIcon(), "Coil spring radius");
-  springRadiusEditor->setRange(0, DBL_MAX);
-  springRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getSpringRadius, &OpenMBV::CoilSpring::setSpringRadius);
+    FloatEditor *springRadiusEditor=new FloatEditor(properties, QIcon(), "Coil spring radius");
+    springRadiusEditor->setRange(0, DBL_MAX);
+    springRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getSpringRadius, &OpenMBV::CoilSpring::setSpringRadius);
 
-  crossSectionRadiusEditor=new FloatEditor(this, QIcon(), "Cross section radius");
-  crossSectionRadiusEditor->setRange(0, DBL_MAX);
-  crossSectionRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getCrossSectionRadius, &OpenMBV::CoilSpring::setCrossSectionRadius);
+    FloatEditor *crossSectionRadiusEditor=new FloatEditor(properties, QIcon(), "Cross section radius");
+    crossSectionRadiusEditor->setRange(0, DBL_MAX);
+    crossSectionRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getCrossSectionRadius, &OpenMBV::CoilSpring::setCrossSectionRadius);
 
-  nominalLengthEditor=new FloatEditor(this, QIcon(), "Nominal length");
-  nominalLengthEditor->setRange(0, DBL_MAX);
-  nominalLengthEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNominalLength, &OpenMBV::CoilSpring::setNominalLength);
+    FloatEditor *nominalLengthEditor=new FloatEditor(properties, QIcon(), "Nominal length");
+    nominalLengthEditor->setRange(0, DBL_MAX);
+    nominalLengthEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNominalLength, &OpenMBV::CoilSpring::setNominalLength);
 
-  scaleFactorEditor=new FloatEditor(this, QIcon(), "Scale factor");
-  scaleFactorEditor->setRange(0, DBL_MAX);
-  scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
+    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
+    scaleFactorEditor->setRange(0, DBL_MAX);
+    scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
+  }
+#endif
 }
 
 CoilSpring::~CoilSpring() {
@@ -228,16 +232,4 @@ double CoilSpring::update() {
   if(isnan(staticColor)) setColor(mat, data[7]);
 
   return data[0];
-}
-
-QMenu* CoilSpring::createMenu() {
-  QMenu* menu=DynamicColoredBody::createMenu();
-  menu->addSeparator()->setText("Properties from: CoilSpring");
-  menu->addAction(typeEditor->getAction());
-  menu->addAction(numberOfCoilsEditor->getAction());
-  menu->addAction(springRadiusEditor->getAction());
-  menu->addAction(crossSectionRadiusEditor->getAction());
-  menu->addAction(nominalLengthEditor->getAction());
-  menu->addAction(scaleFactorEditor->getAction());
-  return menu;
 }

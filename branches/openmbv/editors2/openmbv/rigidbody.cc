@@ -133,25 +133,33 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
 
+#if 0 
     // GUI editors
-    localFrameEditor=new BoolEditor(this, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
-    localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
+    if(!clone) {
+      BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
+      localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
 
-    referenceFrameEditor=new BoolEditor(this, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
-    referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
+      BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
+      referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
 
-    pathEditor=new BoolEditor(this, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
-    pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
+      BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
+      pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
 
-    scaleFactorEditor=new FloatEditor(this, QIcon(), "Scaling");
-    scaleFactorEditor->setRange(0, DBL_MAX);
-    scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
+      FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
+      scaleFactorEditor->setRange(0, DBL_MAX);
+      scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
+    }
+#endif
   }
 
-  // initial translation/rotation editor/dragger
-  initialTransRotEditor=new TransRotEditor(this, QIcon(), "Intial Translation/Rotation", initTransRotGroup);
-  initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
-                                                        &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation);
+#if 0 
+  if(!clone) {
+    // initial translation/rotation editor/dragger
+    TransRotEditor *initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial Translation/Rotation", initTransRotGroup);
+    initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
+                                                          &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation);
+  }
+#endif
 }
 
 RigidBody::~RigidBody() {
@@ -164,15 +172,7 @@ RigidBody::~RigidBody() {
 QMenu* RigidBody::createMenu() {
   QMenu* menu=DynamicColoredBody::createMenu();
   menu->addSeparator()->setText("Properties from: RigidBody");
-  menu->addAction(localFrameEditor->getAction());
-  menu->addAction(referenceFrameEditor->getAction());
-  menu->addSeparator();
-  menu->addAction(pathEditor->getAction());
   menu->addAction(moveCameraWith);
-  menu->addSeparator();
-  menu->addAction(initialTransRotEditor->getAction());
-  menu->addAction(initialTransRotEditor->getDraggerAction());
-  menu->addAction(scaleFactorEditor->getAction());
   return menu;
 }
 
@@ -199,7 +199,7 @@ double RigidBody::update() {
   if(isnan(staticColor)) setColor(mat, data[7]);
 
   // path
-  if(pathEditor->getAction()->isChecked()) {
+  if(rigidBody->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
       vector<double> data=rigidBody->getRow(i);
       pathCoord->point.set1Value(i, data[1], data[2], data[3]);

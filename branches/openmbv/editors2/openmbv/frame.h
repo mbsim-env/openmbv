@@ -28,9 +28,6 @@ class Frame : public RigidBody {
   Q_OBJECT
   public:
     Frame(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    QMenu* createMenu();
-  protected:
-    FloatEditor *sizeEditor, *offsetEditor;
 };
 
 #endif

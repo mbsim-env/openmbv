@@ -191,35 +191,39 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   }
  
   // GUI
-  path=new BoolEditor(this, Utils::QIconCached(":/path.svg"),"Draw path of to-point");
-  path->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
+#if 0 
+  if(!clone) {
+    BoolEditor *path=new BoolEditor(properties, Utils::QIconCached(":/path.svg"),"Draw path of to-point");
+    path->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
 
-  diameterEditor=new FloatEditor(this, QIcon(), "Diameter");
-  diameterEditor->setRange(0, DBL_MAX);
-  diameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getDiameter, &OpenMBV::Arrow::setDiameter);
+    FloatEditor *diameterEditor=new FloatEditor(properties, QIcon(), "Diameter");
+    diameterEditor->setRange(0, DBL_MAX);
+    diameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getDiameter, &OpenMBV::Arrow::setDiameter);
 
-  headDiameterEditor=new FloatEditor(this, QIcon(), "Head diameter");
-  headDiameterEditor->setRange(0, DBL_MAX);
-  headDiameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadDiameter, &OpenMBV::Arrow::setHeadDiameter);
+    FloatEditor *headDiameterEditor=new FloatEditor(properties, QIcon(), "Head diameter");
+    headDiameterEditor->setRange(0, DBL_MAX);
+    headDiameterEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadDiameter, &OpenMBV::Arrow::setHeadDiameter);
 
-  headLengthEditor=new FloatEditor(this, QIcon(), "Head length");
-  headLengthEditor->setRange(0, DBL_MAX);
-  headLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadLength, &OpenMBV::Arrow::setHeadLength);
+    FloatEditor *headLengthEditor=new FloatEditor(properties, QIcon(), "Head length");
+    headLengthEditor->setRange(0, DBL_MAX);
+    headLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadLength, &OpenMBV::Arrow::setHeadLength);
 
-  typeEditor=new ComboBoxEditor(this, QIcon(), "Type",
-    boost::assign::tuple_list_of(OpenMBV::Arrow::line,            "Line",              QIcon())
-                                (OpenMBV::Arrow::fromHead,        "From head",         QIcon())
-                                (OpenMBV::Arrow::toHead,          "To head",           QIcon())
-                                (OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon())
-                                (OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon())
-                                (OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon())
-                                (OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon())
-  );
-  typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
+    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
+      boost::assign::tuple_list_of(OpenMBV::Arrow::line,            "Line",              QIcon())
+                                  (OpenMBV::Arrow::fromHead,        "From head",         QIcon())
+                                  (OpenMBV::Arrow::toHead,          "To head",           QIcon())
+                                  (OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon())
+                                  (OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon())
+                                  (OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon())
+                                  (OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon())
+    );
+    typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
 
-  scaleLengthEditor=new FloatEditor(this, QIcon(), "Scale length");
-  scaleLengthEditor->setRange(0, DBL_MAX);
-  scaleLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getScaleLength, &OpenMBV::Arrow::setScaleLength);
+    FloatEditor *scaleLengthEditor=new FloatEditor(properties, QIcon(), "Scale length");
+    scaleLengthEditor->setRange(0, DBL_MAX);
+    scaleLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getScaleLength, &OpenMBV::Arrow::setScaleLength);
+  }
+#endif
 }
 
 double Arrow::update() {
@@ -244,7 +248,7 @@ double Arrow::update() {
   length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
 
   // path
-  if(path->getAction()->isChecked()) {
+  if(arrow->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
       vector<double> localData=arrow->getRow(i);
       if(length<1e-10)
@@ -260,7 +264,7 @@ double Arrow::update() {
   }
 
   // if length is 0 do not draw
-  if(enableEditor->getAction()->isChecked()) {
+  if(object->getEnable()) {
     if(length<1e-10) {
       soSwitch->whichChild.setValue(SO_SWITCH_NONE);
       soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
@@ -268,7 +272,7 @@ double Arrow::update() {
     }
     else {
       soSwitch->whichChild.setValue(SO_SWITCH_ALL);
-      if(boundingBoxEditor->getAction()->isChecked()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+      if(object->getBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
     }
   }
 
@@ -331,16 +335,4 @@ QString Arrow::getInfo() {
          QString("<b>To-point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
          QString("<b>Length:</b> %1").arg(length/scaleLength);
-}
-
-QMenu* Arrow::createMenu() {
-  QMenu* menu=DynamicColoredBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Arrow");
-  menu->addAction(path->getAction());
-  menu->addAction(diameterEditor->getAction());
-  menu->addAction(headDiameterEditor->getAction());
-  menu->addAction(headLengthEditor->getAction());
-  menu->addAction(typeEditor->getAction());
-  menu->addAction(scaleLengthEditor->getAction());
-  return menu;
 }

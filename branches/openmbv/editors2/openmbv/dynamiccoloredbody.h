@@ -33,11 +33,9 @@ class DynamicColoredBody : public Body {
     double color,oldColor;
     void setColor(SoMaterial *mat, double col, SoBaseColor *base=NULL);
     double getColor() { return color; }
-    FloatEditor *minimalColorValueEditor, *maximalColorValueEditor, *staticColorEditor;
   public:
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo();
-    QMenu* createMenu();
 };
 
 #endif

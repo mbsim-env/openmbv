@@ -32,16 +32,20 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   maximalColorValue=dcb->getMaximalColorValue();
   staticColor=dcb->getStaticColor();
 
+#if 0 
   // GUI
-  minimalColorValueEditor=new FloatEditor(this, QIcon(), "Minimal color value");
-  minimalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMinimalColorValue, &OpenMBV::DynamicColoredBody::setMinimalColorValue);
+  if(!clone) {
+    FloatEditor *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
+    minimalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMinimalColorValue, &OpenMBV::DynamicColoredBody::setMinimalColorValue);
 
-  maximalColorValueEditor=new FloatEditor(this, QIcon(), "Maximal color value");
-  maximalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMaximalColorValue, &OpenMBV::DynamicColoredBody::setMaximalColorValue);
+    FloatEditor *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
+    maximalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMaximalColorValue, &OpenMBV::DynamicColoredBody::setMaximalColorValue);
 
-  staticColorEditor=new FloatEditor(this, QIcon(), "Static color value");
-  staticColorEditor->setNaNText("not used");
-  staticColorEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getStaticColor, &OpenMBV::DynamicColoredBody::setStaticColor);
+    FloatEditor *staticColorEditor=new FloatEditor(properties, QIcon(), "Static color value");
+    staticColorEditor->setNaNText("not used");
+    staticColorEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getStaticColor, &OpenMBV::DynamicColoredBody::setStaticColor);
+  }
+#endif
 }
 
 void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base) {
@@ -62,13 +66,4 @@ QString DynamicColoredBody::getInfo() {
   return Body::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>Color:</b> %1").arg(getColor());
-}
-
-QMenu* DynamicColoredBody::createMenu() {
-  QMenu* menu=Body::createMenu();
-  menu->addSeparator()->setText("Properties from: DynamicColoredBody");
-  menu->addAction(minimalColorValueEditor->getAction());
-  menu->addAction(maximalColorValueEditor->getAction());
-  menu->addAction(staticColorEditor->getAction());
-  return menu;
 }

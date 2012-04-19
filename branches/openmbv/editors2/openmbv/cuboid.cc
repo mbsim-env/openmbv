@@ -50,14 +50,9 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   soOutLineSep->addChild(cuboid);
 
   // GUI
-  lengthEditor=new Vec3fEditor(this, QIcon(), "Length (x, y, z)");
-  lengthEditor->setRange(0, DBL_MAX);
-  lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
-}
-
-QMenu* Cuboid::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Cuboid");
-  menu->addAction(lengthEditor->getAction());
-  return menu;
+  if(!clone) {
+    Vec3fEditor *lengthEditor=new Vec3fEditor(properties, QIcon(), "Length (x, y, z)");
+    lengthEditor->setRange(0, DBL_MAX);
+    lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
+  }
 }

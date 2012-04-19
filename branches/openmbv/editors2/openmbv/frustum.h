@@ -29,9 +29,6 @@ class Frustum : public RigidBody {
   Q_OBJECT
   public:
     Frustum(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    QMenu* createMenu();
-  protected:
-    FloatEditor *baseRadiusEditor, *topRadiusEditor, *heightEditor, *innerBaseRadiusEditor, *innerTopRadiusEditor;
 };
 
 #endif

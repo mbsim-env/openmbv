@@ -29,9 +29,6 @@ class Sphere : public RigidBody {
   Q_OBJECT
   public:
     Sphere(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    QMenu* createMenu();
-  public:
-    FloatEditor *radiusEditor;
 };
 
 #endif

@@ -141,30 +141,25 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     csl2->coordIndex.set1Value(nrcsl++, -1);
   }
 
+#if 0 
   // GUI editors
-  startAngleEditor=new FloatEditor(this, QIcon(), "Start angle");
-  startAngleEditor->setRange(0, 360); // degree
-  startAngleEditor->setStep(10); // degree
-  startAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
-  startAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
-  startAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getStartAngle, &OpenMBV::Rotation::setStartAngle);
+  if(!clone) {
+    FloatEditor *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
+    startAngleEditor->setRange(0, 360); // degree
+    startAngleEditor->setStep(10); // degree
+    startAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    startAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
+    startAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getStartAngle, &OpenMBV::Rotation::setStartAngle);
 
-  endAngleEditor=new FloatEditor(this, QIcon(), "End angle");
-  endAngleEditor->setRange(0, 360); // degree
-  endAngleEditor->setStep(10); // degree
-  endAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
-  endAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
-  endAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getEndAngle, &OpenMBV::Rotation::setEndAngle);
+    FloatEditor *endAngleEditor=new FloatEditor(properties, QIcon(), "End angle");
+    endAngleEditor->setRange(0, 360); // degree
+    endAngleEditor->setStep(10); // degree
+    endAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    endAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
+    endAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getEndAngle, &OpenMBV::Rotation::setEndAngle);
 
-  contourEditor=new FloatMatrixEditor(this, QIcon(), "Contour", 0, 3);
-  contourEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getContour, &OpenMBV::Rotation::setContour);
-}
-
-QMenu* Rotation::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Rotation");
-  menu->addAction(startAngleEditor->getAction());
-  menu->addAction(endAngleEditor->getAction());
-  menu->addAction(contourEditor->getAction());
-  return menu;
+    FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
+    contourEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getContour, &OpenMBV::Rotation::setContour);
+  }
+#endif
 }

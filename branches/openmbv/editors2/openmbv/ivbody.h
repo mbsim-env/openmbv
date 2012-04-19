@@ -34,7 +34,6 @@ class IvBody : public RigidBody {
   public:
     IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~IvBody();
-    QMenu* createMenu();
 
   private:
     EdgeCalculation *edgeCalc;
@@ -50,9 +49,6 @@ class IvBody : public RigidBody {
         IvBody *ivBody;
     };
     CalculateEdgesThread calculateEdgesThread;
-    StringEditor *ivFileNameEditor;
-    FloatEditor *creaseEdgesEditor;
-    BoolEditor *boundaryEdgesEditor;
   private slots:
     void addEdgesToScene();
 };

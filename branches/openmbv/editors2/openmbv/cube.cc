@@ -49,14 +49,9 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   soOutLineSep->addChild(cube);
 
   // GUI editors
-  lengthEditor=new FloatEditor(this, QIcon(), "Length");
-  lengthEditor->setRange(0, DBL_MAX);
-  lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cube::getLength, &OpenMBV::Cube::setLength);
-}
-
-QMenu* Cube::createMenu() {
-  QMenu* menu=RigidBody::createMenu();
-  menu->addSeparator()->setText("Properties from: Cube");
-  menu->addAction(lengthEditor->getAction());
-  return menu;
+  if(!clone) {
+    FloatEditor *lengthEditor=new FloatEditor(properties, QIcon(), "Length");
+    lengthEditor->setRange(0, DBL_MAX);
+    lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cube::getLength, &OpenMBV::Cube::setLength);
+  }
 }

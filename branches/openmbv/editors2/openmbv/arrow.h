@@ -40,7 +40,6 @@ class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
     OpenMBV::Arrow *arrow;
-    BoolEditor *path;
     SoSwitch *soPathSwitch;
     SoCoordinate3 *pathCoord, *lineCoord;
     SoLineSet *pathLine;
@@ -54,12 +53,9 @@ class Arrow : public DynamicColoredBody {
     double headLength;
     std::vector<double> data;
     double length, scaleLength;
-    FloatEditor *diameterEditor, *headLengthEditor, *headDiameterEditor, *scaleLengthEditor;
-    ComboBoxEditor *typeEditor;
   public:
     Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
-    QMenu* createMenu();
 };
 
 #endif

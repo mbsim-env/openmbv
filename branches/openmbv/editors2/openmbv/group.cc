@@ -120,11 +120,11 @@ void Group::saveFileSlot() {
 }
 
 void Group::unloadFileSlot() {
-  // if grp has a parent, remove grp from parent and delete grp
-  grp->destroy();
+  OpenMBV::Group *grpPtr=grp;
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
-  // "delete this" is not good code but allowed and works here!
-  delete this; // should be the last action
+  delete this; // from now no element should be accessed thats why we have saveed the grp member
+  // if grp has a parent, remove grp from parent and delete grp
+  grpPtr->destroy(); // this does not use any member of Group, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
 }
 
 void Group::reloadFileSlot() {

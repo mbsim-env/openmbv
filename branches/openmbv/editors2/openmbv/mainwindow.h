@@ -40,6 +40,7 @@
 #include <Inventor/engines/SoTransformVec3f.h>
 #include "SoTransposeEngine.h"
 #include <Inventor/fields/SoSFRotation.h>
+#include <Inventor/fields/SoSFUInt32.h>
 #include <FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"

@@ -56,7 +56,6 @@ class Body : public Object {
     Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~Body();
     static void frameSensorCB(void *data, SoSensor*);
-    virtual QMenu* createMenu();
     virtual double update()=0; // return the current time
     void resetAnimRange(int numOfRows, double dt);
   public slots:
@@ -68,8 +67,6 @@ class Body : public Object {
     static std::map<SoNode*,Body*> bodyMap;
     friend class IndexedTesselationFace;
     friend class MainWindow;
-    BoolEditor *outLineEditor, *shilouetteEdgeEditor;
-    ComboBoxEditor *drawMethodEditor;
 };
 
 #endif

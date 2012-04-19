@@ -21,19 +21,18 @@
 #define _OBJECT_H_
 
 #include "config.h"
-#include <openmbvcppinterface/object.h>
 #include <QtGui/QTreeWidgetItem>
 #include <string>
-#include <vector>
+#include <set>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>
-#include <Inventor/fields/SoSFUInt32.h>
-#include <H5Cpp.h>
-#include <map>
-#include <Inventor/sensors/SoNodeSensor.h>
 #include <Inventor/nodes/SoTranslation.h>
-#include <editors.h>
+#include <Inventor/nodes/SoGroup.h>
+#include <Inventor/sensors/SoSensor.h>
+#include <Inventor/sensors/SoNodeSensor.h>
+
+class PropertyDialog;
 
 namespace OpenMBV {
   class Object;
@@ -54,7 +53,13 @@ class Object : public QObject, public QTreeWidgetItem {
     std::string iconFile;
     bool searchMatched;
     SoNodeSensor *nodeSensor;
-    BoolEditor *enableEditor, *boundingBoxEditor;
+    PropertyDialog *properties;
+    QAction *propertiesAction;
+    Object *clone;
+    Object *getClone();
+    static std::set<Object*> objects;
+  protected slots:
+    void propertiesSlot();
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();

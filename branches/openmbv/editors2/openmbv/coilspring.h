@@ -91,11 +91,6 @@ class CoilSpring : public DynamicColoredBody {
     virtual double update();
 
     OpenMBV::CoilSpring *coilSpring;
-
-    QMenu* createMenu();
-
-    ComboBoxEditor *typeEditor;
-    FloatEditor *numberOfCoilsEditor, *springRadiusEditor, *crossSectionRadiusEditor, *nominalLengthEditor, *scaleFactorEditor;
 };
 
 #endif /* _COILSPRING_H_ */
