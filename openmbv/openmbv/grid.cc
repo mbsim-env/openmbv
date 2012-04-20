@@ -45,11 +45,11 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   SoCoordinate3 *coord=new SoCoordinate3;
   sep->addChild(coord);
   int counter=0;
-  for (int i=0; i<g->getYNumber(); i++) {
+  for (unsigned int i=0; i<g->getYNumber(); i++) {
     coord->point.set1Value(counter++, -g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
     coord->point.set1Value(counter++, g->getXSize()/2., g->getYSize()/2.-double(i)*g->getYSize()/double(g->getYNumber()-1), 0);
   }
-  for (int i=0; i<g->getXNumber(); i++) {
+  for (unsigned int i=0; i<g->getXNumber(); i++) {
     coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), g->getYSize()/2., 0);
     coord->point.set1Value(counter++, -g->getXSize()/2.+double(i)*g->getXSize()/double(g->getXNumber()-1), -g->getYSize()/2., 0);
   }
