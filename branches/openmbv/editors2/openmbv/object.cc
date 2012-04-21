@@ -77,14 +77,15 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   setText(0, obj->getName().c_str());
 
-  propertiesAction=new QAction(QIcon(), "Properties...", this);
+  propertiesAction=new QAction(QIcon(), "XML Properties...", this);
   connect(propertiesAction, SIGNAL(triggered()), this, SLOT(propertiesSlot()));
   clone=getClone();
   if(!clone)
-    properties=new PropertyDialog();
-  else
+    properties=new PropertyDialog(this);
+  else {
     properties=clone->properties;
-  properties->setParentObject(this);
+    properties->setParentObject(this);
+  }
 
   //GUI editors
   if(!clone) {
@@ -130,10 +131,10 @@ QMenu* Object::createMenu() {
 }
 
 string Object::getPath() {
-  if(QTreeWidgetItem::parent())
-    return ((Object*)(QTreeWidgetItem::parent()))->getPath()+"/"+text(0).toStdString();
-  else
+  Group *grp=dynamic_cast<Group*>(this);
+  if(grp && grp->grp->getSeparateFile())
     return text(0).toStdString();
+  return ((Object*)(QTreeWidgetItem::parent()))->getPath()+"/"+text(0).toStdString();
 }
 
 QString Object::getInfo() {
@@ -156,14 +157,15 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
 }
 
 void Object::updateTextColor() {
-  if(drawThisPath)
+  QPalette palette;
+  if(drawThisPath) // active
     if(searchMatched)
-      setForeground(0, QBrush(QApplication::style()->standardPalette().color(QPalette::Active, QPalette::Text)));
+      setForeground(0, palette.brush(QPalette::Active, QPalette::Text));
     else
       setForeground(0, QBrush(QColor(255,0,0)));
-  else
+  else // inactive
     if(searchMatched)
-      setForeground(0, QBrush(QApplication::style()->standardPalette().color(QPalette::Disabled, QPalette::Text)));
+      setForeground(0, palette.brush(QPalette::Disabled, QPalette::Text));
     else
       setForeground(0, QBrush(QColor(128,0,0)));
 }

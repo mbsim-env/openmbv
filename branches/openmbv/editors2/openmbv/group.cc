@@ -83,6 +83,11 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
       reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
     }
   }
+
+  if(!clone) {
+    properties->updateHeader();
+    // GUI editors (none)
+  }
 }
 
 QString Group::getInfo() {

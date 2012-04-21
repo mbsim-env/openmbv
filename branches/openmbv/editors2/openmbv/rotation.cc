@@ -141,9 +141,9 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     csl2->coordIndex.set1Value(nrcsl++, -1);
   }
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     FloatEditor *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
     startAngleEditor->setRange(0, 360); // degree
     startAngleEditor->setStep(10); // degree
@@ -161,5 +161,4 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
     contourEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getContour, &OpenMBV::Rotation::setContour);
   }
-#endif
 }

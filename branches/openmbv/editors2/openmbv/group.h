@@ -34,6 +34,7 @@ namespace OpenMBV {
 class Group : public Object {
   Q_OBJECT
   friend class MainWindow;
+  friend class Object;
   protected:
     virtual void update() {}
     QAction *saveFile, *unloadFile, *reloadFile;

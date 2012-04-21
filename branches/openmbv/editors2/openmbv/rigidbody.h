@@ -58,6 +58,7 @@ class RigidBody : public DynamicColoredBody {
     static void draggerMoveCB(void *, SoDragger*);
     SoSeparator *soSepRigidBody;
     SoCenterballDragger *soDragger;
+    TransRotEditor *initialTransRotEditor;
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();

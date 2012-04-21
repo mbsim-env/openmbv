@@ -200,9 +200,9 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(outLine);
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     FloatEditor *baseRadiusEditor=new FloatEditor(properties, QIcon(), "Base radius");
     baseRadiusEditor->setRange(0, DBL_MAX);
     baseRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getBaseRadius, &OpenMBV::Frustum::setBaseRadius);
@@ -223,5 +223,4 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
     innerTopRadiusEditor->setRange(0, DBL_MAX);
     innerTopRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getInnerTopRadius, &OpenMBV::Frustum::setInnerTopRadius);
   }
-#endif
 }

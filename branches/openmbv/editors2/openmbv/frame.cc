@@ -37,9 +37,9 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   refFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
   localFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     FloatEditor *sizeEditor=new FloatEditor(properties, QIcon(), "Size (length)");
     sizeEditor->setRange(0, DBL_MAX);
     sizeEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getSize, &OpenMBV::Frame::setSize);
@@ -49,5 +49,4 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     offsetEditor->setStep(0.02);
     offsetEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getOffset, &OpenMBV::Frame::setOffset);
   }
-#endif
 }

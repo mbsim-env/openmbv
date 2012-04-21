@@ -116,7 +116,6 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
       shilouetteEdgeOrientationSensor->detach();
     }
 
-#if 0 
     // GUI editors
     if(!clone) {
       BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached(":/outline.svg"), "Draw out-line");
@@ -132,7 +131,6 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
       );
       drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     }
-#endif
 
     // MFMF hdf5link
   }

@@ -133,7 +133,6 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     moveCameraWith->setObjectName("RigidBody::moveCameraWith");
     connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
 
-#if 0 
     // GUI editors
     if(!clone) {
       BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
@@ -149,17 +148,17 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
       scaleFactorEditor->setRange(0, DBL_MAX);
       scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
     }
-#endif
   }
 
-#if 0 
   if(!clone) {
     // initial translation/rotation editor/dragger
-    TransRotEditor *initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial Translation/Rotation", initTransRotGroup);
+    initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial");
     initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
                                                           &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation);
   }
-#endif
+  else
+    initialTransRotEditor=static_cast<RigidBody*>(clone)->initialTransRotEditor;
+  initialTransRotEditor->setGroupMembers(initTransRotGroup);
 }
 
 RigidBody::~RigidBody() {

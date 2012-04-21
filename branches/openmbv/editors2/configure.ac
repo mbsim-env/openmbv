@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([openmbv],[3.1.0],[friedrich.at.gc@googlemail.com])
+AC_INIT([openmbv],[0.0.0],[friedrich.at.gc@googlemail.com]) # Version is not used (see "GET VERSION")
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([openmbv/object.h])
@@ -33,6 +33,16 @@ AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 LDFLAGS="-Wl,--no-undefined $LDFLAGS"
 AC_CHECK_HEADERS([unordered_map])
+
+dnl GET VERSION from svn
+SVNVERSION1=$(svnversion -n . https://openmbv.googlecode.com/svn/trunk/openmbv)
+SVNVERSION2=$(svnversion -n . http://openmbv.googlecode.com/svn/trunk/openmbv)
+if [ ${#VERSION1} -lt ${#VERSION2} ]; then
+  SVNVERSION=$SVNVERSION1
+else
+  SVNVERSION=$SVNVERSION2
+fi
+AC_DEFINE_UNQUOTED([SVNVERSION],["$SVNVERSION"],[The svn version/revision])
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])

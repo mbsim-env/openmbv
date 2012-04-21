@@ -45,12 +45,11 @@ Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
 
-#if 0 
   if(!clone) {
+    properties->updateHeader();
     // GUI editors
     FloatEditor *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
     radiusEditor->setRange(0, DBL_MAX);
     radiusEditor->setOpenMBVParameter(s, &OpenMBV::Sphere::getRadius, &OpenMBV::Sphere::setRadius);
   }
-#endif
 }

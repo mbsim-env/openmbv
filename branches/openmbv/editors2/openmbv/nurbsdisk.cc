@@ -183,9 +183,9 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   moveCameraWith->setObjectName("RigidBody::moveCameraWith");
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
     localFrameEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getLocalFrame, &OpenMBV::NurbsDisk::setLocalFrame);
     
@@ -227,7 +227,6 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     FloatMatrixEditor *knotVecRadialEditor=new FloatMatrixEditor(properties, QIcon(), "Radial knot vector", 1, 0);
     knotVecRadialEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getKnotVecRadial, &OpenMBV::NurbsDisk::setKnotVecRadial);
   }
-#endif
 }
 
 NurbsDisk::~NurbsDisk() {

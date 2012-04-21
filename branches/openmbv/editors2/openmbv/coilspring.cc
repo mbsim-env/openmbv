@@ -152,9 +152,9 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
     }
   }
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
       boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon())
                                   (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon())
@@ -182,7 +182,6 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
   }
-#endif
 }
 
 CoilSpring::~CoilSpring() {

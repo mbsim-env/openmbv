@@ -74,17 +74,16 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
   extrusion->endCap=TRUE; // front side at end of the spine
   extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
 
-#if 0 
   if(!clone) {
+    properties->updateHeader();
     // GUI editors
-    FloatMatrixEditor *contourEditor=new FloatMatrixEditor(this, QIcon(), "Contour", 0, 3);
+    FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
     contourEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getContour, &OpenMBV::SpineExtrusion::setContour);
 
-    FloatEditor *scaleFactorEditor=new FloatEditor(this, QIcon(), "Scale factor");
+    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getScaleFactor, &OpenMBV::SpineExtrusion::setScaleFactor);
   }
-#endif
 }
 
 QString SpineExtrusion::getInfo() {

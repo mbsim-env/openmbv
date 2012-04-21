@@ -181,9 +181,9 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   }
   // scale ref/localFrame
  
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     ComboBoxEditor *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule",
       boost::assign::tuple_list_of(OpenMBV::Extrusion::odd,        "Odd",             QIcon())
                                   (OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon())
@@ -197,5 +197,4 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getHeight, &OpenMBV::Extrusion::setHeight);
   }
-#endif
 }

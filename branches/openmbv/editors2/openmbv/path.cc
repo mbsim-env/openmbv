@@ -48,14 +48,13 @@ Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   soSep->addChild(line);
   maxFrameRead=-1;
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     Vec3fEditor *colorEditor=new Vec3fEditor(properties, QIcon(), "Color");
     colorEditor->setRange(0, 1);
     colorEditor->setOpenMBVParameter(path, &OpenMBV::Path::getColor, &OpenMBV::Path::setColor);
   }
-#endif
 }
 
 double Path::update() {

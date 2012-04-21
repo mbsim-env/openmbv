@@ -32,7 +32,6 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   maximalColorValue=dcb->getMaximalColorValue();
   staticColor=dcb->getStaticColor();
 
-#if 0 
   // GUI
   if(!clone) {
     FloatEditor *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
@@ -45,7 +44,6 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
     staticColorEditor->setNaNText("not used");
     staticColorEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getStaticColor, &OpenMBV::DynamicColoredBody::setStaticColor);
   }
-#endif
 }
 
 void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base) {

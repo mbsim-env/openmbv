@@ -66,9 +66,9 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // create so
   soSepRigidBody->addChild(sep);
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     FloatEditor *xSizeEditor=new FloatEditor(properties, QIcon(), "Grid x-size");
     xSizeEditor->setRange(0, DBL_MAX);
     xSizeEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getXSize, &OpenMBV::Grid::setXSize);
@@ -85,5 +85,4 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     nyEditor->setRange(0, INT_MAX);
     nyEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYNumber, &OpenMBV::Grid::setYNumber);
   }
-#endif
 }

@@ -78,9 +78,9 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     calculateEdgesThread.start(QThread::IdlePriority);
   }
 
-#if 0 
   // GUI editors
   if(!clone) {
+    properties->updateHeader();
     StringEditor *ivFileNameEditor=new StringEditor(properties, QIcon(), "IV file name");
     ivFileNameEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getIvFileName, &OpenMBV::IvBody::setIvFileName);
 
@@ -94,7 +94,6 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     BoolEditor *boundaryEdgesEditor=new BoolEditor(properties, QIcon(), "Draw boundary edges");
     boundaryEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getBoundaryEdges, &OpenMBV::IvBody::setBoundaryEdges);
   }
-#endif
 }
 
 IvBody::~IvBody() {

@@ -906,30 +906,49 @@ void MainWindow::helpHomeXML() {
 }
 
 void MainWindow::aboutOpenMBV() {
-  QMessageBox::about(this, "About OpenMBV",
-    "<h1>OpenMBV - Open Multi Body Viewer</h1>"
-    "<p>Copyright &copy; Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt><p/>"
-    "<p>Licensed under the General Public License (see file COPYING).</p>"
-    "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"
-    "<h2>Authors:</h2>"
-    "<ul>"
-    "  <li>Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt> (Maintainer)</li>"
-    "</ul>"
-    "<h2>This program uses:</h2>"
-    "<ul>"
-    "  <li>'Qt - A cross-platform application and UI framework' by Nokia from <tt>http://www.qtsoftware.com</tt> (License: GPL/LGPL)</li>"
-    "  <li>'Coin - An OpenGL based, retained mode 3D graphics rendering library' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
-    "  <li>'SoQt - A Qt GUI component toolkit library for Coin' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
-    "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://code.google.com/p/hdf5serie</tt> (License: LGPL)</li>"
-    "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
-    "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
+  static QDialog *about=NULL;
+  if(about==NULL) {
+    about=new QDialog(this);
+    about->setWindowTitle("About OpenMBV");
+    about->setMinimumSize(500, 500);
+    QGridLayout *layout=new QGridLayout;
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 1);
+    about->setLayout(layout);
+    QLabel *icon=new QLabel;
+    layout->addWidget(icon, 0, 0, Qt::AlignTop);
+    icon->setPixmap(Utils::QIconCached(":/openmbv.svg").pixmap(64,64));
+    QTextEdit *text=new QTextEdit;
+    layout->addWidget(text, 0, 1);
+    text->setReadOnly(true);
+    text->setHtml(
+      "<h1>OpenMBV - Open Multi Body Viewer</h1>"
+      "<p>Version "SVNVERSION"<p/>"
+      "<p>Copyright &copy; Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt><p/>"
+      "<p>Licensed under the General Public License (see file COPYING).</p>"
+      "<p>This is free software; see the source for copying conditions.  There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>"
+      "<h2>Authors:</h2>"
+      "<ul>"
+      "  <li>Markus Friedrich <tt>&lt;friedrich.at.gc@googlemail.com&gt;</tt> (Maintainer)</li>"
+      "</ul>"
+      "<h2>This program uses:</h2>"
+      "<ul>"
+      "  <li>'Qt - A cross-platform application and UI framework' by Nokia from <tt>http://www.qtsoftware.com</tt> (License: GPL/LGPL)</li>"
+      "  <li>'Coin - An OpenGL based, retained mode 3D graphics rendering library' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
+      "  <li>'SoQt - A Qt GUI component toolkit library for Coin' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
+      "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://code.google.com/p/hdf5serie</tt> (License: LGPL)</li>"
+      "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
+      "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
+      "  <li>'boost - C++ Libraries' by Boost from <tt>http://www.boost.org</tt> (Licence: Boost Software License)</li>"
 #ifdef HAVE_QWT_WHEEL_H
-    "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"
+      "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"
 #endif
-    "  <li>...</li>"
-    "</ul>"
-    "<p>A special thanks to all authors of this projects.</p>"
-  );
+      "  <li>...</li>"
+      "</ul>"
+      "<p>A special thanks to all authors of this projects.</p>"
+    );
+  }
+  about->show();
 }
 
 void MainWindow::viewChange(ViewSide side) {
