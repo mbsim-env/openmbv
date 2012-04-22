@@ -193,8 +193,9 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // GUI
   if(!clone) {
     properties->updateHeader();
-    BoolEditor *path=new BoolEditor(properties, Utils::QIconCached(":/path.svg"),"Draw path of to-point");
-    path->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
+    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"),"Draw path of to-point");
+    pathEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
+    properties->addPropertyAction(pathEditor->getAction());
 
     FloatEditor *diameterEditor=new FloatEditor(properties, QIcon(), "Diameter");
     diameterEditor->setRange(0, DBL_MAX);

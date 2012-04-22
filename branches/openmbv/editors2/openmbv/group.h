@@ -42,10 +42,10 @@ class Group : public Object {
     QTimer *reloadTimer;
     QFileInfo *xmlFileInfo, *h5FileInfo;
     QDateTime xmlLastModified, h5LastModified;
+    std::string getPath();
   public:
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
-    QMenu* createMenu();
   protected slots:
     void saveFileSlot();
     void reloadFileSlotIfNewer();

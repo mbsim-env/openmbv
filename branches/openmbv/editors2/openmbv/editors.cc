@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QApplication>
 #include <QCheckBox>
+#include <QMenu>
 #include <cfloat>
 #include <mainwindow.h>
 #include <objectfactory.h>
@@ -41,10 +42,50 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObje
 
   // set window title
   setWindowTitle("OpenMBV Property Editor");
+
+  contextMenu=new QMenu("Context Menu");
+  contextMenu->setSeparatorsCollapsible(false);
+  QAction *dialogAction=new QAction("Properties...", this);
+  contextMenu->addAction(dialogAction);
+  connect(dialogAction, SIGNAL(triggered()), this, SLOT(openDialogSlot()));
+  QAction *sep2=new QAction(this);
+  sep2->setSeparator("Convenience properties actions");
+  contextMenu->addAction(sep2);
+
+  QAction *sep=new QAction(this);
+  sep->setSeparator("Context actions");
+  sep->setObjectName("PropertyDialog::AFTER_PROPERTIES__BEFORE_CONTEXT");
+  contextMenu->addAction(sep);
+  contextMenu->addSeparator();
+}
+
+void PropertyDialog::openDialogSlot() {
+  show();
 }
 
 void PropertyDialog::setParentObject(QObject *parentObject_) {
   parentObject=parentObject_;
+}
+
+void PropertyDialog::addPropertyAction(QAction *action) {
+  for(int i=0; i<contextMenu->actions().size(); i++)
+    if(contextMenu->actions()[i]->objectName()=="PropertyDialog::AFTER_PROPERTIES__BEFORE_CONTEXT") {
+      contextMenu->insertAction(contextMenu->actions()[i], action);
+      break;
+    }
+}
+
+void PropertyDialog::addPropertyActionGroup(QActionGroup *actionGroup) {
+  for(int j=0; j<actionGroup->actions().size(); j++)
+    for(int i=0; i<contextMenu->actions().size(); i++)
+      if(contextMenu->actions()[i]->objectName()=="PropertyDialog::AFTER_PROPERTIES__BEFORE_CONTEXT") {
+        contextMenu->insertAction(contextMenu->actions()[i], actionGroup->actions()[j]);
+        break;
+      }
+}
+
+void PropertyDialog::addContextAction(QAction *action) {
+  contextMenu->addAction(action);
 }
 
 void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget) {
@@ -129,7 +170,10 @@ void Editor::replaceObject() {
     parentItem=MainWindow::getInstance()->objectList->invisibleRootItem();
     soParent=MainWindow::getInstance()->getSceneRoot();
   }
-  ObjectFactory(obj->object, parentItem, soParent, ind);
+  Object *newObj=ObjectFactory(obj->object, parentItem, soParent, ind);
+  // if the object to be replaced was selected, select the newly created object
+  if(obj==MainWindow::getInstance()->objectList->currentItem())
+    MainWindow::getInstance()->objectList->setCurrentItem(newObj);
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
@@ -145,11 +189,22 @@ BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::st
   checkbox=new QCheckBox;
   connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, checkbox);
+
+  action=new QAction(icon, name.c_str(), this);
+  action->setCheckable(true);
+  connect(action,SIGNAL(changed()),this,SLOT(actionChangedSlot()));
 }
 
 void BoolEditor::valueChangedSlot(int state) {
   if(ombvSetter) ombvSetter(state==Qt::Checked?true:false); // set OpenMBV
+  action->blockSignals(true);
+  action->setChecked(state==Qt::Checked?true:false);
+  action->blockSignals(false);
   replaceObject();
+}
+
+void BoolEditor::actionChangedSlot() {
+  checkbox->setCheckState(action->isChecked()?Qt::Checked:Qt::Unchecked);
 }
 
 
@@ -366,11 +421,35 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
     comboBox->addItem(list[i].get<2>(), list[i].get<1>().c_str(), QVariant(list[i].get<0>()));
   connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, comboBox);
+
+  actionGroup=new QActionGroup(this);
+  QAction *sep1=new QAction(actionGroup);
+  sep1->setSeparator(name.c_str());
+  actionGroup->addAction(sep1);
+  for(size_t i=0; i<list.size(); i++) {
+    QAction *action=new QAction(list[i].get<2>(), list[i].get<1>().c_str(), actionGroup);
+    action->setData(QVariant(static_cast<int>(i)));
+    action->setCheckable(true);
+    actionGroup->addAction(action);
+  }
+  QAction *sep=new QAction(actionGroup);
+  sep->setSeparator("");
+  actionGroup->addAction(sep);
+  connect(actionGroup,SIGNAL(triggered(QAction*)),this,SLOT(actionChangedSlot(QAction*)));
 }
 
 void ComboBoxEditor::valueChangedSlot(int newValue) {
   if(ombvSetter) ombvSetter(comboBox->itemData(newValue).toInt()); // set OpenMBV
+  for(int i=1; i<actionGroup->actions().size()-1; i++) {
+    actionGroup->actions()[i]->blockSignals(true);
+    actionGroup->actions()[i]->setChecked(i-1==comboBox->itemData(newValue).toInt()?true:false);
+    actionGroup->actions()[i]->blockSignals(false);
+  }
   replaceObject();
+}
+
+void ComboBoxEditor::actionChangedSlot(QAction* action) {
+  comboBox->setCurrentIndex(action->data().toInt());
 }
 
 

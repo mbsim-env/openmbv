@@ -20,7 +20,6 @@
 #include "config.h"
 #include "rigidbody.h"
 #include "mainwindow.h"
-#include "compoundrigidbody.h"
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoAntiSquish.h>
@@ -38,119 +37,103 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
   rigidBody=(OpenMBV::RigidBody*)obj;
   parentItem=parentItem_;
   //h5 dataset
-  if(rigidBody->getParent()) { // do nothing for rigidbodies inside a compoundrigidbody
-    int rows=rigidBody->getRows();
-    double dt;
-    if(rows>=2) dt=rigidBody->getRow(1)[0]-rigidBody->getRow(0)[0]; else dt=0;
-    resetAnimRange(rows, dt);
-  }
+  int rows=rigidBody->getRows();
+  double dt;
+  if(rows>=2) dt=rigidBody->getRow(1)[0]-rigidBody->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
 
   // create so
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // path
-    soPathSwitch=new SoSwitch;
-    soSep->addChild(soPathSwitch);
-    SoSeparator *pathSep=new SoSeparator;
-    soPathSwitch->addChild(pathSep);
-    SoBaseColor *col=new SoBaseColor;
-    col->rgb.setValue(0, 1, 0);
-    pathSep->addChild(col);
-    pathCoord=new SoCoordinate3;
-    pathSep->addChild(pathCoord);
-    pathLine=new SoLineSet;
-    pathSep->addChild(pathLine);
-    soPathSwitch->whichChild.setValue(rigidBody->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
-    pathMaxFrameRead=-1;
+  // path
+  soPathSwitch=new SoSwitch;
+  soSep->addChild(soPathSwitch);
+  SoSeparator *pathSep=new SoSeparator;
+  soPathSwitch->addChild(pathSep);
+  SoBaseColor *col=new SoBaseColor;
+  col->rgb.setValue(0, 1, 0);
+  pathSep->addChild(col);
+  pathCoord=new SoCoordinate3;
+  pathSep->addChild(pathCoord);
+  pathLine=new SoLineSet;
+  pathSep->addChild(pathLine);
+  soPathSwitch->whichChild.setValue(rigidBody->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  pathMaxFrameRead=-1;
   
-    // translation (from hdf5)
-    translation=new SoTranslation;
-    soSep->addChild(translation);
+  // translation (from hdf5)
+  translation=new SoTranslation;
+  soSep->addChild(translation);
   
-    // rotation (from hdf5)
-    rotationAlpha=new SoRotationXYZ;
-    rotationAlpha->axis=SoRotationXYZ::X;
-    soSep->addChild(rotationAlpha);
-    rotationBeta=new SoRotationXYZ;
-    rotationBeta->axis=SoRotationXYZ::Y;
-    soSep->addChild(rotationBeta);
-    rotationGamma=new SoRotationXYZ;
-    rotationGamma->axis=SoRotationXYZ::Z;
-    soSep->addChild(rotationGamma);
-    rotation=new SoRotation;
-    rotation->ref(); // do not add to scene graph (only for convinience)
+  // rotation (from hdf5)
+  rotationAlpha=new SoRotationXYZ;
+  rotationAlpha->axis=SoRotationXYZ::X;
+  soSep->addChild(rotationAlpha);
+  rotationBeta=new SoRotationXYZ;
+  rotationBeta->axis=SoRotationXYZ::Y;
+  soSep->addChild(rotationBeta);
+  rotationGamma=new SoRotationXYZ;
+  rotationGamma->axis=SoRotationXYZ::Z;
+  soSep->addChild(rotationGamma);
+  rotation=new SoRotation;
+  rotation->ref(); // do not add to scene graph (only for convinience)
 
-    // till now the scene graph should be static (except color). So add a SoSeparator for caching
-    soSepRigidBody=new SoSeparator;
-    soSep->addChild(soSepRigidBody);
+  // till now the scene graph should be static (except color). So add a SoSeparator for caching
+  soSepRigidBody=new SoSeparator;
+  soSep->addChild(soSepRigidBody);
 
-    // reference frame
-    soReferenceFrameSwitch=new SoSwitch;
-    soSepRigidBody->addChild(soReferenceFrameSwitch);
-    soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
-    refFrameScale->ref();
-    soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
-  }
-  else { // a dummmy refFrameScale
-    refFrameScale=new SoScale;
-    refFrameScale->ref();
-    soSepRigidBody=soSep;
-  }
+  // reference frame
+  soReferenceFrameSwitch=new SoSwitch;
+  soSepRigidBody->addChild(soReferenceFrameSwitch);
+  soReferenceFrameSwitch->addChild(Utils::soFrame(1,1,false,refFrameScale));
+  refFrameScale->ref();
+  soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   // add a group for the initial translation/rotation here (the SoTranslation/SoRotation is added later by InitialTransRotEditor)
   SoGroup *initTransRotGroup=new SoGroup;
   soSepRigidBody->addChild(initTransRotGroup);
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // local frame
-    soLocalFrameSwitch=new SoSwitch;
-    soSepRigidBody->addChild(soLocalFrameSwitch);
-    soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
-    localFrameScale->ref();
-    soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  // local frame
+  soLocalFrameSwitch=new SoSwitch;
+  soSepRigidBody->addChild(soLocalFrameSwitch);
+  soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
+  localFrameScale->ref();
+  soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   
-    // mat (from hdf5)
-    mat=new SoMaterial;
-    setColor(mat, 0);
-    soSepRigidBody->addChild(mat);
-    mat->shininess.setValue(0.9);
-    if(!isnan(staticColor)) setColor(mat, staticColor);
-  }
-  else { // a dummmy localFrameScale
-    localFrameScale=new SoScale;
-    localFrameScale->ref();
-    mat=static_cast<CompoundRigidBody*>(parentItem)->mat;
-  }
+  // mat (from hdf5)
+  mat=new SoMaterial;
+  setColor(mat, 0);
+  soSepRigidBody->addChild(mat);
+  mat->shininess.setValue(0.9);
+  if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // initial scale
   SoScale *scale=new SoScale;
   scale->scaleFactor.setValue(rigidBody->getScaleFactor(),rigidBody->getScaleFactor(),rigidBody->getScaleFactor());
   soSepRigidBody->addChild(scale);
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // GUI
-    moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
-    moveCameraWith->setObjectName("RigidBody::moveCameraWith");
-    connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
+  // GUI
+  moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
+//MFMF multiedit  moveCameraWith->setObjectName("RigidBody::moveCameraWith");
+  connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
+  properties->addContextAction(moveCameraWith);
 
-    // GUI editors
-    if(!clone) {
-      BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
-      localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
-
-      BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
-      referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
-
-      BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
-      pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
-
-      FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
-      scaleFactorEditor->setRange(0, DBL_MAX);
-      scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
-    }
-  }
-
+  // GUI editors
   if(!clone) {
+    BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
+    localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
+    properties->addPropertyAction(localFrameEditor->getAction());
+
+    BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
+    referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
+    properties->addPropertyAction(referenceFrameEditor->getAction());
+
+    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
+    pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
+    properties->addPropertyAction(pathEditor->getAction());
+
+    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
+    scaleFactorEditor->setRange(0, DBL_MAX);
+    scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
+
     // initial translation/rotation editor/dragger
     initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial");
     initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
@@ -162,17 +145,9 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
 }
 
 RigidBody::~RigidBody() {
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
-    rotation->unref();
+  rotation->unref();
   refFrameScale->unref();
   localFrameScale->unref();
-}
-
-QMenu* RigidBody::createMenu() {
-  QMenu* menu=DynamicColoredBody::createMenu();
-  menu->addSeparator()->setText("Properties from: RigidBody");
-  menu->addAction(moveCameraWith);
-  return menu;
 }
 
 void RigidBody::moveCameraWithSlot() {

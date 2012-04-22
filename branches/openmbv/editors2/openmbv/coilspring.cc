@@ -161,6 +161,7 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
                                   (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon())
     );
     typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
+    properties->addPropertyActionGroup(typeEditor->getActionGroup());
 
     FloatEditor *numberOfCoilsEditor=new FloatEditor(properties, QIcon(), "Number of coils");
     numberOfCoilsEditor->setRange(0, DBL_MAX);

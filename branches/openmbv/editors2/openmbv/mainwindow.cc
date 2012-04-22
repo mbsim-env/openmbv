@@ -191,7 +191,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
-  objectListDW->setObjectName("Objects");
   QWidget *objectListWG=new QWidget(this);
   QGridLayout *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
@@ -209,7 +208,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   objectList = new QTreeWidget(objectListDW);
   objectListLO->addWidget(objectList, 1,0,1,2);
   objectList->setHeaderHidden(true);
-  objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+//MFMF multiedit  objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
   connect(objectList,SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(collapseItem(QTreeWidgetItem*)));
   connect(objectList,SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(expandItem(QTreeWidgetItem*)));
@@ -225,7 +224,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
-  objectInfoDW->setObjectName("Object Info");
   QWidget *objectInfoWG=new QWidget;
   QGridLayout *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
@@ -389,13 +387,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
-  fileTB->setObjectName("FileToolBar");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
   QToolBar *viewTB=new QToolBar("ViewToolBar", this);
-  viewTB->setObjectName("ViewToolBar");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
   viewTB->addSeparator();
@@ -413,7 +409,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // animation toolbar
   QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
-  animationTB->setObjectName("AnimationToolBar");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
   animationTB->addAction(stopAct);
@@ -810,19 +805,18 @@ void MainWindow::openFileDialog() {
 void MainWindow::objectListClicked() {
   if(QApplication::mouseButtons()==Qt::RightButton) {
     Object *object=(Object*)objectList->currentItem();
-    QMenu* menu=object->createMenu();
-    QAction *currentAct=menu->exec(QCursor::pos());
-    // if a action is not NULL and the action has a object name trigger also the actions with
-    // the same name of all other selected objects
-    if(currentAct && currentAct->objectName()!="") {
-      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
-      for(int i=0; i<obj.size(); i++) {
-        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
-        if(act==currentAct) continue; // do not trigger the currentItem twice
-        if(act) act->trigger();
-      }
-    }
-    delete menu;
+    QMenu* menu=object->properties->getContextMenu();
+/*MFMF multiedit    QAction *currentAct=*/menu->exec(QCursor::pos());
+//MFMF multiedit    // if a action is not NULL and the action has a object name trigger also the actions with
+//MFMF multiedit    // the same name of all other selected objects
+//MFMF multiedit    if(currentAct && currentAct->objectName()!="") {
+//MFMF multiedit      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
+//MFMF multiedit      for(int i=0; i<obj.size(); i++) {
+//MFMF multiedit        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
+//MFMF multiedit        if(act==currentAct) continue; // do not trigger the currentItem twice
+//MFMF multiedit        if(act) act->trigger();
+//MFMF multiedit      }
+//MFMF multiedit    }
     frame->touch(); // force rendering the scene
   }
 }
@@ -1094,6 +1088,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
        (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
         ev->getButton()==SoMouseButtonEvent::BUTTON2 ||
         ev->getButton()==SoMouseButtonEvent::BUTTON3)) {
+      // check for double click (this must be done by hand, since SoQt does not provide is)
+      static QTime lastClick;
+      if(lastClick.restart()<QApplication::doubleClickInterval()) {
+        static_cast<Object*>(objectList->currentItem())->properties->show();
+        return true; // action handled
+      }
       // get picked points by ray
       SoRayPickAction pickAction(glViewer->getViewportRegion());
       pickAction.setPoint(ev->getPosition());
@@ -1108,7 +1108,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         return true;
       }
       // get objects by point/path
-      set<Object*> pickedObject;
+      list<Body*> pickedObject;
       float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
       cout<<"Clicked points:"<<endl;
       for(int i=0; pickedPoints[i]; i++) {
@@ -1117,7 +1117,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         for(int j=path->getLength()-1; j>=0; j--) {
           map<SoNode*,Body*>::iterator it=Body::getBodyMap().find(path->getNode(j));
           if(it!=Body::getBodyMap().end()) {
-            pickedObject.insert(it->second);
+            if(std::find(pickedObject.begin(), pickedObject.end(), it->second)==pickedObject.end())
+              pickedObject.push_back(it->second);
             found=true;
             break;
           }
@@ -1143,7 +1144,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         if(ev->wasAltDown()) {
           QMenu *menu=new QMenu(this);
           int ind=0;
-          set<Object*>::iterator it;
+          list<Body*>::iterator it;
           for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
             QAction *action=new QAction((*it)->icon(0),(*it)->getPath().c_str(),menu);
             action->setData(QVariant(ind++));
@@ -1163,19 +1164,18 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         // if Button2 show property menu
         if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
           Object *object=(Object*)(objectList->currentItem());
-          QMenu* menu=object->createMenu();
-          QAction *currentAct=menu->exec(QCursor::pos());
-          // if a action is not NULL and the action has a object name trigger also the actions with
-          // the same name of all other selected objects
-          if(currentAct && currentAct->objectName()!="") {
-            QList<QTreeWidgetItem*> obj=objectList->selectedItems();
-            for(int i=0; i<obj.size(); i++) {
-              QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
-              if(act==currentAct) continue; // do not trigger the currentItem twice
-              if(act) act->trigger();
-            }
-          }
-          delete menu;
+          QMenu* menu=object->properties->getContextMenu();
+/*MFMF multiedit    QAction *currentAct=*/menu->exec(QCursor::pos());
+//MFMF multiedit    // if a action is not NULL and the action has a object name trigger also the actions with
+//MFMF multiedit    // the same name of all other selected objects
+//MFMF multiedit    if(currentAct && currentAct->objectName()!="") {
+//MFMF multiedit      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
+//MFMF multiedit      for(int i=0; i<obj.size(); i++) {
+//MFMF multiedit        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
+//MFMF multiedit        if(act==currentAct) continue; // do not trigger the currentItem twice
+//MFMF multiedit        if(act) act->trigger();
+//MFMF multiedit      }
+//MFMF multiedit    }
         }
       }
       return true; // event applied

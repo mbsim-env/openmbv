@@ -63,8 +63,6 @@ class NurbsDisk : public DynamicColoredBody {
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
 
-    virtual QMenu* createMenu();
-
   protected:
     QAction *moveCameraWith;
     SoSwitch *soLocalFrameSwitch;

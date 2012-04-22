@@ -27,7 +27,6 @@
 #include <Inventor/actions/SoSearchAction.h>
 #include "mainwindow.h"
 #include "openmbvcppinterface/group.h"
-#include "compoundrigidbody.h"
 #include "utils.h"
 
 using namespace std;
@@ -37,20 +36,18 @@ set<Object*> Object::objects;
 Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
   object=obj;
   objects.insert(this);
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // parent item
-    if(ind==-1 || ind>=parentItem->childCount())
-      parentItem->addChild(this); // insert as last element
-    else
-      parentItem->insertChild(ind, this); // insert at position ind
+  // parent item
+  if(ind==-1 || ind>=parentItem->childCount())
+    parentItem->addChild(this); // insert as last element
+  else
+    parentItem->insertChild(ind, this); // insert at position ind
 
-    // enable or disable
-    if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
-      drawThisPath=true;
-    else
-      drawThisPath=false;
-    updateTextColor();
-  }
+  // enable or disable
+  if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
+    drawThisPath=true;
+  else
+    drawThisPath=false;
+  updateTextColor();
   
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
@@ -77,8 +74,6 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   setText(0, obj->getName().c_str());
 
-  propertiesAction=new QAction(QIcon(), "XML Properties...", this);
-  connect(propertiesAction, SIGNAL(triggered()), this, SLOT(propertiesSlot()));
   clone=getClone();
   if(!clone)
     properties=new PropertyDialog(this);
@@ -93,9 +88,11 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
     BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached(":/drawobject.svg"), "Draw object");
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
+    properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
 
     BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached(":/bbox.svg"), "Show bounding box");
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
+    properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
   }
 }
 
@@ -120,21 +117,8 @@ Object::~Object() {
   objects.erase(this);
 }
 
-QMenu* Object::createMenu() {
-  QMenu *menu=new QMenu("Object menu");
-  QAction *dummy=new QAction("",menu);
-  dummy->setEnabled(false);
-  menu->addAction(dummy);
-  menu->addSeparator()->setText("Properties from: Object");
-  menu->addAction(propertiesAction);
-  return menu;
-}
-
 string Object::getPath() {
-  Group *grp=dynamic_cast<Group*>(this);
-  if(grp && grp->grp->getSeparateFile())
-    return text(0).toStdString();
-  return ((Object*)(QTreeWidgetItem::parent()))->getPath()+"/"+text(0).toStdString();
+  return static_cast<Object*>(QTreeWidgetItem::parent())->getPath()+"/"+text(0).toStdString();
 }
 
 QString Object::getInfo() {
@@ -168,10 +152,6 @@ void Object::updateTextColor() {
       setForeground(0, palette.brush(QPalette::Disabled, QPalette::Text));
     else
       setForeground(0, QBrush(QColor(128,0,0)));
-}
-
-void Object::propertiesSlot() {
-  properties->show();
 }
 
 Object *Object::getClone() {

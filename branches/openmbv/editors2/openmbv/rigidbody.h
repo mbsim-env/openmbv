@@ -62,7 +62,6 @@ class RigidBody : public DynamicColoredBody {
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();
-    virtual QMenu* createMenu();
     virtual QString getInfo();
   public slots:
     void moveCameraWithSlot();

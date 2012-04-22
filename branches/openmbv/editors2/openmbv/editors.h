@@ -30,6 +30,8 @@ class PropertyDialog;
 
 
 class PropertyDialog : public QDialog {
+  Q_OBJECT
+
   friend class TransRotEditor;
   public:
     PropertyDialog(QObject *obj);
@@ -40,9 +42,16 @@ class PropertyDialog : public QDialog {
     void addLargeRow(const QIcon& icon, const std::string& name, QLayout *subLayout);
     void updateHeader();
     QObject* getParentObject() { return parentObject; }
+    void addPropertyAction(QAction *action);
+    void addPropertyActionGroup(QActionGroup *actionGroup);
+    void addContextAction(QAction *action);
+    QMenu *getContextMenu() { return contextMenu; }
   protected:
+    QMenu *contextMenu;
     QObject* parentObject;
     QGridLayout *layout, *mainLayout;
+  protected slots:
+    void openDialogSlot();
 };
 
 
@@ -75,13 +84,18 @@ class BoolEditor : public Editor {
     template<class OMBVClass>
     void setOpenMBVParameter(OMBVClass *ombv_, bool (OMBVClass::*getter)(), void (OMBVClass::*setter)(bool));
 
+    /* return this boolean Editor as an checkable action */
+    QAction *getAction() { return action; }
+
   protected slots:
     void valueChangedSlot(int);
+    void actionChangedSlot();
 
   protected:
     QCheckBox *checkbox;
     boost::function<bool ()> ombvGetter;
     boost::function<void (bool)> ombvSetter;
+    QAction *action;
 };
 
 
@@ -257,13 +271,18 @@ class ComboBoxEditor : public Editor {
     template<class OMBVClass, class OMBVEnum>
     void setOpenMBVParameter(OMBVClass *ombv_, OMBVEnum (OMBVClass::*getter)(), void (OMBVClass::*setter)(OMBVEnum));
 
+    /* return this ComboBox Editor as an ActionGroup */
+    QActionGroup *getActionGroup() { return actionGroup; }
+
   protected slots:
     void valueChangedSlot(int);
+    void actionChangedSlot(QAction* action);
 
   protected:
     QComboBox *comboBox;
     boost::function<int ()> ombvGetter;
     boost::function<void (int)> ombvSetter;
+    QActionGroup *actionGroup;
 };
 
 
@@ -379,6 +398,9 @@ void BoolEditor::setOpenMBVParameter(OMBVClass *ombv_, bool (OMBVClass::*getter)
   checkbox->blockSignals(true);
   checkbox->setCheckState(ombvGetter()?Qt::Checked:Qt::Unchecked);
   checkbox->blockSignals(false);
+  action->blockSignals(true);
+  action->setChecked(ombvGetter()?Qt::Checked:Qt::Unchecked);
+  action->blockSignals(false);
 }
 
 
@@ -537,6 +559,10 @@ void ComboBoxEditor::setOpenMBVParameter(OMBVClass *ombv_, OMBVEnum (OMBVClass::
   comboBox->blockSignals(true);
   comboBox->setCurrentIndex(comboBox->findData(ombvGetter()));
   comboBox->blockSignals(false);
+  QAction *action=actionGroup->actions()[comboBox->findData(ombvGetter())+1];
+  action->blockSignals(true);
+  action->setChecked(true);
+  action->blockSignals(false);
 }
 
 

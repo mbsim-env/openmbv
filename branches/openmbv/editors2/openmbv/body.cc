@@ -33,7 +33,6 @@
 #include "SoSpecial.h"
 #include <QtGui/QMenu>
 #include "mainwindow.h"
-#include "compoundrigidbody.h"
 #include <GL/gl.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -59,10 +58,7 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // switch for outline
   soOutLineSwitch=new SoSwitch;
   soOutLineSwitch->ref(); // add to scene must be done by derived class
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0)
-    soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
-  else
-    soOutLineSwitch->whichChild.connectFrom(&((Body*)parentItem)->soOutLineSwitch->whichChild);
+  soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
   SoLightModel *lm=new SoLightModel;
@@ -87,53 +83,54 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   soShilouetteEdge=new SoIndexedLineSet;
   soShilouetteEdgeSep->addChild(soShilouetteEdge);
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // add to map for finding this object by the soSep SoNode
-    bodyMap.insert(pair<SoNode*, Body*>(soSep,this));
+  // add to map for finding this object by the soSep SoNode
+  bodyMap.insert(pair<SoNode*, Body*>(soSep,this));
 
-    // draw method
-    drawStyle=new SoDrawStyle;
-    soSep->addChild(drawStyle);
-    switch(body->getDrawMethod()) {
-      case OpenMBV::Body::filled: drawStyle->style.setValue(SoDrawStyle::FILLED); break;
-      case OpenMBV::Body::lines: drawStyle->style.setValue(SoDrawStyle::LINES); break;
-      case OpenMBV::Body::points: drawStyle->style.setValue(SoDrawStyle::POINTS); break;
-    }
-  
-    // GUI
-    // register callback function for shilouette edges
-    shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-    shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
-    if(body->getShilouetteEdge()) {
-      soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
-      shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
-      shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
-      MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
-    }
-    else {
-      soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
-      shilouetteEdgeFrameSensor->detach();
-      shilouetteEdgeOrientationSensor->detach();
-    }
-
-    // GUI editors
-    if(!clone) {
-      BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached(":/outline.svg"), "Draw out-line");
-      outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
-
-      BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached(":/shilouetteedge.svg"), "Draw shilouette edge");
-      shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
-
-      ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached(":/lines.svg"), "Draw style",
-        boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached(":/filled.svg"))
-                                    (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached(":/lines.svg"))
-                                    (OpenMBV::Body::points, "Points", Utils::QIconCached(":/points.svg"))
-      );
-      drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
-    }
-
-    // MFMF hdf5link
+  // draw method
+  drawStyle=new SoDrawStyle;
+  soSep->addChild(drawStyle);
+  switch(body->getDrawMethod()) {
+    case OpenMBV::Body::filled: drawStyle->style.setValue(SoDrawStyle::FILLED); break;
+    case OpenMBV::Body::lines: drawStyle->style.setValue(SoDrawStyle::LINES); break;
+    case OpenMBV::Body::points: drawStyle->style.setValue(SoDrawStyle::POINTS); break;
   }
+  
+  // GUI
+  // register callback function for shilouette edges
+  shilouetteEdgeFrameSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+  shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
+  if(body->getShilouetteEdge()) {
+    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+    shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
+    MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
+  }
+  else {
+    soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    shilouetteEdgeFrameSensor->detach();
+    shilouetteEdgeOrientationSensor->detach();
+  }
+
+  // GUI editors
+  if(!clone) {
+    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached(":/outline.svg"), "Draw out-line");
+    outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
+    properties->addPropertyAction(outLineEditor->getAction());
+
+    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached(":/shilouetteedge.svg"), "Draw shilouette edge");
+    shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
+    properties->addPropertyAction(shilouetteEdgeEditor->getAction());
+
+    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached(":/lines.svg"), "Draw style",
+      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached(":/filled.svg"))
+                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached(":/lines.svg"))
+                                  (OpenMBV::Body::points, "Points", Utils::QIconCached(":/points.svg"))
+    );
+    drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
+    properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
+  }
+
+  // MFMF hdf5link
 }
 
 Body::~Body() {

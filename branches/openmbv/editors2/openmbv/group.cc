@@ -22,7 +22,6 @@
 #include <QtGui/QMenu>
 #include "objectfactory.h"
 #include "mainwindow.h"
-#include "compoundrigidbody.h"
 #include "openmbvcppinterface/group.h"
 #include <string>
 #include "utils.h"
@@ -35,10 +34,8 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   iconFile=":/group.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
 
-  if(dynamic_cast<CompoundRigidBody*>(parentItem)==0) {
-    // expand or collapse
-    setExpanded(grp->getExpand());
-  }
+  // expand or collapse
+  setExpanded(grp->getExpand());
 
   // if xml:base attribute exist => new sub file
   if(grp->getSeparateFile()) {
@@ -56,19 +53,22 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // hide groups without childs
   if(childCount()==0) setHidden(true);
 
-  // GUI
-  saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-file", this);
-  saveFile->setObjectName("Group::saveFile");
-  connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
-
+  // GUI MFMF maybe also grp->getSeparateFile() is possible instead of grp->getParent()==NULL
   if(grp->getParent()==NULL) {
+    saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-file", this);
+//MFMF multiedit    saveFile->setObjectName("Group::saveFile");
+    connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
+    properties->addContextAction(saveFile);
+
     unloadFile=new QAction(Utils::QIconCached(":/unloadfile.svg"),"Unload XML/H5-file", this);
-    unloadFile->setObjectName("Group::unloadFile");
+//MFMF multiedit    unloadFile->setObjectName("Group::unloadFile");
     connect(unloadFile,SIGNAL(activated()),this,SLOT(unloadFileSlot()));
+    properties->addContextAction(unloadFile);
 
     reloadFile=new QAction(Utils::QIconCached(":/reloadfile.svg"),"Reload XML/H5-file", this);
-    reloadFile->setObjectName("Group::reloadFile");
+//MFMF multiedit    reloadFile->setObjectName("Group::reloadFile");
     connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
+    properties->addContextAction(reloadFile);
 
     // timer for reloading file automatically
     reloadTimer=NULL;
@@ -94,19 +94,6 @@ QString Group::getInfo() {
   return Object::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>Number of children:</b> %1").arg(childCount());
-}
-
-QMenu* Group::createMenu() {
-  QMenu* menu=Object::createMenu();
-  if(grp->getSeparateFile()) {
-    menu->addSeparator()->setText("Properties from: Group");
-    menu->addAction(saveFile);
-  }
-  if(grp->getParent()==NULL) {
-    menu->addAction(unloadFile);
-    menu->addAction(reloadFile);
-  }
-  return menu;
 }
 
 void Group::saveFileSlot() {
@@ -153,4 +140,10 @@ void Group::reloadFileSlotIfNewer() {
     h5LastModified=h5FileInfo->lastModified();
     reloadFileSlot();
   }
+}
+
+string Group::getPath() {
+  if(grp->getSeparateFile())
+    return text(0).toStdString();
+  return Object::getPath();
 }

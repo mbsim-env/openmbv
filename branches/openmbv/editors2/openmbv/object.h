@@ -41,6 +41,7 @@ namespace OpenMBV {
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
   friend class Editor;
+  friend class MainWindow;
   protected:
     OpenMBV::Object *object;
     SoSwitch *soSwitch;
@@ -54,17 +55,14 @@ class Object : public QObject, public QTreeWidgetItem {
     bool searchMatched;
     SoNodeSensor *nodeSensor;
     PropertyDialog *properties;
-    QAction *propertiesAction;
     Object *clone;
     Object *getClone();
     static std::set<Object*> objects;
-  protected slots:
-    void propertiesSlot();
+    QMenu *contextMenu;
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
-    virtual QMenu* createMenu();
-    std::string getPath();
+    virtual std::string getPath();
     std::string &getIconFile() { return iconFile; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);

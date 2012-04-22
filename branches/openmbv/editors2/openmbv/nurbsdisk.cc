@@ -180,14 +180,16 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
   //Add option to move camera with body
   moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
-  moveCameraWith->setObjectName("RigidBody::moveCameraWith");
+//MFMF multiedit  moveCameraWith->setObjectName("NurbsDisk::moveCameraWith");
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
+  properties->addContextAction(moveCameraWith);
 
   // GUI editors
   if(!clone) {
     properties->updateHeader();
     BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
     localFrameEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getLocalFrame, &OpenMBV::NurbsDisk::setLocalFrame);
+    properties->addPropertyAction(localFrameEditor->getAction());
     
     FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
     scaleFactorEditor->setRange(0, DBL_MAX);
@@ -241,13 +243,6 @@ QString NurbsDisk::getInfo() {
 
 void NurbsDisk::moveCameraWithSlot() {
   MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
-}
-
-QMenu* NurbsDisk::createMenu() {
-  QMenu* menu=DynamicColoredBody::createMenu();
-  menu->addSeparator()->setText("Properties from: NurbsDisk");
-  menu->addAction(moveCameraWith);
-  return menu;
 }
 
 double NurbsDisk::update() {
