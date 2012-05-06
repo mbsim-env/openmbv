@@ -128,8 +128,8 @@ int main() {
     coilspring->setName("mycoilspring");
     g->addObject(coilspring);
     
-    CompoundRigidBody *crg=new CompoundRigidBody;
-    crg->setName("mycrg");
+    CompoundRigidBody *crb=new CompoundRigidBody;
+    crb->setName("mycrb");
       Rotation *rotationc=new Rotation;
       rotationc->setName("myrotationc");
       PolygonPoint *point41=new PolygonPoint(0.6,0.2,0);
@@ -140,12 +140,12 @@ int main() {
       contour4->push_back(point42);
       contour4->push_back(point43);
       rotationc->setContour(contour4);
-    crg->addRigidBody(rotationc);
+    crb->addRigidBody(rotationc);
       IvBody *ivc=new IvBody;
       ivc->setName("myivc");
       ivc->setIvFileName("ivcube.iv");
-    crg->addRigidBody(ivc);
-    g->addObject(crg);
+    crb->addRigidBody(ivc);
+    g->addObject(crb);
 
 
   g->write();
@@ -165,7 +165,7 @@ int main() {
     rotation->append(row);
     invisiblebody->append(row);
     coilspring->append(row);
-    crg->append(row);
+    crb->append(row);
   }
 
   g->destroy();

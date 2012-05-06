@@ -129,6 +129,7 @@
         <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
         <xs:attribute name="referenceFrame" type="xs:boolean" default="false"/>
         <xs:attribute name="path" type="xs:boolean" default="false"/>
+        <xs:attribute name="dragger" type="xs:boolean" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -282,6 +283,7 @@
         <xs:sequence>
           <xs:element ref="RigidBody" maxOccurs="unbounded"/>
         </xs:sequence> 
+        <xs:attribute name="expand" type="xs:boolean" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
