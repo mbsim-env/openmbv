@@ -23,14 +23,16 @@
 #include "config.h"
 #include "rigidbody.h"
 #include <H5Cpp.h>
+#include "openmbvcppinterface/compoundrigidbody.h"
 
 class CompoundRigidBody : public RigidBody {
+  friend class MainWindow;
   Q_OBJECT
   public:
     CompoundRigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    ~CompoundRigidBody();
+    virtual QString getInfo();
   private:
-    std::vector<RigidBody*> rigidBody;
+    OpenMBV::CompoundRigidBody *crb;
 };
 
 #endif

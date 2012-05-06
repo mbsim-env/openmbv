@@ -20,6 +20,7 @@
 #include "config.h"
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
+#include <openmbvcppinterface/compoundrigidbody.h>
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
@@ -36,6 +37,8 @@
 #include <QtGui/QStatusBar>
 #include <QtGui/QColorDialog>
 #include <QWebHistory>
+#include <QWebFrame>
+#include <QWebElement>
 #include <QShortcut>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
@@ -57,6 +60,7 @@
 #include "cuboid.h"
 #include "group.h"
 #include "objectfactory.h"
+#include "compoundrigidbody.h"
 #include <string>
 #include <set>
 #include <hdf5serie/fileserie.h>
@@ -257,7 +261,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   act=fileMenu->addAction(Utils::QIconCached(":/savecamera.svg"), "Save camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached(":/quit.svg"), "Exit", qApp, SLOT(quit()), QKeySequence("ESC"));
+  act=fileMenu->addAction(Utils::QIconCached(":/quit.svg"), "Exit", qApp, SLOT(quit()));
   addAction(act); // must work also if menu bar is invisible
   menuBar()->addMenu(fileMenu);
 
@@ -413,10 +417,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // stop button
   animationTB->addAction(stopAct);
   // last frame button
-  animationTB->addSeparator();
   animationTB->addAction(lastFrameAct);
   // play button
-  animationTB->addSeparator();
   animationTB->addAction(playAct);
   // speed spin box
   speedSB=new QDoubleSpinBox;
@@ -453,7 +455,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), SIGNAL(activated()), this, SLOT(speedUpSlot()));
   connect(new QShortcut(QKeySequence(Qt::Key_PageDown),this), SIGNAL(activated()), this, SLOT(speedDownSlot()));
   // frame spin box
-  animationTB->addSeparator();
   frameSB=new QSpinBox;
   frameSB->setMinimumSize(55,0);
   QWidget *frameWG=new QWidget(this);
@@ -844,6 +845,7 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
     QPushButton *helpForward=new QPushButton("Forward",helpDialog);
     layout->addWidget(helpForward,0,2);
     QWebView *helpViewer=new QWebView(helpDialog);
+    connect(helpViewer, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished()));
     layout->addWidget(helpViewer,1,0,1,3);
     connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
     connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
@@ -867,6 +869,14 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
   helpDialog->raise();
   helpDialog->activateWindow();
   helpDialog->resize(700,500);
+}
+
+void MainWindow::loadFinished() {
+  // set html fg color to gui fg color
+  if(helpViewerGUI)
+    helpViewerGUI->page()->mainFrame()->findFirstElement("body").setStyleProperty("color", QPalette().brush(QPalette::Active, QPalette::Text).color().name());
+  if(helpViewerXML)
+    helpViewerXML->page()->mainFrame()->findFirstElement("body").setStyleProperty("color", QPalette().brush(QPalette::Active, QPalette::Text).color().name());
 }
 
 void MainWindow::loadUrlXML(const QUrl &url) { // a workaround for Qt bug N261352
@@ -1798,11 +1808,21 @@ void MainWindow::complexityValue() {
 }
 
 void MainWindow::collapseItem(QTreeWidgetItem* item) {
-  Group *grp=(Group*)item;
-  grp->grp->setExpand(false);
+  // a collapse/expandable item may be a Group or a CompoundRigidBody
+  Group *grp=dynamic_cast<Group*>(item);
+  if(grp)
+    grp->grp->setExpand(false);
+  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(item);
+  if(crb)
+    crb->crb->setExpand(false);
 }
 
 void MainWindow::expandItem(QTreeWidgetItem* item) {
-  Group *grp=(Group*)item;
-  grp->grp->setExpand(true);
+  // a collapse/expandable item may be a Group or a CompoundRigidBody
+  Group *grp=dynamic_cast<Group*>(item);
+  if(grp)
+    grp->grp->setExpand(true);
+  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(item);
+  if(crb)
+    crb->crb->setExpand(true);
 }

@@ -29,7 +29,6 @@ class Extrusion : public RigidBody {
   Q_OBJECT
   public:
     Extrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    //MFMF contours
 };
 
 #endif

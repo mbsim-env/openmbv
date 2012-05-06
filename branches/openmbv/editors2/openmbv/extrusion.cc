@@ -196,5 +196,7 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getHeight, &OpenMBV::Extrusion::setHeight);
+
+    new NotAvailableEditor(properties, QIcon(), "Contours");
   }
 }

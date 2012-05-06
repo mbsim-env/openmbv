@@ -35,7 +35,6 @@ using namespace std;
 
 RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem_, soParent, ind) {
   rigidBody=(OpenMBV::RigidBody*)obj;
-  parentItem=parentItem_;
   //h5 dataset
   int rows=rigidBody->getRows();
   double dt;
@@ -137,7 +136,8 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
     // initial translation/rotation editor/dragger
     initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial");
     initialTransRotEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getInitialTranslation, &OpenMBV::RigidBody::setInitialTranslation,
-                                                          &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation);
+                                                          &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation,
+                                                          &OpenMBV::RigidBody::getDragger, &OpenMBV::RigidBody::setDragger);
   }
   else
     initialTransRotEditor=static_cast<RigidBody*>(clone)->initialTransRotEditor;

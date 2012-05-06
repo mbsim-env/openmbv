@@ -23,7 +23,7 @@
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/nodes/SoSwitch.h>
 
-class PropertyDialog;
+class Editor;
 
 
 
@@ -35,6 +35,7 @@ class PropertyDialog : public QDialog {
   friend class TransRotEditor;
   public:
     PropertyDialog(QObject *obj);
+    ~PropertyDialog();
     void setParentObject(QObject *obj);
     void addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget);
     void addLargeRow(const QIcon& icon, const std::string& name, QWidget *widget);
@@ -46,10 +47,12 @@ class PropertyDialog : public QDialog {
     void addPropertyActionGroup(QActionGroup *actionGroup);
     void addContextAction(QAction *action);
     QMenu *getContextMenu() { return contextMenu; }
+    void addEditor(Editor *child);
   protected:
     QMenu *contextMenu;
     QObject* parentObject;
     QGridLayout *layout, *mainLayout;
+    std::vector<Editor*> editor;
   protected slots:
     void openDialogSlot();
 };
@@ -361,7 +364,9 @@ class TransRotEditor : public Editor {
     void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(), 
                                                void (OMBVClass::*transSetter)(double x, double y, double z),
                                                std::vector<double> (OMBVClass::*rotGetter)(),
-                                               void (OMBVClass::*rotSetter)(double x, double y, double z));
+                                               void (OMBVClass::*rotSetter)(double x, double y, double z),
+                                               bool (OMBVClass::*draggerGetter)(),
+                                               void (OMBVClass::*draggerSetter)(bool b));
 
   protected slots:
     void valueChangedSlot();
@@ -373,11 +378,26 @@ class TransRotEditor : public Editor {
     SoRotation *soRotation;
     boost::function<std::vector<double> ()> ombvTransGetter, ombvRotGetter;
     boost::function<void (double, double, double)> ombvTransSetter, ombvRotSetter;
+    boost::function<bool ()> ombvDraggerGetter;
+    boost::function<void (bool)> ombvDraggerSetter;
     SoCenterballDragger *soDragger;
     SoSwitch *soDraggerSwitch;
     QCheckBox *draggerCheckBox;
     static void draggerMoveCB(void *, SoDragger *dragger_);
     static void draggerFinishedCB(void *, SoDragger *dragger_);
+};
+
+
+
+
+
+/*! A dummy Editor of a not available type */
+class NotAvailableEditor : public Editor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor. */
+    NotAvailableEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
 };
 
 
@@ -589,19 +609,25 @@ template<class OMBVClass>
 void TransRotEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*transGetter)(),
                                                            void (OMBVClass::*transSetter)(double x, double y, double z),
                                                            std::vector<double> (OMBVClass::*rotGetter)(),
-                                                           void (OMBVClass::*rotSetter)(double x, double y, double z)) {
+                                                           void (OMBVClass::*rotSetter)(double x, double y, double z),
+                                                           bool (OMBVClass::*draggerGetter)(),
+                                                           void (OMBVClass::*draggerSetter)(bool b)) {
   ombvTransGetter=boost::bind(transGetter, ombv_);
   ombvTransSetter=boost::bind(transSetter, ombv_, _1, _2, _3);
   ombvRotGetter=boost::bind(rotGetter, ombv_);
   ombvRotSetter=boost::bind(rotSetter, ombv_, _1, _2, _3);
+  ombvDraggerGetter=boost::bind(draggerGetter, ombv_);
+  ombvDraggerSetter=boost::bind(draggerSetter, ombv_, _1);
   std::vector<double> trans=ombvTransGetter();
   std::vector<double> rot=ombvRotGetter();
   soTranslation->translation.setValue(trans[0], trans[1], trans[2]);
   soRotation->rotation=Utils::cardan2Rotation(SbVec3f(rot[0],rot[1],rot[2])).invert();
+  soDraggerSwitch->whichChild.setValue(ombvDraggerGetter()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   for(int i=0; i<3; i++) {
     spinBox[i  ]->setValue(trans[i]);
     spinBox[i+3]->setValue(rot[i]*180/M_PI);
   }
+  draggerCheckBox->setChecked(ombvDraggerGetter());
 }
 
 #endif

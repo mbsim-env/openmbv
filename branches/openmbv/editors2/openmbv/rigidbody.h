@@ -29,7 +29,6 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoRotation.h>
-#include <Inventor/draggers/SoDragger.h>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
@@ -37,14 +36,12 @@ namespace OpenMBV {
   class RigidBody;
 }
 
-class SoCenterballDragger;
-
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   protected:
     OpenMBV::RigidBody *rigidBody;
-    QAction *dragger, *moveCameraWith;
-    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch, *soDraggerSwitch;
+    QAction *moveCameraWith;
+    SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
     int pathMaxFrameRead;
@@ -54,10 +51,7 @@ class RigidBody : public DynamicColoredBody {
     SoTranslation *translation;
     SoMaterial *mat;
     SoScale *refFrameScale, *localFrameScale;
-    static void draggerFinishCB(void *, SoDragger*);
-    static void draggerMoveCB(void *, SoDragger*);
     SoSeparator *soSepRigidBody;
-    SoCenterballDragger *soDragger;
     TransRotEditor *initialTransRotEditor;
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
@@ -65,8 +59,6 @@ class RigidBody : public DynamicColoredBody {
     virtual QString getInfo();
   public slots:
     void moveCameraWithSlot();
-  private:
-    QTreeWidgetItem *parentItem;
 };
 
 #endif

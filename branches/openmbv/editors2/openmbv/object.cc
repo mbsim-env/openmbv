@@ -26,6 +26,7 @@
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 #include "openmbvcppinterface/group.h"
 #include "utils.h"
 
@@ -70,7 +71,11 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   soBBoxSep->addChild(soBBox);
   // register callback function on node change
   nodeSensor=new SoNodeSensor(nodeSensorCB, this);
-  nodeSensor->attach(soSep);
+  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(parentItem);
+  if(!crb)
+    nodeSensor->attach(soSep);
+  else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
+    nodeSensor->attach(crb->soSep);
 
   setText(0, obj->getName().c_str());
 
@@ -131,6 +136,12 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
   if(object->object->getBoundingBox()) {
     static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(object->soSep);
+    SoSearchAction sa;
+    sa.setInterest(SoSearchAction::FIRST);
+    sa.setNode(object->soSep);
+    sa.apply(MainWindow::getInstance()->getSceneRoot());
+    SoPath *p=sa.getPath();
+    bboxAction->apply(p);
     float x1,y1,z1,x2,y2,z2;
     bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
     object->soBBox->width.setValue(x2-x1);

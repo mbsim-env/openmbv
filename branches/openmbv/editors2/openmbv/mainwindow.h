@@ -205,6 +205,7 @@ class MainWindow : public QMainWindow {
     void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
     void complexityType();
     void complexityValue();
+    void loadFinished();
   public:
     MainWindow(std::list<std::string>& arg);
     ~MainWindow();

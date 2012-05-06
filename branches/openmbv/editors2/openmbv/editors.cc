@@ -59,6 +59,12 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObje
   contextMenu->addSeparator();
 }
 
+PropertyDialog::~PropertyDialog() {
+  for(unsigned int i=0; i<editor.size(); i++)
+    delete editor[i];
+  delete contextMenu;
+}
+
 void PropertyDialog::openDialogSlot() {
   show();
 }
@@ -143,11 +149,16 @@ void PropertyDialog::updateHeader() {
   }
 }
 
+void PropertyDialog::addEditor(Editor *child) {
+  editor.push_back(child);
+}
+
 
 
 
 
 Editor::Editor(PropertyDialog *parent_, const QIcon &icon, const std::string &name) : dialog(parent_) {
+  dialog->addEditor(this);
 }
 
 void Editor::replaceObject() {
@@ -568,12 +579,16 @@ void TransRotEditor::draggerSlot(int state) {
     draggerScale->numNodesUpToContainer.setValue(5);
     draggerScale->numNodesUpToReset.setValue(4);
     soDragger->setPart("surroundScale", draggerScale);
+    SbMatrix m;
+    m.setTransform(soTranslation->translation.getValue(), soRotation->rotation.getValue(), SbVec3f(1,1,1));
+    soDragger->setMotionMatrix(m);
   }
   // switch the Dragger on of off depending on the Dragger action state
   if(state==Qt::Checked)
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
+  if(ombvDraggerSetter) ombvDraggerSetter(state==Qt::Checked?true:false); // set OpenMBV
 }
 
 void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
@@ -620,4 +635,13 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
         <<"Translation: ["<<me->spinBox[0]->value()<<", "<<me->spinBox[1]->value()<<", "<<me->spinBox[2]->value()<<"]"<<endl
         <<"Rotation: ["<<me->spinBox[3]->value()*M_PI/180<<", "<<me->spinBox[4]->value()*M_PI/180<<", "<<me->spinBox[5]->value()*M_PI/180<<"]"<<endl;
   }
+}
+
+
+
+
+
+NotAvailableEditor::NotAvailableEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name) : Editor(parent_, icon, name) {
+  dialog->addSmallRow(icon, name, new QLabel("Sorry, a editor for this value is not available.<br/>"
+                                             "Please change this value manually in the XML-file."));
 }

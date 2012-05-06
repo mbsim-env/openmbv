@@ -21,7 +21,7 @@
 #include "objectfactory.h"
 #include "arrow.h"
 #include "coilspring.h"
-//#include "compoundrigidbody.h"
+#include "compoundrigidbody.h"
 #include "cube.h"
 #include "cuboid.h"
 #include "extrusion.h"
@@ -49,8 +49,8 @@ Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup
     return new Arrow(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="CoilSpring")
     return new CoilSpring(obj, parentItem, soParent, ind);
-//  else if(obj->getClassName()=="CompoundRigidBody")
-//    return new CompoundRigidBody(obj, parentItem, soParent, ind);
+  else if(obj->getClassName()=="CompoundRigidBody")
+    return new CompoundRigidBody(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Cube")
     return new Cube(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Cuboid")

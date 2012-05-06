@@ -21,26 +21,32 @@
 #include "compoundrigidbody.h"
 #include "objectfactory.h"
 #include "utils.h"
-#include "openmbvcppinterface/compoundrigidbody.h"
 
 using namespace std;
 
 CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::CompoundRigidBody* crb=(OpenMBV::CompoundRigidBody*)obj;
+  crb=(OpenMBV::CompoundRigidBody*)obj;
   iconFile=":/compoundrigidbody.svg";
   setIcon(0, Utils::QIconCached(iconFile.c_str()));
+
+  // expand or collapse
+  setExpanded(crb->getExpand());
 
   // read XML
   vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
-    rigidBody.push_back((RigidBody*)ObjectFactory(rb[i], this, soSepRigidBody, ind));
+    ObjectFactory(rb[i], this, soSep, -1);
 
-  // create so
+  // hide groups without childs
+  if(childCount()==0) setHidden(true);
 
-  // outline
+  if(!clone) {
+    properties->updateHeader();
+  }
 }
 
-CompoundRigidBody::~CompoundRigidBody() {
-  for(size_t i=0; i<rigidBody.size(); i++)
-    delete rigidBody[i];
+QString CompoundRigidBody::getInfo() {
+  return RigidBody::getInfo()+
+         QString("<hr width=\"10000\"/>")+
+         QString("<b>Number of children:</b> %1").arg(childCount());
 }
