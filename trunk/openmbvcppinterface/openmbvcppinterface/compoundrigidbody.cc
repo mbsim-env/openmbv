@@ -26,7 +26,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-CompoundRigidBody::CompoundRigidBody() : RigidBody() {
+CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
 }
 
 CompoundRigidBody::~CompoundRigidBody() {
@@ -36,6 +36,7 @@ CompoundRigidBody::~CompoundRigidBody() {
 
 TiXmlElement* CompoundRigidBody::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
+  addAttribute(e, "expand", expandStr, "false");
   for(unsigned int i=0; i<rigidBody.size(); i++)
     rigidBody[i]->writeXMLFile(e);
   return 0;
@@ -43,6 +44,9 @@ TiXmlElement* CompoundRigidBody::writeXMLFile(TiXmlNode *parent) {
 
 void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
   RigidBody::initializeUsingXML(element);
+  if(element->Attribute("expand") && 
+     (element->Attribute("expand")==string("true") || element->Attribute("expand")==string("1")))
+    setExpand(true);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   e=e->NextSiblingElement();

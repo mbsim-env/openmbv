@@ -70,7 +70,7 @@ namespace OpenMBV {
   class RigidBody : public DynamicColoredBody {
     friend class CompoundRigidBody;
     protected:
-      std::string localFrameStr, referenceFrameStr, pathStr;
+      std::string localFrameStr, referenceFrameStr, pathStr, draggerStr;
       VectorParameter initialTranslation;
       VectorParameter initialRotation;
       ScalarParameter scaleFactor;
@@ -99,6 +99,11 @@ namespace OpenMBV {
       void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
 
       bool getPath() { return pathStr=="true"?true:false; }
+
+      /** Draw dragger of this object in the viewer if true (default: false) */
+      void setDragger(bool p) { draggerStr=(p==true)?"true":"false"; }
+
+      bool getDragger() { return draggerStr=="true"?true:false; }
 
       /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(const VectorParameter &initTrans) {
@@ -171,6 +176,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      virtual std::string getFullName();
 
       Group* getSeparateGroup();
       Group* getTopLevelGroup();

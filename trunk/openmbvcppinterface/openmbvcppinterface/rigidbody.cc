@@ -29,7 +29,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), 
+RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
   initialTranslation(vector<double>(3, 0)),
   initialRotation(vector<double>(3, 0)),
   scaleFactor(1),
@@ -46,6 +46,7 @@ TiXmlElement* RigidBody::writeXMLFile(TiXmlNode *parent) {
   addAttribute(e, "localFrame", localFrameStr, "false");
   addAttribute(e, "referenceFrame", referenceFrameStr, "false");
   addAttribute(e, "path", pathStr, "false");
+  addAttribute(e, "dragger", draggerStr, "false");
   addElementText(e, "initialTranslation", initialTranslation);
   addElementText(e, "initialRotation", initialRotation);
   addElementText(e, "scaleFactor", scaleFactor);
@@ -88,6 +89,9 @@ void RigidBody::initializeUsingXML(TiXmlElement *element) {
   if(element->Attribute("path") && 
      (element->Attribute("path")==string("true") || element->Attribute("path")==string("1")))
     setPath(true);
+  if(element->Attribute("dragger") && 
+     (element->Attribute("dragger")==string("true") || element->Attribute("dragger")==string("1")))
+    setDragger(true);
   TiXmlElement *e;
   e=element->FirstChildElement(OPENMBVNS"initialTranslation");
   setInitialTranslation(getVec(e,3));
@@ -103,4 +107,11 @@ Group* RigidBody::getSeparateGroup() {
 
 Group* RigidBody::getTopLevelGroup() {
   return compound?compound->parent->getTopLevelGroup():parent->getTopLevelGroup();
+}
+
+string RigidBody::getFullName() {
+  if(compound)
+    return compound->getFullName()+"/"+name;
+  else
+    return DynamicColoredBody::getFullName();
 }

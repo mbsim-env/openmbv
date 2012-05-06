@@ -28,6 +28,7 @@ namespace OpenMBV {
   /** A compound of rigid bodies */
   class CompoundRigidBody : public RigidBody {
     protected:
+      std::string expandStr;
       std::vector<RigidBody*> rigidBody;
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
@@ -42,6 +43,9 @@ namespace OpenMBV {
 
       /** Add a RigidBody to this compound */
       void addRigidBody(RigidBody* rigidBody_) {
+        assert(rigidBody_->name!="");
+        for(unsigned int i=0; i<rigidBody.size(); i++)
+          assert(rigidBody[i]->name!=rigidBody_->name);
         rigidBody.push_back(rigidBody_);
         rigidBody_->parent=0;
         rigidBody_->compound=this;
@@ -53,6 +57,11 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      /** Expand this tree node in a view if true (the default) */
+      void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
+
+      bool getExpand() { return expandStr=="true"?true:false; }
   };
 
 }
