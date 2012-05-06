@@ -57,7 +57,7 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
   if(ins.second) {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
-      ins.first->second=SoDB::readAll(&in);
+      ins.first->second=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
       ins.first->second->ref(); // increment reference count to prevent a delete for cached entries
       return ins.first->second;
     }

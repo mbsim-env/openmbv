@@ -158,7 +158,7 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
   preData.edgeIndFPV=NULL;
   preData.calcLock=NULL;
   if(useCache) {
-    preData.calcLock=new QReadWriteLock;
+    preData.calcLock=new QReadWriteLock; // stored in a global cache => false positive in valgrind
     preData.calcLock->lockForWrite();
   }
   creaseEdges=NULL;
@@ -171,6 +171,7 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
 }
 
 EdgeCalculation::~EdgeCalculation() {
+  creaseEdges->unref();
   if(!useCache) {
     preData.coord->unref(); // decrement reference count if not a cached entry
     delete preData.edgeIndFPV;
@@ -198,7 +199,7 @@ void EdgeCalculation::preproces(bool printMessage) {
       cout<<"Calculating edges!"<<endl;
 
     // CALCULATE
-    preData.edgeIndFPV=new vector<EdgeIndexFacePlaneVec>; // is never freed, since the data is cached forever
+    preData.edgeIndFPV=new vector<EdgeIndexFacePlaneVec>; // is never freed, since the data is cached forever => false positive in valgrind
     BSPTree<SbVec3f, SbVec3fComp> *uniqVertex=new BSPTree<SbVec3f, SbVec3fComp>(SbVec3fComp(0)); // a 3D float space paritioning for all vertex: allocate dynamically, since the points shared by preData.coords
     BSPTree<SbVec2i32, SbVec2i32Comp> edge; // a 2D interger space paritioning for all edges
     // build preData.edges struct from vertex
@@ -228,7 +229,7 @@ void EdgeCalculation::preproces(bool printMessage) {
     }
     delete vertex; // is no longer required and was allocate in getEdgeData
     // shift vertex points from BSP to preData.coord->point
-    preData.coord=new SoCoordinate3FromBSPTree(uniqVertex);
+    preData.coord=new SoCoordinate3FromBSPTree(uniqVertex); // stored in a global cache => false positive in valgrind
     preData.coord->ref(); // increment reference count to prevent a delete for cached entries
 
     if(useCache) {
@@ -245,6 +246,7 @@ void EdgeCalculation::preproces(bool printMessage) {
   if(printMessage)
     cout<<"Use cached data! Waiting for cached data to get ready!"<<endl;
   
+  delete vertex; // is no longer required
   delete preData.calcLock; // is not needed
   ins.first->second.calcLock->lockForRead(); // wait until tha cache entry has finished calculation
   ins.first->second.calcLock->unlock(); // unlock
@@ -257,6 +259,7 @@ void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
   if(preData.coord==NULL) return;
 
   creaseEdges=new SoIndexedLineSet;
+  creaseEdges->ref();
   int nr=0;
   for(unsigned int i=0; i<preData.edgeIndFPV->size(); i++) {
     // only draw crease edge if two faces belongs to this edge
