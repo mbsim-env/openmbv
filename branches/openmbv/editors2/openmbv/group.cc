@@ -97,17 +97,27 @@ QString Group::getInfo() {
 }
 
 void Group::saveFileSlot() {
-  if(QMessageBox::warning(0, "Overwrite XML-File", QString(
-       "Save current object porperties in XML-File.\n"
-       "\n"
-       "Saving will overwrite the following files:\n"
-       "- OpenMBV-XML-file '%1'\n"
-       "- OpenMBV-Parameter-XML-file '%2'\n"
-       "- all included OpenMBV-XML-Files\n"
-       "- all dedicated OpenMBV-Parameter-XML-Files")
-        .arg(grp->getFileName().c_str())
-        .arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
-       QMessageBox::Save | QMessageBox::Cancel)==QMessageBox::Save)
+  static QMessageBox *askSave=NULL;
+  static QCheckBox *showAgain=NULL;
+  if(!askSave) {
+    askSave=new QMessageBox(QMessageBox::Question, "Save XML-File", QString(
+        "Save current properties in XML-File.\n"
+        "\n"
+        "This will overwrite the following files:\n"
+        "- OpenMBV-XML-file '%1'\n"
+        "- OpenMBV-Parameter-XML-file '%2' (if exists)\n"
+        "- all included OpenMBV-XML-Files\n"
+        "- all dedicated OpenMBV-Parameter-XML-Files"
+      ).arg(grp->getFileName().c_str()).arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
+      QMessageBox::Cancel | QMessageBox::SaveAll);
+    showAgain=new QCheckBox("Do not show this dialog again");
+    QGridLayout *layout=static_cast<QGridLayout*>(askSave->layout());
+    layout->addWidget(showAgain, layout->rowCount(), 0, 1, layout->columnCount());
+  }
+  QMessageBox::StandardButton ret=QMessageBox::SaveAll;
+  if(showAgain->checkState()==Qt::Unchecked)
+    ret=static_cast<QMessageBox::StandardButton>(askSave->exec());
+  if(ret==QMessageBox::SaveAll)
     grp->write(true, false);
 }
 
@@ -130,6 +140,11 @@ void Group::reloadFileSlot() {
   unloadFileSlot(); // NOTE: this calls "delete this" !!!
   // load
   MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:NULL, ind);
+  // set new item the current item: this selects and scroll to the new widget
+  if(parent)
+    MainWindow::getInstance()->objectList->setCurrentItem(parent->child(ind));
+  else
+    MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind));
 }
 
 void Group::reloadFileSlotIfNewer() {

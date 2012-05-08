@@ -62,7 +62,7 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObje
 PropertyDialog::~PropertyDialog() {
   for(unsigned int i=0; i<editor.size(); i++)
     delete editor[i];
-  delete contextMenu;
+  contextMenu->deleteLater();
 }
 
 void PropertyDialog::openDialogSlot() {
