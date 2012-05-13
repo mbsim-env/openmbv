@@ -42,6 +42,7 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     parentItem->addChild(this); // insert as last element
   else
     parentItem->insertChild(ind, this); // insert at position ind
+  setFlags(flags() | Qt::ItemIsEditable);
 
   // enable or disable
   if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
@@ -88,9 +89,12 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   }
 
   //GUI editors
-  if(!clone) {
-    // MFMF name
+  QAction *deleteObject=new QAction(Utils::QIconCached(":/deleteobject.svg"), "Delete Object", this);
+//MFMF multiedit  deleteObject->setObjectName("Group::deleteObject");
+  connect(deleteObject,SIGNAL(activated()),this,SLOT(deleteObjectSlot()));
+  properties->addContextAction(deleteObject);
 
+  if(!clone) {
     BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached(":/drawobject.svg"), "Draw object");
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
     properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
@@ -171,4 +175,12 @@ Object *Object::getClone() {
     if(this!=(*it) && (*it)->object->getFullName()==object->getFullName())
       break;
   return it==objects.end()?NULL:*it;
+}
+
+void Object::deleteObjectSlot() {
+  OpenMBV::Object *objPtr=object;
+  // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
+  delete this; // from now no element should be accessed thats why we have saveed the obj member
+  // if obj has a parent, remove obj from parent and delete obj
+  objPtr->destroy(); // this does not use any member of Object, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
 }

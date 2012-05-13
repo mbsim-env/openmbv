@@ -29,6 +29,10 @@
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <GL/glu.h>
+#include <boost/functional/factory.hpp>
+#include <boost/function.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <openmbvcppinterface/object.h>
 
 #ifdef WIN32
 #  define CALLMETHOD __stdcall
@@ -72,6 +76,12 @@ class Utils {
 
     // TESSELATION
     static GLUtesselator *tess;
+
+
+    typedef boost::tuple<QIcon, std::string, boost::function<OpenMBV::Object*()> > FactoryElement;
+    static OpenMBV::Object *createObjectEditor(const std::vector<FactoryElement> &factory,
+                                               const std::vector<std::string> &existingNames,
+                                               const std::string &title);
 
 
   private:

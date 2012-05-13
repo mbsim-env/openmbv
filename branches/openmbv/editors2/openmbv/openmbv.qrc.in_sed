@@ -15,6 +15,7 @@
     <file>envfile.svg</file>
     <file>addfile.svg</file>
     <file>savefile.svg</file>
+    <file>newfile.svg</file>
     <file>quit.svg</file>
     <file>viewall.svg</file>
     <file>camera.svg</file>
@@ -66,7 +67,8 @@
     <file>guihelp.xhtml</file>
     <file>complexitytype.svg</file>
     <file>complexityvalue.svg</file>
-    <file>editor.svg</file>
+    <file>newobject.svg</file>
+    <file>deleteobject.svg</file>
     <file alias="http___openmbv_berlios_de_OpenMBV/index.xhtml">../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml</file>
     PNGFILESTOINCLUDE
   </qresource>

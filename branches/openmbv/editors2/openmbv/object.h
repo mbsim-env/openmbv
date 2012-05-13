@@ -69,6 +69,8 @@ class Object : public QObject, public QTreeWidgetItem {
     void updateTextColor();
     bool getSearchMatched() { return searchMatched; }
     void setSearchMatched(bool m) { searchMatched=m; }
+  protected slots:
+    void deleteObjectSlot();
 };
 
 #endif

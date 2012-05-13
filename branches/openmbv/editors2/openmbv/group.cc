@@ -20,12 +20,30 @@
 #include "config.h"
 #include "group.h"
 #include <QtGui/QMenu>
+#include <QtGui/QPushButton>
 #include "objectfactory.h"
 #include "mainwindow.h"
-#include "openmbvcppinterface/group.h"
 #include <string>
 #include "utils.h"
 #include <QtGui/QMessageBox>
+#include <boost/functional/factory.hpp>
+#include "openmbvcppinterface/arrow.h"
+#include "openmbvcppinterface/coilspring.h"
+#include "openmbvcppinterface/nurbsdisk.h"
+#include "openmbvcppinterface/compoundrigidbody.h"
+#include "openmbvcppinterface/cube.h"
+#include "openmbvcppinterface/cuboid.h"
+#include "openmbvcppinterface/extrusion.h"
+#include "openmbvcppinterface/frame.h"
+#include "openmbvcppinterface/frustum.h"
+#include "openmbvcppinterface/grid.h"
+#include "openmbvcppinterface/invisiblebody.h"
+#include "openmbvcppinterface/ivbody.h"
+#include "openmbvcppinterface/rotation.h"
+#include "openmbvcppinterface/sphere.h"
+#include "openmbvcppinterface/spineextrusion.h"
+#include "openmbvcppinterface/path.h"
+#include "openmbvcppinterface/group.h"
 
 using namespace std;
 
@@ -42,6 +60,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     iconFile=":/h5file.svg";
     setIcon(0, Utils::QIconCached(iconFile.c_str()));
     setText(0, grp->getFileName().c_str());
+    setFlags(flags() & ~Qt::ItemIsEditable);
   }
   // read XML
   vector<OpenMBV::Object*> child=grp->getObjects();
@@ -50,11 +69,13 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     ObjectFactory(child[i], this, soSep, -1);
   }
 
-  // hide groups without childs
-  if(childCount()==0) setHidden(true);
+  // GUI
+  QAction *newObject=new QAction(Utils::QIconCached(":/newobject.svg"),"Create new Object", this);
+//MFMF multiedit  newObject->setObjectName("Group::newObject");
+  connect(newObject,SIGNAL(activated()),this,SLOT(newObjectSlot()));
+  properties->addContextAction(newObject);
 
-  // GUI MFMF maybe also grp->getSeparateFile() is possible instead of grp->getParent()==NULL
-  if(grp->getParent()==NULL) {
+  if(grp->getSeparateFile()) {
     saveFile=new QAction(Utils::QIconCached(":/savefile.svg"),"Save XML-file", this);
 //MFMF multiedit    saveFile->setObjectName("Group::saveFile");
     connect(saveFile,SIGNAL(activated()),this,SLOT(saveFileSlot()));
@@ -69,19 +90,19 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
 //MFMF multiedit    reloadFile->setObjectName("Group::reloadFile");
     connect(reloadFile,SIGNAL(activated()),this,SLOT(reloadFileSlot()));
     properties->addContextAction(reloadFile);
+  }
 
-    // timer for reloading file automatically
-    reloadTimer=NULL;
-    // if reloading is enabled and this Group is a toplevel file create timer
-    if(MainWindow::getInstance()->getReloadTimeout()>0) {
-      xmlFileInfo=new QFileInfo(text(0));
-      h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
-      xmlLastModified=xmlFileInfo->lastModified();
-      h5LastModified=h5FileInfo->lastModified();
-      reloadTimer=new QTimer(this);
-      connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
-      reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
-    }
+  // timer for reloading file automatically
+  reloadTimer=NULL;
+  // if reloading is enabled and this Group is a toplevel file create timer
+  if(grp->getParent()==NULL && MainWindow::getInstance()->getReloadTimeout()>0) {
+    xmlFileInfo=new QFileInfo(text(0));
+    h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
+    xmlLastModified=xmlFileInfo->lastModified();
+    h5LastModified=h5FileInfo->lastModified();
+    reloadTimer=new QTimer(this);
+    connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
+    reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
   }
 
   if(!clone) {
@@ -94,6 +115,38 @@ QString Group::getInfo() {
   return Object::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>Number of children:</b> %1").arg(childCount());
+}
+
+void Group::newObjectSlot() {
+  static vector<Utils::FactoryElement> factory=boost::assign::list_of
+    (Utils::FactoryElement(Utils::QIconCached(":/arrow.svg"),             "Arrow",             boost::factory<OpenMBV::Arrow*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/coilspring.svg"),        "CoilSpring",        boost::factory<OpenMBV::CoilSpring*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"),     "NurbsDisk",         boost::factory<OpenMBV::NurbsDisk*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/compoundrigidbody.svg"), "CompoundRigidBody", boost::factory<OpenMBV::CompoundRigidBody*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/cube.svg"),              "Cube",              boost::factory<OpenMBV::Cube*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/cuboid.svg"),            "Cuboid",            boost::factory<OpenMBV::Cuboid*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/extrusion.svg"),         "Extrusion",         boost::factory<OpenMBV::Extrusion*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/frame.svg"),             "Frame",             boost::factory<OpenMBV::Frame*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/frustum.svg"),           "Frustum",           boost::factory<OpenMBV::Frustum*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"),     "Grid",              boost::factory<OpenMBV::Grid*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"),     "InvisibleBody",     boost::factory<OpenMBV::InvisibleBody*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/ivbody.svg"),            "IvBody",            boost::factory<OpenMBV::IvBody*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/rotation.svg"),          "Rotation",          boost::factory<OpenMBV::Rotation*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/sphere.svg"),            "Sphere",            boost::factory<OpenMBV::Sphere*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"),     "SpineExtrusion",    boost::factory<OpenMBV::SpineExtrusion*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/path.svg"),              "Path",              boost::factory<OpenMBV::Path*>()))
+    (Utils::FactoryElement(Utils::QIconCached(":/group.svg"),             "Group",             boost::factory<OpenMBV::Group*>()))
+  .to_container(factory);  
+
+  vector<string> existingNames;
+  for(unsigned int j=0; j<grp->getObjects().size(); j++)
+    existingNames.push_back(grp->getObjects()[j]->getName());
+
+  OpenMBV::Object *obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
+  if(obj==NULL) return;
+
+  grp->addObject(obj);
+  ObjectFactory(obj, this, soSep, -1);
 }
 
 void Group::saveFileSlot() {

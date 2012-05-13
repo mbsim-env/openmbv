@@ -47,6 +47,7 @@ class Group : public Object {
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
   protected slots:
+    void newObjectSlot();
     void saveFileSlot();
     void reloadFileSlotIfNewer();
     void reloadFileSlot();

@@ -28,6 +28,13 @@
 #endif
 #include "SoSpecial.h"
 #include <iostream>
+#include <QtGui/QDialog>
+#include <QtGui/QPushButton>
+#include <QtGui/QLineEdit>
+#include <QtGui/QMessageBox>
+#include <QtGui/QGridLayout>
+#include <QtGui/QComboBox>
+#include <QtGui/QLabel>
 
 using namespace std;
 
@@ -210,4 +217,62 @@ void Utils::tessEndCB(void) {
       tessTriangleFan->coordIndex.set1Value(j++, -1);
     }
   }
+}
+
+OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory, const vector<string> &existingNames, const string &title) {
+  bool exist;
+  int i=0;
+  string name;
+  do {
+    i++;
+    stringstream str;
+    str<<"Untitled"<<i;
+    name=str.str();
+    exist=false;
+    for(unsigned int j=0; j<existingNames.size(); j++)
+      if(existingNames[j]==name) {
+        exist=true;
+        break;
+      }
+  } while(exist==true);
+
+  QDialog dialog;
+  dialog.setWindowTitle(title.c_str());
+  QGridLayout *layout=new QGridLayout();
+  dialog.setLayout(layout);
+
+  layout->addWidget(new QLabel("Type:"), 0, 0);
+  QComboBox *cb=new QComboBox();
+  layout->addWidget(cb, 0, 1);
+  for(unsigned int i=0; i<factory.size(); i++)
+    cb->addItem(factory[i].get<0>(), factory[i].get<1>().c_str());
+
+  layout->addWidget(new QLabel("Name:"), 1, 0);
+  QLineEdit *lineEdit=new QLineEdit();
+  layout->addWidget(lineEdit, 1, 1);
+  lineEdit->setText(name.c_str());
+
+  QPushButton *cancel=new QPushButton("Cancel");
+  layout->addWidget(cancel, 2, 0);
+  QObject::connect(cancel, SIGNAL(released()), &dialog, SLOT(reject()));
+  QPushButton *ok=new QPushButton("OK");
+  layout->addWidget(ok, 2, 1);
+  ok->setDefault(true);
+  QObject::connect(ok, SIGNAL(released()), &dialog, SLOT(accept()));
+
+  bool unique;
+  do {
+    if(dialog.exec()!=QDialog::Accepted) return NULL;
+    unique=true;
+    for(unsigned int j=0; j<existingNames.size(); j++)
+      if(existingNames[j]==lineEdit->text().toStdString()) {
+        QMessageBox::information(0, "Information", "The entered name already exists!");
+        unique=false;
+        break;
+      }
+  } while(!unique);
+
+  OpenMBV::Object *obj=factory[cb->currentIndex()].get<2>()();
+  obj->setName(lineEdit->text().toStdString());
+  return obj;
 }

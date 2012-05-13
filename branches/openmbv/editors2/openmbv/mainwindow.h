@@ -50,6 +50,8 @@
 #  include <QtGui/QSlider>
 #endif
 
+class QListWidgetItem;
+
 class MainWindow : public QMainWindow {
   Q_OBJECT
   friend class Body;
@@ -110,6 +112,7 @@ class MainWindow : public QMainWindow {
   protected slots:
     void objectListClicked();
     void openFileDialog();
+    void newFileDialog();
     void guiHelp();
     void xmlHelp();
     void aboutOpenMBV();
@@ -207,6 +210,7 @@ class MainWindow : public QMainWindow {
     void complexityType();
     void complexityValue();
     void loadFinished();
+    void editFinishedSlot();
   public:
     MainWindow(std::list<std::string>& arg);
     ~MainWindow();

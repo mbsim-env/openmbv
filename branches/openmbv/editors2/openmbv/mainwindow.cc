@@ -225,6 +225,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   connect(new QShortcut(QKeySequence("7"),this), SIGNAL(activated()), this, SLOT(expandToDepth7()));
   connect(new QShortcut(QKeySequence("8"),this), SIGNAL(activated()), this, SLOT(expandToDepth8()));
   connect(new QShortcut(QKeySequence("9"),this), SIGNAL(activated()), this, SLOT(expandToDepth9()));
+  objectList->setEditTriggers(QTreeWidget::EditKeyPressed);
+  connect(objectList->itemDelegate(), SIGNAL(closeEditor(QWidget *)), this, SLOT(editFinishedSlot()));
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
@@ -247,6 +249,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar());
   QAction *addFileAct=fileMenu->addAction(Utils::QIconCached(":/addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
+  fileMenu->addAction(Utils::QIconCached(":/newfile.svg"), "New file...", this, SLOT(newFileDialog()));
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
@@ -795,12 +798,34 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
 }
 
 void MainWindow::openFileDialog() {
-  QStringList files=QFileDialog::getOpenFileNames(0, "OpenMBV Files", ".",
+  QStringList files=QFileDialog::getOpenFileNames(0, "Add OpenMBV Files", ".",
     "OpenMBV files (*.ombv.xml *.ombv.env.xml);;"
     "OpenMBV animation files (*.ombv.xml);;"
     "OpenMBV environment files (*.ombv.env.xml)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
+}
+
+void MainWindow::newFileDialog() {
+  QFileDialog dialog;
+  dialog.setWindowTitle("New OpenMBV File");
+  dialog.setDirectory(".");
+  dialog.setNameFilter(
+    "OpenMBV files (*.ombv.xml *.ombv.env.xml);;"
+    "OpenMBV animation files (*.ombv.xml);;"
+    "OpenMBV environment files (*.ombv.env.xml)");
+  dialog.setAcceptMode(QFileDialog::AcceptSave);
+  dialog.setDefaultSuffix("ombv.xml");
+  if(dialog.exec()==QDialog::Rejected) return;
+
+  QString filename=dialog.selectedFiles()[0], basename;
+  if(filename.toUpper().endsWith(".OMBV.XML")) basename=filename.left(filename.length()-9);
+  if(filename.toUpper().endsWith(".OMBV.ENV.XML")) basename=filename.left(filename.length()-13);
+  basename.remove(0, basename.lastIndexOf('/')+1);
+  ofstream file(filename.toStdString().c_str());
+  file<<"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"<<endl
+      <<"<Group name=\""<<basename.toStdString()<<"\" xmlns=\"http://openmbv.berlios.de/OpenMBV\"/>"<<endl;
+  openFile(filename.toStdString());
 }
 
 void MainWindow::objectListClicked() {
@@ -1825,4 +1850,9 @@ void MainWindow::expandItem(QTreeWidgetItem* item) {
   CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(item);
   if(crb)
     crb->crb->setExpand(true);
+}
+
+void MainWindow::editFinishedSlot() {
+  QTreeWidgetItem *item=objectList->currentItem();
+  static_cast<Object*>(item)->object->setName(item->text(0).toStdString());
 }

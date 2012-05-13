@@ -33,6 +33,8 @@ class CompoundRigidBody : public RigidBody {
     virtual QString getInfo();
   private:
     OpenMBV::CompoundRigidBody *crb;
+  protected slots:
+    void newRigidBodySlot();
 };
 
 #endif
