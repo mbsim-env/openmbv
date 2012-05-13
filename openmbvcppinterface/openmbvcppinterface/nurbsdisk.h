@@ -157,7 +157,10 @@ namespace OpenMBV {
       }
 
       int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data->getRow(i); }
+      std::vector<double> getRow(int i) {
+        int NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
+        return data?data->getRow(i):std::vector<double>(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
+      }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);

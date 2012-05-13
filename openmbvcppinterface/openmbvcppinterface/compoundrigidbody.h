@@ -27,6 +27,7 @@ namespace OpenMBV {
 
   /** A compound of rigid bodies */
   class CompoundRigidBody : public RigidBody {
+    friend class RigidBody;
     protected:
       std::string expandStr;
       std::vector<RigidBody*> rigidBody;

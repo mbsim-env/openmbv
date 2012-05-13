@@ -76,7 +76,7 @@ namespace OpenMBV {
       }
 
       int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data->getRow(i); }
+      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
       void setArrowHead(ScalarParameter diameter, ScalarParameter length) {

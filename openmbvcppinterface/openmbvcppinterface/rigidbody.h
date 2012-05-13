@@ -172,7 +172,7 @@ namespace OpenMBV {
       }
 
       int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data->getRow(i); }
+      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
@@ -181,6 +181,8 @@ namespace OpenMBV {
 
       Group* getSeparateGroup();
       Group* getTopLevelGroup();
+
+      virtual void destroy() const;
   };
 
 }

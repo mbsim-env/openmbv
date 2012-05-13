@@ -77,6 +77,10 @@ namespace OpenMBV {
       /** Default constructor */
       Object();
 
+      /** It must be possible to delete the top level Group: use this function for therefore.
+       * If this object is was added into a parent object this object is first removed from this parent and then deleted. */
+      virtual void destroy() const;
+
       /** Retrun the class name */
       virtual std::string getClassName()=0;
 

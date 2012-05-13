@@ -33,6 +33,7 @@ namespace OpenMBV {
   /** A container for bodies */
   class Group : public Object {
     friend class Body;
+    friend class Object;
     protected:
       std::vector<Object*> object;
       std::string expandStr;
@@ -80,10 +81,6 @@ namespace OpenMBV {
     public:
       /** Default constructor */
       Group();
-
-      /** It must be possible to delete the top level Group: use this function for therefore.
-       * If this object is was added into a parent object this object is first removed from this parent and then deleted. */
-      void destroy() const;
 
       /** Retrun the class name */
       std::string getClassName() { return "Group"; }
