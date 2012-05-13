@@ -57,7 +57,7 @@ namespace OpenMBV {
       }
 
       int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data->getRow(i); }
+      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(4); }
 
       /** Set the color of the paht.
        * Use a vector with tree double representing reg, green and blue as paremter.

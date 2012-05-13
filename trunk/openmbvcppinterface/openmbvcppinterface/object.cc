@@ -223,3 +223,15 @@ void Object::addElementText(TiXmlElement *parent, std::string name, SimpleParame
   if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
     addElementText(parent, name, value);
 }
+
+void Object::destroy() const {
+  // delete this object from parent if parent exists
+  if(parent)
+    for(vector<Object*>::iterator i=parent->object.begin(); i!=parent->object.end(); i++)
+      if(*i==this) {
+        parent->object.erase(i);
+        break;
+      }
+  // destroy this object
+  delete this;
+}

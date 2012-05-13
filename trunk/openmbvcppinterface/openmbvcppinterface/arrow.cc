@@ -78,9 +78,17 @@ void Arrow::createHDF5File() {
 
 void Arrow::openHDF5File() {
   DynamicColoredBody::openHDF5File();
+  if(!hdf5Group) return;
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
-    data->open(*hdf5Group,"data");
+    try {
+      data->open(*hdf5Group,"data");
+    }
+    catch(...) {
+      delete data;
+      data=NULL;
+      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+    }
   }
 }
 

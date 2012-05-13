@@ -25,7 +25,7 @@
 using namespace std;
 using namespace OpenMBV;
 
-Path::Path() : Body(), color(vector<double>(3,1)) {
+Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
 }
 
 Path::~Path() {
@@ -53,9 +53,17 @@ void Path::createHDF5File() {
 
 void Path::openHDF5File() {
   Body::openHDF5File();
+  if(!hdf5Group) return;
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
-    data->open(*hdf5Group,"data");
+    try {
+      data->open(*hdf5Group,"data");
+    }
+    catch(...) {
+      delete data;
+      data=NULL;
+      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+    }
   }
 }
 

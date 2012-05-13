@@ -72,9 +72,17 @@ void RigidBody::createHDF5File() {
 
 void RigidBody::openHDF5File() {
   DynamicColoredBody::openHDF5File();
+  if(!hdf5Group) return;
   if(!hdf5LinkBody) {
     data=new H5::VectorSerie<double>;
-    data->open(*hdf5Group,"data");
+    try {
+      data->open(*hdf5Group,"data");
+    }
+    catch(...) {
+      delete data;
+      data=NULL;
+      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+    }
   }
 }
 
@@ -114,4 +122,23 @@ string RigidBody::getFullName() {
     return compound->getFullName()+"/"+name;
   else
     return DynamicColoredBody::getFullName();
+}
+
+void RigidBody::destroy() const {
+  // a RigidBody may be part of a compoundrigidbody. If so delete from this if not treat it like other objects
+
+  // delete this rigidBody from compound if compound exists
+  if(compound) {
+    for(vector<RigidBody*>::iterator i=compound->rigidBody.begin(); i!=compound->rigidBody.end(); i++)
+      if(*i==this) {
+        compound->rigidBody.erase(i);
+        break;
+      }
+  }
+  else {
+    DynamicColoredBody::destroy();
+    return;
+  }
+  // destroy this rigidBody
+  delete this;
 }

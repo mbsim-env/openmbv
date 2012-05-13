@@ -108,12 +108,26 @@ void Group::createHDF5File() {
 }
 
 void Group::openHDF5File() {
-  if(parent==NULL)
-    hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
-  else
-    hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
-  for(unsigned int i=0; i<object.size(); i++)
-    object[i]->openHDF5File();
+  hdf5Group=NULL;
+  if(parent==NULL) {
+    try {
+      hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
+    }
+    catch(...) {
+      cout<<"WARNING: Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-4)+".h5"<<"'"<<endl;
+    }
+  }
+  else {
+    try {
+      hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+    }
+    catch(...) {
+      cout<<"WARNING: Unable to open the HDF5 Group '"<<name<<"'"<<endl;
+    }
+  }
+  if(hdf5Group)
+    for(unsigned int i=0; i<object.size(); i++)
+      object[i]->openHDF5File();
 }
 
 void Group::writeXML() {
@@ -254,18 +268,6 @@ void Group::collectParameter(map<string, double>& sp, map<string, vector<double>
   if(!separateFile || collectAlsoSeparateGroup)
     for(size_t i=0; i<object.size(); i++)
       object[i]->collectParameter(sp, vp, mp);
-}
-
-void Group::destroy() const {
-  // delete this object from parent if parent exists
-  if(parent)
-    for(vector<Object*>::iterator i=parent->object.begin(); i!=parent->object.end(); i++)
-      if(*i==this) {
-        parent->object.erase(i);
-        break;
-      }
-  // destroy this object
-  delete this;
 }
 
 void Group::lock(bool exclusive) {
