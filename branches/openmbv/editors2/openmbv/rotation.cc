@@ -82,7 +82,7 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     soOutLineSep->addChild(csl2);
   }
   // coord, normal, face
-  unsigned int cs=contour->size();
+  unsigned int cs=contour?contour->size():0;
   const unsigned int rs=(unsigned int)(20/2/M_PI*(rot->getEndAngle()-rot->getStartAngle()))+open;
   int nrv=0, nrf=0, nrn=0, nrl=0, nrcsf=0, nrcsl=0;
   for(unsigned int c=0; c<cs; c++) {

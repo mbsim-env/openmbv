@@ -512,10 +512,10 @@ void FloatMatrixEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<OpenMB
   assert(rows==0 || rows==ombvGetterMatrix().size());
   // create cells
   table->setColumnCount(3);
-  for(unsigned int r=0; r<ombvGetterPolygonPoint()->size(); r++)
+  for(unsigned int r=0; r<(ombvGetterPolygonPoint()?ombvGetterPolygonPoint()->size():0); r++)
     addRow();
   // set cell values
-  for(unsigned int r=0; r<ombvGetterPolygonPoint()->size(); r++) {
+  for(unsigned int r=0; r<(ombvGetterPolygonPoint()?ombvGetterPolygonPoint()->size():0); r++) {
     QDoubleSpinBox *spinBox;
 
     spinBox=static_cast<QDoubleSpinBox*>(table->cellWidget(r, 0));

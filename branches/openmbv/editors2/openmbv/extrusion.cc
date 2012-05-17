@@ -138,7 +138,7 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   SoGroup *soTess=new SoGroup;
   soTess->ref();
   vector<GLdouble*> vPtr;
-  vPtr.reserve(contour.size()*contour[0]->size()*2);
+  vPtr.reserve(contour.size()*(contour.size()>0?contour[0]->size():0)*2);
   gluTessBeginPolygon(Utils::tess, soTess);
   for(size_t c=0; c<contour.size(); c++) {
     gluTessBeginContour(Utils::tess);

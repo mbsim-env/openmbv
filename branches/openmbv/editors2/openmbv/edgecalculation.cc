@@ -171,7 +171,7 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
 }
 
 EdgeCalculation::~EdgeCalculation() {
-  creaseEdges->unref();
+  if(creaseEdges) creaseEdges->unref();
   if(!useCache) {
     preData.coord->unref(); // decrement reference count if not a cached entry
     delete preData.edgeIndFPV;

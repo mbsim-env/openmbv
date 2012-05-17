@@ -59,10 +59,10 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
   extrusion->scale.setDefault(FALSE);
 
   // cross section
-  extrusion->crossSection.setNum(contour->size()+1);
+  extrusion->crossSection.setNum(contour?contour->size()+1:0);
   SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(size_t i=0;i<contour->size();i++) cs[i] = SbVec2f((*contour)[i]->getXComponent(), (*contour)[i]->getYComponent()); // clockwise in local coordinate system
-  cs[contour->size()] =  SbVec2f((*contour)[0]->getXComponent(), (*contour)[0]->getYComponent()); // closed cross section
+  for(size_t i=0;i<(contour?contour->size():0);i++) cs[i] = SbVec2f((*contour)[i]->getXComponent(), (*contour)[i]->getYComponent()); // clockwise in local coordinate system
+  if(contour) cs[contour->size()] =  SbVec2f((*contour)[0]->getXComponent(), (*contour)[0]->getYComponent()); // closed cross section
   extrusion->crossSection.finishEditing();
   extrusion->crossSection.setDefault(FALSE);
 
