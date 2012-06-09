@@ -26,7 +26,7 @@
 #include <octave/toplev.h>
 #include "env.h"
 #ifdef MBXMLUTILS_MINGW // Windows
-#  include "Windows.h"
+#  include "windows.h"
 #endif
 // #include <config.h> conflict with octave header
 
