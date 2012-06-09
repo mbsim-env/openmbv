@@ -4,7 +4,7 @@ AC_INIT([mbxmlutils],[1.1.0],[friedrich.at.gc@googlemail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([xsd2html/addDoxygenToXsd.xsl])
 AC_CONFIG_HEADERS([config.h])
-AC_PROG_LIBTOOL
+LT_INIT([win32-dll])
 AC_PROG_CC
 AC_PROG_CXX
 AC_LANG([C++])
@@ -14,10 +14,11 @@ AC_CHECK_FUNCS([dup2])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr]) 
+AC_CHECK_FUNCS([malloc]) 
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
-AC_FUNC_MALLOC
+# AC_FUNC_MALLOC does not work for mingw cross compiling
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
@@ -28,8 +29,6 @@ if test "_$host_os" = "_mingw32" ; then
   AC_DEFINE([MBXMLUTILS_MINGW], [1], [Host System is MinGW/MSys])
   CPPFLAGS="$CPPFLAGS -DMBXMLUTILS_MINGW"
 fi
-
-LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 AC_CHECK_HEADERS([unordered_map unordered_set])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
@@ -56,43 +55,74 @@ AC_SUBST([XMLLINT],[$xmllint])
 dnl Check for octave
 # check for pthread and include if found
 AC_CHECK_LIB(pthread, pthread_mutexattr_init, LIBS="$LIBS -lpthread")
-# user supplied path to mkoctfile
-AC_ARG_WITH([mkoctfile-path],
-  [  --with-mkoctfile-path=PATHTOMKOCTFILE  The path to the 'mkoctfile' program.],
-  [mkoctfilepath="$withval"],[mkoctfilepath=""])
+# user supplied mkoctfile program
+AC_ARG_WITH([mkoctfile],
+  [  --with-mkoctfile=PATHTOMKOCTFILE  The 'mkoctfile' program.],
+  [mkoctfile="$withval"],[mkoctfile="no"])
 # user supplied libraries for static linking against octave
 # add static version of octave DLD (*.oct) files here
 AC_ARG_WITH([octave-dld],
   [  --with-octave-dld=STATICLIBARCHIV  Add STATICLIBARCHIV between -loctinterp and -loctave liker flags. (This is only used if static octave DLD (*.oct) files should be included)],
   [STATICOCTAVEDLDLIB="$withval"],[STATICOCTAVEDLDLIB=""])
 # get mkoctfile program
-AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$mkoctfilepath:$prefix/bin:$PATH])
+if test "$mkoctfile" == "no"; then
+  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
+fi
 test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
 AC_SUBST([MKOCTFILE],[$mkoctfile])
-# use allways the same compiler as mkoctfile for CXX
-AC_PATH_PROG([CXX],[$($MKOCTFILE -p CXX)],[no],[$mkoctfilepath:$mkoctfilepath/../mingw32/bin:$prefix/bin:$PATH])
-test $CXX = "no" && AC_MSG_ERROR([mkoctfile compiler not found])
 # get mkoctfile compiler flags
-MKOCTFILE_CFLAGS="$(echo $($MKOCTFILE -p INCFLAGS) | sed -re 's|\\|/|g')"
+DOS2UNIX="cat"
+if test "$cross_compiling" == "yes"; then
+  DOS2UNIX="dos2unix"
+fi
+MKOCTFILE_CFLAGS="$(echo $($MKOCTFILE -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
 MKOCTFILE_LIBS="$(echo \
-  $(unset RLD_FLAG; $MKOCTFILE -p RLD_FLAG) \
-  $(unset LFLAGS; $MKOCTFILE -p LFLAGS) \
-  $(unset LIBOCTINTERP; $MKOCTFILE -p LIBOCTINTERP) \
+  $(unset RLD_FLAG; $MKOCTFILE -p RLD_FLAG | $DOS2UNIX) \
+  $(unset LFLAGS; $MKOCTFILE -p LFLAGS | $DOS2UNIX) \
+  $(unset LIBOCTINTERP; $MKOCTFILE -p LIBOCTINTERP | $DOS2UNIX) \
   $STATICOCTAVEDLDLIB \
-  $(unset LIBOCTAVE; $MKOCTFILE -p LIBOCTAVE) \
-  $(unset LIBCRUFT; $MKOCTFILE -p LIBCRUFT) \
-  $(unset FFTW_LIBS; $MKOCTFILE -p FFTW_LIBS) \
-  $(unset BLAS_LIBS; $MKOCTFILE -p BLAS_LIBS) \
-  $(unset FLIBS; $MKOCTFILE -p FLIBS) \
-  $(unset LIBS; $MKOCTFILE -p LIBS) \
+  $(unset LIBOCTAVE; $MKOCTFILE -p LIBOCTAVE | $DOS2UNIX) \
+  $(unset LIBCRUFT; $MKOCTFILE -p LIBCRUFT | $DOS2UNIX) \
+  $(unset FFTW_LIBS; $MKOCTFILE -p FFTW_LIBS | $DOS2UNIX) \
+  $(unset BLAS_LIBS; $MKOCTFILE -p BLAS_LIBS | $DOS2UNIX) \
+  $(unset FLIBS; $MKOCTFILE -p FLIBS | $DOS2UNIX) \
+  $(unset LIBS; $MKOCTFILE -p LIBS | $DOS2UNIX) \
   | sed -re 's|\\|/|g')"
+
+if test "$cross_compiling" == "yes"; then
+  # convert MKOCTFILE_CFLAGS to unix path if cross compiling
+  RERUN=0
+  while test $RERUN -eq 0; do
+    WINPATH=$(echo $MKOCTFILE_CFLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+    echo $MKOCTFILE_CFLAGS | grep "\-I" &> /dev/null
+    RERUN=$?
+  done
+  MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|-X|-I|g")
+
+  # convert MKOCTFILE_LIBS to unix path if cross compiling
+  RERUN=0
+  while test $RERUN -eq 0; do
+    WINPATH=$(echo $MKOCTFILE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+    echo $MKOCTFILE_LIBS | grep "\-L" &> /dev/null
+    RERUN=$?
+  done
+  MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
+fi
+
 AC_SUBST([MKOCTFILE_CFLAGS])
 AC_SUBST([MKOCTFILE_LIBS])
 # try to compile a octave stand alone program
 SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
-SAVE_LIBS=$LIBS; LIBS="$LIBS $MKOCTFILE_LIBS"
+SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
 AC_CHECKING(compiling a octave program)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <stdlib.h>
+#include <cstdlib>
+#include <unistd.h>
 #include <octave/oct.h>
 #include <octave/octave.h>
 #include <octave/parse.h>]],[[
@@ -130,6 +160,9 @@ if test "_$host_os" = "_mingw32" ; then
 fi
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror"
+
+# from now on only libtool is used for linking
+LDFLAGS="$LDFLAGS -no-undefined"
 
 AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutils.pc mbxmlutils/env.h mbxmlutils/octave/Makefile mbxmlutils/check/Makefile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])

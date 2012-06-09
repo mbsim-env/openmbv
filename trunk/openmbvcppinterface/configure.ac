@@ -4,7 +4,7 @@ AC_INIT([openmbvcppinterface],[3.1.0],[friedrich.at.gc@googlemail.com])
 AC_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([openmbvcppinterface/body.h])
-AC_PROG_LIBTOOL
+LT_INIT([win32-dll])
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
@@ -12,7 +12,6 @@ AC_LANG([C++])
 dnl force strict standard conformance
 CPPFLAGS="$CPPFLAGS -Wall -Werror -pedantic-errors -Wno-long-long"
 CFLAGS="$CFLAGS -std=iso9899:1990"
-LDFLAGS="$LDFLAGS -Wl,--no-undefined"
 
 AC_SUBST([DEFINES])
 
@@ -39,6 +38,8 @@ fi
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
+
+LDFLAGS="$LDFLAGS -no-undefined"
 
 AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile])
