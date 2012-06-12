@@ -52,30 +52,30 @@ AC_ARG_WITH(qtpluginlibinfix,
   [QTPLUGINLIBINFIX=""])
 dnl check for static qsvg imageformats plugin
 qsvg=0
-if test -f $QTLIBDIR/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a; then
+if test -e $QTLIBDIR/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a; then
   qsvg=1
 else
-  QT_LIBS="-L$QTLIBDIR/plugins/imageformats -L$QTLIBDIR/lib/qt4/plugins/imageformats -lqsvg$QTPLUGINLIBINFIX $QT_LIBS"
+  QT_LIBS="-L$QTLIBDIR/plugins/imageformats -L$QTLIBDIR/qt4/plugins/imageformats -lqsvg$QTPLUGINLIBINFIX $QT_LIBS"
 fi
-if test -f $QTPREFIX/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a; then
+if test -e $QTPREFIX/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a; then
   qsvg=1
 else
-  QT_LIBS="-L$QTPREFIX/plugins/imageformats -L$QTPREFIX/lib/qt4/plugins/imageformats -lqsvg$QTPLUGINLIBINFIX $QT_LIBS"
+  QT_LIBS="-L$QTPREFIX/plugins/imageformats -L$QTPREFIX/qt4/plugins/imageformats -lqsvg$QTPLUGINLIBINFIX $QT_LIBS"
 fi
 if test $qsvg -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
 fi
 dnl check for static qsvgicon iconengines plugin
 qsvgicon=0
-if test -f $QTLIBDIR/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a; then
+if test -e $QTLIBDIR/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a; then
   qsvgicon=1
 else
-  QT_LIBS="-L$QTLIBDIR/plugins/iconengines -L$QTLIBDIR/lib/qt4/plugins/iconengines -lqsvgicon$QTPLUGINLIBINFIX $QT_LIBS"
+  QT_LIBS="-L$QTLIBDIR/plugins/iconengines -L$QTLIBDIR/qt4/plugins/iconengines -lqsvgicon$QTPLUGINLIBINFIX $QT_LIBS"
 fi
-if test -f $QTPREFIX/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a; then
+if test -e $QTPREFIX/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a; then
   qsvgicon=1
 else
-  QT_LIBS="-L$QTPREFIX/plugins/iconengines -L$QTPREFIX/lib/qt4/plugins/iconengines -lqsvgicon$QTPLUGINLIBINFIX $QT_LIBS"
+  QT_LIBS="-L$QTPREFIX/plugins/iconengines -L$QTPREFIX/qt4/plugins/iconengines -lqsvgicon$QTPLUGINLIBINFIX $QT_LIBS"
 fi
 if test $qsvgicon -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
