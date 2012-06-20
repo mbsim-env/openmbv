@@ -637,8 +637,8 @@ int main(int argc, char *argv[]) {
     octave_argv[1]=(char*)malloc(3*sizeof(char*)); strcpy(octave_argv[1], "-q");
     octave_main(2, octave_argv, 1);
     int dummy;
-    eval_string("warning(\"error\",\"Octave:divide-by-zero\");",true,dummy,0); // statement list
-    eval_string("addpath(\""+OCTAVEDIR+"\");",true,dummy,0); // statement list
+    eval_string("warning('error','Octave:divide-by-zero');",true,dummy,0); // statement list
+    eval_string("addpath('"+OCTAVEDIR+"');",true,dummy,0); // statement list
   
     // preserve whitespace and newline in TiXmlText nodes
     TiXmlBase::SetCondenseWhiteSpace(false);
@@ -668,7 +668,7 @@ int main(int argc, char *argv[]) {
         char curPath[PATHLENGTH];
         string absmpath=fixPath(string(getcwd(curPath, PATHLENGTH))+"/", *i2);
         // add to octave search path
-        eval_string("addpath(\""+absmpath+"\");",true,dummy,0); // statement list
+        eval_string("addpath('"+absmpath+"');",true,dummy,0); // statement list
         // add m-files in mpath dir to dependencies
         addFilesInDir(dependencies, *i2, ".m");
         arg.erase(i); arg.erase(i2);
