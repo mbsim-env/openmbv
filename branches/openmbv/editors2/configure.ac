@@ -4,7 +4,7 @@ AC_INIT([openmbv],[0.0.0],[friedrich.at.gc@googlemail.com]) # Version is not use
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([openmbv/object.h])
-AC_PROG_LIBTOOL
+LT_INIT([win32-dll])
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
@@ -55,17 +55,22 @@ AC_SUBST([UIC])
 AC_SUBST([RCC])
 test -d "$QTLIBDIR" || QTLIBDIR=$(pkg-config --variable libdir QtCore)
 test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
+
+AC_ARG_WITH(qtpluginlibinfix,
+  [  --with-qtpluginlibinfix=IN  Infix for Qt plugins librarys -lqsvgicon<IN>.a],
+  [QTPLUGINLIBINFIX="$withval"],
+  [QTPLUGINLIBINFIX=""])
 dnl check for static qsvg imageformats plugin
 qsvg=0
-AC_CHECK_FILE([$QTLIBDIR/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$QTLIBDIR/plugins/imageformats -lqsvg $QT_LIBS"])
-AC_CHECK_FILE([$QTPREFIX/plugins/imageformats/libqsvg.a], [qsvg=1; QT_LIBS="-L$QTPREFIX/plugins/imageformats -lqsvg $QT_LIBS"])
+test -e $QTLIBDIR/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a && qsvg=1
+test -e $QTPREFIX/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a && qsvg=1
 if test $qsvg -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
 fi
 dnl check for static qsvgicon iconengines plugin
 qsvgicon=0
-AC_CHECK_FILE([$QTLIBDIR/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$QTLIBDIR/plugins/iconengines -lqsvgicon $QT_LIBS"])
-AC_CHECK_FILE([$QTPREFIX/plugins/iconengines/libqsvgicon.a], [qsvgicon=1; QT_LIBS="-L$QTPREFIX/plugins/iconengines -lqsvgicon $QT_LIBS"])
+test -e $QTLIBDIR/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a && qsvgicon=1
+test -e $QTPREFIX/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a && qsvgicon=1
 if test $qsvgicon -eq 1; then
   AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
 fi
@@ -87,14 +92,27 @@ AC_ARG_WITH(qwt_inc_prefix,
   [  --with-qwt-inc-prefix=PFX  Prefix where qwt headers are installed],
   [QWT_CFLAGS="-I$withval"],
   [QWT_CFLAGS="-I$prefix/include"])
+AC_ARG_WITH(qwt_lib_name,
+  [  --with-qwt-lib-lib=name  QWt library name -l<name> (defaults to qwt)],
+  [QWT_LIBNAME="$withval"],
+  [QWT_LIBNAME="qwt"])
 AC_ARG_WITH(qwt_lib_prefix,
   [  --with-qwt-lib-prefix=PFX  Prefix where qwt library is installed],
-  [QWT_LIBS="-L$withval -lqwt"],
-  [QWT_LIBS="-L$prefix/lib -lqwt"])
-OLD=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
+  [QWT_LIBS="-L$withval -l$QWT_LIBNAME"],
+  [QWT_LIBS="-L$prefix/lib -l$QWT_LIBNAME"])
+OLDCPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
+OLDLIBS=$LIBS; LIBS="$LIBS $QWT_LIBS $QT_LIBS"
 AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes],
   [AC_MSG_WARN([Can not find qwt >= 5! Some functionality will not work!]); QWT=no])
-CPPFLAGS=$OLD
+if test "_$QWT" == "_yes"; then
+AC_TRY_LINK(
+  [#include <qwt_plot_grid.h>],
+  [new QwtPlotGrid;],
+  [],
+  [AC_MSG_ERROR([Can not link with qwt >= 5!])])
+fi
+CPPFLAGS=$OLDCPPFLAGS
+LIBS=$OLDLIBS
 AC_SUBST([QWT_CFLAGS])
 AC_SUBST([QWT_LIBS])
 AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
@@ -108,16 +126,18 @@ if test "_$HAVE_MBXMLUTILS" = "_yes"; then
   AC_SUBST([MBXMLUTILSDOCDIR],[$(pkg-config mbxmlutils --variable DOCDIR)])
   OPENMBVCPPINTERFACEINCDIR=$(pkg-config openmbvcppinterface --variable includedir)
   AC_SUBST([OPENMBVCPPINTERFACEINCDIR])
-  if test "_$WIN32" = "_yes"; then
-    OPENMBVCPPINTERFACEINCDIR_native=$(cd $OPENMBVCPPINTERFACEINCDIR; pwd -W)
-  else
-    OPENMBVCPPINTERFACEINCDIR_native=$OPENMBVCPPINTERFACEINCDIR
-  fi
-  AC_SUBST([OPENMBVCPPINTERFACEINCDIR_native])
 fi
+
+# windres
+AC_ARG_WITH(windres,
+  [  --with-windres=prog  The windres program (defaults to windres)],
+  [WINDRES="$withval"],
+  [WINDRES="windres"])
+AC_SUBST([WINDRES])
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror"
 CXXFLAGS="$CXXFLAGS -Wno-non-virtual-dtor"
+LDFLAGS="$LDFLAGS -no-undefined"
 
 AC_CONFIG_FILES([Makefile openmbv/Makefile doc/Makefile doc/Doxyfile])
 
