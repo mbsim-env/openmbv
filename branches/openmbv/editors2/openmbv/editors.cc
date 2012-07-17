@@ -337,7 +337,7 @@ void FloatMatrixEditor::valueChangedSlot() {
     assert(cols==1 || rows==1);
     std::vector<double> vec;
     // get values from Qt
-    for(unsigned int i=0; i<(cols==1?table->rowCount():table->columnCount()); i++)
+    for(int i=0; i<(cols==1?table->rowCount():table->columnCount()); i++)
       vec.push_back(static_cast<QDoubleSpinBox*>(table->cellWidget(cols==1?i:0, cols==1?0:i))->value());
     // set values to OpenMBV
     ombvSetterVector(vec);

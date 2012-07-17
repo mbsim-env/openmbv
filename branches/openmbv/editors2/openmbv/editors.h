@@ -432,7 +432,7 @@ void FloatEditor::setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*gett
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   spinBox->blockSignals(true);
-  if(spinBox->specialValueText()=="" || !isnan(ombvGetter()))
+  if(spinBox->specialValueText()=="" || !std::isnan(ombvGetter()))
     spinBox->setValue(ombvGetter()/factor);
   else
     spinBox->setValue(spinBox->minimum());

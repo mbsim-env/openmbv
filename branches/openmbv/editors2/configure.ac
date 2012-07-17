@@ -26,6 +26,9 @@ AC_TYPE_INT32_T
 dnl check host
 AC_CANONICAL_HOST
 if test "_$host_os" = "_mingw32"; then
+  # -fno-keep-inline-dllexport: requires gcc >= 4.6; and is reauired by Qt to avoid the generatoin of
+  # code for inline functions which causes undefines symbols on linkage.
+  CPPFLAGS="-fno-keep-inline-dllexport $CPPFLAGS"
   LDFLAGS="-mwindows $LDFLAGS"
   WIN32=yes
 fi
