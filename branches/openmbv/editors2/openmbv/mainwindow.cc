@@ -752,7 +752,7 @@ MainWindow::~MainWindow() {
   delete bgColor;
   delete fgColorTop;
   delete fgColorBottom;
-  delete frame;
+  SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
   SoQt::done();
 }

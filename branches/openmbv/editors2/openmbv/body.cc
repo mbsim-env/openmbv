@@ -128,9 +128,9 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     );
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
-  }
 
-  // MFMF hdf5link
+    // MFMF hdf5link
+  }
 }
 
 Body::~Body() {
