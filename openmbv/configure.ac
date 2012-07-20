@@ -40,7 +40,7 @@ AC_CHECK_HEADERS([unordered_map])
 dnl GET VERSION from svn
 SVNVERSION1=$(svnversion -n . https://openmbv.googlecode.com/svn/trunk/openmbv)
 SVNVERSION2=$(svnversion -n . http://openmbv.googlecode.com/svn/trunk/openmbv)
-if [ ${#SVNVERSION1} -lt ${#SVNVERSION2} ]; then
+if test ${#SVNVERSION1} -lt ${#SVNVERSION2}; then
   SVNVERSION=$SVNVERSION1
 else
   SVNVERSION=$SVNVERSION2
