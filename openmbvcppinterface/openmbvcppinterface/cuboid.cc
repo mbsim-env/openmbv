@@ -31,7 +31,7 @@ Cuboid::Cuboid() : RigidBody(),
 
 TiXmlElement* Cuboid::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "length", length);
+  addElementText(e, OPENMBVNS"length", length);
   return 0;
 }
 

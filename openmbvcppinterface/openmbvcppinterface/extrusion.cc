@@ -54,8 +54,8 @@ TiXmlElement *Extrusion::writeXMLFile(TiXmlNode *parent) {
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  addElementText(e, "windingRule", "\""+windingRuleStr+"\"");
-  addElementText(e, "height", height);
+  addElementText(e, OPENMBVNS"windingRule", "\""+windingRuleStr+"\"");
+  addElementText(e, OPENMBVNS"height", height);
   for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);
   return 0;

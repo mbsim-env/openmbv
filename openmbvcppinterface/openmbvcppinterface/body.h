@@ -39,7 +39,6 @@ namespace OpenMBV {
       DrawStyle drawMethod;
       Body* hdf5LinkBody;
       std::string hdf5LinkStr;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       void openHDF5File();
       void terminate();
@@ -76,6 +75,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       /** Pure virtual function to append a vector<double> row to the data.
        * NOTE that this is an convinience function, because most OpenMBV data is

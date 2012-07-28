@@ -30,7 +30,6 @@ namespace OpenMBV {
       ScalarParameter minimalColorValue, maximalColorValue;
       ScalarParameter staticColor;
       double dynamicColor;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       ~DynamicColoredBody();
     public:
@@ -77,6 +76,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
   };
 
 }

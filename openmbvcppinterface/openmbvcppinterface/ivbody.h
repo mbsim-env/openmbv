@@ -54,12 +54,13 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
     protected:
       ~IvBody() {}
       std::string ivFileName;
       ScalarParameter creaseAngle;
       bool boundaryEdges;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
   };
 
 }

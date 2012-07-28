@@ -39,7 +39,6 @@ namespace OpenMBV {
       std::string expandStr;
       std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
       bool separateFile;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       void openHDF5File();
       void readSimpleParameter();
@@ -127,6 +126,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup() { return separateFile?this:parent->getSeparateGroup(); }

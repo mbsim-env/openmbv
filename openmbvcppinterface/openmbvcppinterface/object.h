@@ -50,7 +50,6 @@ namespace OpenMBV {
       std::string name;
       std::string enableStr, boundingBoxStr;
       Group* parent;
-      virtual TiXmlElement *writeXMLFile(TiXmlNode *parent);
 
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
@@ -104,6 +103,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      virtual TiXmlElement *writeXMLFile(TiXmlNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup();

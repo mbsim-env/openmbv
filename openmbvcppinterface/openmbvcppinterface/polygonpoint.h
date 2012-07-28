@@ -54,7 +54,7 @@ namespace OpenMBV {
           str+=Object::numtostr((*j)->getXComponent())+", "+Object::numtostr((*j)->getYComponent())+", "+Object::numtostr((*j)->getBorderValue());
           if(j+1!=cont->end()) str+=";    "; else str+=" ]";
         }
-        Object::addElementText(parent, "contour", str);
+        Object::addElementText(parent, OPENMBVNS"contour", str);
       }
 
       static std::vector<PolygonPoint*>* initializeUsingXML(TiXmlElement *element) {

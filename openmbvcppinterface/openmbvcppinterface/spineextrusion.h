@@ -85,6 +85,9 @@ namespace OpenMBV {
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
 
+      /** Write XML file for not time-dependent data. */
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+
     protected:
       /** destructor */
       virtual ~SpineExtrusion();
@@ -100,9 +103,6 @@ namespace OpenMBV {
 
       /** Scale factor of the body. */
       ScalarParameter scaleFactor;
-
-      /** Write XML file for not time-dependent data. */
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

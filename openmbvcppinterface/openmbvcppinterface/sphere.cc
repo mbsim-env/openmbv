@@ -31,7 +31,7 @@ Sphere::Sphere() : RigidBody(),
 
 TiXmlElement* Sphere::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "radius", radius);
+  addElementText(e, OPENMBVNS"radius", radius);
   return 0;
 }
 

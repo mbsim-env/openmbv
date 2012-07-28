@@ -44,8 +44,8 @@ Rotation::~Rotation() {
 
 TiXmlElement* Rotation::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "startAngle", startAngle, 0);
-  addElementText(e, "endAngle", endAngle, 2*M_PI);
+  addElementText(e, OPENMBVNS"startAngle", startAngle, 0);
+  addElementText(e, OPENMBVNS"endAngle", endAngle, 2*M_PI);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   return 0;
 }

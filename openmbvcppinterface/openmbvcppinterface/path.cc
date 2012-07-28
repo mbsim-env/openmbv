@@ -34,7 +34,7 @@ Path::~Path() {
 
 TiXmlElement* Path::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=Body::writeXMLFile(parent);
-  addElementText(e, "color", color);
+  addElementText(e, OPENMBVNS"color", color);
   return 0;
 }
 

@@ -47,9 +47,9 @@ TiXmlElement* RigidBody::writeXMLFile(TiXmlNode *parent) {
   addAttribute(e, "referenceFrame", referenceFrameStr, "false");
   addAttribute(e, "path", pathStr, "false");
   addAttribute(e, "dragger", draggerStr, "false");
-  addElementText(e, "initialTranslation", initialTranslation);
-  addElementText(e, "initialRotation", initialRotation);
-  addElementText(e, "scaleFactor", scaleFactor);
+  addElementText(e, OPENMBVNS"initialTranslation", initialTranslation);
+  addElementText(e, OPENMBVNS"initialRotation", initialRotation);
+  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
   return e;
 }
 

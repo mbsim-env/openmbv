@@ -31,10 +31,10 @@ Grid::Grid() : RigidBody(),
 
 TiXmlElement* Grid::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "xSize", xSize);
-  addElementText(e, "ySize", ySize);
-  addElementText(e, "nx", nx);
-  addElementText(e, "ny", ny);
+  addElementText(e, OPENMBVNS"xSize", xSize);
+  addElementText(e, OPENMBVNS"ySize", ySize);
+  addElementText(e, OPENMBVNS"nx", nx);
+  addElementText(e, OPENMBVNS"ny", ny);
   return 0;
 }
 
