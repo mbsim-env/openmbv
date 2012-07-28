@@ -12,6 +12,9 @@
 #include <map>
 #include <string>
 
+#define XINCLUDENS_ "http://www.w3.org/2001/XInclude"
+#define XINCLUDENS "{"XINCLUDENS_"}"
+
 const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i);
 void TiXml_PostLoadFile(TiXmlDocument *doc);
 
@@ -55,7 +58,7 @@ void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &ns
  * The namespace alias attriburtes 'xmlns:...=...' are only added to
  * the root element.
  */
-int unIncorporateNamespace(TiXmlElement *e, std::map<std::string,std::string>& nsprefix, bool firstCall=true);
+void unIncorporateNamespace(TiXmlElement *e, std::map<std::string,std::string>& nsprefix, bool firstCall=true);
 
 /* appends the path of oldFile to newFile if newFile has not
  * an absoulute path
