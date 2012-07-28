@@ -89,17 +89,17 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   }
 
   //GUI editors
-  QAction *deleteObject=new QAction(Utils::QIconCached(":/deleteobject.svg"), "Delete Object", this);
+  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", this);
 //MFMF multiedit  deleteObject->setObjectName("Group::deleteObject");
   connect(deleteObject,SIGNAL(activated()),this,SLOT(deleteObjectSlot()));
   properties->addContextAction(deleteObject);
 
   if(!clone) {
-    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached(":/drawobject.svg"), "Draw object");
+    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object");
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
     properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
 
-    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached(":/bbox.svg"), "Show bounding box");
+    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box");
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
     properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
   }
@@ -132,7 +132,7 @@ string Object::getPath() {
 
 QString Object::getInfo() {
   return QString("<b>Path:</b> %1<br/>").arg(getPath().c_str())+
-         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2").arg(iconFile.c_str()).arg(metaObject()->className());
+         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2").arg((Utils::getIconPath()+"/"+getIconFile()).c_str()).arg(metaObject()->className());
 }
 
 void Object::nodeSensorCB(void *data, SoSensor*) {

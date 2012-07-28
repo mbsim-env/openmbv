@@ -55,7 +55,7 @@ class Utils {
     /** Use QIconCached(filename) instead of QIcon(filename) everywhere
      * to cache the parsing of e.g. SVG files. This lead to a speedup
      * (at app init) by a factor of 11 in my test case. */
-    static const QIcon& QIconCached(const QString& filename);
+    static const QIcon& QIconCached(std::string filename);
 
     /** Use SoDBreadAllCached(filename) instead of SoDBreadAll(filename) everywhere
      * to cache the iv-file parsing and scene generation */
@@ -72,6 +72,11 @@ class Utils {
     static SbRotation cardan2Rotation(const SbVec3f& c);
     /** Convenienc function to convert a rotation matrix to cardan angles */
     static SbVec3f rotation2Cardan(const SbRotation& r);
+
+    static std::string getExePath();
+    static std::string getIconPath();
+    static std::string getXMLDocPath();
+    static std::string getDocPath();
 
 
     // TESSELATION

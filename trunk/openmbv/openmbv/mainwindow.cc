@@ -248,34 +248,34 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   QAction *act;
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar());
-  QAction *addFileAct=fileMenu->addAction(Utils::QIconCached(":/addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
-  fileMenu->addAction(Utils::QIconCached(":/newfile.svg"), "New file...", this, SLOT(newFileDialog()));
+  QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
+  fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, SLOT(newFileDialog()));
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached(":/exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
-  act=fileMenu->addAction(Utils::QIconCached(":/exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
   addAction(act); // must work also if menu bar is invisible
-  fileMenu->addAction(Utils::QIconCached(":/exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
+  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
   fileMenu->addSeparator();
-  fileMenu->addAction(Utils::QIconCached(":/loadwst.svg"), "Load window state...", this, SLOT(loadWindowState()));
-  act=fileMenu->addAction(Utils::QIconCached(":/savewst.svg"), "Save window state...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
+  fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, SLOT(loadWindowState()));
+  act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
   addAction(act); // must work also if menu bar is invisible
-  fileMenu->addAction(Utils::QIconCached(":/loadcamera.svg"), "Load camera...", this, SLOT(loadCamera()));
-  act=fileMenu->addAction(Utils::QIconCached(":/savecamera.svg"), "Save camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
+  fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, SLOT(loadCamera()));
+  act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached(":/quit.svg"), "Exit", qApp, SLOT(quit()));
+  act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, SLOT(quit()));
   addAction(act); // must work also if menu bar is invisible
   menuBar()->addMenu(fileMenu);
 
   // animation menu
-  stopAct=new QAction(Utils::QIconCached(":/stop.svg"), "Stop", this);
+  stopAct=new QAction(Utils::QIconCached("stop.svg"), "Stop", this);
   addAction(stopAct); // must work also if menu bar is invisible
   stopAct->setShortcut(QKeySequence("S"));
-  lastFrameAct=new QAction(Utils::QIconCached(":/lastframe.svg"), "Last frame", this);
+  lastFrameAct=new QAction(Utils::QIconCached("lastframe.svg"), "Last frame", this);
   addAction(lastFrameAct); // must work also if menu bar is invisible
   lastFrameAct->setShortcut(QKeySequence("L"));
-  playAct=new QAction(Utils::QIconCached(":/play.svg"),           "Play", this);
+  playAct=new QAction(Utils::QIconCached("play.svg"),           "Play", this);
   addAction(playAct); // must work also if menu bar is invisible
   playAct->setShortcut(QKeySequence("P"));
   stopAct->setCheckable(true);
@@ -297,26 +297,26 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // scene view menu
   QMenu *sceneViewMenu=new QMenu("Scene View", menuBar());
-  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached(":/viewall.svg"),"View all", this, SLOT(viewAllSlot()), QKeySequence("A"));
+  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, SLOT(viewAllSlot()), QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
-  QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached(":/axialview.svg"),"Axial view");
-  QAction *topViewAct=axialView->addAction(Utils::QIconCached(":/topview.svg"),"Top", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
+  QAction *topViewAct=axialView->addAction(Utils::QIconCached("topview.svg"),"Top", this, SLOT(viewTopSlot()), QKeySequence("T"));
   addAction(topViewAct); // must work also if menu bar is invisible
-  QAction *bottomViewAct=axialView->addAction(Utils::QIconCached(":/bottomview.svg"),"Bottom", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  QAction *bottomViewAct=axialView->addAction(Utils::QIconCached("bottomview.svg"),"Bottom", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
   addAction(bottomViewAct); // must work also if menu bar is invisible
-  QAction *frontViewAct=axialView->addAction(Utils::QIconCached(":/frontview.svg"),"Front", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  QAction *frontViewAct=axialView->addAction(Utils::QIconCached("frontview.svg"),"Front", this, SLOT(viewFrontSlot()), QKeySequence("F"));
   addAction(frontViewAct); // must work also if menu bar is invisible
-  QAction *backViewAct=axialView->addAction(Utils::QIconCached(":/backview.svg"),"Back", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  QAction *backViewAct=axialView->addAction(Utils::QIconCached("backview.svg"),"Back", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
   addAction(backViewAct); // must work also if menu bar is invisible
-  QAction *rightViewAct=axialView->addAction(Utils::QIconCached(":/rightview.svg"),"Right", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  QAction *rightViewAct=axialView->addAction(Utils::QIconCached("rightview.svg"),"Right", this, SLOT(viewRightSlot()), QKeySequence("R"));
   addAction(rightViewAct); // must work also if menu bar is invisible
-  QAction *leftViewAct=axialView->addAction(Utils::QIconCached(":/leftview.svg"),"Left", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
+  QAction *leftViewAct=axialView->addAction(Utils::QIconCached("leftview.svg"),"Left", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
   addAction(leftViewAct); // must work also if menu bar is invisible
-  QMenu *spaceView=sceneViewMenu->addMenu(Utils::QIconCached(":/spaceview.svg"),"Space view");
-  QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached(":/isometricview.svg"),"Isometric", this, SLOT(viewIsometricSlot()));
-  QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached(":/dimetricview.svg"),"Dimetric", this, SLOT(viewDimetricSlot()));
+  QMenu *spaceView=sceneViewMenu->addMenu(Utils::QIconCached("spaceview.svg"),"Space view");
+  QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached("isometricview.svg"),"Isometric", this, SLOT(viewIsometricSlot()));
+  QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached("dimetricview.svg"),"Dimetric", this, SLOT(viewDimetricSlot()));
   // QKeySequence("D") is used by SoQtMyViewer for dragger manipulation
-  QMenu *rotateView=sceneViewMenu->addMenu(Utils::QIconCached(":/rotateview.svg"),"Rotate view");
+  QMenu *rotateView=sceneViewMenu->addMenu(Utils::QIconCached("rotateview.svg"),"Rotate view");
   act=rotateView->addAction("+10deg About World-X-Axis", this, SLOT(viewRotateXpWorld()), QKeySequence("X"));
   addAction(act);
   act=rotateView->addAction("-10deg About World-X-Axis", this, SLOT(viewRotateXmWorld()), QKeySequence("Shift+X"));
@@ -343,24 +343,24 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   act=rotateView->addAction("-10deg About Screen-Z-Axis", this, SLOT(viewRotateZmScreen()), QKeySequence("Ctrl+Shift+Z"));
   addAction(act);
   sceneViewMenu->addSeparator();
-  act=sceneViewMenu->addAction(Utils::QIconCached(":/frame.svg"),"World frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
+  act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
   act->setCheckable(true);
-  sceneViewMenu->addAction(Utils::QIconCached(":/olselinewidth.svg"),"Outline and shilouette edge line width...", this, SLOT(olseLineWidthSlot()));
-  sceneViewMenu->addAction(Utils::QIconCached(":/olsecolor.svg"),"Outline and shilouette edge color...", this, SLOT(olseColorSlot()));
-  sceneViewMenu->addAction(Utils::QIconCached(":/complexitytype.svg"),"Complexity type...", this, SLOT(complexityType()));
-  sceneViewMenu->addAction(Utils::QIconCached(":/complexityvalue.svg"),"Complexity value...", this, SLOT(complexityValue()));
+  sceneViewMenu->addAction(Utils::QIconCached("olselinewidth.svg"),"Outline and shilouette edge line width...", this, SLOT(olseLineWidthSlot()));
+  sceneViewMenu->addAction(Utils::QIconCached("olsecolor.svg"),"Outline and shilouette edge color...", this, SLOT(olseColorSlot()));
+  sceneViewMenu->addAction(Utils::QIconCached("complexitytype.svg"),"Complexity type...", this, SLOT(complexityType()));
+  sceneViewMenu->addAction(Utils::QIconCached("complexityvalue.svg"),"Complexity value...", this, SLOT(complexityValue()));
   sceneViewMenu->addSeparator();
-  QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached(":/camera.svg"),"Toggle camera type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
-  sceneViewMenu->addAction(Utils::QIconCached(":/camerabody.svg"),"Release camera from move with body", this, SLOT(releaseCameraFromBodySlot()));
+  sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, SLOT(releaseCameraFromBodySlot()));
   sceneViewMenu->addSeparator();
-  engDrawingView=sceneViewMenu->addAction(Utils::QIconCached(":/engdrawing.svg"),"Engineering drawing", this, SLOT(toggleEngDrawingViewSlot()));
+  engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, SLOT(toggleEngDrawingViewSlot()));
   engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
   engDrawingView->setStatusTip(engDrawingView->toolTip());
   engDrawingView->setCheckable(true);
-  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Top background color...", this, SLOT(topBGColor()));
-  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached(":/bgcolor.svg"),"Bottom background color...", this, SLOT(bottomBGColor()));
-  act=sceneViewMenu->addAction(Utils::QIconCached(":/shadowrendering.svg"),"Shadow rendering", this, SLOT(shadowRenderingSlot()));
+  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Top background color...", this, SLOT(topBGColor()));
+  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Bottom background color...", this, SLOT(bottomBGColor()));
+  act=sceneViewMenu->addAction(Utils::QIconCached("shadowrendering.svg"),"Shadow rendering", this, SLOT(shadowRenderingSlot()));
   act->setToolTip("A SoDirectionalLight or other shadow generating light source must be added.");
   act->setStatusTip(act->toolTip());
   act->setCheckable(true);
@@ -486,8 +486,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // help menu
   menuBar()->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar());
-  helpMenu->addAction(Utils::QIconCached(":/help.svg"), "GUI help...", this, SLOT(guiHelp()));
-  helpMenu->addAction(Utils::QIconCached(":/help.svg"), "XML help...", this, SLOT(xmlHelp()));
+  helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, SLOT(guiHelp()));
+  helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, SLOT(xmlHelp()));
   helpMenu->addAction(Utils::QIconCached(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
   menuBar()->addMenu(helpMenu);
 
@@ -784,10 +784,10 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   Object *object=ObjectFactory(rootGroup, parentItem, soParent, ind);
   object->setText(0, fileName.c_str());
   if(!env)
-    object->getIconFile()=":/h5file.svg";
+    object->getIconFile()="h5file.svg";
   else
-    object->getIconFile()=":/envfile.svg";
-  object->setIcon(0, Utils::QIconCached(object->getIconFile().c_str()));
+    object->getIconFile()="envfile.svg";
+  object->setIcon(0, Utils::QIconCached(object->getIconFile()));
 
   // force a update
   frame->touch();
@@ -860,7 +860,7 @@ void MainWindow::xmlHelp() {
 void MainWindow::help(std::string type, QDialog *helpDialog) {
   if(!helpDialog) {
     helpDialog=new QDialog(this);
-    helpDialog->setWindowIcon(Utils::QIconCached(":/help.svg"));
+    helpDialog->setWindowIcon(Utils::QIconCached("help.svg"));
     QGridLayout *layout=new QGridLayout(helpDialog);
     helpDialog->setLayout(layout);
     QPushButton *home=new QPushButton("Home",helpDialog);
@@ -877,18 +877,15 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
     if(type=="GUI") {
       helpDialog->setWindowTitle("OpenMBV - GUI Help");
       connect(home, SIGNAL(clicked()), this, SLOT(helpHomeGUI()));
-      connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrlGUI(const QUrl&)));
-      helpViewer->load(QUrl("qrc:guihelp.xhtml"));
+      helpViewer->load(QUrl((Utils::getDocPath()+"/guihelp.xhtml").c_str()));
       helpViewerGUI=helpViewer;
     }
     else if(type=="XML") {
       helpDialog->setWindowTitle("OpenMBV - XML Help");
       connect(home, SIGNAL(clicked()), this, SLOT(helpHomeXML()));
-      connect(helpViewer, SIGNAL(linkClicked(const QUrl&)), this, SLOT(loadUrlXML(const QUrl&)));
-      helpViewer->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
+      helpViewer->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.xhtml").c_str()));
       helpViewerXML=helpViewer;
     }
-    helpViewer->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
   }
   helpDialog->show();
   helpDialog->raise();
@@ -904,34 +901,12 @@ void MainWindow::loadFinished() {
     helpViewerXML->page()->mainFrame()->findFirstElement("body").setStyleProperty("color", QPalette().brush(QPalette::Active, QPalette::Text).color().name());
 }
 
-void MainWindow::loadUrlXML(const QUrl &url) { // a workaround for Qt bug N261352
-  // if the current url is in qrc and the link clicked is relative, then resolve the link to a absoulute qrc path
-  if(helpViewerXML->url().scheme()=="qrc" && url.scheme()=="") {
-    QString qrcfile=QFileInfo(helpViewerXML->url().path()).path()+"/"+url.path();
-    cout<<"XX "<<("qrc:"+qrcfile).toStdString()<<endl;
-    helpViewerXML->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
-  }
-  else
-    helpViewerXML->load(url);
-}
-
-void MainWindow::loadUrlGUI(const QUrl &url) { // a workaround for Qt bug N261352
-  // if the current url is in qrc and the link clicked is relative, then resolve the link to a absoulute qrc path
-  if(helpViewerGUI->url().scheme()=="qrc" && url.scheme()=="") {
-    QString qrcfile=QFileInfo(helpViewerGUI->url().path()).path()+"/"+url.path();
-    cout<<"XX "<<("qrc:"+qrcfile).toStdString()<<endl;
-    helpViewerGUI->load(QUrl("qrc:"+qrcfile+"#"+url.fragment()));
-  }
-  else
-    helpViewerGUI->load(url);
-}
-
 void MainWindow::helpHomeGUI() {
-  helpViewerGUI->load(QUrl("qrc:guihelp.xhtml"));
+  helpViewerGUI->load(QUrl((Utils::getDocPath()+"/guihelp.xhtml").c_str()));
 }
 
 void MainWindow::helpHomeXML() {
-  helpViewerXML->load(QUrl("qrc:http___openmbv_berlios_de_OpenMBV/index.xhtml"));
+  helpViewerXML->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.xhtml").c_str()));
 }
 
 void MainWindow::aboutOpenMBV() {

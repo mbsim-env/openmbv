@@ -110,25 +110,79 @@ noinst_HEADERS = openmbv.qrc\
   editors.h \
   IndexedTesselationFace.h
 
-# BEGIN generate openmbv.qrc from openbv.qrc.in_sed
-# Subst PNGFILESTOINCLUDE with a <file> element for each png file in ../doc/*.png
-openmbv.qrc: openmbv.qrc.in_sed ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
-	FILES=""; \
-	for F in $$(ls -1 ../doc/http___openmbv_berlios_de_OpenMBV/*.png); do \
-	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_OpenMBV/$$(basename $$F)\">$$F</file>\n    "; \
-	done; \
-	for F in $$(ls -1 @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/*.png @MBXMLUTILSDOCDIR@/http___openmbv_berlios_de_MBXMLUtils_physicalvariable/index.xhtml); do \
-          pwd -W &> /dev/null && F=$$(cd $$(dirname $$F); echo $$(pwd -W)/$$(basename $$F)); \
-	  FILES="$$FILES<file alias=\"http___openmbv_berlios_de_MBXMLUtils_physicalvariable/$$(basename $$F)\">$$F</file>\n    "; \
-	done; \
-	sed -re "s|PNGFILESTOINCLUDE|$$FILES|" openmbv.qrc.in_sed > openmbv.qrc
-# END generate openmbv.qrc from openbv.qrc.myin
+icondir = @datadir@/openmbv/icons
+dist_icon_DATA = openmbv.svg \
+  cuboid.svg \
+  cube.svg \
+  coilspring.svg \
+  extrusion.svg \
+  rotation.svg \
+  frame.svg \
+  group.svg \
+  h5file.svg \
+  unloadfile.svg \
+  reloadfile.svg \
+  envfile.svg \
+  addfile.svg \
+  savefile.svg \
+  newfile.svg \
+  quit.svg \
+  viewall.svg \
+  camera.svg \
+  camerabody.svg \
+  axialview.svg \
+  topview.svg \
+  bottomview.svg \
+  frontview.svg \
+  backview.svg \
+  leftview.svg \
+  rightview.svg \
+  spaceview.svg \
+  isometricview.svg \
+  dimetricview.svg \
+  rotateview.svg \
+  drawobject.svg \
+  bbox.svg \
+  outline.svg \
+  shilouetteedge.svg \
+  filled.svg \
+  lines.svg \
+  points.svg \
+  localframe.svg \
+  referenceframe.svg \
+  sphere.svg \
+  invisiblebody.svg \
+  frustum.svg \
+  ivbody.svg \
+  play.svg \
+  lastframe.svg \
+  stop.svg \
+  exportimgsequence.svg \
+  exportimg.svg \
+  exportiv.svg \
+  path.svg \
+  arrow.svg \
+  centerballdragger.svg \
+  bgcolor.svg \
+  shadowrendering.svg \
+  loadwst.svg \
+  savewst.svg \
+  loadcamera.svg \
+  savecamera.svg \
+  engdrawing.svg \
+  help.svg \
+  compoundrigidbody.svg \
+  olselinewidth.svg \
+  olsecolor.svg \
+  guihelp.xhtml \
+  complexitytype.svg \
+  complexityvalue.svg \
+  newobject.svg \
+  deleteobject.svg
+
+# guihelp.xhtml
+docdir = @datadir@/openmbv/doc
+dist_doc_DATA = guihelp.xhtml
 
 # some dependencies for openmbv.qrc.cc
-openmbv.qrc.cc: openmbv.qrc ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
-
-# generate dummy documentation if not exist
-../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml:
-	echo "WARNING! XML docu do not exist. Creating empty dummy docu!"
-	mkdir -p ../doc/http___openmbv_berlios_de_OpenMBV
-	touch -r @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd ../doc/http___openmbv_berlios_de_OpenMBV/index.xhtml
+openmbv.qrc.cc: openmbv.qrc

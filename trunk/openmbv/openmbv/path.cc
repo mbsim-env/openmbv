@@ -29,8 +29,8 @@ using namespace std;
 
 Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
   path=(OpenMBV::Path*)obj;
-  iconFile=":/path.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="path.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   //h5 dataset
   int rows=path->getRows();

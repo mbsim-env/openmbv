@@ -110,22 +110,22 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
   soSepRigidBody->addChild(scale);
 
   // GUI
-  moveCameraWith=new QAction(Utils::QIconCached(":/camerabody.svg"),"Move camera with this body",this);
+  moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
 //MFMF multiedit  moveCameraWith->setObjectName("RigidBody::moveCameraWith");
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   properties->addContextAction(moveCameraWith);
 
   // GUI editors
   if(!clone) {
-    BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/localframe.svg"), "Draw local frame");
+    BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame");
     localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
     properties->addPropertyAction(localFrameEditor->getAction());
 
-    BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached(":/referenceframe.svg"), "Draw reference frame");
+    BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached("referenceframe.svg"), "Draw reference frame");
     referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
     properties->addPropertyAction(referenceFrameEditor->getAction());
 
-    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"), "Draw path of reference frame");
+    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"), "Draw path of reference frame");
     pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
     properties->addPropertyAction(pathEditor->getAction());
 

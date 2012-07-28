@@ -50,11 +50,15 @@ void Utils::initialize() {
   gluTessCallback(tess, GLU_TESS_END, (void (CALLMETHOD *)())tessEndCB);
 }
 
-const QIcon& Utils::QIconCached(const QString& filename) {
+const QIcon& Utils::QIconCached(string filename) {
+  // fix relative filename
+  if(filename[0]!=':' && filename[0]!='/')
+    filename=getIconPath()+"/"+filename;
+  
   static unordered_map<string, QIcon> myIconCache;
-  pair<unordered_map<string, QIcon>::iterator, bool> ins=myIconCache.insert(pair<string, QIcon>(filename.toStdString(), QIcon()));
+  pair<unordered_map<string, QIcon>::iterator, bool> ins=myIconCache.insert(pair<string, QIcon>(filename, QIcon()));
   if(ins.second)
-    return ins.first->second=QIcon(filename);
+    return ins.first->second=QIcon(filename.c_str());
   return ins.first->second;
 }
 
@@ -275,4 +279,34 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
   OpenMBV::Object *obj=factory[cb->currentIndex()].get<2>()();
   obj->setName(lineEdit->text().toStdString());
   return obj;
+}
+
+string Utils::getExePath() {
+  // get path of this executable
+  static char exePath[4096]="";
+  if(strcmp(exePath, "")!=0) return exePath;
+
+#ifdef MBSIMXML_MINGW // Windows
+  GetModuleFileName(NULL, exePath, sizeof(exePath));
+  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
+  *strrchr(exePath, '/')=0; // remove the program name
+#else // Linux
+  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
+  exePath[exePathLength]=0; // null terminate
+  *strrchr(exePath, '/')=0; // remove the program name
+#endif
+
+  return exePath;
+}
+
+string Utils::getIconPath() {
+  return getExePath()+"/../share/openmbv/icons";
+}
+
+string Utils::getXMLDocPath() {
+  return getExePath()+"/../share/mbxmlutils/doc";
+}
+
+string Utils::getDocPath() {
+  return getExePath()+"/../share/openmbv/doc";
 }

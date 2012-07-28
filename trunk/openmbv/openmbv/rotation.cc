@@ -30,8 +30,8 @@ using namespace std;
 
 Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Rotation* rot=(OpenMBV::Rotation*)obj;
-  iconFile=":/rotation.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="rotation.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
   vector<OpenMBV::PolygonPoint*>* contour=rot->getContour();

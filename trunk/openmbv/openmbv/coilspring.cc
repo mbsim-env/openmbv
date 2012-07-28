@@ -30,8 +30,8 @@ using namespace std;
 
 CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
   coilSpring=(OpenMBV::CoilSpring*)obj;
-  iconFile=":/coilspring.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="coilspring.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   //h5 dataset
   int rows=coilSpring->getRows();

@@ -27,8 +27,8 @@
 using namespace std;
 
 InvisibleBody::InvisibleBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  iconFile=":/invisiblebody.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="invisiblebody.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
 

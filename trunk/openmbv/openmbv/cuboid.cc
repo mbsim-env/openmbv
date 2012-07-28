@@ -31,8 +31,8 @@ using namespace std;
 
 Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Cuboid *c=(OpenMBV::Cuboid*)obj;
-  iconFile=":/cuboid.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="cuboid.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // create so
   SoCube *cuboid=new SoCube;
