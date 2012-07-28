@@ -30,7 +30,7 @@
 Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
   iconFile=":/grid.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  setIcon(0, Utils::QIconCached(iconFile));
 
   SoSeparator *sep = new SoSeparator;
 

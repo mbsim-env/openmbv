@@ -156,8 +156,6 @@ class MainWindow : public QMainWindow {
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
-    void loadUrlGUI(const QUrl &url); // a workaround for Qt bug N261352
-    void loadUrlXML(const QUrl &url); // a workaround for Qt bug N261352
     void helpHomeXML();
     void helpHomeGUI();
     void stopSCSlot();

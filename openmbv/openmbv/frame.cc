@@ -28,8 +28,8 @@
 
 Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
-  iconFile=":/frame.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="frame.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // create so
   soSepRigidBody->addChild(Utils::soFrame(f->getSize(), f->getOffset(), true));

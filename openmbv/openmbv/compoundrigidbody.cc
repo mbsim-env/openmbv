@@ -42,8 +42,8 @@ using namespace std;
 
 CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   crb=(OpenMBV::CompoundRigidBody*)obj;
-  iconFile=":/compoundrigidbody.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="compoundrigidbody.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // expand or collapse
   setExpanded(crb->getExpand());
@@ -54,7 +54,7 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
     ObjectFactory(rb[i], this, soSep, -1);
 
   // GUI
-  QAction *newObject=new QAction(Utils::QIconCached(":/newobject.svg"),"Create new RigidBody", this);
+  QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", this);
 //MFMF multiedit  newObject->setObjectName("CompoundRigidBody::newRigidBody");
   connect(newObject,SIGNAL(activated()),this,SLOT(newRigidBodySlot()));
   properties->addContextAction(newObject);
@@ -72,16 +72,16 @@ QString CompoundRigidBody::getInfo() {
 
 void CompoundRigidBody::newRigidBodySlot() {
   static vector<Utils::FactoryElement> factory=boost::assign::list_of
-    (Utils::FactoryElement(Utils::QIconCached(":/cube.svg"),          "Cube",          boost::factory<OpenMBV::Cube*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/cuboid.svg"),        "Cuboid",        boost::factory<OpenMBV::Cuboid*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/extrusion.svg"),     "Extrusion",     boost::factory<OpenMBV::Extrusion*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/frame.svg"),         "Frame",         boost::factory<OpenMBV::Frame*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/frustum.svg"),       "Frustum",       boost::factory<OpenMBV::Frustum*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"), "Grid",          boost::factory<OpenMBV::Grid*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/invisiblebody.svg"), "InvisibleBody", boost::factory<OpenMBV::InvisibleBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/ivbody.svg"),        "IvBody",        boost::factory<OpenMBV::IvBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/rotation.svg"),      "Rotation",      boost::factory<OpenMBV::Rotation*>()))
-    (Utils::FactoryElement(Utils::QIconCached(":/sphere.svg"),        "Sphere",        boost::factory<OpenMBV::Sphere*>()))
+    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),          "Cube",          boost::factory<OpenMBV::Cube*>()))
+    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),        "Cuboid",        boost::factory<OpenMBV::Cuboid*>()))
+    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),     "Extrusion",     boost::factory<OpenMBV::Extrusion*>()))
+    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),         "Frame",         boost::factory<OpenMBV::Frame*>()))
+    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),       "Frustum",       boost::factory<OpenMBV::Frustum*>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "Grid",          boost::factory<OpenMBV::Grid*>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "InvisibleBody", boost::factory<OpenMBV::InvisibleBody*>()))
+    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),        "IvBody",        boost::factory<OpenMBV::IvBody*>()))
+    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),      "Rotation",      boost::factory<OpenMBV::Rotation*>()))
+    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),        "Sphere",        boost::factory<OpenMBV::Sphere*>()))
   .to_container(factory);  
 
   vector<string> existingNames;

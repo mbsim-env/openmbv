@@ -31,8 +31,8 @@ using namespace std;
 
 Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Cube *c=(OpenMBV::Cube*)obj;
-  iconFile=":/cube.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="cube.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // create so
   SoCube *cube=new SoCube;

@@ -35,8 +35,8 @@ using namespace std;
 
 Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
-  iconFile=":/extrusion.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="extrusion.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
   OpenMBV::Extrusion::WindingRule windingRule_=e->getWindingRule();

@@ -31,8 +31,8 @@ using namespace std;
 
 Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   arrow=(OpenMBV::Arrow*)obj;
-  iconFile=":/arrow.svg";
-  setIcon(0, Utils::QIconCached(iconFile.c_str()));
+  iconFile="arrow.svg";
+  setIcon(0, Utils::QIconCached(iconFile));
 
   //h5 dataset
   int rows=arrow->getRows();
@@ -193,7 +193,7 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // GUI
   if(!clone) {
     properties->updateHeader();
-    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached(":/path.svg"),"Draw path of to-point");
+    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"),"Draw path of to-point");
     pathEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
     properties->addPropertyAction(pathEditor->getAction());
 

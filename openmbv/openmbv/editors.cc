@@ -499,7 +499,7 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
 
   // create a action to active the Dragger
   draggerCheckBox=new QCheckBox;
-  dialog->addSmallRow(Utils::QIconCached(":/centerballdragger.svg"), name+" dragger", draggerCheckBox);
+  dialog->addSmallRow(Utils::QIconCached("centerballdragger.svg"), name+" dragger", draggerCheckBox);
   connect(draggerCheckBox, SIGNAL(stateChanged(int)), this, SLOT(draggerSlot(int)));
 
   for(int i=0; i<3; i++) {

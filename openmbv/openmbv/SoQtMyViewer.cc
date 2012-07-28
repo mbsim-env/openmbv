@@ -93,7 +93,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   cc->transparency.setValue(0.6);
   SoTexture2 *ombvLogoTex=new SoTexture2;
   fgSep->addChild(ombvLogoTex);
-  QIcon icon(":/openmbv.svg");
+  QIcon icon=Utils::QIconCached(":/openmbv.svg");
   QImage image=icon.pixmap(100,100).toImage();
   ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
   ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
