@@ -31,8 +31,8 @@ Frame::Frame() : RigidBody(),
 
 TiXmlElement* Frame::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "size", size);
-  addElementText(e, "offset", offset);
+  addElementText(e, OPENMBVNS"size", size);
+  addElementText(e, OPENMBVNS"offset", offset);
   return 0;
 }
 

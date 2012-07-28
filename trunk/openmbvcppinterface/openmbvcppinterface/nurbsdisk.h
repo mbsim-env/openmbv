@@ -165,6 +165,9 @@ namespace OpenMBV {
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
 
+      /** Write XML file for not time-dependent data. */
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+
     protected:
       /** destructor */
       virtual ~NurbsDisk();
@@ -200,9 +203,6 @@ namespace OpenMBV {
 
       /** Point on the center of the disk used for visualisation*/
       float *DiskPoint;
-
-      /** Write XML file for not time-dependent data. */
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

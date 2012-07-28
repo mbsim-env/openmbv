@@ -31,7 +31,6 @@ namespace OpenMBV {
     protected:
       ScalarParameter startAngle, endAngle;
       std::vector<PolygonPoint*> *contour;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       ~Rotation();
     public:
       /** Default constructor */
@@ -71,6 +70,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
   };
 

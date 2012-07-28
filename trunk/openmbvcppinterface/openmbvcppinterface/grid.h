@@ -29,7 +29,6 @@ namespace OpenMBV {
     protected:
       ScalarParameter xSize, ySize;
       unsigned int nx, ny;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       ~Grid() {}
     public:
       /** Default constructor */
@@ -68,6 +67,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
   };
 
 }

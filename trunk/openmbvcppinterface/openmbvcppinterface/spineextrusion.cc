@@ -47,7 +47,7 @@ SpineExtrusion::~SpineExtrusion() {
 TiXmlElement* SpineExtrusion::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
-  addElementText(e, "scaleFactor", scaleFactor);
+  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
   return 0;
 }
 

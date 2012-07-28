@@ -74,7 +74,6 @@ namespace OpenMBV {
       VectorParameter initialTranslation;
       VectorParameter initialRotation;
       ScalarParameter scaleFactor;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
@@ -176,6 +175,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
       virtual std::string getFullName();
 

@@ -64,7 +64,7 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
     string fullName=getFullName();
     for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
     // create link (embed) in current xml file
-    TiXmlElement *inc=new TiXmlElement("xi:include");
+    TiXmlElement *inc=new TiXmlElement(XINCLUDENS"include");
     parent->LinkEndChild(inc);
     inc->SetAttribute("href", fullName+".ombv.xml");
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
@@ -76,10 +76,12 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
       xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
       TiXmlElement *e=Object::writeXMLFile(&xmlFile);
       addAttribute(e, "expand", expandStr, "true");
-      e->SetAttribute("xmlns", OPENMBVNS_);
-      e->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
       for(unsigned int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(e);
+      map<string,string> nsprefix;
+      nsprefix[OPENMBVNS_]="";
+      nsprefix[XINCLUDENS_]="xi";
+      unIncorporateNamespace(xmlFile.FirstChildElement(), nsprefix);
     xmlFile.SaveFile();
   }
   return 0;
@@ -134,15 +136,17 @@ void Group::writeXML() {
   separateFile=true;
   // write .ombv.xml file
   TiXmlDocument xmlFile(fileName);
-  xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-  TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
-  addAttribute(parent, "expand", expandStr, "true");
-  parent->SetAttribute("xmlns", OPENMBVNS_);
-  parent->SetAttribute("xmlns:xi", "http://www.w3.org/2001/XInclude");
-  for(unsigned int i=0; i<object.size(); i++)
-    object[i]->writeXMLFile(parent);
-  // write simple parameter file
-  writeSimpleParameter();
+    xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
+    TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
+    addAttribute(parent, "expand", expandStr, "true");
+    for(unsigned int i=0; i<object.size(); i++)
+      object[i]->writeXMLFile(parent);
+    // write simple parameter file
+    writeSimpleParameter();
+    map<string,string> nsprefix;
+    nsprefix[OPENMBVNS_]="";
+    nsprefix[XINCLUDENS_]="xi";
+    unIncorporateNamespace(xmlFile.FirstChildElement(), nsprefix);
   xmlFile.SaveFile();
 }
 
@@ -245,21 +249,23 @@ void Group::writeSimpleParameter() {
     string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
     TiXmlDocument xmlDoc(paramFileName);
       xmlDoc.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-      TiXmlElement *rootEle=new TiXmlElement("parameter");
+      TiXmlElement *rootEle=new TiXmlElement(MBXMLUTILSPARAMNS"parameter");
       xmlDoc.LinkEndChild(rootEle);
-      rootEle->SetAttribute("xmlns", MBXMLUTILSPARAMNS_);
       for(map<string,double>::iterator i=scalarParameter.begin(); i!=scalarParameter.end(); i++) {
-        addElementText(rootEle, "scalarParameter", i->second);
+        addElementText(rootEle, MBXMLUTILSPARAMNS"scalarParameter", i->second);
         addAttribute(rootEle->LastChild(), "name", i->first);
       }
       for(map<string,vector<double> >::iterator i=vectorParameter.begin(); i!=vectorParameter.end(); i++) {
-        addElementText(rootEle, "vectorParameter", i->second);
+        addElementText(rootEle, MBXMLUTILSPARAMNS"vectorParameter", i->second);
         addAttribute(rootEle->LastChild(), "name", i->first);
       }
       for(map<string,vector<vector<double> > >::iterator i=matrixParameter.begin(); i!=matrixParameter.end(); i++) {
-        addElementText(rootEle, "matrixParameter", i->second);
+        addElementText(rootEle, MBXMLUTILSPARAMNS"matrixParameter", i->second);
         addAttribute(rootEle->LastChild(), "name", i->first);
       }
+      map<string,string> nsprefix;
+      nsprefix[MBXMLUTILSPARAMNS_]="";
+      unIncorporateNamespace(xmlDoc.FirstChildElement(), nsprefix);
     xmlDoc.SaveFile();
   }
 }

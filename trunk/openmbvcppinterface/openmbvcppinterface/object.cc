@@ -147,7 +147,7 @@ MatrixParameter Object::getMat(TiXmlElement *e, unsigned int rows, unsigned int 
 }
 
 TiXmlElement *Object::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=new TiXmlElement(getClassName());
+  TiXmlElement *e=new TiXmlElement(OPENMBVNS+getClassName());
   parent->LinkEndChild(e);
   addAttribute(e, "name", name);
   addAttribute(e, "enable", enableStr, string("true"));

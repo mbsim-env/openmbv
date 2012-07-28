@@ -41,9 +41,9 @@ Arrow::~Arrow() {
 TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
   addAttribute(e, "path", pathStr, "false");
-  addElementText(e, "diameter", diameter);
-  addElementText(e, "headDiameter", headDiameter);
-  addElementText(e, "headLength", headLength);
+  addElementText(e, OPENMBVNS"diameter", diameter);
+  addElementText(e, OPENMBVNS"headDiameter", headDiameter);
+  addElementText(e, OPENMBVNS"headLength", headLength);
   string typeStr;
   switch(type) {
     case line:            typeStr="line";            break;
@@ -54,8 +54,8 @@ TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
     case toDoubleHead:    typeStr="toDoubleHead";    break;
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
-  addElementText(e, "type", "\""+typeStr+"\"");
-  addElementText(e, "scaleLength", scaleLength);
+  addElementText(e, OPENMBVNS"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBVNS"scaleLength", scaleLength);
   return 0;
 }
 

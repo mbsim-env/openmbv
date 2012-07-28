@@ -36,9 +36,9 @@ DynamicColoredBody::~DynamicColoredBody() {}
 
 TiXmlElement* DynamicColoredBody::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=Body::writeXMLFile(parent);
-  addElementText(e, "minimalColorValue", minimalColorValue, 0);
-  addElementText(e, "maximalColorValue", maximalColorValue, 1);
-  addElementText(e, "staticColor", staticColor, nan(""));
+  addElementText(e, OPENMBVNS"minimalColorValue", minimalColorValue, 0);
+  addElementText(e, OPENMBVNS"maximalColorValue", maximalColorValue, 1);
+  addElementText(e, OPENMBVNS"staticColor", staticColor, nan(""));
   return e;
 }
 

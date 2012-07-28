@@ -28,7 +28,6 @@ namespace OpenMBV {
   class Frustum : public RigidBody {
     protected:
       ScalarParameter baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
       ~Frustum() {}
     public:
       /** Default constructor */
@@ -74,6 +73,8 @@ namespace OpenMBV {
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
+
+      TiXmlElement* writeXMLFile(TiXmlNode *parent);
   };
 
 }

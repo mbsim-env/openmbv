@@ -31,7 +31,7 @@ Cube::Cube() : RigidBody(),
 
 TiXmlElement* Cube::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "length", length);
+  addElementText(e, OPENMBVNS"length", length);
   return 0;
 }
 

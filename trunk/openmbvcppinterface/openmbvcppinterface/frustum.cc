@@ -35,11 +35,11 @@ Frustum::Frustum() : RigidBody(),
 
 TiXmlElement* Frustum::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, "baseRadius", baseRadius);
-  addElementText(e, "topRadius", topRadius);
-  addElementText(e, "height", height);
-  addElementText(e, "innerBaseRadius", innerBaseRadius);
-  addElementText(e, "innerTopRadius", innerTopRadius);
+  addElementText(e, OPENMBVNS"baseRadius", baseRadius);
+  addElementText(e, OPENMBVNS"topRadius", topRadius);
+  addElementText(e, OPENMBVNS"height", height);
+  addElementText(e, OPENMBVNS"innerBaseRadius", innerBaseRadius);
+  addElementText(e, OPENMBVNS"innerTopRadius", innerTopRadius);
   return 0;
 }
 

@@ -48,20 +48,20 @@ NurbsDisk::~NurbsDisk() {
 
 TiXmlElement *NurbsDisk::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
-  addElementText(e, "scaleFactor", scaleFactor);
-  addElementText(e, "drawDegree", drawDegree);
-  addElementText(e, "innerRadius", Ri);
-  addElementText(e, "outerRadius", Ro);
-  addElementText(e, "elementNumberAzimuthal", ElementNumberAzimuthal);
-  addElementText(e, "elementNumberRadial", ElementNumberRadial);
-  addElementText(e, "interpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
-  addElementText(e, "interpolationDegreeRadial", InterpolationDegreeRadial);
+  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
+  addElementText(e, OPENMBVNS"drawDegree", drawDegree);
+  addElementText(e, OPENMBVNS"innerRadius", Ri);
+  addElementText(e, OPENMBVNS"outerRadius", Ro);
+  addElementText(e, OPENMBVNS"elementNumberAzimuthal", ElementNumberAzimuthal);
+  addElementText(e, OPENMBVNS"elementNumberRadial", ElementNumberRadial);
+  addElementText(e, OPENMBVNS"interpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
+  addElementText(e, OPENMBVNS"interpolationDegreeRadial", InterpolationDegreeRadial);
   string str="[";
   for(int i=0;i<getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1;i++) str+=numtostr(KnotVecAzimuthal.getValue()[i])+";";
-  addElementText(e, "knotVecAzimuthal", str+numtostr(KnotVecAzimuthal.getValue()[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
+  addElementText(e, OPENMBVNS"knotVecAzimuthal", str+numtostr(KnotVecAzimuthal.getValue()[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
   str="[";
   for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=numtostr(KnotVecRadial.getValue()[i])+";";
-  addElementText(e, "knotVecRadial", str+numtostr(KnotVecRadial.getValue()[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
+  addElementText(e, OPENMBVNS"knotVecRadial", str+numtostr(KnotVecRadial.getValue()[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
 
   addAttribute(e, "localFrame", localFrameStr, "false");
   return 0;

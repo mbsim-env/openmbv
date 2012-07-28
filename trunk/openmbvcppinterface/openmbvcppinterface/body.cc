@@ -44,12 +44,12 @@ TiXmlElement* Body::writeXMLFile(TiXmlNode *parent) {
   }
   addAttribute(e, "drawMethod", dm, "filled");
   if(hdf5LinkBody) {
-    TiXmlElement *ee=new TiXmlElement("hdf5Link");
+    TiXmlElement *ee=new TiXmlElement(OPENMBVNS"hdf5Link");
     e->LinkEndChild(ee);
     ee->SetAttribute("ref", getRelPathTo(hdf5LinkBody));
   }
   else if(hdf5LinkStr!="") {
-    TiXmlElement *ee=new TiXmlElement("hdf5Link");
+    TiXmlElement *ee=new TiXmlElement(OPENMBVNS"hdf5Link");
     e->LinkEndChild(ee);
     ee->SetAttribute("ref", hdf5LinkStr);
   }

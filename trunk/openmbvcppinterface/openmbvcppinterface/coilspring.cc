@@ -47,12 +47,12 @@ TiXmlElement *CoilSpring::writeXMLFile(TiXmlNode *parent) {
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
   }
-  addElementText(e, "type", "\""+typeStr+"\"");
-  addElementText(e, "numberOfCoils", numberOfCoils);
-  addElementText(e, "springRadius", springRadius);
-  addElementText(e, "crossSectionRadius", crossSectionRadius);
-  addElementText(e, "nominalLength", nominalLength);
-  addElementText(e, "scaleFactor", scaleFactor);
+  addElementText(e, OPENMBVNS"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBVNS"numberOfCoils", numberOfCoils);
+  addElementText(e, OPENMBVNS"springRadius", springRadius);
+  addElementText(e, OPENMBVNS"crossSectionRadius", crossSectionRadius);
+  addElementText(e, OPENMBVNS"nominalLength", nominalLength);
+  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
   return 0;
 }
 
