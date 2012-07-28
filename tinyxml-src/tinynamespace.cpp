@@ -115,10 +115,9 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
       tinyNamespaceCompStr=prefix;
       while(find_if(nsprefix.begin(), nsprefix.end(), comp)!=nsprefix.end()) {
         stringstream istr; istr<<++i;
-        prefix=prefix+"_"+istr.str();
-        tinyNamespaceCompStr=prefix;
+        tinyNamespaceCompStr=prefix+"_"+istr.str();
       }
-      nsprefix[ns]=prefix;
+      nsprefix[ns]=tinyNamespaceCompStr;
     }
     e->RemoveAttribute(a->Name());
     a=aNext;
@@ -138,7 +137,7 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
     }
   }
 
-  if(e->ValueStr()=="{http://www.w3.org/2001/XInclude}include") {
+  if(e->ValueStr()==XINCLUDENS"include") {
     string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
     if(dependencies!=NULL)
       (*dependencies)<<newFile<<endl;
@@ -168,22 +167,21 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
   }
 }
 
-int unIncorporateNamespace(TiXmlElement *e, map<string,string>& nsprefix, bool firstCall) {
-  // add namespace prefix attribute to the root element: 'xmlns:...=...'
-  if(firstCall)
-    for(map<string,string>::iterator i=nsprefix.begin(); i!=nsprefix.end(); i++) {
-      if((*i).second!="")
-        e->SetAttribute("xmlns:"+(*i).second, (*i).first);
-      else
-        e->SetAttribute("xmlns", (*i).first);
-    }
-
+void unIncorporateNamespace(TiXmlElement *e, map<string,string>& nsprefix, bool firstCall) {
   // extract namespace form element name
   string ns=e->ValueStr().substr(1,e->ValueStr().find('}')-1);
 
-  // error if the namespace of the element is not found in the map
-  if(nsprefix.find(ns)==nsprefix.end())
-    return 1;
+  // if the namespace of the element is not found in the map add a unique dummy prefix
+  if(nsprefix.find(ns)==nsprefix.end()) {
+    string prefix="ns";
+    int i=1;
+    tinyNamespaceCompStr=prefix+"_1";
+    while(find_if(nsprefix.begin(), nsprefix.end(), comp)!=nsprefix.end()) {
+      stringstream istr; istr<<++i;
+      tinyNamespaceCompStr=prefix+"_"+istr.str();
+    }
+    nsprefix[ns]=tinyNamespaceCompStr;
+  }
 
   // set element name to '<nsprefix>:<localname>'
   e->SetValue(nsprefix[ns]+":"+e->ValueStr().substr(ns.length()+2));
@@ -192,14 +190,20 @@ int unIncorporateNamespace(TiXmlElement *e, map<string,string>& nsprefix, bool f
     e->SetValue(e->ValueStr().substr(1));
 
   // apply recusively for all child elements
-  int ret=0;
   TiXmlElement* c=e->FirstChildElement();
   while(c!=0) {
-    ret+=unIncorporateNamespace(c, nsprefix, false);
+    unIncorporateNamespace(c, nsprefix, false);
     c=c->NextSiblingElement();
   }
 
-  return ret;
+  // add namespace prefix attribute to the root element: 'xmlns:...=...'
+  if(firstCall)
+    for(map<string,string>::iterator i=nsprefix.begin(); i!=nsprefix.end(); i++) {
+      if((*i).second!="")
+        e->SetAttribute("xmlns:"+(*i).second, (*i).first);
+      else
+        e->SetAttribute("xmlns", (*i).first);
+    }
 }
 
 string fixPath(string oldFile, string newFile) {
