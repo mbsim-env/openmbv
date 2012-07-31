@@ -56,7 +56,7 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", this);
 //MFMF multiedit  newObject->setObjectName("CompoundRigidBody::newRigidBody");
-  connect(newObject,SIGNAL(activated()),this,SLOT(newRigidBodySlot()));
+  connect(newObject,SIGNAL(triggered()),this,SLOT(newRigidBodySlot()));
   properties->addContextAction(newObject);
 
   if(!clone) {

@@ -91,7 +91,7 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   //GUI editors
   QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", this);
 //MFMF multiedit  deleteObject->setObjectName("Group::deleteObject");
-  connect(deleteObject,SIGNAL(activated()),this,SLOT(deleteObjectSlot()));
+  connect(deleteObject,SIGNAL(triggered()),this,SLOT(deleteObjectSlot()));
   properties->addContextAction(deleteObject);
 
   if(!clone) {
