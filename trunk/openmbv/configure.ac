@@ -31,6 +31,7 @@ if test "_$host_os" = "_mingw32"; then
   CPPFLAGS="-fno-keep-inline-dllexport $CPPFLAGS"
   LDFLAGS="-mwindows $LDFLAGS"
   WIN32=yes
+  AC_DEFINE([OPENMBV_MINGW], [1], [Host System is MinGW/MSys])
 fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
