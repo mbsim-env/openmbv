@@ -27,17 +27,19 @@
 #include <locale.h>
 #include <QThreadPool>
 
-using namespace std;
+#ifdef WIN32
+#  define putenv _putenv
+#endif
 
-#ifdef STATICQSVGPLUGIN
-  Q_IMPORT_PLUGIN(qsvg)
-#endif
-#ifdef STATICQSVGICONPLUGIN
-  Q_IMPORT_PLUGIN(qsvgicon)
-#endif
+using namespace std;
 
 int main(int argc, char *argv[])
 {
+  // environment variables
+  // Disalbe VBO per default (see --help)
+  char COIN_VBO[strlen("COIN_VBO=0")+1];
+  if(getenv("COIN_VBO")==NULL) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
+
   list<string> arg;
   for(int i=1; i<argc; i++)
     arg.push_back(argv[i]);
@@ -101,7 +103,11 @@ int main(int argc, char *argv[])
         <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
-        <<"                   are allowd."<<endl;
+        <<"                   are allowd."<<endl
+        <<""<<endl
+        <<"Note:"<<endl
+        <<"In contrast to Coin3D VBO (Vertex Buffer Object) is disabled per default in"<<endl
+        <<"OpenMBV. You can enable it by setting the environment variable COIN_VBO=1."<<endl;
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
     if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
     return 0;
