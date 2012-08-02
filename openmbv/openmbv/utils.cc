@@ -286,7 +286,7 @@ string Utils::getExePath() {
   static char exePath[4096]="";
   if(strcmp(exePath, "")!=0) return exePath;
 
-#ifdef MBSIMXML_MINGW // Windows
+#ifdef OPENMBV_MINGW // Windows
   GetModuleFileName(NULL, exePath, sizeof(exePath));
   for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
