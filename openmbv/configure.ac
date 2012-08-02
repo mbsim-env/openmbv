@@ -60,25 +60,6 @@ AC_SUBST([RCC])
 test -d "$QTLIBDIR" || QTLIBDIR=$(pkg-config --variable libdir QtCore)
 test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
 
-AC_ARG_WITH(qtpluginlibinfix,
-  [  --with-qtpluginlibinfix=IN  Infix for Qt plugins librarys -lqsvgicon<IN>.a],
-  [QTPLUGINLIBINFIX="$withval"],
-  [QTPLUGINLIBINFIX=""])
-dnl check for static qsvg imageformats plugin
-qsvg=0
-test -e $QTLIBDIR/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a && qsvg=1
-test -e $QTPREFIX/plugins/imageformats/libqsvg$QTPLUGINLIBINFIX.a && qsvg=1
-if test $qsvg -eq 1; then
-  AC_DEFINE_UNQUOTED([STATICQSVGPLUGIN],[],[Use static qsvg plugin])
-fi
-dnl check for static qsvgicon iconengines plugin
-qsvgicon=0
-test -e $QTLIBDIR/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a && qsvgicon=1
-test -e $QTPREFIX/plugins/iconengines/libqsvgicon$QTPLUGINLIBINFIX.a && qsvgicon=1
-if test $qsvgicon -eq 1; then
-  AC_DEFINE_UNQUOTED([STATICQSVGICONPLUGIN],[],[Use static qsvgicon plugin])
-fi
-
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin)
 
