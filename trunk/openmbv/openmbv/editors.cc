@@ -190,6 +190,8 @@ void Editor::replaceObject() {
   delete obj;
   // update the scene
   MainWindow::getInstance()->frame->touch();
+  // apply object filter
+  MainWindow::getInstance()->searchObjectList((Object*)parentItem, QRegExp(MainWindow::getInstance()->filter->text()));
 }
 
 

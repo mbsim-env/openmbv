@@ -138,13 +138,13 @@ QString Object::getInfo() {
 void Object::nodeSensorCB(void *data, SoSensor*) {
   Object *object=(Object*)data;
   if(object->object->getBoundingBox()) {
-    static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
-    bboxAction->apply(object->soSep);
     SoSearchAction sa;
     sa.setInterest(SoSearchAction::FIRST);
     sa.setNode(object->soSep);
+    sa.setSearchingAll(true);
     sa.apply(MainWindow::getInstance()->getSceneRoot());
     SoPath *p=sa.getPath();
+    static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(p);
     float x1,y1,z1,x2,y2,z2;
     bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);

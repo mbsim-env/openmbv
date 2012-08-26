@@ -187,10 +187,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   glViewer->setSceneGraph(sceneRoot);
   
   // time slider
-  timeSlider=new QSlider(Qt::Vertical, this);
+  timeSlider=new QTripleSlider(this);
   mainLO->addWidget(timeSlider, 0, 1);
-  timeSlider->setMinimum(0);
-  timeSlider->setMaximum(0);
+  timeSlider->setTotalRange(0, 0);
   connect(timeSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateFrame(int)));
 
   // object list dock widget
@@ -251,9 +250,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
   fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, SLOT(newFileDialog()));
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export as png (current frame)...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
-  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export as png sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
   fileMenu->addSeparator();
@@ -423,6 +422,8 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   animationTB->addAction(lastFrameAct);
   // play button
   animationTB->addAction(playAct);
+  // separator
+  animationTB->addSeparator();
   // speed spin box
   speedSB=new QDoubleSpinBox;
   speedSB->setRange(1e-30, 1e30);
@@ -430,7 +431,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   speedSB->setDecimals(3);
   speedSB->setButtonSymbols(QDoubleSpinBox::NoButtons);
   speedSB->setValue(1.0);
-  connect(speedSB, SIGNAL(valueChanged(double)), this, SLOT(speedChanged(double)));
+  connect(speedSB, SIGNAL(valueChanged(double)), this, SLOT(restartPlay()));
   QWidget *speedWG=new QWidget(this);
   QGridLayout *speedLO=new QGridLayout(speedWG);
   speedLO->setSpacing(0);
@@ -457,6 +458,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   animationTB->addWidget(speedWG);
   connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), SIGNAL(activated()), this, SLOT(speedUpSlot()));
   connect(new QShortcut(QKeySequence(Qt::Key_PageDown),this), SIGNAL(activated()), this, SLOT(speedDownSlot()));
+  animationTB->addSeparator();
   // frame spin box
   frameSB=new QSpinBox;
   frameSB->setMinimumSize(55,0);
@@ -470,11 +472,41 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   frameLO->addWidget(frameSB, 1, 0);
   animationTB->addWidget(frameWG);
   connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
-  connect(timeSlider, SIGNAL(rangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
+  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
+  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(restartPlay()));
+  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(frameMinMaxSetValue(int,int)));
   connect(new QShortcut(QKeySequence(Qt::Key_Right),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
   connect(new QShortcut(QKeySequence(Qt::Key_Left),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
   connect(new QShortcut(QKeySequence(Qt::Key_J),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
   connect(new QShortcut(QKeySequence(Qt::Key_K),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
+  // min frame spin box
+  frameMinSB=new QSpinBox;
+  frameMinSB->setMinimumSize(55,0);
+  frameMinSB->setRange(0, 0);
+  QWidget *frameMinWG=new QWidget(this);
+  QGridLayout *frameMinLO=new QGridLayout(frameMinWG);
+  frameMinLO->setSpacing(0);
+  frameMinLO->setContentsMargins(0,0,0,0);
+  frameMinWG->setLayout(frameMinLO);
+  QLabel *frameMinL=new QLabel("Min:", this);
+  frameMinLO->addWidget(frameMinL, 0, 0);
+  frameMinLO->addWidget(frameMinSB, 1, 0);
+  animationTB->addWidget(frameMinWG);
+  connect(frameMinSB, SIGNAL(valueChanged(int)), timeSlider, SLOT(setCurrentMinimum(int)));
+  // max frame spin box
+  frameMaxSB=new QSpinBox;
+  frameMaxSB->setMinimumSize(55,0);
+  frameMaxSB->setRange(0, 0);
+  QWidget *frameMaxWG=new QWidget(this);
+  QGridLayout *frameMaxLO=new QGridLayout(frameMaxWG);
+  frameMaxLO->setSpacing(0);
+  frameMaxLO->setContentsMargins(0,0,0,0);
+  frameMaxWG->setLayout(frameMaxLO);
+  QLabel *frameMaxL=new QLabel("Max:", this);
+  frameMaxLO->addWidget(frameMaxL, 0, 0);
+  frameMaxLO->addWidget(frameMaxSB, 1, 0);
+  animationTB->addWidget(frameMaxWG);
+  connect(frameMaxSB, SIGNAL(valueChanged(int)), timeSlider, SLOT(setCurrentMaximum(int)));
 
   // tool menu
   QMenu *toolMenu=new QMenu("Tools", menuBar());
@@ -621,7 +653,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   // resize if no --wst and no --geometry option is given
   if(std::find(arg.begin(), arg.end(), "--wst")==arg.end() &&
      std::find(arg.begin(), arg.end(), "--geometry")==arg.end())
-    resize(780,560);
+    resize(830,560);
   
   // geometry
   if((i=std::find(arg.begin(), arg.end(), "--geometry"))!=arg.end()) {
@@ -896,9 +928,15 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
 void MainWindow::loadFinished() {
   // set html fg color to gui fg color
   if(helpViewerGUI)
-    helpViewerGUI->page()->mainFrame()->findFirstElement("body").setStyleProperty("color", QPalette().brush(QPalette::Active, QPalette::Text).color().name());
+    helpViewerGUI->page()->mainFrame()->findFirstElement("body").setStyleProperty(
+      "color",
+      palette().text().color().name()
+    );
   if(helpViewerXML)
-    helpViewerXML->page()->mainFrame()->findFirstElement("body").setStyleProperty("color", QPalette().brush(QPalette::Active, QPalette::Text).color().name());
+    helpViewerXML->page()->mainFrame()->findFirstElement("body").setStyleProperty(
+      "color",
+      palette().text().color().name()
+    );
 }
 
 void MainWindow::helpHomeGUI() {
@@ -1266,7 +1304,7 @@ void MainWindow::fpsCB() {
   count=1;
 }
 
-void MainWindow::speedChanged(double value) {
+void MainWindow::restartPlay() {
   if(playAct->isChecked()) {
     // emulate anim stop click
     animTimer->stop();
@@ -1284,7 +1322,8 @@ void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     int dframe=(int)(dT/deltaTime);// frame increment since play click
-    unsigned int frame_=(animStartFrame+dframe)%(timeSlider->maximum()+1); // frame number
+    unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
+                        (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
     if(frame->getValue()!=frame_) frame->setValue(frame_); // set frame => update scene
     //glViewer->render(); // force rendering
   }
@@ -1296,8 +1335,12 @@ void MainWindow::heavyWorkSlot() {
       it++;
     if(currentNumOfRows==-1) return;
     // update if a new row is available
-    if(currentNumOfRows-1!=timeSlider->maximum()) {
-      timeSlider->setMaximum(currentNumOfRows-1);
+    if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
+      timeSlider->setTotalMaximum(currentNumOfRows-1);
+      timeSlider->setCurrentMaximum(currentNumOfRows-1);
+      frameSB->setMaximum(currentNumOfRows-1);
+      frameMinSB->setMaximum(currentNumOfRows-1);
+      frameMaxSB->setMaximum(currentNumOfRows-1);
       // show the last but one frame since the last frame may not be wrote for all Bodies till now
       timeSlider->setValue(currentNumOfRows-2);
       frame->setValue(currentNumOfRows-2);
@@ -1431,9 +1474,9 @@ void MainWindow::exportSequenceAsPNG() {
   QString fileName=dialog.getFileName();
   if(!fileName.toUpper().endsWith(".PNG")) return;
   fileName=fileName.remove(fileName.length()-4,4);
-  double speed=dialog.getSpeed();
-  int startFrame=dialog.getStartFrame();
-  int endFrame=dialog.getEndFrame();
+  double speed=speedSB->value();
+  int startFrame=timeSlider->currentMinimum();
+  int endFrame=timeSlider->currentMaximum();
   double fps=dialog.getFPS();
 
   if(speed/deltaTime/fps<1) {
@@ -1477,8 +1520,12 @@ void MainWindow::lastFrameSCSlot() {
   }
 
   // show last frame
-  timeSlider->setValue(timeSlider->maximum()-1);
-  frame->setValue(timeSlider->maximum()-1);
+  timeSlider->setCurrentMaximum(timeSlider->totalMaximum());
+  timeSlider->setValue(timeSlider->currentMaximum()-1);
+  frameSB->setMaximum(timeSlider->totalMaximum());
+  frameMinSB->setMaximum(timeSlider->totalMaximum());
+  frameMaxSB->setMaximum(timeSlider->totalMaximum());
+  frame->setValue(timeSlider->currentMaximum()-1);
 
   stopAct->setChecked(false);
   playAct->setChecked(false);
@@ -1705,15 +1752,13 @@ void MainWindow::shadowRenderingSlot() {
     sceneRoot->isActive.setValue(true);
 }
 
-int MainWindow::mySearch(const QRegExp& filterRegExp, Object *item) {
-  // return -1, if not found or >=0 if found
-  if(item==objectList->invisibleRootItem()) return -1;
+bool MainWindow::objectMatchesFilter(const QRegExp& filterRegExp, Object *item) {
   if(filterRegExp.pattern().startsWith("::"))
-    return item->inherits(filterRegExp.pattern().mid(2).toStdString().c_str())?0:-1;
+    return item->inherits(filterRegExp.pattern().mid(2).toStdString().c_str());
   else if(filterRegExp.pattern().startsWith(":"))
-    return item->metaObject()->className()==filterRegExp.pattern().mid(1)?0:-1;
+    return item->metaObject()->className()==filterRegExp.pattern().mid(1);
   else
-    return filterRegExp.indexIn(item->text(0));
+    return filterRegExp.indexIn(item->text(0))>=0;
 }
 // MainWindow::filterObjectList(...) and MainWindow::searchObjectList(...) are also used in h5plotserie.
 // If changes are made here, please do the same changes in HDF5Serie, h5plotserie
@@ -1726,7 +1771,7 @@ void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
     // search recursive
     searchObjectList((Object*)item->child(i), filterRegExp);
     // set color
-    ((Object*)item->child(i))->setSearchMatched(mySearch(filterRegExp,(Object*)item->child(i))>=0);
+    ((Object*)item->child(i))->setSearchMatched(objectMatchesFilter(filterRegExp,(Object*)item->child(i)));
     ((Object*)item->child(i))->updateTextColor();
     // if all children and children children are red, collapse
     int count=0;
@@ -1743,7 +1788,7 @@ void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
        (item->child(i)->childCount()==0 && !(((Object*)(item->child(i)))->getSearchMatched()))) {
       bool hide=true;
       for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
-        if(mySearch(filterRegExp,(Object*)it)>=0) { hide=false; break; }
+        if(objectMatchesFilter(filterRegExp,(Object*)it)) { hide=false; break; }
       item->child(i)->setHidden(hide);
     }
   }
@@ -1830,4 +1875,11 @@ void MainWindow::expandItem(QTreeWidgetItem* item) {
 void MainWindow::editFinishedSlot() {
   QTreeWidgetItem *item=objectList->currentItem();
   static_cast<Object*>(item)->object->setName(item->text(0).toStdString());
+}
+
+void MainWindow::frameMinMaxSetValue(int min, int max) {
+  frameMinSB->setRange(timeSlider->totalMinimum(), timeSlider->totalMaximum());
+  frameMaxSB->setRange(timeSlider->totalMinimum(), timeSlider->totalMaximum());
+  frameMinSB->setValue(min);
+  frameMaxSB->setValue(max);
 }

@@ -9,9 +9,6 @@ if [ $# -ne 5 -a $# -ne 6 ]; then
   echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
   echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
   echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
-  if [ $# -eq 6 ]; then
-    echo "  NOTE: the 6-th parameter is deprecated, please remove it!"
-  fi
   exit
 fi
 
@@ -106,8 +103,8 @@ EOF
   echo '\end{document}' >> equation.tex
   if latex -help >& /dev/null; then
     latex -halt-on-error -file-line-error equation.tex || exit 1
-    dvips -E -o equation.eps equation.dvi || exit 1
-    gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || exit 1
+      dvips -E -o equation.eps equation.dvi || exit 1
+      gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || exit 1
   else
     echo "WARNING: Skip generation of png-equations for HTML documentation (latex, dvips or gs not found in PATH)"
   fi

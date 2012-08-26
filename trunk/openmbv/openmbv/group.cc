@@ -147,6 +147,9 @@ void Group::newObjectSlot() {
 
   grp->addObject(obj);
   ObjectFactory(obj, this, soSep, -1);
+
+  // apply object filter
+  MainWindow::getInstance()->searchObjectList(this, QRegExp(MainWindow::getInstance()->filter->text()));
 }
 
 void Group::saveFileSlot() {

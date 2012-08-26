@@ -24,9 +24,9 @@
 
 ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   int row=-1;
-  setWindowTitle("Export PNG");
+  setWindowTitle("Export current frame as PNG");
   setLayout(&dialogLO);
-  scaleL.setText("Scale factor");
+  scaleL.setText("Scale factor:");
   row++;
   dialogLO.addWidget(&scaleL, row, 0);
   scale.setRange(0.01, 100);
@@ -43,30 +43,24 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   row++;
   dialogLO.addWidget(&colorRB, row, 1);
   if(sequence) {
+    setWindowTitle("Export frame sequence as PNG"); // overwrite title
     row++;
-    speedL.setText("Speed:");
-    dialogLO.addWidget(&speedL, row, 0);
-    speed.setRange(1e-30, 1e30);
-    speed.setValue(MainWindow::getInstance()->getSpeed());
-    speed.setSingleStep(0.001);
-    speed.setDecimals(3);
-    dialogLO.addWidget(&speed, row, 1, 1, 2);
-    row++;
-    fpsL.setText("FPS:");
+    fpsL.setText("Frames per second:");
     dialogLO.addWidget(&fpsL, row, 0);
     fps.setRange(0,100);
     fps.setValue(25);
     fps.setDecimals(1);
     dialogLO.addWidget(&fps, row, 1, 1, 2);
     row++;
+    speedL.setText("Speed:");
+    dialogLO.addWidget(&speedL, row, 0);
+    speedLText.setText("use current speed");
+    dialogLO.addWidget(&speedLText, row, 1, 1, 2);
+    row++;
     frameRangeL.setText("Frame range:");
     dialogLO.addWidget(&frameRangeL, row, 0);
-    startFrame.setRange(0, MainWindow::getInstance()->getTimeSlider()->maximum());
-    startFrame.setValue(MainWindow::getInstance()->getTimeSlider()->value());
-    dialogLO.addWidget(&startFrame, row, 1);
-    endFrame.setRange(0, MainWindow::getInstance()->getTimeSlider()->maximum());
-    endFrame.setValue(MainWindow::getInstance()->getTimeSlider()->maximum());
-    dialogLO.addWidget(&endFrame, row, 2);
+    frameRangeLText.setText("use current range");
+    dialogLO.addWidget(&frameRangeLText, row, 1, 1, 2);
   }
   row++;
   fileNameL.setText("File:");

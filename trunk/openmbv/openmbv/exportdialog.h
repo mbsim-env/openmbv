@@ -32,22 +32,18 @@
 class ExportDialog : public QDialog {
   Q_OBJECT
   protected:
-    QDoubleSpinBox scale, speed, fps;
-    QSpinBox startFrame, endFrame;
+    QDoubleSpinBox scale, fps;
     QPushButton fileNameButton, ok, abort;
     QLineEdit fileName;
     QGridLayout dialogLO;
     QRadioButton transparentRB, colorRB;
-    QLabel scaleL, backgroundL, fileNameL, speedL, fpsL, frameRangeL;
+    QLabel scaleL, backgroundL, fileNameL, speedL, speedLText, fpsL, frameRangeL, frameRangeLText;
   public:
     ExportDialog(QWidget *parent, bool sequence);
     double getScale() { return scale.value(); }
     bool getTransparent() { return transparentRB.isChecked(); }
     QString getFileName() { return fileName.text(); }
     double getFPS() { return fps.value(); }
-    double getSpeed() { return speed.value(); }
-    int getStartFrame() { return startFrame.value(); }
-    int getEndFrame() { return endFrame.value(); }
   protected slots:
     void fileBrowser();
 };
