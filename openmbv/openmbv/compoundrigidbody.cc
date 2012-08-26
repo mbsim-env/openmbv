@@ -20,6 +20,7 @@
 #include "config.h"
 #include "compoundrigidbody.h"
 #include "objectfactory.h"
+#include "mainwindow.h"
 #include "utils.h"
 #include "QtGui/QLabel"
 #include "QtGui/QPushButton"
@@ -93,4 +94,7 @@ void CompoundRigidBody::newRigidBodySlot() {
 
   crb->addRigidBody(static_cast<OpenMBV::RigidBody*>(obj));
   ObjectFactory(obj, this, soSep, -1);
+
+  // apply object filter
+  MainWindow::getInstance()->searchObjectList(this, QRegExp(MainWindow::getInstance()->filter->text()));
 }

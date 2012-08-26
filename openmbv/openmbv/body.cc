@@ -157,7 +157,7 @@ Body::~Body() {
 
   // the last Body should reset timeSlider maximum to 0
   if(bodyMap.size()==0)
-    MainWindow::getInstance()->timeSlider->setMaximum(0);
+    MainWindow::getInstance()->timeSlider->setTotalMaximum(0);
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
@@ -175,9 +175,11 @@ void Body::frameSensorCB(void *data, SoSensor*) {
 // number of rows / dt
 void Body::resetAnimRange(int numOfRows, double dt) {
   if(numOfRows>0) {
-    bool existFiles=MainWindow::getInstance()->getTimeSlider()->maximum()>0;
-    if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->maximum() || !existFiles) {
-      MainWindow::getInstance()->getTimeSlider()->setMaximum(numOfRows-1);
+    bool existFiles=MainWindow::getInstance()->getTimeSlider()->totalMaximum()>0;
+    if(numOfRows-1<MainWindow::getInstance()->getTimeSlider()->totalMaximum() || !existFiles) {
+      MainWindow::getInstance()->timeSlider->setTotalMaximum(numOfRows-1);
+      MainWindow::getInstance()->frameMinSB->setMaximum(numOfRows-1);
+      MainWindow::getInstance()->frameMaxSB->setMaximum(numOfRows-1);
       if(existFiles) {
         QString str("WARNING! Resetting maximal frame number!");
         MainWindow::getInstance()->statusBar()->showMessage(str, 10000);

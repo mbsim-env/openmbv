@@ -44,6 +44,7 @@
 #include <FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
+#include "QTripleSlider.h"
 #ifdef HAVE_QWT_WHEEL_H
 #  include <qwt_wheel.h>
 #else
@@ -57,6 +58,7 @@ class MainWindow : public QMainWindow {
   friend class Body;
   friend class Editor;
   friend class Group;
+  friend class CompoundRigidBody;
   private:
     static MainWindow *instance;
     enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,
@@ -82,7 +84,7 @@ class MainWindow : public QMainWindow {
     SoSepNoPickNoBBox *sceneRootBBox;
     QTreeWidget *objectList;
     QTextEdit *objectInfo;
-    QSpinBox *frameSB;
+    QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
     SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
     SoShadowGroup *sceneRoot;
@@ -92,7 +94,7 @@ class MainWindow : public QMainWindow {
     QDoubleSpinBox *speedSB;
     int animStartFrame;
     QActionGroup *animGroup;
-    QSlider *timeSlider;
+    QTripleSlider *timeSlider;
     double deltaTime;
     SoSFUInt32 *frame;
     QLabel *fps;
@@ -108,7 +110,7 @@ class MainWindow : public QMainWindow {
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
     QLineEdit *filter;
-    int mySearch(const QRegExp& filterRegExp, Object *item);
+    static bool objectMatchesFilter(const QRegExp& filterRegExp, Object *item);
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -147,7 +149,7 @@ class MainWindow : public QMainWindow {
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
     void heavyWorkSlot();
-    void speedChanged(double value);
+    void restartPlay();
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
     void speedWheelChanged(int value);
     void speedWheelPressed();
@@ -209,6 +211,7 @@ class MainWindow : public QMainWindow {
     void complexityValue();
     void loadFinished();
     void editFinishedSlot();
+    void frameMinMaxSetValue(int,int);
   public:
     MainWindow(std::list<std::string>& arg);
     ~MainWindow();
@@ -219,7 +222,7 @@ class MainWindow : public QMainWindow {
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
     SoSepNoPickNoBBox *getSceneRootBBox() { return sceneRootBBox; }
-    QSlider *getTimeSlider() { return timeSlider; }
+    QTripleSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }
     double getSpeed() { return speedSB->value(); }
     SoSFUInt32 *getFrame() { return frame; }

@@ -47,7 +47,8 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   coilspring.cc \
   nurbsdisk.cc \
   editors.cc \
-  IndexedTesselationFace.cc
+  IndexedTesselationFace.cc \
+  QTripleSlider.cc
 
 nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
 
@@ -76,7 +77,8 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   grid.moc.cc\
   group.moc.cc\
   body.moc.cc\
-  dynamiccoloredbody.moc.cc
+  dynamiccoloredbody.moc.cc \
+  QTripleSlider.moc.cc
 
 noinst_HEADERS = openmbv.qrc\
   mainwindow.h\
@@ -108,7 +110,8 @@ noinst_HEADERS = openmbv.qrc\
   coilspring.h \
   nurbsdisk.h \
   editors.h \
-  IndexedTesselationFace.h
+  IndexedTesselationFace.h \
+  QTripleSlider.h
 
 icondir = @datadir@/openmbv/icons
 dist_icon_DATA = openmbv.svg \
@@ -178,7 +181,9 @@ dist_icon_DATA = openmbv.svg \
   complexitytype.svg \
   complexityvalue.svg \
   newobject.svg \
-  deleteobject.svg
+  deleteobject.svg \
+  cover.png \
+  knurl.png
 
 # guihelp.xhtml
 docdir = @datadir@/openmbv/doc

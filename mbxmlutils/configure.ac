@@ -18,17 +18,11 @@ AC_CHECK_FUNCS([malloc])
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
-# AC_FUNC_MALLOC does not work for mingw cross compiling
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
-dnl Check for MinGW
 AC_CANONICAL_HOST
-if test "_$host_os" = "_mingw32" ; then
-  # MINGW is already in use by octave header
-  AC_DEFINE([MBXMLUTILS_MINGW], [1], [Host System is MinGW/MSys])
-  CPPFLAGS="$CPPFLAGS -DMBXMLUTILS_MINGW"
-fi
+
 AC_CHECK_HEADERS([unordered_map unordered_set])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])

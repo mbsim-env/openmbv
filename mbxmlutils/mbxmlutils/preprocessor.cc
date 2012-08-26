@@ -25,7 +25,7 @@
 #include <octave/parse.h>
 #include <octave/toplev.h>
 #include "env.h"
-#ifdef MBXMLUTILS_MINGW // Windows
+#ifdef _WIN32 // Windows
 #  include "windows.h"
 #endif
 // #include <config.h> conflict with octave header
@@ -48,7 +48,7 @@ void disable_stderr() {
   if(disableCount==0) {
     orgcerr=std::cerr.rdbuf(0);
     orgstderr=dup(fileno(stderr));
-#ifdef MBXMLUTILS_MINGW
+#ifdef _WIN32
     if(freopen("nul", "w", stderr)==0) throw(1);
 #else
     if(freopen("/dev/null", "w", stderr)==0) throw(1);
@@ -599,7 +599,7 @@ int main(int argc, char *argv[]) {
 
   // get path of this executable
   char exePath[4096];
-#ifdef MBXMLUTILS_MINGW // Windows
+#ifdef _WIN32 // Windows
   GetModuleFileName(NULL, exePath, sizeof(exePath));
   for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
