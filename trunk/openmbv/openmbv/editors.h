@@ -22,6 +22,7 @@
 #include <Inventor/draggers/SoCenterballDragger.h>
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/nodes/SoSwitch.h>
+#include <cmath>
 
 class Editor;
 
