@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <measurement xmlns="http://openmbv.berlios.de/MBXMLUtils/measurement">
-  <measure name="nounit" SIunit="">
+  <measure name="nounit" SIunit="-">
     <unit name="">value</unit>
+    <unit name="-">value</unit>
+    <unit name="%">value/100</unit>
   </measure>
   <!-- SI basis units -->
   <measure name="length" SIunit="m">
