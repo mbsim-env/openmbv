@@ -265,6 +265,7 @@ void Group::writeSimpleParameter() {
       }
       map<string,string> nsprefix;
       nsprefix[MBXMLUTILSPARAMNS_]="";
+      nsprefix[XINCLUDENS_]="xi";
       unIncorporateNamespace(xmlDoc.FirstChildElement(), nsprefix);
     xmlDoc.SaveFile();
   }
