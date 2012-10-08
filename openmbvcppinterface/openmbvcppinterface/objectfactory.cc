@@ -62,5 +62,22 @@ namespace OpenMBV {
     if(element->ValueStr()==OPENMBVNS"Grid") return new Grid;
     return 0;
   }
+
+  ObjectFactory::MM_PRINSPRE& ObjectFactory::getPriorityNamespacePrefix() {
+    static MM_PRINSPRE priorityNamespacePrefix;
+
+    if(priorityNamespacePrefix.empty()) {
+      // openmbv namespace (medium priority for the default namespace than mbsim)
+      priorityNamespacePrefix.insert(P_PRINSPRE( 80, P_NSPRE(OPENMBVNS_, "")));
+      priorityNamespacePrefix.insert(P_PRINSPRE( 70, P_NSPRE(OPENMBVNS_, "ombv")));
+      priorityNamespacePrefix.insert(P_PRINSPRE( 60, P_NSPRE(OPENMBVNS_, "openmbv")));
+
+      // XInclude
+      priorityNamespacePrefix.insert(P_PRINSPRE(  2, P_NSPRE(XINCLUDENS_, "xi")));
+      priorityNamespacePrefix.insert(P_PRINSPRE(  1, P_NSPRE(XINCLUDENS_, "xinclude")));
+    }
+
+    return priorityNamespacePrefix;
+  }
   
 }
