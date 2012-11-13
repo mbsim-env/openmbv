@@ -36,8 +36,6 @@ using namespace std;
 
 string SCHEMADIR;
 
-string nslocation;
-
 int machinePrec;
 
 int orgstderr;
@@ -178,6 +176,7 @@ void octavePopParams() {
 }
 
 #define PATHLENGTH 10240
+static unordered_map<string, octave_value> cache;
 // evaluate a single statement or a statement list and save the result in the variable 'ret'
 void octaveEvalRet(string str, TiXmlElement *e=NULL) {
   // delete leading new lines in str
@@ -187,13 +186,13 @@ void octaveEvalRet(string str, TiXmlElement *e=NULL) {
   for(unsigned int j=str.length()-1; j>=0 && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j--)
     str[j]=' ';
 
-  // a cache
+  // a cache: this cache is only unique per input file on the command line.
+  // Hence this cache must be cleared after/before each input file. Hence this cache is moved to a global variable.
   if(paramStack.size()>=currentParamHash.size()) {
     currentParamHash.resize(paramStack.size()+1);
     currentParamHash[paramStack.size()]=0;
   }
   stringstream s; s<<paramStack.size()<<";"<<currentParamHash[paramStack.size()]<<";"; string id=s.str();
-  static unordered_map<string, octave_value> cache;
   pair<unordered_map<string, octave_value>::iterator, bool> ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
   if(!ins.second) {
     symbol_table::varref("ret")=ins.first->second;
@@ -367,7 +366,7 @@ int fillParam(TiXmlElement *e) {
   return 0;
 }
 
-int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &units, ostream &dependencies) {
+int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, map<string,string> &units, ostream &dependencies) {
   try {
     if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
       octavePushParams();
@@ -500,7 +499,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
           e->InsertAfterChild(e->FirstChild(), countNr);
       
           // apply embed to new element
-          if(embed(e, nsprefix, units, dependencies)!=0) return 1;
+          if(embed(e, nslocation, nsprefix, units, dependencies)!=0) return 1;
         }
         else
           cout<<"Skip embeding "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
@@ -558,7 +557,7 @@ int embed(TiXmlElement *&e, map<string,string> &nsprefix, map<string,string> &un
   
     TiXmlElement *c=e->FirstChildElement();
     while(c) {
-      if(embed(c, nsprefix, units, dependencies)!=0) return 1;
+      if(embed(c, nslocation, nsprefix, units, dependencies)!=0) return 1;
       c=c->NextSiblingElement();
     }
   }
@@ -689,14 +688,16 @@ int main(int argc, char *argv[]) {
 
     // loop over all files
     while(arg.size()>0) {
-      // initialize the parameter stack
+      // initialize the parameter stack (clear ALL caches)
       symbol_table::clear_variables();
       currentParam.clear();
+      assert(paramStack.empty());
       currentParamHash.clear();
+      cache.clear();
   
       string paramxml=*arg.begin(); arg.erase(arg.begin());
       string mainxml=*arg.begin(); arg.erase(arg.begin());
-      nslocation=*arg.begin(); arg.erase(arg.begin());
+      string nslocation=*arg.begin(); arg.erase(arg.begin());
   
       // validate parameter file
       if(paramxml!="none")
@@ -762,7 +763,7 @@ int main(int argc, char *argv[]) {
       if(toOctave(mainxmlroot)!=0) throw(1);
   
       // embed/validate/toOctave/unit/eval files
-      if(embed(mainxmlroot,nsprefix,units,dependencies)!=0) throw(1);
+      if(embed(mainxmlroot, nslocation,nsprefix,units,dependencies)!=0) throw(1);
   
       // save result file
       cout<<"Save preprocessed file "<<mainxml<<" as .pp."<<extractFileName(mainxml)<<endl;
