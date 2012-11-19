@@ -26,6 +26,8 @@
 #include <QMenu>
 #include <cfloat>
 
+namespace OpenMBVGUI {
+
 Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
   iconFile="frame.svg";
@@ -49,4 +51,6 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     offsetEditor->setStep(0.02);
     offsetEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getOffset, &OpenMBV::Frame::setOffset);
   }
+}
+
 }

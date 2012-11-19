@@ -20,14 +20,17 @@
 #ifndef _GRID_H_
 #define _GRID_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Grid : public RigidBody {
   Q_OBJECT
   public:
     Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

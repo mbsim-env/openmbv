@@ -29,6 +29,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Cuboid *c=(OpenMBV::Cuboid*)obj;
   iconFile="cuboid.svg";
@@ -56,4 +58,6 @@ Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     lengthEditor->setRange(0, DBL_MAX);
     lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
   }
+}
+
 }

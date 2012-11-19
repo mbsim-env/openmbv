@@ -20,14 +20,17 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Frame : public RigidBody {
   Q_OBJECT
   public:
     Frame(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

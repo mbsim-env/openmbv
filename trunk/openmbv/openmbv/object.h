@@ -20,7 +20,6 @@
 #ifndef _OBJECT_H_
 #define _OBJECT_H_
 
-#include "config.h"
 #include <QtGui/QTreeWidgetItem>
 #include <string>
 #include <set>
@@ -32,11 +31,14 @@
 #include <Inventor/sensors/SoSensor.h>
 #include <Inventor/sensors/SoNodeSensor.h>
 
-class PropertyDialog;
 
 namespace OpenMBV {
   class Object;
 }
+
+namespace OpenMBVGUI {
+
+class PropertyDialog;
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
@@ -72,5 +74,7 @@ class Object : public QObject, public QTreeWidgetItem {
   protected slots:
     void deleteObjectSlot();
 };
+
+}
 
 #endif

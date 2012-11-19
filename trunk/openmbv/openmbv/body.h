@@ -20,7 +20,6 @@
 #ifndef _BODY_H_
 #define _BODY_H_
 
-#include "config.h"
 #include "object.h"
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <H5Cpp.h>
@@ -39,6 +38,8 @@
 namespace OpenMBV {
   class Body;
 }
+
+namespace OpenMBVGUI {
 
 class Body : public Object {
   Q_OBJECT
@@ -68,5 +69,7 @@ class Body : public Object {
     friend class IndexedTesselationFace;
     friend class MainWindow;
 };
+
+}
 
 #endif

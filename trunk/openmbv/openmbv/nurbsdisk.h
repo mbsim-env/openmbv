@@ -20,7 +20,6 @@
 #ifndef _NURBSDISK_H_
 #define _NURBSDISK_H_
 
-#include "config.h"
 #include "dynamiccoloredbody.h"
 
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -41,6 +40,8 @@
 namespace OpenMBV {
   class NurbsDisk;
 }
+
+namespace OpenMBVGUI {
 
 /**
  * \brief class for bodies with NURBS surface and primitive closure
@@ -116,6 +117,8 @@ class NurbsDisk : public DynamicColoredBody {
     public slots:
       void moveCameraWithSlot();
 };
+
+}
 
 #endif /* _NURBSDISK_H_ */
 

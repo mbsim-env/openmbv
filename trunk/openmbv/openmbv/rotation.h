@@ -20,15 +20,18 @@
 #ifndef _ROTATION_H_
 #define _ROTATION_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Rotation : public RigidBody {
   Q_OBJECT
   public:
     Rotation(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

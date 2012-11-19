@@ -29,6 +29,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   nurbsDisk=(OpenMBV::NurbsDisk*)obj;
   //h5 dataset
@@ -422,3 +424,5 @@ double NurbsDisk::update() {
   return data[0]; //return time
 }
 
+
+}

@@ -20,12 +20,13 @@
 #ifndef _VIBODYCUBE_H_
 #define _VIBODYCUBE_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
 #include <QThread>
 #include "openmbvcppinterface/ivbody.h"
+
+namespace OpenMBVGUI {
 
 class EdgeCalculation;
 
@@ -52,5 +53,7 @@ class IvBody : public RigidBody {
   private slots:
     void addEdgesToScene();
 };
+
+}
 
 #endif

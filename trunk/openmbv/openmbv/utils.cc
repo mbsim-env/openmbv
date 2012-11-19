@@ -38,6 +38,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 bool Utils::initialized=false;
 
 void Utils::initialize() {
@@ -291,9 +293,15 @@ string Utils::getExePath() {
   for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
 #else // Linux
+#ifdef DEVELOPER_HACK
+  // the (maybe relative) path store in envvar '_' to avoid problems with a linked executable to a none installation path
+  strcpy(exePath, getenv("_"));
+  *strrchr(exePath, '/')=0; // remove the program name
+#else
   int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
   exePath[exePathLength]=0; // null terminate
   *strrchr(exePath, '/')=0; // remove the program name
+#endif
 #endif
 
   return exePath;
@@ -309,4 +317,6 @@ string Utils::getXMLDocPath() {
 
 string Utils::getDocPath() {
   return getExePath()+"/../share/openmbv/doc";
+}
+
 }

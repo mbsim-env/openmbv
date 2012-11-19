@@ -36,6 +36,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind), calculateEdgesThread(this) {
   OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
   iconFile="ivbody.svg";
@@ -117,4 +119,6 @@ void IvBody::addEdgesToScene() {
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
   cout<<"Finished edge calculation for "<<ivb->getFullName()<<" and added to scene."<<endl;
+}
+
 }

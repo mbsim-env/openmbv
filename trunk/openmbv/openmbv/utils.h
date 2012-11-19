@@ -20,7 +20,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#include <QIcon>
+#include <QtGui/QIcon>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/SbRotation.h>
@@ -33,12 +33,15 @@
 #include <boost/function.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <openmbvcppinterface/object.h>
+#include <QtGui/QTreeWidgetItem>
 
 #ifdef WIN32
 #  define CALLMETHOD __stdcall
 #else
 #  define CALLMETHOD
 #endif
+
+namespace OpenMBVGUI {
 
 /** Utilitiy class */
 class Utils {
@@ -73,6 +76,9 @@ class Utils {
     /** Convenienc function to convert a rotation matrix to cardan angles */
     static SbVec3f rotation2Cardan(const SbRotation& r);
 
+    template<class T>
+    static void visitTreeWidgetItems(QTreeWidgetItem *root, boost::function<void (T)> func, bool onlySelected=false);
+
     static std::string getExePath();
     static std::string getIconPath();
     static std::string getXMLDocPath();
@@ -103,5 +109,15 @@ class Utils {
     static void CALLMETHOD tessVertexCB(GLdouble *vertex);
     static void CALLMETHOD tessEndCB(void);
 };
+
+template<class T>
+void Utils::visitTreeWidgetItems(QTreeWidgetItem *root, boost::function<void (T)> func, bool onlySelected) {
+  for(int i=0; i<root->childCount(); i++)
+    visitTreeWidgetItems(root->child(i), func, onlySelected);
+  if((!onlySelected || root->isSelected()) && dynamic_cast<T>(root))
+    func(static_cast<T>(root));
+}
+
+}
 
 #endif

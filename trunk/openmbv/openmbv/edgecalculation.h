@@ -25,6 +25,8 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include "QReadWriteLock"
 
+namespace OpenMBVGUI {
+
 class EdgeCalculation {
   public:
     /** Collect the data to be edge calculated from grp.
@@ -118,5 +120,7 @@ class EdgeCalculation {
     // set by calcShilouetteEdges
     SoIndexedLineSet *shilouetteEdges;
 };
+
+}
 
 #endif

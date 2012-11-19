@@ -20,7 +20,6 @@
 #ifndef _SPINEEXTRUSION_H_
 #define _SPINEEXTRUSION_H_
 
-#include "config.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
@@ -31,6 +30,8 @@
 namespace OpenMBV {
   class SpineExtrusion;
 }
+
+namespace OpenMBVGUI {
 
 /**
  * \brief class for extrusion along a curve
@@ -61,6 +62,8 @@ class SpineExtrusion : public DynamicColoredBody {
 
     OpenMBV::SpineExtrusion *spineExtrusion;
 };
+
+}
 
 #endif /* _SPINEEXTRUSION_H_ */
 

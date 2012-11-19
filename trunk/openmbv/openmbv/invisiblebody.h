@@ -20,15 +20,18 @@
 #ifndef _INVISIBLEBODY_H_
 #define _INVISIBLEBODY_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class InvisibleBody : public RigidBody {
   Q_OBJECT
   public:
     InvisibleBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

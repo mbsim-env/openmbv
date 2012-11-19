@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Frustum *f=(OpenMBV::Frustum*)obj;
   iconFile="frustum.svg";
@@ -223,4 +225,6 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
     innerTopRadiusEditor->setRange(0, DBL_MAX);
     innerTopRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getInnerTopRadius, &OpenMBV::Frustum::setInnerTopRadius);
   }
+}
+
 }

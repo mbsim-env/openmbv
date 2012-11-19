@@ -20,12 +20,13 @@
 #ifndef _SOQTMYVIEWER_H_
 #define _SOQTMYVIEWER_H_
 
-#include "config.h"
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#include <QEvent>
+#include <QtCore/QEvent>
 #include <GL/gl.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/fields/SoMFColor.h>
+
+namespace OpenMBVGUI {
 
 class SoQtMyViewer : public SoQtExaminerViewer {
   public:
@@ -45,5 +46,7 @@ class SoQtMyViewer : public SoQtExaminerViewer {
 
     friend class MainWindow;
 };
+
+}
 
 #endif

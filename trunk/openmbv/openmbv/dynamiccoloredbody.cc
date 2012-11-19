@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(nan("")) {
   OpenMBV::DynamicColoredBody *dcb=(OpenMBV::DynamicColoredBody*)obj;
   // read XML
@@ -64,4 +66,6 @@ QString DynamicColoredBody::getInfo() {
   return Body::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>Color:</b> %1").arg(getColor());
+}
+
 }

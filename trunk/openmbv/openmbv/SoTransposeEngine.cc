@@ -1,6 +1,8 @@
 #include "SoTransposeEngine.h"
 #include <Inventor/SbLinear.h>
 
+namespace OpenMBVGUI {
+
 SO_ENGINE_SOURCE(SoTransposeEngine);
 
 void SoTransposeEngine::initClass() {
@@ -17,4 +19,6 @@ void SoTransposeEngine::evaluate() {
   SbMatrix matrix;
   inRotation.getValue().getValue(matrix);
   SO_ENGINE_OUTPUT(outRotation, SoSFRotation, setValue(SbRotation(matrix.transpose())));
+}
+
 }

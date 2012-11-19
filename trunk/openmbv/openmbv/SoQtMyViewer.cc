@@ -33,6 +33,8 @@
 #include <QIcon>
 #include "mainwindow.h"
 
+namespace OpenMBVGUI {
+
 SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
   setDecoration(false);
   setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
@@ -159,4 +161,6 @@ void SoQtMyViewer::actualRedraw(void) {
 
   // update fps
   MainWindow::getInstance()->fpsCB();
+}
+
 }

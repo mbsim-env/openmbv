@@ -29,6 +29,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Sphere *s=(OpenMBV::Sphere*)obj;
   iconFile="sphere.svg";
@@ -52,4 +54,6 @@ Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     radiusEditor->setRange(0, DBL_MAX);
     radiusEditor->setOpenMBVParameter(s, &OpenMBV::Sphere::getRadius, &OpenMBV::Sphere::setRadius);
   }
+}
+
 }

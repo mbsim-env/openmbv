@@ -20,7 +20,6 @@
 #ifndef _GROUP_H_
 #define _GROUP_H_
 
-#include "config.h"
 #include "object.h"
 #include <string>
 #include <H5Cpp.h>
@@ -30,6 +29,8 @@
 namespace OpenMBV {
   class Group;
 }
+
+namespace OpenMBVGUI {
 
 class Group : public Object {
   Q_OBJECT
@@ -54,5 +55,7 @@ class Group : public Object {
   public slots:
     void unloadFileSlot();
 };
+
+}
 
 #endif

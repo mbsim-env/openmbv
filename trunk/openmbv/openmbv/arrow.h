@@ -20,7 +20,6 @@
 #ifndef _ARROW_H_
 #define _ARROW_H_
 
-#include "config.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -35,6 +34,8 @@
 namespace OpenMBV {
   class Arrow;
 }
+
+namespace OpenMBVGUI {
 
 class Arrow : public DynamicColoredBody {
   Q_OBJECT
@@ -57,5 +58,7 @@ class Arrow : public DynamicColoredBody {
     Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
 };
+
+}
 
 #endif

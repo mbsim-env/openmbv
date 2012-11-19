@@ -20,15 +20,18 @@
 #ifndef _FRUSTUM_H_
 #define _FRUSTUM_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Frustum : public RigidBody {
   Q_OBJECT
   public:
     Frustum(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

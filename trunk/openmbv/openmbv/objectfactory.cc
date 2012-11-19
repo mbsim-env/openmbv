@@ -42,6 +42,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
   if(obj->getClassName()=="Group")
     return new Group(obj, parentItem, soParent, ind);
@@ -83,3 +85,5 @@ Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup
   return 0;
 }
 
+
+}

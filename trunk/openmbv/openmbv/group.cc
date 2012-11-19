@@ -47,6 +47,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
   grp=(OpenMBV::Group*)obj;
   iconFile="group.svg";
@@ -217,4 +219,6 @@ string Group::getPath() {
   if(grp->getSeparateFile())
     return text(0).toStdString();
   return Object::getPath();
+}
+
 }

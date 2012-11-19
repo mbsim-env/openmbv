@@ -20,11 +20,12 @@
 #ifndef _SOSEPNOPICKNOBBOX_H_
 #define _SOSEPNOPICKNOBBOX_H_
 
-#include "config.h"
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+
+namespace OpenMBVGUI {
 
 class SoSepNoPickNoBBox : public SoSeparator {
   public:
@@ -41,5 +42,7 @@ class SoBaseColorHeavyOverride : public SoBaseColor {
       SoBaseColor::GLRender(action); // render
     }
 };
+
+}
 
 #endif

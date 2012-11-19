@@ -20,15 +20,18 @@
 #ifndef _CUBE_H_
 #define _CUBE_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Cube : public RigidBody {
   Q_OBJECT
   public:
     Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

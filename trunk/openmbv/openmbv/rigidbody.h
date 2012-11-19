@@ -20,7 +20,6 @@
 #ifndef _RIGIDBODY_H_
 #define _RIGIDBODY_H_
 
-#include "config.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
@@ -35,6 +34,8 @@
 namespace OpenMBV {
   class RigidBody;
 }
+
+namespace OpenMBVGUI {
 
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
@@ -60,5 +61,7 @@ class RigidBody : public DynamicColoredBody {
   public slots:
     void moveCameraWithSlot();
 };
+
+}
 
 #endif

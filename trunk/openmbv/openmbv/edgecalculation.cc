@@ -30,6 +30,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 // HELPER CLASSES
 
 // compare two SbVec3f objects
@@ -321,4 +323,6 @@ SbVec3f EdgeCalculation::v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3) {
   SbVec3f ret=v13-v13.dot(v12)/v12.dot(v12)*v12;
   ret.normalize();
   return ret;
+}
+
 }

@@ -36,7 +36,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   // environment variables
-  // Disalbe VBO per default (see --help)
+  // Disalbe COIN VBO per default (see --help)
   char COIN_VBO[strlen("COIN_VBO=0")+1];
   if(getenv("COIN_VBO")==NULL) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
 
-  MainWindow mainWindow(arg);
+  OpenMBVGUI::MainWindow mainWindow(arg);
   mainWindow.show();
   if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
   mainWindow.updateScene(); // must be called after mainWindow.show()

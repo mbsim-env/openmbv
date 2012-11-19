@@ -9,20 +9,22 @@
 #include <boost/bind.hpp>
 #include <boost/assign/list_of.hpp>
 #include <utils.h>
-#include <QDialog>
-#include <QCheckBox>
-#include <QGridLayout>
-#include <QVBoxLayout>
-#include <QScrollArea>
-#include <QAction>
-#include <QDoubleSpinBox>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QTableWidget>
+#include <QtGui/QDialog>
+#include <QtGui/QCheckBox>
+#include <QtGui/QGridLayout>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QScrollArea>
+#include <QtGui/QAction>
+#include <QtGui/QDoubleSpinBox>
+#include <QtGui/QComboBox>
+#include <QtGui/QLineEdit>
+#include <QtGui/QTableWidget>
 #include <Inventor/draggers/SoCenterballDragger.h>
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <cmath>
+
+namespace OpenMBVGUI {
 
 class Editor;
 
@@ -81,7 +83,7 @@ class BoolEditor : public Editor {
 
   public:
     /*! Constructor. */
-    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
+    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName="");
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
@@ -629,6 +631,8 @@ void TransRotEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (
     spinBox[i+3]->setValue(rot[i]*180/M_PI);
   }
   draggerCheckBox->setChecked(ombvDraggerGetter());
+}
+
 }
 
 #endif

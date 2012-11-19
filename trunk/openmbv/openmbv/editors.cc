@@ -1,3 +1,4 @@
+#include "config.h"
 #include <editors.h>
 #include <Inventor/draggers/SoCenterballDragger.h>
 #include <QGridLayout>
@@ -20,6 +21,8 @@
 #include <Inventor/fields/SoSFRotation.h>
 
 using namespace std;
+
+namespace OpenMBVGUI {
 
 
 
@@ -198,13 +201,14 @@ void Editor::replaceObject() {
 
 
 
-BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name) : Editor(parent_, icon, name) {
+BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName) : Editor(parent_, icon, name) {
   checkbox=new QCheckBox;
   connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, checkbox);
 
   action=new QAction(icon, name.c_str(), this);
   action->setCheckable(true);
+  action->setObjectName(qtObjectName.c_str());
   connect(action,SIGNAL(changed()),this,SLOT(actionChangedSlot()));
 }
 
@@ -646,4 +650,6 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
 NotAvailableEditor::NotAvailableEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name) : Editor(parent_, icon, name) {
   dialog->addSmallRow(icon, name, new QLabel("Sorry, a editor for this value is not available.<br/>"
                                              "Please change this value manually in the XML-file."));
+}
+
 }
