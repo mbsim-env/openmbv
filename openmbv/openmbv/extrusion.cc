@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
   iconFile="extrusion.svg";
@@ -199,4 +201,6 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
 
     new NotAvailableEditor(properties, QIcon(), "Contours");
   }
+}
+
 }

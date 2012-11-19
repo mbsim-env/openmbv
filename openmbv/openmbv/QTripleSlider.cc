@@ -1,9 +1,12 @@
+#include "config.h"
 #include "QTripleSlider.h"
 #include <QFrame>
 #include <QResizeEvent>
 #include "utils.h"
 
 using namespace std;
+
+namespace OpenMBVGUI {
 
 QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent), totalMin(0), totalMax(99) {
   // the appearance of the splitter handle
@@ -171,4 +174,6 @@ void QTripleSlider::syncCurrentRangeToSplitterPosition() {
 
 void QTripleSlider::sliderMovedSlot(int value) {
   emit sliderMoved(value);
+}
+
 }

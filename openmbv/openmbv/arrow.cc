@@ -23,11 +23,14 @@
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoBaseColor.h>
+#include <Inventor/nodes/SoDrawStyle.h>
 #include "utils.h"
 #include "openmbvcppinterface/arrow.h"
 #include <cfloat>
 
 using namespace std;
+
+namespace OpenMBVGUI {
 
 Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   arrow=(OpenMBV::Arrow*)obj;
@@ -335,4 +338,6 @@ QString Arrow::getInfo() {
          QString("<b>To-point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
          QString("<b>Length:</b> %1").arg(length/scaleLength);
+}
+
 }

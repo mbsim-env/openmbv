@@ -20,10 +20,11 @@
 #ifndef _COMPOUNDRIGIDBODY_H_
 #define _COMPOUNDRIGIDBODY_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <H5Cpp.h>
 #include "openmbvcppinterface/compoundrigidbody.h"
+
+namespace OpenMBVGUI {
 
 class CompoundRigidBody : public RigidBody {
   friend class MainWindow;
@@ -36,5 +37,7 @@ class CompoundRigidBody : public RigidBody {
   protected slots:
     void newRigidBodySlot();
 };
+
+}
 
 #endif

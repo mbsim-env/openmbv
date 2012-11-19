@@ -1,6 +1,8 @@
 #include <Inventor/engines/SoSubEngine.h>
 #include <Inventor/fields/SoSFRotation.h>
 
+namespace OpenMBVGUI {
+
 class SoTransposeEngine : public SoEngine {
  SO_ENGINE_HEADER(SoTransposeEngine);
  public:
@@ -14,3 +16,5 @@ class SoTransposeEngine : public SoEngine {
    virtual ~SoTransposeEngine() {}
    virtual void evaluate();
 };
+
+}

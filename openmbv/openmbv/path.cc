@@ -27,6 +27,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
   path=(OpenMBV::Path*)obj;
   iconFile="path.svg";
@@ -78,4 +80,6 @@ QString Path::getInfo() {
   return Body::getInfo()+
          QString("<hr width=\"10000\"/>")+
          QString("<b>Position:</b> %1, %2, %3").arg(x).arg(y).arg(z);
+}
+
 }

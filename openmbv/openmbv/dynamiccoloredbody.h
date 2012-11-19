@@ -20,11 +20,12 @@
 #ifndef _DYNAMICCOLOREDBODY_H_
 #define _DYNAMICCOLOREDBODY_H_
 
-#include "config.h"
 #include "body.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <editors.h>
+
+namespace OpenMBVGUI {
 
 class DynamicColoredBody : public Body {
   Q_OBJECT
@@ -37,5 +38,7 @@ class DynamicColoredBody : public Body {
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo();
 };
+
+}
 
 #endif

@@ -1,7 +1,10 @@
+#include "config.h"
 #include "IndexedTesselationFace.h"
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <GL/glu.h>
 #include "body.h"
+
+namespace OpenMBVGUI {
 
 SO_NODE_SOURCE(IndexedTesselationFace);
 
@@ -87,4 +90,6 @@ SbBool IndexedTesselationFace::readChildren(SoInput *in) {
   gluTessEndPolygon(Utils::tess);
 
   return true; // reading/generating of children sucessful
+}
+
 }

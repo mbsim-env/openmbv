@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem_, soParent, ind) {
   rigidBody=(OpenMBV::RigidBody*)obj;
   //h5 dataset
@@ -197,4 +199,6 @@ QString RigidBody::getInfo() {
          QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;").arg(rotationAlpha->angle.getValue()*180/M_PI)
                                                     .arg(rotationBeta->angle.getValue()*180/M_PI)
                                                     .arg(rotationGamma->angle.getValue()*180/M_PI);
+}
+
 }

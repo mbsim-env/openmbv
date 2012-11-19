@@ -6,6 +6,8 @@
 #include <Inventor/fields/SoMFVec3d.h>
 #include <Inventor/fields/SoSFEnum.h>
 
+namespace OpenMBVGUI {
+
 class IndexedTesselationFace : public SoGroup {
  SO_NODE_HEADER(IndexedTesselationFace);
  public:
@@ -32,5 +34,7 @@ class IndexedTesselationFace : public SoGroup {
    virtual ~IndexedTesselationFace();
    void constructor();
 };
+
+}
 
 #endif

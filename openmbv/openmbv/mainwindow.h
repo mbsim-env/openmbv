@@ -17,10 +17,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _MAINWINDOW_H_
-#define _MAINWINDOW_H_
+#ifndef _OPENMBVGUI_MAINWINDOW_H_
+#define _OPENMBVGUI_MAINWINDOW_H_
 
-#include "config.h"
 #include <QtGui/QMainWindow>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QTextEdit>
@@ -28,9 +27,9 @@
 #include <QtGui/QActionGroup>
 #include <QtGui/QLabel>
 #include <QtGui/QStatusBar>
-#include <QWebView>
-#include <QTimer>
-#include <QTime>
+#include <QtWebKit/QWebView>
+#include <QtCore/QTimer>
+#include <QtCore/QTime>
 #include <string>
 #include "body.h"
 #include "group.h"
@@ -52,6 +51,8 @@
 #endif
 
 class QListWidgetItem;
+
+namespace OpenMBVGUI {
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -111,6 +112,8 @@ class MainWindow : public QMainWindow {
     void help(std::string type, QDialog *helpDialog);
     QLineEdit *filter;
     static bool objectMatchesFilter(const QRegExp& filterRegExp, Object *item);
+    static void disableBBox(Object *obj);
+    static void enableBBoxOfID(Object *obj, const std::string &ID);
   protected slots:
     void objectListClicked();
     void openFileDialog();
@@ -212,6 +215,11 @@ class MainWindow : public QMainWindow {
     void loadFinished();
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
+  public slots:
+    /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
+    void hightlightObject(Object *current);
+    /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
+    void hightlightObject(std::string curID);
   public:
     MainWindow(std::list<std::string>& arg);
     ~MainWindow();
@@ -238,6 +246,12 @@ class MainWindow : public QMainWindow {
     SoShadowGroup* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     int getReloadTimeout() { return reloadTimeout; }
+  signals:
+    /** this signal is emitted whenever the selected object changes.
+     * either by selecting it in the objects list or in the 3D view. */
+    void selectedObject(std::string curID, Object *curPtr);
 };
+
+}
 
 #endif

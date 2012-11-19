@@ -27,6 +27,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0) {
   spineExtrusion=(OpenMBV::SpineExtrusion*)obj;
   //h5 dataset
@@ -116,3 +118,5 @@ double SpineExtrusion::update() {
   return data[0];
 }
 
+
+}

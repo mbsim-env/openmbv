@@ -28,6 +28,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
   coilSpring=(OpenMBV::CoilSpring*)obj;
   iconFile="coilspring.svg";
@@ -232,4 +234,6 @@ double CoilSpring::update() {
   if(isnan(staticColor)) setColor(mat, data[7]);
 
   return data[0];
+}
+
 }

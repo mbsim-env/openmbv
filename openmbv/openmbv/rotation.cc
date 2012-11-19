@@ -28,6 +28,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Rotation* rot=(OpenMBV::Rotation*)obj;
   iconFile="rotation.svg";
@@ -161,4 +163,6 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
     contourEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getContour, &OpenMBV::Rotation::setContour);
   }
+}
+
 }

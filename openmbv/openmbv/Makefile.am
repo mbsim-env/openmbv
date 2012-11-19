@@ -12,11 +12,11 @@ else
   LIBGLU=-lGLU
 endif
 
-bin_PROGRAMS = openmbv
-openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
-openmbv_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-openmbv_LDADD    = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS)
-openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
+lib_LTLIBRARIES = libopenmbv.la
+libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+libopenmbv_la_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
+libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS) -lGL
+libopenmbv_la_SOURCES = \
   body.cc\
   dynamiccoloredbody.cc\
   cuboid.cc\
@@ -30,7 +30,6 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   frame.cc\
   grid.cc\
   group.cc\
-  main.cc\
   mainwindow.cc\
   exportdialog.cc\
   object.cc\
@@ -50,7 +49,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   IndexedTesselationFace.cc \
   QTripleSlider.cc
 
-nodist_openmbv_SOURCES=$(QT_BUILT_SOURCES)
+nodist_libopenmbv_la_SOURCES=$(QT_BUILT_SOURCES)
 
 # C++ source file to build automatically (e.g. abc.moc.cc by abc.h)
 QT_BUILT_SOURCES = openmbv.qrc.cc\
@@ -80,8 +79,20 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   dynamiccoloredbody.moc.cc \
   QTripleSlider.moc.cc
 
-noinst_HEADERS = openmbv.qrc\
-  mainwindow.h\
+
+
+bin_PROGRAMS = openmbv
+openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
+  main.cc
+openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+openmbv_LDADD    = libopenmbv.la
+
+
+
+libopenmbv_ladir = $(includedir)/openmbv
+libopenmbv_la_HEADERS = mainwindow.h\
+  SoTransposeEngine.h \
+  SoSpecial.h\
   object.h\
   utils.h\
   edgecalculation.h\
@@ -103,15 +114,14 @@ noinst_HEADERS = openmbv.qrc\
   group.h\
   body.h\
   dynamiccoloredbody.h\
-  SoSpecial.h\
   SoQtMyViewer.h \
-  SoTransposeEngine.h \
   spineextrusion.h \
   coilspring.h \
   nurbsdisk.h \
   editors.h \
   IndexedTesselationFace.h \
   QTripleSlider.h
+noinst_HEADERS = openmbv.qrc
 
 icondir = @datadir@/openmbv/icons
 dist_icon_DATA = openmbv.svg \

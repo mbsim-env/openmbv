@@ -72,6 +72,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 MainWindow *MainWindow::instance=0;
 
 MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
@@ -194,6 +196,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
+  objectListDW->setObjectName("MainWindow::objectListDW");
   QWidget *objectListWG=new QWidget(this);
   QGridLayout *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
@@ -229,6 +232,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
+  objectInfoDW->setObjectName("MainWindow::objectInfoDW");
   QWidget *objectInfoWG=new QWidget;
   QGridLayout *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
@@ -393,11 +397,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
+  fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
   QToolBar *viewTB=new QToolBar("ViewToolBar", this);
+  viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
   viewTB->addSeparator();
@@ -415,6 +421,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // animation toolbar
   QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
+  animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
   animationTB->addAction(stopAct);
@@ -768,6 +775,43 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   if(lastframeArg) lastFrameAct->trigger();
 }
 
+void MainWindow::disableBBox(Object *obj) {
+  QList<QAction*> list=obj->properties->getContextMenu()->actions();
+  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
+    if((*act)->objectName()=="Object::soBBoxSwitch" && (*act)->isChecked()) {
+      (*act)->setChecked(false);
+      break;
+    }
+}
+void MainWindow::hightlightObject(Object *current) {
+  // disable all bbox
+  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
+  // enable current bbox
+  QList<QAction*> list=current->properties->getContextMenu()->actions();
+  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
+    if((*act)->objectName()=="Object::soBBoxSwitch") {
+      (*act)->setChecked(true);
+      break;
+    }
+}
+void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
+  if(obj->object->getID()!=ID)
+    return;
+  QList<QAction*> list=obj->properties->getContextMenu()->actions();
+  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
+    if((*act)->objectName()=="Object::soBBoxSwitch") {
+      (*act)->setChecked(true);
+      break;
+    }
+}
+void MainWindow::hightlightObject(string curID) {
+  // disable all bbox
+  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
+  // enable all curID bbox
+  if(!curID.empty())
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), boost::bind(&enableBBoxOfID, _1, curID));
+}
+
 MainWindow::~MainWindow() {
   // unload all top level files before exit (from last to first since the unload removes the element from the list)
   for(int i=objectList->invisibleRootItem()->childCount()-1; i>=0; i--)
@@ -877,6 +921,8 @@ void MainWindow::objectListClicked() {
 //MFMF multiedit    }
     frame->touch(); // force rendering the scene
   }
+  emit selectedObject(static_cast<Object*>(objectList->currentItem())->object->getID(), 
+                      static_cast<Object*>(objectList->currentItem()));
 }
 
 void MainWindow::guiHelp() {
@@ -1205,10 +1251,13 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           it=pickedObject.begin();
           for(int i=0; i<ind; i++, it++);
           objectList->setCurrentItem(*it,0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
+          emit selectedObject((*it)->object->getID(), *it);
         }
         // if Button1 select picked object
-        else
+        else {
           objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
+          emit selectedObject((*pickedObject.begin())->object->getID(), *pickedObject.begin());
+        }
         // if Button2 show property menu
         if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
           Object *object=(Object*)(objectList->currentItem());
@@ -1882,4 +1931,6 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
   frameMaxSB->setRange(timeSlider->totalMinimum(), timeSlider->totalMaximum());
   frameMinSB->setValue(min);
   frameMaxSB->setValue(max);
+}
+
 }

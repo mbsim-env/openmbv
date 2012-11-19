@@ -20,7 +20,6 @@
 #ifndef _COILSPRING_H_
 #define _COILSPRING_H_
 
-#include "config.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
@@ -34,6 +33,8 @@
 namespace OpenMBV {
   class CoilSpring;
 }
+
+namespace OpenMBVGUI {
 
 /**
  * \brief class for drawing simple helix springs
@@ -92,6 +93,8 @@ class CoilSpring : public DynamicColoredBody {
 
     OpenMBV::CoilSpring *coilSpring;
 };
+
+}
 
 #endif /* _COILSPRING_H_ */
 

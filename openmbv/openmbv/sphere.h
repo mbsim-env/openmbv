@@ -20,15 +20,18 @@
 #ifndef _SPHERE_H_
 #define _SPHERE_H_
 
-#include "config.h"
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
+
+namespace OpenMBVGUI {
 
 class Sphere : public RigidBody {
   Q_OBJECT
   public:
     Sphere(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
+
+}
 
 #endif

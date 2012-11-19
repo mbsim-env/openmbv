@@ -20,7 +20,6 @@
 #ifndef _EXPORTDIALOG_H_
 #define _EXPORTDIALOG_H_
 
-#include "config.h"
 #include <QtGui/QDialog>
 #include <QtGui/QPushButton>
 #include <QtGui/QLineEdit>
@@ -28,6 +27,8 @@
 #include <QtGui/QLabel>
 #include <QtGui/QGridLayout>
 #include <QtGui/QRadioButton>
+
+namespace OpenMBVGUI {
 
 class ExportDialog : public QDialog {
   Q_OBJECT
@@ -47,5 +48,7 @@ class ExportDialog : public QDialog {
   protected slots:
     void fileBrowser();
 };
+
+}
 
 #endif

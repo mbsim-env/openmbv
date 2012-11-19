@@ -41,6 +41,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   crb=(OpenMBV::CompoundRigidBody*)obj;
   iconFile="compoundrigidbody.svg";
@@ -97,4 +99,6 @@ void CompoundRigidBody::newRigidBodySlot() {
 
   // apply object filter
   MainWindow::getInstance()->searchObjectList(this, QRegExp(MainWindow::getInstance()->filter->text()));
+}
+
 }

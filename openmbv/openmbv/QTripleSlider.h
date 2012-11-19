@@ -1,8 +1,10 @@
 #ifndef _QTRIPPLESLIDER_H_
 #define _QTRIPPLESLIDER_H_
 
-#include <QSplitter>
-#include <QSlider>
+#include <QtGui/QSplitter>
+#include <QtGui/QSlider>
+
+namespace OpenMBVGUI {
 
 /*! A vertical triple slider
  * This slider has three handles, where the middle handle can only change between the
@@ -59,5 +61,7 @@ class QTripleSlider : public QSplitter {
     void syncSplitterPositionToCurrentRange();
     void sliderMovedSlot(int value);
 };
+
+}
 
 #endif

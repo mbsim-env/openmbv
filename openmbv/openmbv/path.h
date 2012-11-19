@@ -20,7 +20,6 @@
 #ifndef _PATH_H_
 #define _PATH_H_
 
-#include "config.h"
 #include "body.h"
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
@@ -30,6 +29,8 @@
 namespace OpenMBV {
   class Path;
 }
+
+namespace OpenMBVGUI {
 
 class Path : public Body {
   Q_OBJECT
@@ -43,5 +44,7 @@ class Path : public Body {
     Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
 };
+
+}
 
 #endif

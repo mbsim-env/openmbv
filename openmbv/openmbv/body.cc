@@ -41,6 +41,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 map<SoNode*,Body*> Body::bodyMap;
 
 Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
@@ -232,4 +234,6 @@ void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
     if(shilouetteCalc)
       me->soShilouetteEdgeSep->replaceChild(soShilouetteEdgeOld, me->soShilouetteEdge=me->edgeCalc->getShilouetteEdges()); // replace shilouette edges
   }
+}
+
 }

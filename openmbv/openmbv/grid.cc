@@ -27,6 +27,8 @@
 #include <QMenu>
 #include <cfloat>
 
+namespace OpenMBVGUI {
+
 Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
   iconFile=":/grid.svg";
@@ -85,4 +87,6 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     nyEditor->setRange(0, INT_MAX);
     nyEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYNumber, &OpenMBV::Grid::setYNumber);
   }
+}
+
 }

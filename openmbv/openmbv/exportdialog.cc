@@ -22,6 +22,8 @@
 #include <QtGui/QFileDialog>
 #include "mainwindow.h"
 
+namespace OpenMBVGUI {
+
 ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   int row=-1;
   setWindowTitle("Export current frame as PNG");
@@ -84,4 +86,6 @@ void ExportDialog::fileBrowser() {
   QString name=QFileDialog::getSaveFileName(this, "Save to file", fileName.text(), "PNG-image (*.png)");
   if(name.isNull()) return;
   fileName.setText(name);
+}
+
 }

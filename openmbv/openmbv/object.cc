@@ -32,6 +32,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 set<Object*> Object::objects;
 
 Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
@@ -99,7 +101,7 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
     properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
 
-    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box");
+    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::soBBoxSwitch");
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
     properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
   }
@@ -183,4 +185,6 @@ void Object::deleteObjectSlot() {
   delete this; // from now no element should be accessed thats why we have saveed the obj member
   // if obj has a parent, remove obj from parent and delete obj
   objPtr->destroy(); // this does not use any member of Object, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
+}
+
 }

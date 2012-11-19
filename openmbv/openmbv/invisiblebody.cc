@@ -26,6 +26,8 @@
 
 using namespace std;
 
+namespace OpenMBVGUI {
+
 InvisibleBody::InvisibleBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   iconFile="invisiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
@@ -36,4 +38,6 @@ InvisibleBody::InvisibleBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, 
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
+}
+
 }
