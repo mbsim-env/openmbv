@@ -1,5 +1,8 @@
 SUBDIRS = openmbv
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = openmbv.pc
+
 
 
 # doc

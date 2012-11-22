@@ -50,6 +50,13 @@ void Object::initializeUsingXML(TiXmlElement *element) {
   if(element->Attribute("boundingBox") && 
      (element->Attribute("boundingBox")==string("false") || element->Attribute("boundingBox")==string("0")))
     setBoundingBox(false);
+
+  for(TiXmlNode *child=element->FirstChild(); child; child=child->NextSibling()) {
+    TiXmlUnknown *unknown=child->ToUnknown();
+    const size_t length=strlen("?OPENMBV_ID ");
+    if(unknown && unknown->ValueStr().substr(0, length)=="?OPENMBV_ID ")
+      setID(unknown->ValueStr().substr(length, unknown->ValueStr().length()-length-1));
+  }
 }
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
@@ -152,6 +159,11 @@ TiXmlElement *Object::writeXMLFile(TiXmlNode *parent) {
   addAttribute(e, "name", name);
   addAttribute(e, "enable", enableStr, string("true"));
   addAttribute(e, "boundingBox", boundingBoxStr, string("false"));
+  if(!ID.empty()) {
+    TiXmlUnknown *id=new TiXmlUnknown;
+    id->SetValue("?OPENMBV_ID "+ID+"?");
+    e->LinkEndChild(id);
+  }
   return e;
 }
 
