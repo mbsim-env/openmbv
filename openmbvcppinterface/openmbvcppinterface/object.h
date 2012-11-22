@@ -49,6 +49,7 @@ namespace OpenMBV {
     protected:
       std::string name;
       std::string enableStr, boundingBoxStr;
+      std::string ID;
       Group* parent;
 
       virtual void createHDF5File()=0;
@@ -113,6 +114,11 @@ namespace OpenMBV {
       Group* getTopLevelGroup();
 
       Group* getParent() { return parent; }
+
+      /** get the ID sting of the Object */
+      std::string getID() const { return ID; }
+      /** set the ID sting of the Object */
+      void setID(std::string ID_) { ID=ID_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
       static std::string fixPath(std::string oldFile, std::string newFile) { return ::fixPath(oldFile, newFile); }
