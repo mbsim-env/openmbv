@@ -578,6 +578,29 @@ string extractFileName(const string& dirfilename) {
   return dirfilename.substr(i1+1);
 }
 
+string getInstallPath() {
+  // get path of this executable
+  static char exePath[4096]="";
+  if(strcmp(exePath, "")!=0) return string(exePath)+"/..";
+
+#ifdef _WIN32 // Windows
+  GetModuleFileName(NULL, exePath, sizeof(exePath));
+  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
+  *strrchr(exePath, '/')=0; // remove the program name
+#else // Linux
+#ifdef DEVELOPER_HACK_EXEPATH
+  // use hardcoded exePath
+  strcpy(exePath, DEVELOPER_HACK_EXEPATH);
+#else
+  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
+  exePath[exePathLength]=0; // null terminate
+  *strrchr(exePath, '/')=0; // remove the program name
+#endif
+#endif
+
+  return string(exePath)+"/..";
+}
+
 int main(int argc, char *argv[]) {
   // convert argv to list
   list<string> arg;
@@ -607,36 +630,24 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  // get path of this executable
-  char exePath[4096];
-#ifdef _WIN32 // Windows
-  GetModuleFileName(NULL, exePath, sizeof(exePath));
-  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
-  *strrchr(exePath, '/')=0; // remove the program name
-#else // Linux
-  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
-  exePath[exePathLength]=0; // null terminate
-  *strrchr(exePath, '/')=0; // remove the program name
-#endif
-
   // check for environment variables (none default installation)
   string XMLDIR;
   string OCTAVEDIR;
   struct stat st;
   char *env;
   SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
-  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=string(exePath)+"/../share/mbxmlutils/schema"; // use rel path if build configuration dose not work
+  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env; // overwrite with envvar if exist
   XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
-  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=string(exePath)+"/../share/mbxmlutils/xml"; // use rel path if build configuration dose not work
+  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
   OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=string(exePath)+"/../share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
   string OCTAVE_HOME; // the string for putenv must has program life time
-  if(getenv("OCTAVE_HOME")==NULL && stat((string(exePath)+"/../share/octave").c_str(), &st)==0) {
-    OCTAVE_HOME=string("OCTAVE_HOME=")+exePath+"/..";
+  if(getenv("OCTAVE_HOME")==NULL && stat((getInstallPath()+"/share/octave").c_str(), &st)==0) {
+    OCTAVE_HOME="OCTAVE_HOME="+getInstallPath();
     putenv((char*)OCTAVE_HOME.c_str());
   }
 

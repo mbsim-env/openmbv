@@ -783,7 +783,7 @@ void MainWindow::disableBBox(Object *obj) {
       break;
     }
 }
-void MainWindow::hightlightObject(Object *current) {
+void MainWindow::highlightObject(Object *current) {
   // disable all bbox
   Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
   // enable current bbox
@@ -804,7 +804,7 @@ void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
       break;
     }
 }
-void MainWindow::hightlightObject(string curID) {
+void MainWindow::highlightObject(string curID) {
   // disable all bbox
   Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
   // enable all curID bbox

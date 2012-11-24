@@ -203,6 +203,8 @@ void Group::reloadFileSlot() {
     MainWindow::getInstance()->objectList->setCurrentItem(parent->child(ind));
   else
     MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind));
+
+  emit MainWindow::getInstance()->fileReloaded();
 }
 
 void Group::reloadFileSlotIfNewer() {

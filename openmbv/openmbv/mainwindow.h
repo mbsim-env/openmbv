@@ -217,9 +217,9 @@ class MainWindow : public QMainWindow {
     void frameMinMaxSetValue(int,int);
   public slots:
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
-    void hightlightObject(Object *current);
+    void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
-    void hightlightObject(std::string curID);
+    void highlightObject(std::string curID);
   public:
     MainWindow(std::list<std::string>& arg);
     ~MainWindow();
@@ -250,6 +250,8 @@ class MainWindow : public QMainWindow {
     /** this signal is emitted whenever the selected object changes.
      * either by selecting it in the objects list or in the 3D view. */
     void selectedObject(std::string curID, Object *curPtr);
+    /** this signal is emmited whenever a file has been reloaded */
+    void fileReloaded();
 };
 
 }
