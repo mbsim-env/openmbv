@@ -79,7 +79,7 @@ class Utils {
     template<class T>
     static void visitTreeWidgetItems(QTreeWidgetItem *root, boost::function<void (T)> func, bool onlySelected=false);
 
-    static std::string getExePath();
+    static std::string getInstallPath();
     static std::string getIconPath();
     static std::string getXMLDocPath();
     static std::string getDocPath();

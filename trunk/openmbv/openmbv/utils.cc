@@ -283,20 +283,19 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
   return obj;
 }
 
-string Utils::getExePath() {
+string Utils::getInstallPath() {
   // get path of this executable
   static char exePath[4096]="";
-  if(strcmp(exePath, "")!=0) return exePath;
+  if(strcmp(exePath, "")!=0) return string(exePath)+"/..";
 
 #ifdef _WIN32 // Windows
   GetModuleFileName(NULL, exePath, sizeof(exePath));
   for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
 #else // Linux
-#ifdef DEVELOPER_HACK
-  // the (maybe relative) path store in envvar '_' to avoid problems with a linked executable to a none installation path
-  strcpy(exePath, getenv("_"));
-  *strrchr(exePath, '/')=0; // remove the program name
+#ifdef DEVELOPER_HACK_EXEPATH
+  // use hardcoded exePath
+  strcpy(exePath, DEVELOPER_HACK_EXEPATH);
 #else
   int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
   exePath[exePathLength]=0; // null terminate
@@ -304,19 +303,19 @@ string Utils::getExePath() {
 #endif
 #endif
 
-  return exePath;
+  return string(exePath)+"/..";
 }
 
 string Utils::getIconPath() {
-  return getExePath()+"/../share/openmbv/icons";
+  return getInstallPath()+"/share/openmbv/icons";
 }
 
 string Utils::getXMLDocPath() {
-  return getExePath()+"/../share/mbxmlutils/doc";
+  return getInstallPath()+"/share/mbxmlutils/doc";
 }
 
 string Utils::getDocPath() {
-  return getExePath()+"/../share/openmbv/doc";
+  return getInstallPath()+"/share/openmbv/doc";
 }
 
 }
