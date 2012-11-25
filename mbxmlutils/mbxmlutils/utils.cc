@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
-#include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
+#include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/parse.h>
 
 using namespace std;
