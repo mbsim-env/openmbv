@@ -1,7 +1,7 @@
 #ifndef _OPENMBV_OBJECTFACTORY_H_
 #define _OPENMBV_OBJECTFACTORY_H_
 
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"
+#include <mbxmlutilstinyxml/tinyxml.h>
 #include "openmbvcppinterface/object.h"
 
 namespace OpenMBV {

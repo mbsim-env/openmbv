@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: openmbvcppinterface
 Description: A library to create OpenMBV input files.
-Requires: hdf5serie
+Requires: hdf5serie mbxmlutilstinyxml
 Version: @VERSION@
-Libs: -L${libdir} -lopenmbvcppinterface -lopenmbvcppinterfacetinyxml
-Cflags: -I${includedir} -DTIXML_USE_STL @DEFINES@
+Libs: -L${libdir} -lopenmbvcppinterface
+Cflags: -I${includedir} @DEFINES@

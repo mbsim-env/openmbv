@@ -8,7 +8,7 @@ INCLUDES = $(HDF5SERIE_CFLAGS)
 
 libopenmbvcppinterface_la_CPPFLAGS = -DTIXML_USE_STL
 
-libopenmbvcppinterface_la_LDFLAGS = ../openmbvcppinterfacetinyxml/libopenmbvcppinterfacetinyxml.la $(HDF5SERIE_LIBS)
+libopenmbvcppinterface_la_LDFLAGS = $(HDF5SERIE_LIBS) $(MBXMLUTILSTINYXML_LIBS)
 
 libopenmbvcppinterface_la_SOURCES = object.cc \
   objectfactory.cc\
