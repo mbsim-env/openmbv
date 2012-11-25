@@ -34,7 +34,7 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QComboBox>
 #include <QtGui/QLabel>
-#include <mbxmlutils/mbxmlutils.h>
+#include <mbxmlutilstinyxml/getinstallpath.h>
 
 using namespace std;
 
