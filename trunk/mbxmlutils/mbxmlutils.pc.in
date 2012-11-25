@@ -10,5 +10,7 @@ BINDIR=@prefix@/bin
 
 Name: MBXMLUtils
 Description: XML utilities for physical applications (multi body applications)
-Requires: 
+Requires: mbxmlutilstinyxml
 Version: @VERSION@
+Libs: -L${libdir} @MKOCTFILE_LIBS@
+Cflags: -I${includedir} @MKOCTFILE_CFLAGS@

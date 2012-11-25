@@ -17,7 +17,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "config.h"
 #include "utils.h"
 #include <Inventor/nodes/SoLineSet.h>
 #ifdef HAVE_UNORDERED_MAP
@@ -35,6 +34,7 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QComboBox>
 #include <QtGui/QLabel>
+#include <mbxmlutils/mbxmlutils.h>
 
 using namespace std;
 
@@ -283,39 +283,16 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
   return obj;
 }
 
-string Utils::getInstallPath() {
-  // get path of this executable
-  static char exePath[4096]="";
-  if(strcmp(exePath, "")!=0) return string(exePath)+"/..";
-
-#ifdef _WIN32 // Windows
-  GetModuleFileName(NULL, exePath, sizeof(exePath));
-  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
-  *strrchr(exePath, '/')=0; // remove the program name
-#else // Linux
-#ifdef DEVELOPER_HACK_EXEPATH
-  // use hardcoded exePath
-  strcpy(exePath, DEVELOPER_HACK_EXEPATH);
-#else
-  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
-  exePath[exePathLength]=0; // null terminate
-  *strrchr(exePath, '/')=0; // remove the program name
-#endif
-#endif
-
-  return string(exePath)+"/..";
-}
-
 string Utils::getIconPath() {
-  return getInstallPath()+"/share/openmbv/icons";
+  return MBXMLUtils::getInstallPath()+"/share/openmbv/icons";
 }
 
 string Utils::getXMLDocPath() {
-  return getInstallPath()+"/share/mbxmlutils/doc";
+  return MBXMLUtils::getInstallPath()+"/share/mbxmlutils/doc";
 }
 
 string Utils::getDocPath() {
-  return getInstallPath()+"/share/openmbv/doc";
+  return MBXMLUtils::getInstallPath()+"/share/openmbv/doc";
 }
 
 }

@@ -2,7 +2,7 @@ if COND_XML
   MAYBE_SCHEMA = schema
 endif
 
-SUBDIRS = openmbvcppinterfacetinyxml openmbvcppinterface $(MAYBE_SCHEMA)
+SUBDIRS = openmbvcppinterface $(MAYBE_SCHEMA)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openmbvcppinterface.pc

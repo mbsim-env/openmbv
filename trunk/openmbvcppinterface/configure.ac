@@ -18,6 +18,8 @@ AC_SUBST([DEFINES])
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
+PKG_CHECK_MODULES(MBXMLUTILSTINYXML, mbxmlutilstinyxml)
+
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
   [  --with-boost-inc=PATH  The path Boost include directory.],
@@ -41,7 +43,7 @@ AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 
 LDFLAGS="$LDFLAGS -no-undefined"
 
-AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterfacetinyxml/Makefile openmbvcppinterface/Makefile
+AC_CONFIG_FILES([Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile])
 
 AC_OUTPUT

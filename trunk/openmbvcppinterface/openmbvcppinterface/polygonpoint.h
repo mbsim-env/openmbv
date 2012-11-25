@@ -23,7 +23,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"
+#include <mbxmlutilstinyxml/tinyxml.h>
 #include "openmbvcppinterface/body.h"
 
 namespace OpenMBV {

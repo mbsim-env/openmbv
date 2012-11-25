@@ -23,8 +23,8 @@
 #include <string>
 #include <H5Cpp.h>
 #include <sstream>
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinyxml.h"
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
+#include <mbxmlutilstinyxml/tinyxml.h>
+#include <mbxmlutilstinyxml/tinynamespace.h>
 #include <vector>
 
 #define OPENMBVNS_ "http://openmbv.berlios.de/OpenMBV"

@@ -26,7 +26,7 @@
 #include <iostream>
 #include <fstream>
 #include <H5Cpp.h>
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
+#include <mbxmlutilstinyxml/tinynamespace.h>
 
 using namespace OpenMBV;
 using namespace std;

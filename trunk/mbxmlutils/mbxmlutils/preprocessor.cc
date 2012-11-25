@@ -1,26 +1,18 @@
+#include <mbxmlutils/utils.h>
+#include <mbxmlutils/mbxmlutils.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
-#include <iostream>
 #include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <stdlib.h>
 #include "dirent.h"
-#ifdef HAVE_UNORDERED_MAP
-#  include <unordered_map>
-#else
-#  include <map>
-#  define unordered_map map
-#endif
 #ifdef HAVE_UNORDERED_SET
 #  include <unordered_set>
 #else
 #  include <set>
 #  define unordered_set set
 #endif
-#include "mbxmlutilstinyxml/tinyxml-src/tinyxml.h"
 #include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
-#include <octave/oct.h>
 #include <octave/octave.h>
 #include <octave/parse.h>
 #include <octave/toplev.h>
@@ -28,41 +20,15 @@
 #ifdef _WIN32 // Windows
 #  include "windows.h"
 #endif
-// #include <config.h> conflict with octave header
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
 using namespace std;
 
+// a global octave evaluator
+MBXMLUtils::OctaveEvaluator *octEval=NULL;
+
 string SCHEMADIR;
-
-int machinePrec;
-
-int orgstderr;
-streambuf *orgcerr;
-int disableCount=0;
-// disable output off stderr (including stack)
-void disable_stderr() {
-  if(disableCount==0) {
-    orgcerr=std::cerr.rdbuf(0);
-    orgstderr=dup(fileno(stderr));
-#ifdef _WIN32
-    if(freopen("nul", "w", stderr)==0) throw(1);
-#else
-    if(freopen("/dev/null", "w", stderr)==0) throw(1);
-#endif
-  }
-  disableCount++;
-}
-// enable output off stderr (including stack)
-void enable_stderr() {
-  disableCount--;
-  if(disableCount==0) {
-    std::cerr.rdbuf(orgcerr);
-    dup2(orgstderr, fileno(stderr));
-    close(orgstderr);
-  }
-}
 
 void addFilesInDir(ostringstream &dependencies, string dir, string ext) {
   dirent *file;
@@ -146,230 +112,10 @@ int toOctave(TiXmlElement *&e) {
   return 0;
 }
 
-// map of the current parameters
-map<string, octave_value> currentParam;
-// stack of parameters
-stack<map<string, octave_value> > paramStack;
-vector<int> currentParamHash;
-
-// add a parameter to the parameter list (used by octavePushParam and octavePopParams)
-void octaveAddParam(const string &paramName, const octave_value& value) {
-  // add paramter to parameter list if a parameter of the same name dose not exist in the list
-  currentParam[paramName]=value;
-  if(paramStack.size()>=currentParamHash.size()) {
-    currentParamHash.resize(paramStack.size()+1);
-    currentParamHash[paramStack.size()]=0;
-  }
-  currentParamHash[paramStack.size()]++;
-}
-
-// push all parameters from list to a parameter stack
-void octavePushParams() {
-  paramStack.push(currentParam);
-}
-
-// pop all parameters from list from the parameter stack
-void octavePopParams() {
-  // restore previous parameter list
-  currentParam=paramStack.top();
-  paramStack.pop();
-}
-
-#define PATHLENGTH 10240
-static unordered_map<string, octave_value> cache;
-// evaluate a single statement or a statement list and save the result in the variable 'ret'
-void octaveEvalRet(string str, TiXmlElement *e=NULL) {
-  // delete leading new lines in str
-  for(unsigned int j=0; j<str.length() && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j++)
-    str[j]=' ';
-  // delete trailing new lines in str
-  for(unsigned int j=str.length()-1; j>=0 && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j--)
-    str[j]=' ';
-
-  // a cache: this cache is only unique per input file on the command line.
-  // Hence this cache must be cleared after/before each input file. Hence this cache is moved to a global variable.
-  if(paramStack.size()>=currentParamHash.size()) {
-    currentParamHash.resize(paramStack.size()+1);
-    currentParamHash[paramStack.size()]=0;
-  }
-  stringstream s; s<<paramStack.size()<<";"<<currentParamHash[paramStack.size()]<<";"; string id=s.str();
-  pair<unordered_map<string, octave_value>::iterator, bool> ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
-  if(!ins.second) {
-    symbol_table::varref("ret")=ins.first->second;
-    return;
-  }
-
-  // clear octave
-  symbol_table::clear_variables();
-  // restore current parameters
-  for(map<string, octave_value>::iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    symbol_table::varref(i->first)=i->second;
-
-  char savedPath[PATHLENGTH];
-  if(e) { // set working dir to path of current file, so that octave works with correct relative paths
-    if(getcwd(savedPath, PATHLENGTH)==0) throw(1);
-    if(chdir(fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"),".").c_str())!=0) throw(1);
-  }
-
-  int dummy;
-  disable_stderr();
-  try{
-    eval_string("ret="+str,true,dummy); // eval as single statement, and save in 'ret'
-  }
-  catch(...) {
-    error_state=1;
-  }
-  enable_stderr();
-  if(error_state!=0) { // if error, maybe it is a statement list
-    error_state=0;
-    try {
-      eval_string(str,true,dummy,0); // eval as statement list
-    }
-    catch(...) {
-      error_state=1;
-    }
-    if(error_state!=0) { // if error => wrong code => throw error
-      error_state=0;
-      if(e) if(chdir(savedPath)!=0) throw(1);
-      throw string("Error in octave expression: "+str);
-    }
-    if(!symbol_table::is_variable("ret")) {
-      cout<<"ERRRO\n";
-      error_state=0;
-      if(e) if(chdir(savedPath)!=0) throw(1);
-      throw string("'ret' not defined in octave statement list: "+str);
-    }
-  }
-  if(e) if(chdir(savedPath)!=0) throw(1);
-
-  ins.first->second=symbol_table::varval("ret"); // add to cache
-}
-
-enum ValueType {
-  ArbitraryType,
-  ScalarType,
-  VectorType,
-  MatrixType,
-  StringType
-};
-void checkType(const octave_value& val, ValueType expectedType) {
-  ValueType type;
-  // get type of val
-  if(val.is_scalar_type() && val.is_real_type() && (val.is_string()!=1))
-    type=ScalarType;
-  else if(val.is_matrix_type() && val.is_real_type() && (val.is_string()!=1)) {
-    Matrix m=val.matrix_value();
-    type=m.cols()==1?VectorType:MatrixType;
-  }
-  else if(val.is_string())
-    type=StringType;
-  else // throw on unknown type
-    throw(string("Unknown type: none of scalar, vector, matrix or string"));
-  // check for correct type
-  if(expectedType!=ArbitraryType) {
-    if(type==ScalarType && expectedType==StringType)
-      throw string("Got scalar value, while a string is expected");
-    if(type==VectorType && (expectedType==StringType || expectedType==ScalarType)) 
-      throw string("Got column-vector value, while a ")+(expectedType==StringType?"string":"scalar")+" is expected";
-    if(type==MatrixType && (expectedType==StringType || expectedType==ScalarType || expectedType==VectorType))
-      throw string("Got matrix value, while a ")+(expectedType==StringType?"string":(expectedType==ScalarType?"scalar":"column-vector"))+" is expected";
-    if(type==StringType && (expectedType==MatrixType || expectedType==ScalarType || expectedType==VectorType))
-      throw string("Got string value, while a ")+(expectedType==MatrixType?"matrix":(expectedType==ScalarType?"scalar":"column-vector"))+" is expected";
-  }
-}
-
-// return the value of 'ret'
-string octaveGetRet(ValueType expectedType=ArbitraryType) {
-  octave_value o=symbol_table::varval("ret"); // get 'ret'
-
-  ostringstream ret;
-  ret.precision(machinePrec);
-  if(o.is_scalar_type() && o.is_real_type() && (o.is_string()!=1)) {
-    ret<<o.double_value();
-  }
-  else if(o.is_matrix_type() && o.is_real_type() && (o.is_string()!=1)) {
-    Matrix m=o.matrix_value();
-    ret<<"[";
-    for(int i=0; i<m.rows(); i++) {
-      for(int j=0; j<m.cols(); j++)
-        ret<<m(j*m.rows()+i)<<(j<m.cols()-1?",":"");
-      ret<<(i<m.rows()-1?" ; ":"]");
-    }
-  }
-  else if(o.is_string()) {
-    ret<<"\""<<o.string_value()<<"\"";
-  }
-  else { // if not scalar, matrix or string => error
-    throw(string("Unknown type: none of scalar, vector, matrix or string"));
-  }
-  checkType(o, expectedType);
-
-  return ret.str();
-}
-
-struct Param {
-  Param(string n, string eq, TiXmlElement *e) : name(n), equ(eq), ele(e) {}
-  string name, equ;
-  TiXmlElement *ele;
-};
-// fill octave with parameters
-int fillParam(TiXmlElement *e) {
-  // generate a vector of parameters
-  vector<Param> param;
-  for(TiXmlElement *ee=e->FirstChildElement(); ee!=0; ee=ee->NextSiblingElement())
-    param.push_back(Param(ee->Attribute("name"), ee->GetText(), ee));
-
-  // outer loop to resolve recursive parameters
-  size_t length=param.size();
-  for(size_t outerLoop=0; outerLoop<length; outerLoop++)
-    // evaluate parameter
-    for(vector<Param>::iterator i=param.begin(); i!=param.end(); i++) {
-      disable_stderr();
-      int err=0;
-      octave_value ret;
-      try { 
-        octaveEvalRet(i->equ, i->ele);
-        ret=symbol_table::varval("ret");
-        if(i->ele)
-          checkType(ret, i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}vectorParameter"?VectorType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}matrixParameter"?MatrixType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
-      }
-      catch(...) { err=1; }
-      enable_stderr();
-      if(err==0) { // if no error
-        octaveAddParam(i->name, ret); // add param to list
-        vector<Param>::iterator isave=i-1; // delete param from vector
-        param.erase(i);
-        i=isave;
-      }
-    }
-  if(param.size()>0) { // if parameters are left => error
-    cout<<"Error in one of the following parameters or infinit loop in this parameters:\n";
-    for(size_t i=0; i<param.size(); i++) {
-      try {
-        octaveEvalRet(param[i].equ, param[i].ele); // output octave error
-        octave_value ret=symbol_table::varval("ret");
-        if(param[i].ele)
-          checkType(ret, param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}vectorParameter"?VectorType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}matrixParameter"?MatrixType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
-      }
-      catch(string str) { cout<<str<<endl; }
-      if(param[i].ele) TiXml_location(param[i].ele, "", ": "+param[i].name+": "+param[i].equ); // output location of element
-    }
-    return 1;
-  }
-
-  return 0;
-}
-
 int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, map<string,string> &units, ostream &dependencies) {
   try {
     if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
-      octavePushParams();
+      octEval->octavePushParams();
       // check if only href OR child element (This is not checked by the schema)
       TiXmlElement *l=0, *dummy;
       for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
@@ -400,9 +146,9 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       // evaluate count using parameters
       int count=1;
       if(e->Attribute("count")) {
-        octaveEvalRet(e->Attribute("count"), e);
+        octEval->octaveEvalRet(e->Attribute("count"), e);
         octave_value v=symbol_table::varval("ret");
-        checkType(v, ScalarType);
+        octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
         count=int(round(v.double_value()));
       }
   
@@ -456,7 +202,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         }
         cout<<"Generate local octave parameter string for "<<(file==""?"<inline element>":file)<<endl;
         if(e->FirstChildElement()->FirstChildElement()) // inline parameter
-          fillParam(e->FirstChildElement()->FirstChildElement());
+          octEval->fillParam(e->FirstChildElement()->FirstChildElement());
         else { // parameter from href attribute
           string paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->FirstChildElement()->Attribute("href"));
           // add local parameter file to dependencies
@@ -474,7 +220,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           map<string,string> dummy,dummy2;
           incorporateNamespace(localparamxmlroot,dummy,dummy2,&dependencies);
           // generate local parameters
-          fillParam(localparamxmlroot);
+          octEval->fillParam(localparamxmlroot);
           delete localparamxmldoc;
         }
       }
@@ -484,10 +230,10 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         // embed only if 'onlyif' attribute is true
         
         octave_value o((double)i);
-        octaveAddParam(counterName, o);
-        octaveEvalRet(onlyif, e);
+        octEval->octaveAddParam(counterName, o);
+        octEval->octaveEvalRet(onlyif, e);
         octave_value v=symbol_table::varval("ret");
-        checkType(v, ScalarType);
+        octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
         if(round(v.double_value())==1) {
           cout<<"Embed "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
@@ -508,7 +254,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         delete enewdoc;
       else
         delete enew;
-      octavePopParams();
+      octEval->octavePopParams();
       return 0;
     }
     else {
@@ -517,25 +263,24 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       // schema aware processor is needed!
       if(e->GetText()) {
         // eval text node
-        octaveEvalRet(e->GetText(), e);
+        octEval->octaveEvalRet(e->GetText(), e);
         // convert unit
         if(e->Attribute("unit") || e->Attribute("convertUnit")) {
           map<string, octave_value> savedCurrentParam;
-          savedCurrentParam=currentParam; // save parameters
-          currentParam.clear(); // clear parameters
-          octaveAddParam("value", symbol_table::varval("ret")); // add 'value=ret', since unit-conversion used 'value'
+          octEval->saveAndClearCurrentParam();
+          octEval->octaveAddParam("value", symbol_table::varval("ret")); // add 'value=ret', since unit-conversion used 'value'
           if(e->Attribute("unit")) { // convert with predefined unit
-            octaveEvalRet(units[e->Attribute("unit")]);
+            octEval->octaveEvalRet(units[e->Attribute("unit")]);
             e->RemoveAttribute("unit");
           }
           if(e->Attribute("convertUnit")) { // convert with user defined unit
-            octaveEvalRet(e->Attribute("convertUnit"));
+            octEval->octaveEvalRet(e->Attribute("convertUnit"));
             e->RemoveAttribute("convertUnit");
           }
-          currentParam=savedCurrentParam; // restore parameter
+          octEval->restoreCurrentParam();
         }
         // wrtie eval to xml
-        e->FirstChild()->SetValue(octaveGetRet());
+        e->FirstChild()->SetValue(octEval->octaveGetRet());
         e->FirstChild()->ToText()->SetCDATA(false);
       }
     
@@ -548,8 +293,8 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           int i;
           while((i=s.find('{'))>=0) {
             int j=s.find('}');
-            octaveEvalRet(s.substr(i+1,j-i-1), e);
-            s=s.substr(0,i)+octaveGetRet(ScalarType)+s.substr(j+1);
+            octEval->octaveEvalRet(s.substr(i+1,j-i-1), e);
+            s=s.substr(0,i)+octEval->octaveGetRet(MBXMLUtils::OctaveEvaluator::ScalarType)+s.substr(j+1);
           }
           a->SetValue(s);
         }
@@ -578,29 +323,7 @@ string extractFileName(const string& dirfilename) {
   return dirfilename.substr(i1+1);
 }
 
-string getInstallPath() {
-  // get path of this executable
-  static char exePath[4096]="";
-  if(strcmp(exePath, "")!=0) return string(exePath)+"/..";
-
-#ifdef _WIN32 // Windows
-  GetModuleFileName(NULL, exePath, sizeof(exePath));
-  for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
-  *strrchr(exePath, '/')=0; // remove the program name
-#else // Linux
-#ifdef DEVELOPER_HACK_EXEPATH
-  // use hardcoded exePath
-  strcpy(exePath, DEVELOPER_HACK_EXEPATH);
-#else
-  int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
-  exePath[exePathLength]=0; // null terminate
-  *strrchr(exePath, '/')=0; // remove the program name
-#endif
-#endif
-
-  return string(exePath)+"/..";
-}
-
+#define PATHLENGTH 10240
 int main(int argc, char *argv[]) {
   // convert argv to list
   list<string> arg;
@@ -636,18 +359,18 @@ int main(int argc, char *argv[]) {
   struct stat st;
   char *env;
   SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
-  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
+  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env; // overwrite with envvar if exist
   XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
-  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
+  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
   OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
   string OCTAVE_HOME; // the string for putenv must has program life time
-  if(getenv("OCTAVE_HOME")==NULL && stat((getInstallPath()+"/share/octave").c_str(), &st)==0) {
-    OCTAVE_HOME="OCTAVE_HOME="+getInstallPath();
+  if(getenv("OCTAVE_HOME")==NULL && stat((MBXMLUtils::getInstallPath()+"/share/octave").c_str(), &st)==0) {
+    OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath();
     putenv((char*)OCTAVE_HOME.c_str());
   }
 
@@ -663,12 +386,6 @@ int main(int argc, char *argv[]) {
   
     // preserve whitespace and newline in TiXmlText nodes
     TiXmlBase::SetCondenseWhiteSpace(false);
-  
-    // calcaulate machine precision
-    double machineEps;
-    for(machineEps=1.0; (1.0+machineEps)>1.0; machineEps*=0.5);
-    machineEps*=2.0;
-    machinePrec=(int)(-log(machineEps)/log(10))+1;
 
     list<string>::iterator i, i2;
   
@@ -700,11 +417,8 @@ int main(int argc, char *argv[]) {
     // loop over all files
     while(arg.size()>0) {
       // initialize the parameter stack (clear ALL caches)
-      symbol_table::clear_variables();
-      currentParam.clear();
-      assert(paramStack.empty());
-      currentParamHash.clear();
-      cache.clear();
+      if(octEval) delete octEval;
+      octEval=new MBXMLUtils::OctaveEvaluator;
   
       string paramxml=*arg.begin(); arg.erase(arg.begin());
       string mainxml=*arg.begin(); arg.erase(arg.begin());
@@ -736,7 +450,7 @@ int main(int argc, char *argv[]) {
       // generate octave parameter string
       if(paramxml!="none") {
         cout<<"Generate octave parameter string from "<<paramxml<<endl;
-        if(fillParam(paramxmlroot)!=0) throw(1);
+        if(octEval->fillParam(paramxmlroot)!=0) throw(1);
       }
       if(paramxmldoc) delete paramxmldoc;
   

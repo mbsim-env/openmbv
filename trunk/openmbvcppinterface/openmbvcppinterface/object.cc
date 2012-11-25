@@ -20,7 +20,7 @@
 #include "config.h"
 #include <openmbvcppinterface/object.h>
 #include <openmbvcppinterface/group.h>
-#include "openmbvcppinterfacetinyxml/tinyxml-src/tinynamespace.h"
+#include <mbxmlutilstinyxml/tinynamespace.h>
 #include "openmbvcppinterface/simpleparameter.h"
 #include <assert.h>
 #include <cmath>

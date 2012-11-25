@@ -13,10 +13,11 @@ else
 endif
 
 lib_LTLIBRARIES = libopenmbv.la
-libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS) $(MBXMLUTILS_CFLAGS)
 libopenmbv_la_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS) -lGL
 libopenmbv_la_SOURCES = \
+  $(MBXMLUTILSINCDIR)/mbxmlutils/mbxmlutils.cc\
   body.cc\
   dynamiccoloredbody.cc\
   cuboid.cc\
