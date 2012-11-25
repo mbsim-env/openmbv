@@ -12,5 +12,5 @@ Name: MBXMLUtils
 Description: XML utilities for physical applications (multi body applications)
 Requires: mbxmlutilstinyxml
 Version: @VERSION@
-Libs: -L${libdir} @MKOCTFILE_LIBS@
+Libs: -L${libdir} -lmbxmlutils @MKOCTFILE_LIBS@
 Cflags: -I${includedir} @MKOCTFILE_CFLAGS@

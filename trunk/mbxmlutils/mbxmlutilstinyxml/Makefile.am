@@ -5,11 +5,13 @@ libmbxmlutilstinyxml_la_SOURCES = tinynamespace.cpp \
   tinystr.cpp \
   tinyxml.cpp \
   tinyxmlerror.cpp \
-  tinyxmlparser.cpp
+  tinyxmlparser.cpp \
+  getinstallpath.cc
 
 libmbxmlutilstinyxml_la_HEADERS = tinynamespace.h \
   tinystr.h \
-  tinyxml.h
+  tinyxml.h \
+  getinstallpath.h
 
 libmbxmlutilstinyxml_ladir = $(includedir)/mbxmlutilstinyxml
 

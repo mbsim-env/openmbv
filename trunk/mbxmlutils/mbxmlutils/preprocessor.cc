@@ -1,5 +1,5 @@
 #include <mbxmlutils/utils.h>
-#include <mbxmlutils/mbxmlutils.h>
+#include <mbxmlutilstinyxml/getinstallpath.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
 #include <fstream>

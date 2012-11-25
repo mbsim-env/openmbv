@@ -102,12 +102,10 @@ AC_SUBST([QWT_LIBS])
 AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
 
 dnl XML
-PKG_CHECK_MODULES(MBXMLUTILS, [mbxmlutils >= 1.0.0])
 AC_SUBST([MBXMLUTILSSCHEMADIR],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 AC_SUBST([MBXMLUTILSBINDIR],[$(pkg-config mbxmlutils --variable BINDIR)])
 AC_SUBST([MBXMLUTILSDOCDIR],[$(pkg-config mbxmlutils --variable DOCDIR)])
 AC_SUBST([MBXMLUTILSINCDIR],[$(pkg-config mbxmlutils --variable includedir)])
-OPENMBVCPPINTERFACEINCDIR=$(pkg-config openmbvcppinterface --variable includedir)
 AC_SUBST([OPENMBVCPPINTERFACEINCDIR])
 
 # windres
