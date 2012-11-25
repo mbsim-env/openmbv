@@ -28,22 +28,21 @@ class OctaveEvaluator {
       MatrixType,
       StringType
     };
-  protected:
     struct Param {
       Param(std::string n, std::string eq, TiXmlElement *e) : name(n), equ(eq), ele(e) {}
       std::string name, equ;
       TiXmlElement *ele;
     };
 
-  public:
     OctaveEvaluator();
-    void octaveAddParam(const std::string &paramName, const octave_value& value);
+    void octaveAddParam(const std::string &paramName, const octave_value& value, bool useCache=true);
     void octavePushParams();
     void octavePopParams();
-    void octaveEvalRet(std::string str, TiXmlElement *e=NULL);
+    void octaveEvalRet(std::string str, TiXmlElement *e=NULL, bool useCache=true);
     void checkType(const octave_value& val, ValueType expectedType);
     std::string octaveGetRet(ValueType expectedType=ArbitraryType);
-    int fillParam(TiXmlElement *e);
+    int fillParam(TiXmlElement *e, bool useCache=true);
+    int fillParam(std::vector<Param> param, bool useCache=true);
     void saveAndClearCurrentParam();
     void restoreCurrentParam();
 

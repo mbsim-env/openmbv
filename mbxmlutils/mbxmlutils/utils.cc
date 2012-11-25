@@ -56,14 +56,16 @@ OctaveEvaluator::OctaveEvaluator() {
 }
 
 // add a parameter to the parameter list (used by octavePushParam and octavePopParams)
-void OctaveEvaluator::octaveAddParam(const string &paramName, const octave_value& value) {
+void OctaveEvaluator::octaveAddParam(const string &paramName, const octave_value& value, bool useCache) {
   // add paramter to parameter list if a parameter of the same name dose not exist in the list
   currentParam[paramName]=value;
-  if(paramStack.size()>=currentParamHash.size()) {
-    currentParamHash.resize(paramStack.size()+1);
-    currentParamHash[paramStack.size()]=0;
+  if(useCache) {
+    if(paramStack.size()>=currentParamHash.size()) {
+      currentParamHash.resize(paramStack.size()+1);
+      currentParamHash[paramStack.size()]=0;
+    }
+    currentParamHash[paramStack.size()]++;
   }
-  currentParamHash[paramStack.size()]++;
 }
 
 // push all parameters from list to a parameter stack
@@ -80,7 +82,7 @@ void OctaveEvaluator::octavePopParams() {
 
 // evaluate a single statement or a statement list and save the result in the variable 'ret'
 #define PATHLENGTH 10240
-void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e) {
+void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) {
   // delete leading new lines in str
   for(unsigned int j=0; j<str.length() && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j++)
     str[j]=' ';
@@ -88,17 +90,20 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e) {
   for(unsigned int j=str.length()-1; j>=0 && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j--)
     str[j]=' ';
 
-  // a cache: this cache is only unique per input file on the command line.
-  // Hence this cache must be cleared after/before each input file. Hence this cache is moved to a global variable.
-  if(paramStack.size()>=currentParamHash.size()) {
-    currentParamHash.resize(paramStack.size()+1);
-    currentParamHash[paramStack.size()]=0;
-  }
-  stringstream s; s<<paramStack.size()<<";"<<currentParamHash[paramStack.size()]<<";"; string id=s.str();
-  pair<unordered_map<string, octave_value>::iterator, bool> ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
-  if(!ins.second) {
-    symbol_table::varref("ret")=ins.first->second;
-    return;
+  pair<unordered_map<string, octave_value>::iterator, bool> ins;
+  if(useCache) {
+    // a cache: this cache is only unique per input file on the command line.
+    // Hence this cache must be cleared after/before each input file. Hence this cache is moved to a global variable.
+    if(paramStack.size()>=currentParamHash.size()) {
+      currentParamHash.resize(paramStack.size()+1);
+      currentParamHash[paramStack.size()]=0;
+    }
+    stringstream s; s<<paramStack.size()<<";"<<currentParamHash[paramStack.size()]<<";"; string id=s.str();
+    ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
+    if(!ins.second) {
+      symbol_table::varref("ret")=ins.first->second;
+      return;
+    }
   }
 
   // clear octave
@@ -144,7 +149,8 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e) {
   }
   if(e) if(chdir(savedPath)!=0) throw(1);
 
-  ins.first->second=symbol_table::varval("ret"); // add to cache
+  if(useCache)
+    ins.first->second=symbol_table::varval("ret"); // add to cache
 }
 
 void OctaveEvaluator::checkType(const octave_value& val, ValueType expectedType) {
@@ -203,12 +209,15 @@ string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
 }
 
 // fill octave with parameters
-int OctaveEvaluator::fillParam(TiXmlElement *e) {
+int OctaveEvaluator::fillParam(TiXmlElement *e, bool useCache) {
   // generate a vector of parameters
   vector<Param> param;
   for(TiXmlElement *ee=e->FirstChildElement(); ee!=0; ee=ee->NextSiblingElement())
     param.push_back(Param(ee->Attribute("name"), ee->GetText(), ee));
+  return fillParam(param, useCache);
+}
 
+int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
   // outer loop to resolve recursive parameters
   size_t length=param.size();
   for(size_t outerLoop=0; outerLoop<length; outerLoop++)
@@ -218,7 +227,7 @@ int OctaveEvaluator::fillParam(TiXmlElement *e) {
       int err=0;
       octave_value ret;
       try { 
-        octaveEvalRet(i->equ, i->ele);
+        octaveEvalRet(i->equ, i->ele, useCache);
         ret=symbol_table::varval("ret");
         if(i->ele)
           checkType(ret, i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
@@ -229,7 +238,7 @@ int OctaveEvaluator::fillParam(TiXmlElement *e) {
       catch(...) { err=1; }
       MBXMLUtils::enable_stderr();
       if(err==0) { // if no error
-        octaveAddParam(i->name, ret); // add param to list
+        octaveAddParam(i->name, ret, useCache); // add param to list
         vector<Param>::iterator isave=i-1; // delete param from vector
         param.erase(i);
         i=isave;
@@ -239,7 +248,7 @@ int OctaveEvaluator::fillParam(TiXmlElement *e) {
     cout<<"Error in one of the following parameters or infinit loop in this parameters:\n";
     for(size_t i=0; i<param.size(); i++) {
       try {
-        octaveEvalRet(param[i].equ, param[i].ele); // output octave error
+        octaveEvalRet(param[i].equ, param[i].ele, useCache); // output octave error
         octave_value ret=symbol_table::varval("ret");
         if(param[i].ele)
           checkType(ret, param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
