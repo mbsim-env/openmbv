@@ -12,7 +12,7 @@
 #  include <set>
 #  define unordered_set set
 #endif
-#include "mbxmlutilstinyxml/tinyxml-src/tinynamespace.h"
+#include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/octave.h>
 #include <octave/parse.h>
 #include <octave/toplev.h>
