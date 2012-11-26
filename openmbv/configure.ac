@@ -106,7 +106,7 @@ AC_SUBST([MBXMLUTILSSCHEMADIR],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 AC_SUBST([MBXMLUTILSBINDIR],[$(pkg-config mbxmlutils --variable BINDIR)])
 AC_SUBST([MBXMLUTILSDOCDIR],[$(pkg-config mbxmlutils --variable DOCDIR)])
 AC_SUBST([MBXMLUTILSINCDIR],[$(pkg-config mbxmlutils --variable includedir)])
-AC_SUBST([OPENMBVCPPINTERFACEINCDIR])
+AC_SUBST([OPENMBVCPPINTERFACEINCDIR],[$(pkg-config openmbvcppinterface --variable includedir)])
 
 # windres
 AC_ARG_WITH(windres,
