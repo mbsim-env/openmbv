@@ -2,6 +2,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef _WIN32 // Windows
+#include <windows.h>
+#endif
+
 using namespace std;
 
 namespace MBXMLUtils {
