@@ -9,7 +9,7 @@ if COND_WIN32
   MAYBE_WIN32_SRC = openmbv.rc
   LIBGLU=-lglu32
 else
-  LIBGLU=-lGLU
+  LIBGLU=-lGLU -lGL
 endif
 
 lib_LTLIBRARIES = libopenmbv.la
