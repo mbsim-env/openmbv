@@ -921,7 +921,7 @@ void MainWindow::objectListClicked() {
 //MFMF multiedit    }
     frame->touch(); // force rendering the scene
   }
-  emit selectedObject(static_cast<Object*>(objectList->currentItem())->object->getID(), 
+  emit objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
                       static_cast<Object*>(objectList->currentItem()));
 }
 
@@ -1185,7 +1185,11 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       // check for double click (this must be done by hand, since SoQt does not provide is)
       static QTime lastClick;
       if(lastClick.restart()<QApplication::doubleClickInterval()) {
-        static_cast<Object*>(objectList->currentItem())->properties->show();
+        Object *object=static_cast<Object*>(objectList->currentItem());
+        // show properties dialog only if objectDoubleClicked is not connected to some other slot
+        if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
+          object->properties->show();
+        emit objectDoubleClicked(object->object->getID(), object);
         return true; // action handled
       }
       // get picked points by ray
@@ -1251,12 +1255,12 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           it=pickedObject.begin();
           for(int i=0; i<ind; i++, it++);
           objectList->setCurrentItem(*it,0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-          emit selectedObject((*it)->object->getID(), *it);
+          emit objectSelected((*it)->object->getID(), *it);
         }
         // if Button1 select picked object
         else {
           objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-          emit selectedObject((*pickedObject.begin())->object->getID(), *pickedObject.begin());
+          emit objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
         }
         // if Button2 show property menu
         if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {

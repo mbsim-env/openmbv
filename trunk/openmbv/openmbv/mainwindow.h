@@ -247,10 +247,13 @@ class MainWindow : public QMainWindow {
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     int getReloadTimeout() { return reloadTimeout; }
   signals:
-    /** this signal is emitted whenever the selected object changes.
-     * either by selecting it in the objects list or in the 3D view. */
-    void selectedObject(std::string curID, Object *curPtr);
-    /** this signal is emmited whenever a file has been reloaded */
+    /** This signal is emitted whenever the selected object changes.
+     * Either by selecting it in the objects list or in the 3D view. */
+    void objectSelected(std::string curID, Object *curPtr);
+    /** This signal is emitted whenever a object is double clicked in the 3D view.
+     * If this signal is connected to at least one slot the property dialog is no longer shown automatically. */
+    void objectDoubleClicked(std::string curID, Object *curPtr);
+    /** This signal is emmited whenever a file has been reloaded */
     void fileReloaded();
 };
 
