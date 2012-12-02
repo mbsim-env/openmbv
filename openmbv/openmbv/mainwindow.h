@@ -50,6 +50,14 @@
 #  include <QtGui/QSlider>
 #endif
 
+// If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
+// Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
+#ifdef _WIN32
+#  define DLL_PUBLIC __declspec(dllexport)
+#else
+#  define DLL_PUBLIC
+#endif
+
 class QListWidgetItem;
 
 namespace OpenMBVGUI {
@@ -219,10 +227,10 @@ class MainWindow : public QMainWindow {
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
-    void highlightObject(std::string curID);
+    DLL_PUBLIC void highlightObject(std::string curID);
   public:
-    MainWindow(std::list<std::string>& arg);
-    ~MainWindow();
+    DLL_PUBLIC MainWindow(std::list<std::string>& arg);
+    DLL_PUBLIC ~MainWindow();
     bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     static MainWindow*const getInstance() { return instance; }
@@ -249,12 +257,12 @@ class MainWindow : public QMainWindow {
   signals:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */
-    void objectSelected(std::string curID, Object *curPtr);
+    DLL_PUBLIC void objectSelected(std::string curID, Object *curPtr);
     /** This signal is emitted whenever a object is double clicked in the 3D view.
      * If this signal is connected to at least one slot the property dialog is no longer shown automatically. */
-    void objectDoubleClicked(std::string curID, Object *curPtr);
+    DLL_PUBLIC void objectDoubleClicked(std::string curID, Object *curPtr);
     /** This signal is emmited whenever a file has been reloaded */
-    void fileReloaded();
+    DLL_PUBLIC void fileReloaded();
 };
 
 }
