@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _RIGIDBODY_H_
-#define _RIGIDBODY_H_
+#ifndef _MBSIMGUI_RIGIDBODY_H_
+#define _MBSIMGUI_RIGIDBODY_H_
 
 #include "dynamiccoloredbody.h"
 #include <Inventor/nodes/SoSwitch.h>

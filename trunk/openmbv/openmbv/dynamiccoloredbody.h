@@ -17,13 +17,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _DYNAMICCOLOREDBODY_H_
-#define _DYNAMICCOLOREDBODY_H_
+#ifndef _MBSIMGUI_DYNAMICCOLOREDBODY_H_
+#define _MBSIMGUI_DYNAMICCOLOREDBODY_H_
 
 #include "body.h"
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoBaseColor.h>
-#include <editors.h>
+#include "editors.h"
 
 namespace OpenMBVGUI {
 

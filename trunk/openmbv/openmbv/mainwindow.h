@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_MAINWINDOW_H_
-#define _OPENMBVGUI_MAINWINDOW_H_
+#ifndef _MBSIMGUI_OPENMBVGUI_MAINWINDOW_H_
+#define _MBSIMGUI_OPENMBVGUI_MAINWINDOW_H_
 
 #include <QtGui/QMainWindow>
 #include <QtGui/QTreeWidget>

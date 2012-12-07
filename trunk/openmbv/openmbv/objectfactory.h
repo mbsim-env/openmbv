@@ -17,8 +17,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef _MBSIMGUI_OBJECTFACTORY_H_
+#define _MBSIMGUI_OBJECTFACTORY_H_
+
 #include "object.h"
-#include "openmbvcppinterface/object.h"
+#include <openmbvcppinterface/object.h>
 #include <H5Cpp.h>
 
 namespace OpenMBVGUI {
@@ -26,3 +29,5 @@ namespace OpenMBVGUI {
 Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);
 
 }
+
+#endif

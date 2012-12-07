@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _SOQTMYVIEWER_H_
-#define _SOQTMYVIEWER_H_
+#ifndef _MBSIMGUI_SOQTMYVIEWER_H_
+#define _MBSIMGUI_SOQTMYVIEWER_H_
 
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <QtCore/QEvent>

@@ -1,5 +1,5 @@
-#ifndef _INDEXEDTESSELATIONFACE_H_
-#define _INDEXEDTESSELATIONFACE_H_
+#ifndef _MBSIMGUI_INDEXEDTESSELATIONFACE_H_
+#define _MBSIMGUI_INDEXEDTESSELATIONFACE_H_
 
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/fields/SoMFInt32.h>

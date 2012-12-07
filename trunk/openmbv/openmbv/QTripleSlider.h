@@ -1,5 +1,5 @@
-#ifndef _QTRIPPLESLIDER_H_
-#define _QTRIPPLESLIDER_H_
+#ifndef _MBSIMGUI_QTRIPPLESLIDER_H_
+#define _MBSIMGUI_QTRIPPLESLIDER_H_
 
 #include <QtGui/QSplitter>
 #include <QtGui/QSlider>
