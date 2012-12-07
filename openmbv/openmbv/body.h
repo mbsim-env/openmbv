@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _BODY_H_
-#define _BODY_H_
+#ifndef _MBSIMGUI_BODY_H_
+#define _MBSIMGUI_BODY_H_
 
 #include "object.h"
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -33,7 +33,7 @@
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include "utils.h"
 #include "edgecalculation.h"
-#include <editors.h>
+#include "editors.h"
 
 namespace OpenMBV {
   class Body;

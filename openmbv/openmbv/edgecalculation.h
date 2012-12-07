@@ -17,13 +17,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _EDGECALCULATION_H_
-#define _EDGECALCULATION_H_
+#ifndef _MBSIMGUI_EDGECALCULATION_H_
+#define _MBSIMGUI_EDGECALCULATION_H_
 
 #include <vector>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
-#include "QReadWriteLock"
+#include <QReadWriteLock>
 
 namespace OpenMBVGUI {
 

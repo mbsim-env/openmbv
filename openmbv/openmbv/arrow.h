@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _ARROW_H_
-#define _ARROW_H_
+#ifndef _MBSIMGUI_ARROW_H_
+#define _MBSIMGUI_ARROW_H_
 
 #include "dynamiccoloredbody.h"
 #include <Inventor/nodes/SoMaterial.h>
@@ -29,7 +29,7 @@
 #include <QtGui/QMenu>
 #include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
-#include <editors.h>
+#include "editors.h"
 
 namespace OpenMBV {
   class Arrow;

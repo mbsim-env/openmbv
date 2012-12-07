@@ -17,14 +17,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _VIBODYCUBE_H_
-#define _VIBODYCUBE_H_
+#ifndef _MBSIMGUI_VIBODYCUBE_H_
+#define _MBSIMGUI_VIBODYCUBE_H_
 
 #include "rigidbody.h"
 #include <string>
 #include <H5Cpp.h>
 #include <QThread>
-#include "openmbvcppinterface/ivbody.h"
+#include <openmbvcppinterface/ivbody.h>
 
 namespace OpenMBVGUI {
 

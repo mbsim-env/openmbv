@@ -1,5 +1,5 @@
-#ifndef _EDITORS_H_
-#define _EDITORS_H_
+#ifndef _MBSIMGUI_EDITORS_H_
+#define _MBSIMGUI_EDITORS_H_
 
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoTranslation.h>
@@ -8,7 +8,7 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/assign/list_of.hpp>
-#include <utils.h>
+#include "utils.h"
 #include <QtGui/QDialog>
 #include <QtGui/QCheckBox>
 #include <QtGui/QGridLayout>

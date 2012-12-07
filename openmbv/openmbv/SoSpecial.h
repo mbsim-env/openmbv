@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _SOSEPNOPICKNOBBOX_H_
-#define _SOSEPNOPICKNOBBOX_H_
+#ifndef _MBSIMGUI_SOSEPNOPICKNOBBOX_H_
+#define _MBSIMGUI_SOSEPNOPICKNOBBOX_H_
 
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/elements/SoOverrideElement.h>

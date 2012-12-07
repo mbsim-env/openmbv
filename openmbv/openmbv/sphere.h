@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _SPHERE_H_
-#define _SPHERE_H_
+#ifndef _MBSIMGUI_SPHERE_H_
+#define _MBSIMGUI_SPHERE_H_
 
 #include "rigidbody.h"
 #include <string>
