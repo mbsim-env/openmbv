@@ -104,6 +104,8 @@ namespace OpenMBV {
       /** Returns the file name of the .ombv.xml file of this separateFile Group
        * including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
+
+      std::string getFullName(bool includingFileName=false);
       
       /** Sets the file name of the .ombv.xml file of this separateFile Group
        * including the absolute or relatvie path */

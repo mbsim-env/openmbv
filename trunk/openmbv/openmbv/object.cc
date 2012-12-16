@@ -174,7 +174,7 @@ void Object::updateTextColor() {
 Object *Object::getClone() {
   set<Object*>::iterator it;
   for(it=objects.begin(); it!=objects.end(); it++)
-    if(this!=(*it) && (*it)->object->getFullName()==object->getFullName())
+    if(this!=(*it) && (*it)->object->getFullName(true)==object->getFullName(true))
       break;
   return it==objects.end()?NULL:*it;
 }

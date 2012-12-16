@@ -100,7 +100,7 @@ namespace OpenMBV {
       std::string getName() { return name; }
 
       /** Returns the full name (path) of the object */
-      virtual std::string getFullName();
+      virtual std::string getFullName(bool includingFileName=false);
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(TiXmlElement *element);
