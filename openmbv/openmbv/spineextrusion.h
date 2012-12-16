@@ -17,8 +17,8 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    */
 
-#ifndef _MBSIMGUI_SPINEEXTRUSION_H_
-#define _MBSIMGUI_SPINEEXTRUSION_H_
+#ifndef _OPENMBVGUI_SPINEEXTRUSION_H_
+#define _OPENMBVGUI_SPINEEXTRUSION_H_
 
 #include "dynamiccoloredbody.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>

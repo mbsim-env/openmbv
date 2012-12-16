@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _MBSIMGUI_FRAME_H_
-#define _MBSIMGUI_FRAME_H_
+#ifndef _OPENMBVGUI_FRAME_H_
+#define _OPENMBVGUI_FRAME_H_
 
 #include "rigidbody.h"
 #include <H5Cpp.h>
