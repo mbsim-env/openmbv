@@ -223,6 +223,13 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     );
     typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
 
+    ComboBoxEditor *referencePointEditor=new ComboBoxEditor(properties, QIcon(), "Reference Point",
+      boost::assign::tuple_list_of(OpenMBV::Arrow::toPoint,   "To point",   QIcon())
+                                  (OpenMBV::Arrow::fromPoint, "From point", QIcon())
+                                  (OpenMBV::Arrow::midPoint,  "Mid point",  QIcon())
+    );
+    referencePointEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getReferencePoint, &OpenMBV::Arrow::setReferencePoint);
+
     FloatEditor *scaleLengthEditor=new FloatEditor(properties, QIcon(), "Scale length");
     scaleLengthEditor->setRange(0, DBL_MAX);
     scaleLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getScaleLength, &OpenMBV::Arrow::setScaleLength);
@@ -233,6 +240,18 @@ double Arrow::update() {
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   // read from hdf5
   data=arrow->getRow(frame);
+
+  // convert data from referencePoint to toPoint reference
+  if(arrow->getReferencePoint()==OpenMBV::Arrow::fromPoint) {
+    data[1]+=data[4]*arrow->getScaleLength();
+    data[2]+=data[5]*arrow->getScaleLength();
+    data[3]+=data[6]*arrow->getScaleLength();
+  }
+  else if(arrow->getReferencePoint()==OpenMBV::Arrow::midPoint) {
+    data[1]+=data[4]*arrow->getScaleLength()/2;
+    data[2]+=data[5]*arrow->getScaleLength()/2;
+    data[3]+=data[6]*arrow->getScaleLength()/2;
+  }
  
   // convert data from fromHead representation to toHead representation
   if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)

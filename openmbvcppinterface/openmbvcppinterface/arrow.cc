@@ -31,7 +31,8 @@ Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
   headLength(0.75),
   diameter(0.25),
   scaleLength(1),
-  type(toHead) {
+  type(toHead),
+  referencePoint(toPoint) {
 }
 
 Arrow::~Arrow() {
@@ -55,6 +56,13 @@ TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
   addElementText(e, OPENMBVNS"type", "\""+typeStr+"\"");
+  string referencePointStr;
+  switch(referencePoint) {
+    case toPoint:   referencePointStr="toPoint";   break;
+    case fromPoint: referencePointStr="fromPoint"; break;
+    case midPoint:  referencePointStr="midPoint";  break;
+  }
+  addElementText(e, OPENMBVNS"referencePoint", "\""+referencePointStr+"\"");
   addElementText(e, OPENMBVNS"scaleLength", scaleLength);
   return 0;
 }
@@ -113,6 +121,13 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   if(typeStr=="fromDoubleHead")  setType(fromDoubleHead);
   if(typeStr=="toDoubleHead")    setType(toDoubleHead);
   if(typeStr=="bothDoubleHeads") setType(bothDoubleHeads);
+  e=element->FirstChildElement(OPENMBVNS"referencePoint");
+  if(e) {
+    string referencePointStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+    if(referencePointStr=="toPoint")   setReferencePoint(toPoint);
+    if(referencePointStr=="fromPoint") setReferencePoint(fromPoint);
+    if(referencePointStr=="midPoint")  setReferencePoint(midPoint);
+  }
   e=element->FirstChildElement(OPENMBVNS"scaleLength");
   setScaleLength(getDouble(e));
 }

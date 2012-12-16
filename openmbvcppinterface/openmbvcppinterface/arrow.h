@@ -45,6 +45,11 @@ namespace OpenMBV {
         toDoubleHead,
         bothDoubleHeads
       };
+      enum ReferencePoint {
+        toPoint,
+        fromPoint,
+        midPoint
+      };
     protected:
       std::string pathStr;
       void createHDF5File();
@@ -52,6 +57,7 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
       ScalarParameter headDiameter, headLength, diameter, scaleLength;
       Type type;
+      ReferencePoint referencePoint;
 
       /** Destructor */
       virtual ~Arrow();
@@ -118,6 +124,18 @@ namespace OpenMBV {
       }
       
       Type getType() { return type; }
+      
+      /** Set the reference point of the arrow.
+       * The reference point is the point being stored in the HDF5 file.
+       * Use "toPoint" (the default) if the 'to' point is store in the HDF5 file;
+       * Use "fromPoint" if the 'from' point is store in the HDF5 file;
+       * Use "midPoint" if the 'mid' point is store in the HDF5 file;
+       */
+      void setReferencePoint(ReferencePoint referencePoint_) {
+        referencePoint=referencePoint_;
+      }
+      
+      ReferencePoint getReferencePoint() { return referencePoint; }
 
       /** Scale the length of the arrow */
       void setScaleLength(ScalarParameter scale) {
