@@ -309,6 +309,15 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
+          <xs:element name="referencePoint" minOccurs="0">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="&quot;toPoint&quot;"/>
+                <xs:enumeration value="&quot;fromPoint&quot;"/>
+                <xs:enumeration value="&quot;midPoint&quot;"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
           <xs:element name="scaleLength" type="pv:nounitScalar"/>
         </xs:sequence> 
         <xs:attribute name="path" type="xs:boolean" default="false"/>
