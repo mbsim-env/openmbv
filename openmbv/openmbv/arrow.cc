@@ -196,7 +196,7 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // GUI
   if(!clone) {
     properties->updateHeader();
-    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"),"Draw path of to-point");
+    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"),"Draw path of to-point", "Arrow::path");
     pathEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getPath, &OpenMBV::Arrow::setPath);
     properties->addPropertyAction(pathEditor->getAction());
 
@@ -213,20 +213,20 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     headLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadLength, &OpenMBV::Arrow::setHeadLength);
 
     ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
-      boost::assign::tuple_list_of(OpenMBV::Arrow::line,            "Line",              QIcon())
-                                  (OpenMBV::Arrow::fromHead,        "From head",         QIcon())
-                                  (OpenMBV::Arrow::toHead,          "To head",           QIcon())
-                                  (OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon())
-                                  (OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon())
-                                  (OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon())
-                                  (OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon())
+      boost::assign::tuple_list_of(OpenMBV::Arrow::line,            "Line",              QIcon(), "Arrow::type::line")
+                                  (OpenMBV::Arrow::fromHead,        "From head",         QIcon(), "Arrow::type::fromHead")
+                                  (OpenMBV::Arrow::toHead,          "To head",           QIcon(), "Arrow::type::toHead")
+                                  (OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon(), "Arrow::type::bothHeads")
+                                  (OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon(), "Arrow::type::fromDoubleHead")
+                                  (OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon(), "Arrow::type::toDoubleHead")
+                                  (OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon(), "Arrow::type::bothDoubleHeads")
     );
     typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
 
     ComboBoxEditor *referencePointEditor=new ComboBoxEditor(properties, QIcon(), "Reference Point",
-      boost::assign::tuple_list_of(OpenMBV::Arrow::toPoint,   "To point",   QIcon())
-                                  (OpenMBV::Arrow::fromPoint, "From point", QIcon())
-                                  (OpenMBV::Arrow::midPoint,  "Mid point",  QIcon())
+      boost::assign::tuple_list_of(OpenMBV::Arrow::toPoint,   "To point",   QIcon(), "Arrow::referencePoint::toPoint")
+                                  (OpenMBV::Arrow::fromPoint, "From point", QIcon(), "Arrow::referencePoint::fromPoint")
+                                  (OpenMBV::Arrow::midPoint,  "Mid point",  QIcon(), "Arrow::referencePoint::midPoint")
     );
     referencePointEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getReferencePoint, &OpenMBV::Arrow::setReferencePoint);
 

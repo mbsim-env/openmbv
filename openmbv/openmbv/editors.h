@@ -102,7 +102,7 @@ class BoolEditor : public Editor {
 
   public:
     /*! Constructor. */
-    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName="");
+    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName);
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
@@ -289,7 +289,7 @@ class ComboBoxEditor : public Editor {
   public:
     /*! Constructor. */
     ComboBoxEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name,
-      const std::vector<boost::tuple<int, std::string, QIcon> > &list);
+      const std::vector<boost::tuple<int, std::string, QIcon, std::string> > &list);
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */

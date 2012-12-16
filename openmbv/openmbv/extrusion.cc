@@ -187,11 +187,11 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   if(!clone) {
     properties->updateHeader();
     ComboBoxEditor *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule",
-      boost::assign::tuple_list_of(OpenMBV::Extrusion::odd,        "Odd",             QIcon())
-                                  (OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon())
-                                  (OpenMBV::Extrusion::positive,   "Positive",        QIcon())
-                                  (OpenMBV::Extrusion::negative,   "Negative",        QIcon())
-                                  (OpenMBV::Extrusion::absGEqTwo,  "Abs. value >= 2", QIcon())
+      boost::assign::tuple_list_of(OpenMBV::Extrusion::odd,        "Odd",             QIcon(), "Extrusion::windingRule::odd")
+                                  (OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon(), "Extrusion::windingRule::nonzero")
+                                  (OpenMBV::Extrusion::positive,   "Positive",        QIcon(), "Extrusion::windingRule::positive")
+                                  (OpenMBV::Extrusion::negative,   "Negative",        QIcon(), "Extrusion::windingRule::negative")
+                                  (OpenMBV::Extrusion::absGEqTwo,  "Abs. value >= 2", QIcon(), "Extrusion::windingRule::absgt2")
     );
     windingRuleEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getWindingRule, &OpenMBV::Extrusion::setWindingRule);
 

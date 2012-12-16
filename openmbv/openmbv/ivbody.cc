@@ -93,7 +93,7 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
     creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);
 
-    BoolEditor *boundaryEdgesEditor=new BoolEditor(properties, QIcon(), "Draw boundary edges");
+    BoolEditor *boundaryEdgesEditor=new BoolEditor(properties, QIcon(), "Draw boundary edges", "IvBody::drawBoundaryEdges");
     boundaryEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getBoundaryEdges, &OpenMBV::IvBody::setBoundaryEdges);
   }
 }

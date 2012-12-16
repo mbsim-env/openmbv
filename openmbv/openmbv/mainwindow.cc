@@ -196,7 +196,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
-  objectListDW->setObjectName("MainWindow::objectListDW");
   QWidget *objectListWG=new QWidget(this);
   QGridLayout *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
@@ -232,7 +231,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
-  objectInfoDW->setObjectName("MainWindow::objectInfoDW");
   QWidget *objectInfoWG=new QWidget;
   QGridLayout *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
@@ -397,13 +395,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
-  fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
   QToolBar *viewTB=new QToolBar("ViewToolBar", this);
-  viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
   viewTB->addSeparator();
@@ -421,7 +417,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // animation toolbar
   QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
-  animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
   animationTB->addAction(stopAct);
@@ -778,7 +773,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 void MainWindow::disableBBox(Object *obj) {
   QList<QAction*> list=obj->properties->getContextMenu()->actions();
   for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::soBBoxSwitch" && (*act)->isChecked()) {
+    if((*act)->objectName()=="Object::boundingBox" && (*act)->isChecked()) {
       (*act)->setChecked(false);
       break;
     }
@@ -789,7 +784,7 @@ void MainWindow::highlightObject(Object *current) {
   // enable current bbox
   QList<QAction*> list=current->properties->getContextMenu()->actions();
   for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::soBBoxSwitch") {
+    if((*act)->objectName()=="Object::boundingBox") {
       (*act)->setChecked(true);
       break;
     }
@@ -799,7 +794,7 @@ void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
     return;
   QList<QAction*> list=obj->properties->getContextMenu()->actions();
   for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::soBBoxSwitch") {
+    if((*act)->objectName()=="Object::boundingBox") {
       (*act)->setChecked(true);
       break;
     }
@@ -1809,7 +1804,7 @@ bool MainWindow::objectMatchesFilter(const QRegExp& filterRegExp, Object *item) 
   if(filterRegExp.pattern().startsWith("::"))
     return item->inherits(filterRegExp.pattern().mid(2).toStdString().c_str());
   else if(filterRegExp.pattern().startsWith(":"))
-    return item->metaObject()->className()==filterRegExp.pattern().mid(1);
+    return QString(item->metaObject()->className()).replace("OpenMBVGUI::", "")==filterRegExp.pattern().mid(1);
   else
     return filterRegExp.indexIn(item->text(0))>=0;
 }

@@ -73,23 +73,22 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
 
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", this);
-//MFMF multiedit  newObject->setObjectName("Group::newObject");
   connect(newObject,SIGNAL(triggered()),this,SLOT(newObjectSlot()));
   properties->addContextAction(newObject);
 
   if(grp->getSeparateFile()) {
     saveFile=new QAction(Utils::QIconCached("savefile.svg"),"Save XML-file", this);
-//MFMF multiedit    saveFile->setObjectName("Group::saveFile");
+    saveFile->setObjectName("Group::saveFile");
     connect(saveFile,SIGNAL(triggered()),this,SLOT(saveFileSlot()));
     properties->addContextAction(saveFile);
 
     unloadFile=new QAction(Utils::QIconCached("unloadfile.svg"),"Unload XML/H5-file", this);
-//MFMF multiedit    unloadFile->setObjectName("Group::unloadFile");
+    unloadFile->setObjectName("Group::unloadFile");
     connect(unloadFile,SIGNAL(triggered()),this,SLOT(unloadFileSlot()));
     properties->addContextAction(unloadFile);
 
     reloadFile=new QAction(Utils::QIconCached("reloadfile.svg"),"Reload XML/H5-file", this);
-//MFMF multiedit    reloadFile->setObjectName("Group::reloadFile");
+    reloadFile->setObjectName("Group::reloadFile");
     connect(reloadFile,SIGNAL(triggered()),this,SLOT(reloadFileSlot()));
     properties->addContextAction(reloadFile);
   }

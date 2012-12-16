@@ -146,7 +146,9 @@ void PropertyDialog::updateHeader() {
     objectIcon->setPixmap(static_cast<QTreeWidgetItem*>(obj)->icon(0).pixmap(40,40));
     header->addWidget(objectIcon, 0, 0, 2, 1);
     // diaplay Object name
-    header->addWidget(new QLabel((string("<big><b>")+obj->metaObject()->className()+" XML Values of</b></big>").c_str()), 0, 1);
+    header->addWidget(new QLabel("<big><b>"+
+      QString(obj->metaObject()->className()).replace("OpenMBVGUI::", "")+ // remove the namespace
+      " XML Values of</b></big>"), 0, 1);
     // diaplay Object path
     header->addWidget(new QLabel(("<b>"+obj->getPath()+"</b>").c_str()), 1, 1);
   }
@@ -430,7 +432,7 @@ void StringEditor::valueChangedSlot(const QString &text) {
 
 
 ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const string &name,
-  const std::vector<boost::tuple<int, string, QIcon> > &list) : Editor(parent_, icon, name) {
+  const std::vector<boost::tuple<int, string, QIcon, string> > &list) : Editor(parent_, icon, name) {
 
   // add the label and a comboBox for the value
   comboBox=new QComboBox;
@@ -445,6 +447,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   actionGroup->addAction(sep1);
   for(size_t i=0; i<list.size(); i++) {
     QAction *action=new QAction(list[i].get<2>(), list[i].get<1>().c_str(), actionGroup);
+    action->setObjectName(list[i].get<3>().c_str());
     action->setData(QVariant(static_cast<int>(i)));
     action->setCheckable(true);
     actionGroup->addAction(action);
