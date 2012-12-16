@@ -115,23 +115,23 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
 
   // GUI editors
   if(!clone) {
-    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line");
+    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outline");
     outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
     properties->addPropertyAction(outLineEditor->getAction());
 
-    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge");
+    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
     shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
     properties->addPropertyAction(shilouetteEdgeEditor->getAction());
 
     ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style",
-      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"))
-                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"))
-                                  (OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"))
+      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled")
+                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines")
+                                  (OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
     );
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
 
-    // MFMF hdf5link
+    // MISSING: hdf5link
   }
 }
 

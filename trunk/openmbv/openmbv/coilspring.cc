@@ -158,9 +158,9 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
   if(!clone) {
     properties->updateHeader();
     ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
-      boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon())
-                                  (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon())
-                                  (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon())
+      boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon(), "CoilSpring::type::tube")
+                                  (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon(), "CoilSpring::type::scaledTube")
+                                  (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon(), "CoilSpring::type::polyline")
     );
     typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
     properties->addPropertyActionGroup(typeEditor->getActionGroup());
