@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _MBSIMGUI_GROUP_H_
-#define _MBSIMGUI_GROUP_H_
+#ifndef _OPENMBVGUI_GROUP_H_
+#define _OPENMBVGUI_GROUP_H_
 
 #include "object.h"
 #include <string>
