@@ -178,7 +178,7 @@ namespace OpenMBV {
 
       TiXmlElement* writeXMLFile(TiXmlNode *parent);
 
-      virtual std::string getFullName();
+      virtual std::string getFullName(bool includingFileName=false);
 
       Group* getSeparateGroup();
       Group* getTopLevelGroup();

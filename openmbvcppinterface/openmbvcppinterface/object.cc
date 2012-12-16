@@ -35,9 +35,9 @@ Object::~Object() {
   if(hdf5Group!=0) { delete hdf5Group; hdf5Group=0; }
 }
 
-string Object::getFullName() {
+string Object::getFullName(bool includingFileName) {
   if(parent)
-    return parent->getFullName()+"/"+name;
+    return parent->getFullName(includingFileName)+"/"+name;
   else
     return name;
 }

@@ -117,11 +117,11 @@ Group* RigidBody::getTopLevelGroup() {
   return compound?compound->parent->getTopLevelGroup():parent->getTopLevelGroup();
 }
 
-string RigidBody::getFullName() {
+string RigidBody::getFullName(bool includingFileName) {
   if(compound)
-    return compound->getFullName()+"/"+name;
+    return compound->getFullName(includingFileName)+"/"+name;
   else
-    return DynamicColoredBody::getFullName();
+    return DynamicColoredBody::getFullName(includingFileName);
 }
 
 void RigidBody::destroy() const {
