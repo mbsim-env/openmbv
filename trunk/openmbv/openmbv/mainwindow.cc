@@ -196,6 +196,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
+  objectListDW->setObjectName("MainWindow::objectListDW");
   QWidget *objectListWG=new QWidget(this);
   QGridLayout *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
@@ -231,6 +232,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
+  objectInfoDW->setObjectName("MainWindow::objectInfoDW");
   QWidget *objectInfoWG=new QWidget;
   QGridLayout *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
@@ -395,11 +397,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // file toolbar
   QToolBar *fileTB=new QToolBar("FileToolBar", this);
+  fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
   QToolBar *viewTB=new QToolBar("ViewToolBar", this);
+  viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
   viewTB->addSeparator();
@@ -417,6 +421,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
 
   // animation toolbar
   QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
+  animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
   animationTB->addAction(stopAct);
