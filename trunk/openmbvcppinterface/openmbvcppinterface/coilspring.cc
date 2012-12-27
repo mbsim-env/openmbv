@@ -104,9 +104,9 @@ void CoilSpring::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"springRadius");
   setSpringRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
-  setCrossSectionRadius(getDouble(e));
+  if(e) setCrossSectionRadius(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"nominalLength");
   if(e) setNominalLength(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  setScaleFactor(getDouble(e));
+  if(e) setScaleFactor(getDouble(e));
 }

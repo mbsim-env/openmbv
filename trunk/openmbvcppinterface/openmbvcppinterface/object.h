@@ -49,7 +49,8 @@ namespace OpenMBV {
     protected:
       std::string name;
       std::string enableStr, boundingBoxStr;
-      std::string ID;
+      std::string ID; // Note: the ID is metadata and stored as a processing instruction in XML
+      bool selected; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
       Group* parent;
 
       virtual void createHDF5File()=0;
@@ -115,10 +116,15 @@ namespace OpenMBV {
 
       Group* getParent() { return parent; }
 
-      /** get the ID sting of the Object */
+      /** get the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
       std::string getID() const { return ID; }
-      /** set the ID sting of the Object */
+      /** set the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
       void setID(std::string ID_) { ID=ID_; }
+
+      /** get the selected flag (Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI) */
+      bool getSelected() const { return selected; }
+      /** set the selected flag (Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI) */
+      void setSelected(bool selected_) { selected=selected_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
       static std::string fixPath(std::string oldFile, std::string newFile) { return ::fixPath(oldFile, newFile); }
