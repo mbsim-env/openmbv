@@ -70,6 +70,7 @@ class PropertyDialog : public QDialog {
     void addContextAction(QAction *action);
     QMenu *getContextMenu() { return contextMenu; }
     void addEditor(Editor *child);
+    QList<QAction*> getActions();
   protected:
     QMenu *contextMenu;
     QObject* parentObject;

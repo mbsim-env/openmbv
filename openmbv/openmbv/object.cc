@@ -80,6 +80,9 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
     nodeSensor->attach(crb->soSep);
 
+  // selected flag
+  setSelected(object->getSelected());
+
   setText(0, obj->getName().c_str());
 
   clone=getClone();

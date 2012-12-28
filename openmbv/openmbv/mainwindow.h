@@ -119,6 +119,8 @@ class MainWindow : public QMainWindow {
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
     QLineEdit *filter;
+    static void toggleAction(Object *current, QAction *currentAct);
+    void execPropertyMenu();
     static bool objectMatchesFilter(const QRegExp& filterRegExp, Object *item);
     static void disableBBox(Object *obj);
     static void enableBBoxOfID(Object *obj, const std::string &ID);
@@ -223,6 +225,7 @@ class MainWindow : public QMainWindow {
     void loadFinished();
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
+    void selectionChanged();
   public slots:
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);

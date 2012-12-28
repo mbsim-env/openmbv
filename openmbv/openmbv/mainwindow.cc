@@ -214,10 +214,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25),
   objectList = new QTreeWidget(objectListDW);
   objectListLO->addWidget(objectList, 1,0,1,2);
   objectList->setHeaderHidden(true);
-//MFMF multiedit  objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
   connect(objectList,SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(collapseItem(QTreeWidgetItem*)));
   connect(objectList,SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(expandItem(QTreeWidgetItem*)));
+  connect(objectList,SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
   connect(new QShortcut(QKeySequence("1"),this), SIGNAL(activated()), this, SLOT(expandToDepth1()));
   connect(new QShortcut(QKeySequence("2"),this), SIGNAL(activated()), this, SLOT(expandToDepth2()));
   connect(new QShortcut(QKeySequence("3"),this), SIGNAL(activated()), this, SLOT(expandToDepth3()));
@@ -904,23 +905,28 @@ void MainWindow::newFileDialog() {
   openFile(filename.toStdString());
 }
 
+void MainWindow::toggleAction(Object *current, QAction *currentAct) {
+  QList<QAction*> actions=current->properties->getActions();
+  for(int i=0; i<actions.size(); i++)
+    if(actions[i]->objectName()==currentAct->objectName() && currentAct!=actions[i])
+      actions[i]->trigger();
+}
+void MainWindow::execPropertyMenu() {
+  Object *object=(Object*)objectList->currentItem();
+  QMenu* menu=object->properties->getContextMenu();
+  QAction *currentAct=menu->exec(QCursor::pos());
+  // if action is not NULL and the action has a object name trigger also the actions with
+  // the same name of all other selected objects
+  if(currentAct && currentAct->objectName()!="")
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), boost::bind(&toggleAction, _1, currentAct), true);
+}
+
 void MainWindow::objectListClicked() {
   if(QApplication::mouseButtons()==Qt::RightButton) {
-    Object *object=(Object*)objectList->currentItem();
-    QMenu* menu=object->properties->getContextMenu();
-/*MFMF multiedit    QAction *currentAct=*/menu->exec(QCursor::pos());
-//MFMF multiedit    // if a action is not NULL and the action has a object name trigger also the actions with
-//MFMF multiedit    // the same name of all other selected objects
-//MFMF multiedit    if(currentAct && currentAct->objectName()!="") {
-//MFMF multiedit      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
-//MFMF multiedit      for(int i=0; i<obj.size(); i++) {
-//MFMF multiedit        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
-//MFMF multiedit        if(act==currentAct) continue; // do not trigger the currentItem twice
-//MFMF multiedit        if(act) act->trigger();
-//MFMF multiedit      }
-//MFMF multiedit    }
+    execPropertyMenu();
     frame->touch(); // force rendering the scene
   }
+  if(!objectList->currentItem()) return;
   emit objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
                       static_cast<Object*>(objectList->currentItem()));
 }
@@ -1263,21 +1269,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           emit objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
         }
         // if Button2 show property menu
-        if(ev->getButton()==SoMouseButtonEvent::BUTTON2) {
-          Object *object=(Object*)(objectList->currentItem());
-          QMenu* menu=object->properties->getContextMenu();
-/*MFMF multiedit    QAction *currentAct=*/menu->exec(QCursor::pos());
-//MFMF multiedit    // if a action is not NULL and the action has a object name trigger also the actions with
-//MFMF multiedit    // the same name of all other selected objects
-//MFMF multiedit    if(currentAct && currentAct->objectName()!="") {
-//MFMF multiedit      QList<QTreeWidgetItem*> obj=objectList->selectedItems();
-//MFMF multiedit      for(int i=0; i<obj.size(); i++) {
-//MFMF multiedit        QAction *act=((Object*)obj[i])->findChild<QAction*>(currentAct->objectName());
-//MFMF multiedit        if(act==currentAct) continue; // do not trigger the currentItem twice
-//MFMF multiedit        if(act) act->trigger();
-//MFMF multiedit      }
-//MFMF multiedit    }
-        }
+        if(ev->getButton()==SoMouseButtonEvent::BUTTON2)
+          execPropertyMenu();
       }
       return true; // event applied
     }
@@ -1935,6 +1928,12 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
   frameMaxSB->setRange(timeSlider->totalMinimum(), timeSlider->totalMaximum());
   frameMinSB->setValue(min);
   frameMaxSB->setValue(max);
+}
+
+void MainWindow::selectionChanged() {
+  QList<QTreeWidgetItem*> list=objectList->selectedItems();
+  for(int i=0; i<list.size(); i++)
+    static_cast<Object*>(list[i])->object->setSelected(list[i]->isSelected());
 }
 
 }
