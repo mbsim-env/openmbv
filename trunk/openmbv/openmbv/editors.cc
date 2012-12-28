@@ -158,6 +158,13 @@ void PropertyDialog::addEditor(Editor *child) {
   editor.push_back(child);
 }
 
+QList<QAction*> PropertyDialog::getActions() {
+  QList<QAction*> list;
+  for(unsigned int i=0; i<editor.size(); i++)
+    list.append(editor[i]->findChildren<QAction*>());
+  return list;
+}
+
 
 
 
@@ -187,9 +194,9 @@ void Editor::replaceObject() {
     soParent=MainWindow::getInstance()->getSceneRoot();
   }
   Object *newObj=ObjectFactory(obj->object, parentItem, soParent, ind);
-  // if the object to be replaced was selected, select the newly created object
+  // if the object to be replaced was the current item, set the new object the current item
   if(obj==MainWindow::getInstance()->objectList->currentItem())
-    MainWindow::getInstance()->objectList->setCurrentItem(newObj);
+    MainWindow::getInstance()->objectList->setCurrentItem(newObj, 0, QItemSelectionModel::NoUpdate);
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
