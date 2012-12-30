@@ -23,8 +23,7 @@
 #include "object.h"
 #include <string>
 #include <H5Cpp.h>
-#include <QtCore/QFileInfo>
-#include <QtCore/QDateTime>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace OpenMBV {
   class Group;
@@ -41,8 +40,7 @@ class Group : public Object {
     QAction *saveFile, *unloadFile, *reloadFile;
     OpenMBV::Group *grp;
     QTimer *reloadTimer;
-    QFileInfo *xmlFileInfo, *h5FileInfo;
-    QDateTime xmlLastModified, h5LastModified;
+    boost::posix_time::ptime xmlLastModified, h5LastModified;
     std::string getPath();
   public:
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
