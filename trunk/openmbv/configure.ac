@@ -23,6 +23,8 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_TYPE_INT32_T
 
+AC_CHECK_HEADERS([boost/filesystem.hpp],[],[AC_MSG_ERROR([Can not find boost/filesystem.hpp])])
+
 dnl check host
 AC_CANONICAL_HOST
 if test "_$host_os" = "_mingw32"; then

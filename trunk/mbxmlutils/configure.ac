@@ -24,6 +24,7 @@ AC_TYPE_SIZE_T
 AC_CANONICAL_HOST
 
 AC_CHECK_HEADERS([unordered_map unordered_set])
+AC_CHECK_HEADERS([boost/filesystem.hpp],[],[AC_MSG_ERROR([boost/filesystem.hpp not found.])])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 

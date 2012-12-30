@@ -3,9 +3,6 @@
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
 #include <fstream>
-#include <unistd.h>
-#include <sys/stat.h>
-#include "dirent.h"
 #ifdef HAVE_UNORDERED_SET
 #  include <unordered_set>
 #else
@@ -17,6 +14,7 @@
 #include <octave/parse.h>
 #include <octave/toplev.h>
 #include "env.h"
+#include <boost/filesystem.hpp>
 #ifdef _WIN32 // Windows
 #  include "windows.h"
 #endif
@@ -24,6 +22,7 @@
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
 using namespace std;
+namespace bfs=boost::filesystem;
 
 // a global octave evaluator
 MBXMLUtils::OctaveEvaluator *octEval=NULL;
@@ -31,12 +30,9 @@ MBXMLUtils::OctaveEvaluator *octEval=NULL;
 string SCHEMADIR;
 
 void addFilesInDir(ostringstream &dependencies, string dir, string ext) {
-  dirent *file;
-  DIR *d=opendir(dir.c_str());
-  while((file=readdir(d))!=NULL)
-    if(ext==file->d_name+(strlen(file->d_name)-2)) // ext matches
-      dependencies<<dir<<"/"<<file->d_name<<endl;
-  closedir(d);
+  for(bfs::directory_iterator it=bfs::directory_iterator(dir.c_str()); it!=bfs::directory_iterator(); it++)
+    if(it->path().extension().generic_string()==ext)
+      dependencies<<it->path().generic_string()<<endl;
 }
 
 // validate file using schema (currently by libxml)
@@ -315,12 +311,8 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
 }
 
 string extractFileName(const string& dirfilename) {
-  int i1=(int)dirfilename.find_last_of('/');
-  int i2=(int)dirfilename.find_last_of('\\');
-  i1=(i1==(int)string::npos?-1:(int)i1);
-  i2=(i2==(int)string::npos?-1:(int)i2);
-  i1=max(i1,i2);
-  return dirfilename.substr(i1+1);
+  bfs::path p(dirfilename.c_str());
+  return (--p.end())->generic_string();
 }
 
 #define PATHLENGTH 10240
@@ -356,20 +348,19 @@ int main(int argc, char *argv[]) {
   // check for environment variables (none default installation)
   string XMLDIR;
   string OCTAVEDIR;
-  struct stat st;
   char *env;
   SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
-  if(stat((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str(), &st)!=0) SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
+  if(!bfs::exists((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str())) SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env; // overwrite with envvar if exist
   XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
-  if(stat((XMLDIR+"/measurement.xml").c_str(), &st)!=0) XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
+  if(!bfs::exists((XMLDIR+"/measurement.xml").c_str())) XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
   OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if(!bfs::exists(OCTAVEDIR.c_str())) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
   // OCTAVE_HOME
   string OCTAVE_HOME; // the string for putenv must has program life time
-  if(getenv("OCTAVE_HOME")==NULL && stat((MBXMLUtils::getInstallPath()+"/share/octave").c_str(), &st)==0) {
+  if(getenv("OCTAVE_HOME")==NULL && bfs::exists((MBXMLUtils::getInstallPath()+"/share/octave").c_str())) {
     OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath();
     putenv((char*)OCTAVE_HOME.c_str());
   }

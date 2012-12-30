@@ -45,6 +45,36 @@
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
 
+/* This is a varaint of the boost::filesystem::last_write_time functions.
+ * It only differs in the argument/return value being here a boost::posix_time::ptime instead of a time_t.
+ * This enables file timestamps on microsecond level. */
+#include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <sys/stat.h>
+namespace boost {
+  namespace myfilesystem {
+    boost::posix_time::ptime last_write_time(const boost::filesystem::path &p) {
+      struct stat st;
+      if(stat(p.generic_string().c_str(), &st)!=0)
+        throw boost::filesystem::filesystem_error("system stat call failed", p, boost::system::error_code());
+      boost::posix_time::ptime time;
+      time=boost::posix_time::from_time_t(st.st_mtime);
+      time+=boost::posix_time::microsec(st.st_mtim.tv_nsec/1000);
+      return time;
+    }
+    void last_write_time(const boost::filesystem::path &p, const boost::posix_time::ptime &time) {
+      struct timeval times[2];
+      boost::posix_time::time_period sinceEpoch(boost::posix_time::ptime(boost::gregorian::date(1970, boost::gregorian::Jan, 1)), time);
+      times[0].tv_sec =sinceEpoch.length().total_seconds();
+      times[0].tv_usec=sinceEpoch.length().total_microseconds()-1000000*times[0].tv_sec;
+      times[1].tv_sec =times[0].tv_sec;
+      times[1].tv_usec=times[0].tv_usec;
+      if(utimes(p.generic_string().c_str(), times)!=0)
+        throw boost::filesystem::filesystem_error("system utimes call failed", p, boost::system::error_code());
+    }
+  }
+}
+
 using namespace std;
 
 namespace OpenMBVGUI {
@@ -97,10 +127,9 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   reloadTimer=NULL;
   // if reloading is enabled and this Group is a toplevel file create timer
   if(grp->getParent()==NULL && MainWindow::getInstance()->getReloadTimeout()>0) {
-    xmlFileInfo=new QFileInfo(text(0));
-    h5FileInfo=new QFileInfo(text(0).remove(text(0).count()-3, 3)+"h5");
-    xmlLastModified=xmlFileInfo->lastModified();
-    h5LastModified=h5FileInfo->lastModified();
+    xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString().c_str());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString().c_str());
+
     reloadTimer=new QTimer(this);
     connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
     reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
@@ -207,11 +236,10 @@ void Group::reloadFileSlot() {
 }
 
 void Group::reloadFileSlotIfNewer() {
-  xmlFileInfo->refresh();
-  h5FileInfo->refresh();
-  if(xmlFileInfo->lastModified()>xmlLastModified && h5FileInfo->lastModified()>h5LastModified) {
-    xmlLastModified=xmlFileInfo->lastModified();
-    h5LastModified=h5FileInfo->lastModified();
+  if(boost::myfilesystem::last_write_time(text(0).toStdString().c_str())>xmlLastModified &&
+     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString().c_str())>h5LastModified) {
+    xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString().c_str());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString().c_str());
     reloadFileSlot();
   }
 }

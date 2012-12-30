@@ -24,9 +24,6 @@
 #include <vector>
 #include <map>
 #include <H5Cpp.h>
-#ifdef HAVE_BOOST_FILE_LOCK
-#  include <boost/interprocess/sync/file_lock.hpp>
-#endif
 
 namespace OpenMBV {
 
@@ -47,13 +44,6 @@ namespace OpenMBV {
 
       virtual ~Group();
 
-#ifdef HAVE_BOOST_FILE_LOCK
-      // used for locking
-      FILE *lockFile; // dummy file used for locking
-      bool lockedExclusive; // true = write locked; false = read locked
-      boost::interprocess::file_lock *lockFileLock;
-#endif
-
       /** Initialisze/Write the XML file.
        * Call this function for the root node of the tree to create/write/ the XML file.
        */
@@ -73,9 +63,6 @@ namespace OpenMBV {
       /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
        */
       void readH5();
-
-      void lock(bool exclusive=false);
-      void unlock();
 
     public:
       /** Default constructor */
