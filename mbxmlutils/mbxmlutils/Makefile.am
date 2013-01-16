@@ -68,4 +68,4 @@ bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -DTIXML_USE_STL $(LIBXML2_CFLAGS) $(MKOCTFILE_CFLAGS)
 mbxmlutilspp_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-mbxmlutilspp_LDADD = $(LIBXML2_LIBS) $(MKOCTFILE_LIBS) libmbxmlutils.la -lboost_system -lboost_filesystem
+mbxmlutilspp_LDADD = $(LIBXML2_LIBS) $(MKOCTFILE_LIBS) libmbxmlutils.la -lmbxmlutilstinyxml -lboost_system -lboost_filesystem
