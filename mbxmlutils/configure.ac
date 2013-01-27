@@ -170,7 +170,7 @@ LDFLAGS="$LDFLAGS -no-undefined"
 dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
 
-AC_CONFIG_FILES([Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/env.h mbxmlutils/octave/Makefile mbxmlutils/check/Makefile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/env.h mbxmlutils/octave/Makefile mbxmlutils/check/Makefile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT
