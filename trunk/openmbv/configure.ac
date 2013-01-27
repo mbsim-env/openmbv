@@ -121,6 +121,6 @@ CPPFLAGS="$CPPFLAGS -Wall -Werror"
 CXXFLAGS="$CXXFLAGS -Wno-non-virtual-dtor"
 LDFLAGS="$LDFLAGS -no-undefined"
 
-AC_CONFIG_FILES([Makefile openmbv.pc openmbv/Makefile doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([Makefile openmbv.pc openmbv/Makefile xmldoc/Makefile xmldoc/Doxyfile])
 
 AC_OUTPUT
