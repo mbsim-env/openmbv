@@ -1,8 +1,9 @@
+docdir = @datadir@/doc/@PACKAGE@
+
 clean:
 	rm -rf html
 
 all:
-	rm -rf html; \
 	$(doxygen)
 
 install:
