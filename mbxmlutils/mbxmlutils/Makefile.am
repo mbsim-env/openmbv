@@ -39,7 +39,7 @@ lib_LTLIBRARIES = libmbxmlutils.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -DTIXML_USE_STL $(MKOCTFILE_CFLAGS)
 libmbxmlutils_la_LDFLAGS = -L../mbxmlutilstinyxml -Wl,-rpath -Wl,\$$ORIGIN/../lib
-libmbxmlutils_la_LIBADD = -lmbxmlutilstinyxml $(MKOCTFILE_LIBS)
+libmbxmlutils_la_LIBADD = ../mbxmlutilstinyxml/libmbxmlutilstinyxml.la $(MKOCTFILE_LIBS)
 libmbxmlutils_la_SOURCES = utils.cc
 libmbxmlutils_la_HEADERS = utils.h
 
@@ -48,4 +48,4 @@ bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -DTIXML_USE_STL $(LIBXML2_CFLAGS) $(MKOCTFILE_CFLAGS)
 mbxmlutilspp_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-mbxmlutilspp_LDADD = $(LIBXML2_LIBS) $(MKOCTFILE_LIBS) libmbxmlutils.la -lmbxmlutilstinyxml -lboost_system -lboost_filesystem
+mbxmlutilspp_LDADD = $(LIBXML2_LIBS) $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilstinyxml/libmbxmlutilstinyxml.la -lboost_system -lboost_filesystem
