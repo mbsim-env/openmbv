@@ -73,8 +73,11 @@ void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
 void TiXml_deletePIandComm(TiXmlElement *e) {
 }
 
-void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
-  cout<<pre<<TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")<<":"<<e->Row()<<post<<endl;
+vector<string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post) {
+  vector<string> out;
+  stringstream ss;
+  ss<<e->Row();
+  out.push_back(pre+TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")+":"+ss.str()+post);
   const TiXmlElement *p;
   for(int i=1; (p=TiXml_GetElementWithXmlBase(e,i))!=0; i++) {
     const TiXmlNode *c=TiXml_GetElementWithXmlBase(e,i-1)->FirstChild();
@@ -88,8 +91,16 @@ void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
       count=count.substr(0,count.length()-1);
       count=":[count="+count+"]";
     }
-    cout<<"  included by: "<<p->Attribute("xml:base")<<":"<<line.substr(0,line.length()-1)<<count<<endl;
+    out.push_back(string("  included by: ")+p->Attribute("xml:base")+":"+line.substr(0,line.length()-1)+count);
   }
+  return out;
+}
+
+void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
+  vector<string> out=TiXml_location_vec(e, pre, post);
+  vector<string>::iterator it;
+  for(it=out.begin(); it!=out.end(); it++)
+    cout<<*it<<endl;
 }
 
 string tinyNamespaceCompStr;

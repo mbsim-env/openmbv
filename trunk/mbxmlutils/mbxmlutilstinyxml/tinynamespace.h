@@ -11,6 +11,7 @@
 #include "tinyxml.h"
 #include <map>
 #include <string>
+#include <vector>
 
 #define XINCLUDENS_ "http://www.w3.org/2001/XInclude"
 #define XINCLUDENS "{"XINCLUDENS_"}"
@@ -28,6 +29,9 @@ std::string TiXml_itoa(int i);
  * and the "count" of the origianl pv:embed element is also shown.
  */
 void TiXml_location(TiXmlElement *e, const std::string &pre, const std::string &post);
+
+/* return the output of TiXml_location as a vector of strings */
+std::vector<std::string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post);
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);
