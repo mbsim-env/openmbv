@@ -303,23 +303,29 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 
   if(writeXMLFile && !writeH5File) {
     fclose(fopen(fileName.c_str(), "a"));
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLock(fileName.c_str());
     boost::interprocess::scoped_lock<boost::interprocess::file_lock> sfl(fileLock);
+#endif
     writeXML();
   }
   if(!writeXMLFile && writeH5File) {
     fclose(fopen((fileName.substr(0,fileName.length()-4)+".h5").c_str(), "a"));
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLock((fileName.substr(0,fileName.length()-4)+".h5").c_str());
     boost::interprocess::scoped_lock<boost::interprocess::file_lock> sfl(fileLock);
+#endif
     writeH5();
   }
   if(writeXMLFile && writeH5File) {
     fclose(fopen(fileName.c_str(), "a"));
     fclose(fopen((fileName.substr(0,fileName.length()-4)+".h5").c_str(), "a"));
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLockXML(fileName.c_str());
     boost::interprocess::file_lock fileLockH5 ((fileName.substr(0,fileName.length()-4)+".h5").c_str());
     boost::interprocess::scoped_lock<boost::interprocess::file_lock> sflXML(fileLockXML);
     boost::interprocess::scoped_lock<boost::interprocess::file_lock> sflH5 (fileLockH5);
+#endif
     writeXML();
     writeH5();
   }
@@ -327,20 +333,26 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 
 void Group::read(bool readXMLFile, bool readH5File) {
   if(readXMLFile && !readH5File) {
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLock(fileName.c_str());
     boost::interprocess::sharable_lock<boost::interprocess::file_lock> sfl(fileLock);
+#endif
     readXML();
   }
   if(!readXMLFile && readH5File) {
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLock((fileName.substr(0,fileName.length()-4)+".h5").c_str());
     boost::interprocess::sharable_lock<boost::interprocess::file_lock> sfl(fileLock);
+#endif
     readH5();
   }
   if(readXMLFile && readH5File) {
+#ifdef HAVE_BOOST_FILE_LOCK
     boost::interprocess::file_lock fileLockXML(fileName.c_str());
     boost::interprocess::file_lock fileLockH5 ((fileName.substr(0,fileName.length()-4)+".h5").c_str());
     boost::interprocess::sharable_lock<boost::interprocess::file_lock> sflXML(fileLockXML);
     boost::interprocess::sharable_lock<boost::interprocess::file_lock> sflH5 (fileLockH5);
+#endif
     readXML();
     readH5();
   }
