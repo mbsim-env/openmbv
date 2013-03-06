@@ -24,6 +24,12 @@ AC_TYPE_SIZE_T
 AC_CANONICAL_HOST
 
 AC_CHECK_HEADERS([unordered_map unordered_set])
+
+dnl Include path for Boost
+AC_ARG_WITH([boost-inc],
+  [  --with-boost-inc=PATH  The path Boost include directory.],
+  [CPPFLAGS="$CPPFLAGS -I$withval"; DEFINES="$DEFINES -I$withval"])
+  
 AC_CHECK_HEADERS([boost/filesystem.hpp],[],[AC_MSG_ERROR([boost/filesystem.hpp not found.])])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
