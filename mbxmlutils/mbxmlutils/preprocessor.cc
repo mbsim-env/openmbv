@@ -3,6 +3,7 @@
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
 #include <fstream>
+#include <unistd.h>
 #ifdef HAVE_UNORDERED_SET
 #  include <unordered_set>
 #else
