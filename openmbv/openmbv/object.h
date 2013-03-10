@@ -60,7 +60,6 @@ class Object : public QObject, public QTreeWidgetItem {
     Object *clone;
     Object *getClone();
     static std::set<Object*> objects;
-    QMenu *contextMenu;
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
