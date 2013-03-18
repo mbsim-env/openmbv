@@ -301,59 +301,73 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
   // use element name as base filename if fileName was not set
   if(fileName=="") fileName=name+".ombv.xml";
 
-  if(writeXMLFile && !writeH5File) {
-    fclose(fopen(fileName.c_str(), "a"));
 #ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLock(fileName.c_str());
-    boost::interprocess::scoped_lock<boost::interprocess::file_lock> sfl(fileLock);
-#endif
-    writeXML();
+  string lockFileName="."+fileName.substr(0,fileName.length()-4)+".lock";
+  // try to create file
+  FILE *f=fopen(lockFileName.c_str(), "a");
+  if(f) fclose(f);
+  // try to lock file
+  boost::interprocess::file_lock fileLock;
+  bool isFileLocked=false;
+  try {
+    boost::interprocess::file_lock fl(lockFileName.c_str());
+    fileLock.swap(fl);
+    isFileLocked=true;
+    fileLock.lock();
   }
-  if(!writeXMLFile && writeH5File) {
-    fclose(fopen((fileName.substr(0,fileName.length()-4)+".h5").c_str(), "a"));
+  catch(const boost::interprocess::interprocess_exception &ex) {
+    cout<<"WARNING: Unable to lock the file "<<lockFileName<<endl;
+  }
+#endif
+  try {
+    if(writeXMLFile) writeXML();
+    if(writeH5File)  writeH5();
+  }
+  catch(...) {
+    // unlock file
+    if(isFileLocked)
+      fileLock.unlock();
+    throw;
+  }
 #ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLock((fileName.substr(0,fileName.length()-4)+".h5").c_str());
-    boost::interprocess::scoped_lock<boost::interprocess::file_lock> sfl(fileLock);
+  // unlock file
+  if(isFileLocked)
+    fileLock.unlock();
 #endif
-    writeH5();
-  }
-  if(writeXMLFile && writeH5File) {
-    fclose(fopen(fileName.c_str(), "a"));
-    fclose(fopen((fileName.substr(0,fileName.length()-4)+".h5").c_str(), "a"));
-#ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLockXML(fileName.c_str());
-    boost::interprocess::file_lock fileLockH5 ((fileName.substr(0,fileName.length()-4)+".h5").c_str());
-    boost::interprocess::scoped_lock<boost::interprocess::file_lock> sflXML(fileLockXML);
-    boost::interprocess::scoped_lock<boost::interprocess::file_lock> sflH5 (fileLockH5);
-#endif
-    writeXML();
-    writeH5();
-  }
 }
 
 void Group::read(bool readXMLFile, bool readH5File) {
-  if(readXMLFile && !readH5File) {
 #ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLock(fileName.c_str());
-    boost::interprocess::sharable_lock<boost::interprocess::file_lock> sfl(fileLock);
-#endif
-    readXML();
+  string lockFileName="."+fileName.substr(0,fileName.length()-4)+".lock";
+  // try to create file
+  FILE *f=fopen(lockFileName.c_str(), "a");
+  if(f) fclose(f);
+  // try to lock file
+  boost::interprocess::file_lock fileLock;
+  bool isFileLocked=false;
+  try {
+    boost::interprocess::file_lock fl(lockFileName.c_str());
+    fileLock.swap(fl);
+    isFileLocked=true;
+    fileLock.lock_sharable();
   }
-  if(!readXMLFile && readH5File) {
+  catch(const boost::interprocess::interprocess_exception &ex) {
+    cout<<"WARNING: Unable to lock the file "<<lockFileName<<endl;
+  }
+#endif
+  try {
+    if(readXMLFile) readXML();
+    if(readH5File)  readH5();
+  }
+  catch(...) {
+    // unlock file
+    if(isFileLocked)
+      fileLock.unlock();
+    throw;
+  }
 #ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLock((fileName.substr(0,fileName.length()-4)+".h5").c_str());
-    boost::interprocess::sharable_lock<boost::interprocess::file_lock> sfl(fileLock);
+  // unlock file
+  if(isFileLocked)
+    fileLock.unlock_sharable();
 #endif
-    readH5();
-  }
-  if(readXMLFile && readH5File) {
-#ifdef HAVE_BOOST_FILE_LOCK
-    boost::interprocess::file_lock fileLockXML(fileName.c_str());
-    boost::interprocess::file_lock fileLockH5 ((fileName.substr(0,fileName.length()-4)+".h5").c_str());
-    boost::interprocess::sharable_lock<boost::interprocess::file_lock> sflXML(fileLockXML);
-    boost::interprocess::sharable_lock<boost::interprocess::file_lock> sflH5 (fileLockH5);
-#endif
-    readXML();
-    readH5();
-  }
 }
