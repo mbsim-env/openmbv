@@ -4,6 +4,8 @@
 #include <windows.h>
 #endif
 
+void dummyfunclsdkjflksdjf() {} // required to generate a object file: seems to be a compiler bug
+
 using namespace std;
 
 namespace boost {
