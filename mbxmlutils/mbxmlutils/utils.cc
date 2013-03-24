@@ -6,6 +6,9 @@
 #include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/parse.h>
 
+#define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
+#define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
+
 using namespace std;
 
 namespace MBXMLUtils {
@@ -230,10 +233,10 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
         octaveEvalRet(i->equ, i->ele, useCache);
         ret=symbol_table::varval("ret");
         if(i->ele)
-          checkType(ret, i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}vectorParameter"?VectorType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}matrixParameter"?MatrixType:
-                         i->ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
+          checkType(ret, i->ele->ValueStr()==MBXMLUTILSPARAMNS"scalarParameter"?ScalarType:
+                         i->ele->ValueStr()==MBXMLUTILSPARAMNS"vectorParameter"?VectorType:
+                         i->ele->ValueStr()==MBXMLUTILSPARAMNS"matrixParameter"?MatrixType:
+                         i->ele->ValueStr()==MBXMLUTILSPARAMNS"stringParameter"?StringType:ArbitraryType);
       }
       catch(...) { err=1; }
       MBXMLUtils::enable_stderr();
@@ -251,10 +254,10 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
         octaveEvalRet(param[i].equ, param[i].ele, useCache); // output octave error
         octave_value ret=symbol_table::varval("ret");
         if(param[i].ele)
-          checkType(ret, param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}scalarParameter"?ScalarType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}vectorParameter"?VectorType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}matrixParameter"?MatrixType:
-                         param[i].ele->ValueStr()=="{http://openmbv.berlios.de/MBXMLUtils/parameter}stringParameter"?StringType:ArbitraryType);
+          checkType(ret, param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"scalarParameter"?ScalarType:
+                         param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"vectorParameter"?VectorType:
+                         param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"matrixParameter"?MatrixType:
+                         param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"stringParameter"?StringType:ArbitraryType);
       }
       catch(string str) { cout<<str<<endl; }
       if(param[i].ele) TiXml_location(param[i].ele, "", ": "+param[i].name+": "+param[i].equ); // output location of element
