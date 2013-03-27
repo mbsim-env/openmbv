@@ -144,7 +144,6 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
       throw string("Error in octave expression: "+str);
     }
     if(!symbol_table::is_variable("ret")) {
-      cout<<"ERRRO\n";
       error_state=0;
       if(e) if(chdir(savedPath)!=0) throw(1);
       throw string("'ret' not defined in octave statement list: "+str);
@@ -248,7 +247,7 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
       }
     }
   if(param.size()>0) { // if parameters are left => error
-    cout<<"Error in one of the following parameters or infinit loop in this parameters:\n";
+    cerr<<"Error in one of the following parameters or infinit loop in this parameters:\n";
     for(size_t i=0; i<param.size(); i++) {
       try {
         octaveEvalRet(param[i].equ, param[i].ele, useCache); // output octave error
@@ -259,7 +258,7 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
                          param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"matrixParameter"?MatrixType:
                          param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"stringParameter"?StringType:ArbitraryType);
       }
-      catch(string str) { cout<<str<<endl; }
+      catch(string str) { cerr<<str<<endl; }
       if(param[i].ele) TiXml_location(param[i].ele, "", ": "+param[i].name+": "+param[i].equ); // output location of element
     }
     return 1;

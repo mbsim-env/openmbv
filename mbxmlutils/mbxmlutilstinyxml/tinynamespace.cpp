@@ -100,7 +100,7 @@ void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
   vector<string> out=TiXml_location_vec(e, pre, post);
   vector<string>::iterator it;
   for(it=out.begin(); it!=out.end(); it++)
-    cout<<*it<<endl;
+    cerr<<*it<<endl;
 }
 
 string tinyNamespaceCompStr;
