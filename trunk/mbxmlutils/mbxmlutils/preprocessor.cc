@@ -456,7 +456,7 @@ int main(int argc, char *argv[]) {
       for(ele=mmdoc->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement())
         for(el2=ele->FirstChildElement(); el2!=0; el2=el2->NextSiblingElement()) {
           if(units.find(el2->Attribute("name"))!=units.end()) {
-            cout<<"ERROR! Unit name "<<el2->Attribute("name")<<" is defined more than once."<<endl;
+            cerr<<"ERROR! Unit name "<<el2->Attribute("name")<<" is defined more than once."<<endl;
             throw(1);
           }
           units[el2->Attribute("name")]=el2->GetText();
