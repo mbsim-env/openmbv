@@ -73,17 +73,26 @@ void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
 void TiXml_deletePIandComm(TiXmlElement *e) {
 }
 
+string TiXml_linkedFileName(const string &name, int line) {
+  static bool xmlOutput=getenv("MBXMLUTILS_XMLOUTPUT")!=NULL?true:false;
+  stringstream ss;
+  ss<<line;
+  if(xmlOutput)
+    return "<FILE path=\""+name+"\" line=\""+ss.str()+"\">"+name+":"+ss.str()+"</FILE>";
+  else
+    return name+":"+ss.str();
+}
+
 vector<string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post) {
   vector<string> out;
-  stringstream ss;
-  ss<<e->Row();
-  out.push_back(pre+TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")+":"+ss.str()+post);
+  out.push_back(pre+TiXml_linkedFileName(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Row())+post);
   const TiXmlElement *p;
   for(int i=1; (p=TiXml_GetElementWithXmlBase(e,i))!=0; i++) {
     const TiXmlNode *c=TiXml_GetElementWithXmlBase(e,i-1)->FirstChild();
     const TiXmlUnknown *u;
     for(u=c->ToUnknown(); u && u->ValueStr().substr(0,23)!="?OriginalElementLineNr "; u=u->NextSibling()->ToUnknown());
     string line=u->ValueStr().substr(23);
+    int lineNr=atoi(line.substr(0,line.length()-1).c_str());
     for(u=c->ToUnknown(); u && u->ValueStr().substr(0,14)!="?EmbedCountNr "; u=u->NextSibling()->ToUnknown());
     string count;
     if(u) {
@@ -91,7 +100,7 @@ vector<string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const
       count=count.substr(0,count.length()-1);
       count=":[count="+count+"]";
     }
-    out.push_back(string("  included by: ")+p->Attribute("xml:base")+":"+line.substr(0,line.length()-1)+count);
+    out.push_back("  included by: "+TiXml_linkedFileName(p->Attribute("xml:base"), lineNr)+count);
   }
   return out;
 }
