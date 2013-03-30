@@ -50,7 +50,7 @@ namespace OpenMBV {
       std::string getClassName() { return "Path"; }
 
       /** Append a data vector the to hf dataset */
-      void append(std::vector<double>& row) {
+      void append(const std::vector<double>& row) {
         assert(data!=0 && row.size()==4);
         data->append(row);
       }

@@ -74,10 +74,16 @@ namespace OpenMBV {
       bool getPath() { return pathStr=="true"?true:false; }
       
       /** Append the data \p row to the end of the dataset */
-      void append(std::vector<double>& row) {
+      void append(const std::vector<double>& row) {
         assert(data!=0 && row.size()==8);
-        if(!std::isnan(dynamicColor)) row[7]=dynamicColor;
-        data->append(row);
+        if(!std::isnan(dynamicColor))
+        {
+          std::vector<double> tmprow(row);
+          tmprow[7]=dynamicColor;
+          data->append(tmprow);
+        }
+        else
+          data->append(row);
       }
 
       int getRows() { return data?data->getRows():-1; }

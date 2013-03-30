@@ -83,7 +83,7 @@ namespace OpenMBV {
        * of this type. If you do not need this spezial type, simple define this function
        * with empty body and create your own spezific append function
        */
-      virtual void append(std::vector<double>& row)=0;
+      virtual void append(const std::vector<double>& row)=0;
 
       /** Get the number of rows of the default data.
        * Returns -1, if no default data is avaliable.
