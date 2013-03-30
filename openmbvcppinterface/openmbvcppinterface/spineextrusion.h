@@ -74,7 +74,7 @@ namespace OpenMBV {
       double getScaleFactor() { return get(scaleFactor); }
 
       /** Append a data vector to the h5 datsset */
-      void append(std::vector<double>& row) { 
+      void append(const std::vector<double>& row) { 
         assert(data!=0); 
         data->append(row);
       }
