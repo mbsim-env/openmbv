@@ -35,13 +35,45 @@ AC_ARG_WITH([swigpath], [  --with-swig-path=PATH  The path to the swig program.]
 AC_PATH_PROG([swig],[swig],[no],[$swigpath:$PATH])
 AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
 dnl Check for octave
-AC_ARG_WITH([mkoctfilepath], [  --with-mkoctfile-path=PATH  The path to the mkoctfile program.],
-  [mkoctfilepath="$withval"],[mkoctfilepath=""])
-AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$mkoctfilepath:$PATH])
+DOS2UNIX="cat"
+if test "$cross_compiling" == "yes"; then
+  DOS2UNIX="dos2unix"
+fi
+AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program.],
+  [mkoctfile="$withval"],[mkoctfile="no"])
+if test "$mkoctfile" == "no"; then
+  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
+fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
-  AC_SUBST([OCTAVE_LIBS], ["$($mkoctfile -p LFLAGS) $($mkoctfile -p OCTAVE_LIBS)"])
   AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave])
+  OCTAVE_LIBS="$(echo $($mkoctfile -p LFLAGS | $DOS2UNIX) $($mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+  OCTAVE_FLAGS="$(echo $($mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+  if test "$cross_compiling" == "yes"; then
+    # convert OCTAVE_FLAGS to unix path if cross compiling
+    RERUN=0
+    while test $RERUN -eq 0; do
+      WINPATH=$(echo $OCTAVE_FLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
+      UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+      OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+      echo $OCTAVE_FLAGS | grep "\-I" &> /dev/null
+      RERUN=$?
+    done
+    OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|-X|-I|g")
+
+    # convert OCTAVE_LIBS to unix path if cross compiling
+    RERUN=0
+    while test $RERUN -eq 0; do
+      WINPATH=$(echo $OCTAVE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
+      UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+      OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+      echo $OCTAVE_LIBS | grep "\-L" &> /dev/null
+      RERUN=$?
+    done
+    OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|-X|-L|g")
+  fi
+  AC_SUBST([OCTAVE_FLAGS])
+  AC_SUBST([OCTAVE_LIBS])
 fi
 dnl Check for python
 AC_ARG_WITH([pythonversion], [  --with-python-version=VER  The version of python to build for (default: 2.7).],
