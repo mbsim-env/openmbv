@@ -76,7 +76,7 @@ if test "_$mkoctfile" != "_no"; then
   AC_SUBST([OCTAVE_LIBS])
 fi
 dnl Check for python
-AC_ARG_WITH([pythonversion], [  --with-python-version=VER  The version of python to build for (default: 2.7).],
+AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
   [pythonversion="$withval"],[pythonversion="2.7"])
 PKG_CHECK_MODULES(PYTHON, python-$pythonversion, [pythonfound=yes], [pythonfound=no])
 AM_CONDITIONAL([COND_PYTHON], [test "_$pythonfound" == "_yes"])
