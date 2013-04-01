@@ -3,6 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
+swig_octave=${prefix}/lib/swig/openmbvcppinterface/octave
+swig_python=${prefix}/lib/swig/openmbvcppinterface/python
+
 Name: openmbvcppinterface
 Description: A library to create OpenMBV input files.
 Requires: hdf5serie mbxmlutilstinyxml
