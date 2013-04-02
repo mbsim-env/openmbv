@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export PYTHONPATH=@prefix@/lib/swig/openmbvcppinterface/python
+@PYTHONBIN@ pythontest.py
