@@ -13,19 +13,6 @@ using namespace std;
 
 namespace MBXMLUtils {
 
-int getMaschineNumDigits() {
-  static int machinePrec=0;
-  if(machinePrec>0)
-    return machinePrec;
-  
-  // calcaulate machine precision
-  double machineEps;
-  for(machineEps=1.0; (1.0+machineEps)>1.0; machineEps*=0.5);
-  machineEps*=2.0;
-  machinePrec=(int)(-log(machineEps)/log(10))+1;
-  return machinePrec;
-}
-
 static int orgstderr;
 static streambuf *orgcerr;
 static int disableCount=0;
@@ -186,7 +173,7 @@ string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
   octave_value o=symbol_table::varval("ret"); // get 'ret'
 
   ostringstream ret;
-  ret.precision(MBXMLUtils::getMaschineNumDigits());
+  ret.precision(numeric_limits<double>::digits10+2);
   if(o.is_scalar_type() && o.is_real_type() && (o.is_string()!=1)) {
     ret<<o.double_value();
   }
