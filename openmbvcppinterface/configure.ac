@@ -83,6 +83,12 @@ AM_CONDITIONAL([COND_PYTHON], [test "_$pythonfound" == "_yes"])
 if test "_$pythonfound" == "_yes"; then
   AC_SUBST([PYTHONBIN], ["$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"])
 fi
+if test "$cross_compiling" == "yes"; then
+  pythonshext=".pyd"
+else
+  pythonshext=".so"
+fi
+AC_SUBST([PYTHONSHEXT], [$pythonshext])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
@@ -100,7 +106,7 @@ LDFLAGS="$LDFLAGS -no-undefined -Wl,-no-undefined"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile])
-AC_CONFIG_FILES([swig/octave/octavetest.m], [chmod +x swig/octave/octavetest.m])
-AC_CONFIG_FILES([swig/python/pythontest.py], [chmod +x swig/python/pythontest.py])
+AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
+AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
 
 AC_OUTPUT

@@ -1,8 +1,3 @@
-#!@PYTHONBIN@
-
-import sys;
-sys.path.append("@prefix@/lib/swig/openmbvcppinterface/python");
-
 import OpenMBV;
 
 group=OpenMBV.Group();

@@ -1,7 +1,3 @@
-#!@OCTAVE@
-
-addpath('@prefix@/lib/swig/openmbvcppinterface/octave');
-
 OpenMBV;
 
 group=OpenMBV.Group();
