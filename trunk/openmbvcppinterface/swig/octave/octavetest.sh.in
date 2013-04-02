@@ -1,0 +1,4 @@
+#!/bin/sh
+
+
+@OCTAVE@ --path @prefix@/lib/swig/openmbvcppinterface/octave octavetest.m
