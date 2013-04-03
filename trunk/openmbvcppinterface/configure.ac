@@ -46,7 +46,7 @@ if test "$mkoctfile" == "no"; then
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
-  AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave])
+  AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
   OCTAVE_LIBS="$(echo $($mkoctfile -p LFLAGS | $DOS2UNIX) $($mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
   OCTAVE_FLAGS="$(echo $($mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
   if test "$cross_compiling" == "yes"; then
@@ -81,14 +81,17 @@ AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python 
 PKG_CHECK_MODULES(PYTHON, python-$pythonversion, [pythonfound=yes], [pythonfound=no])
 AM_CONDITIONAL([COND_PYTHON], [test "_$pythonfound" == "_yes"])
 if test "_$pythonfound" == "_yes"; then
-  AC_SUBST([PYTHONBIN], ["$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"])
+  if test "_$PYTHON_BIN" == "_"; then
+    PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
+  fi
+  AC_SUBST([PYTHON_BIN])
 fi
 if test "$cross_compiling" == "yes"; then
   pythonshext=".pyd"
 else
   pythonshext=".so"
 fi
-AC_SUBST([PYTHONSHEXT], [$pythonshext])
+AC_SUBST([PYTHON_SHEXT], [$pythonshext])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
