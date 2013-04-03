@@ -185,6 +185,8 @@ string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
         ret<<m(j*m.rows()+i)<<(j<m.cols()-1?",":"");
       ret<<(i<m.rows()-1?" ; ":"]");
     }
+    if(m.rows()==0)
+      ret<<"]";
   }
   else if(o.is_string()) {
     ret<<"\""<<o.string_value()<<"\"";
