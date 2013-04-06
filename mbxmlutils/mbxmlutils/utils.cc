@@ -173,7 +173,7 @@ string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
   octave_value o=symbol_table::varval("ret"); // get 'ret'
 
   ostringstream ret;
-  ret.precision(numeric_limits<double>::digits10+2);
+  ret.precision(numeric_limits<double>::digits10+1);
   if(o.is_scalar_type() && o.is_real_type() && (o.is_string()!=1)) {
     ret<<o.double_value();
   }
