@@ -13,7 +13,8 @@ libmbxmlutilstinyxml_la_HEADERS = tinynamespace.h \
   tinystr.h \
   tinyxml.h \
   getinstallpath.h \
-  last_write_time.h
+  last_write_time.h \
+  casadiXML.h
 
 libmbxmlutilstinyxml_ladir = $(includedir)/mbxmlutilstinyxml
 
