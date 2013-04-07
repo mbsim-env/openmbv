@@ -17,8 +17,6 @@ class TiXmlElement;
 
 namespace MBXMLUtils {
 
-int getMaschineNumDigits();
-
 class OctaveEvaluator {
   public:
     enum ValueType {
