@@ -525,7 +525,7 @@
           <xsl:with-param name="ELEMENTNAME" select="'li'"/>
           <xsl:with-param name="COLORSTYLE" select="'elementsequencecolor'"/>
         </xsl:apply-templates>
-        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
+        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice|xs:any">
           <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
         </xsl:apply-templates>
       </ul>
@@ -541,7 +541,7 @@
           <xsl:with-param name="ELEMENTNAME" select="'li'"/>
           <xsl:with-param name="COLORSTYLE" select="'elementchoicecolor'"/>
         </xsl:apply-templates>
-        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
+        <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice|xs:any">
           <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
         </xsl:apply-templates>
       </ul>
@@ -599,6 +599,25 @@
     (Type: <a class="type">
       <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
       <xsl:value-of select="@type"/></a>)
+  </xsl:template>
+
+  <!-- any element -->
+  <xsl:template mode="SIMPLECONTENT" match="xs:any">
+    <xsl:param name="CLASSNAME"/>
+    <li>
+      <!-- name -->
+      <span class="element">&lt;xs:any&gt;</span>
+      <!-- occurence -->
+      <xsl:apply-templates mode="OCCURANCE" select=".">
+        <xsl:with-param name="ELEMENTNAME" select="'span'"/>
+      </xsl:apply-templates>
+      <!-- type -->
+      (Type: <span class="type">xs:any</span>)
+      <!-- documentation -->
+      <div class="elementdocuall">
+        Any element of the namespace <i><xsl:value-of select="@namespace"/></i>
+      </div>
+    </li>
   </xsl:template>
 
   <!-- documentation -->
