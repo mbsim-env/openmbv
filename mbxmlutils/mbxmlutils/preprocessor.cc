@@ -4,6 +4,7 @@
 #include <libxml/xinclude.h>
 #include <fstream>
 #include <unistd.h>
+#include <cmath>
 #ifdef HAVE_UNORDERED_SET
 #  include <unordered_set>
 #else
@@ -11,9 +12,6 @@
 #  define unordered_set set
 #endif
 #include "mbxmlutilstinyxml/tinynamespace.h"
-#include <octave/octave.h>
-#include <octave/parse.h>
-#include <octave/toplev.h>
 #include "env.h"
 #include <boost/filesystem.hpp>
 #ifdef _WIN32 // Windows
@@ -144,9 +142,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       int count=1;
       if(e->Attribute("count")) {
         octEval->octaveEvalRet(e->Attribute("count"), e);
-        octave_value v=symbol_table::varref("ret");
-        octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
-        count=int(round(v.double_value()));
+        count=static_cast<int>(floor(octEval->octaveGetDoubleRet()+0.5));
       }
   
       // couter name
@@ -226,12 +222,9 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       for(int i=1; i<=count; i++) {
         // embed only if 'onlyif' attribute is true
         
-        octave_value o((double)i);
-        octEval->octaveAddParam(counterName, o);
+        octEval->octaveAddParam(counterName, i);
         octEval->octaveEvalRet(onlyif, e);
-        octave_value v=symbol_table::varref("ret");
-        octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
-        if(round(v.double_value())==1) {
+        if(static_cast<int>(floor(octEval->octaveGetDoubleRet()+0.5))==1) {
           cout<<"Embed "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           if(i==1) e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
           else e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
@@ -263,9 +256,8 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         octEval->octaveEvalRet(e->GetText(), e);
         // convert unit
         if(e->Attribute("unit") || e->Attribute("convertUnit")) {
-          map<string, octave_value> savedCurrentParam;
           octEval->saveAndClearCurrentParam();
-          octEval->octaveAddParam("value", symbol_table::varref("ret")); // add 'value=ret', since unit-conversion used 'value'
+          octEval->octaveAddParam("value", octEval->octaveGetOctaveValueRet()); // add 'value=ret', since unit-conversion used 'value'
           if(e->Attribute("unit")) { // convert with predefined unit
             octEval->octaveEvalRet(units[e->Attribute("unit")]);
             e->RemoveAttribute("unit");
@@ -348,7 +340,6 @@ int main(int argc, char *argv[]) {
 
   // check for environment variables (none default installation)
   string XMLDIR;
-  string OCTAVEDIR;
   char *env;
   SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
   if(!bfs::exists((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str())) SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
@@ -356,25 +347,9 @@ int main(int argc, char *argv[]) {
   XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
   if(!bfs::exists((XMLDIR+"/measurement.xml").c_str())) XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
-  OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(!bfs::exists(OCTAVEDIR.c_str())) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
-  if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
-  // OCTAVE_HOME
-  string OCTAVE_HOME; // the string for putenv must has program life time
-  if(getenv("OCTAVE_HOME")==NULL && bfs::exists((MBXMLUtils::getInstallPath()+"/share/octave").c_str())) {
-    OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath();
-    putenv((char*)OCTAVE_HOME.c_str());
-  }
 
   try {
-    // initialize octave
-    char **octave_argv=(char**)malloc(2*sizeof(char*));
-    octave_argv[0]=(char*)malloc(6*sizeof(char*)); strcpy(octave_argv[0], "dummy");
-    octave_argv[1]=(char*)malloc(3*sizeof(char*)); strcpy(octave_argv[1], "-q");
-    octave_main(2, octave_argv, 1);
-    int dummy;
-    eval_string("warning('error','Octave:divide-by-zero');",true,dummy,0); // statement list
-    eval_string("addpath('"+OCTAVEDIR+"');",true,dummy,0); // statement list
+    MBXMLUtils::OctaveEvaluator::initialize();
   
     // preserve whitespace and newline in TiXmlText nodes
     TiXmlBase::SetCondenseWhiteSpace(false);
@@ -398,7 +373,7 @@ int main(int argc, char *argv[]) {
         char curPath[PATHLENGTH];
         string absmpath=fixPath(string(getcwd(curPath, PATHLENGTH))+"/", *i2);
         // add to octave search path
-        eval_string("addpath('"+absmpath+"');",true,dummy,0); // statement list
+        MBXMLUtils::OctaveEvaluator::addPath(absmpath);
         // add m-files in mpath dir to dependencies
         addFilesInDir(dependencies, *i2, ".m");
         arg.erase(i); arg.erase(i2);
@@ -502,9 +477,9 @@ int main(int argc, char *argv[]) {
   }
   // do_octave_atexit must be called on error and no error before leaving
   catch(...) {
-    do_octave_atexit();
+    MBXMLUtils::OctaveEvaluator::terminate();
     return 1;
   }
-  do_octave_atexit();
+  MBXMLUtils::OctaveEvaluator::terminate();
   return 0;
 }
