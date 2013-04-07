@@ -6,16 +6,15 @@
 #include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/parse.h>
 #include "env.h"
-#include <boost/filesystem.hpp>
 #include <mbxmlutilstinyxml/getinstallpath.h>
 #include <octave/octave.h>
 #include <octave/toplev.h>
+#include <sys/stat.h>
 
 #define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
 #define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
 
 using namespace std;
-namespace bfs=boost::filesystem;
 
 namespace MBXMLUtils {
 
@@ -281,15 +280,16 @@ void OctaveEvaluator::restoreCurrentParam() {
 static char **octave_argv;
 
 void OctaveEvaluator::initialize() {
+  struct stat st;
   char *env;
   string OCTAVEDIR;
   OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(!bfs::exists(OCTAVEDIR.c_str())) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
 
   // OCTAVE_HOME
   string OCTAVE_HOME; // the string for putenv must has program life time
-  if(getenv("OCTAVE_HOME")==NULL && bfs::exists((MBXMLUtils::getInstallPath()+"/share/octave").c_str())) {
+  if(getenv("OCTAVE_HOME")==NULL && stat((MBXMLUtils::getInstallPath()+"/share/octave").c_str(), &st)==0) {
     OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath();
     putenv((char*)OCTAVE_HOME.c_str());
   }
