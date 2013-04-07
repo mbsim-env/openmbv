@@ -73,13 +73,6 @@ void OctaveEvaluator::octavePopParams() {
 // evaluate a single statement or a statement list and save the result in the variable 'ret'
 #define PATHLENGTH 10240
 void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) {
-  // delete leading new lines in str
-  for(unsigned int j=0; j<str.length() && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j++)
-    str[j]=' ';
-  // delete trailing new lines in str
-  for(unsigned int j=str.length()-1; j>=0 && (str[j]==' ' || str[j]=='\n' || str[j]=='\t'); j--)
-    str[j]=' ';
-
   pair<unordered_map<string, octave_value>::iterator, bool> ins;
   if(useCache) {
     // a cache: this cache is only unique per input file on the command line.
@@ -111,7 +104,7 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
   int dummy;
   MBXMLUtils::disable_stderr();
   try{
-    eval_string("ret="+str,true,dummy); // eval as single statement, and save in 'ret'
+    symbol_table::varref("ret")=eval_string(str,true,dummy); // eval as single statement, and save in 'ret'
   }
   catch(...) {
     error_state=1;
@@ -139,7 +132,7 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
   if(e) if(chdir(savedPath)!=0) throw(1);
 
   if(useCache)
-    ins.first->second=symbol_table::varval("ret"); // add to cache
+    ins.first->second=symbol_table::varref("ret"); // add to cache
 }
 
 void OctaveEvaluator::checkType(const octave_value& val, ValueType expectedType) {
@@ -170,7 +163,7 @@ void OctaveEvaluator::checkType(const octave_value& val, ValueType expectedType)
 
 // return the value of 'ret'
 string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
-  octave_value o=symbol_table::varval("ret"); // get 'ret'
+  octave_value &o=symbol_table::varref("ret"); // get 'ret'
 
   ostringstream ret;
   ret.precision(numeric_limits<double>::digits10+1);
@@ -219,7 +212,7 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
       octave_value ret;
       try { 
         octaveEvalRet(i->equ, i->ele, useCache);
-        ret=symbol_table::varval("ret");
+        ret=symbol_table::varref("ret");
         if(i->ele)
           checkType(ret, i->ele->ValueStr()==MBXMLUTILSPARAMNS"scalarParameter"?ScalarType:
                          i->ele->ValueStr()==MBXMLUTILSPARAMNS"vectorParameter"?VectorType:
@@ -240,7 +233,7 @@ int OctaveEvaluator::fillParam(vector<Param> param, bool useCache) {
     for(size_t i=0; i<param.size(); i++) {
       try {
         octaveEvalRet(param[i].equ, param[i].ele, useCache); // output octave error
-        octave_value ret=symbol_table::varval("ret");
+        octave_value ret=symbol_table::varref("ret");
         if(param[i].ele)
           checkType(ret, param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"scalarParameter"?ScalarType:
                          param[i].ele->ValueStr()==MBXMLUTILSPARAMNS"vectorParameter"?VectorType:

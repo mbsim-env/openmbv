@@ -144,7 +144,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       int count=1;
       if(e->Attribute("count")) {
         octEval->octaveEvalRet(e->Attribute("count"), e);
-        octave_value v=symbol_table::varval("ret");
+        octave_value v=symbol_table::varref("ret");
         octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
         count=int(round(v.double_value()));
       }
@@ -229,7 +229,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         octave_value o((double)i);
         octEval->octaveAddParam(counterName, o);
         octEval->octaveEvalRet(onlyif, e);
-        octave_value v=symbol_table::varval("ret");
+        octave_value v=symbol_table::varref("ret");
         octEval->checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
         if(round(v.double_value())==1) {
           cout<<"Embed "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
@@ -265,7 +265,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         if(e->Attribute("unit") || e->Attribute("convertUnit")) {
           map<string, octave_value> savedCurrentParam;
           octEval->saveAndClearCurrentParam();
-          octEval->octaveAddParam("value", symbol_table::varval("ret")); // add 'value=ret', since unit-conversion used 'value'
+          octEval->octaveAddParam("value", symbol_table::varref("ret")); // add 'value=ret', since unit-conversion used 'value'
           if(e->Attribute("unit")) { // convert with predefined unit
             octEval->octaveEvalRet(units[e->Attribute("unit")]);
             e->RemoveAttribute("unit");
