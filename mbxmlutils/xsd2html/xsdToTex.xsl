@@ -392,7 +392,7 @@ A indent indicates child elements for a given element.
         <xsl:with-param name="ELEMENTNAME" select="'li'"/>
         <xsl:with-param name="COLOR" select="'red'"/>
       </xsl:apply-templates>
-      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
+      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice|xs:any">
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
       </xsl:apply-templates>
     <xsl:if test="$FIRST='true'">\end{longtable}</xsl:if>
@@ -409,7 +409,7 @@ A indent indicates child elements for a given element.
         <xsl:with-param name="ELEMENTNAME" select="'li'"/>
         <xsl:with-param name="COLOR" select="'blue'"/>
       </xsl:apply-templates>
-      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice">
+      <xsl:apply-templates mode="SIMPLECONTENT" select="xs:element|xs:sequence|xs:choice|xs:any">
         <xsl:with-param name="CLASSNAME" select="$CLASSNAME"/>
       </xsl:apply-templates>
     <xsl:if test="$FIRST='true'">\end{longtable}</xsl:if>
@@ -449,6 +449,22 @@ A indent indicates child elements for a given element.
     <xsl:if test="@use='required'"> \textit{[required]}</xsl:if>
     <xsl:if test="@use!='required'"> \textit{[optional]}</xsl:if>
     (Type: \hyperref[<xsl:value-of select="@type"/>]{\texorpdfstring{\lstinline[basicstyle=\ttfamily]|<xsl:value-of select="@type"/>|}{&lt;<xsl:call-template name="replace"><xsl:with-param name="text" select="@type"/><xsl:with-param name="from" select="'_'"/><xsl:with-param name="to" select="'\_'"/></xsl:call-template>&gt;}})\\
+  </xsl:template>
+
+  <!-- any element -->
+  <xsl:template mode="SIMPLECONTENT" match="xs:any">
+    <xsl:param name="CLASSNAME"/>
+    <xsl:param name="CLASSNAME"/>
+    \lstinline[basicstyle=\bf\ttfamily]|&lt;xs:any&gt;|
+    <!-- occurence -->
+    <xsl:apply-templates mode="OCCURANCE" select="."><xsl:with-param name="ELEMENTNAME" select="'span'"/></xsl:apply-templates>
+    <!-- type -->
+    (Type: \texorpdfstring{\lstinline[basicstyle=\ttfamily]|xs:any|})\\
+    <!-- documentation -->
+    \hspace{3ex}
+    \begin{minipage}[b]{\linewidth}
+      Any element of the namespace \textit{<xsl:value-of select="@namespace"/>}
+    \end{minipage}\\[1ex]
   </xsl:template>
 
   <!-- documentation -->
