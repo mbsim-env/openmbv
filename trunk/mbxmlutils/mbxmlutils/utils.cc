@@ -5,11 +5,17 @@
 #include <unistd.h>
 #include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/parse.h>
+#include "env.h"
+#include <boost/filesystem.hpp>
+#include <mbxmlutilstinyxml/getinstallpath.h>
+#include <octave/octave.h>
+#include <octave/toplev.h>
 
 #define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
 #define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
 
 using namespace std;
+namespace bfs=boost::filesystem;
 
 namespace MBXMLUtils {
 
@@ -56,6 +62,10 @@ void OctaveEvaluator::octaveAddParam(const string &paramName, const octave_value
     }
     currentParamHash[paramStack.size()]++;
   }
+}
+
+void OctaveEvaluator::octaveAddParam(const string &paramName, double value, bool useCache) {
+  octaveAddParam(paramName, octave_value(value), useCache);
 }
 
 // push all parameters from list to a parameter stack
@@ -192,6 +202,16 @@ string OctaveEvaluator::octaveGetRet(ValueType expectedType) {
   return ret.str();
 }
 
+double OctaveEvaluator::octaveGetDoubleRet() {
+  octave_value v=symbol_table::varref("ret");
+  checkType(v, MBXMLUtils::OctaveEvaluator::ScalarType);
+  return v.double_value();
+}
+
+octave_value& OctaveEvaluator::octaveGetOctaveValueRet() {
+  return symbol_table::varref("ret");
+}
+
 // fill octave with parameters
 int OctaveEvaluator::fillParam(TiXmlElement *e, bool useCache) {
   // generate a vector of parameters
@@ -256,6 +276,40 @@ void OctaveEvaluator::saveAndClearCurrentParam() {
 
 void OctaveEvaluator::restoreCurrentParam() {
   currentParam=savedCurrentParam; // restore parameter
+}
+
+static char **octave_argv;
+
+void OctaveEvaluator::initialize() {
+  char *env;
+  string OCTAVEDIR;
+  OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
+  if(!bfs::exists(OCTAVEDIR.c_str())) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
+
+  // OCTAVE_HOME
+  string OCTAVE_HOME; // the string for putenv must has program life time
+  if(getenv("OCTAVE_HOME")==NULL && bfs::exists((MBXMLUtils::getInstallPath()+"/share/octave").c_str())) {
+    OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath();
+    putenv((char*)OCTAVE_HOME.c_str());
+  }
+
+  octave_argv=(char**)malloc(2*sizeof(char*));
+  octave_argv[0]=strdup("dummy");
+  octave_argv[1]=strdup("-q");
+  octave_main(2, octave_argv, 1);
+  int dummy;
+  eval_string("warning('error','Octave:divide-by-zero');",true,dummy,0); // statement list
+  eval_string("addpath('"+OCTAVEDIR+"');",true,dummy,0); // statement list
+}
+
+void OctaveEvaluator::terminate() {
+  do_octave_atexit();
+}
+
+void OctaveEvaluator::addPath(const std::string &path) {
+  int dummy;
+  eval_string("addpath('"+path+"');",true,dummy,0); // statement list
 }
 
 

@@ -5,13 +5,13 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include <octave/oct.h>
 #ifdef HAVE_UNORDERED_MAP
 #  include <unordered_map>
 #else
 #  include <map>
 #  define unordered_map map
 #endif
+#include <octave/oct.h>
 
 class TiXmlElement;
 
@@ -34,15 +34,22 @@ class OctaveEvaluator {
 
     OctaveEvaluator();
     void octaveAddParam(const std::string &paramName, const octave_value& value, bool useCache=true);
+    void octaveAddParam(const std::string &paramName, double value, bool useCache=true);
     void octavePushParams();
     void octavePopParams();
     void octaveEvalRet(std::string str, TiXmlElement *e=NULL, bool useCache=true);
-    void checkType(const octave_value& val, ValueType expectedType);
-    std::string octaveGetRet(ValueType expectedType=ArbitraryType);
+    static void checkType(const octave_value& val, ValueType expectedType);
+    static std::string octaveGetRet(ValueType expectedType=ArbitraryType);
+    static double octaveGetDoubleRet();
+    static octave_value& octaveGetOctaveValueRet();
     int fillParam(TiXmlElement *e, bool useCache=true);
     int fillParam(std::vector<Param> param, bool useCache=true);
     void saveAndClearCurrentParam();
     void restoreCurrentParam();
+
+    static void initialize();
+    static void terminate();
+    static void addPath(const std::string &path);
 
   protected:
     // map of the current parameters
