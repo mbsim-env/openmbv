@@ -104,40 +104,34 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
   for(map<string, octave_value>::iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     symbol_table::varref(i->first)=i->second;
 
+  int dummy;
+
   char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
     if(getcwd(savedPath, PATHLENGTH)==0) throw(1);
     if(chdir(fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"),".").c_str())!=0) throw(1);
   }
 
-  int dummy;
-  MBXMLUtils::disable_stderr();
   try{
-    symbol_table::varref("ret")=eval_string(str,true,dummy); // eval as single statement, and save in 'ret'
+    eval_string(str,true,dummy,0); // eval as statement list
   }
   catch(...) {
     error_state=1;
   }
-  MBXMLUtils::enable_stderr();
-  if(error_state!=0) { // if error, maybe it is a statement list
+  if(error_state!=0) { // if error => wrong code => throw error
     error_state=0;
-    try {
-      eval_string(str,true,dummy,0); // eval as statement list
-    }
-    catch(...) {
-      error_state=1;
-    }
-    if(error_state!=0) { // if error => wrong code => throw error
-      error_state=0;
-      if(e) if(chdir(savedPath)!=0) throw(1);
-      throw string("Error in octave expression: "+str);
-    }
-    if(!symbol_table::is_variable("ret")) {
-      error_state=0;
-      if(e) if(chdir(savedPath)!=0) throw(1);
-      throw string("'ret' not defined in octave statement list: "+str);
-    }
+    if(e) if(chdir(savedPath)!=0) throw(1);
+    throw string("Error in octave expression: "+str);
   }
+  if(!symbol_table::is_variable("ret") && !symbol_table::is_variable("ans") && !symbol_table::is_variable(str)) {
+    if(e) if(chdir(savedPath)!=0) throw(1);
+    throw string("'ret' variable not defined in octave statement list of no single statement in: "+str);
+  }
+  if(symbol_table::is_variable(str))
+    symbol_table::varref("ret")=symbol_table::varref(str);
+  else if(!symbol_table::is_variable("ret"))
+    symbol_table::varref("ret")=symbol_table::varref("ans");
+
   if(e) if(chdir(savedPath)!=0) throw(1);
 
   if(useCache)
