@@ -17,6 +17,9 @@
 #ifdef _WIN32 // Windows
 #  include "windows.h"
 #endif
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+#  include "mbxmlutilstinyxml/casadiXML.h"
+#endif
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
@@ -247,6 +250,37 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       octEval->octavePopParams();
       return 0;
     }
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+    else if(e->ValueStr()==MBXMLUTILSCASADINS"SXFunction")
+      return 0; // skip processing of SXFunction elements
+#endif
+    else if(e->Attribute("arg1name") && e->FirstChild()->ToText()) {
+      // THIS IS A WORKAROUND! Actually not all Elements with a attribute named arg1name should be
+      // converted but only elements with a attribute of type symbolicFunctionArgNameType.
+      vector<pair<string, int> > arg;
+      // loop over all attributes and search for arg1name,  arg2name attributes
+      for(TiXmlAttribute *a=e->FirstAttribute(); a!=NULL; a=a->Next()) {
+        string value=a->Name();
+        if(value.substr(0,3)=="arg" && value.substr(value.length()-4,4)=="name") {
+          int nr=atoi(value.substr(3, value.length()-4-3).c_str());
+          int dim=1;
+          stringstream str;
+          str<<"arg"<<nr<<"dim";
+          if(e->Attribute(str.str())) dim=atoi(e->Attribute(str.str().c_str()));
+          arg.resize(nr);
+          arg[nr-1]=make_pair(a->Value(), dim);
+        }
+      }
+      // now create the arguments in octave as CasADi expressions
+      for(size_t i=0; i<arg.size(); i++) {
+        // evaluate the expression and get XML representation as return value
+        TiXmlElement *expXML=octEval->octaveEvalRet(e->GetText(), e, true, &arg);
+        // remove text child and add CasADi XML representation
+        e->RemoveChild(e->FirstChild());
+        e->LinkEndChild(expXML);
+      }
+      return 0; // skip processing of the newly created child elements
+    }
     else {
       // THIS IS A WORKAROUND! Actually not all Text-Elements should be converted but only the Text-Elements
       // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
@@ -305,7 +339,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
 
 string extractFileName(const string& dirfilename) {
   bfs::path p(dirfilename.c_str());
-  return (--p.end())->generic_string();
+  return p.filename().generic_string();
 }
 
 #define PATHLENGTH 10240
@@ -396,7 +430,6 @@ int main(int argc, char *argv[]) {
         if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramxml)!=0) throw(1);
   
       // read parameter file
-      TiXmlDocument *paramxmldoc=NULL;
       TiXmlElement *paramxmlroot=NULL;
       if(paramxml!="none") {
         cout<<"Read "<<paramxml<<endl;
@@ -419,7 +452,6 @@ int main(int argc, char *argv[]) {
         cout<<"Generate octave parameter string from "<<paramxml<<endl;
         if(octEval->fillParam(paramxmlroot)!=0) throw(1);
       }
-      if(paramxmldoc) delete paramxmldoc;
   
       // THIS IS A WORKAROUND! See before.
       // get units
