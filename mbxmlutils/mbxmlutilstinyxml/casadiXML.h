@@ -107,13 +107,13 @@ inline TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
   const std::vector<CasADi::SXMatrix> &in=f.inputExpr();
   TiXmlElement *input=new TiXmlElement(MBXMLUTILSCASADINS"inputs");
   e->LinkEndChild(input);
-  for(int i=0; i<in.size(); i++)
+  for(size_t i=0; i<in.size(); i++)
     input->LinkEndChild(convertCasADiToXML(in[i], nodes));
   // write each output of f to XML enclosed by a <outputs> element
   const std::vector<CasADi::SXMatrix> &out=f.outputExpr();
   TiXmlElement *output=new TiXmlElement(MBXMLUTILSCASADINS"outputs");
   e->LinkEndChild(output);
-  for(int i=0; i<out.size(); i++)
+  for(size_t i=0; i<out.size(); i++)
     output->LinkEndChild(convertCasADiToXML(out[i], nodes));
 
   return e;
@@ -195,8 +195,8 @@ inline CasADi::SXMatrix createCasADiSXMatrixFromXML(TiXmlElement *e, std::map<in
       // loop over all elements in a matrixRow
       std::vector<CasADi::SX> stdrow;
       TiXmlElement *matrixEle;
-      if(e->Attribute("rowVector") && e->Attribute("rowVector")==std::string("true") ||
-         e->Attribute("columnVector") && e->Attribute("columnVector")==std::string("true"))
+      if((e->Attribute("rowVector") && e->Attribute("rowVector")==std::string("true")) ||
+         (e->Attribute("columnVector") && e->Attribute("columnVector")==std::string("true")))
         matrixEle=matrixRow;
       else
         matrixEle=matrixRow->FirstChildElement();
@@ -204,8 +204,8 @@ inline CasADi::SXMatrix createCasADiSXMatrixFromXML(TiXmlElement *e, std::map<in
         stdrow.push_back(createCasADiSXFromXML(matrixEle, nodes));
         matrixEle=matrixEle->NextSiblingElement();
       }
-      if(e->Attribute("rowVector") && e->Attribute("rowVector")==std::string("true") ||
-         e->Attribute("columnVector") && e->Attribute("columnVector")==std::string("true"))
+      if((e->Attribute("rowVector") && e->Attribute("rowVector")==std::string("true")) ||
+         (e->Attribute("columnVector") && e->Attribute("columnVector")==std::string("true")))
         matrixRow=matrixEle;
       else
         matrixRow=matrixRow->NextSiblingElement();

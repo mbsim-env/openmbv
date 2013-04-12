@@ -37,7 +37,7 @@ class OctaveEvaluator {
     void octaveAddParam(const std::string &paramName, double value, bool useCache=true);
     void octavePushParams();
     void octavePopParams();
-    void octaveEvalRet(std::string str, TiXmlElement *e=NULL, bool useCache=true);
+    TiXmlElement* octaveEvalRet(std::string str, TiXmlElement *e=NULL, bool useCache=true, std::vector<std::pair<std::string, int> > *arg=NULL);
     static void checkType(const octave_value& val, ValueType expectedType);
     static std::string octaveGetRet(ValueType expectedType=ArbitraryType);
     static double octaveGetDoubleRet();

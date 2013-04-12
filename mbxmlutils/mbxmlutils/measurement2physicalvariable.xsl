@@ -29,6 +29,12 @@
 
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
 
+      <xs:simpleType name="octaveVariableNameType">
+        <xs:restriction base="xs:token">
+          <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>
+        </xs:restriction>
+      </xs:simpleType>
+
       <!-- element for embeding -->
       <xs:element name="embed">
         <xs:complexType>
@@ -54,13 +60,7 @@
           </xs:sequence>
           <xs:attribute name="href" type="xs:anyURI" use="optional"/>
           <xs:attribute name="count" use="optional" type="fullOctaveString" default="1"/>
-          <xs:attribute name="counterName" use="optional">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:attribute>
+          <xs:attribute name="counterName" use="optional" type="octaveVariableNameType"/>
           <xs:attribute name="onlyif" use="optional" type="fullOctaveString" default="1"/>
         </xs:complexType>
       </xs:element>
@@ -244,6 +244,37 @@
           </xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+
+      <!-- the MBXMLUtils XML representation of a casadi SXFunction.
+           This may be replaced later by MathML or OpenMath if casadi supports it -->
+      <xs:group name="symbolicFunctionXMLElement">
+        <xs:annotation>
+          <xs:documentation>
+            A symbolic function definition which is evaluated at runtime using dynamic input parameters
+            provided by the runtime. The representation of the symbolic function must either be given by
+            the MBXMLUtils notation for CasADi::SXFunction or by an octave expression (using the SWIG
+            octave interface of CasADi). Using a octave expression you have full access to other scalar,
+            vector or matrix parameters. For each input parameter an attribute named 'arg&lt;n&gt;name',
+            where n equals the number of the input or is empty if only one input exists, must be
+            defined which set the name of this input parameter for the access in the octave expression.
+            For each vector input paramter moreover an attribure named 'arg&lt;n&gt;dim' must be defined
+            which defines the vector dimension of this input.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:any minOccurs="0" namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" processContents="lax"/>
+        </xs:sequence>
+      </xs:group>
+
+      <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
+      <xs:simpleType name="symbolicFunctionArgNameType">
+        <xs:restriction base="octaveVariableNameType"/>
+      </xs:simpleType>
+
+      <!-- the attribute type for vector argument dimension -->
+      <xs:simpleType name="symbolicFunctionArgDimType">
+        <xs:restriction base="xs:positiveInteger"/>
       </xs:simpleType>
 
     </xs:schema>

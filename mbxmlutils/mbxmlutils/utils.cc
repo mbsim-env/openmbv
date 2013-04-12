@@ -10,6 +10,9 @@
 #include <octave/octave.h>
 #include <octave/toplev.h>
 #include <sys/stat.h>
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+#include "mbxmlutilstinyxml/casadiXML.h"
+#endif
 
 #define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
 #define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
@@ -17,6 +20,10 @@
 using namespace std;
 
 namespace MBXMLUtils {
+
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+static CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname);
+#endif
 
 static int orgstderr;
 static streambuf *orgcerr;
@@ -81,7 +88,14 @@ void OctaveEvaluator::octavePopParams() {
 
 // evaluate a single statement or a statement list and save the result in the variable 'ret'
 #define PATHLENGTH 10240
-void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) {
+TiXmlElement* OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache, vector<pair<string, int> > *arg) {
+#if ! defined HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+  if(arg) throw string("Found a CasADi expression but MBXMLUtils was not compiled with CasADi support.");
+#endif
+
+  // disable the cache for casadi expressions
+  if(arg) useCache=false;
+
   pair<unordered_map<string, octave_value>::iterator, bool> ins;
   if(useCache) {
     // a cache: this cache is only unique per input file on the command line.
@@ -94,7 +108,7 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
     ins=cache.insert(pair<string, octave_value>(id+str, octave_value()));
     if(!ins.second) {
       symbol_table::varref("ret")=ins.first->second;
-      return;
+      return NULL;
     }
   }
 
@@ -105,6 +119,33 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
     symbol_table::varref(i->first)=i->second;
 
   int dummy;
+
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+  if(arg) {
+    // initialize casadi if a casadi expresion should be processed
+    MBXMLUtils::disable_stderr();
+    static octave_function *casadi=symbol_table::find_function("casadi").function_value(); // get ones a pointer to casadi for performance reasons
+    feval(casadi);
+    MBXMLUtils::enable_stderr();
+
+    // fill octave with the casadi inputs provided by arg
+    for(size_t i=0; i<arg->size(); i++) {
+      // MISSING: try to convert this eval_string(...) into pure octave API function call for speedup:
+      // e.g. for like this (but this code is not working currently):
+      // list<octave_value_list> subsArg;
+      // subsArg.push_back(octave_value_list(octave_value("ssym")));
+      // octave_function *casadi_ssym=symbol_table::varref("casadi").subsref(".", subsArg).function_value();
+      // octave_value_list ssymArg;
+      // ssymArg.append((*arg)[i].first);
+      // ssymArg.append((*arg)[i].second);
+      // ssymArg.append(1);
+      // symbol_table::varref((*arg)[i].first)=feval(casadi_ssym, ssymArg, 1)(0);
+      stringstream str;
+      str<<(*arg)[i].first<<"=casadi.ssym('"<<(*arg)[i].first<<"', "<<(*arg)[i].second<<", 1);";
+      eval_string(str.str(),true,dummy,0);
+    }
+  }
+#endif
 
   char savedPath[PATHLENGTH];
   if(e) { // set working dir to path of current file, so that octave works with correct relative paths
@@ -123,12 +164,18 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
     if(e) if(chdir(savedPath)!=0) throw(1);
     throw string("Error in octave expression: "+str);
   }
-  if(!symbol_table::is_variable("ret") && !symbol_table::is_variable("ans") && !symbol_table::is_variable(str)) {
+  // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
+  string strNoSpace=str;
+  while(strNoSpace.size()>0 && strNoSpace[0]==' ')
+    strNoSpace=strNoSpace.substr(1);
+  while(strNoSpace.size()>0 && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';'))
+    strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
+  if(!symbol_table::is_variable("ret") && !symbol_table::is_variable("ans") && !symbol_table::is_variable(strNoSpace)) {
     if(e) if(chdir(savedPath)!=0) throw(1);
     throw string("'ret' variable not defined in octave statement list of no single statement in: "+str);
   }
-  if(symbol_table::is_variable(str))
-    symbol_table::varref("ret")=symbol_table::varref(str);
+  if(symbol_table::is_variable(strNoSpace))
+    symbol_table::varref("ret")=symbol_table::varref(strNoSpace);
   else if(!symbol_table::is_variable("ret"))
     symbol_table::varref("ret")=symbol_table::varref("ans");
 
@@ -136,6 +183,24 @@ void OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache) 
 
   if(useCache)
     ins.first->second=symbol_table::varref("ret"); // add to cache
+
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+  // return casadi XML representation
+  if(arg) {
+    // get casadi inputs from octave
+    vector<CasADi::SXMatrix> input;
+    for(size_t i=0; i<arg->size(); i++)
+      input.push_back(getCasADiSXMatrixFromOctave((*arg)[i].first));
+    // get casadi output from octave
+    CasADi::SXMatrix output=getCasADiSXMatrixFromOctave("ret");
+    // create casadi SXFunction using inputs/output
+    CasADi::SXFunction f(input, output);
+    // return the XML representation of the SXFunction
+    return CasADi::convertCasADiToXML(f);
+  }
+#endif
+
+  return NULL;
 }
 
 void OctaveEvaluator::checkType(const octave_value& val, ValueType expectedType) {
@@ -288,13 +353,26 @@ void OctaveEvaluator::initialize() {
     putenv((char*)OCTAVE_HOME.c_str());
   }
 
-  octave_argv=(char**)malloc(2*sizeof(char*));
-  octave_argv[0]=strdup("dummy");
-  octave_argv[1]=strdup("-q");
-  octave_main(2, octave_argv, 1);
-  int dummy;
-  eval_string("warning('error','Octave:divide-by-zero');",true,dummy,0); // statement list
-  eval_string("addpath('"+OCTAVEDIR+"');",true,dummy,0); // statement list
+  octave_argv=(char**)malloc(6*sizeof(char*));
+  octave_argv[0]=strdup("embedded");
+  octave_argv[1]=strdup("--no-history");
+  octave_argv[2]=strdup("--no-init-file");
+  octave_argv[3]=strdup("--no-line-editing");
+  octave_argv[4]=strdup("--no-window-system");
+  octave_argv[5]=strdup("--silent");
+  octave_main(6, octave_argv, 1);
+
+  octave_value_list warnArg;
+  warnArg.append("error");
+  warnArg.append("Octave:divide-by-zero");
+  feval("warning", warnArg);
+
+  feval("addpath", octave_value_list(octave_value(OCTAVEDIR)));
+
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+  // initialize casadi in octave
+  feval("addpath", octave_value_list(octave_value(MBXMLUtils::getInstallPath()+"/bin")));
+#endif
 }
 
 void OctaveEvaluator::terminate() {
@@ -302,10 +380,41 @@ void OctaveEvaluator::terminate() {
 }
 
 void OctaveEvaluator::addPath(const std::string &path) {
-  int dummy;
-  eval_string("addpath('"+path+"');",true,dummy,0); // statement list
+  feval("addpath", octave_value_list(octave_value(path)));
 }
 
-
+#ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
+// get from octave the variable named varname and extract the casadi object from it
+// and return it as a SXMatrix object.
+CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname) {
+  // get the octave symbol
+  octave_value &var=symbol_table::varref(varname);
+  // get the casadi type SX or SXMatrix
+  static octave_function *swig_type=symbol_table::find_function("swig_type").function_value(); // get ones a pointer to swig_type for performance reasons
+  octave_value swigType=feval(swig_type, var, 1)(0);
+  bool sxMatrix=false;
+  if(swigType.string_value()=="SX")
+    sxMatrix=false;
+  else if(swigType.string_value()=="SXMatrix")
+    sxMatrix=true;
+  // get the casadi pointer: octave returns a 32 or 64bit integer which represents the pointer
+  static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
+  octave_value swigThis=feval(swig_this, var, 1)(0);
+  void *swigPtr=NULL;
+  if(swigThis.is_uint64_type())
+    swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
+  else if(swigThis.is_uint32_type())
+    swigPtr=reinterpret_cast<void*>(swigThis.uint32_scalar_value().value());
+  // convert the void pointer to the correct casadi type
+  // (if it is a SX it is implicitly convert to SXMatrix)
+  CasADi::SXMatrix ret;
+  if(sxMatrix)
+    ret=*static_cast<CasADi::SXMatrix*>(swigPtr);
+  else
+    ret=*static_cast<CasADi::SX*>(swigPtr);
+  // return the casadi SXMatrix
+  return ret;
+}
+#endif
 
 } // end namespace MBXMLUtils

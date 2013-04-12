@@ -1,4 +1,5 @@
 lib_LTLIBRARIES = libmbxmlutilstinyxml.la
+libmbxmlutilstinyxml_la_LDFLAGS = -static
 
 INCLUDES = -DTIXML_USE_STL
 libmbxmlutilstinyxml_la_SOURCES = tinynamespace.cpp \

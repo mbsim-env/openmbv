@@ -43,6 +43,51 @@ AC_SUBST([BOOST_SYSTEM_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
+dnl Check for casadi 
+AC_ARG_ENABLE([casadi],[  --disable-casadi   disable casadi support],[usecasadi="no"],[usecasadi="yes"])
+if test $usecasadi == yes;  then
+  AC_ARG_WITH(casadi_inc_prefix,
+    [  --with-casadi-inc-prefix=PFX  Prefix where casadi includes are installed],
+    [CASADICPPFLAGS="-I$withval"],
+    [CASADICPPFLAGS="-I$prefix/include"])
+  AC_ARG_WITH(casadi_lib_prefix,
+    [  --with-casadi-lib-prefix=PFX  Prefix where casadi lib is installed],
+    [ CASADILDFLAGS="-L$withval" ],
+    [ CASADILDFLAGS="-L$prefix/lib" ])
+  CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS"
+  casadi="no"
+  AC_CHECK_HEADERS([casadi/symbolic/sx/sx.hpp], [casadi="yes"],
+    [AC_MSG_RESULT([Can not find casadi c++ header casadi/symbolic/sx/sx.hpp])])
+  if test $casadi = "yes" ; then
+    AC_MSG_CHECKING([for casadi c++ library])
+    LDFLAGS="$LDFLAGS $CASADILDFLAGS"
+    LIBS="$LIBS -lcasadi"
+    AC_TRY_LINK([#include <casadi/symbolic/sx/sx.hpp>],[CasADi::SX x],[AC_MSG_RESULT([yes]); CPPFLAGS="$CPPFLAGS -DHAVE_CASADI_SYMBOLIC_SX_SX_HPP"],
+      [casadi="no"; AC_MSG_RESULT([no]); AC_MSG_ERROR([CasADi headers found but can not link with CasADi c++ library])])
+  fi
+  if test $casadi = "yes" ; then
+    AC_MSG_CHECKING([for casadi octave interface (by SWIG)])
+    if test -f $prefix/bin/casadi_interface.oct -a -f $prefix/bin/casadi.m -a -f $prefix/bin/casadi_helpers.m -a -d $prefix/bin/@swig_ref; then
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([
+CasADi headers and c++ libraries found. However MBXMLUtils requires also the
+SWIG interface of CasADi for octave. This code is build using the command
+"make octave" in the CasADi build directory (SWIG is required. Install it
+before running "make octave" using your package manager). Since CasADi has
+not build code for installing the octave part of CasADi this must be done
+manually. After build the octave interface in CasADi copy the following files:
+cp <casadi-build-dir>/lib/casadi_interface.oct $prefix/bin
+cp <casadi-build-dir>/lib/casadi.m $prefix/bin
+cp <casadi-build-dir>/lib/casadi_helpers.m $prefix/bin
+cp -r <casadi-build-dir>/lib/@swig_ref $prefix/bin
+Alternatively you can disable the CasADi support using --disable-casadi
+      ])
+    fi
+  fi
+fi
+
 dnl check if only mbxmlutilstinyxml should be installed (necessary for openmbvcppinterface and mbsim)
 AC_ARG_ENABLE([only_mbxmlutilstinyxml],
 	    AS_HELP_STRING([--enable-only-mbxmlutilstinyxml], [Enable only 'tinyxml'-part of the mbxml-utils.]))
@@ -177,7 +222,7 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     
 ])
 
-CPPFLAGS="$CPPFLAGS -Wall -Werror"
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare"
 
 # from now on only libtool is used for linking
 LDFLAGS="$LDFLAGS -no-undefined"
