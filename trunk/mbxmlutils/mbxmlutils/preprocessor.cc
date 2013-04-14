@@ -48,7 +48,7 @@ int validate(const string &schema, const string &file) {
     return 0;
 
   xmlDoc *doc;
-  doc=xmlParseFile(file.c_str());
+  doc=xmlReadFile(file.c_str(), NULL, XML_PARSE_NOWARNING | XML_PARSE_XINCLUDE | XML_PARSE_NOXINCNODE | XML_PARSE_NOBASEFIX);
   if(!doc) return 1;
   if(xmlXIncludeProcess(doc)<0) return 1;
 
