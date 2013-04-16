@@ -271,14 +271,11 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           arg[nr-1]=make_pair(a->Value(), dim);
         }
       }
-      // now create the arguments in octave as CasADi expressions
-      for(size_t i=0; i<arg.size(); i++) {
-        // evaluate the expression and get XML representation as return value
-        TiXmlElement *expXML=octEval->octaveEvalRet(e->GetText(), e, true, &arg);
-        // remove text child and add CasADi XML representation
-        e->RemoveChild(e->FirstChild());
-        e->LinkEndChild(expXML);
-      }
+      // evaluate the expression and get XML representation as return value
+      TiXmlElement *expXML=octEval->octaveEvalRet(e->GetText(), e, true, &arg);
+      // remove text child and add CasADi XML representation
+      e->RemoveChild(e->FirstChild());
+      e->LinkEndChild(expXML);
       return 0; // skip processing of the newly created child elements
     }
     else {
