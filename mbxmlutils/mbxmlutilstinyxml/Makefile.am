@@ -4,11 +4,12 @@
 # (But it should work on Windows)
 # On Linux we must use the visibility hidden flag to enforce all symbols of TinyXML to
 # be local to avoid symbol conflict.
-if MBXMLUTILS_MINGW
-else
-  STATIC = -static
-  VISIBILITYHIDDEN = -fvisibility=hidden
-endif
+# NOT WORKING CURRENTLY
+#if MBXMLUTILS_MINGW
+#else
+#  STATIC = -static
+#  VISIBILITYHIDDEN = -fvisibility=hidden
+#endif
 lib_LTLIBRARIES = libmbxmlutilstinyxml.la
 libmbxmlutilstinyxml_la_LDFLAGS = $(STATIC)
 libmbxmlutilstinyxml_la_CPPFLAGS = $(VISIBILITYHIDDEN)
