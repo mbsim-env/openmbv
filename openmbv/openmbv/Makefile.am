@@ -165,6 +165,7 @@ dist_icon_DATA = openmbv.svg \
   localframe.svg \
   referenceframe.svg \
   sphere.svg \
+  grid.svg \
   invisiblebody.svg \
   frustum.svg \
   ivbody.svg \
