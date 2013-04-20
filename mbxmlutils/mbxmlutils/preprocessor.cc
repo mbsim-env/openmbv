@@ -37,6 +37,19 @@ void addFilesInDir(ostringstream &dependencies, string dir, string ext) {
       dependencies<<it->path().generic_string()<<endl;
 }
 
+void warningCallback(void *ctx, const char *msg, ...) {
+  // Schemas may be loaded from e.g aa/bb.xsd and the same schema from aa/../aa/bb.xsd
+  // This is misleadingly interpreted on Windows as different schemas.
+  // Hence we disable the corresponding warning (if not MBXMLUTILS_SCHEMAWARNINGS is set)
+  static int printWarning=-1;
+  if(printWarning==-1 && getenv("MBXMLUTILS_SCHEMAWARNINGS")!=NULL) printWarning=1; else printWarning=0;
+  if(printWarning) {
+    va_list ap;
+    va_start(ap, msg);
+    vfprintf(stderr, msg, ap);
+    va_end(ap);
+  }
+}
 // validate file using schema (currently by libxml)
 int validate(const string &schema, const string &file) {
   cout<<"Parse and validate "<<file<<endl;
@@ -48,7 +61,7 @@ int validate(const string &schema, const string &file) {
     return 0;
 
   xmlDoc *doc;
-  doc=xmlReadFile(file.c_str(), NULL, XML_PARSE_NOWARNING | XML_PARSE_XINCLUDE | XML_PARSE_NOXINCNODE | XML_PARSE_NOBASEFIX);
+  doc=xmlReadFile(file.c_str(), NULL, XML_PARSE_XINCLUDE | XML_PARSE_NOXINCNODE | XML_PARSE_NOBASEFIX);
   if(!doc) return 1;
   if(xmlXIncludeProcess(doc)<0) return 1;
 
@@ -56,8 +69,11 @@ int validate(const string &schema, const string &file) {
   xmlSchemaValidCtxtPtr compiledSchema=NULL;
   static unordered_map<string, xmlSchemaValidCtxtPtr> compiledSchemaCache;
   pair<unordered_map<string, xmlSchemaValidCtxtPtr>::iterator, bool> ins=compiledSchemaCache.insert(pair<string, xmlSchemaValidCtxtPtr>(schema, compiledSchema));
-  if(ins.second)
-    compiledSchema=ins.first->second=xmlSchemaNewValidCtxt(xmlSchemaParse(xmlSchemaNewParserCtxt(schema.c_str())));
+  if(ins.second) {
+    xmlSchemaParserCtxt *schemaCtxt=xmlSchemaNewParserCtxt(schema.c_str());
+    xmlSchemaSetParserErrors(schemaCtxt, NULL, &warningCallback, NULL); // redirect warning messages
+    compiledSchema=ins.first->second=xmlSchemaNewValidCtxt(xmlSchemaParse(schemaCtxt));
+  }
   else
     compiledSchema=ins.first->second;
 
