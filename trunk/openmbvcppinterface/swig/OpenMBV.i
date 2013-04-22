@@ -5,14 +5,14 @@
 %include "std_string.i"
 %include "exception.i"
 
-// for python and java std::vector<double> wrapping work well out of the box
-#if defined SWIGPYTHON || defined SWIGJAVA
+#ifdef SWIGPYTHON
+  // for python std::vector<double> wrapping work well out of the box
   %include "std_vector.i"
   %template(VectorDouble) std::vector<double>;
 #endif
 
-// for octave std::vector<double> needs special wrapping to octave vector/matrix (cell array is the default)
 #ifdef SWIGOCTAVE
+  // for octave std::vector<double> needs special wrapping to octave vector/matrix (cell array is the default)
   %typemap(typecheck, precedence=200) std::vector<double>, const std::vector<double>& {
     $1=(*$input).is_matrix_type();
   }
@@ -32,6 +32,27 @@
   }
 #endif
 
+#ifdef SWIGJAVA
+  // on java we map std::vector<double> to double[] (this can than be mapped implcitly to a Matlab vector)
+  %typemap(jni) std::vector<double>, const std::vector<double>& "jdoubleArray"
+  %typemap(jtype) std::vector<double>, const std::vector<double>& "double[]"
+  %typemap(jstype) std::vector<double>, const std::vector<double>& "double[]"
+  %typemap(javain) std::vector<double>, const std::vector<double>& "$javainput"
+  %typemap(javaout) std::vector<double> { return $jnicall; }
+  %typemap(in) std::vector<double>, const std::vector<double>& {
+    size_t size=jenv->GetArrayLength($arg);
+    $1=new std::vector<double>(size);
+    jenv->GetDoubleArrayRegion($arg, 0, size, &(*$1)[0]);
+  }
+  %typemap(freearg) std::vector<double>, const std::vector<double>& "delete $1;"
+  %typemap(out) std::vector<double> {
+    $result=jenv->NewDoubleArray($1.size());
+    jenv->SetDoubleArrayRegion($result, 0, $1.size(), &$1[0]);
+  }
+#endif
+
+
+
 // SWIG typedefs for SimpleParameter template
 namespace OpenMBV {
   template<class T>
@@ -40,6 +61,8 @@ namespace OpenMBV {
   typedef SimpleParameter<std::vector<double> > VectorParameter;
   typedef SimpleParameter<std::vector<std::vector<double> > > MatrixParameter;
 }
+
+
 
 #if defined SWIGPYTHON || defined SWIGOCTAVE
   // allow for ScalarParameter on target side double and ScalarParameter values
@@ -54,6 +77,7 @@ namespace OpenMBV {
       SWIG_exception(SWIG_TypeError, "Only double or OpenMBV::ScalarParameter is allowed as input.");
   }
 #endif
+
 #if defined SWIGJAVA
   // on java we map  ScalarParameter to double since implicit object convertion (by ctors) is not supported by java
   %typemap(jni) OpenMBV::ScalarParameter "double"
@@ -62,7 +86,11 @@ namespace OpenMBV {
   %typemap(javain) OpenMBV::ScalarParameter "$javainput"
   %typemap(javaout) OpenMBV::ScalarParameter { return new ScalarParameter($jnicall).getValue(); }
   %typemap(in) OpenMBV::ScalarParameter { $1=OpenMBV::ScalarParameter($input); }
+#endif
 
+
+
+#if defined SWIGJAVA
   // automatically load the native library
   %pragma(java) jniclasscode=%{
     static {
@@ -71,6 +99,8 @@ namespace OpenMBV {
     }
   %}
 #endif
+
+
 
 // generate interfaces for these files
 %include <openmbvcppinterface/simpleparameter.h>
@@ -97,11 +127,15 @@ namespace OpenMBV {
 %include <openmbvcppinterface/grid.h>
 %include <openmbvcppinterface/path.h>
 
+
+
 // SWIG template instantiation
 %rename(shiftLeft) operator<<;
 %template(ScalarParameter) OpenMBV::SimpleParameter<double>;
 %template(VectorParameter) OpenMBV::SimpleParameter<std::vector<double> >;
 %template(MatrixParameter) OpenMBV::SimpleParameter<std::vector<std::vector<double> > >;
+
+
 
 // include these headers to the wraper c++ source code (required to compile)
 %{
