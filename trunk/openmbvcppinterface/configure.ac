@@ -75,6 +75,7 @@ if test "_$mkoctfile" != "_no"; then
   AC_SUBST([OCTAVE_FLAGS])
   AC_SUBST([OCTAVE_LIBS])
 fi
+
 dnl Check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
   [pythonversion="$withval"],[pythonversion="2.7"])
@@ -93,6 +94,15 @@ else
 fi
 AC_SUBST([PYTHON_SHEXT], [$pythonshext])
 
+dnl Check for java
+AC_ARG_WITH([javapath],  [  --with-java-prog=PATH   The path to the java program.],  [javapath ="$withval"],[javapath =""])
+AC_ARG_WITH([javacpath], [  --with-javac-prog=PATH  The path to the javac program.], [javacpath="$withval"],[javacpath=""])
+AC_PATH_PROG([java], [java], [no],[$javapath:$PATH])
+AC_PATH_PROG([javac],[javac],[no],[$javacpath:$PATH])
+AC_SUBST([JAVA], [java])
+AC_SUBST([JAVAC], [javac])
+AM_CONDITIONAL([COND_JAVA], [test "_$java" != "_no" -a "_$javac" != "_no"])
+
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
   [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],
@@ -108,8 +118,9 @@ AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 LDFLAGS="$LDFLAGS -no-undefined -Wl,-no-undefined"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
-  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile])
+  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile])
 AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
 AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
+AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
 
 AC_OUTPUT
