@@ -128,9 +128,9 @@ AC_SUBST([WINDRES])
 
 # Note -Werror does not work since Coin/SoQt requires -fpermissive which can be be disable when -Werror is used
 # hence we add all warnings seperately.
-CPPFLAGS="$CPPFLAGS -Wall -fpermissive -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain -Wmaybe-uninitialized -Wmissing-braces -Wnonnull -Wparentheses -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable -Wvolatile-register-var"
+CPPFLAGS="$CPPFLAGS -Wall -fpermissive -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain -Wmissing-braces -Wparentheses -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable -Wvolatile-register-var"
 CFLAGS="$CFLAGS -Wpointer-sign -Wimplicit-int -Wimplicit-function-declaration"
-CXXFLAGS="$CXXFLAGS -Wc++11-compat -Wreorder"
+CXXFLAGS="$CXXFLAGS -Wreorder"
 LDFLAGS="$LDFLAGS -no-undefined"
 
 AC_CONFIG_FILES([Makefile openmbv.pc openmbv/Makefile xmldoc/Makefile xmldoc/Doxyfile])
