@@ -39,10 +39,10 @@ DOS2UNIX="cat"
 if test "$cross_compiling" == "yes"; then
   DOS2UNIX="dos2unix"
 fi
-AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program.],
+AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 'no' to disable the octave interface).],
   [mkoctfile="$withval"],[mkoctfile="no"])
 if test "$mkoctfile" == "no"; then
-  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[${prefix/bin:-$PATH}])
+  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
