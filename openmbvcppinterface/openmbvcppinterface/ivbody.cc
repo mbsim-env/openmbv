@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
 
 IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 }

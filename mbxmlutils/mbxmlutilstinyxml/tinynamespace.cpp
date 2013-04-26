@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace MBXMLUtils {
+
 const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i) {
   if(e==NULL) return NULL;
   if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i==0)
@@ -240,4 +242,6 @@ string fixPath(string oldFile, string newFile) {
     if(i>=0) newFile=oldFile.substr(0,i)+"/"+newFile;
   }
   return newFile;
+}
+
 }

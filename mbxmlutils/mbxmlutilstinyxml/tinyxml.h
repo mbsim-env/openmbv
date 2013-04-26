@@ -80,6 +80,8 @@ distribution.
 	#endif
 #endif	
 
+namespace MBXMLUtils {
+
 class TiXmlDocument;
 class TiXmlElement;
 class TiXmlComment;
@@ -1791,6 +1793,7 @@ private:
 	TIXML_STRING lineBreak;
 };
 
+}
 
 #ifdef _MSC_VER
 #pragma warning( pop )

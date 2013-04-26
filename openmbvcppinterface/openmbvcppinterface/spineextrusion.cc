@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
 
 SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),

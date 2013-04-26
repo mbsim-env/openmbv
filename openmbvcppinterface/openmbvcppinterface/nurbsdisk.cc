@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
 
 NurbsDisk::NurbsDisk() : DynamicColoredBody(),
   data(0),

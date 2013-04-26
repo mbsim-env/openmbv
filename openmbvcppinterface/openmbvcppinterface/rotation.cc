@@ -23,6 +23,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace MBXMLUtils;
 using namespace OpenMBV;
 
 Rotation::Rotation() : RigidBody(),

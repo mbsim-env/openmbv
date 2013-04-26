@@ -74,9 +74,9 @@ namespace OpenMBV {
       DrawStyle getDrawMethod() { return drawMethod; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
 
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
 
       /** Pure virtual function to append a vector<double> row to the data.
        * NOTE that this is an convinience function, because most OpenMBV data is

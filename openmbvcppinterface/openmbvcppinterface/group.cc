@@ -34,6 +34,7 @@
 
 using namespace OpenMBV;
 using namespace std;
+using namespace MBXMLUtils;
 
 static string dirOfTopLevelFile(Group *grp);
 

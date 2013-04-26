@@ -27,6 +27,7 @@
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;
+using namespace MBXMLUtils;
 using namespace OpenMBV;
 
 RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 

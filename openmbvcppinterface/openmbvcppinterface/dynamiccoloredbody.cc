@@ -23,6 +23,7 @@
 #include <cmath>
 
 using namespace std;
+using namespace MBXMLUtils;
 using namespace OpenMBV;
 
 DynamicColoredBody::DynamicColoredBody() : Body(),

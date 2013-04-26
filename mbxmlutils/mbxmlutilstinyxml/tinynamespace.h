@@ -16,6 +16,8 @@
 #define XINCLUDENS_ "http://www.w3.org/2001/XInclude"
 #define XINCLUDENS "{"XINCLUDENS_"}"
 
+namespace MBXMLUtils {
+
 const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i);
 void TiXml_PostLoadFile(TiXmlDocument *doc);
 
@@ -68,5 +70,7 @@ void unIncorporateNamespace(TiXmlElement *e, std::map<std::string,std::string>& 
  * an absoulute path
  */
 std::string fixPath(std::string oldFile, std::string newFile);
+
+}
 
 #endif

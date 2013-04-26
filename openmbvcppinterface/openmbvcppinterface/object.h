@@ -104,9 +104,9 @@ namespace OpenMBV {
       virtual std::string getFullName(bool includingFileName=false);
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
 
-      virtual TiXmlElement *writeXMLFile(TiXmlNode *parent);
+      virtual MBXMLUtils::TiXmlElement *writeXMLFile(MBXMLUtils::TiXmlNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup();
@@ -127,29 +127,29 @@ namespace OpenMBV {
       void setSelected(bool selected_) { selected=selected_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-      static std::string fixPath(std::string oldFile, std::string newFile) { return ::fixPath(oldFile, newFile); }
+      static std::string fixPath(std::string oldFile, std::string newFile) { return MBXMLUtils::fixPath(oldFile, newFile); }
 
-      static ScalarParameter getDouble(TiXmlElement *e);
-      static VectorParameter getVec(TiXmlElement *e, unsigned int rows=0);
-      static MatrixParameter getMat(TiXmlElement *e, unsigned int rows=0, unsigned int cols=0);
+      static ScalarParameter getDouble(MBXMLUtils::TiXmlElement *e);
+      static VectorParameter getVec(MBXMLUtils::TiXmlElement *e, unsigned int rows=0);
+      static MatrixParameter getMat(MBXMLUtils::TiXmlElement *e, unsigned int rows=0, unsigned int cols=0);
 
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
 
 
       template <class T>
-      static void addElementText(TiXmlElement *parent, std::string name, T value) {
+      static void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, T value) {
         std::ostringstream oss;
         oss<<value;
-        parent->LinkEndChild(new TiXmlElement(name))->LinkEndChild(new TiXmlText(oss.str()));
+        parent->LinkEndChild(new MBXMLUtils::TiXmlElement(name))->LinkEndChild(new MBXMLUtils::TiXmlText(oss.str()));
       }
 
-      void addElementText(TiXmlElement *parent, std::string name, double value, double def);
+      void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, double value, double def);
 
-      void addElementText(TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def);
+      void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def);
 
       template <class T>
-      static void addAttribute(TiXmlNode *node, std::string name, T value) {
+      static void addAttribute(MBXMLUtils::TiXmlNode *node, std::string name, T value) {
         if(node->ToElement()) {
           std::ostringstream oss;
           oss<<value;
@@ -158,7 +158,7 @@ namespace OpenMBV {
       }
 
       template <class T>
-      static void addAttribute(TiXmlNode *node, std::string name, T value, std::string def) {
+      static void addAttribute(MBXMLUtils::TiXmlNode *node, std::string name, T value, std::string def) {
         if(value!=def) addAttribute(node, name, value);
       }
 

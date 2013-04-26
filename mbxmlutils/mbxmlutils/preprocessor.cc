@@ -24,6 +24,7 @@
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
 using namespace std;
+using namespace MBXMLUtils;
 namespace bfs=boost::filesystem;
 
 // a global octave evaluator

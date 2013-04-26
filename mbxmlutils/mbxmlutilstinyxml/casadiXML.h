@@ -8,13 +8,13 @@
 
 namespace CasADi {
 
-inline TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::map<CasADi::SXNode*, int> &nodes) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::map<CasADi::SXNode*, int> &nodes) {
   // add the node of s to the list of all nodes (creates a integer id for newly added nodes)
   std::string idStr;
   std::pair<std::map<CasADi::SXNode*, int>::iterator, bool> ret=nodes.insert(std::make_pair(s.get(), nodes.size()));
   // if the node of s already exists in the list of all nodes write a reference to this node to XML
   if(ret.second==false) {
-    TiXmlElement *e=new TiXmlElement(MBXMLUTILSCASADINS"reference");
+    MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"reference");
     std::stringstream str;
     str<<ret.first->second;
     e->SetAttribute("refid", str.str());
@@ -28,44 +28,44 @@ inline TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::map<CasADi::SX
   }
 
   // add s to XML dependent on the type of s
-  TiXmlElement *e;
+  MBXMLUtils::TiXmlElement *e;
   if(s.isSymbolic()) {
-    e=new TiXmlElement(MBXMLUTILSCASADINS"SymbolicSX");
-    e->LinkEndChild(new TiXmlText(s.getName()));
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SymbolicSX");
+    e->LinkEndChild(new MBXMLUtils::TiXmlText(s.getName()));
   }
   else if(s.isZero())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"ZeroSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"ZeroSX");
   else if(s.isOne())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"OneSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"OneSX");
   else if(s.isMinusOne())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"MinusOneSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusOneSX");
   else if(s.isInf())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"InfSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"InfSX");
   else if(s.isMinusInf())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"MinusInfSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusInfSX");
   else if(s.isNan())
-    e=new TiXmlElement(MBXMLUTILSCASADINS"NanSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"NanSX");
   else if(s.isInteger()) {
-    e=new TiXmlElement(MBXMLUTILSCASADINS"IntegerSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"IntegerSX");
     std::stringstream str;
     str<<s.getIntValue();
-    e->LinkEndChild(new TiXmlText(str.str()));
+    e->LinkEndChild(new MBXMLUtils::TiXmlText(str.str()));
   }
   else if(s.isConstant()) {
-    e=new TiXmlElement(MBXMLUTILSCASADINS"RealtypeSX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"RealtypeSX");
     std::stringstream str;
     str.precision(18);
     str<<s.getValue();
-    e->LinkEndChild(new TiXmlText(str.str()));
+    e->LinkEndChild(new MBXMLUtils::TiXmlText(str.str()));
   }
   else if(s.hasDep() && s.getNdeps()==2) {
-    e=new TiXmlElement(MBXMLUTILSCASADINS"BinarySX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"BinarySX");
     e->SetAttribute("op", s.getOp());
     e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
     e->LinkEndChild(convertCasADiToXML(s.getDep(1), nodes));
   }
   else if(s.hasDep() && s.getNdeps()==1) {
-    e=new TiXmlElement(MBXMLUTILSCASADINS"UnarySX");
+    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"UnarySX");
     e->SetAttribute("op", s.getOp());
     e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
   }
@@ -77,21 +77,21 @@ inline TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::map<CasADi::SX
   return e;
 }
 
-inline TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, std::map<CasADi::SXNode*, int> &nodes) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, std::map<CasADi::SXNode*, int> &nodes) {
   // if it is a scalar print it as a scalar
   if(m.size1()==1 && m.size2()==1)
     return convertCasADiToXML(m.elem(0, 0), nodes);
   // write each matrixRow of m to XML enclosed by a <matrixRow> element and each element in such rows 
   // to this element
-  TiXmlElement *e=new TiXmlElement(MBXMLUTILSCASADINS"SXMatrix");
+  MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXMatrix");
   if(m.size1()==1) e->SetAttribute("rowVector", "true");
   if(m.size2()==1) e->SetAttribute("columnVector", "true");
   for(int r=0; r<m.size1(); r++) {
-    TiXmlElement *matrixRow;
+    MBXMLUtils::TiXmlElement *matrixRow;
     if(m.size1()==1 || m.size2()==1)
       matrixRow=e;
     else {
-      matrixRow=new TiXmlElement(MBXMLUTILSCASADINS"matrixRow");
+      matrixRow=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"matrixRow");
       e->LinkEndChild(matrixRow);
     }
     for(int c=0; c<m.size2(); c++)
@@ -100,18 +100,18 @@ inline TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, std::map<CasA
   return e;
 }
 
-inline TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
   // write each input of f to XML enclosed by a <inputs> element
   std::map<CasADi::SXNode*, int> nodes;
-  TiXmlElement *e=new TiXmlElement(MBXMLUTILSCASADINS"SXFunction");
+  MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXFunction");
   const std::vector<CasADi::SXMatrix> &in=f.inputExpr();
-  TiXmlElement *input=new TiXmlElement(MBXMLUTILSCASADINS"inputs");
+  MBXMLUtils::TiXmlElement *input=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"inputs");
   e->LinkEndChild(input);
   for(size_t i=0; i<in.size(); i++)
     input->LinkEndChild(convertCasADiToXML(in[i], nodes));
   // write each output of f to XML enclosed by a <outputs> element
   const std::vector<CasADi::SXMatrix> &out=f.outputExpr();
-  TiXmlElement *output=new TiXmlElement(MBXMLUTILSCASADINS"outputs");
+  MBXMLUtils::TiXmlElement *output=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"outputs");
   e->LinkEndChild(output);
   for(size_t i=0; i<out.size(); i++)
     output->LinkEndChild(convertCasADiToXML(out[i], nodes));
@@ -119,13 +119,13 @@ inline TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
   return e;
 }
 
-inline CasADi::SX createCasADiSXFromXML(TiXmlElement *e, std::map<int, CasADi::SXNode*> &nodes) {
+inline CasADi::SX createCasADiSXFromXML(MBXMLUtils::TiXmlElement *e, std::map<int, CasADi::SXNode*> &nodes) {
   // creata an SX dependent on the type
   CasADi::SX sx;
   if(e->ValueStr()==MBXMLUTILSCASADINS"BinarySX") {
     int op;
     e->QueryIntAttribute("op", &op);
-    TiXmlElement *ee=e->FirstChildElement();
+    MBXMLUtils::TiXmlElement *ee=e->FirstChildElement();
     CasADi::SX dep0=createCasADiSXFromXML(ee, nodes);
     ee=ee->NextSiblingElement();
     CasADi::SX dep1=createCasADiSXFromXML(ee, nodes);
@@ -134,23 +134,23 @@ inline CasADi::SX createCasADiSXFromXML(TiXmlElement *e, std::map<int, CasADi::S
   else if(e->ValueStr()==MBXMLUTILSCASADINS"UnarySX") {
     int op;
     e->QueryIntAttribute("op", &op);
-    TiXmlElement *ee=e->FirstChildElement();
+    MBXMLUtils::TiXmlElement *ee=e->FirstChildElement();
     CasADi::SX dep=createCasADiSXFromXML(ee, nodes);
     sx=CasADi::SX::unary(op, dep);
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"SymbolicSX") {
-    TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
     sx=CasADi::SX(ee->ValueStr());
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"RealtypeSX") {
-    TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
     std::stringstream str(ee->ValueStr());
     double value;
     str>>value;
     sx=value;
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"IntegerSX") {
-    TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
     std::stringstream str(ee->ValueStr());
     int value;
     str>>value;
@@ -185,16 +185,16 @@ inline CasADi::SX createCasADiSXFromXML(TiXmlElement *e, std::map<int, CasADi::S
   return sx;
 }
 
-inline CasADi::SXMatrix createCasADiSXMatrixFromXML(TiXmlElement *e, std::map<int, CasADi::SXNode*> &nodes) {
+inline CasADi::SXMatrix createCasADiSXMatrixFromXML(MBXMLUtils::TiXmlElement *e, std::map<int, CasADi::SXNode*> &nodes) {
   // create a SXMatrix
   if(e->ValueStr()==MBXMLUTILSCASADINS"SXMatrix") {
     // loop over all rows
     std::vector<std::vector<CasADi::SX> > ret;
-    TiXmlElement *matrixRow=e->FirstChildElement();
+    MBXMLUtils::TiXmlElement *matrixRow=e->FirstChildElement();
     while(matrixRow) {
       // loop over all elements in a matrixRow
       std::vector<CasADi::SX> stdrow;
-      TiXmlElement *matrixEle;
+      MBXMLUtils::TiXmlElement *matrixEle;
       if((e->Attribute("rowVector") && e->Attribute("rowVector")==std::string("true")) ||
          (e->Attribute("columnVector") && e->Attribute("columnVector")==std::string("true")))
         matrixEle=matrixRow;
@@ -221,22 +221,22 @@ inline CasADi::SXMatrix createCasADiSXMatrixFromXML(TiXmlElement *e, std::map<in
     return createCasADiSXFromXML(e, nodes);
 }
 
-inline CasADi::SXFunction createCasADiSXFunctionFromXML(TiXmlElement *e) {
+inline CasADi::SXFunction createCasADiSXFunctionFromXML(MBXMLUtils::TiXmlElement *e) {
   // create a SXFunction
   std::map<int, CasADi::SXNode*> nodes;
   if(e->ValueStr()==MBXMLUTILSCASADINS"SXFunction") {
     // get all inputs
     std::vector<CasADi::SXMatrix> in;
-    TiXmlElement *input=e->FirstChildElement();
-    TiXmlElement *inputEle=input->FirstChildElement();
+    MBXMLUtils::TiXmlElement *input=e->FirstChildElement();
+    MBXMLUtils::TiXmlElement *inputEle=input->FirstChildElement();
     while(inputEle) {
       in.push_back(createCasADiSXMatrixFromXML(inputEle, nodes));
       inputEle=inputEle->NextSiblingElement();
     }
     // get all outputs
     std::vector<CasADi::SXMatrix> out;
-    TiXmlElement *output=input->NextSiblingElement();
-    TiXmlElement *outputEle=output->FirstChildElement();
+    MBXMLUtils::TiXmlElement *output=input->NextSiblingElement();
+    MBXMLUtils::TiXmlElement *outputEle=output->FirstChildElement();
     while(outputEle) {
       out.push_back(createCasADiSXMatrixFromXML(outputEle, nodes));
       outputEle=outputEle->NextSiblingElement();
