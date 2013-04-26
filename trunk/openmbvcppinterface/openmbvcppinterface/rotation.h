@@ -69,9 +69,9 @@ namespace OpenMBV {
       std::vector<PolygonPoint*>* getContour() { return contour; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
 
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
 
   };
 

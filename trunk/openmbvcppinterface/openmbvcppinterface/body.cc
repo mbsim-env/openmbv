@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
 
 Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
   hdf5LinkBody(0), hdf5LinkStr("") {

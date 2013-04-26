@@ -13,9 +13,9 @@
 #endif
 #include <octave/oct.h>
 
-class TiXmlElement;
-
 namespace MBXMLUtils {
+
+class TiXmlElement;
 
 class OctaveEvaluator {
   public:

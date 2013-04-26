@@ -83,10 +83,10 @@ namespace OpenMBV {
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
 
       /** Write XML file for not time-dependent data. */
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
 
     protected:
       /** destructor */

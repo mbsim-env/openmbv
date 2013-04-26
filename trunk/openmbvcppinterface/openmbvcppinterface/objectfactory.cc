@@ -38,6 +38,7 @@
 #include "openmbvcppinterface/grid.h"
 
 using namespace std;
+using namespace MBXMLUtils;
 
 namespace OpenMBV {
 

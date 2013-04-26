@@ -24,6 +24,7 @@
 #include <fstream>
 
 using namespace std;
+using namespace MBXMLUtils;
 using namespace OpenMBV;
 
 CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {

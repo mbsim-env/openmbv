@@ -47,7 +47,7 @@ namespace OpenMBV {
 
       /* CONVENIENCE */
       /** write vector of polygon points to XML file */
-      static void serializePolygonPointContour(TiXmlElement *parent, const std::vector<PolygonPoint*> *cont) {
+      static void serializePolygonPointContour(MBXMLUtils::TiXmlElement *parent, const std::vector<PolygonPoint*> *cont) {
         std::string str;
         str="[ ";
         for(std::vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
@@ -57,7 +57,7 @@ namespace OpenMBV {
         Object::addElementText(parent, OPENMBVNS"contour", str);
       }
 
-      static std::vector<PolygonPoint*>* initializeUsingXML(TiXmlElement *element) {
+      static std::vector<PolygonPoint*>* initializeUsingXML(MBXMLUtils::TiXmlElement *element) {
         MatrixParameter matParam=Body::getMat(element);
         assert(matParam.getParamStr()=="" && "Only numeric values are allowd for contours (vector<PolygonPoint*>)");
         std::vector<std::vector<double> > mat=matParam.getValue();

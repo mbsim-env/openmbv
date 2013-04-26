@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
 
 Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), parent(0), hdf5Group(0) {
 }

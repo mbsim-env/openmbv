@@ -56,9 +56,9 @@ namespace OpenMBV {
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(TiXmlElement *element);
+      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
 
-      TiXmlElement* writeXMLFile(TiXmlNode *parent);
+      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
 
       /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
