@@ -30,9 +30,9 @@ AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
   [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found]) DEFINES="$DEFINES -DHAVE_BOOST_FILE_LOCK"])
 
 dnl Check for SWIG
-AC_ARG_WITH([swigpath], [  --with-swig-path=PATH  The path to the swig program.],
+AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
-AC_PATH_PROG([swig],[swig],[no],[$swigpath:$PATH])
+AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
 AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
 dnl Check for octave
 DOS2UNIX="cat"
@@ -42,7 +42,7 @@ fi
 AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program.],
   [mkoctfile="$withval"],[mkoctfile="no"])
 if test "$mkoctfile" == "no"; then
-  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
+  AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[${prefix/bin:-$PATH}])
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
@@ -98,8 +98,8 @@ dnl Check for java
 AC_ARG_WITH([javapath],  [  --with-java-prog=PATH   The path to the java program.],  [javapath="$withval"],[javapath=""])
 AC_ARG_WITH([javacpath], [  --with-javac-prog=PATH  The path to the javac program.], [javacpath="$withval"],[javacpath=""])
 AC_ARG_WITH([javacflags],[  --with-javacflags=FLAGS  Compile flags for java JNI (e.g -I...)], [javacflags="$withval"],[javacflags=""])
-AC_PATH_PROG([java], [java], [no],[$javapath:$PATH])
-AC_PATH_PROG([javac],[javac],[no],[$javacpath:$PATH])
+AC_PATH_PROG([java], [java], [no],[${javapath:-$PATH}])
+AC_PATH_PROG([javac],[javac],[no],[${javacpath:-$PATH}])
 AC_SUBST([JAVA], [$java])
 AC_SUBST([JAVAC], [$javac])
 AC_SUBST([JAVA_CFLAGS], [$javacflags])
@@ -109,7 +109,7 @@ dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
   [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],
   [doxygenpath="$withval"],[doxygenpath=""])
-AC_PATH_PROG([doxygen],[doxygen],[no],[$doxygenpath:$PATH])
+AC_PATH_PROG([doxygen],[doxygen],[no],[${doxygenpath:-$PATH}])
 if test $doxygen = "no" ; then
   AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
 fi
