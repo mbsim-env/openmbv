@@ -22,3 +22,6 @@ uninstall-local:
 
 
 TESTS = pythontest.sh
+
+exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
+example_DATA = pythontest.py

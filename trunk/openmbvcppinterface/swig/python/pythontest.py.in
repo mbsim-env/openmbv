@@ -1,3 +1,6 @@
+import sys;
+sys.path.append("@native_prefix@/bin"); # This path must point to your MBSim installation 'bin' directory
+
 import OpenMBV;
 
 group=OpenMBV.Group();
