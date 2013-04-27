@@ -1,4 +1,0 @@
-#!/bin/sh
-
-
-@OCTAVE@ --path @prefix@/bin octavetest.m

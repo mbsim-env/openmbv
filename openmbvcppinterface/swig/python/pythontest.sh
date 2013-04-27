@@ -1,4 +1,3 @@
 #!/bin/sh
 
-export PYTHONPATH=@prefix@/bin
 @PYTHON_BIN@ pythontest.py

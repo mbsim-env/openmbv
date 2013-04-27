@@ -39,6 +39,16 @@ DOS2UNIX="cat"
 if test "$cross_compiling" == "yes"; then
   DOS2UNIX="dos2unix"
 fi
+
+dnl Convert prefix to native path
+if test "$cross_compiling" == "yes"; then
+  native_prefix=$(winepath -w $prefix)
+else
+  native_prefix=$prefix
+fi
+AC_SUBST([native_prefix])
+
+dnl Check for octave
 AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 'no' to disable the octave interface).],
   [mkoctfile="$withval"],[mkoctfile="no"])
 if test "$mkoctfile" == "no"; then
@@ -120,9 +130,7 @@ AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 LDFLAGS="$LDFLAGS -no-undefined -Wl,-no-undefined"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
-  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile])
-AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
-AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
+  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile swig/octave/octavetest.m swig/python/pythontest.py swig/java/matlabtest.m])
 AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
 
 AC_OUTPUT

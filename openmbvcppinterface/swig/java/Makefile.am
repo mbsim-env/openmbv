@@ -32,3 +32,6 @@ uninstall-local:
 TESTS = javatest.sh
 javatest.class: javatest.java
 	@JAVAC@ javatest.java
+
+exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
+example_DATA = javatest.java matlabtest.m
