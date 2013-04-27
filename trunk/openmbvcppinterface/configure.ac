@@ -131,6 +131,8 @@ LDFLAGS="$LDFLAGS -no-undefined -Wl,-no-undefined"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile swig/octave/octavetest.m swig/python/pythontest.py swig/java/matlabtest.m])
+AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
+AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
 AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
 
 AC_OUTPUT
