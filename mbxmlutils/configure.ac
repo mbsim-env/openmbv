@@ -61,7 +61,10 @@ if test $usecasadi == yes;  then
   if test $casadi = "yes" ; then
     AC_MSG_CHECKING([for casadi c++ library])
     LDFLAGS="$LDFLAGS $CASADILDFLAGS"
-    LIBS="$LIBS -lcasadi"
+    CASADI_LIBS="-lcasadi"
+    test "_$host_os" != "_mingw32" && CASADI_LIBS="$CASADI_LIBS -ldl"
+    LIBS="$LIBS $CASADI_LIBS"
+    AC_SUBST([CASADI_LIBS])
     AC_TRY_LINK([#include <casadi/symbolic/sx/sx.hpp>],[CasADi::SX x],[AC_MSG_RESULT([yes]); CPPFLAGS="$CPPFLAGS -DHAVE_CASADI_SYMBOLIC_SX_SX_HPP"],
       [casadi="no"; AC_MSG_RESULT([no]); AC_MSG_ERROR([CasADi headers found but can not link with CasADi c++ library])])
   fi
