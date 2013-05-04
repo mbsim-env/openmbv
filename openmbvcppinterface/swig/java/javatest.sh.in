@@ -2,4 +2,4 @@
 
 test -d temp_testdir || mkdir temp_testdir
 cp javatest.class temp_testdir
-@JAVA@ -cp temp_testdir:@prefix@/bin/openmbv.jar javatest
+@JAVA@ -classpath temp_testdir:@prefix@/bin/openmbv.jar javatest
