@@ -1,8 +1,11 @@
 # Note: we install the resulting java file in $prefix/bin since this is the only place where Windows searches dependent libraries
 swigdir = $(bindir)
+if COND_MINGW
+  MAYBE_MINGW_CFLAGS = -Wl,--kill-at
+endif
 swig_LTLIBRARIES = libopenmbvjava.la
 libopenmbvjava_la_SOURCES = OpenMBV_swig_java.cc
-libopenmbvjava_la_LDFLAGS = -module -Wl,-rpath,\$$ORIGIN/../lib,--kill-at -shrext .jni -avoid-version # use jni as so/dll extension for the java native binary file
+libopenmbvjava_la_LDFLAGS = -module -Wl,-rpath,\$$ORIGIN/../lib -shrext .jni -avoid-version $(MAYBE_MINGW_CFLAGS) # use jni as so/dll extension for the java native binary file
 libopenmbvjava_la_CPPFLAGS = $(MBXMLUTILSTINYXML_CFLAGS) $(JAVA_CFLAGS) $(HDF5SERIE_CFLAGS) -Wno-error=strict-aliasing -Wno-strict-aliasing
 libopenmbvjava_la_LIBADD = ../../openmbvcppinterface/libopenmbvcppinterface.la
 EXTRA_libopenmbvjava_la_DEPENDENCIES = openmbv.jar

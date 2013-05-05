@@ -20,6 +20,8 @@ PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
 PKG_CHECK_MODULES(MBXMLUTILSTINYXML, mbxmlutilstinyxml)
 
+AM_CONDITIONAL([COND_MINGW], [test "_$host_os" = "_mingw32"])
+
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
   [  --with-boost-inc=PATH  The path Boost include directory.],
