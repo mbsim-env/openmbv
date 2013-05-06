@@ -17,16 +17,17 @@
     $1=(*$input).is_matrix_type();
   }
   %typemap(in) std::vector<double>, const std::vector<double>& {
-    Matrix m=$input.matrix_value();
+    Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
     int size=m.length();
-    static std::vector<double> localVec(size);
-    for(int i=0; i<size; i++)
+    std::vector<double> localVec(size);//MISSING: try to allocate memory of size size every time
+    for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
       localVec[i]=m.elem(i);
     $1=&localVec;
   }
   %typemap(out) std::vector<double> {
-    RowVector rv($1.size());
-    for(int i=0; i<$1.size(); i++)
+    size_t n=$1.size();
+    RowVector rv(n);
+    for(int i=0; i<n; i++)
       rv.fill($1[i], i, i);
     $result=rv;
   }
@@ -39,12 +40,12 @@
   %typemap(jstype) std::vector<double>, const std::vector<double>& "double[]"
   %typemap(javain) std::vector<double>, const std::vector<double>& "$javainput"
   %typemap(javaout) std::vector<double> { return $jnicall; }
-  %typemap(in) std::vector<double>, const std::vector<double>& {
+  %typemap(in) std::vector<double>, const std::vector<double>& "
     size_t size=jenv->GetArrayLength($arg);
-    $1=new std::vector<double>(size);
-    jenv->GetDoubleArrayRegion($arg, 0, size, &(*$1)[0]);
-  }
-  %typemap(freearg) std::vector<double>, const std::vector<double>& "delete $1;"
+    std::vector<double> vec(size);
+    jenv->GetDoubleArrayRegion($arg, 0, size, &vec[0]);//MISSING: try to avoid copying all elements to vec
+    $1=&vec;
+  "
   %typemap(out) std::vector<double> {
     $result=jenv->NewDoubleArray($1.size());
     jenv->SetDoubleArrayRegion($result, 0, $1.size(), &$1[0]);
