@@ -107,14 +107,21 @@ fi
 AC_SUBST([PYTHON_SHEXT], [$pythonshext])
 
 dnl Check for java
-AC_ARG_WITH([javapath],  [  --with-java-prog=PATH   The path to the java program.],  [javapath="$withval"],[javapath=""])
-AC_ARG_WITH([javacpath], [  --with-javac-prog=PATH  The path to the javac program.], [javacpath="$withval"],[javacpath=""])
-AC_ARG_WITH([javacflags],[  --with-javacflags=FLAGS  Compile flags for java JNI (e.g -I...)], [javacflags="$withval"],[javacflags=""])
+AC_ARG_WITH([javapath],  [  --with-javapath=PATH   The path to the java program.],  [javapath="$withval"],[javapath=""])
+AC_ARG_WITH([javac], [  --with-javac=PATH  The java bytecode compiler.], [javac="$withval"],[javac="no"])
+AC_ARG_WITH([javajnicflags],[  --with-javajnicflags=FLAGS  c-Compile flags for java JNI (e.g -I...)], [javajnicflags="$withval"],[javajnicflags=""])
 AC_PATH_PROG([java], [java], [no],[${javapath:-$PATH}])
-AC_PATH_PROG([javac],[javac],[no],[${javacpath:-$PATH}])
+if test "_$javac" == "_no"; then
+  AC_PATH_PROG([javac],[gcj],[no],[$PATH])
+  if test "_$javac" != "_no"; then
+    javac="$javac -C" # append -C = create bytecode
+  else
+    AC_PATH_PROG([javac],[javac],[no],[$PATH]) # try javac
+  fi
+fi
 AC_SUBST([JAVA], [$java])
 AC_SUBST([JAVAC], [$javac])
-AC_SUBST([JAVA_CFLAGS], [$javacflags])
+AC_SUBST([JAVA_JNICFLAGS], [$javajnicflags])
 AM_CONDITIONAL([COND_JAVA], [test "_$java" != "_no" -a "_$javac" != "_no"])
 
 dnl Check for doxygen
