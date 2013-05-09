@@ -23,6 +23,7 @@ public class javatest {
     group.addObject(cube);
     group.addObject(cuboid);
     
+    group.setFileName("MBS_outfile.ombv.xml");
     group.write(true, true);
     
     String ret=cube.getName(); System.out.println(ret);
