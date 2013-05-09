@@ -122,10 +122,10 @@ namespace OpenMBV {
     static {
       try {
         final String fileName=OpenMBVJNI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        final String binDir=fileName.substring(0, fileName.length()-new String("openmbv.jar").length());
-        System.load(binDir+"libopenmbvjavaloadJNI.jni");
-        storeAndSetDLLSearchDirectory(binDir);
-        System.load(binDir+"libopenmbvjava.jni");
+        final String binDir=fileName.substring(0, fileName.length()-new String("/openmbv.jar").length());
+        System.load(binDir+"/libopenmbvjavaloadJNI.jni");
+        storeAndSetDLLSearchDirectory(new java.io.File(binDir).toString());
+        System.load(binDir+"/libopenmbvjava.jni");
         restoreDLLSearchDirectory();
       }
       catch(Throwable ex) {
