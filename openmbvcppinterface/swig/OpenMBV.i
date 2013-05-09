@@ -5,6 +5,27 @@
 %include "std_string.i"
 %include "exception.i"
 
+// handle exceptions
+%exception {
+  try {
+    $action
+  }
+  catch(const std::exception &e) {
+    std::stringstream str;
+    str<<"std::exception: "<<e.what();
+    SWIG_exception(SWIG_RuntimeError, str.str().c_str());
+  }
+  catch(const H5::Exception &e) {
+    std::stringstream str;
+    str<<"H5::Exception: "<<e.getCDetailMsg()<<std::endl<<
+         "function: "<<e.getCFuncName();
+    SWIG_exception(SWIG_RuntimeError, str.str().c_str());
+  }
+  catch(...) {
+    SWIG_exception(SWIG_RuntimeError, "Unknown exception");
+  }
+}
+
 #ifdef SWIGPYTHON
   // for python std::vector<double> wrapping work well out of the box
   %include "std_vector.i"
@@ -19,7 +40,8 @@
   %typemap(in) std::vector<double>, const std::vector<double>& {
     Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
     int size=m.length();
-    std::vector<double> localVec(size);//MISSING: try to allocate memory of size size every time
+    static std::vector<double> localVec;
+    localVec.resize(size);
     for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
       localVec[i]=m.elem(i);
     $1=&localVec;
@@ -42,7 +64,8 @@
   %typemap(javaout) std::vector<double> { return $jnicall; }
   %typemap(in) std::vector<double>, const std::vector<double>& "
     size_t size=jenv->GetArrayLength($arg);
-    std::vector<double> vec(size);
+    static std::vector<double> vec;
+    vec.resize(size);
     jenv->GetDoubleArrayRegion($arg, 0, size, &vec[0]);//MISSING: try to avoid copying all elements to vec
     $1=&vec;
   "
@@ -94,9 +117,21 @@ namespace OpenMBV {
 #if defined SWIGJAVA
   // automatically load the native library
   %pragma(java) jniclasscode=%{
+    private final static native void storeAndSetDLLSearchDirectory(String binDir);
+    private final static native void restoreDLLSearchDirectory();
     static {
-      final String fileName=OpenMBVJNI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-      System.load(fileName.substring(0, fileName.length()-new String("openmbv.jar").length())+"libopenmbvjava.jni");
+      try {
+        final String fileName=OpenMBVJNI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        final String binDir=fileName.substring(0, fileName.length()-new String("openmbv.jar").length());
+        System.load(binDir+"libopenmbvjavaloadJNI.jni");
+        storeAndSetDLLSearchDirectory(binDir);
+        System.load(binDir+"libopenmbvjava.jni");
+        restoreDLLSearchDirectory();
+      }
+      catch(Throwable ex) {
+        ex.printStackTrace();
+        throw new RuntimeException("Unable to initialize. See above exception and stack trace.");
+      }
     }
   %}
 #endif
