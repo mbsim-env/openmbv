@@ -25,6 +25,7 @@
 #include <vector>
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
+#include <stdexcept>
 
 namespace OpenMBV {
 
@@ -75,7 +76,7 @@ namespace OpenMBV {
 
       /** Append a data vector to the h5 datsset */
       void append(const std::vector<double>& row) { 
-        assert(data!=0); 
+        if(data==0) throw std::runtime_error("can not append data to an environment object"); 
         data->append(row);
       }
 

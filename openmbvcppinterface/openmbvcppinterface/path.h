@@ -24,6 +24,7 @@
 #include <openmbvcppinterface/simpleparameter.h>
 #include <hdf5serie/vectorserie.h>
 #include <vector>
+#include <stdexcept>
 
 namespace OpenMBV {
 
@@ -51,19 +52,20 @@ namespace OpenMBV {
 
       /** Append a data vector the to hf dataset */
       void append(const std::vector<double>& row) {
-        assert(data!=0 && row.size()==4);
+        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(row.size()!=4) throw std::runtime_error("the dimension does not match");
         data->append(row);
       }
 
       int getRows() { return data?data->getRows():-1; }
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(4); }
 
-      /** Set the color of the paht.
+      /** Set the color of the path.
        * Use a vector with tree double representing reg, green and blue as paremter.
        * red, green and blue runs form 0 to 1
        */
       void setColor(const VectorParameter& color_) {
-        assert(color_.getParamStr()!="" || color_.getValue().size()==3);
+        if(color_.getParamStr()=="" && color_.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
         set(color,color_);
       }
 
@@ -72,7 +74,7 @@ namespace OpenMBV {
        * red, green and blue runs form 0 to 1
        */
       void setColor(const std::vector<double>& color_) {
-        assert(color_.size()==3);
+        if(color_.size()!=3) throw std::runtime_error("the dimension does not match");
         set(color,color_);
       }
 

@@ -43,9 +43,9 @@ namespace OpenMBV {
 
       /** Add a RigidBody to this compound */
       void addRigidBody(RigidBody* rigidBody_) {
-        assert(rigidBody_->name!="");
+        if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");
         for(unsigned int i=0; i<rigidBody.size(); i++)
-          assert(rigidBody[i]->name!=rigidBody_->name);
+          if(rigidBody[i]->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");
         rigidBody.push_back(rigidBody_);
         rigidBody_->parent=0;
         rigidBody_->compound=this;

@@ -162,8 +162,8 @@ TiXmlElement *Object::writeXMLFile(TiXmlNode *parent) {
   addAttribute(e, "boundingBox", boundingBoxStr, string("false"));
   if(!ID.empty()) {
     TiXmlUnknown *id=new TiXmlUnknown;
-    id->SetValue("?OPENMBV_ID "+ID+"?");
     e->LinkEndChild(id);
+    id->SetValue("?OPENMBV_ID "+ID+"?");
   }
   return e;
 }

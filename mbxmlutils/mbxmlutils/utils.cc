@@ -336,7 +336,7 @@ void OctaveEvaluator::restoreCurrentParam() {
   currentParam=savedCurrentParam; // restore parameter
 }
 
-static char **octave_argv;
+static std::vector<char*> octave_argv;
 
 void OctaveEvaluator::initialize() {
   struct stat st;
@@ -353,14 +353,14 @@ void OctaveEvaluator::initialize() {
     putenv((char*)OCTAVE_HOME.c_str());
   }
 
-  octave_argv=(char**)malloc(6*sizeof(char*));
-  octave_argv[0]=strdup("embedded");
-  octave_argv[1]=strdup("--no-history");
-  octave_argv[2]=strdup("--no-init-file");
-  octave_argv[3]=strdup("--no-line-editing");
-  octave_argv[4]=strdup("--no-window-system");
-  octave_argv[5]=strdup("--silent");
-  octave_main(6, octave_argv, 1);
+  octave_argv.resize(6);
+  octave_argv[0]=const_cast<char*>("embedded");
+  octave_argv[1]=const_cast<char*>("--no-history");
+  octave_argv[2]=const_cast<char*>("--no-init-file");
+  octave_argv[3]=const_cast<char*>("--no-line-editing");
+  octave_argv[4]=const_cast<char*>("--no-window-system");
+  octave_argv[5]=const_cast<char*>("--silent");
+  octave_main(6, &octave_argv[0], 1);
 
   octave_value_list warnArg;
   warnArg.append("error");

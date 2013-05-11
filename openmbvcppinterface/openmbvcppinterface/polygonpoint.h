@@ -25,6 +25,7 @@
 #include <iostream>
 #include <mbxmlutilstinyxml/tinyxml.h>
 #include "openmbvcppinterface/body.h"
+#include <stdexcept>
 
 namespace OpenMBV {
 
@@ -59,7 +60,7 @@ namespace OpenMBV {
 
       static std::vector<PolygonPoint*>* initializeUsingXML(MBXMLUtils::TiXmlElement *element) {
         MatrixParameter matParam=Body::getMat(element);
-        assert(matParam.getParamStr()=="" && "Only numeric values are allowd for contours (vector<PolygonPoint*>)");
+        if(matParam.getParamStr()!="") throw std::runtime_error("only numeric values are allowd for contours (vector<PolygonPoint*>)");
         std::vector<std::vector<double> > mat=matParam.getValue();
         std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
         for(size_t r=0; r<mat.size(); r++) {
