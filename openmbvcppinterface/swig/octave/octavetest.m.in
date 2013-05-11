@@ -1,4 +1,6 @@
 addpath('@native_prefix@/bin'); % This path must point to your MBSim installation 'bin' directory
+OpenMBV;
+global OpenMBV;
 % If you get an error message that openmbv.oct can not be loaded add the above path on Windows
 % to the PATH and on Linux to the LD_LIBRARY_PATH environment variable before starting octave.
 % Or execute the following code before using OpenMBV in a octave session.
@@ -7,33 +9,56 @@ addpath('@native_prefix@/bin'); % This path must point to your MBSim installatio
 % OpenMBV;
 % cd(savedDir);
 
-group=OpenMBV.Group();
-group.setName('MBS');
+% main program
+function main()
+  global OpenMBV;
 
-cube=OpenMBV.Cube();
-cube.setName('Box1');
-cube.setReferenceFrame(true);
-cube.setLength(1.234);
-cube.setLength(OpenMBV.ScalarParameter(1.235));
-cube.setLength(OpenMBV.ScalarParameter("p1", 1.236));
+  % create main group
+  group=OpenMBV.Group();
+  group.setName('MBS');
+  
+  % add some objects to group in this subroutine and return a added cube
+  cube=createMyGroup(group);
+   
+  % create H5 and xml file
+  group.setFileName('MBS_outfile.ombv.xml');
+  group.write(true, true);
+  
+  % some action on the returned cube
+  cube.getName()
+  cube.getReferenceFrame()
+  cube.getLength()
+  cube.append([0.4 1 2 3 4 5 6 0.25]);
+end
 
-cuboid=OpenMBV.Cuboid();
-cuboid.setName('Box2');
-cuboid.setReferenceFrame(true);
-cuboid.setLength(1.234, 3, 4);
 
-group.addObject(cube);
-group.addObject(cuboid);
- 
-group.setFileName('MBS_outfile.ombv.xml');
-group.write(true, true);
+% a subroutine
+function cube=createMyGroup(g)
+  global OpenMBV;
 
-cube.getName()
-cube.getReferenceFrame()
-cube.getLength()
-cuboid.getLength()
+  % create a cube
+  cube=OpenMBV.Cube();
+  cube.setName('Box1');
+  cube.setReferenceFrame(true);
+  cube.setLength(1.234);
+  cube.setLength(OpenMBV.ScalarParameter(1.235));
+  cube.setLength(OpenMBV.ScalarParameter("p1", 1.236));
+  
+  % create a cuboid
+  cuboid=OpenMBV.Cuboid();
+  cuboid.setName('Box2');
+  cuboid.setReferenceFrame(true);
+  cuboid.setLength(1.234, 3, 4);
+  
+  % add cube and cuboid to group
+  g.addObject(cube);
+  g.addObject(cuboid);
 
-cuboid.setLength([5.6; 9.7; 3.5]);
-cuboid.getLength()
+  % some actions on cuboid
+  cuboid.getLength()
+  cuboid.setLength([5.6; 9.7; 3.5]);
+  cuboid.getLength()
+end
 
-cube.append([0.4 1 2 3 4 5 6 0.25]);
+
+main();
