@@ -26,6 +26,7 @@
 #include <hdf5serie/vectorserie.h>
 #include <cmath>
 #include <openmbvcppinterface/simpleparameter.h>
+#include <stdexcept>
 
 namespace OpenMBV {
 
@@ -106,13 +107,13 @@ namespace OpenMBV {
 
       /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(const VectorParameter &initTrans) {
-        assert(initTrans.getParamStr()!="" || initTrans.getValue().size()==3);
+        if(initTrans.getParamStr()=="" && initTrans.getValue().size()!=3) std::runtime_error("the dimension does not match");
         set(initialTranslation,initTrans);
       }
 
       /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(const std::vector<double> &initTrans) {
-        assert(initTrans.size()==3);
+        if(initTrans.size()!=3) throw std::runtime_error("the dimension does not match");
         set(initialTranslation,initTrans);
       }
 
@@ -131,7 +132,7 @@ namespace OpenMBV {
        * Use cardan angles to represent the transformation matrix
        */
       void setInitialRotation(const VectorParameter& initRot) {
-        assert(initRot.getParamStr()!="" || initRot.getValue().size()==3);
+        if(initRot.getParamStr()=="" && initRot.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
         set(initialRotation,initRot);
       }
 
@@ -139,7 +140,7 @@ namespace OpenMBV {
        * Use cardan angles to represent the transformation matrix
        */
       void setInitialRotation(const std::vector<double>& initRot) {
-        assert(initRot.size()==3);
+        if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
         set(initialRotation,initRot);
       }
 
@@ -165,7 +166,8 @@ namespace OpenMBV {
 
       /** Append a data vector the the h5 datsset */
       void append(const std::vector<double>& row) {
-        assert(data!=0 && row.size()==8);
+        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
           std::vector<double> tmprow(row);

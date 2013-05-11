@@ -38,13 +38,13 @@ namespace OpenMBV {
 
       /** Set the length of the cuboid */
       void setLength(const VectorParameter& length_) {
-        assert(length_.getParamStr()!="" || length_.getValue().size()==3);
+        if(length_.getParamStr()=="" && length_.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
         set(length,length_);
       } 
 
       /** Set the length of the cuboid */
       void setLength(const std::vector<double>& length_) {
-        assert(length_.size()==3);
+        if(length_.size()!=3) throw std::runtime_error("the diemension does not match");
         set(length,length_);
       } 
 

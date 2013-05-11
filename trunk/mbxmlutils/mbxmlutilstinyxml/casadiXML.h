@@ -2,6 +2,7 @@
 #include <casadi/symbolic/sx/sx.hpp>
 #include <casadi/symbolic/fx/sx_function.hpp>
 #include <set>
+#include <memory>
 
 #define MBXMLUTILSCASADINS_ "http://openmbv.berlios.de/MBXMLUtils/CasADi"
 #define MBXMLUTILSCASADINS "{"MBXMLUTILSCASADINS_"}"
@@ -14,11 +15,11 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::ma
   std::pair<std::map<CasADi::SXNode*, int>::iterator, bool> ret=nodes.insert(std::make_pair(s.get(), nodes.size()));
   // if the node of s already exists in the list of all nodes write a reference to this node to XML
   if(ret.second==false) {
-    MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"reference");
+    std::auto_ptr<MBXMLUtils::TiXmlElement> e(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"reference"));
     std::stringstream str;
     str<<ret.first->second;
     e->SetAttribute("refid", str.str());
-    return e;
+    return e.release();
   }
   // if the node of s does not exist in the list of all nodes set the id of this node
   else {
@@ -28,44 +29,44 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::ma
   }
 
   // add s to XML dependent on the type of s
-  MBXMLUtils::TiXmlElement *e;
+  std::auto_ptr<MBXMLUtils::TiXmlElement> e;
   if(s.isSymbolic()) {
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SymbolicSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SymbolicSX"));
     e->LinkEndChild(new MBXMLUtils::TiXmlText(s.getName()));
   }
   else if(s.isZero())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"ZeroSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"ZeroSX"));
   else if(s.isOne())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"OneSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"OneSX"));
   else if(s.isMinusOne())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusOneSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusOneSX"));
   else if(s.isInf())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"InfSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"InfSX"));
   else if(s.isMinusInf())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusInfSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"MinusInfSX"));
   else if(s.isNan())
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"NanSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"NanSX"));
   else if(s.isInteger()) {
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"IntegerSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"IntegerSX"));
     std::stringstream str;
     str<<s.getIntValue();
     e->LinkEndChild(new MBXMLUtils::TiXmlText(str.str()));
   }
   else if(s.isConstant()) {
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"RealtypeSX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"RealtypeSX"));
     std::stringstream str;
     str.precision(18);
     str<<s.getValue();
     e->LinkEndChild(new MBXMLUtils::TiXmlText(str.str()));
   }
   else if(s.hasDep() && s.getNdeps()==2) {
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"BinarySX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"BinarySX"));
     e->SetAttribute("op", s.getOp());
     e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
     e->LinkEndChild(convertCasADiToXML(s.getDep(1), nodes));
   }
   else if(s.hasDep() && s.getNdeps()==1) {
-    e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"UnarySX");
+    e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"UnarySX"));
     e->SetAttribute("op", s.getOp());
     e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
   }
@@ -74,7 +75,7 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::ma
 
   // write also the id of a newly node to XML
   e->SetAttribute("id", idStr);
-  return e;
+  return e.release();
 }
 
 inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, std::map<CasADi::SXNode*, int> &nodes) {
@@ -83,13 +84,13 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, s
     return convertCasADiToXML(m.elem(0, 0), nodes);
   // write each matrixRow of m to XML enclosed by a <matrixRow> element and each element in such rows 
   // to this element
-  MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXMatrix");
+  std::auto_ptr<MBXMLUtils::TiXmlElement> e(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXMatrix"));
   if(m.size1()==1) e->SetAttribute("rowVector", "true");
   if(m.size2()==1) e->SetAttribute("columnVector", "true");
   for(int r=0; r<m.size1(); r++) {
     MBXMLUtils::TiXmlElement *matrixRow;
     if(m.size1()==1 || m.size2()==1)
-      matrixRow=e;
+      matrixRow=e.get();
     else {
       matrixRow=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"matrixRow");
       e->LinkEndChild(matrixRow);
@@ -97,13 +98,13 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, s
     for(int c=0; c<m.size2(); c++)
       matrixRow->LinkEndChild(convertCasADiToXML(m.elem(r, c), nodes));
   }
-  return e;
+  return e.release();
 }
 
 inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
   // write each input of f to XML enclosed by a <inputs> element
   std::map<CasADi::SXNode*, int> nodes;
-  MBXMLUtils::TiXmlElement *e=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXFunction");
+  std::auto_ptr<MBXMLUtils::TiXmlElement> e(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXFunction"));
   const std::vector<CasADi::SXMatrix> &in=f.inputExpr();
   MBXMLUtils::TiXmlElement *input=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"inputs");
   e->LinkEndChild(input);
@@ -116,7 +117,7 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f)
   for(size_t i=0; i<out.size(); i++)
     output->LinkEndChild(convertCasADiToXML(out[i], nodes));
 
-  return e;
+  return e.release();
 }
 
 inline CasADi::SX createCasADiSXFromXML(MBXMLUtils::TiXmlElement *e, std::map<int, CasADi::SXNode*> &nodes) {

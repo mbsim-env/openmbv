@@ -26,6 +26,14 @@
   }
 }
 
+// memory management
+%delobject Object::destroy;
+%delobject RigidBody::destroy;
+%feature("unref") Object {
+  if($this->getParent()==NULL)
+    $this->destroy();
+}
+
 #ifdef SWIGPYTHON
   // for python std::vector<double> wrapping work well out of the box
   %include "std_vector.i"

@@ -23,6 +23,7 @@
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
 #include <cmath>
+#include <stdexcept>
 
 namespace OpenMBV {
 
@@ -75,7 +76,8 @@ namespace OpenMBV {
       
       /** Append the data \p row to the end of the dataset */
       void append(const std::vector<double>& row) {
-        assert(data!=0 && row.size()==8);
+        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
           std::vector<double> tmprow(row);
