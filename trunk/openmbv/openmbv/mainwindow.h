@@ -73,10 +73,8 @@ class MainWindow : public QMainWindow {
     enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,
                     rotateXpWorld, rotateXmWorld, rotateYpWorld, rotateYmWorld, rotateZpWorld, rotateZmWorld,
                     rotateXpScreen, rotateXmScreen, rotateYpScreen, rotateYmScreen, rotateZpScreen, rotateZmScreen };
-    enum Mode { no, rotate, translate, zoom };
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
-    Mode mode;
     SoText2 *timeString;
     double fpsMax;
     QWebView *helpViewerGUI, *helpViewerXML;
