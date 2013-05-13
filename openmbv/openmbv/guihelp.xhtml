@@ -9,47 +9,56 @@
     <h1>GUI Help</h1>
 
     <h2>Keyboard Interaction</h2>
+
+    <h3>Global Shortcuts</h3>
     <dl>
-      <dt><tt>Right</tt> or <tt>J</tt></dt><dd> Go one frame up</dd>
-      <dt><tt>Left</tt> or <tt>K</tt></dt><dd> Go one frame down</dd>
-      <dt><tt>Page-Up</tt></dt><dd> Increase animation speed by 10%</dd>
-      <dt><tt>Page-Down</tt></dt><dd> Decrease animation speed by 10%</dd>
-      <dt><tt>1</tt>, <tt>2</tt>, <tt>3</tt>, <tt>4</tt>, <tt>5</tt>, <tt>6</tt>, <tt>7</tt>, <tt>8</tt> or <tt>9</tt></dt><dd> Expand object list to depth</dd>
-      <dt><tt>F2</tt></dt><dd> Edit the name of the current object list entry</dd>
+      <dt><tt>Right</tt> or <tt>J</tt></dt> <dd>Go one frame up</dd>
+      <dt><tt>Left</tt> or <tt>K</tt></dt> <dd>Go one frame down</dd>
+      <dt><tt>Page-Up</tt></dt> <dd>Increase animation speed by 10%</dd>
+      <dt><tt>Page-Down</tt></dt> <dd>Decrease animation speed by 10%</dd>
+      <dt><tt>1</tt>, <tt>2</tt>, <tt>3</tt>, <tt>4</tt>, <tt>5</tt>, <tt>6</tt>, <tt>7</tt>, <tt>8</tt> or <tt>9</tt></dt>
+        <dd>Expand object list to depth</dd>
+      <dt><tt>P</tt></dt> <dd>Play animation</dd>
+      <dt><tt>L</tt></dt> <dd>Show last frame</dd>
+      <dt><tt>S</tt></dt> <dd>Stop animation</dd>
+    </dl>
+
+    <h3>Object List Shortcuts</h3>
+    <dl>
+      <dt><tt>F2</tt></dt> <dd>Edit the name of the current object list entry</dd>
     </dl>
 
     <h2>Mouse Interaction</h2>
+    <p>All GUI elements behave like common GUI elements: try left, right and double-clicks.</p>
+
+    <h3>3D-View</h3>
+
+    <h4>Mouse Move Events</h4>
     <dl>
-      <dt>Left-Button-Down + Move</dt>
-        <dd> Rotate the entiry scene</dd>
-      <dt>Right-Button-Down + Move</dt>
-        <dd> Translate the entiry scene</dd>
-      <dt>Middle-Button-Down + Move</dt>
-        <dd> Zoom the entiry scene</dd>
+      <dt>Left-Button-Down + Move</dt> <dd>Rotate the entiry scene</dd>
+      <dt>Right-Button-Down + Move</dt> <dd>Translate the entiry scene</dd>
+      <dt>Middle-Button-Down + Move</dt> <dd>Zoom the entiry scene</dd>
       <dt><tt>D</tt>-Down + Left-Button-Down + Move</dt>
-        <dd> Manipulate a dragger. The dragger must be enabled using
+        <dd>Manipulate a dragger. The dragger must be enabled using
         the property menu of the body before</dd>
       <dt><tt>D+Shift</tt>-Down + Left-Button-Down + Move</dt>
-        <dd> Manipulate a dragger in constraint motion. The dragger must
+        <dd>Manipulate a dragger in constraint motion. The dragger must
         be enabled using the property menu of the body before</dd>
-      <dt><tt>Ctrl</tt>-Down + Left-Button-Click</dt>
-        <dd> Selects the body under the cursor.</dd>
-      <dt><tt>Ctrl+Shift</tt>-Down + Left-Button-Click</dt>
-        <dd> Toggle the selection of the body under the cursor.</dd>
-      <dt><tt>Ctrl</tt>-Down + Right-Button-Click</dt>
-        <dd> Select the body under the curser and show the property menu.</dd>
-      <dt><tt>Ctrl+Shift</tt>-Down + Right-Button-Click</dt>
-        <dd> Toggle the selection of the body under the curser and show the
-        property menu.</dd>
-      <dt><tt>Ctrl+Alt</tt>-Down + Left-Button-Click</dt>
-        <dd> Shows a menu of all bodies under the cursor. Selecting one menu
-        entry, selects this body.</dd>
-      <dt><tt>Ctrl+Alt</tt>-Down + Right-Button-Click</dt>
-        <dd> Shows a menu of all bodies under the cursor. Selecting one menu
-        entry, selects and shows the proptery menu of this body.</dd>
-      <dt><tt>Ctrl</tt>-Down + Middle-Button-Click</dt>
-        <dd> Seeks the focal point of the camera to the point on the shape
-        under the cursor.</dd>
+    </dl>
+
+    <h4>Mouse Click Events</h4>
+    <dl>
+      <dt>Left-Button-Click</dt> <dd>Select the object under the cursor</dd>
+      <dt>Right-Button-Click</dt> <dd>Select the object under the curser and show its the property menu</dd>
+    </dl>
+    <dl>
+      <dt><tt>Ctrl</tt>-Down + above action</dt> <dd>Toggle the selection of the object under the cursor instead of selecting</dd>
+    </dl>
+    <dl>
+      <dt><tt>Alt</tt>-Down + above action</dt> <dd>Shows a menu of all objects under the cursor instead of using the first one</dd>
+    </dl>
+    <dl>
+      <dt>Middle-Button-Click</dt> <dd>Seeks the focal point of the camera to the point on the shape under the cursor</dd>
     </dl>
   </body>
 </html>

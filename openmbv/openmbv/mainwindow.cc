@@ -36,6 +36,7 @@
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QStatusBar>
 #include <QtGui/QColorDialog>
+#include <QtCore/QElapsedTimer>
 #include <QWebHistory>
 #include <QWebFrame>
 #include <QWebElement>
@@ -74,9 +75,11 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
+enum Mode { no, rotate, translate, zoom };
+
 MainWindow *MainWindow::instance=0;
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), mode(no), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
@@ -1169,35 +1172,42 @@ void MainWindow::viewChange(ViewSide side) {
   }
 }
 
+static void clearSoEvent(SoEvent *ev) {
+  ev->setShiftDown(false);
+  ev->setCtrlDown(false);
+  ev->setAltDown(false);
+  if(ev->isOfType(SoButtonEvent::getClassTypeId())) {
+    SoButtonEvent *bev=static_cast<SoButtonEvent*>(ev);
+    bev->setState(SoButtonEvent::UNKNOWN);
+  }
+  if(ev->isOfType(SoMouseButtonEvent::getClassTypeId())) {
+    SoMouseButtonEvent *mbev=static_cast<SoMouseButtonEvent*>(ev);
+    mbev->setButton(SoMouseButtonEvent::ANY);
+  }
+  if(ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
+    SoKeyboardEvent *kev=static_cast<SoKeyboardEvent*>(ev);
+    kev->setKey(SoKeyboardEvent::UNDEFINED);
+  }
+}
+
 bool MainWindow::soQtEventCB(const SoEvent *const event) {
-  // if mouse button event
+  static Mode mode=no;
+
   if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-    SoMouseButtonEvent *ev=(SoMouseButtonEvent*)event;
-    // frame up on scroll
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON4) {
-      frameSB->stepUp();
-      return true;
-    }
-    // frame down on scroll
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON5) {
-      frameSB->stepDown();
-      return true;
-    }
-    // if Ctrl|Ctrl+Alt + Button1|Button2 + Pressed: select object (show list if Alt)
-    if(ev->wasCtrlDown() && ev->getState()==SoButtonEvent::DOWN &&
-       (ev->getButton()==SoMouseButtonEvent::BUTTON1 ||
-        ev->getButton()==SoMouseButtonEvent::BUTTON2 ||
-        ev->getButton()==SoMouseButtonEvent::BUTTON3)) {
-      // check for double click (this must be done by hand, since SoQt does not provide is)
-      static QTime lastClick;
-      if(lastClick.restart()<QApplication::doubleClickInterval()) {
-        Object *object=static_cast<Object*>(objectList->currentItem());
-        // show properties dialog only if objectDoubleClicked is not connected to some other slot
-        if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
-          object->properties->show();
-        emit objectDoubleClicked(object->object->getID(), object);
-        return true; // action handled
-      }
+    SoMouseButtonEvent *ev=const_cast<SoMouseButtonEvent*>(static_cast<const SoMouseButtonEvent*>(event));
+    static QPoint buttonDownPoint;
+    static QElapsedTimer timer;
+    static bool doubleClick=false;
+    // save point whre button down was pressed
+    if(ev->getState()==SoButtonEvent::DOWN)
+      buttonDownPoint=QCursor::pos();
+    // detect a double click (at mouse up)
+    doubleClick=false;
+    if(ev->getState()==SoButtonEvent::UP && timer.restart()<QApplication::doubleClickInterval())
+      doubleClick=true;
+    // button up without move of cursor => treat as button pressed
+    // Do not return inside this code block: the button up event must be processed (to reselect mode, ...)
+    if(ev->getState()==SoButtonEvent::UP && (QCursor::pos()-buttonDownPoint).manhattanLength()<=2) {
       // get picked points by ray
       SoRayPickAction pickAction(glViewer->getViewportRegion());
       pickAction.setPoint(ev->getPosition());
@@ -1205,15 +1215,9 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       pickAction.setPickAll(true);
       pickAction.apply(glViewer->getSceneManager()->getSceneGraph());
       SoPickedPointList pickedPoints=pickAction.getPickedPointList();
-      if(ev->getButton()==SoMouseButtonEvent::BUTTON3) { // seek to clicked point
-        if(pickedPoints[0]==0) return true;
-        glViewer->setSeekMode(true);
-        glViewer->seekToPoint(pickedPoints[0]->getPoint());
-        return true;
-      }
       // get objects by point/path
       list<Body*> pickedObject;
-      float x=1e99, y=1e99, z=1e99, xOld, yOld, zOld;
+      float x=1e99, y=1e99, z=1e99;
       cout<<"Clicked points:"<<endl;
       for(int i=0; pickedPoints[i]; i++) {
         SoPath *path=pickedPoints[i]->getPath();
@@ -1228,98 +1232,138 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           }
         }
         if(!found) continue;
-        xOld=x; yOld=y; zOld=z;
 
         // get picked point and delete the cameraPosition and cameraOrientation values (if camera moves with body)
         SbVec3f delta;
         cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
         (delta+cameraPosition->vector[0]).getValue(x,y,z);
 
-        if(fabs(x-xOld)>1e-7 || fabs(y-yOld)>1e-7 || fabs(z-zOld)>1e-7) {
-          QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
-          statusBar()->showMessage(str);
-          str="Point on: %1: [%2, %3, %4]"; str=str.arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z);
-          cout<<str.toStdString()<<endl;
-        }
-        if(!ev->wasAltDown()) break;
+        QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
+        statusBar()->showMessage(str);
+        str="Point on: %1: [%2, %3, %4]"; str=str.arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z);
+        cout<<str.toStdString()<<endl;
       }
+      // mid button clicked => seed rotation center to clicked point
+      if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=0)
+        glViewer->seekToPoint(pickedPoints[0]->getPoint());
+      // if at least one object was picked
       if(pickedObject.size()>0) {
-        // if Button2 show menu of picked objects
-        if(ev->wasAltDown()) {
-          QMenu *menu=new QMenu(this);
-          int ind=0;
-          list<Body*>::iterator it;
-          for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-            QAction *action=new QAction((*it)->icon(0),(*it)->getPath().c_str(),menu);
-            action->setData(QVariant(ind++));
-            menu->addAction(action);
+        bool objectClicked=false;
+        // left or right button clicked => select object
+        if(ev->getButton()==SoMouseButtonEvent::BUTTON1 || ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+          // Alt was down => show menu of all objects under the clicked point and select the clicked object of this menu
+          if(ev->wasAltDown()) {
+            QMenu *menu=new QMenu(this);
+            int ind=0;
+            list<Body*>::iterator it;
+            for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
+              QAction *action=new QAction((*it)->icon(0),(*it)->getPath().c_str(),menu);
+              action->setData(QVariant(ind++));
+              menu->addAction(action);
+            }
+            QAction *action=menu->exec(QCursor::pos());
+            if(action!=0) {
+              ind=action->data().toInt();
+              it=pickedObject.begin();
+              for(int i=0; i<ind; i++, it++);
+              objectList->setCurrentItem(*it,0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
+              emit objectSelected((*it)->object->getID(), *it);
+              objectClicked=true;
+            }
+            delete menu;
           }
-          QAction *action=menu->exec(QCursor::pos());
-          if(action==0) return true;
-          ind=action->data().toInt();
-          delete menu;
-          it=pickedObject.begin();
-          for(int i=0; i<ind; i++, it++);
-          objectList->setCurrentItem(*it,0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-          emit objectSelected((*it)->object->getID(), *it);
+          // alt was not down => select the first object under the clicked point
+          else {
+            objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
+            emit objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
+            objectClicked=true;
+          }
+          // right button => show context menu of picked object
+          if(ev->getButton()==SoMouseButtonEvent::BUTTON2 && objectClicked)
+            execPropertyMenu();
         }
-        // if Button1 select picked object
-        else {
-          objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasShiftDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-          emit objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
+        // left button double clicked (the first click has alread select a object)
+        if(ev->getButton()==SoMouseButtonEvent::BUTTON1 && doubleClick && objectClicked) {
+          Object *object=static_cast<Object*>(objectList->currentItem());
+          // show properties dialog only if objectDoubleClicked is not connected to some other slot
+          if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
+            object->properties->show();
+          emit objectDoubleClicked(object->object->getID(), object);
         }
-        // if Button2 show property menu
-        if(ev->getButton()==SoMouseButtonEvent::BUTTON2)
-          execPropertyMenu();
       }
-      return true; // event applied
     }
-    // if released: set mode=no
-    if(ev->getState()==SoButtonEvent::UP) {
-      if(mode==no); // release from no
-      if(mode==zoom) { // release from zoom
-        ev->setButton(SoMouseButtonEvent::BUTTON3);
-        ev->setCtrlDown(true);
-      }
-      if(mode==rotate) // release from rotate
-        ev->setButton(SoMouseButtonEvent::BUTTON1);
-      if(mode==translate) // release from translate
-        ev->setButton(SoMouseButtonEvent::BUTTON3);
-      mode=no;
-      return false; // pass event to base class
+    // on scroll frame up/down
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON4) {
+      frameSB->stepUp();
+      return true;
     }
-    // if Button3 pressed: enter zoom
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && ev->getState()==SoButtonEvent::DOWN) {
-      ev->setButton(SoMouseButtonEvent::BUTTON3);
-      ev->setCtrlDown(true);
-      mode=zoom;
-      return false; // pass event to base class
+    if(ev->getButton()==SoMouseButtonEvent::BUTTON5) {
+      frameSB->stepDown();
+      return true;
     }
-    // if Button1 pressed: enter rotate
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON1 && ev->getState()==SoButtonEvent::DOWN) {
+    // pass left button to SoQt as left button
+    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON1) {
+      clearSoEvent(ev);
+      ev->setState(SoButtonEvent::DOWN);
       ev->setButton(SoMouseButtonEvent::BUTTON1);
       mode=rotate;
-      return false; // pass event to base class
+      return false;
     }
-    // if Button2 pressed: enter tranlate
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON2 && ev->getState()==SoButtonEvent::DOWN) {
+    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON1) {
+      clearSoEvent(ev);
+      ev->setState(SoButtonEvent::UP);
+      ev->setButton(SoMouseButtonEvent::BUTTON1);
+      mode=no;
+      return false;
+    }
+    // pass right button to SoQt as mid button
+    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+      clearSoEvent(ev);
+      ev->setState(SoButtonEvent::DOWN);
       ev->setButton(SoMouseButtonEvent::BUTTON3);
       mode=translate;
-      return false; // pass event to base class
+      return false;
+    }
+    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON2) {
+      clearSoEvent(ev);
+      ev->setState(SoButtonEvent::UP);
+      ev->setButton(SoMouseButtonEvent::BUTTON3);
+      mode=no;
+      return false;
+    }
+    // pass mid button to SoQt as ctrl+mid button
+    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON3) {
+      clearSoEvent(ev);
+      ev->setCtrlDown(true);
+      ev->setState(SoButtonEvent::DOWN);
+      ev->setButton(SoMouseButtonEvent::BUTTON3);
+      mode=zoom;
+      return false;
+    }
+    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON3) {
+      clearSoEvent(ev);
+      ev->setCtrlDown(false);
+      ev->setState(SoButtonEvent::UP);
+      ev->setButton(SoMouseButtonEvent::BUTTON3);
+      mode=no;
+      return false;
     }
   }
-  // if mouse move event
   if(event->isOfType(SoLocation2Event::getClassTypeId())) {
-    SoLocation2Event *ev=(SoLocation2Event*)event;
-    if(mode==zoom)
+    SoLocation2Event *ev=const_cast<SoLocation2Event*>(static_cast<const SoLocation2Event*>(event));
+    // if mode==zoom is active pass to SoQt with ctrl down
+    if(mode==zoom) {
+      clearSoEvent(ev);
       ev->setCtrlDown(true);
-    return false; // pass event to base class
+      return false;
+    }
+    // other mode's pass to SoQt
+    if(mode!=no) {
+      clearSoEvent(ev);
+      return false;
+    }
   }
-  // if keyboard event
-  if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {
-    return true; // no nothing
-  }
-  return false; // pass event to base class
+  return true;
 }
 
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
