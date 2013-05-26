@@ -7,13 +7,8 @@
 namespace OpenMBV {
 
 class ObjectFactory {
-  protected:
-    typedef std::pair<std::string, std::string> P_NSPRE;
-    typedef std::pair<double, P_NSPRE> P_PRINSPRE;
-    typedef std::multimap<double, P_NSPRE> MM_PRINSPRE;
   public:
     static Object* createObject(MBXMLUtils::TiXmlElement *element);
-    static MM_PRINSPRE& getPriorityNamespacePrefix();
 };
 
 }
