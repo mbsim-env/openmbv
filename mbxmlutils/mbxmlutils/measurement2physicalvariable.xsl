@@ -108,10 +108,10 @@
           <xs:element name="xmlMatrix">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="row" maxOccurs="unbounded">
+                <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                   <xs:complexType>
                     <xs:sequence>
-                      <xs:element name="ele" maxOccurs="unbounded">
+                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
                         <xs:simpleType>
                           <xs:restriction base="xs:string">
                             <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
@@ -151,7 +151,7 @@
           <xs:element name="xmlVector">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ele" maxOccurs="unbounded">
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
                   <xs:simpleType>
                     <xs:restriction base="xs:string">
                       <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
