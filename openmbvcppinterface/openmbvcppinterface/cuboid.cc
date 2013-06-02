@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cuboid, OPENMBVNS"Cuboid")
+
 Cuboid::Cuboid() : RigidBody(),
   length(vector<double>(3, 1)) {
 }

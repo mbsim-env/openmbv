@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Grid, OPENMBVNS"Grid")
+
 Grid::Grid() : RigidBody(),
   xSize(1), ySize(1), nx(10), ny(10) {
 }

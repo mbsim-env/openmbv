@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(InvisibleBody, OPENMBVNS"InvisibleBody")
+
 InvisibleBody::InvisibleBody() : RigidBody() {
 }
 

@@ -26,6 +26,8 @@ using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(NurbsDisk, OPENMBVNS"NurbsDisk")
+
 NurbsDisk::NurbsDisk() : DynamicColoredBody(),
   data(0),
   localFrameStr("false"),

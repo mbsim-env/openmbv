@@ -38,6 +38,8 @@ using namespace MBXMLUtils;
 
 static string dirOfTopLevelFile(Group *grp);
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBVNS"Group")
+
 Group::Group() : Object(), expandStr("true"), separateFile(false) {
 }
 
@@ -191,7 +193,7 @@ void Group::initializeUsingXML(TiXmlElement *element) {
   TiXmlElement *e;
   e=element->FirstChildElement();
   while (e) {
-    Object* obj=ObjectFactory::createObject(e);
+    Object* obj=ObjectFactory::create<Object>(e);
     obj->initializeUsingXML(e);
     addObject(obj);
     e=e->NextSiblingElement();

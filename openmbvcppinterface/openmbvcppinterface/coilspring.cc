@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBVNS"CoilSpring")
+
 CoilSpring::CoilSpring() : DynamicColoredBody(),
   data(0),
   springRadius(1),

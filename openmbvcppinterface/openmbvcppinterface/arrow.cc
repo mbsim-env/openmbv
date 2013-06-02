@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBVNS"Arrow")
+
 Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
   data(0),
   headDiameter(0.5),

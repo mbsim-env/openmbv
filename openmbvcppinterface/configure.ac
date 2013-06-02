@@ -31,6 +31,9 @@ dnl Check for Boost file locking
 AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
   [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found]) DEFINES="$DEFINES -DHAVE_BOOST_FILE_LOCK"])
 
+dnl Check for optional boost type_trains and static_assert
+AC_CHECK_HEADERS([boost/type_traits.hpp])
+
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
