@@ -26,6 +26,8 @@ using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBVNS"SpineExtrusion")
+
 SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),
   contour(0),

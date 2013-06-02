@@ -26,6 +26,8 @@ using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBVNS"Path")
+
 Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
 }
 

@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBVNS"Extrusion")
+
 Extrusion::Extrusion() : RigidBody(),
   windingRule(odd),
   height(1) {

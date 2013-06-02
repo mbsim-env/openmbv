@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBVNS"Frustum")
+
 Frustum::Frustum() : RigidBody(),
   baseRadius(1),
   topRadius(1),

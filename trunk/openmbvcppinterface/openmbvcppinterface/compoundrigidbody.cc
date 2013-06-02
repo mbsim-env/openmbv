@@ -27,6 +27,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBVNS"CompoundRigidBody")
+
 CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
 }
 
@@ -52,7 +54,7 @@ void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   e=e->NextSiblingElement();
   while (e) {
-    RigidBody * rb = (RigidBody*)(ObjectFactory::createObject(e));
+    RigidBody * rb = ObjectFactory::create<RigidBody>(e);
     rb->initializeUsingXML(e);
     addRigidBody(rb);
     e=e->NextSiblingElement();

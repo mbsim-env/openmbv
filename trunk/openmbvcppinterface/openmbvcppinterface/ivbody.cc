@@ -26,6 +26,8 @@ using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBVNS"IvBody")
+
 IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 }
 

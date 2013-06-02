@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frame, OPENMBVNS"Frame")
+
 Frame::Frame() : RigidBody(),
   size(1), offset(1) {
 }

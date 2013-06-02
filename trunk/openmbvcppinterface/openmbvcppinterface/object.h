@@ -23,6 +23,7 @@
 #include <string>
 #include <H5Cpp.h>
 #include <sstream>
+#include <openmbvcppinterface/objectfactory.h>
 #include <mbxmlutilstinyxml/tinyxml.h>
 #include <mbxmlutilstinyxml/tinynamespace.h>
 #include <vector>

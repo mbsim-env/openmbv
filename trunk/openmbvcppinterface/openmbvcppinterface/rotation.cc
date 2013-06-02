@@ -26,6 +26,8 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace OpenMBV;
 
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBVNS"Rotation")
+
 Rotation::Rotation() : RigidBody(),
   startAngle(0),
   endAngle(2*M_PI),
