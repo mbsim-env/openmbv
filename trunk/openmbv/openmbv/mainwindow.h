@@ -44,6 +44,7 @@
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
+#include <QDropEvent>
 #ifdef HAVE_QWT_WHEEL_H
 #  include <qwt_wheel.h>
 #else
@@ -255,7 +256,12 @@ class MainWindow : public QMainWindow {
     SoShadowGroup* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     int getReloadTimeout() { return reloadTimeout; }
-  signals:
+
+    //Event for dropping
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
+
+    signals:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */
     DLL_PUBLIC void objectSelected(std::string curID, Object *curPtr);
