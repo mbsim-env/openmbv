@@ -777,6 +777,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
 
   // lastframe
   if(lastframeArg) lastFrameAct->trigger();
+
+  //accept drag and drop
+  setAcceptDrops(true);
 }
 
 void MainWindow::disableBBox(Object *obj) {
@@ -1978,6 +1981,19 @@ void MainWindow::selectionChanged() {
   QList<QTreeWidgetItem*> list=objectList->selectedItems();
   for(int i=0; i<list.size(); i++)
     static_cast<Object*>(list[i])->object->setSelected(list[i]->isSelected());
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
+  if (event->mimeData()->hasFormat("text/plain")) {
+    event->acceptProposedAction();
+  }
+}
+
+void MainWindow::dropEvent(QDropEvent *event) {
+  QFile Fout(event->mimeData()->urls()[0].path());
+  if(Fout.exists()) {
+    openFile(Fout.fileName().toStdString());
+  }
 }
 
 }
