@@ -1983,16 +1983,22 @@ void MainWindow::selectionChanged() {
     static_cast<Object*>(list[i])->object->setSelected(list[i]->isSelected());
 }
 
+
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
-  if (event->mimeData()->hasFormat("text/plain")) {
+  if (event->mimeData()->hasUrls()) {
     event->acceptProposedAction();
   }
 }
 
 void MainWindow::dropEvent(QDropEvent *event) {
-  QFile Fout(event->mimeData()->urls()[0].path());
-  if(Fout.exists()) {
-    openFile(Fout.fileName().toStdString());
+  for (int i = 0; i < event->mimeData()->urls().size(); i++) {
+    QString path = event->mimeData()->urls()[i].toLocalFile().toLocal8Bit().data();
+    if (path.endsWith("ombv.xml")) {
+      QFile Fout(path);
+      if (Fout.exists()) {
+        openFile(Fout.fileName().toStdString());
+      }
+    }
   }
 }
 
