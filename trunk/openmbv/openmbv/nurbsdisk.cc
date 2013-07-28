@@ -60,11 +60,6 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   nurbsLength = (nr+1)*(nj+degAzimuthal);
 
   // create so
-  // material
-  SoMaterial *mat=new SoMaterial;
-  soSep->addChild(mat);
-  mat->shininess.setValue(0.9);
-  if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // body
   // points

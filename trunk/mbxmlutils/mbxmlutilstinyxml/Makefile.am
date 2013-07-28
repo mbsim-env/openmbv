@@ -21,6 +21,7 @@ libmbxmlutilstinyxml_la_SOURCES = tinynamespace.cpp \
   tinyxmlerror.cpp \
   tinyxmlparser.cpp \
   getinstallpath.cc \
+  utils.cc \
   last_write_time.cc
 
 libmbxmlutilstinyxml_la_HEADERS = tinynamespace.h \
@@ -28,6 +29,7 @@ libmbxmlutilstinyxml_la_HEADERS = tinynamespace.h \
   tinyxml.h \
   getinstallpath.h \
   last_write_time.h \
+  utils.h \
   casadiXML.h
 
 libmbxmlutilstinyxml_ladir = $(includedir)/mbxmlutilstinyxml

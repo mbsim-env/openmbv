@@ -506,6 +506,49 @@ void Vec3fEditor::valueChangedSlot() {
 
 
 
+ColorEditor::ColorEditor(PropertyDialog *parent_, const QIcon& icon, const string &name, bool showResetHueButton) : Editor(parent_, icon, name) {
+  QHBoxLayout *box=new QHBoxLayout;
+  colorDialog=new QColorDialog();
+  colorDialog->setOption(QColorDialog::NoButtons);
+  connect(colorDialog, SIGNAL(currentColorChanged(const QColor &)), this, SLOT(valueChangedSlot()));
+  QPushButton *showDL=new QPushButton("Color...");
+  connect(showDL, SIGNAL(clicked()), this, SLOT(showDialog()));
+  box->addWidget(showDL);
+  if(showResetHueButton) {
+    QPushButton *resetHue=new QPushButton("Reset to hue from HDF5");
+    connect(resetHue, SIGNAL(clicked()), this, SLOT(resetHue()));
+    box->addWidget(resetHue);
+  }
+  dialog->addSmallRow(icon, name, box);
+}
+
+void ColorEditor::valueChangedSlot() {
+  // set OpenMBV
+  if(ombvSetter) {
+    qreal h, s, v;
+    colorDialog->currentColor().getHsvF(&h, &s, &v);
+    ombvSetter(h, s, v);
+  }
+  replaceObject();
+}
+
+void ColorEditor::showDialog() {
+  colorDialog->open();
+}
+
+void ColorEditor::resetHue() {
+  // set OpenMBV (only hue part)
+  if(ombvSetter) {
+    qreal h, s, v;
+    colorDialog->currentColor().getHsvF(&h, &s, &v);
+    h=-1;
+    ombvSetter(h, s, v);
+  }
+  replaceObject();
+}
+
+
+
 
 
 TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {

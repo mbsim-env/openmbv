@@ -38,6 +38,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QLineEdit>
 #include <QtGui/QTableWidget>
+#include <QtGui/QColorDialog>
 #include <Inventor/draggers/SoCenterballDragger.h>
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/nodes/SoSwitch.h>
@@ -142,8 +143,8 @@ class FloatEditor : public Editor {
     /*! Set step size of the double value */
     void setStep(double step) { spinBox->blockSignals(true); spinBox->setSingleStep(step); spinBox->blockSignals(false); }
 
-    /*! Set the special value at min */
-    void setNaNText(const std::string &value) { spinBox->blockSignals(true); spinBox->setSpecialValueText(value.c_str()); spinBox->blockSignals(false); }
+//    /*! Set the special value at min */
+//    void setNaNText(const std::string &value) { spinBox->blockSignals(true); spinBox->setSpecialValueText(value.c_str()); spinBox->blockSignals(false); }
 
     /*! Set the suffix to display */
     void setSuffix(const QString &value) { spinBox->blockSignals(true); spinBox->setSuffix(value); spinBox->blockSignals(false); }
@@ -352,6 +353,33 @@ class Vec3fEditor : public Editor {
 
   protected:
     QDoubleSpinBox *spinBox[3];
+    boost::function<std::vector<double> ()> ombvGetter;
+    boost::function<void (double, double, double)> ombvSetter;
+};
+
+
+
+/*! A Editor of type color */
+class ColorEditor : public Editor {
+  Q_OBJECT
+
+  public:
+    /*! Constructor. */
+    ColorEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, bool showResetHueButton=false);
+
+    /*! OpenMBVCppInterface syncronization.
+     * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
+    template<class OMBVClass>
+    void setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(),
+                                               void (OMBVClass::*setter)(double h, double s, double v));
+
+  protected slots:
+    void valueChangedSlot();
+    void showDialog();
+    void resetHue();
+
+  protected:
+    QColorDialog *colorDialog;
     boost::function<std::vector<double> ()> ombvGetter;
     boost::function<void (double, double, double)> ombvSetter;
 };
@@ -622,6 +650,20 @@ void Vec3fEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMB
     spinBox[i]->setValue(vec[i]);
     spinBox[i]->blockSignals(false);
   }
+}
+
+
+
+template<class OMBVClass>
+void ColorEditor::setOpenMBVParameter(OMBVClass *ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double h, double s, double v)) {
+  ombvGetter=boost::bind(getter, ombv_);
+  ombvSetter=boost::bind(setter, ombv_, _1, _2, _3);
+  std::vector<double> vec=ombvGetter();
+  colorDialog->blockSignals(true);
+  QColor color;
+  color.setHsvF(vec[0], vec[1], vec[2]);
+  colorDialog->setCurrentColor(color);
+  colorDialog->blockSignals(false);
 }
 
 

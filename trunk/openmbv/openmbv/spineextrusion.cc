@@ -42,11 +42,6 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
   vector<OpenMBV::PolygonPoint*>* contour=spineExtrusion->getContour();
 
   // create so
-  // material
-  SoMaterial *mat=new SoMaterial;
-  soSep->addChild(mat);
-  mat->shininess.setValue(0.9);
-  if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // body
   extrusion=new SoVRMLExtrusion;

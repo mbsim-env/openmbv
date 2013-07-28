@@ -24,6 +24,7 @@
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoDrawStyle.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include "utils.h"
 #include "openmbvcppinterface/arrow.h"
 #include <cfloat>
@@ -69,10 +70,6 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   if(arrow->getType()==OpenMBV::Arrow::line) {
     // Line
  
-    // color
-    baseColor=new SoBaseColor;
-    soSep->addChild(baseColor);
-    if(!isnan(staticColor)) setColor(NULL, staticColor, baseColor);
     // line width
     SoDrawStyle *drawStyle=new SoDrawStyle;
     soSep->addChild(drawStyle);
@@ -86,10 +83,6 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   }
   else {
     // Arrow
-    // mat
-    mat=new SoMaterial;
-    soSep->addChild(mat);
-    if(!isnan(staticColor)) setColor(mat, staticColor);
     // translate to To-Point
     toPoint=new SoTranslation;
     soSep->addChild(toPoint);
@@ -105,7 +98,8 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       SoScale *bScale=new SoScale;
       soSep->addChild(bScale);
-      bScale->scaleFactor.setValue(1,-1,1);
+      // scale y by -1 to get the mirrored arrow and scale x by -1 to get the same vertex ordering without changing the geometry
+      bScale->scaleFactor.setValue(-1,-1,1);
       bTrans=new SoTranslation;
       soSep->addChild(bTrans);
       soSep->addChild(arrowSep);
@@ -300,7 +294,7 @@ double Arrow::update() {
 
   // if type==line: draw update line and exit
   if(arrow->getType()==OpenMBV::Arrow::line) {
-    if(isnan(staticColor)) setColor(NULL, data[7], baseColor);
+    if(diffuseColor[0]<0) setColor(data[7]);
     lineCoord->point.set1Value(0, data[1], data[2], data[3]); // to point
     lineCoord->point.set1Value(1, data[1]-dx*scaleLength, data[2]-dy*scaleLength, data[3]-dz*scaleLength); // from point
     return data[0];
@@ -329,7 +323,7 @@ double Arrow::update() {
   rotation1->rotation.setValue(SbVec3f(0, 0, 1), -atan2(dx,dy));
   rotation2->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
   // mat
-  if(isnan(staticColor)) setColor(mat, data[7]);
+  if(diffuseColor[0]<0) setColor(data[7]);
 
   // for type==bothHeads: reset half length
   if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads)

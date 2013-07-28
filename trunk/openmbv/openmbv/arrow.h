@@ -44,8 +44,6 @@ class Arrow : public DynamicColoredBody {
     SoSwitch *soPathSwitch;
     SoCoordinate3 *pathCoord, *lineCoord;
     SoLineSet *pathLine;
-    SoMaterial *mat;
-    SoBaseColor *baseColor;
     SoTranslation *toPoint, *bTrans;
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;

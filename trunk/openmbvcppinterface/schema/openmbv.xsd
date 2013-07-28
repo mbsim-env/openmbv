@@ -111,7 +111,9 @@
         <xs:sequence>
           <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
-          <xs:element name="staticColor" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="staticColor" type="pv:nounitScalar" minOccurs="0"/><!-- deprecated -->
+          <xs:element name="diffuseColor" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="transparency" type="pv:nounitScalar" minOccurs="0"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

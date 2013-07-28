@@ -24,7 +24,6 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
-#include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoRotation.h>
@@ -39,6 +38,7 @@ namespace OpenMBVGUI {
 
 class RigidBody : public DynamicColoredBody {
   Q_OBJECT
+  friend class CompoundRigidBody;
   protected:
     OpenMBV::RigidBody *rigidBody;
     QAction *moveCameraWith;
@@ -50,7 +50,6 @@ class RigidBody : public DynamicColoredBody {
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
-    SoMaterial *mat;
     SoScale *refFrameScale, *localFrameScale;
     SoSeparator *soSepRigidBody;
     TransRotEditor *initialTransRotEditor;

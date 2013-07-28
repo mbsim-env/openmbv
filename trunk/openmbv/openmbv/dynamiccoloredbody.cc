@@ -32,7 +32,29 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   // read XML
   minimalColorValue=dcb->getMinimalColorValue();
   maximalColorValue=dcb->getMaximalColorValue();
-  staticColor=dcb->getStaticColor();
+
+  // handle deprecated getStaticColor (can be simple removed if getStaticColor is removed)
+  double staticColor=dcb->getStaticColor();
+  vector<double> hsv=dcb->getDiffuseColor();
+  if(!isnan(staticColor) && hsv[0]<0) {
+    double m=1/(maximalColorValue-minimalColorValue);
+    double col=m*staticColor-m*minimalColorValue;
+    if(col<0) col=0;
+    if(col>1) col=1;
+    dcb->setDiffuseColor((1-col)*2/3, hsv[1], hsv[2]);
+  }
+
+  // define a material and base color based on the xml data
+  mat=new SoMaterial;
+  soSep->addChild(mat);
+  diffuseColor=dcb->getDiffuseColor();
+  mat->diffuseColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
+  mat->specularColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, 0.7*diffuseColor[1], diffuseColor[2]);
+  mat->transparency.setValue(dcb->getTransparency());
+  mat->shininess.setValue(0.9);
+  baseColor=new SoBaseColor;
+  soSep->addChild(baseColor);
+  baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
 
   // GUI
   if(!clone) {
@@ -42,13 +64,17 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
     FloatEditor *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
     maximalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMaximalColorValue, &OpenMBV::DynamicColoredBody::setMaximalColorValue);
 
-    FloatEditor *staticColorEditor=new FloatEditor(properties, QIcon(), "Static color value");
-    staticColorEditor->setNaNText("not used");
-    staticColorEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getStaticColor, &OpenMBV::DynamicColoredBody::setStaticColor);
+    ColorEditor *diffuseColorValue=new ColorEditor(properties, QIcon(), "Diffuse color", true);
+    diffuseColorValue->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getDiffuseColor, &OpenMBV::DynamicColoredBody::setDiffuseColor);
+
+    FloatEditor *transparencyValueEditor=new FloatEditor(properties, QIcon(), "Transparency value");
+    transparencyValueEditor->setRange(0, 1);
+    transparencyValueEditor->setStep(0.1);
+    transparencyValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getTransparency, &OpenMBV::DynamicColoredBody::setTransparency);
   }
 }
 
-void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base) {
+void DynamicColoredBody::setColor(double col) {
   if(oldColor!=col) {
     color=col;
     oldColor=col;
@@ -56,10 +82,18 @@ void DynamicColoredBody::setColor(SoMaterial *mat, double col, SoBaseColor *base
     col=m*col-m*minimalColorValue;
     if(col<0) col=0;
     if(col>1) col=1;
-    if(base) base->rgb.setHSVValue((1-col)*2/3,1,1);
-    if(mat) mat->diffuseColor.setHSVValue((1-col)*2/3,1,1);
-    if(mat) mat->specularColor.setHSVValue((1-col)*2/3,0.7,1);
+    setHueColor((1-col)*2/3);
   }
+}
+
+void DynamicColoredBody::setHueColor(double hue) {
+  float h, s, v;
+  baseColor->rgb[0].getHSVValue(h, s, v);
+  baseColor->rgb.setHSVValue(hue, s, v);
+  mat->diffuseColor[0].getHSVValue(h, s, v);
+  mat->diffuseColor.setHSVValue(hue, s, v);
+  mat->specularColor[0].getHSVValue(h, s, v);
+  mat->specularColor.setHSVValue(hue, 0.7*s, v);
 }
 
 QString DynamicColoredBody::getInfo() {

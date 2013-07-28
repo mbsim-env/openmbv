@@ -60,35 +60,27 @@ namespace OpenMBV {
       int getRows() { return data?data->getRows():-1; }
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(4); }
 
-      /** Set the color of the path.
-       * Use a vector with tree double representing reg, green and blue as paremter.
-       * red, green and blue runs form 0 to 1
-       */
-      void setColor(const VectorParameter& color_) {
-        if(color_.getParamStr()=="" && color_.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(color,color_);
+      /** Set the color of the path (HSV values from 0 to 1). */
+      void setColor(const VectorParameter& hsv) {
+        if(hsv.getParamStr()=="" && hsv.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
+        set(color,hsv);
       }
 
-      /** Set the color of the paht.
-       * Use a vector with tree double representing reg, green and blue as paremter.
-       * red, green and blue runs form 0 to 1
-       */
-      void setColor(const std::vector<double>& color_) {
-        if(color_.size()!=3) throw std::runtime_error("the dimension does not match");
-        set(color,color_);
+      /** Set the color of the path (HSV values from 0 to 1). */
+      void setColor(const std::vector<double>& hsv) {
+        if(hsv.size()!=3) throw std::runtime_error("the dimension does not match");
+        set(color,hsv);
       }
 
       std::vector<double> getColor() { return get(color); }
 
-      /** Set the color of the paht.
-       * red, green and blue runs form 0 to 1
-       */
-      void setColor(double red, double green, double blue) {
-        std::vector<double> c;
-        c.push_back(red);
-        c.push_back(green);
-        c.push_back(blue);
-        color=c;
+      /** Set the color of the path (HSV values from 0 to 1). */
+      void setColor(double h, double s, double v) {
+        std::vector<double> hsv;
+        hsv.push_back(h);
+        hsv.push_back(s);
+        hsv.push_back(v);
+        color=hsv;
       }
 
       /** Initializes the time invariant part of the object using a XML node */

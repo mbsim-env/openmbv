@@ -98,13 +98,6 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
   soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
   localFrameScale->ref();
   soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
-  
-  // mat (from hdf5)
-  mat=new SoMaterial;
-  setColor(mat, 0);
-  soSepRigidBody->addChild(mat);
-  mat->shininess.setValue(0.9);
-  if(!isnan(staticColor)) setColor(mat, staticColor);
 
   // initial scale
   SoScale *scale=new SoScale;
@@ -171,7 +164,7 @@ double RigidBody::update() {
 
   // do not change "mat" if color has not changed to prevent
   // invalidating the render cache of the geometry.
-  if(isnan(staticColor)) setColor(mat, data[7]);
+  if(diffuseColor[0]<0) setColor(data[7]);
 
   // path
   if(rigidBody->getPath()) {
