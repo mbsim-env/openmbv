@@ -30,7 +30,14 @@ DynamicColoredBody::DynamicColoredBody() : Body(),
   minimalColorValue(0),
   maximalColorValue(1),
   staticColor(NAN),
-  dynamicColor(NAN) {
+  dynamicColor(NAN),
+  diffuseColor(vector<double>(3)),
+  transparency(0) {
+  vector<double> hsv(3);
+  hsv[0]=-1;
+  hsv[1]=1;
+  hsv[2]=1;
+  set(diffuseColor,hsv);
 }
 
 DynamicColoredBody::~DynamicColoredBody() {}
@@ -40,6 +47,9 @@ TiXmlElement* DynamicColoredBody::writeXMLFile(TiXmlNode *parent) {
   addElementText(e, OPENMBVNS"minimalColorValue", minimalColorValue, 0);
   addElementText(e, OPENMBVNS"maximalColorValue", maximalColorValue, 1);
   addElementText(e, OPENMBVNS"staticColor", staticColor, nan(""));
+  if(diffuseColor.getValue()[0]>=0 || diffuseColor.getValue()[1]!=1 || diffuseColor.getValue()[2]!=1)
+    addElementText(e, OPENMBVNS"diffuseColor", diffuseColor);
+  addElementText(e, OPENMBVNS"transparency", transparency, 0);
   return e;
 }
 
@@ -53,6 +63,14 @@ void DynamicColoredBody::initializeUsingXML(TiXmlElement *element) {
   if(e)
     setMaximalColorValue(getDouble(e));
   e=element->FirstChildElement(OPENMBVNS"staticColor");
+  if(e) {
+    MBXMLUtils::Deprecated::registerMessage("<ombv:staticColor> is deprecated, use <ombv:diffuseColor> instead.", e);
+    set(staticColor, getDouble(e));// do not call setStaticColor here to avoid another deprecated message
+  }
+  e=element->FirstChildElement(OPENMBVNS"diffuseColor");
   if(e)
-    setStaticColor(getDouble(e));
+    setDiffuseColor(getVec(e, 3));
+  e=element->FirstChildElement(OPENMBVNS"transparency");
+  if(e)
+    setTransparency(getDouble(e));
 }

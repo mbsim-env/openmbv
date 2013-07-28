@@ -30,9 +30,13 @@ namespace OpenMBVGUI {
 class DynamicColoredBody : public Body {
   Q_OBJECT
   protected:
-    double minimalColorValue, maximalColorValue, staticColor;
+    double minimalColorValue, maximalColorValue;
+    SoMaterial *mat;
+    SoBaseColor *baseColor;
+    std::vector<double> diffuseColor;
     double color,oldColor;
-    void setColor(SoMaterial *mat, double col, SoBaseColor *base=NULL);
+    void setColor(double col);
+    void setHueColor(double h);
     double getColor() { return color; }
   public:
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);

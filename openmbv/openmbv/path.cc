@@ -42,7 +42,7 @@ Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   
   // create so
   SoBaseColor *col=new SoBaseColor;
-  col->rgb.setValue(path->getColor()[0], path->getColor()[1], path->getColor()[2]);
+  col->rgb.setHSVValue(path->getColor()[0], path->getColor()[1], path->getColor()[2]);
   soSep->addChild(col);
   coord=new SoCoordinate3;
   soSep->addChild(coord);
@@ -53,8 +53,7 @@ Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    Vec3fEditor *colorEditor=new Vec3fEditor(properties, QIcon(), "Color");
-    colorEditor->setRange(0, 1);
+    ColorEditor *colorEditor=new ColorEditor(properties, QIcon(), "Color");
     colorEditor->setOpenMBVParameter(path, &OpenMBV::Path::getColor, &OpenMBV::Path::setColor);
   }
 }

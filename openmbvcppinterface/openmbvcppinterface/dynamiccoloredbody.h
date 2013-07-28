@@ -21,6 +21,7 @@
 #define _OPENMBV_DYNAMICCOLOREDBODY_H_
 
 #include <openmbvcppinterface/body.h>
+#include <mbxmlutilstinyxml/utils.h>
 
 namespace OpenMBV {
 
@@ -30,6 +31,8 @@ namespace OpenMBV {
       ScalarParameter minimalColorValue, maximalColorValue;
       ScalarParameter staticColor;
       double dynamicColor;
+      VectorParameter diffuseColor;
+      ScalarParameter transparency;
 
       ~DynamicColoredBody();
     public:
@@ -54,15 +57,21 @@ namespace OpenMBV {
 
       double getMaximalColorValue() { return get(maximalColorValue); }
 
-      /** Set a static color for the body.
+      /** Deprecated!
+       * Set a static color for the body.
        * If this value is set, the color given to the append function
        * (as last element of the data row) is overwritten with this value.
        */
       void setStaticColor(const ScalarParameter col) {
+        MBXMLUtils::Deprecated::registerMessage("setStaticColor is deprecated, use setDiffuseColor instead.");
         set(staticColor,col);
       }
 
-      double getStaticColor() { return get(staticColor); }
+      /** Deprecated! */
+      double getStaticColor() {
+        MBXMLUtils::Deprecated::registerMessage("getStaticColor is deprecated, use getDiffuseColor instead.");
+        return get(staticColor);
+      }
 
       /** Set the color for the body dynamically.
        * If this value is set, the color given to the append function
@@ -73,6 +82,37 @@ namespace OpenMBV {
       }
 
       double getDynamicColor() { return dynamicColor; }
+
+      /** Set the diffuse color of the body (HSV values from 0 to 1).
+       * If the hue is less then 0 (default = -1) then the dynamic color from the
+       * append routine is used as hue value.
+       */
+      void setDiffuseColor(const VectorParameter &hsv) {
+        if(hsv.getParamStr()=="" && hsv.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
+        set(diffuseColor,hsv);
+      }
+
+      void setDiffuseColor(const std::vector<double> &hsv) {
+        if(hsv.size()!=3) throw std::runtime_error("the diemension does not match");
+        set(diffuseColor,hsv);
+      }
+
+      void setDiffuseColor(double h, double s, double v) {
+        std::vector<double> hsv;
+        hsv.push_back(h);
+        hsv.push_back(s);
+        hsv.push_back(v);
+        diffuseColor=hsv;
+      }
+
+      std::vector<double> getDiffuseColor() { return get(diffuseColor); }
+
+      /** Set the transparency of the body. */
+      void setTransparency(ScalarParameter t) {
+        set(transparency,t);
+      }
+
+      double getTransparency() { return get(transparency); }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);

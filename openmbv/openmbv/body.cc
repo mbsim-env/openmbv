@@ -68,6 +68,10 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   lm->model.setValue(SoLightModel::BASE_COLOR);
   soOutLineSep->addChild(MainWindow::getInstance()->getOlseColor());
   soOutLineSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
+  // render outlines without backface culling
+  SoShapeHints *sh=new SoShapeHints;
+  soOutLineSep->addChild(sh);
+  sh->shapeType=SoShapeHints::UNKNOWN_SHAPE_TYPE;
 
   // switch for shilouette edge
   soShilouetteEdgeSwitch=new SoSwitch;

@@ -24,6 +24,10 @@ AC_TYPE_SIZE_T
 AC_CANONICAL_HOST
 
 AC_CHECK_HEADERS([unordered_map unordered_set])
+ 
+AC_CHECK_HEADERS([libunwind.h])
+AC_CHECK_LIB(unwind-x86_64, main)
+AC_CHECK_HEADERS([cxxabi.h])
 
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],

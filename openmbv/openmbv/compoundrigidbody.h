@@ -32,6 +32,8 @@ class CompoundRigidBody : public RigidBody {
   public:
     CompoundRigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
+  protected:
+    virtual double update();
   private:
     OpenMBV::CompoundRigidBody *crb;
   protected slots:

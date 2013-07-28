@@ -100,4 +100,22 @@ void CompoundRigidBody::newRigidBodySlot() {
   MainWindow::getInstance()->searchObjectList(this, QRegExp(MainWindow::getInstance()->filter->text()));
 }
 
+double CompoundRigidBody::update() {
+  if(rigidBody->getRows()==-1) return 0; // do nothing for environement objects
+
+  // call the normal update for a RigidBody
+  double t=RigidBody::update();
+
+  // update the color for children
+  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  vector<double> data=rigidBody->getRow(frame);
+  for(int i=0; i<childCount(); i++) {
+    RigidBody *childRB=static_cast<RigidBody*>(child(i));
+    if(childRB->diffuseColor[0]<0)
+      childRB->setColor(data[7]);
+  }
+
+  return t;
+}
+
 }

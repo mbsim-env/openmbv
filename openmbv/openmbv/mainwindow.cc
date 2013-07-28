@@ -51,6 +51,7 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
@@ -135,6 +136,11 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   offset->units.setValue(1000);
   complexity=new SoComplexity;
   sceneRoot->addChild(complexity);
+  // enable backface culling (and one sided lightning) by default
+  SoShapeHints *sh=new SoShapeHints;
+  sceneRoot->addChild(sh);
+  sh->vertexOrdering=SoShapeHints::COUNTERCLOCKWISE;
+  sh->shapeType=SoShapeHints::SOLID;
 
   // Switch for global shilouette/crease/boundary override elements
   engDrawing=new SoSwitch;

@@ -58,9 +58,6 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
 
   // create so
   // body
-  mat=new SoMaterial;
-  soSep->addChild(mat);
-  if(!isnan(staticColor)) setColor(mat, staticColor);
   fromPoint=new SoTranslation;
   soSep->addChild(fromPoint);
   rotation=new SoRotation;
@@ -231,7 +228,7 @@ double CoilSpring::update() {
   }
   
   // color
-  if(isnan(staticColor)) setColor(mat, data[7]);
+  if(diffuseColor[0]<0) setColor(data[7]);
 
   return data[0];
 }

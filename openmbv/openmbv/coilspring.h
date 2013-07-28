@@ -54,8 +54,6 @@ class CoilSpring : public DynamicColoredBody {
     virtual QString getInfo();
 
   protected:
-    /** material and color */
-    SoMaterial *mat;
 
     /** extrusion body */
     SoVRMLExtrusion *extrusion;
