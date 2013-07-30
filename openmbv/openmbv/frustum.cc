@@ -96,26 +96,26 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
     baseFace->coordIndex.set1Value(++nr, N-1);
     baseFace->normalIndex.set1Value(nr, 0);
     if(height!=0) {
-      topFace->coordIndex.set1Value(nr, 2*N-1);
+      topFace->coordIndex.set1Value(nr, 4*N-1);
       topFace->normalIndex.set1Value(nr, 1);
     }
     baseFace->coordIndex.set1Value(++nr, 3*N-1);
     baseFace->normalIndex.set1Value(nr, 0);
     if(height!=0) {
-      topFace->coordIndex.set1Value(nr, 4*N-1);
+      topFace->coordIndex.set1Value(nr, 2*N-1);
       topFace->normalIndex.set1Value(nr, 1);
     }
     for(int i=0; i<N; i++) {
       baseFace->coordIndex.set1Value(++nr, i);
       baseFace->normalIndex.set1Value(nr, 0);
       if(height!=0) {
-        topFace->coordIndex.set1Value(nr, i+N);
+        topFace->coordIndex.set1Value(nr, i+3*N);
         topFace->normalIndex.set1Value(nr, 1);
       }
       baseFace->coordIndex.set1Value(++nr, i+2*N);
       baseFace->normalIndex.set1Value(nr, 0);
       if(height!=0) {
-        topFace->coordIndex.set1Value(nr, i+3*N);
+        topFace->coordIndex.set1Value(nr, i+N);
         topFace->normalIndex.set1Value(nr, 1);
       }
     }
@@ -130,7 +130,7 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
       soSepRigidBody->addChild(topFace);
     }
     for(int i=0; i<N; i++) {
-      baseFace->coordIndex.set1Value(++nr, i);
+      baseFace->coordIndex.set1Value(++nr, N-i-1);
       baseFace->normalIndex.set1Value(nr, 0);
       if(height!=0) {
         topFace->coordIndex.set1Value(nr, i+N);
@@ -143,14 +143,14 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
     int nr=-1;
     SoIndexedTriangleStripSet *outerFace=new SoIndexedTriangleStripSet;
     soSepRigidBody->addChild(outerFace);
-    outerFace->coordIndex.set1Value(++nr, N-1);
-    outerFace->normalIndex.set1Value(nr, N-1+2);
     outerFace->coordIndex.set1Value(++nr, 2*N-1);
     outerFace->normalIndex.set1Value(nr, N-1+2);
+    outerFace->coordIndex.set1Value(++nr, N-1);
+    outerFace->normalIndex.set1Value(nr, N-1+2);
     for(int i=0; i<N; i++) {
-      outerFace->coordIndex.set1Value(++nr, i);
-      outerFace->normalIndex.set1Value(nr, i+2);
       outerFace->coordIndex.set1Value(++nr, i+N);
+      outerFace->normalIndex.set1Value(nr, i+2);
+      outerFace->coordIndex.set1Value(++nr, i);
       outerFace->normalIndex.set1Value(nr, i+2);
     }
     // faces inner

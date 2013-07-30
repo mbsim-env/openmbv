@@ -34,7 +34,7 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   maximalColorValue=dcb->getMaximalColorValue();
 
   // handle deprecated getStaticColor (can be simple removed if getStaticColor is removed)
-  double staticColor=dcb->getStaticColor();
+  double staticColor=dcb->getStaticColor(false);
   vector<double> hsv=dcb->getDiffuseColor();
   if(!isnan(staticColor) && hsv[0]<0) {
     double m=1/(maximalColorValue-minimalColorValue);
