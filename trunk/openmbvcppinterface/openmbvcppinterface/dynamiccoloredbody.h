@@ -68,8 +68,9 @@ namespace OpenMBV {
       }
 
       /** Deprecated! */
-      double getStaticColor() {
-        MBXMLUtils::Deprecated::registerMessage("getStaticColor is deprecated, use getDiffuseColor instead.");
+      double getStaticColor(bool internalDoNotUse=true) {
+        if(internalDoNotUse)
+          MBXMLUtils::Deprecated::registerMessage("getStaticColor is deprecated, use getDiffuseColor instead.");
         return get(staticColor);
       }
 

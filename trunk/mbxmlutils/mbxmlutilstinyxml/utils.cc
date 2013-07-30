@@ -72,7 +72,7 @@ namespace MBXMLUtils {
 
   void Deprecated::printAllMessages() {
     cerr<<endl;
-    cerr<<"WARNING: "<<allMessages.size()<<" deprecated features were called during simulation:"<<endl;
+    cerr<<"WARNING: "<<allMessages.size()<<" deprecated features were called:"<<endl;
     set<vector<string> >::const_iterator it;
     int nr=0;
     for(it=allMessages.begin(); it!=allMessages.end(); it++) {
