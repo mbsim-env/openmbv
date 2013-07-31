@@ -18,7 +18,7 @@
 */
 
 #include "config.h"
-#include <openmbvcppinterface/dynamiccoloredbody.h>
+#include "openmbvcppinterface/dynamiccoloredbody.h"
 #include <fstream>
 #include <cmath>
 
