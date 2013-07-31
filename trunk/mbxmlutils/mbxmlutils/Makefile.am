@@ -13,14 +13,14 @@ dist_xml_DATA = measurement.xml
 # validate measurement.xml
 .measurement.xml.isvalid: measurement.xml measurement.xsd
 	rm -f .measurement.xml.isvalid
-	@XMLLINT@ --noout --schema measurement.xsd measurement.xml && touch .measurement.xml.isvalid
+	@XMLLINT@ --noout --schema @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
 
 
 
 
 # generate physicalvariable.xsd
 physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --output physicalvariable.xsd measurement2physicalvariable.xsl measurement.xml
+	@XSLTPROC@ --output @srcdir@/physicalvariable.xsd @srcdir@/measurement2physicalvariable.xsl @srcdir@/measurement.xml
 # link some files required for the "check" target to the "check" directory
 	test -d check/http___openmbv_berlios_de_MBXMLUtils || mkdir check/http___openmbv_berlios_de_MBXMLUtils
 	(cd check/http___openmbv_berlios_de_MBXMLUtils; \
