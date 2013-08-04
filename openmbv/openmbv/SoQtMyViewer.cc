@@ -33,11 +33,22 @@
 #include <QIcon>
 #include "mainwindow.h"
 
+using namespace std;
+
 namespace OpenMBVGUI {
 
-SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtExaminerViewer(parent) {
+SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerViewer(parent) {
   setDecoration(false);
-  setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
+  switch(transparency) {
+    case 2:
+      setAlphaChannel(true);
+      setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+      break;
+    case 1:
+    default:
+      setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
+      break;
+  }
   setAnimationEnabled(false);
   setSeekTime(1);
   setCameraType(SoOrthographicCamera::getClassTypeId());

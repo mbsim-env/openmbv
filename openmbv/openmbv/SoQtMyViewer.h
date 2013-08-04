@@ -30,7 +30,7 @@ namespace OpenMBVGUI {
 
 class SoQtMyViewer : public SoQtExaminerViewer {
   public:
-    SoQtMyViewer(QWidget *parent);
+    SoQtMyViewer(QWidget *parent, int transparency);
     ~SoQtMyViewer();
     void setSeekMode(SbBool enabled) { SoQtExaminerViewer::setSeekMode(enabled); } // is protected
     void seekToPoint(const SbVec3f& scenepos) { SoQtExaminerViewer::seekToPoint(scenepos); } // is protected
