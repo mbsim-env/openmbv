@@ -107,7 +107,6 @@ ScalarParameter Object::getDouble(TiXmlElement *e) {
     TiXml_location(e, "", str.str());
     throw 1;
   }
-  return NAN;
 }
 
 VectorParameter Object::getVec(TiXmlElement *e, unsigned int rows) {

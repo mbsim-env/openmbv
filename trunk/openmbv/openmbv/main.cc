@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
         <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
         <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
-        <<"               [--autoreload [<timeout>]]"<<endl
+        <<"               [--autoreload [<timeout>]] [--transparency 1|2]"<<endl
         <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
@@ -100,6 +100,11 @@ int main(int argc, char *argv[])
         <<"--autoreload       Reload, every <timeout> milli seconds, files that have a"<<endl
         <<"                   newer modification time than before. If <timeout> is omitted"<<endl
         <<"                   a default value is used."<<endl
+        <<"--transparency     1 = DELAYED_BLEND (default): fast; independent of graphic"<<endl
+        <<"                       card; good results with only opaque objects and objects"<<endl
+        <<"                       with similar transparency value."<<endl
+        <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
+        <<"                       but requires OpenGL extensions by the graphic card."<<endl
         <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl

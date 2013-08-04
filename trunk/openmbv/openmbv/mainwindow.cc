@@ -124,7 +124,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   fgColorTop->set1Value(0, 0,0,0);
   fgColorBottom=new SoMFColor;
   fgColorBottom->set1Value(0, 1,1,1);
-  glViewer=new SoQtMyViewer(glViewerWG);
+  int transparency=1;
+  if((i=std::find(arg.begin(), arg.end(), "--transparency"))!=arg.end()) {
+    i2=i; i2++;
+    transparency=QString(i2->c_str()).toDouble();
+    arg.erase(i); arg.erase(i2);
+  }
+  glViewer=new SoQtMyViewer(glViewerWG, transparency);
   mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoShadowGroup;
   sceneRoot->ref();
