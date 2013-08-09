@@ -20,7 +20,7 @@
 #include "config.h"
 #include "mbxmlutilstinyxml/utils.h"
 #include "mbxmlutilstinyxml/tinynamespace.h"
-#if defined HAVE_LIBUNWIND_H && defined HAVE_LIBUNWIND_X86_64
+#if defined HAVE_LIBUNWIND_H && ( defined HAVE_LIBUNWIND_X86_64 || defined HAVE_LIBUNWIND_X86 )
 #  include <libunwind.h>
 #endif
 #if defined HAVE_CXXABI_H
@@ -48,7 +48,7 @@ namespace MBXMLUtils {
       stack.insert(stack.end(), out.begin(), out.end());
     }
     else {
-#if defined HAVE_LIBUNWIND_H && defined HAVE_LIBUNWIND_X86_64
+#if defined HAVE_LIBUNWIND_H && ( defined HAVE_LIBUNWIND_X86_64 ||defined HAVE_LIBUNWIND_X86 )
       unw_context_t context;
       unw_getcontext(&context);
       unw_cursor_t cp;

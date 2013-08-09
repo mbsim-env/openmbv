@@ -45,7 +45,6 @@ if test "_$host_os" = "_mingw32"; then
 fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
-LDFLAGS="-Wl,--no-undefined $LDFLAGS"
 AC_CHECK_HEADERS([unordered_map])
 
 dnl GET VERSION from svn
@@ -131,7 +130,7 @@ AC_SUBST([WINDRES])
 CPPFLAGS="$CPPFLAGS -Wall -fpermissive -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain -Wmissing-braces -Wparentheses -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable -Wvolatile-register-var"
 CFLAGS="$CFLAGS -Wpointer-sign -Wimplicit-int -Wimplicit-function-declaration"
 CXXFLAGS="$CXXFLAGS -Wreorder"
-LDFLAGS="$LDFLAGS -no-undefined"
+LDFLAGS="-no-undefined -Wl,--no-undefined $LDFLAGS"
 
 AC_CONFIG_FILES([Makefile openmbv.pc openmbv/Makefile xmldoc/Makefile xmldoc/Doxyfile])
 
