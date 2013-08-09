@@ -26,7 +26,9 @@ AC_CANONICAL_HOST
 AC_CHECK_HEADERS([unordered_map unordered_set])
  
 AC_CHECK_HEADERS([libunwind.h])
-AC_CHECK_LIB(unwind-x86_64, main)
+AC_CHECK_LIB(unwind-x86_64, main, [UNWIND_LIB="-lunwind-x86_64"], [UNWIND_LIB=""])
+AC_CHECK_LIB(unwind-x86,    main, [UNWIND_LIB="-lunwind-x86"],    [UNWIND_LIB=""])
+AC_SUBST([UNWIND_LIB], [$UNWIND_LIB])
 AC_CHECK_HEADERS([cxxabi.h])
 
 dnl Include path for Boost
@@ -232,7 +234,7 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -I\$(top_srcdir)"
 
 # from now on only libtool is used for linking
-LDFLAGS="$LDFLAGS -no-undefined"
+LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
 
 dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
