@@ -4,9 +4,7 @@ lib_LTLIBRARIES = libopenmbvcppinterface.la
 
 libopenmbvcppinterface_ladir = $(includedir)/openmbvcppinterface
 
-INCLUDES = $(HDF5SERIE_CFLAGS)
-
-libopenmbvcppinterface_la_CPPFLAGS = -DTIXML_USE_STL
+libopenmbvcppinterface_la_CPPFLAGS = -I$(top_srcdir) -DTIXML_USE_STL $(HDF5SERIE_CFLAGS)
 
 libopenmbvcppinterface_la_LDFLAGS = $(HDF5SERIE_LIBS) $(MBXMLUTILSTINYXML_LIBS)
 

@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libmbxmlutilstinyxml.la
+libmbxmlutilstinyxml_la_CPPFLAGS = -I$(top_srcdir) -DTIXML_USE_STL 
 libmbxmlutilstinyxml_la_LDFLAGS = $(UNWIND_LIB)
 
-INCLUDES = -DTIXML_USE_STL
 libmbxmlutilstinyxml_la_SOURCES = tinynamespace.cpp \
   tinystr.cpp \
   tinyxml.cpp \
