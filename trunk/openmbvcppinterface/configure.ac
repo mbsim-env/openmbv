@@ -10,7 +10,7 @@ AC_PROG_CXXCPP
 AC_LANG([C++])
 
 dnl force strict standard conformance
-CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-long-long  -I\$(top_srcdir)"
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-long-long"
 CFLAGS="$CFLAGS -std=iso9899:1990"
 
 AC_SUBST([DEFINES])

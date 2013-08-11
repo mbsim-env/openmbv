@@ -231,7 +231,7 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     
 ])
 
-CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -I\$(top_srcdir)"
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare"
 
 # from now on only libtool is used for linking
 LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
