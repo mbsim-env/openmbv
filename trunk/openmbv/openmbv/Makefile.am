@@ -84,7 +84,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
 bin_PROGRAMS = openmbv
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   main.cc
-openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(MAYBE_QWT_CFLAGS)
+openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(MAYBE_QWT_CFLAGS)
 openmbv_LDFLAGS  = -Wl,-rpath -Wl,\$$ORIGIN/../lib
 openmbv_LDADD    = libopenmbv.la
 
