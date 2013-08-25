@@ -150,7 +150,7 @@ void PropertyDialog::updateHeader() {
       QString(obj->metaObject()->className()).replace("OpenMBVGUI::", "")+ // remove the namespace
       " XML Values of</b></big>"), 0, 1);
     // diaplay Object path
-    header->addWidget(new QLabel(("<b>"+obj->getPath()+"</b>").c_str()), 1, 1);
+    header->addWidget(new QLabel(("<b>"+obj->getObject()->getFullName(true, true)+"</b>").c_str()), 1, 1);
   }
 }
 
@@ -690,9 +690,16 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
   // print final trans/rot to stdout for an Object
   Object *obj=dynamic_cast<Object*>(me->dialog->parentObject);
   if(obj) {
-    cout<<"New initial translation/rotation for: "<<obj->getPath()<<endl
-        <<"Translation: ["<<me->spinBox[0]->value()<<", "<<me->spinBox[1]->value()<<", "<<me->spinBox[2]->value()<<"]"<<endl
-        <<"Rotation: ["<<me->spinBox[3]->value()*M_PI/180<<", "<<me->spinBox[4]->value()*M_PI/180<<", "<<me->spinBox[5]->value()*M_PI/180<<"]"<<endl;
+    QString str("New translation [%1, %2, %3], rotation[%4, %5, %6] on %7");
+    str=str.arg(me->spinBox[0]->value())
+           .arg(me->spinBox[1]->value())
+           .arg(me->spinBox[2]->value())
+           .arg(me->spinBox[3]->value()*M_PI/180)
+           .arg(me->spinBox[4]->value()*M_PI/180)
+           .arg(me->spinBox[5]->value()*M_PI/180)
+           .arg(obj->getObject()->getFullName(true, true).c_str());
+    MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
+    cout<<str.toStdString()<<endl;
   }
 }
 

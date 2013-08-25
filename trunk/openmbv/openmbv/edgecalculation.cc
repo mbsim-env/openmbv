@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "edgecalculation.h"
+#include "mainwindow.h"
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/actions/SoCallbackAction.h>
@@ -170,6 +171,9 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
   SoCallbackAction cba;
   cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, vertex);
   cba.apply(grp);
+
+  connect(this, SIGNAL(statusBarShowMessage(const QString &, int)),
+          MainWindow::getInstance()->statusBar(), SLOT(showMessage(const QString &, int)));
 }
 
 EdgeCalculation::~EdgeCalculation() {
@@ -180,7 +184,7 @@ EdgeCalculation::~EdgeCalculation() {
   }
 }
 
-void EdgeCalculation::preproces(bool printMessage) {
+void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
   static map<SoGroup*, PreprocessedData> myCache;
   static QReadWriteLock mapRWLock;
   pair<map<SoGroup*, PreprocessedData>::iterator, bool> ins;
@@ -197,8 +201,11 @@ void EdgeCalculation::preproces(bool printMessage) {
     static QSemaphore maxThreads(QThread::idealThreadCount());
     maxThreads.acquire();
 
-    if(printMessage)
-      cout<<"Calculating edges!"<<endl;
+    if(printMessage) {
+      QString str("Calculating edges for %1!"); str=str.arg(fullName.c_str());
+      emit statusBarShowMessage(str, 1000);
+      cout<<str.toStdString()<<endl;
+    }
 
     // CALCULATE
     preData.edgeIndFPV=new vector<EdgeIndexFacePlaneVec>; // is never freed, since the data is cached forever => false positive in valgrind
@@ -245,8 +252,11 @@ void EdgeCalculation::preproces(bool printMessage) {
   }
 
   // GET AN EXISTING ELEMENT
-  if(printMessage)
-    cout<<"Use cached data! Waiting for cached data to get ready!"<<endl;
+  if(printMessage) {
+    QString str("Use cached data! Waiting for cached data to get ready!");
+    emit statusBarShowMessage(str, 1000);
+    cout<<str.toStdString()<<endl;
+  }
   
   delete vertex; // is no longer required
   delete preData.calcLock; // is not needed

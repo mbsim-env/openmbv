@@ -41,7 +41,6 @@ class Group : public Object {
     OpenMBV::Group *grp;
     QTimer *reloadTimer;
     boost::posix_time::ptime xmlLastModified, h5LastModified;
-    std::string getPath();
   public:
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

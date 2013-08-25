@@ -131,12 +131,8 @@ Object::~Object() {
   objects.erase(this);
 }
 
-string Object::getPath() {
-  return static_cast<Object*>(QTreeWidgetItem::parent())->getPath()+"/"+text(0).toStdString();
-}
-
 QString Object::getInfo() {
-  return QString("<b>Path:</b> %1<br/>").arg(getPath().c_str())+
+  return QString("<b>Path:</b> %1<br/>").arg(object->getFullName(true, true).c_str())+
          QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2").
            arg((Utils::getIconPath()+"/"+getIconFile()).c_str()).
            arg(QString(metaObject()->className()).replace("OpenMBVGUI::", ""));  // remove the namespace
@@ -155,9 +151,9 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     bboxAction->apply(p);
     float x1,y1,z1,x2,y2,z2;
     bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
-    object->soBBox->width.setValue(x2-x1);
-    object->soBBox->height.setValue(y2-y1);
-    object->soBBox->depth.setValue(z2-z1);
+    object->soBBox->width.setValue((x2-x1)*1.05);
+    object->soBBox->height.setValue((y2-y1)*1.05);
+    object->soBBox->depth.setValue((z2-z1)*1.05);
     object->soBBoxTrans->translation.setValue((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
   }
 }

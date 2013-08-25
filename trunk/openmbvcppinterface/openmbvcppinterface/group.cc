@@ -56,11 +56,15 @@ void Group::addObject(Object* newObject) {
   newObject->parent=this;
 }
 
-string Group::getFullName(bool includingFileName) {
-  if(parent)
-    return parent->getFullName(includingFileName)+"/"+name;
+string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
+  if(parent) {
+    if(separateFile && stopAtSeparateFile)
+      return fileName;
+    else
+      return parent->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+  }
   else
-    return includingFileName==false || fileName.empty() ? name : fileName+"/"+name;
+    return includingFileName==false || fileName.empty() ? name : fileName;
 }
 
 TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {

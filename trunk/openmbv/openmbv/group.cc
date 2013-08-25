@@ -215,10 +215,4 @@ void Group::reloadFileSlotIfNewer() {
   }
 }
 
-string Group::getPath() {
-  if(grp->getSeparateFile())
-    return text(0).toStdString();
-  return Object::getPath();
-}
-
 }
