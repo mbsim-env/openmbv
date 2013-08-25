@@ -88,6 +88,20 @@
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
 
+      <xs:group name="fromFileGroup">
+        <xs:sequence>
+          <xs:element name="fromFile">
+            <xs:annotation><xs:documentation>
+              Load the file referenced by 'href' and return it as a vector or matrix.
+              All file formats of the octave 'load' command are supported and auto detected.
+            </xs:documentation></xs:annotation>
+            <xs:complexType>
+              <xs:attribute name="href" use="required" type="xs:anyURI"/>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:group>
+
       <xs:complexType mixed="true" name="matrix">
         <xs:annotation>
           <xs:documentation>
@@ -125,6 +139,7 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
+          <xs:group ref="fromFileGroup"/>
         </xs:choice>
       </xs:complexType>
 
@@ -162,6 +177,7 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
+          <xs:group ref="fromFileGroup"/>
         </xs:choice>
       </xs:complexType>
 
