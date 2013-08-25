@@ -1,5 +1,6 @@
 #include <mbxmlutils/utils.h>
 #include <mbxmlutilstinyxml/getinstallpath.h>
+#include <mbxmlutilstinyxml/utils.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
 #include <fstream>
@@ -85,8 +86,9 @@ int validate(const string &schema, const string &file) {
   return 0;
 }
 
-// convert <xmlMatrix> and <xmlVector> elements to octave notation e.g [2;7;5]
+// convert special XML elements (<xmlMatrix>, <xmlVector>, ...)to octave expressions ([2;7;5], ...)
 int toOctave(TiXmlElement *&e) {
+
   if(e->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
     string mat="[";
     for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
@@ -103,6 +105,7 @@ int toOctave(TiXmlElement *&e) {
     e=0;
     return 0;
   }
+
   if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
     string vec="[";
     for(TiXmlElement* ele=e->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
@@ -116,6 +119,43 @@ int toOctave(TiXmlElement *&e) {
     e=0;
     return 0;
   }
+
+  for(char c='X'; c<='Z'; c++)
+    if(e->ValueStr()==string(MBXMLUTILSPVNS"about")+c) {
+      // check deprecated feature
+      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
+        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
+                                    e->Parent()->ToElement());
+      // convert
+      TiXmlText text(string("rotateAbout")+c+"("+e->GetText()+")");
+      e->Parent()->InsertEndChild(text);
+      e->Parent()->RemoveChild(e);
+      e=0;
+      return 0;
+    }
+
+  string rotFkt[]={"cardan", "euler"};
+  for(int i=0; i<2; i++)
+    if(e->ValueStr()==MBXMLUTILSPVNS+rotFkt[i]) {
+      // check deprecated feature
+      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
+        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
+                                    e->Parent()->ToElement());
+      // convert
+      string octaveStr=rotFkt[i]+"(";
+      TiXmlElement *ele=e->FirstChildElement();
+      octaveStr+=string(ele->GetText())+", ";
+      ele->NextSiblingElement();
+      octaveStr+=string(ele->GetText())+", ";
+      ele->NextSiblingElement();
+      octaveStr+=ele->GetText();
+      octaveStr+=")";
+      TiXmlText text(octaveStr);
+      e->Parent()->InsertEndChild(text);
+      e->Parent()->RemoveChild(e);
+      e=0;
+      return 0;
+    }
 
   TiXmlElement *c=e->FirstChildElement();
   while(c) {
@@ -185,7 +225,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         map<string,string> dummy;
         incorporateNamespace(enew, nsprefix, dummy, &dependencies);
         // convert embeded file to octave notation
-        cout<<"Process xml[Matrix|Vector] elements in "<<file<<endl;
+        cout<<"Convert special XML elements in "<<file<<" to octave expressions."<<endl;
         if(toOctave(enew)!=0) {
           TiXml_location(e, "  included by: ", "");
           return 1;
@@ -457,7 +497,7 @@ int main(int argc, char *argv[]) {
   
       // convert parameter file to octave notation
       if(paramxml!="none") {
-        cout<<"Process xml[Matrix|Vector] elements in "<<paramxml<<endl;
+        cout<<"Convert special XML elements in "<<paramxml<<" to octave expressions."<<endl;
         if(toOctave(paramxmlroot)!=0) throw(1);
       }
   
@@ -497,7 +537,7 @@ int main(int argc, char *argv[]) {
       incorporateNamespace(mainxmlroot,nsprefix,dummy,&dependencies);
   
       // convert main file to octave notation
-      cout<<"Process xml[Matrix|Vector] elements in "<<mainxml<<endl;
+      cout<<"Convert special XML elements in "<<mainxml<<" to octave expressions."<<endl;
       if(toOctave(mainxmlroot)!=0) throw(1);
   
       // embed/validate/toOctave/unit/eval files

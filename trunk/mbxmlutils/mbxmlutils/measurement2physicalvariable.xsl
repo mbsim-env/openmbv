@@ -246,6 +246,46 @@
         <xs:restriction base="xs:string"/>
       </xs:simpleType>
 
+      <!-- rotation matrix -->
+      <xs:complexType mixed="true" name="rotationMatrix">
+        <xs:annotation><xs:documentation>
+          A 3x3 rotation matrix.
+        </xs:documentation></xs:annotation>
+        <xs:complexContent>
+          <xs:extension base="matrix">
+            <!-- support everything supported by a normal matrix e.g.
+              <rot>[1,0,0;0,1,0;0,0,1]</rot>
+              <rot><xmlMatrix>...</xmlMatrix></rot>
+              and the following ...
+            -->
+            <xs:choice minOccurs="0">
+              <xs:element name="aboutX" type="fullOctaveString"/>
+              <xs:element name="aboutY" type="fullOctaveString"/>
+              <xs:element name="aboutZ" type="fullOctaveString"/>
+              <xs:element name="cardan">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="alpha" type="fullOctaveString"/>
+                    <xs:element name="beta" type="fullOctaveString"/>
+                    <xs:element name="gamma" type="fullOctaveString"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="euler">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="PHI" type="fullOctaveString"/>
+                    <xs:element name="theta" type="fullOctaveString"/>
+                    <xs:element name="phi" type="fullOctaveString"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+            <xs:attributeGroup ref="nounitMeasure"/> <!-- DEPRECATED -->
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+
       <!-- the MBXMLUtils XML representation of a casadi SXFunction.
            This may be replaced later by MathML or OpenMath if casadi supports it -->
       <xs:group name="symbolicFunctionXMLElement">
