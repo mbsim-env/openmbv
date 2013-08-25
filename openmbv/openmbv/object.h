@@ -63,8 +63,8 @@ class Object : public QObject, public QTreeWidgetItem {
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
-    virtual std::string getPath();
     std::string &getIconFile() { return iconFile; }
+    OpenMBV::Object *getObject() { return object; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
     void updateTextColor();

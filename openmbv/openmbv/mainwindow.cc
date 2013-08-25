@@ -81,7 +81,7 @@ enum Mode { no, rotate, translate, zoom };
 MainWindow *MainWindow::instance=0;
 
 MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
-  if(instance) { cout<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
+  if(instance) { cerr<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
 
   list<string>::iterator i, i2;
@@ -1253,9 +1253,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
         (delta+cameraPosition->vector[0]).getValue(x,y,z);
 
-        QString str("Point on: [%1, %2, %3]"); str=str.arg(x).arg(y).arg(z);
+        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((*(--pickedObject.end()))->object->getFullName(true, true).c_str());
         statusBar()->showMessage(str);
-        str="Point on: %1: [%2, %3, %4]"; str=str.arg((*(--pickedObject.end()))->getPath().c_str()).arg(x).arg(y).arg(z);
         cout<<str.toStdString()<<endl;
       }
       // mid button clicked => seed rotation center to clicked point
@@ -1272,7 +1271,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
             int ind=0;
             list<Body*>::iterator it;
             for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-              QAction *action=new QAction((*it)->icon(0),(*it)->getPath().c_str(),menu);
+              QAction *action=new QAction((*it)->icon(0),(*it)->object->getFullName(true, true).c_str(),menu);
               action->setData(QVariant(ind++));
               menu->addAction(action);
             }

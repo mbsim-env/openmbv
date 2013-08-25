@@ -1,4 +1,18 @@
 function A=euler(PHI,theta,phi)
+
+  nargs=length(varargin);
+  if nargs==3
+    PHI=varargin{1};
+    theta=varargin{2};
+    phi=varargin{3};
+  elseif nargs==1 && (size(varargin{1})==[3,1] || size(varargin{1})==[1,3])
+    PHI=varargin{1}(1);
+    theta=varargin{1}(2);
+    phi=varargin{1}(3);
+  else
+    error('Must be called with a three scalar arguments or one vector argument of length 3.');
+  end
+
   A=[cos(phi)*cos(PHI)-sin(phi)*cos(theta)*sin(PHI),...
      -cos(phi)*cos(theta)*sin(PHI)-sin(phi)*cos(PHI),...
      sin(theta)*sin(PHI);

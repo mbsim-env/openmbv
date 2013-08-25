@@ -52,6 +52,8 @@ class IvBody : public RigidBody {
     CalculateEdgesThread calculateEdgesThread;
   private slots:
     void addEdgesToScene();
+  signals:
+    void statusBarShowMessage(const QString &message, int timeout=0);
 };
 
 }

@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_EDGECALCULATION_H_
 #define _OPENMBVGUI_EDGECALCULATION_H_
 
+#include <QObject>
 #include <vector>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
@@ -27,7 +28,8 @@
 
 namespace OpenMBVGUI {
 
-class EdgeCalculation {
+class EdgeCalculation : public QObject {
+  Q_OBJECT
   public:
     /** Collect the data to be edge calculated from grp.
      * This function must be called from the main Coin thread and is very fast.
@@ -42,7 +44,7 @@ class EdgeCalculation {
      * This function is very time consuming for new data in grp from collectData.
      * For data in grp (in constructor) beeing alreay preprocessed it is cached if cache (in constructor) is true.
      * This function is thread safe in all cases!!! */
-    void preproces(bool printMessage=false);
+    void preproces(const std::string &fullName, bool printMessage=false);
 
     /** calculate the crease edges using the crease angle creaseAngle.
      * Before this funciton the function preproces must be called exactly ones!
@@ -119,6 +121,9 @@ class EdgeCalculation {
 
     // set by calcShilouetteEdges
     SoIndexedLineSet *shilouetteEdges;
+
+  signals:
+    void statusBarShowMessage(const QString &message, int timeout=0);
 };
 
 }

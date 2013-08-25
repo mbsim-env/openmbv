@@ -7,5 +7,6 @@ dist_octave_DATA = cardan.m \
 		   rotateAboutY.m\
 		   rotateAboutZ.m\
 		   euler.m\
+		   tilde.m\
 		   deg2rad.m\
 		   rad2deg.m

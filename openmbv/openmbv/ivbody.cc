@@ -28,6 +28,7 @@
 
 #include <vector>
 #include "edgecalculation.h"
+#include "mainwindow.h"
 #include "openmbvcppinterface/ivbody.h"
 #include "openmbvcppinterface/group.h"
 
@@ -80,6 +81,9 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
     calculateEdgesThread.start(QThread::IdlePriority);
   }
 
+  connect(this, SIGNAL(statusBarShowMessage(const QString &, int)),
+          MainWindow::getInstance()->statusBar(), SLOT(showMessage(const QString &, int)));
+
   // GUI editors
   if(!clone) {
     properties->updateHeader();
@@ -107,8 +111,10 @@ void IvBody::calculateEdges(string fullName, double creaseEdges, bool boundaryEd
   // NOTE: It is not allowed here to use any variables of OpenMBV::IvBody since this class may aleady be
   // delete by a destructor call of a parent object of this object.
   // (OpenMBV::~Group deletes all children)
-  cout<<"Started edge calculation for "<<fullName<<" in a thread: ";
-  edgeCalc->preproces(true);
+  QString str("Started edge calculation for %1 in a thread:"); str=str.arg(fullName.c_str());
+  emit statusBarShowMessage(str, 1000);
+  cout<<str.toStdString()<<endl;
+  edgeCalc->preproces(fullName, true);
   if(creaseEdges>=0) edgeCalc->calcCreaseEdges(creaseEdges);
   if(boundaryEdges) edgeCalc->calcBoundaryEdges();
 }
@@ -118,7 +124,9 @@ void IvBody::addEdgesToScene() {
   soOutLineSep->addChild(edgeCalc->getCoordinates());
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
-  cout<<"Finished edge calculation for "<<ivb->getFullName()<<" and added to scene."<<endl;
+  QString str("Finished edge calculation for %1 and added to scene."); str=str.arg(ivb->getFullName().c_str());
+  emit statusBarShowMessage(str, 1000);
+  cout<<str.toStdString()<<endl;
 }
 
 }

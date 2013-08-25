@@ -56,6 +56,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   mainwindow.moc.cc\
   exportdialog.moc.cc\
   object.moc.cc\
+  edgecalculation.moc.cc\
   path.moc.cc\
   coilspring.moc.cc\
   spineextrusion.moc.cc \

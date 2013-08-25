@@ -26,6 +26,7 @@
 #  define unordered_map map
 #endif
 #include "SoSpecial.h"
+#include "mainwindow.h"
 #include <iostream>
 #include <QtGui/QDialog>
 #include <QtGui/QPushButton>
@@ -75,7 +76,9 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
       return ins.first->second;
     }
     else { // open failed, remove from cache and return a empty IV
-      cout<<"ERROR: Unable to find IV file "<<filename<<"."<<endl;
+      QString str("ERROR: Unable to find IV file %1."); str=str.arg(filename.c_str());
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      cout<<str.toStdString()<<endl;
       myIvBodyCache.erase(ins.first);
       return new SoSeparator;
     }
