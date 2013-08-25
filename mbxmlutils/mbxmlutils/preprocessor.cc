@@ -157,6 +157,17 @@ int toOctave(TiXmlElement *&e) {
       return 0;
     }
 
+  if(e->ValueStr()==MBXMLUTILSPVNS"fromFile") {
+    string loadStr("ret=load('");
+    loadStr+=e->Attribute("href");
+    loadStr+="');";
+    TiXmlText text(loadStr);
+    e->Parent()->InsertEndChild(text);
+    e->Parent()->RemoveChild(e);
+    e=0;
+    return 0;
+  }
+
   TiXmlElement *c=e->FirstChildElement();
   while(c) {
     if(toOctave(c)!=0) return 1;
