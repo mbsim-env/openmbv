@@ -49,20 +49,25 @@ namespace MBXMLUtils {
     }
     else {
 #if defined HAVE_LIBUNWIND_H && defined HAVE_LIBUNWIND
-      unw_context_t context;
-      unw_getcontext(&context);
-      unw_cursor_t cp;
-      unw_init_local(&cp, &context);
-      unw_step(&cp);
-      unw_word_t offp;
-      char name[102400];
-      int nr=0;
-      do {
-        unw_get_proc_name(&cp, name, 102400, &offp);
-        stack.push_back((nr==0?"at ":"by ")+demangleSymbolName(name));
-        nr++;
+      try {
+        unw_context_t context;
+        if(unw_getcontext(&context)<0) throw 1;
+        unw_cursor_t cp;
+        if(unw_init_local(&cp, &context)<0) throw 1;
+        if(unw_step(&cp)<=0) throw 1;
+        unw_word_t offp;
+        char name[102400];
+        int nr=0;
+        do {
+          if(unw_get_proc_name(&cp, name, 102400, &offp)<0) break;
+          stack.push_back((nr==0?"at ":"by ")+demangleSymbolName(name));
+          nr++;
+        }
+        while(unw_step(&cp)>0 && string(name)!="main");
       }
-      while(unw_step(&cp)>0 && string(name)!="main");
+      catch(...) {
+        stack.push_back("(no stack trace available)");
+      }
 #else
       stack.push_back("(no stack trace available)");
 #endif
