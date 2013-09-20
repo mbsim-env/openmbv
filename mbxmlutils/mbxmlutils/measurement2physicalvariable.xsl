@@ -275,24 +275,24 @@
               and the following ...
             -->
             <xs:choice minOccurs="0">
-              <xs:element name="aboutX" type="fullOctaveString"/>
-              <xs:element name="aboutY" type="fullOctaveString"/>
-              <xs:element name="aboutZ" type="fullOctaveString"/>
+              <xs:element name="aboutX" type="angleScalar"/>
+              <xs:element name="aboutY" type="angleScalar"/>
+              <xs:element name="aboutZ" type="angleScalar"/>
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="fullOctaveString"/>
-                    <xs:element name="beta" type="fullOctaveString"/>
-                    <xs:element name="gamma" type="fullOctaveString"/>
+                    <xs:element name="alpha" type="angleScalar"/>
+                    <xs:element name="beta" type="angleScalar"/>
+                    <xs:element name="gamma" type="angleScalar"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="fullOctaveString"/>
-                    <xs:element name="theta" type="fullOctaveString"/>
-                    <xs:element name="phi" type="fullOctaveString"/>
+                    <xs:element name="PHI" type="angleScalar"/>
+                    <xs:element name="theta" type="angleScalar"/>
+                    <xs:element name="phi" type="angleScalar"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
