@@ -13,6 +13,8 @@
 #endif
 #include <octave/oct.h>
 
+#define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
+
 namespace MBXMLUtils {
 
 class TiXmlElement;
@@ -26,11 +28,6 @@ class OctaveEvaluator {
       MatrixType,
       StringType
     };
-    struct Param {
-      Param(std::string n, std::string eq, TiXmlElement *e) : name(n), equ(eq), ele(e) {}
-      std::string name, equ;
-      TiXmlElement *ele;
-    };
 
     OctaveEvaluator();
     void octaveAddParam(const std::string &paramName, const octave_value& value, bool useCache=true);
@@ -42,8 +39,7 @@ class OctaveEvaluator {
     static std::string octaveGetRet(ValueType expectedType=ArbitraryType);
     static double octaveGetDoubleRet();
     static octave_value& octaveGetOctaveValueRet();
-    int fillParam(TiXmlElement *e, bool useCache=true);
-    int fillParam(std::vector<Param> param, bool useCache=true);
+    void fillParam(TiXmlElement *e, bool useCache=true);
     void saveAndClearCurrentParam();
     void restoreCurrentParam();
 
@@ -51,7 +47,12 @@ class OctaveEvaluator {
     static void terminate();
     static void addPath(const std::string &path);
 
+    void eval(TiXmlElement *e, bool useCache=true);
+    void setUnits(const std::map<std::string, std::string> &units_) { units=units_; }
+
   protected:
+    void toOctave(TiXmlElement *e, bool useCache=true);
+
     // map of the current parameters
     std::map<std::string, octave_value> currentParam, savedCurrentParam;
     // stack of parameters
@@ -59,6 +60,8 @@ class OctaveEvaluator {
     std::vector<int> currentParamHash;
 
     std::unordered_map<std::string, octave_value> cache;
+
+    std::map<std::string, std::string> units;
 };
 
 } // end namespace MBXMLUtils

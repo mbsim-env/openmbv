@@ -1,6 +1,5 @@
 #include <mbxmlutils/utils.h>
 #include <mbxmlutilstinyxml/getinstallpath.h>
-#include <mbxmlutilstinyxml/utils.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
 #include <fstream>
@@ -21,8 +20,6 @@
 #ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
 #  include "mbxmlutilstinyxml/casadiXML.h"
 #endif
-
-#define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -86,99 +83,7 @@ int validate(const string &schema, const string &file) {
   return 0;
 }
 
-// convert special XML elements (<xmlMatrix>, <xmlVector>, ...)to octave expressions ([2;7;5], ...)
-int toOctave(TiXmlElement *&e) {
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
-    string mat="[";
-    for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
-      for(TiXmlElement* ele=row->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-        mat+=ele->GetText();
-        if(ele->NextSiblingElement()) mat+=",";
-      }
-      if(row->NextSiblingElement()) mat+=";\n";
-    }
-    mat+="]";
-    TiXmlText text(mat);
-    e->Parent()->InsertEndChild(text);
-    e->Parent()->RemoveChild(e);
-    e=0;
-    return 0;
-  }
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
-    string vec="[";
-    for(TiXmlElement* ele=e->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-      vec+=ele->GetText();
-      if(ele->NextSiblingElement()) vec+=";";
-    }
-    vec+="]";
-    TiXmlText text(vec);
-    e->Parent()->InsertEndChild(text);
-    e->Parent()->RemoveChild(e);
-    e=0;
-    return 0;
-  }
-
-  for(char c='X'; c<='Z'; c++)
-    if(e->ValueStr()==string(MBXMLUTILSPVNS"about")+c) {
-      // check deprecated feature
-      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
-        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
-                                    e->Parent()->ToElement());
-      // convert
-      TiXmlText text(string("rotateAbout")+c+"("+e->GetText()+")");
-      e->Parent()->InsertEndChild(text);
-      e->Parent()->RemoveChild(e);
-      e=0;
-      return 0;
-    }
-
-  string rotFkt[]={"cardan", "euler"};
-  for(int i=0; i<2; i++)
-    if(e->ValueStr()==MBXMLUTILSPVNS+rotFkt[i]) {
-      // check deprecated feature
-      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
-        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
-                                    e->Parent()->ToElement());
-      // convert
-      string octaveStr=rotFkt[i]+"(";
-      TiXmlElement *ele=e->FirstChildElement();
-      octaveStr+=string(ele->GetText())+", ";
-      ele->NextSiblingElement();
-      octaveStr+=string(ele->GetText())+", ";
-      ele->NextSiblingElement();
-      octaveStr+=ele->GetText();
-      octaveStr+=")";
-      TiXmlText text(octaveStr);
-      e->Parent()->InsertEndChild(text);
-      e->Parent()->RemoveChild(e);
-      e=0;
-      return 0;
-    }
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"fromFile") {
-    string loadStr("ret=load('");
-    loadStr+=e->Attribute("href");
-    loadStr+="');";
-    TiXmlText text(loadStr);
-    e->Parent()->InsertEndChild(text);
-    e->Parent()->RemoveChild(e);
-    e=0;
-    return 0;
-  }
-
-  TiXmlElement *c=e->FirstChildElement();
-  while(c) {
-    if(toOctave(c)!=0) return 1;
-    if(c==0) break; // break if c was removed by toOctave at the line below
-    c=c->NextSiblingElement();
-  }
-
-  return 0;
-}
-
-int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, map<string,string> &units, ostream &dependencies) {
+int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, ostream &dependencies) {
   try {
     if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
       octEval->octavePushParams();
@@ -235,12 +140,6 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         enew=enewdoc->FirstChildElement();
         map<string,string> dummy;
         incorporateNamespace(enew, nsprefix, dummy, &dependencies);
-        // convert embeded file to octave notation
-        cout<<"Convert special XML elements in "<<file<<" to octave expressions."<<endl;
-        if(toOctave(enew)!=0) {
-          TiXml_location(e, "  included by: ", "");
-          return 1;
-        }
       }
       else { // or take the child element (as a clone, because the embed element is deleted)
         if(e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter")
@@ -306,7 +205,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           e->InsertAfterChild(e->FirstChild(), countNr);
       
           // apply embed to new element
-          if(embed(e, nslocation, nsprefix, units, dependencies)!=0) return 1;
+          if(embed(e, nslocation, nsprefix, dependencies)!=0) return 1;
         }
         else
           cout<<"Skip embeding "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
@@ -350,27 +249,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       // THIS IS A WORKAROUND! Actually not all Text-Elements should be converted but only the Text-Elements
       // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
       // schema aware processor is needed!
-      if(e->GetText()) {
-        // eval text node
-        octEval->octaveEvalRet(e->GetText(), e);
-        // convert unit
-        if(e->Attribute("unit") || e->Attribute("convertUnit")) {
-          octEval->saveAndClearCurrentParam();
-          octEval->octaveAddParam("value", octEval->octaveGetOctaveValueRet()); // add 'value=ret', since unit-conversion used 'value'
-          if(e->Attribute("unit")) { // convert with predefined unit
-            octEval->octaveEvalRet(units[e->Attribute("unit")]);
-            e->RemoveAttribute("unit");
-          }
-          if(e->Attribute("convertUnit")) { // convert with user defined unit
-            octEval->octaveEvalRet(e->Attribute("convertUnit"));
-            e->RemoveAttribute("convertUnit");
-          }
-          octEval->restoreCurrentParam();
-        }
-        // wrtie eval to xml
-        e->FirstChild()->SetValue(octEval->octaveGetRet());
-        e->FirstChild()->ToText()->SetCDATA(false);
-      }
+      octEval->eval(e);
     
       // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
       // XML attributes of a type devived from pv:fullOctaveString and pv:partialOctaveString. But for that a
@@ -390,7 +269,8 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
   
     TiXmlElement *c=e->FirstChildElement();
     while(c) {
-      if(embed(c, nslocation, nsprefix, units, dependencies)!=0) return 1;
+      if(embed(c, nslocation, nsprefix, dependencies)!=0) return 1;
+      if(c==NULL) break;
       c=c->NextSiblingElement();
     }
   }
@@ -506,18 +386,6 @@ int main(int argc, char *argv[]) {
         incorporateNamespace(paramxmlroot,dummy,dummy2,&dependencies);
       }
   
-      // convert parameter file to octave notation
-      if(paramxml!="none") {
-        cout<<"Convert special XML elements in "<<paramxml<<" to octave expressions."<<endl;
-        if(toOctave(paramxmlroot)!=0) throw(1);
-      }
-  
-      // generate octave parameter string
-      if(paramxml!="none") {
-        cout<<"Generate octave parameter string from "<<paramxml<<endl;
-        if(octEval->fillParam(paramxmlroot)!=0) throw(1);
-      }
-  
       // THIS IS A WORKAROUND! See before.
       // get units
       cout<<"Build unit list for measurements"<<endl;
@@ -534,6 +402,13 @@ int main(int argc, char *argv[]) {
           units[el2->Attribute("name")]=el2->GetText();
         }
       delete mmdoc;
+      octEval->setUnits(units);
+  
+      // generate octave parameter string
+      if(paramxml!="none") {
+        cout<<"Generate octave parameter string from "<<paramxml<<endl;
+        octEval->fillParam(paramxmlroot);
+      }
   
       // validate main file
       if(validate(nslocation, mainxml)!=0) throw(1);
@@ -547,12 +422,8 @@ int main(int argc, char *argv[]) {
       dependencies<<mainxml<<endl;
       incorporateNamespace(mainxmlroot,nsprefix,dummy,&dependencies);
   
-      // convert main file to octave notation
-      cout<<"Convert special XML elements in "<<mainxml<<" to octave expressions."<<endl;
-      if(toOctave(mainxmlroot)!=0) throw(1);
-  
       // embed/validate/toOctave/unit/eval files
-      if(embed(mainxmlroot, nslocation,nsprefix,units,dependencies)!=0) throw(1);
+      if(embed(mainxmlroot, nslocation,nsprefix,dependencies)!=0) throw(1);
   
       // save result file
       cout<<"Save preprocessed file "<<mainxml<<" as .pp."<<extractFileName(mainxml)<<endl;

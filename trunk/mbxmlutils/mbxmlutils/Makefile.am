@@ -38,7 +38,7 @@ lib_LTLIBRARIES = libmbxmlutils.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -DTIXML_USE_STL $(MKOCTFILE_CFLAGS)
 libmbxmlutils_la_LDFLAGS = -L../mbxmlutilstinyxml -Wl,-rpath -Wl,\$$ORIGIN/../lib
-libmbxmlutils_la_LIBADD = ../mbxmlutilstinyxml/libmbxmlutilstinyxml.la $(MKOCTFILE_LIBS)
+libmbxmlutils_la_LIBADD = ../mbxmlutilstinyxml/libmbxmlutilstinyxml.la $(MKOCTFILE_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_la_SOURCES = utils.cc
 libmbxmlutils_la_HEADERS = utils.h
 
