@@ -30,7 +30,7 @@ static CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname);
 template<int T>
 class Block {
   public:
-    Block(FILE *&file_, ostream &str_) : file(file_), str(str_) {
+    Block(FILE *file_, ostream &str_) : file(file_), str(str_) {
       if(disableCount==0) {
         orgcxxx=str.rdbuf(0);
         orgstdxxx=dup(fileno(file));
@@ -51,7 +51,7 @@ class Block {
       }
     }
   private:
-    FILE *&file;
+    FILE *file;
     ostream &str;
     static int orgstdxxx;
     static streambuf *orgcxxx;
