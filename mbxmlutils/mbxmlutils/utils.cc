@@ -30,38 +30,25 @@ static CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname);
 template<int T>
 class Block {
   public:
-    Block(FILE *file_, ostream &str_) : file(file_), str(str_) {
-      if(disableCount==0) {
+    Block(ostream &str_) : str(str_) {
+      if(disableCount==0)
         orgcxxx=str.rdbuf(0);
-        orgstdxxx=dup(fileno(file));
-    #ifdef _WIN32
-        if(freopen("nul", "w", file)==0) throw(1);
-    #else
-        if(freopen("/dev/null", "w", file)==0) throw(1);
-    #endif
-      }
       disableCount++;
     }
     ~Block() {
       disableCount--;
-      if(disableCount==0) {
+      if(disableCount==0)
         str.rdbuf(orgcxxx);
-        dup2(orgstdxxx, fileno(file));
-        close(orgstdxxx);
-      }
     }
   private:
-    FILE *file;
     ostream &str;
-    static int orgstdxxx;
     static streambuf *orgcxxx;
     static int disableCount;
 };
-template<int T> int Block<T>::orgstdxxx;
 template<int T> streambuf *Block<T>::orgcxxx;
 template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT Block<1> mbxmlutils_dummy_blockstdout(stdout, std::cout);
-#define BLOCK_STDERR Block<2> mbxmlutils_dummy_blockstderr(stderr, std::cerr);
+#define BLOCK_STDOUT Block<1> mbxmlutils_dummy_blockstdout(std::cout);
+#define BLOCK_STDERR Block<2> mbxmlutils_dummy_blockstderr(std::cerr);
 
 class PreserveCurrentDir {
   public:
