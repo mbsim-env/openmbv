@@ -35,7 +35,7 @@ namespace MBXMLUtils {
   set<vector<string> > Deprecated::allMessages;
   bool Deprecated::atExitRegistred=false;
 
-  void Deprecated::registerMessage(const std::string &message, TiXmlElement *e) {
+  void Deprecated::registerMessage(const std::string &message, const TiXmlElement *e) {
     if(!atExitRegistred) {
       atexit(&Deprecated::printAllMessages);
       atExitRegistred=true;

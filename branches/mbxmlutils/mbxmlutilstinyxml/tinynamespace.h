@@ -18,7 +18,7 @@
 
 namespace MBXMLUtils {
 
-const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i);
+const TiXmlElement* TiXml_GetElementWithXmlBase(const TiXmlElement *e, int i);
 void TiXml_PostLoadFile(TiXmlDocument *doc);
 
 /* Just a int to string converter */
@@ -33,7 +33,7 @@ std::string TiXml_itoa(int i);
 void TiXml_location(TiXmlElement *e, const std::string &pre, const std::string &post);
 
 /* return the output of TiXml_location as a vector of strings */
-std::vector<std::string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post);
+std::vector<std::string> TiXml_location_vec(const TiXmlElement *e, const std::string &pre, const std::string &post);
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);

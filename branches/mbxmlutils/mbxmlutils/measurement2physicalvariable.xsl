@@ -71,7 +71,8 @@
       </xs:simpleType>
 
       <!-- base type for a string which is partially converted by octave.
-           Only the content between { and } ist converted by octave -->
+           Only the content between { and } ist converted by octave
+           Inside { ... } the character { and } must be quoted qith \ -->
       <xs:simpleType name="partialOctaveString">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
@@ -119,6 +120,13 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlMatrixGroup"/>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
+      <xs:group name="xmlMatrixGroup">
+        <xs:choice>
           <xs:element name="xmlMatrix">
             <xs:complexType>
               <xs:sequence>
@@ -139,9 +147,8 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:group ref="fromFileGroup"/>
         </xs:choice>
-      </xs:complexType>
+      </xs:group>
 
       <!-- add matrix units -->
       <xsl:apply-templates mode="MATRIX" select="/mm:measurement/mm:measure"/>
@@ -163,6 +170,13 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlVectorGroup"/>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
+      <xs:group name="xmlVectorGroup">
+        <xs:choice>
           <xs:element name="xmlVector">
             <xs:complexType>
               <xs:sequence>
@@ -177,9 +191,8 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:group ref="fromFileGroup"/>
         </xs:choice>
-      </xs:complexType>
+      </xs:group>
 
       <!-- add vector units -->
       <xsl:apply-templates mode="VECTOR" select="/mm:measurement/mm:measure"/>
@@ -202,8 +215,13 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlScalarGroup"/>
         </xs:choice>
       </xs:complexType>
+
+      <xs:group name="xmlScalarGroup">
+        <!-- dummy group. just te be consistent with vector and matrix types -->
+      </xs:group>
 
       <!-- add scalar units -->
       <xsl:apply-templates mode="SCALAR" select="/mm:measurement/mm:measure"/>
@@ -318,9 +336,12 @@
             which defines the vector dimension of this input.
           </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:choice>
           <xs:any minOccurs="0" namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" processContents="lax"/>
-        </xs:sequence>
+          <xs:group ref="xmlScalarGroup"/>
+          <xs:group ref="xmlVectorGroup"/>
+          <xs:group ref="xmlMatrixGroup"/>
+        </xs:choice>
       </xs:group>
 
       <!-- just a special type to be able to detect such attributes by a schema-aware processor -->

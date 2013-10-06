@@ -1,3 +1,6 @@
+#ifndef _MBXMLUTILS_CASADIXML_H_
+#define _MBXMLUTILS_CASADIXML_H_
+
 #include "mbxmlutilstinyxml/tinyxml.h"
 #include <casadi/symbolic/sx/sx.hpp>
 #include <casadi/symbolic/fx/sx_function.hpp>
@@ -250,3 +253,5 @@ inline CasADi::SXFunction createCasADiSXFunctionFromXML(MBXMLUtils::TiXmlElement
 }
 
 }
+
+#endif

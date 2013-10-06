@@ -1,4 +1,5 @@
 #include <mbxmlutils/utils.h>
+#include <mbxmlutils/octeval.h>
 #include <mbxmlutilstinyxml/getinstallpath.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xinclude.h>
@@ -83,7 +84,7 @@ int validate(const string &schema, const string &file) {
   return 0;
 }
 
-int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, ostream &dependencies) {
+void embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nsprefix, ostream &dependencies) {
   try {
     if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
       octEval->octavePushParams();
@@ -93,13 +94,13 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPVNS"localParameter") ||
          (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPVNS"localParameter"))) {
         TiXml_location(e, "", ": Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!");
-        return 1;
+        throw 1;
       }
       // check if attribute count AND counterName or none of both
       if((e->Attribute("count")==0 && e->Attribute("counterName")!=0) ||
          (e->Attribute("count")!=0 && e->Attribute("counterName")==0)) {
         TiXml_location(e, "", ": Only both, the count and counterName attribute must be given or none of both!");
-        return 1;
+        throw 1;
       }
   
       // get file name if href attribute exist
@@ -132,7 +133,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       if(file!="") {
         if(validate(nslocation, file)!=0) {
           TiXml_location(e, "  included by: ", "");
-          return 1;
+          throw 1;
         }
         cout<<"Read "<<file<<endl;
         TiXmlDocument *enewdoc=new TiXmlDocument;
@@ -161,7 +162,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
         if((e->FirstChildElement()->Attribute("href") && e->FirstChildElement()->FirstChildElement()) ||
            (!e->FirstChildElement()->Attribute("href") && !e->FirstChildElement()->FirstChildElement())) {
           TiXml_location(e->FirstChildElement(), "", ": Only the href attribute OR the child element p:parameter) is allowed here!");
-          return 1;
+          throw 1;
         }
         cout<<"Generate local octave parameter string for "<<(file==""?"<inline element>":file)<<endl;
         if(e->FirstChildElement()->FirstChildElement()) // inline parameter
@@ -173,7 +174,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           // validate local parameter file
           if(validate(SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd", paramFile)!=0) {
             TiXml_location(e->FirstChildElement(), "  included by: ", "");
-            return 1;
+            throw 1;
           }
           // read local parameter file
           cout<<"Read local parameter file "<<paramFile<<endl;
@@ -205,7 +206,7 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
           e->InsertAfterChild(e->FirstChild(), countNr);
       
           // apply embed to new element
-          if(embed(e, nslocation, nsprefix, dependencies)!=0) return 1;
+          embed(e, nslocation, nsprefix, dependencies);
         }
         else
           cout<<"Skip embeding "<<(file==""?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
@@ -215,40 +216,13 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
       else
         delete enew;
       octEval->octavePopParams();
-      return 0;
+      return;
     }
 #ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
     else if(e->ValueStr()==MBXMLUTILSCASADINS"SXFunction")
-      return 0; // skip processing of SXFunction elements
+      return; // skip processing of SXFunction elements
 #endif
-    else if(e->Attribute("arg1name") && e->FirstChild()->ToText()) {
-      // THIS IS A WORKAROUND! Actually not all Elements with a attribute named arg1name should be
-      // converted but only elements with a attribute of type symbolicFunctionArgNameType.
-      vector<pair<string, int> > arg;
-      // loop over all attributes and search for arg1name,  arg2name attributes
-      for(TiXmlAttribute *a=e->FirstAttribute(); a!=NULL; a=a->Next()) {
-        string value=a->Name();
-        if(value.substr(0,3)=="arg" && value.substr(value.length()-4,4)=="name") {
-          int nr=atoi(value.substr(3, value.length()-4-3).c_str());
-          int dim=1;
-          stringstream str;
-          str<<"arg"<<nr<<"dim";
-          if(e->Attribute(str.str())) dim=atoi(e->Attribute(str.str().c_str()));
-          arg.resize(nr);
-          arg[nr-1]=make_pair(a->Value(), dim);
-        }
-      }
-      // evaluate the expression and get XML representation as return value
-      TiXmlElement *expXML=octEval->octaveEvalRet(e->GetText(), e, true, &arg);
-      // remove text child and add CasADi XML representation
-      e->RemoveChild(e->FirstChild());
-      e->LinkEndChild(expXML);
-      return 0; // skip processing of the newly created child elements
-    }
     else {
-      // THIS IS A WORKAROUND! Actually not all Text-Elements should be converted but only the Text-Elements
-      // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
-      // schema aware processor is needed!
       octEval->eval(e);
     
       // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
@@ -269,17 +243,15 @@ int embed(TiXmlElement *&e, const string &nslocation, map<string,string> &nspref
   
     TiXmlElement *c=e->FirstChildElement();
     while(c) {
-      if(embed(c, nslocation, nsprefix, dependencies)!=0) return 1;
+      embed(c, nslocation, nsprefix, dependencies);
       if(c==NULL) break;
       c=c->NextSiblingElement();
     }
   }
-  catch(string str) {
+  catch(const string &str) {
     TiXml_location(e, "", ": "+str);
-    return 1;
+    throw 1;
   }
- 
-  return 0;
 }
 
 string extractFileName(const string& dirfilename) {
@@ -287,8 +259,57 @@ string extractFileName(const string& dirfilename) {
   return p.filename().generic_string();
 }
 
+//////////////////////////MFMF
+void walk(TiXmlElement *e, OctEval &oe) {
+  cout<<e->ValueStr()<<endl;
+  oe.eval(e);
+  if(e->Attribute("arg1name")) return;
+  if(e->FirstChildElement())
+    walk(e->FirstChildElement(), oe);
+  if(e->NextSiblingElement())
+    walk(e->NextSiblingElement(), oe);
+}
+//////////////////////////MFMF
 #define PATHLENGTH 10240
 int main(int argc, char *argv[]) {
+  //////////////////////////MFMF
+try
+{
+  OctEval oe;
+
+  TiXmlDocument *paramxmldoc=new TiXmlDocument;
+  paramxmldoc->LoadFile("/home/markus/project/mbsim/examples/xml/hierachical_modelling/parameter.mbsim.xml"); TiXml_PostLoadFile(paramxmldoc);
+  TiXmlElement *e=paramxmldoc->FirstChildElement();
+  map<string,string> dummy,dummy2;
+  ostringstream dependencies;
+  incorporateNamespace(e,dummy,dummy2,&dependencies);
+  oe.addParamSet(e);
+
+  paramxmldoc=new TiXmlDocument;
+  paramxmldoc->LoadFile("/home/markus/project/mbsim/examples/xml/time_dependent_kinematics/parameter.mbsim.xml"); TiXml_PostLoadFile(paramxmldoc);
+  e=paramxmldoc->FirstChildElement();
+  incorporateNamespace(e,dummy,dummy2,&dependencies);
+  oe.pushParams();
+  oe.addParamSet(e);
+
+  paramxmldoc=new TiXmlDocument;
+  paramxmldoc->LoadFile("/home/markus/project/branch/svn/mbxmlutils/test.xml"); TiXml_PostLoadFile(paramxmldoc);
+  e=paramxmldoc->FirstChildElement();
+  incorporateNamespace(e,dummy,dummy2,&dependencies);
+  walk(e, oe);
+}  
+catch(const OctEvalException &ex) {
+  ex.print();
+}
+catch(const std::exception &ex) {
+  cerr<<"ERROR: "<<ex.what()<<endl;
+}
+catch(...) {
+  cerr<<"ERROR\n";
+  return 1;
+}
+  return 0;
+  //////////////////////////MFMF
   // convert argv to list
   list<string> arg;
   for(int i=1; i<argc; i++)
@@ -423,7 +444,7 @@ int main(int argc, char *argv[]) {
       incorporateNamespace(mainxmlroot,nsprefix,dummy,&dependencies);
   
       // embed/validate/toOctave/unit/eval files
-      if(embed(mainxmlroot, nslocation,nsprefix,dependencies)!=0) throw(1);
+      embed(mainxmlroot, nslocation,nsprefix,dependencies);
   
       // save result file
       cout<<"Save preprocessed file "<<mainxml<<" as .pp."<<extractFileName(mainxml)<<endl;
@@ -444,7 +465,13 @@ int main(int argc, char *argv[]) {
     }
   }
   // do_octave_atexit must be called on error and no error before leaving
+  catch(const string &str) {
+    cerr<<"Exception: "<<str<<endl;
+    MBXMLUtils::OctaveEvaluator::terminate();
+    return 1;
+  }
   catch(...) {
+    cerr<<"Unknown exception."<<endl;
     MBXMLUtils::OctaveEvaluator::terminate();
     return 1;
   }

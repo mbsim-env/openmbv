@@ -47,12 +47,10 @@ class OctaveEvaluator {
     static void terminate();
     static void addPath(const std::string &path);
 
-    void eval(TiXmlElement *e, bool useCache=true);
     void setUnits(const std::map<std::string, std::string> &units_) { units=units_; }
+    void eval(TiXmlElement *e, bool useCache=true);
 
   protected:
-    void toOctave(TiXmlElement *e, bool useCache=true);
-
     // map of the current parameters
     std::map<std::string, octave_value> currentParam, savedCurrentParam;
     // stack of parameters

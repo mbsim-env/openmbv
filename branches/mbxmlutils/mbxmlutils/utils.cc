@@ -12,12 +12,15 @@
 #include <octave/toplev.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
+#include <mbxmlutilstinyxml/casadiXML.h>
 #ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
 #include "mbxmlutilstinyxml/casadiXML.h"
 #endif
 
 #define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
 #define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
+
+//MFMF delete this file (MORE or less)
 
 using namespace std;
 
@@ -28,14 +31,14 @@ static CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname);
 #endif
 
 template<int T>
-class Block {
+class Block_ {
   public:
-    Block(ostream &str_) : str(str_) {
+    Block_(ostream &str_) : str(str_) {
       if(disableCount==0)
         orgcxxx=str.rdbuf(0);
       disableCount++;
     }
-    ~Block() {
+    ~Block_() {
       disableCount--;
       if(disableCount==0)
         str.rdbuf(orgcxxx);
@@ -45,17 +48,17 @@ class Block {
     static streambuf *orgcxxx;
     static int disableCount;
 };
-template<int T> streambuf *Block<T>::orgcxxx;
-template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT Block<1> mbxmlutils_dummy_blockstdout(std::cout);
-#define BLOCK_STDERR Block<2> mbxmlutils_dummy_blockstderr(std::cerr);
+template<int T> streambuf *Block_<T>::orgcxxx;
+template<int T> int Block_<T>::disableCount=0;
+#define BLOCK_STDOUT Block_<1> mbxmlutils_dummy_blockstdout(std::cout);
+#define BLOCK_STDERR Block_<2> mbxmlutils_dummy_blockstderr(std::cerr);
 
-class PreserveCurrentDir {
+class PreserveCurrentDir_ {
   public:
-    PreserveCurrentDir() {
+    PreserveCurrentDir_() {
       dir=boost::filesystem::current_path();
     }
-    ~PreserveCurrentDir() {
+    ~PreserveCurrentDir_() {
       boost::filesystem::current_path(dir);
     }
   private:
@@ -102,7 +105,7 @@ void OctaveEvaluator::octavePopParams() {
 // If the resulting type is a CasADi expression a XML representation of the expression is returned.
 TiXmlElement* OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool useCache, vector<pair<string, int> > *arg) {
   // restore current dir on exit
-  PreserveCurrentDir preserveDir;
+  PreserveCurrentDir_ preserveDir;
 
 #if ! defined HAVE_CASADI_SYMBOLIC_SX_SX_HPP
   if(arg) throw string("Found a CasADi expression but MBXMLUtils was not compiled with CasADi support.");
@@ -142,6 +145,7 @@ TiXmlElement* OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool u
       static octave_function *casadi=symbol_table::find_function("casadi").function_value(); // get ones a pointer to casadi for performance reasons
       BLOCK_STDERR;
       feval(casadi);
+      if(error_state!=0) { error_state=0; throw string("Internal error: unable to initialize casadi."); }
     }
 
     // fill octave with the casadi inputs provided by arg
@@ -159,6 +163,7 @@ TiXmlElement* OctaveEvaluator::octaveEvalRet(string str, TiXmlElement *e, bool u
       stringstream str;
       str<<(*arg)[i].first<<"=casadi.ssym('"<<(*arg)[i].first<<"', "<<(*arg)[i].second<<", 1);";
       eval_string(str.str(),true,dummy,0);
+      if(error_state!=0) { error_state=0; throw string("Internal error: unable to fill the casadi inputs."); }
     }
   }
 #endif
@@ -325,7 +330,7 @@ void OctaveEvaluator::fillParam(TiXmlElement *e, bool useCache) {
                        ee->ValueStr()==MBXMLUTILSPARAMNS"matrixParameter"?MatrixType:
                        ee->ValueStr()==MBXMLUTILSPARAMNS"stringParameter"?StringType:ArbitraryType);
       }
-      catch(string str) { cerr<<str<<endl; }
+      catch(const string &str) { cerr<<str<<endl; }
       TiXml_location(ee, "", string(": Variable name: ")+ee->Attribute("name")); // output location of element
     }
     throw string("Erroring processing parameters. See above.");
@@ -371,12 +376,15 @@ void OctaveEvaluator::initialize() {
   warnArg.append("error");
   warnArg.append("Octave:divide-by-zero");
   feval("warning", warnArg);
+  if(error_state!=0) { error_state=0; throw string("Internal error: unable to disable warnings."); }
 
   feval("addpath", octave_value_list(octave_value(OCTAVEDIR)));
+  if(error_state!=0) { error_state=0; throw string("Internal error: cannot add octave search path."); }
 
 #ifdef HAVE_CASADI_SYMBOLIC_SX_SX_HPP
   // initialize casadi in octave
   feval("addpath", octave_value_list(octave_value(MBXMLUtils::getInstallPath()+"/bin")));
+  if(error_state!=0) { error_state=0; throw string("Internal error: cannot add casadi octave search path."); }
 #endif
 }
 
@@ -386,12 +394,164 @@ void OctaveEvaluator::terminate() {
 
 void OctaveEvaluator::addPath(const std::string &path) {
   feval("addpath", octave_value_list(octave_value(path)));
+  if(error_state!=0) { error_state=0; throw string("Error: cannot add octave search path '")+path+"'."; }
 }
 
 void OctaveEvaluator::eval(TiXmlElement *e, bool useCache) {
-  toOctave(e->FirstChildElement(), useCache);
+  TiXmlElement *c=e->FirstChildElement();
 
-  if(e->GetText()) {
+  // symbolic function
+  // THIS IS A WORKAROUND! Actually not all Elements with a attribute named arg1name should be
+  // converted but only elements with a attribute of type symbolicFunctionArgNameType.
+  if(e->Attribute("arg1name")) {
+    vector<pair<string, int> > arg;
+    // loop over all attributes and search for arg1name,  arg2name attributes
+    for(TiXmlAttribute *a=e->FirstAttribute(); a!=NULL; a=a->Next()) {
+      string value=a->Name();
+      if(value.substr(0,3)=="arg" && value.substr(value.length()-4,4)=="name") {
+        int nr=atoi(value.substr(3, value.length()-4-3).c_str());
+        int dim=1;
+        stringstream str;
+        str<<"arg"<<nr<<"dim";
+        if(e->Attribute(str.str())) dim=atoi(e->Attribute(str.str().c_str()));
+        arg.resize(nr);
+        arg[nr-1]=make_pair(a->Value(), dim);
+      }
+    }
+    // handle xml vector
+    if(e->FirstChildElement(MBXMLUTILSPVNS"xmlVector")) {
+      TiXmlElement *exp=NULL;
+      TiXmlElement *matrix=NULL;
+      for(TiXmlElement* ele=e->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
+        TiXmlElement *expXML=octaveEvalRet(ele->GetText(), ele, true, &arg);
+        if(exp==NULL) {
+          exp=expXML->Clone()->ToElement();
+          exp->FirstChildElement(MBXMLUTILSCASADINS"outputs")->RemoveChild(
+            exp->FirstChildElement(MBXMLUTILSCASADINS"outputs")->FirstChildElement());
+          matrix=new TiXmlElement(MBXMLUTILSCASADINS"SXMatrix");
+          exp->FirstChildElement(MBXMLUTILSCASADINS"outputs")->LinkEndChild(matrix);
+          matrix->SetAttribute("columnVector", "true");
+        }
+        matrix->LinkEndChild(expXML->FirstChildElement(MBXMLUTILSCASADINS"outputs")->FirstChildElement()->Clone());
+        delete expXML;
+      }
+      // remove xmlVector and add CasADi XML representation
+      e->RemoveChild(e->FirstChild());
+      e->LinkEndChild(exp);
+    }
+    // handle xml matrix
+    else if(e->FirstChildElement(MBXMLUTILSPVNS"xmlMatrix")) {
+      throw string("Matrix symbolic functions in XML notation are currently not implemented.");
+    }
+    // handle scalar
+    else {
+      // evaluate the expression and get XML representation as return value (use the provided arguments arg)
+      TiXmlElement *expXML=octaveEvalRet(e->GetText(), e, true, &arg);
+      // remove text child and add CasADi XML representation
+      e->RemoveChild(e->FirstChild());
+      e->LinkEndChild(expXML);
+    }
+    return;
+  }
+
+  // xmlMatrix
+  if(c && c->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
+    string mat="[";
+    for(TiXmlElement* row=c->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
+      for(TiXmlElement* ele=row->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
+        eval(ele, useCache);
+        mat+=ele->GetText();
+        if(ele->NextSiblingElement()) mat+=",";
+      }
+      if(row->NextSiblingElement()) mat+=";\n";
+    }
+    mat+="]";
+    TiXmlText text(mat);
+    c->Parent()->InsertEndChild(text);
+    c->Parent()->RemoveChild(c);
+    return;
+  }
+
+  // xmlVector
+  if(c && c->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
+    string vec="[";
+    for(TiXmlElement* ele=c->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
+      eval(ele, useCache);
+      vec+=ele->GetText();
+      if(ele->NextSiblingElement()) vec+=";";
+    }
+    vec+="]";
+    TiXmlText text(vec);
+    c->Parent()->InsertEndChild(text);
+    c->Parent()->RemoveChild(c);
+    eval(c, useCache);
+    return;
+  }
+
+  // rotation about x,y,z
+  for(char ch='X'; ch<='Z'; ch++)
+    if(c && c->ValueStr()==string(MBXMLUTILSPVNS"about")+ch) {
+      // check deprecated feature
+      if(c->Parent()->ToElement()->Attribute("unit")!=NULL)
+        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
+                                    c->Parent()->ToElement());
+      // convert
+      c->SetValue("dummy"); // modify the element name to avoid a recursive call on the next line
+      eval(c, useCache);
+      TiXmlText text(string("rotateAbout")+ch+"("+c->GetText()+")");
+      e->InsertEndChild(text);
+      e->RemoveChild(c);
+      eval(e, useCache);
+      return;
+    }
+
+  // rotation cardan or euler
+  string rotFkt[]={"cardan", "euler"};
+  for(int i=0; i<2; i++)
+    if(c && c->ValueStr()==MBXMLUTILSPVNS+rotFkt[i]) {
+      // check deprecated feature
+      if(c->Parent()->ToElement()->Attribute("unit")!=NULL)
+        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
+                                    c->Parent()->ToElement());
+      // convert
+      TiXmlElement *ele;
+      string octaveStr=rotFkt[i]+"(";
+      ele=c->FirstChildElement();
+      eval(ele, useCache);
+      octaveStr+=string(ele->GetText())+", ";
+      ele->NextSiblingElement();
+      eval(ele, useCache);
+      octaveStr+=string(ele->GetText())+", ";
+      ele->NextSiblingElement();
+      eval(ele, useCache);
+      octaveStr+=ele->GetText();
+      octaveStr+=")";
+      TiXmlText text(octaveStr);
+      e->InsertEndChild(text);
+      e->RemoveChild(c);
+      eval(e, useCache);
+      return;
+    }
+
+  // from file
+  if(c && c->ValueStr()==MBXMLUTILSPVNS"fromFile") {
+    octaveEvalRet(c->Attribute("href"), c, useCache);
+    string loadStr("ret=load(");
+    loadStr+=octaveGetRet(MBXMLUtils::OctaveEvaluator::StringType);
+    loadStr+=");";
+    TiXmlText text(loadStr);
+    TiXmlElement *p=c->Parent()->ToElement();
+    p->InsertEndChild(text);
+    p->RemoveChild(c);
+    eval(p, useCache);
+    return;
+  }
+
+  // octave string with unit
+  // THIS IS A WORKAROUND! Actually not all Text-Elements should be converted but only the Text-Elements
+  // of XML elementx of a type devived from pv:scalar, pv:vector, pv:matrix and pv:string. But for that a
+  // schema aware processor is needed!
+  if(e->GetText() && e->FirstChildElement()==NULL) {
     // eval text node
     octaveEvalRet(e->GetText(), e, useCache);
     // convert unit
@@ -408,101 +568,9 @@ void OctaveEvaluator::eval(TiXmlElement *e, bool useCache) {
       }
       restoreCurrentParam();
     }
-    // wrtie eval to xml
+    // write eval to xml
     e->FirstChild()->SetValue(octaveGetRet());
     e->FirstChild()->ToText()->SetCDATA(false);
-  }
-}
-
-// convert special XML elements (<xmlMatrix>, <xmlVector>, ...)to octave expressions ([2;7;5], ...), including evaluation
-void OctaveEvaluator::toOctave(TiXmlElement *e, bool useCache) {
-  if(e==NULL) return;
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"xmlMatrix") {
-    string mat="[";
-    for(TiXmlElement* row=e->FirstChildElement(); row!=0; row=row->NextSiblingElement()) {
-      for(TiXmlElement* ele=row->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-        eval(ele, useCache);
-        mat+=ele->GetText();
-        if(ele->NextSiblingElement()) mat+=",";
-      }
-      if(row->NextSiblingElement()) mat+=";\n";
-    }
-    mat+="]";
-    TiXmlText text(mat);
-    e->Parent()->InsertEndChild(text);
-    e->Parent()->RemoveChild(e);
-    return;
-  }
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"xmlVector") {
-    string vec="[";
-    for(TiXmlElement* ele=e->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement()) {
-      eval(ele, useCache);
-      vec+=ele->GetText();
-      if(ele->NextSiblingElement()) vec+=";";
-    }
-    vec+="]";
-    TiXmlText text(vec);
-    e->Parent()->InsertEndChild(text);
-    e->Parent()->RemoveChild(e);
-    return;
-  }
-
-  for(char c='X'; c<='Z'; c++)
-    if(e->ValueStr()==string(MBXMLUTILSPVNS"about")+c) {
-      // check deprecated feature
-      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
-        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
-                                    e->Parent()->ToElement());
-      // convert
-      eval(e, useCache);
-      TiXmlText text(string("rotateAbout")+c+"("+e->GetText()+")");
-      TiXmlElement *p=e->Parent()->ToElement();
-      p->InsertEndChild(text);
-      p->RemoveChild(e);
-      eval(p, useCache);
-      return;
-    }
-
-  string rotFkt[]={"cardan", "euler"};
-  for(int i=0; i<2; i++)
-    if(e->ValueStr()==MBXMLUTILSPVNS+rotFkt[i]) {
-      // check deprecated feature
-      if(e->Parent()->ToElement()->Attribute("unit")!=NULL)
-        Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.",
-                                    e->Parent()->ToElement());
-      // convert
-      TiXmlElement *ele;
-      string octaveStr=rotFkt[i]+"(";
-      ele=e->FirstChildElement();
-      eval(ele, useCache);
-      octaveStr+=string(ele->GetText())+", ";
-      ele->NextSiblingElement();
-      eval(ele, useCache);
-      octaveStr+=string(ele->GetText())+", ";
-      ele->NextSiblingElement();
-      eval(ele, useCache);
-      octaveStr+=ele->GetText();
-      octaveStr+=")";
-      TiXmlText text(octaveStr);
-      TiXmlElement *p=e->Parent()->ToElement();
-      p->InsertEndChild(text);
-      p->RemoveChild(e);
-      eval(p, useCache);
-      return;
-    }
-
-  if(e->ValueStr()==MBXMLUTILSPVNS"fromFile") {
-    octaveEvalRet(e->Attribute("href"), e, useCache);
-    string loadStr("ret=load(");
-    loadStr+=octaveGetRet(MBXMLUtils::OctaveEvaluator::StringType);
-    loadStr+=");";
-    TiXmlText text(loadStr);
-    TiXmlElement *p=e->Parent()->ToElement();
-    p->InsertEndChild(text);
-    p->RemoveChild(e);
-    eval(p, useCache);
     return;
   }
 }
@@ -511,11 +579,33 @@ void OctaveEvaluator::toOctave(TiXmlElement *e, bool useCache) {
 // get from octave the variable named varname and extract the casadi object from it
 // and return it as a SXMatrix object.
 CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname) {
+  BLOCK_STDOUT;
+  BLOCK_STDERR;
+
   // get the octave symbol
   octave_value &var=symbol_table::varref(varname);
   // get the casadi type SX or SXMatrix
   static octave_function *swig_type=symbol_table::find_function("swig_type").function_value(); // get ones a pointer to swig_type for performance reasons
   octave_value swigType=feval(swig_type, var, 1)(0);
+  if(error_state!=0) {
+    error_state=0;
+    // not a swig variable => constant
+    const octave_value &val=OctaveEvaluator::octaveGetOctaveValueRet();
+    if(val.is_scalar_type() && val.is_real_type() && (val.is_string()!=1)) {
+      CasADi::SX ret(val.double_value());
+      return ret;
+    }
+    else if(val.is_matrix_type() && val.is_real_type() && (val.is_string()!=1)) {
+      Matrix m=val.matrix_value();
+      CasADi::SXMatrix mat(m.rows(), m.cols());
+      for(int i=0; i<m.rows(); i++)
+        for(int j=0; j<m.cols(); j++)
+          mat[i][j]=m(j*m.rows()+i);
+      return mat;
+    }
+    else // throw on unknown type
+      throw(string("Unknown type: must be a scalar, vector or matrix"));
+  }
   bool sxMatrix=false;
   if(swigType.string_value()=="SX")
     sxMatrix=false;
@@ -524,6 +614,7 @@ CasADi::SXMatrix getCasADiSXMatrixFromOctave(const string &varname) {
   // get the casadi pointer: octave returns a 32 or 64bit integer which represents the pointer
   static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
   octave_value swigThis=feval(swig_this, var, 1)(0);
+  if(error_state!=0) { error_state=0; throw string("Internal error: unable to get the swig pointer."); }
   void *swigPtr=NULL;
   if(swigThis.is_uint64_type())
     swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
