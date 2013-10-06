@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include "mbxmlutilstinyxml/tinynamespace.h"
 #include <octave/parse.h>
-#include "env.h"
 #include <mbxmlutilstinyxml/getinstallpath.h>
 #include <mbxmlutilstinyxml/utils.h>
 #include <octave/octave.h>
@@ -352,8 +351,7 @@ void OctaveEvaluator::initialize() {
   struct stat st;
   char *env;
   string OCTAVEDIR;
-  OCTAVEDIR=OCTAVEDIR_DEFAULT; // default: from build configuration
-  if(stat(OCTAVEDIR.c_str(), &st)!=0) OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave"; // use rel path if build configuration dose not work
+  OCTAVEDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/octave";
   if((env=getenv("MBXMLUTILSOCTAVEDIR"))) OCTAVEDIR=env; // overwrite with envvar if exist
 
   // OCTAVE_HOME

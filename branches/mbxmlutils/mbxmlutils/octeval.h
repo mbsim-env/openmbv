@@ -11,6 +11,7 @@
 #endif
 #include <octave/oct.h>
 #include "mbxmlutilstinyxml/casadiXML.h"
+#include <boost/shared_ptr.hpp>
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
 
@@ -34,10 +35,11 @@ class OctEval {
       VectorType,
       MatrixType,
       StringType,
-      ScalarFunction,
-      VectorFunction,
-      MatrixFunction
+      SXMatrixType,
+      SXFunctionType
     };
+
+    typedef boost::shared_ptr<CasADi::SXMatrix> SXMatrixRef;
 
     //! ctor
     OctEval();
@@ -77,6 +79,9 @@ class OctEval {
     octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
 
     octave_value octaveCasADiSXFunction(Cell inputs, const std::vector<std::vector<octave_value> > &output, bool eleMustBeScalar);
+
+    template<typename T>
+    static T *getSwigObjectPtr(const octave_value &value);
 
     //! get the type of value
     static ValueType getType(const octave_value &value);

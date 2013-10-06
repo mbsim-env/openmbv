@@ -13,7 +13,6 @@
 #  define unordered_set set
 #endif
 #include "mbxmlutilstinyxml/tinynamespace.h"
-#include "env.h"
 #include <boost/filesystem.hpp>
 #ifdef _WIN32 // Windows
 #  include "windows.h"
@@ -341,11 +340,9 @@ catch(...) {
   // check for environment variables (none default installation)
   string XMLDIR;
   char *env;
-  SCHEMADIR=SCHEMADIR_DEFAULT; // default: from build configuration
-  if(!bfs::exists((SCHEMADIR+"/http___openmbv_berlios_de_MBXMLUtils/parameter.xsd").c_str())) SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema"; // use rel path if build configuration dose not work
+  SCHEMADIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/schema";
   if((env=getenv("MBXMLUTILSSCHEMADIR"))) SCHEMADIR=env; // overwrite with envvar if exist
-  XMLDIR=XMLDIR_DEFAULT; // default: from build configuration
-  if(!bfs::exists((XMLDIR+"/measurement.xml").c_str())) XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
+  XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml";
   if((env=getenv("MBXMLUTILSXMLDIR"))) XMLDIR=env; // overwrite with envvar if exist
 
   try {
