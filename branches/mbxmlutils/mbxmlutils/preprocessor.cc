@@ -261,7 +261,22 @@ string extractFileName(const string& dirfilename) {
 //////////////////////////MFMF
 void walk(TiXmlElement *e, OctEval &oe) {
   cout<<e->ValueStr()<<endl;
-  oe.eval(e);
+  octave_value ret=oe.eval(e);
+  try {
+    CasADi::SXFunction f=OctEval::cast<CasADi::SXFunction>(ret);
+    if(f.getNumInputs()==1) {
+      if(f.inputExpr(0).size1()==1 && f.inputExpr(0).size2()==1) {
+        f.init();
+        f.setInput(CasADi::Matrix<double>(5.436), 0);
+        f.evaluate();
+        CasADi::SXMatrix out=f.output(0);
+        for(int i=0; i<out.size1(); i++)
+          for(int j=0; j<out.size2(); j++)
+            cout<<"out "<<j<<" "<<i<<" "<<out(i,j)<<endl;
+      }
+    }
+  }
+  catch(...) {}
   if(e->Attribute("arg1name")) return;
   if(e->FirstChildElement())
     walk(e->FirstChildElement(), oe);
@@ -283,6 +298,7 @@ try
   ostringstream dependencies;
   incorporateNamespace(e,dummy,dummy2,&dependencies);
   oe.addParamSet(e);
+  delete paramxmldoc;
 
   paramxmldoc=new TiXmlDocument;
   paramxmldoc->LoadFile("/home/markus/project/mbsim/examples/xml/time_dependent_kinematics/parameter.mbsim.xml"); TiXml_PostLoadFile(paramxmldoc);
@@ -290,12 +306,14 @@ try
   incorporateNamespace(e,dummy,dummy2,&dependencies);
   oe.pushParams();
   oe.addParamSet(e);
+  delete paramxmldoc;
 
   paramxmldoc=new TiXmlDocument;
   paramxmldoc->LoadFile("/home/markus/project/branch/svn/mbxmlutils/test.xml"); TiXml_PostLoadFile(paramxmldoc);
   e=paramxmldoc->FirstChildElement();
   incorporateNamespace(e,dummy,dummy2,&dependencies);
   walk(e, oe);
+  delete paramxmldoc;
 }  
 catch(const OctEvalException &ex) {
   ex.print();

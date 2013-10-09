@@ -14,6 +14,31 @@
 
 using namespace std;
 
+// the boost intrusive_ptr inc and dec funtions must be defined in the namespace of the argument
+namespace CasADi {
+  void intrusive_ptr_add_ref(SXMatrix *ptr) {
+    // get the octave_value list corresponding to ptr and
+    pair<bool, list<octave_value> > &pairOct=MBXMLUtils::OctEval::mapPtrOct[ptr];
+    list<octave_value> &listOct=pairOct.second;
+    // copy one (the first) element in the list which implicitly increments the refcount in the octave_value object
+    listOct.push_back(*listOct.begin());
+  }
+  void intrusive_ptr_release(SXMatrix *ptr) {
+    // get the octave_value list corresponding to ptr and
+    pair<bool, list<octave_value> > &pairOct=MBXMLUtils::OctEval::mapPtrOct[ptr];
+    list<octave_value> &listOct=pairOct.second;
+    // erase on (the first) element in the list which implicitly decrements the refcount in the octave_value object
+    listOct.erase(listOct.begin());
+    // if only one object remains in the list delete the list completely
+    // (one object was added because we need a object as source for the copys in intrusive_ptr_add_ref)
+    if(++listOct.begin()==listOct.end()) { // = if(listOct.size()==1)
+      if(!pairOct.first)
+        delete ptr;
+      MBXMLUtils::OctEval::mapPtrOct.erase(MBXMLUtils::OctEval::mapPtrOct.find(ptr));
+    }
+  }
+}
+
 namespace MBXMLUtils {
 
 template<int T>
@@ -50,6 +75,8 @@ class PreserveCurrentDir {
   private:
     boost::filesystem::path dir;
 };
+
+map<void*, pair<bool, list<octave_value> > > OctEval::mapPtrOct;
 
 template<>
 string OctEval::cast<string>(const octave_value &value) {
@@ -90,10 +117,6 @@ T *OctEval::getSwigObjectPtr(const octave_value &value) {
   return static_cast<T*>(swigPtr);
 }
 
-namespace {
-  void noDelete(CasADi::SXMatrix *p) {}
-}
-
 template<>
 OctEval::SXMatrixRef OctEval::cast<OctEval::SXMatrixRef>(const octave_value &value) {
   ValueType type=getType(value);
@@ -101,19 +124,38 @@ OctEval::SXMatrixRef OctEval::cast<OctEval::SXMatrixRef>(const octave_value &val
     throw runtime_error("Unknown type: must be a scalar, vector, matrix or CasADi SXMatrix type.");
 
   // for scalar, vector and matrix create a new equalent SXMatrix object and return a reference counted reference to it.
-  if(type==ScalarType)
-    return SXMatrixRef(new CasADi::SXMatrix(1,1,value.double_value()));
-  if(type==VectorType || type==MatrixType) {
+  CasADi::SXMatrix *ptr;
+  bool octaveDeletes;
+  if(type==ScalarType) {
+    ptr=new CasADi::SXMatrix(1,1,value.double_value());
+    octaveDeletes=false;
+  }
+  else if(type==VectorType || type==MatrixType) {
     Matrix m=value.matrix_value();
-    SXMatrixRef mat(new CasADi::SXMatrix(m.rows(), m.cols()));
+    auto_ptr<CasADi::SXMatrix> autoPtr(new CasADi::SXMatrix(m.rows(), m.cols()));
     for(int i=0; i<m.rows(); i++)
       for(int j=0; j<m.cols(); j++)
-        (*mat)[i][j]=m(j*m.rows()+i);
-    return mat;
+        (*autoPtr)[i][j]=m(j*m.rows()+i);
+    ptr=autoPtr.release();
+    octaveDeletes=false;
+  }
+  else {
+    ptr=getSwigObjectPtr<CasADi::SXMatrix>(value);
+    octaveDeletes=true;
   }
 
-  // return a referent to the SXMatrix object stored in octave but to not delete it since octave owns the object
-  return SXMatrixRef(getSwigObjectPtr<CasADi::SXMatrix>(value), &noDelete);
+  // BEGIN: the following code should not throw (ptr will never be deleted)
+  // get the octave_value list corresponding to ptr and
+  pair<bool, list<octave_value> > &pairOct=mapPtrOct[ptr];
+  pairOct.first=octaveDeletes;
+  list<octave_value> &listOct=pairOct.second;
+  // if this list is empty add value as first element as a source for copies in intrusive_ptr_add_ref
+  if(listOct.empty())
+    listOct.push_back(value);
+  // create a intrusive_ptr which used ref counting in octave_value objects
+  // END: the following code should not throw (ptr will never be deleted)
+  SXMatrixRef ret(ptr);
+  return ret;
 }
 
 template<>
@@ -173,6 +215,7 @@ void OctEvalException::print() const {
 }
 
 int OctEval::initCount=0;
+
 std::map<std::string, std::string> OctEval::units;
 
 OctEval::OctEval() {

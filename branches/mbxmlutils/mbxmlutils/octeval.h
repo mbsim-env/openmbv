@@ -11,9 +11,14 @@
 #endif
 #include <octave/oct.h>
 #include "mbxmlutilstinyxml/casadiXML.h"
-#include <boost/shared_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
+
+namespace CasADi {
+  void intrusive_ptr_add_ref(SXMatrix *ptr);
+  void intrusive_ptr_release(SXMatrix *ptr);
+}
 
 namespace MBXMLUtils {
 
@@ -39,7 +44,7 @@ class OctEval {
       SXFunctionType
     };
 
-    typedef boost::shared_ptr<CasADi::SXMatrix> SXMatrixRef;
+    typedef boost::intrusive_ptr<CasADi::SXMatrix> SXMatrixRef;
 
     //! ctor
     OctEval();
@@ -64,7 +69,8 @@ class OctEval {
 
     // helper functions
 
-    //! cast octave value to T
+    /*! Cast octave value to T.
+     * Allowed types for T are std::string, OctEval::SXMatrixRef, CasADi::SXFunctionType. */
     template<typename T>
     static T cast(const octave_value &value);
 
@@ -77,8 +83,6 @@ class OctEval {
     octave_value createSXFunction(const Cell &inputs, const octave_value &output);
 
     octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
-
-    octave_value octaveCasADiSXFunction(Cell inputs, const std::vector<std::vector<octave_value> > &output, bool eleMustBeScalar);
 
     template<typename T>
     static T *getSwigObjectPtr(const octave_value &value);
@@ -97,6 +101,14 @@ class OctEval {
     static std::map<std::string, std::string> units;
 
     octave_value casadiOctValue;
+
+    // *** We need to do some tricky handling for objects which are reference counted on octave and c++ side ***
+    // a map which stores a c++ pointer (void*) and corresponding octave_value objects used for reference couting
+    // if the bool value is true octave will call delete on the pointer if false we need to call the delete operator
+    static std::map<void*, std::pair<bool, std::list<octave_value> > > mapPtrOct;
+    // the boost intrusive_ptr ref count inc and dec routines must use mapPtrOct
+    friend void CasADi::intrusive_ptr_add_ref(CasADi::SXMatrix *ptr);
+    friend void CasADi::intrusive_ptr_release(CasADi::SXMatrix *ptr);
 };
 
 } // end namespace MBXMLUtils
