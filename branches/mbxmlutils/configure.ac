@@ -238,6 +238,15 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     
 ])
 
+dnl Check for doxygen
+AC_ARG_WITH([doxygenpath],
+  [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],
+  [doxygenpath="$withval"],[doxygenpath=""])
+AC_PATH_PROG([doxygen],[doxygen],[no],[${doxygenpath:-$PATH}])
+if test $doxygen = "no" ; then
+  AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
+fi
+
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno-delete-non-virtual-dtor"
 
 # from now on only libtool is used for linking
@@ -247,7 +256,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile doc/Makefile doc/Doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

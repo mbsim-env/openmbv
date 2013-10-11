@@ -5,7 +5,6 @@
 #include "mbxmlutilstinyxml/tinynamespace.h"
 #include <mbxmlutilstinyxml/getinstallpath.h>
 #include <mbxmlutilstinyxml/utils.h>
-#include <octave/parse.h>
 #include <octave/octave.h>
 #include <boost/scope_exit.hpp>
 #include <casadi/symbolic/sx/sx_tools.hpp>
@@ -14,56 +13,9 @@
 
 using namespace std;
 
-// the boost intrusive_ptr inc and dec funtions must be defined in the namespace of the argument
-namespace CasADi {
-  void intrusive_ptr_add_ref(SXMatrix *ptr) {
-    // get the octave_value list corresponding to ptr and
-    pair<bool, list<octave_value> > &pairOct=MBXMLUtils::OctEval::mapPtrOct[ptr];
-    list<octave_value> &listOct=pairOct.second;
-    // copy one (the first) element in the list which implicitly increments the refcount in the octave_value object
-    listOct.push_back(*listOct.begin());
-  }
-  void intrusive_ptr_release(SXMatrix *ptr) {
-    // get the octave_value list corresponding to ptr and
-    pair<bool, list<octave_value> > &pairOct=MBXMLUtils::OctEval::mapPtrOct[ptr];
-    list<octave_value> &listOct=pairOct.second;
-    // erase on (the first) element in the list which implicitly decrements the refcount in the octave_value object
-    listOct.erase(listOct.begin());
-    // if only one object remains in the list delete the list completely
-    // (one object was added because we need a object as source for the copys in intrusive_ptr_add_ref)
-    if(++listOct.begin()==listOct.end()) { // = if(listOct.size()==1)
-      if(!pairOct.first)
-        delete ptr;
-      MBXMLUtils::OctEval::mapPtrOct.erase(MBXMLUtils::OctEval::mapPtrOct.find(ptr));
-    }
-  }
-}
-
 namespace MBXMLUtils {
 
-template<int T>
-class Block {
-  public:
-    Block(ostream &str_) : str(str_) {
-      if(disableCount==0)
-        orgcxxx=str.rdbuf(0);
-      disableCount++;
-    }
-    ~Block() {
-      disableCount--;
-      if(disableCount==0)
-        str.rdbuf(orgcxxx);
-    }
-  private:
-    ostream &str;
-    static streambuf *orgcxxx;
-    static int disableCount;
-};
-template<int T> streambuf *Block<T>::orgcxxx;
-template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT Block<1> mbxmlutils_dummy_blockstdout(std::cout);
-#define BLOCK_STDERR Block<2> mbxmlutils_dummy_blockstderr(std::cerr);
-
+// Store the current directory in the ctor an restore in the dtor
 class PreserveCurrentDir {
   public:
     PreserveCurrentDir() {
@@ -76,7 +28,23 @@ class PreserveCurrentDir {
     boost::filesystem::path dir;
 };
 
-map<void*, pair<bool, list<octave_value> > > OctEval::mapPtrOct;
+// clone from octave_value to CasADi::SXMatrix
+template<>
+CasADi::SXMatrix OctEval::cloneAs<CasADi::SXMatrix>(const octave_value &value) {
+  ValueType type=getType(value);
+  if(type==ScalarType)
+    return CasADi::SXMatrix(1,1,value.double_value());
+  else if(type==VectorType || type==MatrixType) {
+    Matrix m=value.matrix_value();
+    CasADi::SXMatrix M;
+    M.resize(m.rows(), m.cols());
+    for(int i=0; i<m.rows(); i++)
+      for(int j=0; j<m.cols(); j++)
+        M.elem(i, j)=m(j*m.rows()+i);
+    return M;
+  }
+  throw runtime_error("Cannot clone the type of octave_value to the requested type.");
+}
 
 template<>
 string OctEval::cast<string>(const octave_value &value) {
@@ -105,102 +73,55 @@ string OctEval::cast<string>(const octave_value &value) {
   return ret.str();
 }
 
-template<typename T>
-T *OctEval::getSwigObjectPtr(const octave_value &value) {
-  // get the casadi pointer: octave returns a 64bit integer which represents the pointer
-  static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
-  octave_value swigThis=feval(swig_this, value, 1)(0);
-  if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get the swig pointer."); }
-  void *swigPtr=NULL;
-  swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
-  // convert the void pointer to the correct casadi type
-  return static_cast<T*>(swigPtr);
+template<>
+double OctEval::cast<double>(const octave_value &value) {
+  if(getType(value)==ScalarType)
+    return value.double_value();
+  throw runtime_error("Cannot cast octave value to double.");
 }
 
 template<>
-OctEval::SXMatrixRef OctEval::cast<OctEval::SXMatrixRef>(const octave_value &value) {
-  ValueType type=getType(value);
-  if(type!=ScalarType && type!=VectorType && type!=MatrixType && type!=SXMatrixType)
-    throw runtime_error("Unknown type: must be a scalar, vector, matrix or CasADi SXMatrix type.");
-
-  // for scalar, vector and matrix create a new equalent SXMatrix object and return a reference counted reference to it.
-  CasADi::SXMatrix *ptr;
-  bool octaveDeletes;
-  if(type==ScalarType) {
-    ptr=new CasADi::SXMatrix(1,1,value.double_value());
-    octaveDeletes=false;
-  }
-  else if(type==VectorType || type==MatrixType) {
+vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
+  if(getType(value)==VectorType) {
+    vector<double> ret;
     Matrix m=value.matrix_value();
-    auto_ptr<CasADi::SXMatrix> autoPtr(new CasADi::SXMatrix(m.rows(), m.cols()));
     for(int i=0; i<m.rows(); i++)
-      for(int j=0; j<m.cols(); j++)
-        (*autoPtr)[i][j]=m(j*m.rows()+i);
-    ptr=autoPtr.release();
-    octaveDeletes=false;
+      ret.push_back(m(i));
+    return ret;
   }
-  else {
-    ptr=getSwigObjectPtr<CasADi::SXMatrix>(value);
-    octaveDeletes=true;
-  }
-
-  // BEGIN: the following code should not throw (ptr will never be deleted)
-  // get the octave_value list corresponding to ptr and
-  pair<bool, list<octave_value> > &pairOct=mapPtrOct[ptr];
-  pairOct.first=octaveDeletes;
-  list<octave_value> &listOct=pairOct.second;
-  // if this list is empty add value as first element as a source for copies in intrusive_ptr_add_ref
-  if(listOct.empty())
-    listOct.push_back(value);
-  // create a intrusive_ptr which used ref counting in octave_value objects
-  // END: the following code should not throw (ptr will never be deleted)
-  SXMatrixRef ret(ptr);
-  return ret;
+  throw runtime_error("Cannot cast octave value to vector<double>.");
 }
 
 template<>
-CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value) {
-  ValueType type=getType(value);
-  if(type!=SXFunctionType)
-    throw runtime_error("Unknown type: must be a CasADi SXFunction type.");
-
-  return *getSwigObjectPtr<CasADi::SXFunction>(value);
+vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_value &value) {
+  if(getType(value)==MatrixType) {
+    vector<vector<double> > ret;
+    Matrix m=value.matrix_value();
+    for(int i=0; i<m.rows(); i++) {
+      vector<double> row;
+      for(int j=0; j<m.cols(); j++)
+        row.push_back(m(j*m.rows()+i));
+      ret.push_back(row);
+    }
+    return ret;
+  }
+  throw runtime_error("Cannot cast octave value to vector<vector<double> >.");
 }
 
-octave_value OctEval::createSXMatrix(const string &name, int dim1, int dim2) {
-  static list<octave_value_list> idx;
-  static octave_value *name_, *dim1_, *dim2_;
-  if(idx.empty()) {
-    idx.push_back(octave_value_list("ssym"));
-    octave_value_list arg;
-    arg.append("dummy");
-    arg.append(0);
-    arg.append(0);
-    idx.push_back(arg);
-    name_=&((*(--idx.end()))(0));
-    dim1_=&((*(--idx.end()))(1));
-    dim2_=&((*(--idx.end()))(2));
-  }
-  *name_=name;
-  *dim1_=dim1;
-  *dim2_=dim2;
-  return casadiOctValue.subsref(".(", idx);
+template<>
+TiXmlElement *OctEval::cast<TiXmlElement*>(const octave_value &value) {
+  if(getType(value)==SXFunctionType)
+    return convertCasADiToXML(cast<CasADi::SXFunction>(value));
+  throw runtime_error("Cannot cast octave value to TiXmlElement*.");
 }
 
-octave_value OctEval::createSXFunction(const Cell &inputs, const octave_value &output) {
+octave_value OctEval::createCasADi(const string &name) {
   static list<octave_value_list> idx;
-  static octave_value *inputs_, *outputs_;
   if(idx.empty()) {
-    idx.push_back(octave_value_list("SXFunction"));
-    octave_value_list arg;
-    arg.append(octave_value(Cell()));
-    arg.append(octave_value(Cell(1,1)));
-    idx.push_back(arg);
-    inputs_ =&((*(--idx.end()))(0));
-    outputs_=&((*(--idx.end()))(1));
+    idx.push_back(octave_value_list(name));
+    idx.push_back(octave_value_list());
   }
-  *inputs_ =inputs;
-  *outputs_=Cell(output);
+  *idx.begin()=octave_value_list(name);
   return casadiOctValue.subsref(".(", idx);
 }
 
@@ -431,7 +352,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
     BOOST_SCOPE_EXIT((&function)(&_this)) {
       if(function) _this->popParams();
     } BOOST_SCOPE_EXIT_END
-    Cell inputs;
+    vector<CasADi::SXMatrix> inputs;
     if(function) {
       addParam("casadi", casadiOctValue);
       // loop over all attributes and search for arg1name, arg2name attributes
@@ -444,15 +365,17 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           str<<"arg"<<nr<<"dim";
           if(e->Attribute(str.str())) dim=atoi(e->Attribute(str.str().c_str()));
 
-          octave_value octArg=createSXMatrix(a->Value(), dim, 1);
+          octave_value octArg=createCasADi("SXMatrix");
+          CasADi::SXMatrix *arg=cast<CasADi::SXMatrix*>(octArg);
+          *arg=CasADi::ssym(a->Value(), dim, 1);
           addParam(a->Value(), octArg);
-          inputs.resize1(max(nr, inputs.dim2()), false); // fill new elements with bool "false" value (detect these later)
-          inputs.elem(nr-1)=octArg;
+          inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
+          inputs[nr-1]=*arg;
         }
       }
       // check if one argument was not set. If so error
-      for(int i=0; i<inputs.dim2(); i++)
-        if(inputs.elem(i).is_bool_type()) // a bool type is an error (see above)
+      for(int i=0; i<inputs.size(); i++)
+        if(inputs[i].isNull()) // a isNull() object is a error (see above), since not all arg?name args were defined
           throw runtime_error("All argXName attributes up to the largest argument number must be specified.");
     }
   
@@ -465,25 +388,26 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
       for(const TiXmlElement* ele=ec->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement(), i++);
       // get/eval values
       Matrix m(i, 1);
-      octave_value octM;
-      SXMatrixRef M;
-      if(function) {
-        octM=createSXMatrix("dummy", i, 1);
-        M=cast<SXMatrixRef>(octM);
-      }
+      CasADi::SXMatrix M;
+      if(function)
+        M.resize(i, 1);
       i=0;
       for(const TiXmlElement* ele=ec->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement(), i++)
         if(!function)
           m(i)=stringToOctValue(ele->GetText(), ele).double_value();
         else {
-          SXMatrixRef Mele=cast<SXMatrixRef>(stringToOctValue(ele->GetText(), ele));
-          if(Mele->size1()!=1 || Mele->size2()!=1) throw runtime_error("Scalar argument required.");
-          M->elem(i,0)=Mele->elem(0,0);
+          CasADi::SXMatrix Mele=cast<CasADi::SXMatrix>(stringToOctValue(ele->GetText(), ele));
+          if(Mele.size1()!=1 || Mele.size2()!=1) throw runtime_error("Scalar argument required.");
+          M.elem(i,0)=Mele.elem(0,0);
         }
       if(!function)
         return m;
-      else
-        return createSXFunction(inputs, octM);
+      else {
+        octave_value octF=createCasADi("SXFunction");
+        CasADi::SXFunction f(inputs, M);
+        cast<CasADi::SXFunction*>(octF)->assignNode(f.get());
+        return octF;
+      }
     }
   
     // a XML matrix
@@ -497,12 +421,9 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
       for(const TiXmlElement* ele=ec->FirstChildElement()->FirstChildElement(); ele!=0; ele=ele->NextSiblingElement(), j++);
       // get/eval values
       Matrix m(i, j);
-      octave_value octM;
-      SXMatrixRef M;
-      if(function) {
-        octM=createSXMatrix("dummy", i, j);
-        M=cast<SXMatrixRef>(octM);
-      }
+      CasADi::SXMatrix M;
+      if(function)
+        M.resize(i, j);
       i=0;
       for(const TiXmlElement* row=ec->FirstChildElement(); row!=0; row=row->NextSiblingElement(), i++) {
         j=0;
@@ -510,15 +431,19 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           if(!function)
             m(j*m.rows()+i)=stringToOctValue(col->GetText(), col).double_value();
           else {
-            SXMatrixRef Mele=cast<SXMatrixRef>(stringToOctValue(col->GetText(), col));
-            if(Mele->size1()!=1 || Mele->size2()!=1) throw runtime_error("Scalar argument required.");
-            M->elem(i,0)=Mele->elem(0,0);
+            CasADi::SXMatrix Mele=cast<CasADi::SXMatrix>(stringToOctValue(col->GetText(), col));
+            if(Mele.size1()!=1 || Mele.size2()!=1) throw runtime_error("Scalar argument required.");
+            M.elem(i,0)=Mele.elem(0,0);
           }
       }
       if(!function)
         return m;
-      else
-        return createSXFunction(inputs, octM);
+      else {
+        octave_value octF=createCasADi("SXFunction");
+        CasADi::SXFunction f(inputs, M);
+        cast<CasADi::SXFunction*>(octF)->assignNode(f.get());
+        return octF;
+      }
     }
   
     // a element with a single text child (including unit conversion)
@@ -537,8 +462,12 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
   
       if(!function)
         return ret;
-      else
-        return createSXFunction(inputs, ret);
+      else {
+        octave_value octF=createCasADi("SXFunction");
+        CasADi::SXFunction f(inputs, cast<CasADi::SXMatrix>(ret));
+        cast<CasADi::SXFunction*>(octF)->assignNode(f.get());
+        return octF;
+      }
     }
   
     // rotation about x,y,z

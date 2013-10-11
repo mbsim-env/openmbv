@@ -1,0 +1,6 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = @PACKAGE@
+PROJECT_NUMBER         = @VERSION@
+GENERATE_TAGFILE       = @PACKAGE@.tag
+HTML_HEADER            = myheader.html
+INPUT                  = ../mbxmlutils
