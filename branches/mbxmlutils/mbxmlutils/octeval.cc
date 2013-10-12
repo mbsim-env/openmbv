@@ -30,7 +30,7 @@ class PreserveCurrentDir {
 
 // clone from octave_value to CasADi::SXMatrix
 template<>
-CasADi::SXMatrix OctEval::cloneAs<CasADi::SXMatrix>(const octave_value &value) {
+CasADi::SXMatrix OctEval::cloneSwigAs<CasADi::SXMatrix>(const octave_value &value) {
   ValueType type=getType(value);
   if(type==ScalarType)
     return CasADi::SXMatrix(1,1,value.double_value());
@@ -82,7 +82,7 @@ double OctEval::cast<double>(const octave_value &value) {
 
 template<>
 vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
-  if(getType(value)==VectorType) {
+  if(getType(value)==VectorType || getType(value)==ScalarType) {
     vector<double> ret;
     Matrix m=value.matrix_value();
     for(int i=0; i<m.rows(); i++)
@@ -94,7 +94,7 @@ vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
 
 template<>
 vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_value &value) {
-  if(getType(value)==MatrixType) {
+  if(getType(value)==MatrixType || getType(value)==VectorType || getType(value)==ScalarType) {
     vector<vector<double> > ret;
     Matrix m=value.matrix_value();
     for(int i=0; i<m.rows(); i++) {
@@ -109,9 +109,9 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
 }
 
 template<>
-TiXmlElement *OctEval::cast<TiXmlElement*>(const octave_value &value) {
+boost::shared_ptr<TiXmlElement> OctEval::cast<boost::shared_ptr<TiXmlElement> >(const octave_value &value) {
   if(getType(value)==SXFunctionType)
-    return convertCasADiToXML(cast<CasADi::SXFunction>(value));
+    return boost::shared_ptr<TiXmlElement>(convertCasADiToXML(cast<CasADi::SXFunction>(value)));
   throw runtime_error("Cannot cast octave value to TiXmlElement*.");
 }
 
@@ -567,6 +567,30 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
     else
       throw runtime_error("The provided octave value has an unknown type.");
   }
+}
+
+template<>
+void OctEval::isSwig<CasADi::SXMatrix>(const octave_value &value) {
+  if(getType(value)!=SXMatrixType)
+    throw runtime_error("The octave value is not of Swig type CasADi::SXMatrix");
+}
+
+template<>
+void OctEval::isSwig<CasADi::SXMatrix*>(const octave_value &value) {
+  if(getType(value)!=SXMatrixType)
+    throw runtime_error("The octave value is not of Swig type CasADi::SXMatrix");
+}
+
+template<>
+void OctEval::isSwig<CasADi::SXFunction>(const octave_value &value) {
+  if(getType(value)!=SXFunctionType)
+    throw runtime_error("The octave value is not of Swig type CasADi::SXFunction");
+}
+
+template<>
+void OctEval::isSwig<CasADi::SXFunction*>(const octave_value &value) {
+  if(getType(value)!=SXFunctionType)
+    throw runtime_error("The octave value is not of Swig type CasADi::SXFunction");
 }
 
 } // end namespace MBXMLUtils

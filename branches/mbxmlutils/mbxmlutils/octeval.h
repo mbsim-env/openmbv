@@ -11,7 +11,7 @@
 #endif
 #include <octave/oct.h>
 #include "mbxmlutilstinyxml/casadiXML.h"
-#include <boost/intrusive_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 #include <octave/parse.h>
 
 #define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
@@ -78,18 +78,24 @@ class OctEval {
 
     /*! Cast the octave value value to type T.
      * Possible combinations of allowed octave value types and template types T are listed in the
-     * following table. If a combination is not allowed a exception is thrown.
+     * following table. If a combination is not allowed a exception is thrown, except for casts which are marked
+     * as not type save (see table).
+     * If a pointer is returned this pointer is only guranteed to be valid for the lifetime of the octave object
+     * \p value beeing passed as pointer.
      * <table>
-     * <tr><td></td><th colspan="5">Octave Type of value</th></tr>
-     * <tr><th>Template Type T</th><th>scalar</th><th>vector</th><th>matrix</th><th>SWIG</th><th>SWIG CasADi::SXFunction</th></tr>
-     * <tr><th>double</th><td>O</td><td></td><td></td><td></td><td></td></tr>
-     * <tr><th>vector&lt;double&gt;</th><td>O</td><td>O</td><td></td><td></td><td></td></tr>
-     * <tr><th>vector&lt;vector&lt;double&gt;&bnsp;&gt;</th><td>O</td><td>O</td><td>O</td><td></td><td></td></tr>
-     * <tr><th>string</th><td>O (e.g. '5')</td><td>O (e.g. '[3;5]')</td><td>O (e.g. '[1,2;3,4]')</td><td></td><td></td></tr>
-     * <tr><th>TiXmlElement*</th><td></td><td></td><td></td><td></td><td>O</td></tr>
-     * <tr><th>SWIG_Type*</th><td></td><td></td><td></td><td>O (no type check done)</td><td>O (no type check done)</td></tr>
-     * <tr><th>SWIG_Type</th><td></td><td></td><td></td><td>O (no type check done)</td><td>O (no type check done)</td></tr>
-     * <tr><th>CasADi::SXMatrix</th><td>O</td><td>O</td><td>O</td><td></td><td></td></tr>
+     * <tr><td></td><th colspan="7"><tt>value</tt> is of Octave Type ...</th></tr>
+     * <tr><th>Template Type <tt>T</tt> equals ...</th><th>scalar</th><th>(row) vector</th><th>matrix</th><th>string</th><th><i>SWIG</i> <tt>CasADi::SXFunction</tt></th><th><i>SWIG</i> <tt>CasADi::SXMatrix</tt></th><th><i>SWIG</i> <tt>XYZ</tt></th></tr>
+     * <tr><th><tt>double</tt></th><td>O</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+     * <tr><th><tt>vector&lt;double&gt;</tt></th><td>O</td><td>O</td><td></td><td></td><td></td><td></td><td></td></tr>
+     * <tr><th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th><td>O</td><td>O</td><td>O</td><td></td><td></td><td></td><td></td></tr>
+     * <tr><th><tt>string</tt></th><td>O (returns e.g. "5")</td><td>O (returns e.g. "[3;5]")</td><td>O (returns e.g. "[1,2;3,4]")</td><td>O (returns e.g. "'foo'"</td><td></td><td></td><td></td></tr>
+     * <tr><th><tt>shared_ptr&lt;TiXmlElement&gt;</tt></th><td></td><td></td><td></td><td></td><td>O (in MBXMLUtilsTinyXML representation)</td><td></td><td></td></tr>
+     * <tr><th><tt>CasADi::SXMatrix</tt></th><td>O</td><td>O</td><td>O</td><td></td><td></td><td>O</td><td></td></tr>
+     * <tr><th><tt>CasADi::SXMatrix*</tt></th><td></td><td></td><td></td><td></td><td></td><td>O</td><td></td></tr>
+     * <tr><th><tt>CasADi::SXFunction</tt></th><td></td><td></td><td></td><td></td><td>O</td><td></td><td></td></tr>
+     * <tr><th><tt>CasADi::SXFunction*</tt></th><td></td><td></td><td></td><td></td><td>O</td><td></td><td></td></tr>
+     * <tr><th><tt>XYZ</tt></th><td></td><td></td><td></td><td></td><td></td><td></td><td>O (not type save)</td></tr>
+     * <tr><th><tt>XYZ*</tt></th><td></td><td></td><td></td><td></td><td></td><td></td><td>O (not type save)</td></tr>
      * </table>
      */
     template<typename T>
@@ -109,11 +115,15 @@ class OctEval {
     //! create octave value of CasADi type name. Created using the default ctor.
     octave_value createCasADi(const std::string &name);
 
-    // clone the octave value to type T
+    // clone the octave value of type SWIG to type T
     template<typename T>
-    static T cloneAs(const octave_value &value);
+    static T cloneSwigAs(const octave_value &value);
 
     octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
+
+    // check if value is of a swig object of type T
+    template<typename T>
+    static void isSwig(const octave_value &value);
 
     //! get the type of value
     static ValueType getType(const octave_value &value);
@@ -131,12 +141,6 @@ class OctEval {
     octave_value casadiOctValue;
 };
 
-// default: not cloneable
-template<typename T>
-T OctEval::cloneAs(const octave_value &value) {
-  throw std::runtime_error("Cannot clone this type of octave_value.");
-}
-
 // Helper class which convert a void* to T* or T.
 template<typename T>
 struct Ptr {
@@ -146,6 +150,24 @@ template<typename T>
 struct Ptr<T*> {
   static T* cast(void *ptr) { return static_cast<T*>(ptr); }
 };
+
+// default: not cloneable
+template<typename T>
+T OctEval::cloneSwigAs(const octave_value &value) {
+  throw std::runtime_error("Cannot clone this octave_value of type SWIG.");
+}
+
+template<> CasADi::SXMatrix OctEval::cloneSwigAs<CasADi::SXMatrix>(const octave_value &value);
+
+// default: do no type check to allow all conversion is a type unsafe way
+template<typename T>
+void OctEval::isSwig(const octave_value &value) {
+}
+
+template<> void OctEval::isSwig<CasADi::SXMatrix>(const octave_value &value);
+template<> void OctEval::isSwig<CasADi::SXMatrix*>(const octave_value &value);
+template<> void OctEval::isSwig<CasADi::SXFunction>(const octave_value &value);
+template<> void OctEval::isSwig<CasADi::SXFunction*>(const octave_value &value);
 
 // cast octave value to swig object ptr or swig object copy
 template<typename T>
@@ -157,15 +179,23 @@ T OctEval::cast(const octave_value &value) {
     BLOCK_STDERR
     swigThis=feval(swig_this, value, 1)(0);
   }
-  // try to clone it if value is not a casadi object
+  // try to clone it if value is not a SWIG object
   if(error_state!=0) {
     error_state=0;
-    return cloneAs<T>(value);
+    return cloneSwigAs<T>(value);
   }
+  // type check
+  isSwig<T>(value);
   void *swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
   // convert the void pointer to the correct casadi type
   return Ptr<T>::cast(swigPtr);
 }
+
+template<> std::string OctEval::cast<std::string>(const octave_value &value);
+template<> double OctEval::cast<double>(const octave_value &value);
+template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
+template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
+template<> boost::shared_ptr<MBXMLUtils::TiXmlElement> OctEval::cast<boost::shared_ptr<MBXMLUtils::TiXmlElement> >(const octave_value &value);
 
 } // end namespace MBXMLUtils
 
