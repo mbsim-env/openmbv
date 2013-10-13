@@ -28,6 +28,16 @@ class PreserveCurrentDir {
     boost::filesystem::path dir;
 };
 
+NewParamLevel::NewParamLevel(OctEval &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
+  if(newLevel)
+    oe.pushParams();
+}
+
+NewParamLevel::~NewParamLevel() {
+  if(newLevel)
+    oe.popParams();
+}
+
 // clone from octave_value to CasADi::SXMatrix
 template<>
 CasADi::SXMatrix OctEval::cloneSwigAs<CasADi::SXMatrix>(const octave_value &value) {
@@ -109,9 +119,9 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
 }
 
 template<>
-boost::shared_ptr<TiXmlElement> OctEval::cast<boost::shared_ptr<TiXmlElement> >(const octave_value &value) {
+auto_ptr<TiXmlElement> OctEval::cast<auto_ptr<TiXmlElement> >(const octave_value &value) {
   if(getType(value)==SXFunctionType)
-    return boost::shared_ptr<TiXmlElement>(convertCasADiToXML(cast<CasADi::SXFunction>(value)));
+    return auto_ptr<TiXmlElement>(convertCasADiToXML(cast<CasADi::SXFunction>(value)));
   throw runtime_error("Cannot cast octave value to TiXmlElement*.");
 }
 
@@ -125,7 +135,7 @@ octave_value OctEval::createCasADi(const string &name) {
   return casadiOctValue.subsref(".(", idx);
 }
 
-OctEvalException::OctEvalException(const std::string &msg_, const TiXmlElement *e, const std::string &attrName) {
+OctEvalException::OctEvalException(const std::string &msg_, const TiXmlElement *e) {
   string pre=": ";
   msg=TiXml_location_vec(e, "", pre+msg_);
 }
@@ -253,6 +263,14 @@ void OctEval::popParams() {
   paramStack.pop();
 }
 
+void OctEval::addPath(const boost::filesystem::path &dir) {
+  feval("addpath", octave_value_list(octave_value(dir.generic_string())));
+  if(error_state!=0) {
+    error_state=0;
+    throw runtime_error("Unable to add a path to the octave search path list.");
+  }
+}
+
 octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElement *e) const {
   // clear octave
   symbol_table::clear_variables();
@@ -261,12 +279,6 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
     symbol_table::varref(i->first)=i->second;
 
   {
-    // restore current dir on exit and change current dir
-    PreserveCurrentDir preserveDir;
-    const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
-    if(base) // set working dir to path of current file, so that octave works with correct relative paths
-      boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
-
     int dummy;
     try{
       BLOCK_STDOUT;
@@ -302,6 +314,12 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
 }
 
 octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool fullEval) {
+  // restore current dir on exit and change current dir
+  PreserveCurrentDir preserveDir;
+  const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
+  if(base) // set working dir to path of current file, so that octave works with correct relative paths
+    boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
+
   // handle attribute attrName
   if(!attrName.empty()) {
     // evaluate attribute fully
@@ -312,7 +330,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
 
     // evaluate attribute only partially
     else {
-      string s=attrName;
+      string s=e->Attribute(attrName.c_str());
       size_t i;
       while((i=s.find('{'))!=string::npos) {
         size_t j=i;
@@ -320,7 +338,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           j=s.find('}', j+1);
           if(j==string::npos) throw runtime_error("no matching } found in attriubte.");
         }
-        while(s[j-1]!='\\'); // skip } which is quoted with backslash
+        while(s[j-1]=='\\'); // skip } which is quoted with backslash
         string evalStr=s.substr(i+1,j-i-1);
         // remove the backlash quote from { and }
         size_t k=0;
@@ -347,11 +365,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
     bool function=e->Attribute("arg1name")!=NULL;
 
     // for functions add the function arguments as parameters
-    if(function) pushParams();
-    OctEval *_this=this;
-    BOOST_SCOPE_EXIT((&function)(&_this)) {
-      if(function) _this->popParams();
-    } BOOST_SCOPE_EXIT_END
+    NewParamLevel newParamLevel(*this, function);
     vector<CasADi::SXMatrix> inputs;
     if(function) {
       addParam("casadi", casadiOctValue);
