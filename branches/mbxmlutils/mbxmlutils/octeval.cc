@@ -75,7 +75,7 @@ string OctEval::cast<string>(const octave_value &value) {
       ret<<"]";
   }
   else if(getType(value)==StringType) {
-    ret<<"'"<<value.string_value()<<"'";
+    ret<<"\""<<value.string_value()<<"\"";
   }
   else // if not scalar, matrix or string => error
     throw runtime_error("Can not convert this octave variable to a string.");
@@ -148,6 +148,8 @@ void OctEvalException::print() const {
 int OctEval::initCount=0;
 
 std::map<std::string, std::string> OctEval::units;
+
+octave_value OctEval::casadiOctValue;
 
 OctEval::OctEval() {
   if(initCount==0) {
@@ -272,6 +274,12 @@ void OctEval::addPath(const boost::filesystem::path &dir) {
 }
 
 octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElement *e) const {
+  // restore current dir on exit and change current dir
+  PreserveCurrentDir preserveDir;
+  const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
+  if(base) // set working dir to path of current file, so that octave works with correct relative paths
+    boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
+
   // clear octave
   symbol_table::clear_variables();
   // restore current parameters
@@ -314,12 +322,6 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
 }
 
 octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool fullEval) {
-  // restore current dir on exit and change current dir
-  PreserveCurrentDir preserveDir;
-  const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
-  if(base) // set working dir to path of current file, so that octave works with correct relative paths
-    boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
-
   // handle attribute attrName
   if(!attrName.empty()) {
     // evaluate attribute fully
@@ -540,7 +542,15 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
     if(ec) {
       static octave_function *loadFunc=symbol_table::find_function("load").function_value();  // get ones a pointer performance reasons
       octave_value fileName=stringToOctValue(ec->Attribute("href"), ec);
+
+      // restore current dir on exit and change current dir
+      PreserveCurrentDir preserveDir;
+      const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
+      if(base) // set working dir to path of current file, so that octave works with correct relative paths
+        boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
+
       octave_value_list ret=feval(loadFunc, octave_value_list(fileName), 1);
+
       if(error_state!=0) { error_state=0; throw runtime_error(string("Unable to load file ")+ec->Attribute("href")); }
       return ret(0);
     }

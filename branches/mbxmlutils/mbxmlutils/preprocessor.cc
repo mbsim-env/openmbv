@@ -189,9 +189,16 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
     else {
       octave_value value=octEval.eval(e);
       if(!value.is_empty()) {
-        TiXmlText text(octEval.cast<string>(value));
-        e->RemoveChild(e->FirstChild());
-        e->InsertEndChild(text);
+        if(octEval.getType(value)==OctEval::SXFunctionType) {
+          auto_ptr<TiXmlElement> func=octEval.cast<auto_ptr<TiXmlElement> >(value);
+          e->RemoveChild(e->FirstChild());
+          e->InsertEndChild(*func);
+        }
+        else {
+          TiXmlText text(octEval.cast<string>(value));
+          e->RemoveChild(e->FirstChild());
+          e->InsertEndChild(text);
+        }
       }
 
       // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the

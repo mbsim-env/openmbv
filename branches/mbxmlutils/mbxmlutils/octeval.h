@@ -158,7 +158,7 @@ class OctEval {
 
     static std::map<std::string, std::string> units;
 
-    octave_value casadiOctValue;
+    static octave_value casadiOctValue;
 };
 
 // Helper class which convert a void* to T* or T.

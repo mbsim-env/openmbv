@@ -1,6 +1,7 @@
 #include "getinstallpath.h"
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #ifdef _WIN32 // Windows
 #include <windows.h>
@@ -20,14 +21,10 @@ string getInstallPath() {
   for(size_t i=0; i<strlen(exePath); i++) if(exePath[i]=='\\') exePath[i]='/'; // convert '\' to '/'
   *strrchr(exePath, '/')=0; // remove the program name
 #else // Linux
-#ifdef DEVELOPER_HACK_EXEPATH
-  // use hardcoded exePath
-  strcpy(exePath, DEVELOPER_HACK_EXEPATH);
-#else
+  if(getenv("DEVELOPER_HACK_INSTALLPATH")) return getenv("DEVELOPER_HACK_INSTALLPATH");
   int exePathLength=readlink("/proc/self/exe", exePath, sizeof(exePath)); // get abs path to this executable
   exePath[exePathLength]=0; // null terminate
   *strrchr(exePath, '/')=0; // remove the program name
-#endif
 #endif
 
   return string(exePath)+"/..";
