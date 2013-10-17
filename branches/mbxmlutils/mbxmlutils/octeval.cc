@@ -180,9 +180,8 @@ OctEval::OctEval() {
 
     {
       BLOCK_STDERR;
-      feval("casadi");
+      casadiOctValue=feval("swigLocalLoad", octave_value_list("casadi"), 1)(0);
       if(error_state!=0) { error_state=0; throw string("Internal error: unable to initialize casadi."); }
-      casadiOctValue=symbol_table::varref("casadi");
     }
 
     // get units
