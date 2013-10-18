@@ -24,9 +24,9 @@ class TiXmlElement;
 template<int T>
 class Block {
   public:
-    Block(std::ostream &str_) : str(str_) {
+    Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
       if(disableCount==0)
-        orgcxxx=str.rdbuf(0);
+        orgcxxx=str.rdbuf(buf);
       disableCount++;
     }
     ~Block() {
@@ -41,16 +41,10 @@ class Block {
 };
 template<int T> std::streambuf *Block<T>::orgcxxx;
 template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT Block<1> mbxmlutils_dummy_blockstdout(std::cout);
-#define BLOCK_STDERR Block<2> mbxmlutils_dummy_blockstderr(std::cerr);
-
-class OctEvalException {
-  public:
-    OctEvalException(const std::string &msg_, const TiXmlElement *e);
-    void print() const;
-  protected:
-    std::vector<std::string> msg;
-};
+#define BLOCK_STDOUT(name) Block<1> name(std::cout)
+#define BLOCK_STDERR(name) Block<2> name(std::cerr)
+#define REDIR_STDOUT(name, buf) Block<1> name(std::cout, buf)
+#define REDIR_STDERR(name, buf) Block<2> name(std::cerr, buf)
 
 class OctEval;
 
@@ -78,6 +72,7 @@ class OctEval {
       MatrixType,
       StringType,
       SXMatrixType,
+      DMatrixType,
       SXFunctionType
     };
 
@@ -107,19 +102,146 @@ class OctEval {
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the octave object
      * \p value being passed as argument.
      * <table>
-     * <tr><td></td><th colspan="7"><tt>value</tt> is of Octave Type ...</th></tr>
-     * <tr><th>Template Type <tt>T</tt> equals ...</th><th>scalar</th><th>(row) vector</th><th>matrix</th><th>string</th><th><i>SWIG</i> <tt>CasADi::SXFunction</tt></th><th><i>SWIG</i> <tt>CasADi::SXMatrix</tt></th><th><i>SWIG</i> <tt>XYZ</tt></th></tr>
-     * <tr><th><tt>double</tt></th><td>O</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-     * <tr><th><tt>vector&lt;double&gt;</tt></th><td>O</td><td>O</td><td></td><td></td><td></td><td></td><td></td></tr>
-     * <tr><th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th><td>O</td><td>O</td><td>O</td><td></td><td></td><td></td><td></td></tr>
-     * <tr><th><tt>string</tt></th><td>O (returns e.g. "5")</td><td>O (returns e.g. "[3;5]")</td><td>O (returns e.g. "[1,2;3,4]")</td><td>O (returns e.g. "'foo'"</td><td></td><td></td><td></td></tr>
-     * <tr><th><tt>auto_ptr&lt;TiXmlElement&gt;</tt></th><td></td><td></td><td></td><td></td><td>O (in MBXMLUtilsTinyXML representation)</td><td></td><td></td></tr>
-     * <tr><th><tt>CasADi::SXMatrix</tt></th><td>O</td><td>O</td><td>O</td><td></td><td></td><td>O</td><td></td></tr>
-     * <tr><th><tt>CasADi::SXMatrix*</tt></th><td></td><td></td><td></td><td></td><td></td><td>O</td><td></td></tr>
-     * <tr><th><tt>CasADi::SXFunction</tt></th><td></td><td></td><td></td><td></td><td>O</td><td></td><td></td></tr>
-     * <tr><th><tt>CasADi::SXFunction*</tt></th><td></td><td></td><td></td><td></td><td>O</td><td></td><td></td></tr>
-     * <tr><th><tt>XYZ</tt></th><td></td><td></td><td></td><td></td><td></td><td></td><td>O (not type save)</td></tr>
-     * <tr><th><tt>XYZ*</tt></th><td></td><td></td><td></td><td></td><td></td><td></td><td>O (not type save)</td></tr>
+     *   <tr>
+     *     <th></th>
+     *     <th colspan="6"><tt>value</tt> is of Octave Type ...</th>
+     *   </tr>
+     *   <tr>
+     *     <th>Template Type <tt>T</tt> equals ...</th>
+     *     <th>real</th>
+     *     <th>string</th>
+     *     <th><i>SWIG</i> <tt>CasADi::SXFunction</tt></th>
+     *     <th><i>SWIG</i> <tt>CasADi::SXMatrix</tt></th>
+     *     <th><i>SWIG</i> <tt>CasADi::DMatrix</tt></th>
+     *     <th><i>SWIG</i> <tt>XYZ</tt></th>
+     *   </tr>
+     *
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>int</tt></th>
+     *     <!--real-->       <td>only if 1 x 1 and a integral number</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>only if 1 x 1 and constant and a integral number</td>
+     *     <!--DMatrix-->    <td>only if 1 x 1 and a integral number</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>double</tt></th>
+     *     <!--real-->       <td>only if 1 x 1</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>only if 1 x 1 and constant</td>
+     *     <!--DMatrix-->    <td>only if 1 x 1</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>vector&lt;double&gt;</tt></th>
+     *     <!--real-->       <td>only if n x 1</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>only if n x 1 and constant</td>
+     *     <!--DMatrix-->    <td>only if n x 1</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th>
+     *     <!--real-->       <td>X</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>only if constant</td>
+     *     <!--DMatrix-->    <td>X</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>string</tt></th>
+     *     <!--real-->       <td>returns e.g. "5" or "[1,3;5,4]"</td>
+     *     <!--string-->     <td>returns e.g. "'foo'"</td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>only if constant; returns e.g. "5" or "[1,3;5,4]"</td>
+     *     <!--DMatrix-->    <td>returns e.g. "5" or "[1,3;5,4]"</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>auto_ptr&lt;TiXmlElement&gt;</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td>X</td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::SXFunction</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td>X</td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::SXFunction*</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td>X</td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::SXMatrix</tt></th>
+     *     <!--real-->       <td>X</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--DMatrix-->    <td>X</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::SXMatrix*</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::DMatrix</tt></th>
+     *     <!--real-->       <td>X</td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--DMatrix-->    <td>X</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CasADi::DMatrix*</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td>X</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>XYZ</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td>not type save</td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>XYZ*</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SXMatrix-->   <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td>not type save</td>
+     *   </tr>
      * </table>
      */
     template<typename T>
@@ -135,18 +257,14 @@ class OctEval {
     //! Overwrite the current parameter with the top level set from the internal stack.
     void popParams();
 
+    //! cast value to the corresponding swig object of type T, without ANY type check.
+    template<typename T>
+    T castToSwig(const octave_value &value);
+
     //! create octave value of CasADi type name. Created using the default ctor.
     octave_value createCasADi(const std::string &name);
 
-    // clone the octave value of type SWIG to type T
-    template<typename T>
-    T cloneSwigAs(const octave_value &value);
-
     octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
-
-    // check if value is of a swig object of type T
-    template<typename T>
-    void isSwig(const octave_value &value);
 
     // map of the current parameters
     std::unordered_map<std::string, octave_value> currentParam;
@@ -159,6 +277,9 @@ class OctEval {
     static std::map<std::string, std::string> units;
 
     static octave_value casadiOctValue;
+
+    static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
+                                        const std::string &msg=std::string(), const TiXmlElement *e=NULL);
 };
 
 // Helper class which convert a void* to T* or T.
@@ -171,51 +292,40 @@ struct Ptr<T*> {
   static T* cast(void *ptr) { return static_cast<T*>(ptr); }
 };
 
-// default: not cloneable
-template<typename T>
-T OctEval::cloneSwigAs(const octave_value &value) {
-  throw std::runtime_error("Cannot clone this octave_value of type SWIG.");
-}
-
-template<> CasADi::SXMatrix OctEval::cloneSwigAs<CasADi::SXMatrix>(const octave_value &value);
-
-// default: do no type check to allow all conversion is a type unsafe way
-template<typename T>
-void OctEval::isSwig(const octave_value &value) {
-}
-
-template<> void OctEval::isSwig<CasADi::SXMatrix>(const octave_value &value);
-template<> void OctEval::isSwig<CasADi::SXMatrix*>(const octave_value &value);
-template<> void OctEval::isSwig<CasADi::SXFunction>(const octave_value &value);
-template<> void OctEval::isSwig<CasADi::SXFunction*>(const octave_value &value);
-
 // cast octave value to swig object ptr or swig object copy
 template<typename T>
-T OctEval::cast(const octave_value &value) {
+T OctEval::castToSwig(const octave_value &value) {
   // get the casadi pointer: octave returns a 64bit integer which represents the pointer
   static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
   octave_value swigThis;
   {
-    BLOCK_STDERR
+    BLOCK_STDERR(blockstderr);
     swigThis=feval(swig_this, value, 1)(0);
   }
-  // try to clone it if value is not a SWIG object
-  if(error_state!=0) {
-    error_state=0;
-    return cloneSwigAs<T>(value);
-  }
-  // type check
-  isSwig<T>(value);
+  if(error_state!=0)
+    throw std::runtime_error("Internal error: Not a swig object");
   void *swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
   // convert the void pointer to the correct casadi type
   return Ptr<T>::cast(swigPtr);
 }
 
+template<typename T>
+T OctEval::cast(const octave_value &value) {
+  return castToSwig<T>(value);
+}
+
 template<> std::string OctEval::cast<std::string>(const octave_value &value);
+template<> long OctEval::cast<long>(const octave_value &value);
 template<> double OctEval::cast<double>(const octave_value &value);
 template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
 template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
 template<> std::auto_ptr<MBXMLUtils::TiXmlElement> OctEval::cast<std::auto_ptr<MBXMLUtils::TiXmlElement> >(const octave_value &value);
+template<> CasADi::SXMatrix OctEval::cast<CasADi::SXMatrix>(const octave_value &value);
+template<> CasADi::SXMatrix* OctEval::cast<CasADi::SXMatrix*>(const octave_value &value);
+template<> CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value);
+template<> CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value);
+template<> CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value);
+template<> CasADi::DMatrix* OctEval::cast<CasADi::DMatrix*>(const octave_value &value);
 
 } // end namespace MBXMLUtils
 

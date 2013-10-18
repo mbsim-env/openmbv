@@ -114,6 +114,27 @@ void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
     cerr<<*it<<endl;
 }
 
+TiXmlException::TiXmlException(const std::string &msg_, const TiXmlElement *e) : exception() {
+  string pre=": ";
+  msg=TiXml_location_vec(e, "", pre+msg_);
+}
+
+TiXmlException::TiXmlException(const std::vector<std::string> &msg_) {
+  msg=msg_;
+}
+
+const std::vector<std::string> &TiXmlException::getMessage() const {
+  return msg;
+}
+
+const char* TiXmlException::what() const throw() {
+  static string str;
+  str="";
+  for(vector<string>::const_iterator i=msg.begin(); i!=msg.end(); i++)
+    str+=*i+"\n";
+  return str.c_str();
+}
+
 string tinyNamespaceCompStr;
 bool comp(pair<string,string> p) {
   if(p.second==tinyNamespaceCompStr) return true; else return false;

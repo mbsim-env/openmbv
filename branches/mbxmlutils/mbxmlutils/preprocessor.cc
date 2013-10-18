@@ -79,11 +79,11 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
       if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPVNS"localParameter") ||
          (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPVNS"localParameter")))
-        throw OctEvalException("Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!", e);
+        throw TiXmlException("Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!", e);
       // check if attribute count AND counterName or none of both
       if((e->Attribute("count")==0 && e->Attribute("counterName")!=0) ||
          (e->Attribute("count")!=0 && e->Attribute("counterName")==0))
-        throw OctEvalException("Only both, the count and counterName attribute must be given or none of both!", e);
+        throw TiXmlException("Only both, the count and counterName attribute must be given or none of both!", e);
   
       // get file name if href attribute exist
       bfs::path file;
@@ -134,7 +134,7 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
         // check if only href OR p:parameter child element (This is not checked by the schema)
         if((e->FirstChildElement()->Attribute("href") && e->FirstChildElement()->FirstChildElement()) ||
            (!e->FirstChildElement()->Attribute("href") && !e->FirstChildElement()->FirstChildElement()))
-          throw OctEvalException("Only the href attribute OR the child element p:parameter) is allowed.", e);
+          throw TiXmlException("Only the href attribute OR the child element p:parameter) is allowed.", e);
         cout<<"Generate local octave parameter string for "<<(file.empty()?"<inline element>":file)<<endl;
         if(e->FirstChildElement()->FirstChildElement()) // inline parameter
           octEval.addParamSet(e->FirstChildElement()->FirstChildElement());
@@ -222,14 +222,11 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       c=c->NextSiblingElement();
     }
   }
-  catch(const OctEvalException &ex) {
-    ex.print();
-    throw runtime_error("");
+  catch(const TiXmlException &ex) {
+    throw;
   }
   catch(const exception &ex) {
-    cerr<<ex.what()<<endl;
-    TiXml_location(e, "  included by: ", "");
-    throw runtime_error("");
+    throw TiXmlException(ex.what(), e);
   }
 }
 
@@ -362,7 +359,7 @@ int main(int argc, char *argv[]) {
     }
   }
   catch(const exception &ex) {
-    cerr<<"Exception: "<<ex.what()<<endl;
+    cerr<<ex.what()<<endl;
     return 1;
   }
   catch(...) {

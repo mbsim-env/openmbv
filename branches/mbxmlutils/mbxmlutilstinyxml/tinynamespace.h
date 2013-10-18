@@ -35,6 +35,18 @@ void TiXml_location(TiXmlElement *e, const std::string &pre, const std::string &
 /* return the output of TiXml_location as a vector of strings */
 std::vector<std::string> TiXml_location_vec(const TiXmlElement *e, const std::string &pre, const std::string &post);
 
+/* A Excpetion class which stores the content of TiXml_location_vec. */
+class TiXmlException : public std::exception {
+  public:
+    TiXmlException(const std::string &msg_, const TiXmlElement *e);
+    TiXmlException(const std::vector<std::string> &msg_);
+    virtual ~TiXmlException() throw() {};
+    virtual const char* what() const throw();
+    const std::vector<std::string> &getMessage() const;
+  protected:
+    std::vector<std::string> msg;
+};
+
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);
 void TiXml_deletePIandComm(TiXmlElement *e);

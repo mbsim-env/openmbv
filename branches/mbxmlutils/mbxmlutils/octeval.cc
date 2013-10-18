@@ -6,7 +6,7 @@
 #include <mbxmlutilstinyxml/getinstallpath.h>
 #include <mbxmlutilstinyxml/utils.h>
 #include <octave/octave.h>
-#include <boost/scope_exit.hpp>
+#include <boost/math/special_functions/round.hpp>
 #include <casadi/symbolic/sx/sx_tools.hpp>
 
 //MFMF: should also compile if casadi is not present; check throw statements
@@ -38,65 +38,73 @@ NewParamLevel::~NewParamLevel() {
     oe.popParams();
 }
 
-// clone from octave_value to CasADi::SXMatrix
 template<>
-CasADi::SXMatrix OctEval::cloneSwigAs<CasADi::SXMatrix>(const octave_value &value) {
+string OctEval::cast<string>(const octave_value &value) {
+  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
   ValueType type=getType(value);
-  if(type==ScalarType)
-    return CasADi::SXMatrix(1,1,value.double_value());
-  else if(type==VectorType || type==MatrixType) {
-    Matrix m=value.matrix_value();
-    CasADi::SXMatrix M;
-    M.resize(m.rows(), m.cols());
-    for(int i=0; i<m.rows(); i++)
-      for(int j=0; j<m.cols(); j++)
-        M.elem(i, j)=m(j*m.rows()+i);
-    return M;
+  ostringstream ret;
+  ret.precision(numeric_limits<double>::digits10+1);
+  if(type==StringType) {
+    ret<<"\""<<value.string_value()<<"\"";
+    return ret.str();
   }
-  throw runtime_error("Cannot clone the type of octave_value to the requested type.");
+  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXMatrixType || type==DMatrixType) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    if(type!=ScalarType)
+      ret<<"[";
+    for(int i=0; i<m.size(); i++) {
+      for(int j=0; j<m[i].size(); j++) {
+        long mlong=0;
+        try {
+           mlong=boost::math::lround(m[i][j]);
+        }
+        catch(...) {}
+        double delta=fabs(mlong-m[i][j]);
+        if(delta>eps*m[i][j] && delta>eps)
+          ret<<m[i][j]<<(j<m[i].size()-1?",":"");
+        else
+          ret<<mlong<<(j<m[i].size()-1?",":"");
+      }
+      ret<<(i<m.size()-1?" ; ":"");
+    }
+    if(type!=ScalarType || m.size()==0)
+      ret<<"]";
+    return ret.str();
+  }
+  throw runtime_error("Can not convert this octave variable to a string.");
 }
 
 template<>
-string OctEval::cast<string>(const octave_value &value) {
-  ostringstream ret;
-  ret.precision(numeric_limits<double>::digits10+1);
+long OctEval::cast<long>(const octave_value &value) {
+  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
+  vector<vector<double> > m=cast<vector<vector<double> > >(value);
   if(getType(value)==ScalarType) {
-    ret<<value.double_value();
+    long ret=boost::math::lround(m[0][0]);
+    double delta=fabs(ret-m[0][0]);
+    if(delta>eps*m[0][0] && delta>eps)
+      throw runtime_error("Canot cast octave value to long.");
+    else
+      return ret;
   }
-  else if(getType(value)==VectorType || getType(value)==MatrixType) {
-    Matrix m=value.matrix_value();
-    ret<<"[";
-    for(int i=0; i<m.rows(); i++) {
-      for(int j=0; j<m.cols(); j++)
-        ret<<m(j*m.rows()+i)<<(j<m.cols()-1?",":"");
-      ret<<(i<m.rows()-1?" ; ":"]");
-    }
-    if(m.rows()==0)
-      ret<<"]";
-  }
-  else if(getType(value)==StringType) {
-    ret<<"\""<<value.string_value()<<"\"";
-  }
-  else // if not scalar, matrix or string => error
-    throw runtime_error("Can not convert this octave variable to a string.");
-
-  return ret.str();
+  throw runtime_error("Cannot cast octave value to long.");
 }
 
 template<>
 double OctEval::cast<double>(const octave_value &value) {
+  vector<vector<double> > m=cast<vector<vector<double> > >(value);
   if(getType(value)==ScalarType)
-    return value.double_value();
-  throw runtime_error("Cannot cast octave value to double.");
+    return m[0][0];
+  throw runtime_error("Cannot cast octave value to vector<double>.");
 }
 
 template<>
 vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
-  if(getType(value)==VectorType || getType(value)==ScalarType) {
+  vector<vector<double> > m=cast<vector<vector<double> > >(value);
+  ValueType type=getType(value);
+  if(type==ScalarType || type==VectorType) {
     vector<double> ret;
-    Matrix m=value.matrix_value();
-    for(int i=0; i<m.rows(); i++)
-      ret.push_back(m(i));
+    for(size_t i=0; i<m.size(); i++)
+      ret.push_back(m[i][0]);
     return ret;
   }
   throw runtime_error("Cannot cast octave value to vector<double>.");
@@ -104,13 +112,31 @@ vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
 
 template<>
 vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_value &value) {
-  if(getType(value)==MatrixType || getType(value)==VectorType || getType(value)==ScalarType) {
+  ValueType type=getType(value);
+  if(type==ScalarType || type==VectorType || type==MatrixType) {
     vector<vector<double> > ret;
     Matrix m=value.matrix_value();
     for(int i=0; i<m.rows(); i++) {
       vector<double> row;
       for(int j=0; j<m.cols(); j++)
         row.push_back(m(j*m.rows()+i));
+      ret.push_back(row);
+    }
+    return ret;
+  }
+  if(type==SXMatrixType || type==DMatrixType) {
+    CasADi::SXMatrix m;
+    if(type==SXMatrixType)
+      m=cast<CasADi::SXMatrix>(value);
+    else
+      m=cast<CasADi::DMatrix>(value);
+    if(!CasADi::isConstant(m))
+      throw runtime_error("Can only cast constant value to vector<vector<double> >.");
+    vector<vector<double> > ret;
+    for(int i=0; i<m.size1(); i++) {
+      vector<double> row;
+      for(int j=0; j<m.size2(); j++)
+        row.push_back(m.elem(i,j).getValue());
       ret.push_back(row);
     }
     return ret;
@@ -122,7 +148,69 @@ template<>
 auto_ptr<TiXmlElement> OctEval::cast<auto_ptr<TiXmlElement> >(const octave_value &value) {
   if(getType(value)==SXFunctionType)
     return auto_ptr<TiXmlElement>(convertCasADiToXML(cast<CasADi::SXFunction>(value)));
-  throw runtime_error("Cannot cast octave value to TiXmlElement*.");
+  throw runtime_error("Cannot cast octave value to auto_ptr<TiXmlElement>.");
+}
+
+template<>
+CasADi::SXMatrix OctEval::cast<CasADi::SXMatrix>(const octave_value &value) {
+  ValueType type=getType(value);
+  if(type==SXMatrixType)
+    return castToSwig<CasADi::SXMatrix>(value);
+  if(type==DMatrixType)
+    return castToSwig<CasADi::DMatrix>(value);
+  if(type==ScalarType || type==VectorType || type==MatrixType) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    CasADi::SXMatrix ret(m.size(), m[0].size());
+    for(int i=0; i<m.size(); i++)
+      for(int j=0; j<m[i].size(); j++)
+        ret.elem(i,j)=m[i][j];
+    return ret;
+  }
+  throw runtime_error("Cannot cast to CasADi::SXMatrix*.");
+}
+
+template<>
+CasADi::SXMatrix* OctEval::cast<CasADi::SXMatrix*>(const octave_value &value) {
+  if(getType(value)==SXMatrixType)
+    return castToSwig<CasADi::SXMatrix*>(value);
+  throw runtime_error("Cannot cast to CasADi::SXMatrix*.");
+}
+
+template<>
+CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value) {
+  ValueType type=getType(value);
+  if(type==DMatrixType)
+    return castToSwig<CasADi::DMatrix>(value);
+  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXMatrixType) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    CasADi::DMatrix ret(m.size(), m[0].size());
+    for(int i=0; i<m.size(); i++)
+      for(int j=0; j<m[i].size(); j++)
+        ret.elem(i,j)=m[i][j];
+    return ret;
+  }
+  throw runtime_error("Cannot cast to CasADi::DMatrix.");
+}
+
+template<>
+CasADi::DMatrix* OctEval::cast<CasADi::DMatrix*>(const octave_value &value) {
+  if(getType(value)==DMatrixType)
+    return castToSwig<CasADi::DMatrix*>(value);
+  throw runtime_error("Cannot cast to CasADi::DMatrix*.");
+}
+
+template<>
+CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value) {
+  if(getType(value)==SXFunctionType)
+    return castToSwig<CasADi::SXFunction>(value);
+  throw runtime_error("Cannot cast to CasADi::SXFunction.");
+}
+
+template<>
+CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value) {
+  if(getType(value)==SXFunctionType)
+    return castToSwig<CasADi::SXFunction*>(value);
+  throw runtime_error("Cannot cast to CasADi::SXFunction*.");
 }
 
 octave_value OctEval::createCasADi(const string &name) {
@@ -133,16 +221,6 @@ octave_value OctEval::createCasADi(const string &name) {
   }
   *idx.begin()=octave_value_list(name);
   return casadiOctValue.subsref(".(", idx);
-}
-
-OctEvalException::OctEvalException(const std::string &msg_, const TiXmlElement *e) {
-  string pre=": ";
-  msg=TiXml_location_vec(e, "", pre+msg_);
-}
-
-void OctEvalException::print() const {
-  for(vector<string>::const_iterator i=msg.begin(); i!=msg.end(); i++)
-    cerr<<*i<<endl;
 }
 
 int OctEval::initCount=0;
@@ -179,7 +257,7 @@ OctEval::OctEval() {
     if(error_state!=0) { error_state=0; throw string("Internal error: cannot add casadi octave search path."); }
 
     {
-      BLOCK_STDERR;
+      BLOCK_STDERR(blockstderr);
       casadiOctValue=feval("swigLocalLoad", octave_value_list("casadi"), 1)(0);
       if(error_state!=0) { error_state=0; throw string("Internal error: unable to initialize casadi."); }
     }
@@ -225,10 +303,10 @@ void OctEval::addParamSet(const TiXmlElement *e) {
       int err=0;
       octave_value ret;
       try { 
-        BLOCK_STDERR;
+        BLOCK_STDERR(blockstderr);
         ret=eval(*ee);
       }
-      catch(const OctEvalException &ex) {
+      catch(const exception &ex) {
         err=1;
       }
       if(err==0) { // if no error
@@ -242,16 +320,21 @@ void OctEval::addParamSet(const TiXmlElement *e) {
     }
   }
   if(c.size()>0) { // if parameters are left => error
-    cerr<<"Error in one of the following parameters or infinit loop in this parameters:\n";
+    vector<string> msg;
+    msg.push_back("Error in one of the following parameters or infinit loop in this parameters:\n");
     for(list<const TiXmlElement*>::iterator ee=c.begin(); ee!=c.end(); ee++) {
       try {
         eval(*ee);
       }
-      catch(const OctEvalException &ex) {
-        ex.print();
+      catch(const TiXmlException &ex) {
+        msg.insert(msg.end(), ex.getMessage().begin(), ex.getMessage().end());
+      }
+      catch(const exception &ex) {
+        msg.push_back(ex.what());
       }
     }
-    throw runtime_error("Error processing parameters. See above.");
+    msg.push_back("Error processing parameters. See above.");
+    throw TiXmlException(msg);
   }
 }
 
@@ -265,11 +348,8 @@ void OctEval::popParams() {
 }
 
 void OctEval::addPath(const boost::filesystem::path &dir) {
-  feval("addpath", octave_value_list(octave_value(dir.generic_string())));
-  if(error_state!=0) {
-    error_state=0;
-    throw runtime_error("Unable to add a path to the octave search path list.");
-  }
+  static octave_function *addpath=symbol_table::find_function("addpath").function_value();  // get ones a pointer performance reasons
+  fevalThrow(addpath, octave_value_list(octave_value(dir.generic_string())));
 }
 
 octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElement *e) const {
@@ -285,19 +365,27 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
   for(map<string, octave_value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     symbol_table::varref(i->first)=i->second;
 
-  {
+  ostringstream err;
+  try{
     int dummy;
-    try{
-      BLOCK_STDOUT;
-      eval_string(str, true, dummy, 0); // eval as statement list
-    }
-    catch(...) {
-      error_state=1;
-    }
+    BLOCK_STDOUT(blockstdout);
+    REDIR_STDERR(redirstderr, err.rdbuf());
+    eval_string(str, true, dummy, 0); // eval as statement list
+  }
+  catch(const TiXmlException &ex) {
+    error_state=0;
+    vector<string> msg;
+    msg.push_back(err.str());
+    msg.insert(msg.end(), ex.getMessage().begin(), ex.getMessage().end());
+    throw TiXmlException(msg);
+  }
+  catch(const exception &ex) {
+    error_state=0;
+    throw TiXmlException(err.str()+ex.what(), e);
   }
   if(error_state!=0) { // if error => wrong code => throw error
     error_state=0;
-    throw OctEvalException("Unable to evaluate expression: "+str, e);
+    throw TiXmlException(err.str()+"Unable to evaluate expression: "+str, e);
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   string strNoSpace=str;
@@ -306,7 +394,7 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
   while(strNoSpace.size()>0 && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';'))
     strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
   if(!symbol_table::is_variable("ret") && !symbol_table::is_variable("ans") && !symbol_table::is_variable(strNoSpace)) {
-    throw OctEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
+    throw TiXmlException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
       str, e);
   }
   octave_value ret;
@@ -337,19 +425,19 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
         size_t j=i;
         do {
           j=s.find('}', j+1);
-          if(j==string::npos) throw runtime_error("no matching } found in attriubte.");
+          if(j==string::npos) throw TiXmlException("no matching } found in attriubte.", e);
         }
         while(s[j-1]=='\\'); // skip } which is quoted with backslash
         string evalStr=s.substr(i+1,j-i-1);
         // remove the backlash quote from { and }
         size_t k=0;
         while((k=evalStr.find('{', k))!=string::npos) {
-          if(k==0 || evalStr[k-1]!='\\') throw runtime_error("{ must be quoted with a backslash inside {...}.");
+          if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("{ must be quoted with a backslash inside {...}.", e);
           evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
         }
         k=0;
         while((k=evalStr.find('}', k))!=string::npos) {
-          if(k==0 || evalStr[k-1]!='\\') throw runtime_error("} must be quoted with a backslash inside {...}.");
+          if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("} must be quoted with a backslash inside {...}.", e);
           evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
         }
         
@@ -391,7 +479,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
       // check if one argument was not set. If so error
       for(int i=0; i<inputs.size(); i++)
         if(inputs[i].isNull()) // a isNull() object is a error (see above), since not all arg?name args were defined
-          throw runtime_error("All argXName attributes up to the largest argument number must be specified.");
+          throw TiXmlException("All argXName attributes up to the largest argument number must be specified.", e);
     }
   
     // a XML vector
@@ -412,7 +500,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           m(i)=stringToOctValue(ele->GetText(), ele).double_value();
         else {
           CasADi::SXMatrix Mele=cast<CasADi::SXMatrix>(stringToOctValue(ele->GetText(), ele));
-          if(Mele.size1()!=1 || Mele.size2()!=1) throw runtime_error("Scalar argument required.");
+          if(Mele.size1()!=1 || Mele.size2()!=1) throw TiXmlException("Scalar argument required.", e);
           M.elem(i,0)=Mele.elem(0,0);
         }
       if(!function)
@@ -447,7 +535,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
             m(j*m.rows()+i)=stringToOctValue(col->GetText(), col).double_value();
           else {
             CasADi::SXMatrix Mele=cast<CasADi::SXMatrix>(stringToOctValue(col->GetText(), col));
-            if(Mele.size1()!=1 || Mele.size2()!=1) throw runtime_error("Scalar argument required.");
+            if(Mele.size1()!=1 || Mele.size2()!=1) throw TiXmlException("Scalar argument required.", e);
             M.elem(i,0)=Mele.elem(0,0);
           }
       }
@@ -499,15 +587,14 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           Deprecated::registerMessage("'unit' attribute for rotation matrix is no longer allowed.", e);
         // convert
         octave_value angle=eval(ec);
-        octave_value_list ret=feval(rotFunc[ch-'X'], octave_value_list(angle), 1);
-        if(error_state!=0) { error_state=0; throw runtime_error(string("Unable to generate rotation matrix using rotateAbout")+ch+"."); }
+        octave_value_list ret=fevalThrow(rotFunc[ch-'X'], octave_value_list(angle), 1, string("Unable to generate rotation matrix using rotateAbout")+ch+".", e);
         return ret(0);
       }
     }
   
     // rotation cardan or euler
     for(int i=0; i<2; i++) {
-      static string rotFuncName[2]={
+      static const string rotFuncName[2]={
         "cardan",
         "euler"
       };
@@ -530,8 +617,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
         angles.append(eval(ele));
         ele=ele->NextSiblingElement();
         angles.append(eval(ele));
-        octave_value_list ret=feval(rotFunc[i], angles, 1);
-        if(error_state!=0) { error_state=0; throw runtime_error(string("Unable to generate rotation matrix using ")+rotFuncName[i]); }
+        octave_value_list ret=fevalThrow(rotFunc[i], angles, 1, string("Unable to generate rotation matrix using ")+rotFuncName[i], e);
         return ret(0);
       }
     }
@@ -548,9 +634,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
       if(base) // set working dir to path of current file, so that octave works with correct relative paths
         boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
 
-      octave_value_list ret=feval(loadFunc, octave_value_list(fileName), 1);
-
-      if(error_state!=0) { error_state=0; throw runtime_error(string("Unable to load file ")+ec->Attribute("href")); }
+      octave_value_list ret=fevalThrow(loadFunc, octave_value_list(fileName), 1, string("Unable to load file ")+ec->Attribute("href"), e);
       return ret(0);
     }
   }
@@ -574,7 +658,7 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
     static octave_function *swig_type=symbol_table::find_function("swig_type").function_value(); // get ones a pointer to swig_type for performance reasons
     octave_value swigType;
     {
-      BLOCK_STDERR;
+      BLOCK_STDERR(blockstderr);
       swigType=feval(swig_type, value, 1)(0);
     }
     if(error_state!=0) {
@@ -585,6 +669,8 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
     }
     if(swigType.string_value()=="SXMatrix")
       return SXMatrixType;
+    else if(swigType.string_value()=="DMatrix")
+      return DMatrixType;
     else if(swigType.string_value()=="SXFunction")
       return SXFunctionType;
     else
@@ -592,28 +678,22 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
   }
 }
 
-template<>
-void OctEval::isSwig<CasADi::SXMatrix>(const octave_value &value) {
-  if(getType(value)!=SXMatrixType)
-    throw runtime_error("The octave value is not of Swig type CasADi::SXMatrix");
-}
-
-template<>
-void OctEval::isSwig<CasADi::SXMatrix*>(const octave_value &value) {
-  if(getType(value)!=SXMatrixType)
-    throw runtime_error("The octave value is not of Swig type CasADi::SXMatrix");
-}
-
-template<>
-void OctEval::isSwig<CasADi::SXFunction>(const octave_value &value) {
-  if(getType(value)!=SXFunctionType)
-    throw runtime_error("The octave value is not of Swig type CasADi::SXFunction");
-}
-
-template<>
-void OctEval::isSwig<CasADi::SXFunction*>(const octave_value &value) {
-  if(getType(value)!=SXFunctionType)
-    throw runtime_error("The octave value is not of Swig type CasADi::SXFunction");
+octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_list &arg, int n,
+                                      const string &msg, const TiXmlElement *e) {
+  ostringstream err;
+  octave_value_list ret;
+  {
+    REDIR_STDERR(redirstderr, err.rdbuf());
+    ret=feval(func, arg, n);
+  }
+  if(error_state!=0) {
+    error_state=0;
+    if(!e)
+      throw runtime_error(err.str()+msg);
+    else
+      throw TiXmlException(err.str()+msg, e);
+  }
+  return ret;
 }
 
 } // end namespace MBXMLUtils
