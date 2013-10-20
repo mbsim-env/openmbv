@@ -250,6 +250,9 @@ class OctEval {
     //! get the type of value
     static ValueType getType(const octave_value &value);
 
+    //! evaluate str and return result as an octave variable, this can be used to evaluate outside of XML.
+    octave_value stringToOctValue(const std::string &str, const TiXmlElement *e=NULL) const;
+
   protected:
     //! Push the current parameters to a internal stack.
     void pushParams();
@@ -263,8 +266,6 @@ class OctEval {
 
     //! create octave value of CasADi type name. Created using the default ctor.
     static octave_value createCasADi(const std::string &name);
-
-    octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
 
     // map of the current parameters
     std::unordered_map<std::string, octave_value> currentParam;
