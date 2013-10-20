@@ -87,7 +87,7 @@ class OctEval {
     void addParamSet(const TiXmlElement *e);
 
     //! Add dir to octave search path
-    void addPath(const boost::filesystem::path &dir);
+    static void addPath(const boost::filesystem::path &dir);
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
     //! Handle the attribute value named attrName, or if not given handle the XML text node child of e.
@@ -245,10 +245,10 @@ class OctEval {
      * </table>
      */
     template<typename T>
-    T cast(const octave_value &value);
+    static T cast(const octave_value &value);
 
     //! get the type of value
-    ValueType getType(const octave_value &value);
+    static ValueType getType(const octave_value &value);
 
   protected:
     //! Push the current parameters to a internal stack.
@@ -259,10 +259,10 @@ class OctEval {
 
     //! cast value to the corresponding swig object of type T, without ANY type check.
     template<typename T>
-    T castToSwig(const octave_value &value);
+    static T castToSwig(const octave_value &value);
 
     //! create octave value of CasADi type name. Created using the default ctor.
-    octave_value createCasADi(const std::string &name);
+    static octave_value createCasADi(const std::string &name);
 
     octave_value stringToOctValue(const std::string &str, const TiXmlElement *e) const;
 

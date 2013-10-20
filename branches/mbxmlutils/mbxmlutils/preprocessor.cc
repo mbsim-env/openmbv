@@ -93,9 +93,9 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       }
   
       // evaluate count using parameters
-      int count=1;
+      long count=1;
       if(e->Attribute("count"))
-        count=octEval.eval(e, "count").int_value();
+        count=OctEval::cast<long>(octEval.eval(e, "count"));
   
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
@@ -157,13 +157,13 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       }
   
       // delete embed element and insert count time the new element
-      for(int i=1; i<=count; i++) {
+      for(long i=1; i<=count; i++) {
         octEval.addParam(counterName, i);
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(e->Attribute("onlyif"))
-          onlyif=octEval.eval(e, "onlyif").bool_value();
+          onlyif=(OctEval::cast<long>(octEval.eval(e, "onlyif"))==1);
         if(onlyif) {
           cout<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           if(i==1)
@@ -189,13 +189,13 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
     else {
       octave_value value=octEval.eval(e);
       if(!value.is_empty()) {
-        if(octEval.getType(value)==OctEval::SXFunctionType) {
-          auto_ptr<TiXmlElement> func=octEval.cast<auto_ptr<TiXmlElement> >(value);
+        if(OctEval::getType(value)==OctEval::SXFunctionType) {
+          auto_ptr<TiXmlElement> func=OctEval::cast<auto_ptr<TiXmlElement> >(value);
           e->RemoveChild(e->FirstChild());
           e->InsertEndChild(*func);
         }
         else {
-          TiXmlText text(octEval.cast<string>(value));
+          TiXmlText text(OctEval::cast<string>(value));
           e->RemoveChild(e->FirstChild());
           e->InsertEndChild(text);
         }
@@ -207,8 +207,8 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next())
         if(a->Name()==string("name") || string(a->Name()).substr(0,3)=="ref") {
           octave_value value=octEval.eval(e, a->Name(), false);
-          string s=octEval.cast<string>(value);
-          if(octEval.getType(value)==OctEval::StringType)
+          string s=OctEval::cast<string>(value);
+          if(OctEval::getType(value)==OctEval::StringType)
             s=s.substr(1, s.length()-2);
           a->SetValue(s);
         }
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-    // a global oct evaluator just for addPath and to prevent multiple init/deinit calles
+    // a global oct evaluator just to prevent multiple init/deinit calles
     OctEval globalOctEval;
 
     // check for environment variables (none default installation)
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
         // the search path is global: use absolute path
         bfs::path absmpath=bfs::absolute(*i2);
         // add to octave search path
-        globalOctEval.addPath(absmpath);
+        OctEval::addPath(absmpath);
         // add m-files in mpath dir to dependencies
         addFilesInDir(dependencies, absmpath, ".m");
         arg.erase(i); arg.erase(i2);
