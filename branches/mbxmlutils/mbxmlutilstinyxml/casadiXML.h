@@ -143,18 +143,18 @@ inline CasADi::SX createCasADiSXFromXML(MBXMLUtils::TiXmlElement *e, std::map<in
     sx=CasADi::SX::unary(op, dep);
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"SymbolicSX") {
-    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChildText();
     sx=CasADi::SX(ee->ValueStr());
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"RealtypeSX") {
-    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChildText();
     std::stringstream str(ee->ValueStr());
     double value;
     str>>value;
     sx=value;
   }
   else if(e->ValueStr()==MBXMLUTILSCASADINS"IntegerSX") {
-    MBXMLUtils::TiXmlText *ee=e->FirstChild()->ToText();
+    MBXMLUtils::TiXmlText *ee=e->FirstChildText();
     std::stringstream str(ee->ValueStr());
     int value;
     str>>value;

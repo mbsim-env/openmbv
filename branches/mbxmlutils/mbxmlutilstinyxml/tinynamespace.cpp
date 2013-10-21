@@ -55,8 +55,8 @@ void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
 
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
   TiXmlUnknown *u;
-  if(e->FirstChild()) {
-    for(u=e->FirstChild()->ToUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
+  if(e->FirstChildUnknown()) {
+    for(u=e->FirstChildUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
     if(u) {
       string line=u->ValueStr().substr(8);
       line=line.substr(0,line.length()-1);

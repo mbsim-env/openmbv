@@ -191,12 +191,17 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       if(!value.is_empty()) {
         if(OctEval::getType(value)==OctEval::SXFunctionType) {
           auto_ptr<TiXmlElement> func=OctEval::cast<auto_ptr<TiXmlElement> >(value);
-          e->RemoveChild(e->FirstChild());
+          e->RemoveChild(e->FirstChildElement());
           e->InsertEndChild(*func);
         }
-        else {
+        else if(e->FirstChildElement()) {
           TiXmlText text(OctEval::cast<string>(value));
-          e->RemoveChild(e->FirstChild());
+          e->RemoveChild(e->FirstChildElement());
+          e->InsertEndChild(text);
+        }
+        else if(e->FirstChildText()) {
+          TiXmlText text(OctEval::cast<string>(value));
+          e->RemoveChild(e->FirstChildText());
           e->InsertEndChild(text);
         }
       }
