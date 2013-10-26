@@ -87,7 +87,8 @@ string TiXml_linkedFileName(const string &name, int line) {
 
 vector<string> TiXml_location_vec(const TiXmlElement *e, const std::string &pre, const std::string &post) {
   vector<string> out;
-  out.push_back(pre+TiXml_linkedFileName(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Row())+post);
+  const TiXmlElement *base=TiXml_GetElementWithXmlBase(e,0);
+  out.push_back(pre+(base?TiXml_linkedFileName(base->Attribute("xml:base"), e->Row()):"")+post);
   const TiXmlElement *p;
   for(int i=1; (p=TiXml_GetElementWithXmlBase(e,i))!=0; i++) {
     const TiXmlNode *c=TiXml_GetElementWithXmlBase(e,i-1)->FirstChild();
