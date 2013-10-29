@@ -281,6 +281,8 @@ class OctEval {
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string(), const TiXmlElement *e=NULL);
+
+    static octave_value handleUnit(const TiXmlElement *e, const octave_value &ret);
 };
 
 // Helper class which convert a void* to T* or T.

@@ -299,19 +299,21 @@
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="angleScalar"/>
-                    <xs:element name="beta" type="angleScalar"/>
-                    <xs:element name="gamma" type="angleScalar"/>
+                    <xs:element name="alpha" type="fullOctaveString"/>
+                    <xs:element name="beta" type="fullOctaveString"/>
+                    <xs:element name="gamma" type="fullOctaveString"/>
                   </xs:sequence>
+                  <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
               </xs:element>
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="angleScalar"/>
-                    <xs:element name="theta" type="angleScalar"/>
-                    <xs:element name="phi" type="angleScalar"/>
+                    <xs:element name="PHI" type="fullOctaveString"/>
+                    <xs:element name="theta" type="fullOctaveString"/>
+                    <xs:element name="phi" type="fullOctaveString"/>
                   </xs:sequence>
+                  <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
               </xs:element>
             </xs:choice>

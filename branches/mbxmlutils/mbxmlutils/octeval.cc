@@ -504,7 +504,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           M.elem(i,0)=Mele.elem(0,0);
         }
       if(!function)
-        return m;
+        return handleUnit(e, m);
       else {
         octave_value octF=createCasADi("SXFunction");
         CasADi::SXFunction f(inputs, M);
@@ -540,7 +540,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
           }
       }
       if(!function)
-        return m;
+        return handleUnit(e, m);
       else {
         octave_value octF=createCasADi("SXFunction");
         CasADi::SXFunction f(inputs, M);
@@ -554,14 +554,7 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
       octave_value ret=stringToOctValue(e->GetText(), e);
   
       // convert unit
-      if(e->Attribute("unit") || e->Attribute("convertUnit")) {
-        OctEval oe;
-        oe.addParam("value", ret);
-        if(e->Attribute("unit")) // convert with predefined unit
-          ret=oe.stringToOctValue(units[e->Attribute("unit")], e);
-        if(e->Attribute("convertUnit")) // convert with user defined unit
-          ret=oe.stringToOctValue(e->Attribute("convertUnit"), e);
-      }
+      ret=handleUnit(e, ret);
   
       if(!function)
         return ret;
@@ -612,11 +605,11 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
         const TiXmlElement *ele;
   
         ele=ec->FirstChildElement();
-        angles.append(eval(ele));
+        angles.append(handleUnit(ec, eval(ele)));
         ele=ele->NextSiblingElement();
-        angles.append(eval(ele));
+        angles.append(handleUnit(ec, eval(ele)));
         ele=ele->NextSiblingElement();
-        angles.append(eval(ele));
+        angles.append(handleUnit(ec, eval(ele)));
         octave_value_list ret=fevalThrow(rotFunc[i], angles, 1, string("Unable to generate rotation matrix using ")+rotFuncName[i], e);
         return ret(0);
       }
@@ -692,6 +685,18 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
       throw runtime_error(err.str()+msg);
     else
       throw TiXmlException(err.str()+msg, e);
+  }
+  return ret;
+}
+
+octave_value OctEval::handleUnit(const TiXmlElement *e, const octave_value &ret) {
+  if(e->Attribute("unit") || e->Attribute("convertUnit")) {
+    OctEval oe;
+    oe.addParam("value", ret);
+    if(e->Attribute("unit")) // convert with predefined unit
+      return oe.stringToOctValue(units[e->Attribute("unit")], e);
+    if(e->Attribute("convertUnit")) // convert with user defined unit
+      return oe.stringToOctValue(e->Attribute("convertUnit"), e);
   }
   return ret;
 }
