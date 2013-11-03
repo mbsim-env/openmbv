@@ -12,6 +12,7 @@
 //MFMF: should also compile if casadi is not present; check throw statements
 
 using namespace std;
+namespace bfs=boost::filesystem;
 
 namespace MBXMLUtils {
 
@@ -19,13 +20,13 @@ namespace MBXMLUtils {
 class PreserveCurrentDir {
   public:
     PreserveCurrentDir() {
-      dir=boost::filesystem::current_path();
+      dir=bfs::current_path();
     }
     ~PreserveCurrentDir() {
-      boost::filesystem::current_path(dir);
+      bfs::current_path(dir);
     }
   private:
-    boost::filesystem::path dir;
+    bfs::path dir;
 };
 
 NewParamLevel::NewParamLevel(OctEval &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
@@ -229,7 +230,7 @@ std::map<std::string, std::string> OctEval::units;
 
 octave_value OctEval::casadiOctValue;
 
-OctEval::OctEval() {
+OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   if(initCount==0) {
 
     string XMLDIR=MBXMLUtils::getInstallPath()+"/share/mbxmlutils/xml"; // use rel path if build configuration dose not work
@@ -347,7 +348,7 @@ void OctEval::popParams() {
   paramStack.pop();
 }
 
-void OctEval::addPath(const boost::filesystem::path &dir) {
+void OctEval::addPath(const bfs::path &dir) {
   static octave_function *addpath=symbol_table::find_function("addpath").function_value();  // get ones a pointer performance reasons
   fevalThrow(addpath, octave_value_list(octave_value(dir.generic_string())));
 }
@@ -357,7 +358,7 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
   PreserveCurrentDir preserveDir;
   const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
   if(base) // set working dir to path of current file, so that octave works with correct relative paths
-    boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
+    bfs::current_path(fixPath(base->Attribute("xml:base"), "."));
 
   // clear octave
   symbol_table::clear_variables();
@@ -620,12 +621,14 @@ octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool f
     if(ec) {
       static octave_function *loadFunc=symbol_table::find_function("load").function_value();  // get ones a pointer performance reasons
       octave_value fileName=stringToOctValue(ec->Attribute("href"), ec);
+      if(dependencies)
+        dependencies->push_back(fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), fileName.string_value()));
 
       // restore current dir on exit and change current dir
       PreserveCurrentDir preserveDir;
       const TiXmlElement *base=TiXml_GetElementWithXmlBase(e, 0);
       if(base) // set working dir to path of current file, so that octave works with correct relative paths
-        boost::filesystem::current_path(fixPath(base->Attribute("xml:base"), "."));
+        bfs::current_path(fixPath(base->Attribute("xml:base"), "."));
 
       octave_value_list ret=fevalThrow(loadFunc, octave_value_list(fileName), 1, string("Unable to load file ")+ec->Attribute("href"), e);
       return ret(0);

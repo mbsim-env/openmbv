@@ -19,10 +19,10 @@ namespace bfs=boost::filesystem;
 
 bfs::path SCHEMADIR;
 
-void addFilesInDir(ostringstream &dependencies, const bfs::path &dir, const bfs::path &ext) {
+void addFilesInDir(vector<bfs::path> &dependencies, const bfs::path &dir, const bfs::path &ext) {
   for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
     if(it->path().extension()==ext)
-      dependencies<<it->path().generic_string()<<endl;
+      dependencies.push_back(it->path());
 }
 
 void warningCallback(void *ctx, const char *msg, ...) {
@@ -70,7 +70,7 @@ void validate(const bfs::path &schema, const bfs::path &file) {
   if(ret!=0) throw runtime_error("Failed to validate XML file, see above messages.");
 }
 
-void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &nsprefix, ostream &dependencies, OctEval &octEval) {
+void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &nsprefix, vector<bfs::path> &dependencies, OctEval &octEval) {
   try {
     if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
       NewParamLevel newParamLevel(octEval);
@@ -89,7 +89,7 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       bfs::path file;
       if(e->Attribute("href")) {
         file=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Attribute("href"));
-        dependencies<<file.generic_string()<<endl;
+        dependencies.push_back(file);
       }
   
       // evaluate count using parameters
@@ -141,7 +141,7 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
         else { // parameter from href attribute
           bfs::path paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->FirstChildElement()->Attribute("href"));
           // add local parameter file to dependencies
-          dependencies<<paramFile.generic_string()<<endl;
+          dependencies.push_back(paramFile);
           // validate local parameter file
           validate(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"parameter.xsd", paramFile);
           // read local parameter file
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
     list<string>::iterator i, i2;
 
     // dependency file
-    ostringstream dependencies;
+    vector<bfs::path> dependencies;
     bfs::path depFileName;
     if((i=std::find(arg.begin(), arg.end(), "--dependencies"))!=arg.end()) {
       i2=i; i2++;
@@ -298,7 +298,7 @@ int main(int argc, char *argv[]) {
     // loop over all files
     while(arg.size()>0) {
       // initialize the parameter stack (clear ALL caches)
-      OctEval octEval;
+      OctEval octEval(&dependencies);
 
       bfs::path paramxml(*arg.begin()); arg.erase(arg.begin());
       bfs::path mainxml(*arg.begin()); arg.erase(arg.begin());
@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) {
         paramxmldoc.reset(new TiXmlDocument);
         paramxmldoc->LoadFile(paramxml.generic_string()); TiXml_PostLoadFile(paramxmldoc.get());
         map<string,string> dummy,dummy2;
-        dependencies<<paramxml.generic_string()<<endl;
+        dependencies.push_back(paramxml);
         incorporateNamespace(paramxmldoc->FirstChildElement(),dummy,dummy2,&dependencies);
       }
 
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
       boost::shared_ptr<TiXmlDocument> mainxmldoc(new TiXmlDocument);
       mainxmldoc->LoadFile(mainxml.generic_string()); TiXml_PostLoadFile(mainxmldoc.get());
       map<string,string> nsprefix, dummy;
-      dependencies<<mainxml.generic_string()<<endl;
+      dependencies.push_back(mainxml);
       incorporateNamespace(mainxmldoc->FirstChildElement(),nsprefix,dummy,&dependencies);
 
       // embed/validate/toOctave/unit/eval files
@@ -354,8 +354,8 @@ int main(int argc, char *argv[]) {
     // output dependencies?
     if(!depFileName.empty()) {
       ofstream dependenciesFile(depFileName.generic_string().c_str());
-      dependenciesFile<<dependencies.str();
-      dependenciesFile.close();
+      for(vector<bfs::path>::iterator it=dependencies.begin(); it!=dependencies.end(); it++)
+        dependenciesFile<<it->generic_string()<<endl;
     }
   }
   catch(const exception &ex) {

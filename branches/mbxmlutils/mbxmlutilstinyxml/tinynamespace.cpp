@@ -140,7 +140,7 @@ string tinyNamespaceCompStr;
 bool comp(pair<string,string> p) {
   if(p.second==tinyNamespaceCompStr) return true; else return false;
 }
-void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns, ostream *dependencies) {
+void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns, vector<boost::filesystem::path> *dependencies) {
   // overwrite existing namespace prefixes with new ones
   // save a list of ALL ns->prefix mappings in nsprefix (this map can be used in unIncorporateNamespace)
   TiXmlAttribute* a=e->FirstAttribute();
@@ -183,8 +183,8 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
 
   if(e->ValueStr()==XINCLUDENS"include") {
     string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
-    if(dependencies!=NULL)
-      (*dependencies)<<newFile<<endl;
+    if(dependencies)
+      dependencies->push_back(newFile);
     // for a xi:include element include the href file in the tree
     TiXmlDocument docInclude;
     docInclude.LoadFile(newFile);

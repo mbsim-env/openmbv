@@ -12,6 +12,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <boost/filesystem.hpp>
 
 #define XINCLUDENS_ "http://www.w3.org/2001/XInclude"
 #define XINCLUDENS "{"XINCLUDENS_"}"
@@ -64,7 +65,7 @@ void TiXml_deletePIandComm(TiXmlElement *e);
  * If dependencies is not NULL a new line separated list of files this file
  * depends on is appended to dependencies.
  */
-void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>(), std::ostream *dependencies=NULL);
+void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>(), std::vector<boost::filesystem::path> *dependencies=NULL);
 
 /* Changes recursivly every element name from e.g.
  * '{http://my.host.org/mynamespace}:localname' to

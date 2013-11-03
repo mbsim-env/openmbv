@@ -77,7 +77,7 @@ class OctEval {
     };
 
     //! Constructor.
-    OctEval();
+    OctEval(std::vector<boost::filesystem::path> *dependencies_=NULL);
     //! Destructor.
     ~OctEval();
 
@@ -263,6 +263,8 @@ class OctEval {
     //! cast value to the corresponding swig object of type T, without ANY type check.
     template<typename T>
     static T castToSwig(const octave_value &value);
+
+    std::vector<boost::filesystem::path> *dependencies;
 
     //! create octave value of CasADi type name. Created using the default ctor.
     static octave_value createCasADi(const std::string &name);
