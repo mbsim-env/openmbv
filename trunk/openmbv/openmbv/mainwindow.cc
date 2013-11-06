@@ -1298,7 +1298,8 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         }
         // left button double clicked (the first click has alread select a object)
         if(ev->getButton()==SoMouseButtonEvent::BUTTON1 && doubleClick && objectClicked) {
-          Object *object=static_cast<Object*>(objectList->currentItem());
+          // return the current item if existing or the first selected item
+          Object *object=static_cast<Object*>(objectList->currentItem()?objectList->currentItem():objectList->selectedItems().first());
           // show properties dialog only if objectDoubleClicked is not connected to some other slot
           if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
             object->properties->show();
