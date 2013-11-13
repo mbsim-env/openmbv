@@ -88,7 +88,11 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
       // get file name if href attribute exist
       bfs::path file;
       if(e->Attribute("href")) {
-        file=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Attribute("href"));
+        octave_value ret=octEval.eval(e, "href");
+        string subst=OctEval::cast<string>(ret);
+        if(OctEval::getType(ret)==OctEval::StringType)
+          subst=subst.substr(1, subst.length()-2);
+        file=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), subst);
         dependencies.push_back(file);
       }
   
@@ -99,8 +103,10 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
   
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
-      if(e->Attribute("counterName"))
-        counterName=e->Attribute("counterName");
+      if(e->Attribute("counterName")) {
+        counterName=OctEval::cast<string>(octEval.eval(e, "counterName"));
+        counterName=counterName.substr(1, counterName.length()-2);
+      }
   
       boost::shared_ptr<TiXmlDocument> enewdoc;
       boost::shared_ptr<TiXmlElement> enewGuard;
@@ -139,7 +145,11 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
         if(e->FirstChildElement()->FirstChildElement()) // inline parameter
           octEval.addParamSet(e->FirstChildElement()->FirstChildElement());
         else { // parameter from href attribute
-          bfs::path paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->FirstChildElement()->Attribute("href"));
+          octave_value ret=octEval.eval(e->FirstChildElement(), "href");
+          string subst=OctEval::cast<string>(ret);
+          if(OctEval::getType(ret)==OctEval::StringType)
+            subst=subst.substr(1, subst.length()-2);
+          bfs::path paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), subst);
           // add local parameter file to dependencies
           dependencies.push_back(paramFile);
           // validate local parameter file
@@ -187,6 +197,7 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
     else if(e->ValueStr()==MBXMLUTILSCASADINS"SXFunction")
       return; // skip processing of SXFunction elements
     else {
+      // evaluate child element or child text
       octave_value value=octEval.eval(e);
       if(!value.is_empty()) {
         if(e->FirstChildElement())
@@ -201,17 +212,14 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
         e->LinkEndChild(node.release());
       }
 
-      // THIS IS A WORKAROUND! Actually not all 'name' and 'ref*' attributes should be converted but only the
-      // XML attributes of a type devived from pv:fullOctaveString and pv:partialOctaveString. But for that a
-      // schema aware processor is needed!
-      for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next())
-        if(a->Name()==string("name") || string(a->Name()).substr(0,3)=="ref") {
-          octave_value value=octEval.eval(e, a->Name(), false);
-          string s=OctEval::cast<string>(value);
-          if(OctEval::getType(value)==OctEval::StringType)
-            s=s.substr(1, s.length()-2);
-          a->SetValue(s);
-        }
+      // evaluate attributes
+      for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next()) {
+        octave_value value=octEval.eval(e, a->Name());
+        string s=OctEval::cast<string>(value);
+        if(OctEval::getType(value)==OctEval::StringType)
+          s=s.substr(1, s.length()-2);
+        a->SetValue(s);
+      }
     }
   
     // walk tree

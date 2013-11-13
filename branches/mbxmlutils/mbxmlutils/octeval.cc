@@ -7,6 +7,7 @@
 #include <mbxmlutilstinyxml/utils.h>
 #include <octave/octave.h>
 #include <boost/math/special_functions/round.hpp>
+#include <boost/lexical_cast.hpp>
 #include <casadi/symbolic/sx/sx_tools.hpp>
 
 //MFMF: should also compile if casadi is not present; check throw statements
@@ -409,42 +410,42 @@ octave_value OctEval::stringToOctValue(const std::string &str, const TiXmlElemen
   return ret;
 }
 
-octave_value OctEval::eval(const TiXmlElement *e, const string &attrName, bool fullEval) {
+octave_value OctEval::eval(const TiXmlElement *e, const string &attrName) {
   // handle attribute attrName
   if(!attrName.empty()) {
-    // evaluate attribute fully
-    if(fullEval) {
-      octave_value ret=stringToOctValue(e->Attribute(attrName.c_str()), e);
-      return ret;
-    }
-
-    // evaluate attribute only partially
-    else {
-      string s=e->Attribute(attrName.c_str());
-      size_t i;
-      while((i=s.find('{'))!=string::npos) {
-        size_t j=i;
-        do {
-          j=s.find('}', j+1);
-          if(j==string::npos) throw TiXmlException("no matching } found in attriubte.", e);
-        }
-        while(s[j-1]=='\\'); // skip } which is quoted with backslash
-        string evalStr=s.substr(i+1,j-i-1);
-        // remove the backlash quote from { and }
-        size_t k=0;
-        while((k=evalStr.find('{', k))!=string::npos) {
-          if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("{ must be quoted with a backslash inside {...}.", e);
-          evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-        }
-        k=0;
-        while((k=evalStr.find('}', k))!=string::npos) {
-          if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("} must be quoted with a backslash inside {...}.", e);
-          evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-        }
-        
-        octave_value ret=stringToOctValue(evalStr, e);
-        s=s.substr(0,i)+cast<string>(ret)+s.substr(j+1);
+    // evaluate attribute partially
+    string s=e->Attribute(attrName.c_str());
+    size_t i;
+    while((i=s.find('{'))!=string::npos) {
+      size_t j=i;
+      do {
+        j=s.find('}', j+1);
+        if(j==string::npos) throw TiXmlException("no matching } found in attriubte.", e);
       }
+      while(s[j-1]=='\\'); // skip } which is quoted with backslash
+      string evalStr=s.substr(i+1,j-i-1);
+      // remove the backlash quote from { and }
+      size_t k=0;
+      while((k=evalStr.find('{', k))!=string::npos) {
+        if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("{ must be quoted with a backslash inside {...}.", e);
+        evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
+      }
+      k=0;
+      while((k=evalStr.find('}', k))!=string::npos) {
+        if(k==0 || evalStr[k-1]!='\\') throw TiXmlException("} must be quoted with a backslash inside {...}.", e);
+        evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
+      }
+      
+      octave_value ret=stringToOctValue(evalStr, e);
+      string subst=cast<string>(ret);
+      if(getType(ret)==StringType)
+        subst=subst.substr(1, subst.length()-2);
+      s=s.substr(0,i)+subst+s.substr(j+1);
+    }
+    try {
+      return boost::lexical_cast<double>(s);
+    }
+    catch (boost::bad_lexical_cast const&) {
       return s;
     }
   }

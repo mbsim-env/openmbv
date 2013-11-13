@@ -91,9 +91,9 @@ class OctEval {
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
     //! Handle the attribute value named attrName, or if not given handle the XML text node child of e.
-    //! If attrName if given evaluate it "fully" if fullEval is true or "partially".
+    //! If attrName if given evaluate it "partially".
     //! The result of a "partially" evaluation is returned as a octave string even so it is not really a string.
-    octave_value eval(const TiXmlElement *e, const std::string &attrName=std::string(), bool fullEval=true);
+    octave_value eval(const TiXmlElement *e, const std::string &attrName=std::string());
 
     /*! Cast the octave value value to type <tt>T</tt>.
      * Possible combinations of allowed octave value types and template types <tt>T</tt> are listed in the

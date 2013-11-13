@@ -29,12 +29,6 @@
 
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
 
-      <xs:simpleType name="octaveVariableNameType">
-        <xs:restriction base="xs:token">
-          <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>
-        </xs:restriction>
-      </xs:simpleType>
-
       <!-- element for embeding -->
       <xs:element name="embed">
         <xs:complexType>
@@ -44,7 +38,7 @@
                 <xs:sequence>
                   <xs:element ref="p:parameter" minOccurs="0"/>
                 </xs:sequence>
-                <xs:attribute name="href" use="optional" type="xs:anyURI"/>
+                <xs:attribute name="href" use="optional" type="partialOctaveType"/>
               </xs:complexType>
             </xs:element>
             <!--
@@ -58,32 +52,18 @@
               <xs:element ref="embed"/>
             </xs:choice>
           </xs:sequence>
-          <xs:attribute name="href" type="xs:anyURI" use="optional"/>
-          <xs:attribute name="count" use="optional" type="fullOctaveString" default="1"/>
-          <xs:attribute name="counterName" use="optional" type="octaveVariableNameType"/>
-          <xs:attribute name="onlyif" use="optional" type="fullOctaveString" default="1"/>
+          <xs:attribute name="href" type="partialOctaveType" use="optional"/>
+          <xs:attribute name="count" use="optional" type="partialOctaveType" default="1"/>
+          <xs:attribute name="counterName" use="optional" type="partialOctaveType"/>
+          <xs:attribute name="onlyif" use="optional" type="partialOctaveType" default="1"/>
         </xs:complexType>
       </xs:element>
-
-      <!-- base type for a string which is fully converted by octave -->
-      <xs:simpleType name="fullOctaveString">
-        <xs:restriction base="xs:token"/>
-      </xs:simpleType>
 
       <!-- base type for a string which is partially converted by octave.
            Only the content between { and } ist converted by octave
            Inside { ... } the character { and } must be quoted qith \ -->
-      <xs:simpleType name="partialOctaveString">
+      <xs:simpleType name="partialOctaveType">
         <xs:restriction base="xs:token"/>
-      </xs:simpleType>
-
-      <!-- A regexp for matching a MBXMLUtils name attribute. E.g. matches: "box1", "box{i+5}", "box2_{2*i+1}_{j+1}" -->
-      <xs:simpleType name="name">
-        <xs:restriction base="partialOctaveString">
-          <xs:pattern>
-            <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
-          </xs:pattern>
-        </xs:restriction>
       </xs:simpleType>
 
       <!-- add unit types -->
@@ -97,7 +77,7 @@
               All file formats of the octave 'load' command are supported and auto detected.
             </xs:documentation></xs:annotation>
             <xs:complexType>
-              <xs:attribute name="href" use="required" type="xs:anyURI"/>
+              <xs:attribute name="href" use="required" type="partialOctaveType"/>
             </xs:complexType>
           </xs:element>
         </xs:sequence>
@@ -236,7 +216,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="scalar">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="partialOctaveType"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -250,7 +230,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="vector">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="partialOctaveType"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -264,20 +244,20 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="matrix">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="partialOctaveType"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
 
       <!-- string must be enclosed in '"' (processed by octave) -->
-      <xs:simpleType name="string">
+      <xs:simpleType name="stringType">
         <xs:annotation>
           <xs:documentation>
             A string value. The value is evaluated by the octave, so a plain string
             must be enclosed in '"'.
           </xs:documentation>
         </xs:annotation>
-        <xs:restriction base="xs:string"/>
+        <xs:restriction base="partialOctaveType"/>
       </xs:simpleType>
 
       <!-- rotation matrix -->
@@ -348,12 +328,12 @@
 
       <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
       <xs:simpleType name="symbolicFunctionArgNameType">
-        <xs:restriction base="octaveVariableNameType"/>
+        <xs:restriction base="partialOctaveType"/>
       </xs:simpleType>
 
       <!-- the attribute type for vector argument dimension -->
       <xs:simpleType name="symbolicFunctionArgDimType">
-        <xs:restriction base="xs:positiveInteger"/>
+        <xs:restriction base="partialOctaveType"/>
       </xs:simpleType>
 
     </xs:schema>
