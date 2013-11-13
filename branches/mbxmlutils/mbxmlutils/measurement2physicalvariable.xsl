@@ -65,6 +65,18 @@
       <xs:simpleType name="partialOctaveType">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
+      <xs:simpleType name="partialOctaveString"><!--MFMF change this to partialOctaveType if the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <xs:simpleType name="name"><!--MFMF replace pv:name with pv:partialOctaveType if the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <xs:simpleType name="string"><!--MFMF replace pv:string with pv:partialOctaveType if the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <xs:simpleType name="fullOctaveType"><!--MFMF replace pv:fullOctaveType with pv:partialOctaveType if the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
 
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
@@ -279,9 +291,9 @@
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="fullOctaveString"/>
-                    <xs:element name="beta" type="fullOctaveString"/>
-                    <xs:element name="gamma" type="fullOctaveString"/>
+                    <xs:element name="alpha" type="fullOctaveType"/>
+                    <xs:element name="beta" type="fullOctaveType"/>
+                    <xs:element name="gamma" type="fullOctaveType"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
@@ -289,9 +301,9 @@
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="fullOctaveString"/>
-                    <xs:element name="theta" type="fullOctaveString"/>
-                    <xs:element name="phi" type="fullOctaveString"/>
+                    <xs:element name="PHI" type="fullOctaveType"/>
+                    <xs:element name="theta" type="fullOctaveType"/>
+                    <xs:element name="phi" type="fullOctaveType"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
