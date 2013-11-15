@@ -15,7 +15,7 @@
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>
-              <xs:extension base="pv:stringType">
+              <xs:extension base="pv:stringFullOctEval">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">

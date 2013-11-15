@@ -38,7 +38,7 @@
                 <xs:sequence>
                   <xs:element ref="p:parameter" minOccurs="0"/>
                 </xs:sequence>
-                <xs:attribute name="href" use="optional" type="partialOctaveType"/>
+                <xs:attribute name="href" use="optional" type="filenamePartialOctEval"/>
               </xs:complexType>
             </xs:element>
             <!--
@@ -52,31 +52,102 @@
               <xs:element ref="embed"/>
             </xs:choice>
           </xs:sequence>
-          <xs:attribute name="href" type="partialOctaveType" use="optional"/>
-          <xs:attribute name="count" use="optional" type="partialOctaveType" default="1"/>
-          <xs:attribute name="counterName" use="optional" type="partialOctaveType"/>
-          <xs:attribute name="onlyif" use="optional" type="partialOctaveType" default="1"/>
+          <xs:attribute name="href" type="filenamePartialOctEval" use="optional"/>
+          <xs:attribute name="count" use="optional" type="integerPartialOctEval" default="1"/>
+          <xs:attribute name="counterName" use="optional" type="varnamePartialOctEval"/>
+          <xs:attribute name="onlyif" use="optional" type="booleanPartialOctEval" default="1"/>
         </xs:complexType>
       </xs:element>
 
-      <!-- base type for a string which is partially converted by octave.
+      <!-- base type for a XML text element which is fully converted by octave.-->
+      <xs:simpleType name="fullOctEval">
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an floating number.-->
+      <xs:simpleType name="floatFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an string.-->
+      <xs:simpleType name="stringFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an integer.-->
+      <xs:simpleType name="integerFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an boolean.-->
+      <xs:simpleType name="booleanFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+
+      <!-- base type for a attribute which is partially converted by octave.
            Only the content between { and } ist converted by octave
            Inside { ... } the character { and } must be quoted qith \ -->
-      <xs:simpleType name="partialOctaveType">
+      <xs:simpleType name="partialOctEval">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
-      <xs:simpleType name="partialOctaveString"><!--MFMF change this to partialOctaveType if the branch is merged to trunk-->
+
+      <!-- partial octave evaluation which must evaluate to an floating number -->
+      <xs:simpleType name="floatPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string -->
+      <xs:simpleType name="stringPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an integer -->
+      <xs:simpleType name="integerPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an boolean -->
+      <xs:simpleType name="booleanPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string representing a valid variable name -->
+      <xs:simpleType name="varnamePartialOctEval">
+        <xs:restriction base="stringPartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string which represents a filename -->
+      <xs:simpleType name="filenamePartialOctEval">
+        <xs:restriction base="stringPartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
+      <xs:simpleType name="symbolicFunctionArgNameType">
+        <xs:restriction base="stringPartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- the attribute type for vector argument dimension -->
+      <xs:simpleType name="symbolicFunctionArgDimType">
+        <xs:restriction base="integerPartialOctEval"/>
+      </xs:simpleType>
+
+
+
+
+      <xs:simpleType name="partialOctaveString"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
-      <xs:simpleType name="name"><!--MFMF replace pv:name with pv:partialOctaveType if the branch is merged to trunk-->
+      <xs:simpleType name="name"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
-      <xs:simpleType name="string"><!--MFMF replace pv:string with pv:partialOctaveType if the branch is merged to trunk-->
+      <xs:simpleType name="string"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
-      <xs:simpleType name="fullOctaveType"><!--MFMF replace pv:fullOctaveType with pv:partialOctaveType if the branch is merged to trunk-->
-        <xs:restriction base="xs:token"/>
-      </xs:simpleType>
+
+
+
+
 
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
@@ -89,7 +160,7 @@
               All file formats of the octave 'load' command are supported and auto detected.
             </xs:documentation></xs:annotation>
             <xs:complexType>
-              <xs:attribute name="href" use="required" type="partialOctaveType"/>
+              <xs:attribute name="href" use="required" type="filenamePartialOctEval"/>
             </xs:complexType>
           </xs:element>
         </xs:sequence>
@@ -125,13 +196,7 @@
                 <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                   <xs:complexType>
                     <xs:sequence>
-                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
-                        <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                            <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                          </xs:restriction>
-                        </xs:simpleType>
-                      </xs:element>
+                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
@@ -172,13 +237,7 @@
           <xs:element name="xmlVector">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:element>
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
               </xs:sequence>
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
@@ -228,7 +287,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="scalar">
-            <xs:attribute name="convertUnit" type="partialOctaveType"/>
+            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -242,7 +301,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="vector">
-            <xs:attribute name="convertUnit" type="partialOctaveType"/>
+            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -256,21 +315,10 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="matrix">
-            <xs:attribute name="convertUnit" type="partialOctaveType"/>
+            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
-
-      <!-- string must be enclosed in '"' (processed by octave) -->
-      <xs:simpleType name="stringType">
-        <xs:annotation>
-          <xs:documentation>
-            A string value. The value is evaluated by the octave, so a plain string
-            must be enclosed in '"'.
-          </xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="partialOctaveType"/>
-      </xs:simpleType>
 
       <!-- rotation matrix -->
       <xs:complexType mixed="true" name="rotationMatrix">
@@ -291,9 +339,9 @@
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="fullOctaveType"/>
-                    <xs:element name="beta" type="fullOctaveType"/>
-                    <xs:element name="gamma" type="fullOctaveType"/>
+                    <xs:element name="alpha" type="floatFullOctEval"/>
+                    <xs:element name="beta" type="floatFullOctEval"/>
+                    <xs:element name="gamma" type="floatFullOctEval"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
@@ -301,9 +349,9 @@
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="fullOctaveType"/>
-                    <xs:element name="theta" type="fullOctaveType"/>
-                    <xs:element name="phi" type="fullOctaveType"/>
+                    <xs:element name="PHI" type="floatFullOctEval"/>
+                    <xs:element name="theta" type="floatFullOctEval"/>
+                    <xs:element name="phi" type="floatFullOctEval"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
@@ -337,16 +385,6 @@
           <xs:group ref="xmlMatrixGroup"/>
         </xs:choice>
       </xs:group>
-
-      <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
-      <xs:simpleType name="symbolicFunctionArgNameType">
-        <xs:restriction base="partialOctaveType"/>
-      </xs:simpleType>
-
-      <!-- the attribute type for vector argument dimension -->
-      <xs:simpleType name="symbolicFunctionArgDimType">
-        <xs:restriction base="partialOctaveType"/>
-      </xs:simpleType>
 
     </xs:schema>
 
