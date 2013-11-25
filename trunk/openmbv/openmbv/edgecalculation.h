@@ -20,11 +20,11 @@
 #ifndef _OPENMBVGUI_EDGECALCULATION_H_
 #define _OPENMBVGUI_EDGECALCULATION_H_
 
-#include <QObject>
+#include <QtCore/QObject>
 #include <vector>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
-#include <QReadWriteLock>
+#include <QtCore/QReadWriteLock>
 
 namespace OpenMBVGUI {
 
