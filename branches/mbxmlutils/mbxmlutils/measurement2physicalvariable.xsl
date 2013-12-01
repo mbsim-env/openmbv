@@ -272,6 +272,7 @@
 
       <xs:group name="xmlScalarGroup">
         <!-- dummy group. just te be consistent with vector and matrix types -->
+        <xs:sequence/> <!-- some parsers have problems with no child element in xs:group -->
       </xs:group>
 
       <!-- add scalar units -->
