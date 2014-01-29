@@ -74,6 +74,30 @@ namespace OpenMBV {
 
       double getScaleFactor() { return get(scaleFactor); }
 
+      /** Set the initial rotation of the body. */
+      void setInitialRotation(const VectorParameter& initRot) {
+        if(initRot.getParamStr()=="" && initRot.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
+        set(initialRotation,initRot);
+      }
+      
+      /** Set the initial rotation of the body. */
+      void setInitialRotation(const std::vector<double>& initRot) {
+        if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
+        set(initialRotation,initRot);
+      }
+
+      /** Set the initial rotation of the body. */
+      void setInitialRotation(double a, double b, double g) {
+        std::vector<double> initRot;
+        initRot.push_back(a);
+        initRot.push_back(b);
+        initRot.push_back(g);
+        initialRotation=initRot;
+      }
+
+      /** Get the initial rotation of the body. */
+      std::vector<double> getInitialRotation() { return get(initialRotation); }
+
       /** Append a data vector to the h5 datsset */
       void append(const std::vector<double>& row) { 
         if(data==0) throw std::runtime_error("can not append data to an environment object"); 
@@ -104,6 +128,9 @@ namespace OpenMBV {
 
       /** Scale factor of the body. */
       ScalarParameter scaleFactor;
+      
+      /** Intial rotation of the body. */
+      VectorParameter initialRotation;
       
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

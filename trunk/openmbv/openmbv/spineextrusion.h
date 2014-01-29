@@ -37,6 +37,7 @@ namespace OpenMBVGUI {
  * \brief class for extrusion along a curve
  * \author Thorsten Schindler
  * \date 2009-05-06 initial commit (Thorsten Schindler)
+ * \date 2014-01-29 initial twist (Thorsten Schindler)
  */
 class SpineExtrusion : public DynamicColoredBody {
   Q_OBJECT
@@ -59,6 +60,12 @@ class SpineExtrusion : public DynamicColoredBody {
   
     /** update method invoked at each time step */
     virtual double update();
+
+    /** test for collinear spine points */
+    bool collinear;
+
+    /** additional twist because of collinear spine points */
+    double additionalTwist;
 
     OpenMBV::SpineExtrusion *spineExtrusion;
 };
