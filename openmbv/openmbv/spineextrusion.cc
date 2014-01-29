@@ -29,7 +29,67 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0) {
+// copied from SoVRMLExtrusion for including twist in case of collinear spine points 
+static float my_normalize(SbVec3f & vec) {
+  float len = vec.length();
+  if (len > FLT_EPSILON) {
+    vec /= len;
+  }
+  return len;
+}
+
+static SbVec3f calculate_z_axis(const SbVec3f * spine, const int i, const int numspine, const SbBool closed) {
+  SbVec3f z0, z1;
+
+  if (closed) {
+    if (i > 0) {
+      if (i == numspine-1) {
+        z0 = spine[1] - spine[i];
+        z1 = spine[i-1] - spine[i];
+      }
+      else {
+        z0 = spine[i+1] - spine[i];
+        z1 = spine[i-1] - spine[i];
+      }
+    }
+    else {
+      z0 = spine[1] - spine[0];
+      z1 = spine[numspine >= 2 ? numspine-2 : numspine-1] - spine[0];
+    }
+  }
+  else {
+    if (numspine == 2) return SbVec3f(0.0f, 0.0f, 0.0f);
+    else if (i == 0) {
+      z0 = spine[2] - spine[1];
+      z1 = spine[0] - spine[1];
+    }
+    else if (i == numspine-1) {
+      z0 = spine[numspine-1] - spine[numspine-2];
+      z1 = spine[numspine-3] - spine[numspine-2];
+    }
+    else {
+      z0 = spine[i+1] - spine[i];
+      z1 = spine[i-1] - spine[i];
+    }
+  }
+
+  my_normalize(z0);
+  my_normalize(z1);
+
+  // test if spine segments are collinear. If they are, the cross
+  // product will not be reliable, and we should just use the previous
+  // Z-axis instead.
+  if (SbAbs(z0.dot(z1)) > 0.999f) {
+    return SbVec3f(0.0f, 0.0f, 0.0f);
+  }
+  SbVec3f tmp = z0.cross(z1);
+  if (my_normalize(tmp) == 0.0f) {
+    return SbVec3f(0.0f, 0.0f, 0.0f);
+  }
+  return tmp;
+}
+
+SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0), collinear(true), additionalTwist(0.) {
   spineExtrusion=(OpenMBV::SpineExtrusion*)obj;
   //h5 dataset
   numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
@@ -71,6 +131,30 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
   extrusion->endCap=TRUE; // front side at end of the spine
   extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
 
+  // test if spine point are collinear
+  const SbVec3f empty(0.0f, 0.0f, 0.0f);
+
+  std::vector<double> data=spineExtrusion->getRow(0);
+  SbVec3f data_coin[numberOfSpinePoints];
+  for(int i=0;i<numberOfSpinePoints;i++) {
+    data_coin[i] = SbVec3f(data[4*i+1],data[4*i+2],data[4*i+3]);
+  }
+
+  for(int i=0;i<numberOfSpinePoints;i++) {
+      SbVec3f Z = calculate_z_axis(data_coin, i, numberOfSpinePoints, false);
+      if(Z!=empty)
+        collinear=false;
+  }
+
+  if(collinear) {
+    SoRotation *rotation = new SoRotation; // set rotation matrix 
+    std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
+    rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(rotation_parameter[0],rotation_parameter[1],rotation_parameter[2]))); 
+    SbMatrix Orientation;
+    rotation->rotation.getValue().getValue(Orientation);
+    additionalTwist = acos(Orientation[2][2]);
+  }
+
   if(!clone) {
     properties->updateHeader();
     // GUI editors
@@ -105,7 +189,7 @@ double SpineExtrusion::update() {
   extrusion->orientation.setNum(numberOfSpinePoints);
   SbRotation *tw = extrusion->orientation.startEditing();
   for(int i=0;i<numberOfSpinePoints;i++) {
-    tw[i] = SbRotation(*twistAxis,data[4*i+4]);
+    tw[i] = SbRotation(*twistAxis,data[4*i+4]+additionalTwist);
   }
   extrusion->orientation.finishEditing();
   extrusion->orientation.setDefault(FALSE);

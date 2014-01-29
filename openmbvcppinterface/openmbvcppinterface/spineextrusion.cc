@@ -32,7 +32,8 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),
   contour(0),
   data(0), 
-  scaleFactor(1) {
+  scaleFactor(1),
+  initialRotation(vector<double>(3, 0)) {
 }
 
 SpineExtrusion::~SpineExtrusion() {
@@ -51,6 +52,7 @@ TiXmlElement* SpineExtrusion::writeXMLFile(TiXmlNode *parent) {
   TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
+  addElementText(e, OPENMBVNS"initialRotation", initialRotation);
   return 0;
 }
 
@@ -93,5 +95,7 @@ void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
   setContour(PolygonPoint::initializeUsingXML(e));
   e=element->FirstChildElement(OPENMBVNS"scaleFactor");
   setScaleFactor(getDouble(e));
+  e=element->FirstChildElement(OPENMBVNS"initialRotation");
+  setInitialRotation(getVec(e,3));
 }
 
