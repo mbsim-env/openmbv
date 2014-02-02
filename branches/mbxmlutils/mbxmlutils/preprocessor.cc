@@ -1,168 +1,110 @@
-#include <string>
+#include <mbxmlutilshelper/dom.h>
 #include <list>
+#include <stdexcept>
 #include <iostream>
 #include <octeval.h>
-#include <mbxmlutilstinyxml/getinstallpath.h>
-#include <libxml/xmlschemas.h>
-#include <libxml/xinclude.h>
-#ifdef HAVE_UNORDERED_SET
-#  include <unordered_set>
-#else
-#  include <set>
-#  define unordered_set set
-#endif
-#include "mbxmlutilstinyxml/tinynamespace.h"
+#include <mbxmlutilshelper/getinstallpath.h>
+#include <boost/locale.hpp>
+#include <boost/bind.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/dom/DOMNamedNodeMap.hpp>
+#include <xercesc/dom/DOMAttr.hpp>
+#include <xercesc/dom/DOMException.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
-namespace bfs=boost::filesystem;
+using namespace xercesc;
+using namespace boost;
+using namespace boost::filesystem;
 
-bfs::path SCHEMADIR;
+path SCHEMADIR;
 
-void addFilesInDir(vector<bfs::path> &dependencies, const bfs::path &dir, const bfs::path &ext) {
-  for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
+void addFilesInDir(vector<path> &dependencies, const path &dir, const path &ext) {
+  for(directory_iterator it=directory_iterator(dir); it!=directory_iterator(); it++)
     if(it->path().extension()==ext)
       dependencies.push_back(it->path());
 }
 
-void warningCallback(void *ctx, const char *msg, ...) {
-  // Schemas may be loaded from e.g aa/bb.xsd and the same schema from aa/../aa/bb.xsd
-  // This is misleadingly interpreted on Windows as different schemas.
-  // Hence we disable the corresponding warning (if not MBXMLUTILS_SCHEMAWARNINGS is set)
-  static int printWarning=-1;
-  if(printWarning==-1 && getenv("MBXMLUTILS_SCHEMAWARNINGS")!=NULL) printWarning=1; else printWarning=0;
-  if(printWarning) {
-    va_list ap;
-    va_start(ap, msg);
-    vfprintf(stderr, msg, ap);
-    va_end(ap);
-  }
-}
-// validate file using schema (currently by libxml)
-void validate(const bfs::path &schema, const bfs::path &file) {
-  cout<<"Parse and validate "<<file<<endl;
-
-  // cache alread validated files
-  static unordered_set<bfs::path> validatedCache;
-  pair<unordered_set<bfs::path>::iterator, bool> ins2=validatedCache.insert(file);
-  if(!ins2.second)
-    return;
-
-  boost::shared_ptr<xmlDoc> doc;
-  doc.reset(xmlReadFile(file.c_str(), NULL, XML_PARSE_XINCLUDE | XML_PARSE_NOXINCNODE | XML_PARSE_NOBASEFIX),
-            &xmlFreeDoc);
-  if(!doc.get()) throw runtime_error("Internal error: can not load schema file.");
-  if(xmlXIncludeProcess(doc.get())<0) throw runtime_error("Internal error: can not xinclude schema file.");
-
-  // cache compiled schema
-  static unordered_map<bfs::path, boost::shared_ptr<xmlSchemaValidCtxt> > compiledSchemaCache;
-  pair<unordered_map<bfs::path, boost::shared_ptr<xmlSchemaValidCtxt> >::iterator, bool> ins=compiledSchemaCache.insert(
-    make_pair(schema, boost::shared_ptr<xmlSchemaValidCtxt>()));
-  if(ins.second) {
-    boost::shared_ptr<xmlSchemaParserCtxt> schemaCtxt(xmlSchemaNewParserCtxt(schema.generic_string().c_str()),
-                                                      &xmlSchemaFreeParserCtxt);
-    xmlSchemaSetParserErrors(schemaCtxt.get(), NULL, &warningCallback, NULL); // redirect warning messages
-    ins.first->second=boost::shared_ptr<xmlSchemaValidCtxt>(xmlSchemaNewValidCtxt(xmlSchemaParse(schemaCtxt.get())),
-                                                            &xmlSchemaFreeValidCtxt);
-  }
-
-  int ret=xmlSchemaValidateDoc(ins.first->second.get(), doc.get()); // validate using compiled/cached schema
-  if(ret!=0) throw runtime_error("Failed to validate XML file, see above messages.");
-}
-
-void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &nsprefix, vector<bfs::path> &dependencies, OctEval &octEval) {
+void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
   try {
-    if(e->ValueStr()==MBXMLUTILSPVNS"embed") {
+    if(E(e)->getTagName()==PV%"embed") {
       NewParamLevel newParamLevel(octEval);
       // check if only href OR child element (This is not checked by the schema)
-      TiXmlElement *l=0, *dummy;
-      for(dummy=e->FirstChildElement(); dummy!=0; l=dummy, dummy=dummy->NextSiblingElement());
-      if((e->Attribute("href") && l && l->ValueStr()!=MBXMLUTILSPVNS"localParameter") ||
-         (e->Attribute("href")==0 && (l==0 || l->ValueStr()==MBXMLUTILSPVNS"localParameter")))
-        throw TiXmlException("Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!", e);
+      DOMElement *l=0, *dummy;
+      for(dummy=e->getFirstElementChild(); dummy!=0; l=dummy, dummy=dummy->getNextElementSibling());
+      if(( E(e)->hasAttribute("href") && l && E(l)->getTagName()!=PV%"localParameter") ||
+         (!E(e)->hasAttribute("href") && (l==0 || E(l)->getTagName()==PV%"localParameter")))
+        throw DOMEvalException("Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!", e);
       // check if attribute count AND counterName or none of both
-      if((e->Attribute("count")==0 && e->Attribute("counterName")!=0) ||
-         (e->Attribute("count")!=0 && e->Attribute("counterName")==0))
-        throw TiXmlException("Only both, the count and counterName attribute must be given or none of both!", e);
+      if((!E(e)->hasAttribute("count") &&  E(e)->hasAttribute("counterName")) ||
+         ( E(e)->hasAttribute("count") && !E(e)->hasAttribute("counterName")))
+        throw DOMEvalException("Only both, the count and counterName attribute must be given or none of both!", e);
   
       // get file name if href attribute exist
-      bfs::path file;
-      if(e->Attribute("href")) {
-        octave_value ret=octEval.eval(e, "href");
+      path file;
+      if(E(e)->hasAttribute("href")) {
+        octave_value ret=octEval.eval(E(e)->getAttributeNode("href"), e);
         string subst=OctEval::cast<string>(ret);
         if(OctEval::getType(ret)==OctEval::StringType)
           subst=subst.substr(1, subst.length()-2);
-        file=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), subst);
+        file=absolute(subst, E(e)->getOriginalFilename().parent_path());
         dependencies.push_back(file);
       }
   
       // evaluate count using parameters
       long count=1;
-      if(e->Attribute("count"))
-        count=OctEval::cast<long>(octEval.eval(e, "count"));
+      if(E(e)->hasAttribute("count"))
+        count=OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("count"), e));
   
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
-      if(e->Attribute("counterName")) {
-        counterName=OctEval::cast<string>(octEval.eval(e, "counterName"));
+      if(E(e)->hasAttribute("counterName")) {
+        counterName=OctEval::cast<string>(octEval.eval(E(e)->getAttributeNode("counterName"), e));
         counterName=counterName.substr(1, counterName.length()-2);
       }
   
-      boost::shared_ptr<TiXmlDocument> enewdoc;
-      boost::shared_ptr<TiXmlElement> enewGuard;
-      TiXmlElement *enew;
+      shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
-        validate(nslocation, file);
-        cout<<"Read "<<file<<endl;
-        enewdoc.reset(new TiXmlDocument);
-        enewdoc->LoadFile(file.generic_string().c_str()); TiXml_PostLoadFile(enewdoc.get());
-        enew=enewdoc->FirstChildElement();
-        map<string,string> dummy;
-        incorporateNamespace(enew, nsprefix, dummy, &dependencies);
+        cout<<"Read and validate "<<file<<endl;
+        shared_ptr<DOMDocument> newdoc=parser->parse(file);
+        enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
+          bind(&DOMElement::release, _1));
       }
       else { // or take the child element (as a clone, because the embed element is deleted)
-        if(e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter")
-          enewGuard.reset((TiXmlElement*)e->FirstChildElement()->NextSiblingElement()->Clone());
+        if(E(e->getFirstElementChild())->getTagName()==PV%"localParameter")
+          enew.reset(static_cast<DOMElement*>(e->removeChild(e->getFirstElementChild()->getNextElementSibling())),
+            bind(&DOMElement::release, _1));
         else
-          enewGuard.reset((TiXmlElement*)e->FirstChildElement()->Clone());
-        enew=enewGuard.get();
-        enew->SetAttribute("xml:base", TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base")); // add a xml:base attribute
+          enew.reset(static_cast<DOMElement*>(e->removeChild(e->getFirstElementChild())),
+            bind(&DOMElement::release, _1));
       }
   
       // include a processing instruction with the line number of the original element
-      TiXmlUnknown embedLine;
-      embedLine.SetValue("?OriginalElementLineNr "+TiXml_itoa(e->Row())+"?");
-      enew->InsertBeforeChild(enew->FirstChild(), embedLine);
+      E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
   
       // generate local paramter for embed
-      if(e->FirstChildElement() && e->FirstChildElement()->ValueStr()==MBXMLUTILSPVNS"localParameter") {
+      if(e->getFirstElementChild() && E(e->getFirstElementChild())->getTagName()==PV%"localParameter") {
         // check if only href OR p:parameter child element (This is not checked by the schema)
-        if((e->FirstChildElement()->Attribute("href") && e->FirstChildElement()->FirstChildElement()) ||
-           (!e->FirstChildElement()->Attribute("href") && !e->FirstChildElement()->FirstChildElement()))
-          throw TiXmlException("Only the href attribute OR the child element p:parameter) is allowed.", e);
+        if((E(e->getFirstElementChild())->hasAttribute("href") && e->getFirstElementChild()->getFirstElementChild()) ||
+           (!E(e->getFirstElementChild())->hasAttribute("href") && !e->getFirstElementChild()->getFirstElementChild()))
+          throw DOMEvalException("Only the href attribute OR the child element p:parameter) is allowed.", e);
         cout<<"Generate local octave parameter string for "<<(file.empty()?"<inline element>":file)<<endl;
-        if(e->FirstChildElement()->FirstChildElement()) // inline parameter
-          octEval.addParamSet(e->FirstChildElement()->FirstChildElement());
+        if(e->getFirstElementChild()->getFirstElementChild()) // inline parameter
+          octEval.addParamSet(e->getFirstElementChild()->getFirstElementChild());
         else { // parameter from href attribute
-          octave_value ret=octEval.eval(e->FirstChildElement(), "href");
+          octave_value ret=octEval.eval(E(e->getFirstElementChild())->getAttributeNode("href"), e->getFirstElementChild());
           string subst=OctEval::cast<string>(ret);
           if(OctEval::getType(ret)==OctEval::StringType)
             subst=subst.substr(1, subst.length()-2);
-          bfs::path paramFile=fixPath(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), subst);
+          path paramFile=absolute(subst, E(e)->getOriginalFilename().parent_path());
           // add local parameter file to dependencies
           dependencies.push_back(paramFile);
-          // validate local parameter file
-          validate(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"parameter.xsd", paramFile);
-          // read local parameter file
-          cout<<"Read local parameter file "<<paramFile<<endl;
-          boost::shared_ptr<TiXmlDocument> localparamxmldoc(new TiXmlDocument);
-          localparamxmldoc->LoadFile(paramFile.c_str()); TiXml_PostLoadFile(localparamxmldoc.get());
-          TiXmlElement *localparamxmlroot=localparamxmldoc->FirstChildElement();
-          map<string,string> dummy,dummy2;
-          incorporateNamespace(localparamxmlroot,dummy,dummy2,&dependencies);
+          // validate and local parameter file
+          cout<<"Read and validate local parameter file "<<paramFile<<endl;
+          shared_ptr<DOMDocument> localparamxmldoc=parser->parse(paramFile);
           // generate local parameters
-          octEval.addParamSet(localparamxmlroot);
+          octEval.addParamSet(localparamxmldoc->getDocumentElement());
         }
       }
   
@@ -172,74 +114,105 @@ void embed(TiXmlElement *&e, const bfs::path &nslocation, map<string,string> &ns
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
-        if(e->Attribute("onlyif"))
-          onlyif=(OctEval::cast<long>(octEval.eval(e, "onlyif"))==1);
+        if(E(e)->hasAttribute("onlyif"))
+          onlyif=(OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("onlyif"), e))==1);
         if(onlyif) {
           cout<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
-          if(i==1)
-            e=(TiXmlElement*)(e->Parent()->ReplaceChild(e, *enew));
+          DOMNode *p=e->getParentNode();
+          if(i==1) {
+            DOMElement *ereplaced=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
+            p->removeChild(e);
+            e=ereplaced;
+          }
           else
-            e=(TiXmlElement*)(e->Parent()->InsertAfterChild(e, *enew));
+            e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
   
           // include a processing instruction with the count number
-          TiXmlUnknown countNr;
-          countNr.SetValue("?EmbedCountNr "+TiXml_itoa(i)+"?");
-          e->InsertAfterChild(e->FirstChild(), countNr);
+          E(e)->setEmbedCountNumber(i);
       
           // apply embed to new element
-          embed(e, nslocation, nsprefix, dependencies, octEval);
+          preprocess(parser, octEval, dependencies, e);
         }
         else
           cout<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       return;
     }
-    else if(e->ValueStr()==MBXMLUTILSCASADINS"SXFunction")
+    else if(E(e)->getTagName()==CasADi::CASADI%"SXFunction")
       return; // skip processing of SXFunction elements
     else {
-      // evaluate child element or child text
-      octave_value value=octEval.eval(e);
-      if(!value.is_empty()) {
-        if(e->FirstChildElement())
-          e->RemoveChild(e->FirstChildElement());
-        else if(e->FirstChildText())
-          e->RemoveChild(e->FirstChildText());
-        auto_ptr<TiXmlNode> node;
-        if(OctEval::getType(value)==OctEval::SXFunctionType)
-          node=OctEval::cast<auto_ptr<TiXmlElement> >(value);
-        else
-          node.reset(new TiXmlText(OctEval::cast<string>(value)));
-        e->LinkEndChild(node.release());
-      }
+      bool isCasADi=false;
 
       // evaluate attributes
-      for(TiXmlAttribute *a=e->FirstAttribute(); a!=0; a=a->Next()) {
-        octave_value value=octEval.eval(e, a->Name());
+      DOMNamedNodeMap *attr=e->getAttributes();
+      for(int i=0; i<attr->getLength(); i++) {
+        DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+        // skip xml* attributes
+        if((X()%a->getName()).substr(0, 3)=="xml")
+          continue;
+        // check for casadi functions
+        if(A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
+          isCasADi=true;
+        // skip attributes which are not evaluated
+        if(!A(a)->isDerivedFrom(PV%"fullOctEval") && !A(a)->isDerivedFrom(PV%"partialOctEval"))
+          continue;
+        octave_value value=octEval.eval(a, e);
         string s=OctEval::cast<string>(value);
         if(OctEval::getType(value)==OctEval::StringType)
           s=s.substr(1, s.length()-2);
-        a->SetValue(s);
+        a->setValue(X()%s);
+      }
+
+      // evaluate element if it must be evaluated
+      if(E(e)->isDerivedFrom(PV%"scalar") ||
+         E(e)->isDerivedFrom(PV%"vector") ||
+         E(e)->isDerivedFrom(PV%"matrix") ||
+         E(e)->isDerivedFrom(PV%"fullOctEval") ||
+         isCasADi) {
+        octave_value value=octEval.eval(e);
+        if(!value.is_empty()) {
+          if(e->getFirstElementChild())
+            e->removeChild(e->getFirstElementChild())->release();
+          else if(E(e)->getFirstTextChild())
+            e->removeChild(E(e)->getFirstTextChild())->release();
+          DOMNode *node;
+          DOMDocument *doc=e->getOwnerDocument();
+          if(OctEval::getType(value)==OctEval::SXFunctionType)
+            node=OctEval::cast<DOMElement*>(value, doc);
+          else
+            node=doc->createTextNode(X()%OctEval::cast<string>(value));
+          e->appendChild(node);
+        }
       }
     }
   
     // walk tree
-    TiXmlElement *c=e->FirstChildElement();
+    DOMElement *c=e->getFirstElementChild();
     while(c) {
-      embed(c, nslocation, nsprefix, dependencies, octEval);
+      preprocess(parser, octEval, dependencies, c);
       if(c==NULL) break;
-      c=c->NextSiblingElement();
+      c=c->getNextElementSibling();
     }
   }
-  catch(const TiXmlException &ex) {
-    throw;
+  catch(const DOMEvalException &ex) {
+    throw ex;
   }
-  catch(const exception &ex) {
-    throw TiXmlException(ex.what(), e);
+  catch(const DOMEvalExceptionList &ex) {
+    throw ex;
+  }
+  catch(const std::exception &ex) {
+    throw DOMEvalException(ex.what(), e);
   }
 }
 
 int main(int argc, char *argv[]) {
+  InitXerces initXerces;
   try {
+
+    // use UTF8 globally (expecially in path)
+    std::locale::global(locale::generator().generate("UTF8"));
+    path::imbue(std::locale());
+
     // convert argv to list
     list<string> arg;
     for(int i=1; i<argc; i++)
@@ -271,17 +244,14 @@ int main(int argc, char *argv[]) {
     // a global oct evaluator just to prevent multiple init/deinit calles
     OctEval globalOctEval;
 
-    // check for environment variables (none default installation)
-    SCHEMADIR=bfs::path(getInstallPath())/"share"/"mbxmlutils"/"schema";
-
-    // preserve whitespace and newline in TiXmlText nodes
-    TiXmlBase::SetCondenseWhiteSpace(false);
+    // the XML DOM parser
+    shared_ptr<DOMParser> parser=DOMParser::create(true);
 
     list<string>::iterator i, i2;
 
     // dependency file
-    vector<bfs::path> dependencies;
-    bfs::path depFileName;
+    vector<path> dependencies;
+    path depFileName;
     if((i=std::find(arg.begin(), arg.end(), "--dependencies"))!=arg.end()) {
       i2=i; i2++;
       depFileName=(*i2);
@@ -293,81 +263,80 @@ int main(int argc, char *argv[]) {
       if((i=std::find(arg.begin(), arg.end(), "--mpath"))!=arg.end()) {
         i2=i; i2++;
         // the search path is global: use absolute path
-        bfs::path absmpath=bfs::absolute(*i2);
+        path absmpath=absolute(*i2);
         // add to octave search path
         OctEval::addPath(absmpath);
         // add m-files in mpath dir to dependencies
+        cout<<"Adding "<<absmpath<<" to list of octave search path."<<endl;
         addFilesInDir(dependencies, absmpath, ".m");
         arg.erase(i); arg.erase(i2);
       }
     }
     while(i!=arg.end());
 
+    SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+
+    // load global schema grammar
+    cout<<"Load XML grammar for parameters."<<endl;
+    parser->loadGrammar(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"parameter.xsd");
+
     // loop over all files
     while(arg.size()>0) {
       // initialize the parameter stack (clear ALL caches)
       OctEval octEval(&dependencies);
 
-      bfs::path paramxml(*arg.begin()); arg.erase(arg.begin());
-      bfs::path mainxml(*arg.begin()); arg.erase(arg.begin());
-      bfs::path nslocation(*arg.begin()); arg.erase(arg.begin());
+      path paramxml(*arg.begin()); arg.erase(arg.begin());
+      path mainxml(*arg.begin()); arg.erase(arg.begin());
+      path nslocation(*arg.begin()); arg.erase(arg.begin());
 
-      // validate parameter file
-      if(paramxml!="none")
-        validate(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"parameter.xsd", paramxml);
-
-      // read parameter file
-      boost::shared_ptr<TiXmlDocument> paramxmldoc;
+      // validate parameter file and get DOM
+      shared_ptr<xercesc::DOMDocument> paramxmldoc;
       if(paramxml!="none") {
-        cout<<"Read "<<paramxml<<endl;
-        paramxmldoc.reset(new TiXmlDocument);
-        paramxmldoc->LoadFile(paramxml.generic_string()); TiXml_PostLoadFile(paramxmldoc.get());
-        map<string,string> dummy,dummy2;
+        cout<<"Read and validate "<<paramxml<<endl;
+        paramxmldoc=parser->parse(paramxml);
         dependencies.push_back(paramxml);
-        incorporateNamespace(paramxmldoc->FirstChildElement(),dummy,dummy2,&dependencies);
       }
 
       // generate octave parameter string
       if(paramxmldoc.get()) {
         cout<<"Generate octave parameter set from "<<paramxml<<endl;
-        octEval.addParamSet(paramxmldoc->FirstChildElement());
+        octEval.addParamSet(paramxmldoc->getDocumentElement());
       }
 
-      // validate main file
-      validate(nslocation, mainxml);
+      // load grammar
+      cout<<"Load XML grammar for main file (cached if loaded multiple times)."<<endl;
+      parser->loadGrammar(nslocation);
 
-      // read main file
-      cout<<"Read "<<mainxml<<endl;
-      boost::shared_ptr<TiXmlDocument> mainxmldoc(new TiXmlDocument);
-      mainxmldoc->LoadFile(mainxml.generic_string()); TiXml_PostLoadFile(mainxmldoc.get());
-      map<string,string> nsprefix, dummy;
+      // validate main file and get DOM
+      cout<<"Read and validate "<<mainxml<<endl;
+      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml);
       dependencies.push_back(mainxml);
-      incorporateNamespace(mainxmldoc->FirstChildElement(),nsprefix,dummy,&dependencies);
 
       // embed/validate/toOctave/unit/eval files
-      TiXmlElement *mainxmlele=mainxmldoc->FirstChildElement();
-      embed(mainxmlele, nslocation,nsprefix,dependencies, octEval);
+      DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
+      preprocess(parser, octEval, dependencies, mainxmlele);
 
       // save result file
-      bfs::path mainxmlpp=".pp."+mainxml.filename().generic_string();
+      path mainxmlpp=".pp."+mainxml.filename().string();
       cout<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
-      TiXml_addLineNrAsProcessingInstruction(mainxmldoc->FirstChildElement());
-      unIncorporateNamespace(mainxmldoc->FirstChildElement(), nsprefix);
-      mainxmldoc->SaveFile(mainxmlpp.generic_string());
-
-      // validate preprocessed file
-      validate(nslocation, mainxmlpp);
+      DOMParser::serialize(mainxmldoc.get(), mainxmlpp);
+      cout<<"Validate preprocessed file"<<endl;
+      parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
     }
 
     // output dependencies?
     if(!depFileName.empty()) {
-      ofstream dependenciesFile(depFileName.generic_string().c_str());
-      for(vector<bfs::path>::iterator it=dependencies.begin(); it!=dependencies.end(); it++)
-        dependenciesFile<<it->generic_string()<<endl;
+      ofstream dependenciesFile(depFileName.string().c_str());
+      for(vector<path>::iterator it=dependencies.begin(); it!=dependencies.end(); it++)
+        dependenciesFile<<it->string()<<endl;
     }
   }
-  catch(const exception &ex) {
+  catch(const std::exception &ex) {
     cerr<<ex.what()<<endl;
+    return 1;
+  }
+  catch(const DOMException &ex) {
+    cerr<<"DOM exception: "<<X()%ex.getMessage()<<endl;
     return 1;
   }
   catch(...) {

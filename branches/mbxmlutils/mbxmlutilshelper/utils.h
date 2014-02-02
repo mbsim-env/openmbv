@@ -17,9 +17,32 @@
  * Contact: friedrich.at.gc@googlemail.com
  */
 
-#ifndef _MBXMLUTILSTINYXML_UTILS_H_
-#define _MBXMLUTILSTINYXML_UTILS_H_
+#ifndef _MBXMLUTILSHELPER_UTILS_H_
+#define _MBXMLUTILSHELPER_UTILS_H_
 
-#include "mbxmlutilshelper/utils.h"
+#include <string>
+#include <set>
+#include <vector>
+#include <xercesc/dom/DOMElement.hpp>
+
+namespace MBXMLUtils {
+
+class TiXmlElement;
+
+class Deprecated {
+  public:
+    /*! register a deprecated feature with name message.
+     * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */
+    static void registerMessage(const std::string &message, const xercesc::DOMElement *e=NULL);
+    static void registerMessage(const std::string &message, const TiXmlElement *e) { registerMessage(message); } // deprecated: remove
+  private:
+    static void printAllMessages();
+    static std::set<std::vector<std::string> > allMessages;
+    static bool atExitRegistred;
+};
+
+std::string demangleSymbolName(std::string name);
+
+}
 
 #endif

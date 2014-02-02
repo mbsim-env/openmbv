@@ -25,7 +25,7 @@
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
-      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
 
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
 
@@ -53,9 +53,9 @@
             </xs:choice>
           </xs:sequence>
           <xs:attribute name="href" type="filenamePartialOctEval" use="optional"/>
-          <xs:attribute name="count" use="optional" type="integerPartialOctEval" default="1"/>
+          <xs:attribute name="count" use="optional" type="integerFullOctEval" default="1"/>
           <xs:attribute name="counterName" use="optional" type="varnamePartialOctEval"/>
-          <xs:attribute name="onlyif" use="optional" type="booleanPartialOctEval" default="1"/>
+          <xs:attribute name="onlyif" use="optional" type="booleanFullOctEval" default="1"/>
         </xs:complexType>
       </xs:element>
 
@@ -124,12 +124,12 @@
 
       <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
       <xs:simpleType name="symbolicFunctionArgNameType">
-        <xs:restriction base="stringPartialOctEval"/>
+        <xs:restriction base="varnamePartialOctEval"/>
       </xs:simpleType>
 
       <!-- the attribute type for vector argument dimension -->
       <xs:simpleType name="symbolicFunctionArgDimType">
-        <xs:restriction base="integerPartialOctEval"/>
+        <xs:restriction base="integerFullOctEval"/>
       </xs:simpleType>
 
 
@@ -144,6 +144,7 @@
       <xs:simpleType name="string"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
+      <!--MFMF more fixed (attribute types to octFullEval, ...) are needed on openmbv after merge to trunk-->
 
 
 
@@ -288,7 +289,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="scalar">
-            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -302,7 +303,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="vector">
-            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -316,7 +317,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="matrix">
-            <xs:attribute name="convertUnit" type="stringPartialOctEval"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -358,7 +359,6 @@
                 </xs:complexType>
               </xs:element>
             </xs:choice>
-            <xs:attributeGroup ref="nounitMeasure"/> <!-- DEPRECATED -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -372,11 +372,12 @@
             provided by the runtime. The representation of the symbolic function must either be given by
             the MBXMLUtils notation for CasADi::SXFunction or by an octave expression (using the SWIG
             octave interface of CasADi). Using a octave expression you have full access to other scalar,
-            vector or matrix parameters. For each input parameter an attribute named 'arg&lt;n&gt;name',
-            where n equals the number of the input or is empty if only one input exists, must be
-            defined which set the name of this input parameter for the access in the octave expression.
-            For each vector input paramter moreover an attribure named 'arg&lt;n&gt;dim' must be defined
+            vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
+            must be defined which set the name of this input parameter for the access in the octave expression.
+            For each vector input paramter moreover an attribure named 'xyzDim' must be defined
             which defines the vector dimension of this input.
+            (The XML schema must also define a fixed (hidden) attribute named 'xyzNr' which is set the integer
+            number corresponding to the argument number of the function)
           </xs:documentation>
         </xs:annotation>
         <xs:choice>

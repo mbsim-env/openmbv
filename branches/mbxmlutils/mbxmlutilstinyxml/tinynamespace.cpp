@@ -40,7 +40,7 @@ string TiXml_itoa(int i) {
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
   TiXmlUnknown line;
-  line.SetValue("?LineNr "+TiXml_itoa(e->Row())+"?");
+  line.SetValue("?LineNr "+TiXml_itoa(e->Row()+1)+"?");
   if(e->FirstChild())
     e->InsertBeforeChild(e->FirstChild(), line);
   else
@@ -60,7 +60,7 @@ void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
     if(u) {
       string line=u->ValueStr().substr(8);
       line=line.substr(0,line.length()-1);
-      e->SetRow(atoi(line.c_str()));
+      e->SetRow(atoi(line.c_str())-1);
       e->RemoveChild(u);
     }
   }

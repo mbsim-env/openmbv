@@ -53,6 +53,14 @@ AC_ARG_WITH([boost-system-lib],
   [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
+AC_ARG_WITH([boost-locale-lib],
+  [  --with-boost-locale-lib=LIBNAME  The library name of boost locale excluding prefix/suffix (Default: boost_locale).],
+  [BOOST_LOCALE_LIB="$withval"], [BOOST_LOCALE_LIB="boost_locale"])
+AC_SUBST([BOOST_LOCALE_LIB])
+AC_ARG_WITH([boost-regex-lib],
+  [  --with-boost-regex-lib=LIBNAME  The library name of boost regex excluding prefix/suffix (Default: boost_regex).],
+  [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])
+AC_SUBST([BOOST_REGEX_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
@@ -244,8 +252,11 @@ AC_ARG_WITH([doxygenpath],
   [doxygenpath="$withval"],[doxygenpath=""])
 AC_PATH_PROG([doxygen],[doxygen],[no],[${doxygenpath:-$PATH}])
 if test $doxygen = "no" ; then
-  AC_MSG_RESULT([can't generate API documentation. 'doxygen' is required.])
+  AC_MSG_RESULT([can not generate API documentation. 'doxygen' is required.])
 fi
+
+dnl Check for xerces-c
+PKG_CHECK_MODULES(XERCESC, xerces-c,[],[AC_MSG_ERROR([ERROR xerces-c not found])])
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno-delete-non-virtual-dtor"
 
@@ -256,7 +267,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile doc/Makefile doc/Doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

@@ -1,5 +1,5 @@
-#ifndef _MBXMLUTILS_CASADIXML_H_
-#define _MBXMLUTILS_CASADIXML_H_
+#ifndef _MBXMLUTILS_CASADIXMLT_H_
+#define _MBXMLUTILS_CASADIXMLT_H_
 
 #include "mbxmlutilstinyxml/tinyxml.h"
 #include <casadi/symbolic/sx/sx.hpp>
@@ -12,7 +12,7 @@
 
 namespace CasADi {
 
-inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::map<CasADi::SXNode*, int> &nodes) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXMLT(const CasADi::SX &s, std::map<CasADi::SXNode*, int> &nodes) {
   // add the node of s to the list of all nodes (creates a integer id for newly added nodes)
   std::string idStr;
   std::pair<std::map<CasADi::SXNode*, int>::iterator, bool> ret=nodes.insert(std::make_pair(s.get(), nodes.size()));
@@ -65,26 +65,26 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SX &s, std::ma
   else if(s.hasDep() && s.getNdeps()==2) {
     e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"BinarySX"));
     e->SetAttribute("op", s.getOp());
-    e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
-    e->LinkEndChild(convertCasADiToXML(s.getDep(1), nodes));
+    e->LinkEndChild(convertCasADiToXMLT(s.getDep(0), nodes));
+    e->LinkEndChild(convertCasADiToXMLT(s.getDep(1), nodes));
   }
   else if(s.hasDep() && s.getNdeps()==1) {
     e.reset(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"UnarySX"));
     e->SetAttribute("op", s.getOp());
-    e->LinkEndChild(convertCasADiToXML(s.getDep(0), nodes));
+    e->LinkEndChild(convertCasADiToXMLT(s.getDep(0), nodes));
   }
   else
-    throw std::runtime_error("Unknown CasADi::SX type in convertCasADiToXML");
+    throw std::runtime_error("Unknown CasADi::SX type in convertCasADiToXMLT");
 
   // write also the id of a newly node to XML
   e->SetAttribute("id", idStr);
   return e.release();
 }
 
-inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, std::map<CasADi::SXNode*, int> &nodes) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXMLT(const CasADi::SXMatrix &m, std::map<CasADi::SXNode*, int> &nodes) {
   // if it is a scalar print it as a scalar
   if(m.size1()==1 && m.size2()==1)
-    return convertCasADiToXML(m.elem(0, 0), nodes);
+    return convertCasADiToXMLT(m.elem(0, 0), nodes);
   // write each matrixRow of m to XML enclosed by a <matrixRow> element and each element in such rows 
   // to this element
   std::auto_ptr<MBXMLUtils::TiXmlElement> e(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXMatrix"));
@@ -99,12 +99,12 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXMatrix &m, s
       e->LinkEndChild(matrixRow);
     }
     for(int c=0; c<m.size2(); c++)
-      matrixRow->LinkEndChild(convertCasADiToXML(m.elem(r, c), nodes));
+      matrixRow->LinkEndChild(convertCasADiToXMLT(m.elem(r, c), nodes));
   }
   return e.release();
 }
 
-inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f) {
+inline MBXMLUtils::TiXmlElement* convertCasADiToXMLT(const CasADi::SXFunction &f) {
   // write each input of f to XML enclosed by a <inputs> element
   std::map<CasADi::SXNode*, int> nodes;
   std::auto_ptr<MBXMLUtils::TiXmlElement> e(new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"SXFunction"));
@@ -112,13 +112,13 @@ inline MBXMLUtils::TiXmlElement* convertCasADiToXML(const CasADi::SXFunction &f)
   MBXMLUtils::TiXmlElement *input=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"inputs");
   e->LinkEndChild(input);
   for(size_t i=0; i<in.size(); i++)
-    input->LinkEndChild(convertCasADiToXML(in[i], nodes));
+    input->LinkEndChild(convertCasADiToXMLT(in[i], nodes));
   // write each output of f to XML enclosed by a <outputs> element
   const std::vector<CasADi::SXMatrix> &out=f.outputExpr();
   MBXMLUtils::TiXmlElement *output=new MBXMLUtils::TiXmlElement(MBXMLUTILSCASADINS"outputs");
   e->LinkEndChild(output);
   for(size_t i=0; i<out.size(); i++)
-    output->LinkEndChild(convertCasADiToXML(out[i], nodes));
+    output->LinkEndChild(convertCasADiToXMLT(out[i], nodes));
 
   return e.release();
 }

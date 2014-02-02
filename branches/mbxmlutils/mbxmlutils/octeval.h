@@ -9,16 +9,61 @@
 #  include <map>
 #  define unordered_map map
 #endif
+
+// Include octave/oct.h which includes octave/octave.h which includes octave/.../config.h.
+// This is not allowed since config.h should only be included in .cc files.
+// To avoid macro redefined warnings/errors we save some macros undefine it before including octave/oct.h
+// and undefine and reset it after the include.
+// save macros
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE           PACKAGE
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_BUGREPORT PACKAGE_BUGREPORT
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_NAME      PACKAGE_NAME
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_STRING    PACKAGE_STRING
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_TARNAME   PACKAGE_TARNAME
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_URL       PACKAGE_URL
+#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_VERSION   PACKAGE_VERSION
+#define MBXMLUTILS_OCTEVAL_H_SAVED_VERSION           VERSION
+// undef macros
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_URL
+#undef PACKAGE_VERSION
+#undef VERSION
+// include
 #include <octave/oct.h>
-#include "mbxmlutilstinyxml/casadiXML.h"
+// undef macros
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_URL
+#undef PACKAGE_VERSION
+#undef VERSION
+// reset macros
+#define PACKAGE           MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE
+#define PACKAGE_BUGREPORT MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_BUGREPORT
+#define PACKAGE_NAME      MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_NAME
+#define PACKAGE_STRING    MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_STRING
+#define PACKAGE_TARNAME   MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_TARNAME
+#define PACKAGE_URL       MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_URL
+#define PACKAGE_VERSION   MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_VERSION
+#define VERSION           MBXMLUTILS_OCTEVAL_H_SAVED_VERSION
+
+#include "mbxmlutilshelper/casadiXML.h"
+#include "mbxmlutilshelper/dom.h"
 #include <octave/parse.h>
 #include <boost/filesystem.hpp>
+#include <boost/static_assert.hpp> 
+#include <xercesc/util/XercesDefs.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
 
-#define MBXMLUTILSPVNS "{http://openmbv.berlios.de/MBXMLUtils/physicalvariable}"
+namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
-
-class TiXmlElement;
 
 // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
 template<int T>
@@ -84,16 +129,19 @@ class OctEval {
     //! Add a octave value to the current parameters.
     void addParam(const std::string &paramName, const octave_value& value);
     //! Add all parameters from XML element e. The parameters may depend on each other.
-    void addParamSet(const TiXmlElement *e);
+    void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to octave search path
     static void addPath(const boost::filesystem::path &dir);
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
-    //! Handle the attribute value named attrName, or if not given handle the XML text node child of e.
-    //! If attrName if given evaluate it "partially".
+    //! The type of evaluation depends on the type of e.
+    octave_value eval(const xercesc::DOMElement *e);
+
+    //! Evaluate the XML attribute a using the current parameters returning the resulting octave value.
+    //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a octave string even so it is not really a string.
-    octave_value eval(const TiXmlElement *e, const std::string &attrName=std::string());
+    octave_value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     /*! Cast the octave value value to type <tt>T</tt>.
      * Possible combinations of allowed octave value types and template types <tt>T</tt> are listed in the
@@ -101,6 +149,8 @@ class OctEval {
      * as not type save in the table.
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the octave object
      * \p value being passed as argument.
+     * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
+     * return types this function must be called with only one argument cast(const octave_value &value);
      * <table>
      *   <tr>
      *     <th></th>
@@ -162,7 +212,7 @@ class OctEval {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>auto_ptr&lt;TiXmlElement&gt;</tt></th>
+     *     <!--CAST TO-->    <th><tt>DOMElement*</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
@@ -245,15 +295,28 @@ class OctEval {
      * </table>
      */
     template<typename T>
+    static T cast(const octave_value &value, xercesc::DOMDocument *doc);
+
+    //! see cast(const octave_value &value, shared_ptr<DOMDocument> &doc)
+    template<typename T>
     static T cast(const octave_value &value);
 
     //! get the type of value
     static ValueType getType(const octave_value &value);
 
     //! evaluate str and return result as an octave variable, this can be used to evaluate outside of XML.
-    octave_value stringToOctValue(const std::string &str, const TiXmlElement *e=NULL) const;
+    //! If e is given it is used as location information in case of errors.
+    //! If fullEval is false the "partially" evaluation is returned as a octave string even so it is not really a string.
+    octave_value stringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
 
   protected:
+
+    //! evaluate str fully and return result as an octave variable
+    octave_value fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
+
+    //! evaluate str partially and return result as an std::string
+    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e) const;
+
     //! Push the current parameters to a internal stack.
     void pushParams();
 
@@ -279,12 +342,14 @@ class OctEval {
 
     static std::map<std::string, std::string> units;
 
+    static InitXerces initXerces;
+
     static octave_value casadiOctValue;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
-                                        const std::string &msg=std::string(), const TiXmlElement *e=NULL);
+                                        const std::string &msg=std::string(), const xercesc::DOMElement *e=NULL);
 
-    static octave_value handleUnit(const TiXmlElement *e, const octave_value &ret);
+    static octave_value handleUnit(const xercesc::DOMElement *e, const octave_value &ret);
 };
 
 // Helper class which convert a void* to T* or T.
@@ -316,21 +381,36 @@ T OctEval::castToSwig(const octave_value &value) {
 
 template<typename T>
 T OctEval::cast(const octave_value &value) {
+  // do not allow T == DOMElement* here ...
+  BOOST_STATIC_ASSERT_MSG((boost::is_same<T, xercesc::DOMElement*>::type), 
+    "Calling OctEval::cast<DOMElement*>(const octave_value&) is not allowed "
+    "use OctEval::cast<DOMElement*>(const octave_value&, DOMDocument*)"
+  );
+  // ... but treat all other type as octave swig types ...
   return castToSwig<T>(value);
 }
-
+// ... but prevere these specializations
 template<> std::string OctEval::cast<std::string>(const octave_value &value);
 template<> long OctEval::cast<long>(const octave_value &value);
 template<> double OctEval::cast<double>(const octave_value &value);
 template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
 template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
-template<> std::auto_ptr<MBXMLUtils::TiXmlElement> OctEval::cast<std::auto_ptr<MBXMLUtils::TiXmlElement> >(const octave_value &value);
 template<> CasADi::SXMatrix OctEval::cast<CasADi::SXMatrix>(const octave_value &value);
 template<> CasADi::SXMatrix* OctEval::cast<CasADi::SXMatrix*>(const octave_value &value);
 template<> CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value);
 template<> CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value);
 template<> CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value);
 template<> CasADi::DMatrix* OctEval::cast<CasADi::DMatrix*>(const octave_value &value);
+
+template<typename T>
+T OctEval::cast(const octave_value &value, xercesc::DOMDocument *doc) {
+  // only allow T == DOMElement* here ...
+  BOOST_STATIC_ASSERT_MSG(!(boost::is_same<T, xercesc::DOMElement*>::type), 
+    "Calling OctEval::cast<T>(const octave_value&, DOMDocument*) is only allowed for T=DOMElement*"
+  );
+}
+// ... but use these spezializations
+template<> xercesc::DOMElement* OctEval::cast<xercesc::DOMElement*>(const octave_value &value, xercesc::DOMDocument *doc);
 
 } // end namespace MBXMLUtils
 
