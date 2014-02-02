@@ -2,8 +2,10 @@ SUBDIRS = octave check
 
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils
+w3cschemadir = @datadir@/@PACKAGE@/schema/http___www_w3_org
 xmldir = @datadir@/@PACKAGE@/xml
-dist_schema_DATA = physicalvariable.xsd parameter.xsd xml.xsd xhtml1-transitional.xsd
+dist_schema_DATA = physicalvariable.xsd parameter.xsd
+dist_w3cschema_DATA = xml.xsd xhtml1-transitional.xsd
 dist_xml_DATA = measurement.xml
 
 

@@ -25,7 +25,7 @@
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
-      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
 
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
 
