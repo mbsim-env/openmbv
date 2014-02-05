@@ -83,6 +83,7 @@ if test $usecasadi == yes;  then
     AC_MSG_CHECKING([for casadi c++ library])
     LDFLAGS="$LDFLAGS $CASADILDFLAGS"
     CASADI_LIBS="-lcasadi"
+    CASADI_CPPFLAGS="$CASADICPPFLAGS"
     test "_$host_os" != "_mingw32" && CASADI_LIBS="$CASADI_LIBS -ldl"
     LIBS="$LIBS $CASADI_LIBS"
     AC_SUBST([CASADI_LIBS])
@@ -111,6 +112,8 @@ Alternatively you can disable the CasADi support using --disable-casadi
     fi
   fi
 fi
+
+AC_SUBST([CASADI_CPPFLAGS])
 
 dnl check if only mbxmlutilstinyxml should be installed (necessary for openmbvcppinterface and mbsim)
 AC_ARG_ENABLE([only_mbxmlutilstinyxml],

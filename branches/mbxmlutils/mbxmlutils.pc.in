@@ -14,4 +14,5 @@ Description: XML utilities for physical applications (multi body applications)
 Requires: mbxmlutilstinyxml xerces-c
 Version: @VERSION@
 Libs: -L${libdir} -lmbxmlutils @MKOCTFILE_LIBS@ @CASADI_LIBS@
-Cflags: -I${includedir} @MKOCTFILE_CFLAGS@
+Cflags: -I${includedir} @MKOCTFILE_CFLAGS@ @CASADI_CPPFLAGS@
+
