@@ -21,13 +21,12 @@
       attributeFormDefault="unqualified"
       xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
       xmlns:xml="http://www.w3.org/XML/1998/namespace"
-      xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
       <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
 
-      <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
+      <xs:include schemaLocation="parameter.xsd"/>
 
       <!-- element for embeding -->
       <xs:element name="embed">
@@ -36,7 +35,7 @@
             <xs:element name="localParameter" minOccurs="0">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element ref="p:parameter" minOccurs="0"/>
+                  <xs:element ref="parameter" minOccurs="0"/>
                 </xs:sequence>
                 <xs:attribute name="href" use="optional" type="filenamePartialOctEval"/>
               </xs:complexType>

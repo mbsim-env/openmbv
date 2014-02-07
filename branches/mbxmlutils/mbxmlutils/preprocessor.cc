@@ -85,10 +85,10 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
   
       // generate local paramter for embed
       if(e->getFirstElementChild() && E(e->getFirstElementChild())->getTagName()==PV%"localParameter") {
-        // check if only href OR p:parameter child element (This is not checked by the schema)
+        // check if only href OR pv:parameter child element (This is not checked by the schema)
         if((E(e->getFirstElementChild())->hasAttribute("href") && e->getFirstElementChild()->getFirstElementChild()) ||
            (!E(e->getFirstElementChild())->hasAttribute("href") && !e->getFirstElementChild()->getFirstElementChild()))
-          throw DOMEvalException("Only the href attribute OR the child element p:parameter) is allowed.", e);
+          throw DOMEvalException("Only the href attribute OR the child element pv:parameter) is allowed.", e);
         cout<<"Generate local octave parameter string for "<<(file.empty()?"<inline element>":file)<<endl;
         if(e->getFirstElementChild()->getFirstElementChild()) // inline parameter
           octEval.addParamSet(e->getFirstElementChild()->getFirstElementChild());
@@ -278,7 +278,7 @@ int main(int argc, char *argv[]) {
 
     // load global schema grammar
     cout<<"Load XML grammar for parameters."<<endl;
-    parser->loadGrammar(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"parameter.xsd");
+    parser->loadGrammar(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"physicalvariable.xsd");
 
     // loop over all files
     while(arg.size()>0) {
