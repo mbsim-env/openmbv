@@ -1,0 +1,27 @@
+<xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="Embed">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Parameter" minOccurs="0"/>
+        <xs:choice minOccurs="0">
+          <!--
+             - This choice enables nested embed-Tags. (Need to be tested)
+             -->
+          <xs:any namespace="##other" processContents="strict"/>
+          <xs:element ref="Embed"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="href" type="filenamePartialOctEval" use="optional"/>
+      <xs:attribute name="parameterHref" type="filenamePartialOctEval" use="optional"/>
+      <xs:attribute name="count" use="optional" type="integerFullOctEval" default="1"/>
+      <xs:attribute name="counterName" use="optional" type="varnamePartialOctEval"/>
+      <xs:attribute name="onlyif" use="optional" type="booleanFullOctEval" default="1"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

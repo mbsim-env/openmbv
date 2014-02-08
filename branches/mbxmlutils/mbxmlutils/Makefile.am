@@ -3,7 +3,7 @@ SUBDIRS = octave check
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils
 xmldir = @datadir@/@PACKAGE@/xml
-dist_schema_DATA = physicalvariable.xsd parameter.xsd
+dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd
 dist_xml_DATA = measurement.xml
 
 
@@ -25,6 +25,7 @@ physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurem
 	(cd check/http___openmbv_berlios_de_MBXMLUtils; \
 	ln -fs ../../physicalvariable.xsd .; \
 	ln -fs ../../../mbxmlutilshelper/xml.xsd .; \
+	ln -fs ../../embed.xsd .; \
 	ln -fs ../../parameter.xsd .)
 
 

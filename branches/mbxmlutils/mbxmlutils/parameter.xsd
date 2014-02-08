@@ -5,7 +5,7 @@
   xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:element name="parameter">
+  <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="stringParameter">

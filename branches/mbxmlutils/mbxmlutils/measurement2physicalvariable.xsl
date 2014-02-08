@@ -27,36 +27,7 @@
       <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
 
       <xs:include schemaLocation="parameter.xsd"/>
-
-      <!-- element for embeding -->
-      <xs:element name="embed">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element name="localParameter" minOccurs="0">
-              <xs:complexType>
-                <xs:sequence>
-                  <xs:element ref="parameter" minOccurs="0"/>
-                </xs:sequence>
-                <xs:attribute name="href" use="optional" type="filenamePartialOctEval"/>
-              </xs:complexType>
-            </xs:element>
-            <!--
-            -<xs:any namespace="##other" processContents="strict" minOccurs="0"/>
-            -->
-            <xs:choice minOccurs="0">
-              <!--
-                 - This choice enables nested embed-Tags. (Need to be tested)
-                 -->
-              <xs:any namespace="##other" processContents="strict"/>
-              <xs:element ref="embed"/>
-            </xs:choice>
-          </xs:sequence>
-          <xs:attribute name="href" type="filenamePartialOctEval" use="optional"/>
-          <xs:attribute name="count" use="optional" type="integerFullOctEval" default="1"/>
-          <xs:attribute name="counterName" use="optional" type="varnamePartialOctEval"/>
-          <xs:attribute name="onlyif" use="optional" type="booleanFullOctEval" default="1"/>
-        </xs:complexType>
-      </xs:element>
+      <xs:include schemaLocation="embed.xsd"/>
 
       <!-- base type for a XML text element which is fully converted by octave.-->
       <xs:simpleType name="fullOctEval">

@@ -27,14 +27,15 @@ void addFilesInDir(vector<path> &dependencies, const path &dir, const path &ext)
 
 void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
   try {
-    if(E(e)->getTagName()==PV%"embed") {
+    if(E(e)->getTagName()==PV%"Embed") {
       NewParamLevel newParamLevel(octEval);
-      // check if only href OR child element (This is not checked by the schema)
-      DOMElement *l=0, *dummy;
-      for(dummy=e->getFirstElementChild(); dummy!=0; l=dummy, dummy=dummy->getNextElementSibling());
-      if(( E(e)->hasAttribute("href") && l && E(l)->getTagName()!=PV%"localParameter") ||
-         (!E(e)->hasAttribute("href") && (l==0 || E(l)->getTagName()==PV%"localParameter")))
-        throw DOMEvalException("Only the href attribute OR a child element (expect pv:localParameter) is allowed in embed!", e);
+      // check if only href OR child element (other than pv:Parameter) exists (This is not checked by the schema)
+      DOMElement *inlineEmbedEle=e->getFirstElementChild();
+      if(inlineEmbedEle && E(inlineEmbedEle)->getTagName()==PV%"Parameter")
+        inlineEmbedEle=inlineEmbedEle->getNextElementSibling();
+      if((inlineEmbedEle && E(e)->hasAttribute("href")) ||
+         (!inlineEmbedEle && !E(e)->hasAttribute("href")))
+        throw DOMEvalException("Only the href attribute OR a child element (expect pv:Parameter) is allowed in Embed!", e);
       // check if attribute count AND counterName or none of both
       if((!E(e)->hasAttribute("count") &&  E(e)->hasAttribute("counterName")) ||
          ( E(e)->hasAttribute("count") && !E(e)->hasAttribute("counterName")))
@@ -71,29 +72,27 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
           bind(&DOMElement::release, _1));
       }
-      else { // or take the child element (as a clone, because the embed element is deleted)
-        if(E(e->getFirstElementChild())->getTagName()==PV%"localParameter")
-          enew.reset(static_cast<DOMElement*>(e->removeChild(e->getFirstElementChild()->getNextElementSibling())),
-            bind(&DOMElement::release, _1));
-        else
-          enew.reset(static_cast<DOMElement*>(e->removeChild(e->getFirstElementChild())),
-            bind(&DOMElement::release, _1));
+      else { // or take the child element (inlineEmbedEle)
+        enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
+          bind(&DOMElement::release, _1));
       }
   
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
   
       // generate local paramter for embed
-      if(e->getFirstElementChild() && E(e->getFirstElementChild())->getTagName()==PV%"localParameter") {
-        // check if only href OR pv:parameter child element (This is not checked by the schema)
-        if((E(e->getFirstElementChild())->hasAttribute("href") && e->getFirstElementChild()->getFirstElementChild()) ||
-           (!E(e->getFirstElementChild())->hasAttribute("href") && !e->getFirstElementChild()->getFirstElementChild()))
-          throw DOMEvalException("Only the href attribute OR the child element pv:parameter) is allowed.", e);
-        cout<<"Generate local octave parameter string for "<<(file.empty()?"<inline element>":file)<<endl;
-        if(e->getFirstElementChild()->getFirstElementChild()) // inline parameter
-          octEval.addParamSet(e->getFirstElementChild()->getFirstElementChild());
-        else { // parameter from href attribute
-          octave_value ret=octEval.eval(E(e->getFirstElementChild())->getAttributeNode("href"), e->getFirstElementChild());
+      // check that not both the parameterHref attribute and the child element pv:Parameter exists (This is not checked by the schema)
+      DOMElement *inlineParamEle=e->getFirstElementChild();
+      if(inlineParamEle && E(inlineParamEle)->getTagName()!=PV%"Parameter")
+        inlineParamEle=NULL;
+      if(inlineParamEle && E(e)->hasAttribute("parameterHref"))
+        throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
+      if(inlineParamEle || E(e)->hasAttribute("parameterHref")) {
+        cout<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)<<endl;
+        if(inlineParamEle) // inline parameter
+          octEval.addParamSet(inlineParamEle);
+        else { // parameter from parameterHref attribute
+          octave_value ret=octEval.eval(E(e)->getAttributeNode("parameterHref"), e);
           string subst=OctEval::cast<string>(ret);
           if(OctEval::getType(ret)==OctEval::StringType)
             subst=subst.substr(1, subst.length()-2);
