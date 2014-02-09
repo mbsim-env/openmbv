@@ -132,7 +132,7 @@ class OctEval {
     void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to octave search path
-    static void addPath(const boost::filesystem::path &dir);
+    void addPath(const boost::filesystem::path &dir);
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
     //! The type of evaluation depends on the type of e.
@@ -323,6 +323,12 @@ class OctEval {
     //! Overwrite the current parameter with the top level set from the internal stack.
     void popParams();
 
+    //! Push the current path to a internal stack.
+    void pushPath();
+
+    //! Overwrite the current path with the top level path from the internal stack.
+    void popPath();
+
     //! cast value to the corresponding swig object of type T, without ANY type check.
     template<typename T>
     static T castToSwig(const octave_value &value);
@@ -334,9 +340,19 @@ class OctEval {
 
     // map of the current parameters
     std::unordered_map<std::string, octave_value> currentParam;
+    // current octave path
+    std::string currentPath;
+    // the initial octave search path (of octave) (set ones during the first initialization)
+    static std::string initialOctavePath;
+    // the initial octave search path (of OctEval) (set ones during the first initialization)
+    static std::string initialOctEvalPath;
+
+    static std::string pathSep;
 
     // stack of parameters
     std::stack<std::unordered_map<std::string, octave_value> > paramStack;
+    // stack of path
+    std::stack<std::string> pathStack;
 
     static int initCount;
 
@@ -349,7 +365,7 @@ class OctEval {
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string(), const xercesc::DOMElement *e=NULL);
 
-    static octave_value handleUnit(const xercesc::DOMElement *e, const octave_value &ret);
+    octave_value handleUnit(const xercesc::DOMElement *e, const octave_value &ret);
 };
 
 // Helper class which convert a void* to T* or T.

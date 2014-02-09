@@ -8,6 +8,11 @@
   <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="searchPath">
+          <xs:complexType>
+            <xs:attribute name="href" type="filenamePartialOctEval"/>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>

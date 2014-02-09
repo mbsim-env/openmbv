@@ -43,13 +43,17 @@ class PreserveCurrentDir {
 };
 
 NewParamLevel::NewParamLevel(OctEval &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
-  if(newLevel)
+  if(newLevel) {
     oe.pushParams();
+    oe.pushPath();
+  }
 }
 
 NewParamLevel::~NewParamLevel() {
-  if(newLevel)
+  if(newLevel) {
     oe.popParams();
+    oe.popPath();
+  }
 }
 
 template<>
@@ -238,6 +242,9 @@ octave_value OctEval::createCasADi(const string &name) {
 }
 
 int OctEval::initCount=0;
+string OctEval::pathSep;
+string OctEval::initialOctavePath;
+string OctEval::initialOctEvalPath;
 
 std::map<std::string, std::string> OctEval::units;
 
@@ -265,11 +272,32 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
     warnArg.append("Octave:divide-by-zero");
     feval("warning", warnArg);
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
+
+    if(pathSep.empty()) {
+      octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
+        "Internal error: Unable to get the path seperator")(0);
+      pathSep=ret.string_value();
+    }
+
+    // first restore default path
+    feval("restoredefaultpath", octave_value_list());
+    // save initial octave path
+    initialOctavePath=feval("path", octave_value_list(), 1)(0).string_value();
+    if(initialOctavePath.substr(0, 2)=="."+pathSep)
+      initialOctavePath=initialOctavePath.substr(2);
   
-    feval("addpath", octave_value_list(octave_value((MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(*utf8Facet))));
+    // set .../share/mbxmlutils/octave to initial current search path ...
+    string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(*utf8Facet);
+    initialOctEvalPath=dir;
+    // ... and make it available now (for swigLocalLoad below)
+    feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
-    feval("addpath", octave_value_list(octave_value((MBXMLUtils::getInstallPath()/"bin").string(*utf8Facet))));
+    // add .../bin to initial current search path ...
+    dir=(MBXMLUtils::getInstallPath()/"bin").string(*utf8Facet);
+    initialOctEvalPath=dir+pathSep+initialOctEvalPath;
+    // ... and make it available now (for swigLocalLoad below)
+    feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw string("Internal error: cannot add casadi octave search path."); }
 
     {
@@ -319,16 +347,23 @@ void OctEval::addParamSet(const DOMElement *e) {
       octave_value ret;
       try { 
         BLOCK_STDERR(blockstderr);
-        ret=eval(*ee);
+        if(E(*ee)->getTagName()==PV%"searchPath")
+          ret=eval(E(*ee)->getAttributeNode("href"), *ee);
+        else
+          ret=eval(*ee);
       }
       catch(const std::exception &ex) {
         err=1;
       }
       if(err==0) { // if no error
-        addParam(E(*ee)->getAttribute("name"), ret); // add param to list
-        list<const DOMElement*>::iterator eee=ee; eee++;
-        c.erase(ee);
-        ee=eee;
+        if(E(*ee)->getTagName()==PV%"searchPath") {
+          bfs::path dir=ret.string_value();
+          dir=bfs::absolute(dir, E(*ee)->getOriginalFilename().parent_path());
+          addPath(dir);
+        }
+        else
+          addParam(E(*ee)->getAttribute("name"), ret); // add param to list
+        ee=c.erase(ee);
       }
       else
         ee++;
@@ -362,9 +397,24 @@ void OctEval::popParams() {
   paramStack.pop();
 }
 
+void OctEval::pushPath() {
+  pathStack.push(currentPath);
+}
+
+void OctEval::popPath() {
+  currentPath=pathStack.top();
+  pathStack.pop();
+}
+
 void OctEval::addPath(const bfs::path &dir) {
-  static octave_function *addpath=symbol_table::find_function("addpath").function_value();  // get ones a pointer performance reasons
-  fevalThrow(addpath, octave_value_list(octave_value(dir.generic_string())));
+  if(!dir.is_absolute())
+    DOMEvalException("Can only add absolute path: "+dir.string(*utf8Facet));
+  currentPath=dir.string(*utf8Facet)+(currentPath.empty()?"":pathSep+currentPath);
+
+  // add m-files in dir to dependencies
+  for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
+    if(it->path().extension()==".m")
+      dependencies->push_back(it->path());
 }
 
 octave_value OctEval::stringToOctValue(const string &str, const DOMElement *e, bool fullEval) const {
@@ -383,11 +433,27 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
       bfs::current_path(chdir);
   }
 
-  // clear octave
+  // clear octave variables
   symbol_table::clear_variables();
   // restore current parameters
   for(map<string, octave_value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     symbol_table::varref(i->first)=i->second;
+
+  // restore search path only if required (for performance reasons; addpath is very time consuming)
+  static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
+  string curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+  if(curPath.substr(0, 2)=="."+pathSep)
+    curPath=curPath.substr(2);
+  if(curPath!=(currentPath.empty()?"":currentPath+pathSep)+initialOctEvalPath+pathSep+initialOctavePath)
+  {
+    // clear octave path
+    static octave_function *restoredefaultpath=symbol_table::find_function("restoredefaultpath").function_value();  // get ones a pointer for performance reasons
+    fevalThrow(restoredefaultpath, octave_value_list());
+    // restore current path
+    static octave_function *addpath=symbol_table::find_function("addpath").function_value();  // get ones a pointer for performance reasons
+    fevalThrow(addpath, octave_value_list(octave_value((currentPath.empty()?"":currentPath+pathSep)+initialOctEvalPath)), 0,
+      "Unable to set the octave search path "+currentPath);
+  }
 
   ostringstream err;
   try{
@@ -780,12 +846,12 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 
 octave_value OctEval::handleUnit(const xercesc::DOMElement *e, const octave_value &ret) {
   if(!E(e)->getAttribute("unit").empty() || !E(e)->getAttribute("convertUnit").empty()) {
-    OctEval oe;
-    oe.addParam("value", ret);
+    NewParamLevel newParamLevel(*this, true);
+    addParam("value", ret);
     if(!E(e)->getAttribute("unit").empty()) // convert with predefined unit
-      return oe.stringToOctValue(units[E(e)->getAttribute("unit")], e);
+      return stringToOctValue(units[E(e)->getAttribute("unit")], e);
     if(!E(e)->getAttribute("convertUnit").empty()) // convert with user defined unit
-      return oe.stringToOctValue(E(e)->getAttribute("convertUnit"), e);
+      return stringToOctValue(E(e)->getAttribute("convertUnit"), e);
   }
   return ret;
 }

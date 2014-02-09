@@ -19,12 +19,6 @@ using namespace boost::filesystem;
 
 path SCHEMADIR;
 
-void addFilesInDir(vector<path> &dependencies, const path &dir, const path &ext) {
-  for(directory_iterator it=directory_iterator(dir); it!=directory_iterator(); it++)
-    if(it->path().extension()==ext)
-      dependencies.push_back(it->path());
-}
-
 void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
   try {
     if(E(e)->getTagName()==PV%"Embed") {
@@ -220,14 +214,13 @@ int main(int argc, char *argv[]) {
     // help message
     if(arg.size()<3) {
       cout<<"Usage:"<<endl
-          <<"mbxmlutilspp [--dependencies <dep-file-name>] [--mpath <dir> [--mpath <dir> ]]"<<endl
+          <<"mbxmlutilspp [--dependencies <dep-file-name>]"<<endl
           <<"              <param-file> [dir/]<main-file> <namespace-location-of-main-file>"<<endl
           <<"             [<param-file> [dir/]<main-file> <namespace-location-of-main-file>]"<<endl
           <<"             ..."<<endl
           <<""<<endl
           <<"  --dependencies    Write a newline separated list of dependent files including"<<endl
           <<"                    <param-file> and <main-file> to <dep-file-name>"<<endl
-          <<"  --mpath           Add <dir> to the octave search path for m-files"<<endl
           <<""<<endl
           <<"  The output file is named '.pp.<main-file>'."<<endl
           <<"  Use 'none' if not <param-file> is avaliabel."<<endl
@@ -256,22 +249,6 @@ int main(int argc, char *argv[]) {
       depFileName=(*i2);
       arg.erase(i); arg.erase(i2);
     }
-
-    // mpath
-    do {
-      if((i=std::find(arg.begin(), arg.end(), "--mpath"))!=arg.end()) {
-        i2=i; i2++;
-        // the search path is global: use absolute path
-        path absmpath=absolute(*i2);
-        // add to octave search path
-        OctEval::addPath(absmpath);
-        // add m-files in mpath dir to dependencies
-        cout<<"Adding "<<absmpath<<" to list of octave search path."<<endl;
-        addFilesInDir(dependencies, absmpath, ".m");
-        arg.erase(i); arg.erase(i2);
-      }
-    }
-    while(i!=arg.end());
 
     SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
 
