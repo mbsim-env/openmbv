@@ -447,6 +447,28 @@ void TiXmlElement::RemoveAttribute( const char * name )
 	}
 }
 
+const TiXmlText* TiXmlNode::FirstChildText() const
+{
+	const TiXmlNode* node;
+	for (	node = FirstChild(); node; node = node->NextSibling() )
+	{
+		if ( node->ToText() )
+			return node->ToText();
+	}
+	return 0;
+}
+
+const TiXmlUnknown* TiXmlNode::FirstChildUnknown() const
+{
+	const TiXmlNode* node;
+	for (	node = FirstChild(); node; node = node->NextSibling() )
+	{
+		if ( node->ToUnknown() )
+			return node->ToUnknown();
+	}
+	return 0;
+}
+
 const TiXmlElement* TiXmlNode::FirstChildElement() const
 {
 	const TiXmlNode* node;

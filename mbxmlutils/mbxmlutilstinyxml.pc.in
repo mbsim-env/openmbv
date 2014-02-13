@@ -7,5 +7,5 @@ Name: MBXMLUtilsTinyXML
 Description: Tiny XML
 Requires: 
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutilstinyxml
+Libs: -L${libdir} -lmbxmlutilstinyxml -lmbxmlutilshelper
 Cflags: -I${includedir} -DTIXML_USE_STL
