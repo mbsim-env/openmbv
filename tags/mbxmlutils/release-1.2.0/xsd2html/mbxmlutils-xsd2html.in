@@ -1,0 +1,148 @@
+#! /bin/sh
+
+if [ $# -ne 5 -a $# -ne 6 ]; then
+  echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
+  echo "                           <ProjectName> <DocygenPrefix>"
+  echo "  InXsdFile: Input xsd file which should be converted to html"
+  echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
+  echo "                   corrospondending documentation"
+  echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
+  echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
+  echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
+  exit
+fi
+
+FILE=$1 #"/home/markus/project/MBSim/openmbv/schema/openmbv.xsd"
+DOXYGENDOCDIR=$2 #"/home/markus/project/MBSim/openmbv/doc_/xml"
+FIGUREDIR=$3
+PROJECT=$4 #"OpenMBV"
+DOXYGENCLASSPREFIX=$5 #"OpenMBV::"
+
+
+if [ ! -e $FILE ]; then
+  echo "Input file $FILE not found!"
+  echo "You must install the package before you can generate the documentation."
+  exit 1
+fi
+
+
+DOXYGENFUNCTIONPREFIX1="set"
+DOXYGENFUNCTIONPREFIX2="add"
+BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
+BASENAME2=$(basename $FILE .xsd)
+prefix=@prefix@
+
+
+echo "Combine Doxygen XML documentation"
+echo "  In file: $DOXYGENDOCDIR/index.xml"
+echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
+echo "  Out file: .$PROJECT.doxygen.xml"
+@XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
+echo "DONE"
+
+echo "Add Doxygen class and element function documentation to XML Schema"
+echo "  In file: $FILE"
+echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
+echo "  Out file: $BASENAME.doxygen.xsd"
+@XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
+  --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
+  --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
+  --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
+  --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
+  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
+echo "DONE"
+
+
+
+
+HTMLDIR=$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$|\1|p' $BASENAME.doxygen.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g')
+echo "Generate HTML documentation"
+echo "  In file: $BASENAME.doxygen.xsd"
+echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
+echo "  Out file: $HTMLDIR/index.xhtml"
+rm -rf $HTMLDIR
+@XSLTPROC@ --novalid --output $HTMLDIR/index.xhtml \
+  --param PROJECT "'$PROJECT'" \
+  --param DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
+  --param MBXMLUTILSVERSION "'@VERSION@'" \
+  @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
+echo "DONE"
+
+echo "Validate generated HTML documentation"
+echo "  In file: $HTML.xhtml"
+echo "  XSD file: @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd"
+@XMLLINT@ --noout --schema @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
+
+echo "Copy *.png"
+for D in $(echo $FIGUREDIR | tr ':' ' '); do
+  ls $D/*.png >& /dev/null && cp -f $D/*.png $HTMLDIR
+done
+
+echo "Export equations"
+echo "  In file: $BASENAME.doxygen.xsd"
+echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
+echo "  Out file: equation.txt"
+@XSLTPROC@ --novalid --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $HTMLDIR/index.xhtml || exit 1
+
+# Generating equation
+while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
+  B=$(sed -rne "/^MBXMLUTILS_BEGINEQN$/=;/^MBXMLUTILS_BEGINEQN$/q" equation.txt)
+  E=$(sed -rne "/^MBXMLUTILS_ENDEQN$/=;/^MBXMLUTILS_ENDEQN$/q" equation.txt)
+  FILE=$(sed -rne "$[$B+1]p" equation.txt)
+  echo "Generating equation in $FILE"
+  cat << EOF > equation.tex
+\documentclass{report}
+\usepackage{graphicx,psfrag,amsmath,amssymb,amsbsy,color}
+\setlength{\parindent}{0cm}
+\setlength{\textwidth}{100cm}
+\setlength{\textheight}{100cm}
+\begin{document}
+\pagestyle{empty}
+EOF
+  sed -rne "$[$B+2],$[$E-1]p" equation.txt >> equation.tex
+  echo '\end{document}' >> equation.tex
+  if latex -help >& /dev/null; then
+    latex -halt-on-error -file-line-error equation.tex || exit 1
+      dvips -E -o equation.eps equation.dvi || exit 1
+      gs -q -dBATCH -dNOPAUSE -dEPSCrop -r144 -sDEVICE=pngalpha -sOutputFile=$FILE equation.eps || exit 1
+  else
+    echo "WARNING: Skip generation of png-equations for HTML documentation (latex, dvips or gs not found in PATH)"
+  fi
+  mv $FILE $HTMLDIR/$FILE
+  sed -rne "$[$E+1],\$p" equation.txt >> equation.txt.new
+  mv equation.txt.new equation.txt
+done
+rm -f equation.*
+
+
+
+
+
+echo "Generate LaTeX documentation"
+echo "  In file: $BASENAME.doxygen.xsd"
+echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
+echo "  Out file: $BASENAME2/$BASENAME2.tex"
+@XSLTPROC@ --novalid --output $BASENAME2/$BASENAME2.tex \
+  --param PROJECT "'$PROJECT'" \
+  @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
+echo "DONE"
+
+echo "Copy *.eps"
+for D in $(echo $FIGUREDIR | tr ':' ' '); do
+  ls $D/*.eps >& /dev/null && cp -f $D/*.eps $BASENAME2
+done
+
+echo "Generate LaTeX-PS documentation"
+echo "  In file: $BASENAME2/$BASENAME2.tex"
+echo "  Out file: $BASENAME2/$BASENAME2.ps"
+OLDDIR=$(pwd)
+cd $BASENAME2
+if latex -help >& /dev/null; then
+  latex -halt-on-error -file-line-error $BASENAME2.tex || exit 1
+  latex $BASENAME2.tex >& /dev/null # second, silent run to resolve references
+  latex $BASENAME2.tex >& /dev/null # third, silent run to resolve references
+  dvips -o $BASENAME2.ps $BASENAME2.dvi || echo "WARNING: Skip running dvips (dvips not found in PATH)" || exit 1
+else
+  echo "WARNING: Skip running LaTeX for LaTeX documentation (latex command not found in PATH)"
+fi
+cd $OLDDIR
