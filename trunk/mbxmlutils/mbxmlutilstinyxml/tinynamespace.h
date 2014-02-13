@@ -12,13 +12,14 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <boost/filesystem.hpp>
 
 #define XINCLUDENS_ "http://www.w3.org/2001/XInclude"
 #define XINCLUDENS "{"XINCLUDENS_"}"
 
 namespace MBXMLUtils {
 
-const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i);
+const TiXmlElement* TiXml_GetElementWithXmlBase(const TiXmlElement *e, int i);
 void TiXml_PostLoadFile(TiXmlDocument *doc);
 
 /* Just a int to string converter */
@@ -33,7 +34,19 @@ std::string TiXml_itoa(int i);
 void TiXml_location(TiXmlElement *e, const std::string &pre, const std::string &post);
 
 /* return the output of TiXml_location as a vector of strings */
-std::vector<std::string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post);
+std::vector<std::string> TiXml_location_vec(const TiXmlElement *e, const std::string &pre, const std::string &post);
+
+/* A Excpetion class which stores the content of TiXml_location_vec. */
+class TiXmlException : public std::exception {
+  public:
+    TiXmlException(const std::string &msg_, const TiXmlElement *e);
+    TiXmlException(const std::vector<std::string> &msg_);
+    virtual ~TiXmlException() throw() {};
+    virtual const char* what() const throw();
+    const std::vector<std::string> &getMessage() const;
+  protected:
+    std::vector<std::string> msg;
+};
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e);
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e);
@@ -52,7 +65,7 @@ void TiXml_deletePIandComm(TiXmlElement *e);
  * If dependencies is not NULL a new line separated list of files this file
  * depends on is appended to dependencies.
  */
-void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>(), std::ostream *dependencies=NULL);
+void incorporateNamespace(TiXmlElement* e, std::map<std::string,std::string> &nsprefix, std::map<std::string,std::string> prefixns=std::map<std::string,std::string>(), std::vector<boost::filesystem::path> *dependencies=NULL);
 
 /* Changes recursivly every element name from e.g.
  * '{http://my.host.org/mynamespace}:localname' to

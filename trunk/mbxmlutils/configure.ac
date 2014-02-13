@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
-AC_INIT([mbxmlutils],[1.2.0],[friedrich.at.gc@googlemail.com])
+AC_INIT([mbxmlutils],[1.3.0],[friedrich.at.gc@googlemail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([xsd2html/addDoxygenToXsd.xsl])
 AC_CONFIG_HEADERS([config.h])
@@ -53,6 +53,14 @@ AC_ARG_WITH([boost-system-lib],
   [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
+AC_ARG_WITH([boost-locale-lib],
+  [  --with-boost-locale-lib=LIBNAME  The library name of boost locale excluding prefix/suffix (Default: boost_locale).],
+  [BOOST_LOCALE_LIB="$withval"], [BOOST_LOCALE_LIB="boost_locale"])
+AC_SUBST([BOOST_LOCALE_LIB])
+AC_ARG_WITH([boost-regex-lib],
+  [  --with-boost-regex-lib=LIBNAME  The library name of boost regex excluding prefix/suffix (Default: boost_regex).],
+  [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])
+AC_SUBST([BOOST_REGEX_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
@@ -75,6 +83,7 @@ if test $usecasadi == yes;  then
     AC_MSG_CHECKING([for casadi c++ library])
     LDFLAGS="$LDFLAGS $CASADILDFLAGS"
     CASADI_LIBS="-lcasadi"
+    CASADI_CPPFLAGS="$CASADICPPFLAGS"
     test "_$host_os" != "_mingw32" && CASADI_LIBS="$CASADI_LIBS -ldl"
     LIBS="$LIBS $CASADI_LIBS"
     AC_SUBST([CASADI_LIBS])
@@ -103,6 +112,8 @@ Alternatively you can disable the CasADi support using --disable-casadi
     fi
   fi
 fi
+
+AC_SUBST([CASADI_CPPFLAGS])
 
 dnl check if only mbxmlutilstinyxml should be installed (necessary for openmbvcppinterface and mbsim)
 AC_ARG_ENABLE([only_mbxmlutilstinyxml],
@@ -238,7 +249,19 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     
 ])
 
-CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare"
+dnl Check for doxygen
+AC_ARG_WITH([doxygenpath],
+  [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],
+  [doxygenpath="$withval"],[doxygenpath=""])
+AC_PATH_PROG([doxygen],[doxygen],[no],[${doxygenpath:-$PATH}])
+if test $doxygen = "no" ; then
+  AC_MSG_RESULT([can not generate API documentation. 'doxygen' is required.])
+fi
+
+dnl Check for xerces-c
+PKG_CHECK_MODULES(XERCESC, xerces-c,[],[AC_MSG_ERROR([ERROR xerces-c not found])])
+
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno-delete-non-virtual-dtor"
 
 # from now on only libtool is used for linking
 LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
@@ -247,7 +270,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutils.pc mbxmlutils/env.h mbxmlutils/octave/Makefile mbxmlutils/check/Makefile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile doc/Makefile doc/Doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

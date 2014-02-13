@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/parameter"
+<xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"
-  xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+  xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
-    schemaLocation="physicalvariable.xsd"/>
-
-  <xs:element name="parameter">
+  <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="searchPath">
+          <xs:complexType>
+            <xs:attribute name="href" type="filenamePartialOctEval"/>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>
-              <xs:extension base="pv:string">
+              <xs:extension base="stringFullOctEval">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
@@ -30,7 +31,7 @@
         <xs:element name="scalarParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="pv:nounitScalar">
+              <xs:extension base="nounitScalar">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
@@ -45,7 +46,7 @@
         <xs:element name="vectorParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="pv:nounitVector">
+              <xs:extension base="nounitVector">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
@@ -60,7 +61,7 @@
         <xs:element name="matrixParameter">
           <xs:complexType mixed="true">
             <xs:complexContent>
-              <xs:extension base="pv:nounitMatrix">
+              <xs:extension base="nounitMatrix">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">

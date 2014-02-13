@@ -663,6 +663,18 @@ public:
 	TiXmlElement* NextSiblingElement( const std::string& _value)				{	return NextSiblingElement (_value.c_str ());	}	///< STL std::string form.
 	#endif
 
+	/// Convenience function to get through texts.
+	const TiXmlText* FirstChildText()	const;
+	TiXmlText* FirstChildText() {
+		return const_cast< TiXmlText* >( (const_cast< const TiXmlNode* >(this))->FirstChildText() );
+	}
+
+	/// Convenience function to get through unknowns.
+	const TiXmlUnknown* FirstChildUnknown()	const;
+	TiXmlUnknown* FirstChildUnknown() {
+		return const_cast< TiXmlUnknown* >( (const_cast< const TiXmlNode* >(this))->FirstChildUnknown() );
+	}
+
 	/// Convenience function to get through elements.
 	const TiXmlElement* FirstChildElement()	const;
 	TiXmlElement* FirstChildElement() {

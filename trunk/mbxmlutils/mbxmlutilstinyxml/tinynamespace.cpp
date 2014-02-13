@@ -14,7 +14,7 @@ using namespace std;
 
 namespace MBXMLUtils {
 
-const TiXmlElement* TiXml_GetElementWithXmlBase(TiXmlElement *e, int i) {
+const TiXmlElement* TiXml_GetElementWithXmlBase(const TiXmlElement *e, int i) {
   if(e==NULL) return NULL;
   if(e->ToElement() && e->ToElement()->Attribute("xml:base") && i==0)
     return e->ToElement();
@@ -40,7 +40,7 @@ string TiXml_itoa(int i) {
 
 void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
   TiXmlUnknown line;
-  line.SetValue("?LineNr "+TiXml_itoa(e->Row())+"?");
+  line.SetValue("?LineNr "+TiXml_itoa(e->Row()+1)+"?");
   if(e->FirstChild())
     e->InsertBeforeChild(e->FirstChild(), line);
   else
@@ -55,12 +55,12 @@ void TiXml_addLineNrAsProcessingInstruction(TiXmlElement *e) {
 
 void TiXml_setLineNrFromProcessingInstruction(TiXmlElement *e) {
   TiXmlUnknown *u;
-  if(e->FirstChild()) {
-    for(u=e->FirstChild()->ToUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
+  if(e->FirstChildUnknown()) {
+    for(u=e->FirstChildUnknown(); u && u->ValueStr().substr(0,8)!="?LineNr "; u=u->NextSibling()->ToUnknown());
     if(u) {
       string line=u->ValueStr().substr(8);
       line=line.substr(0,line.length()-1);
-      e->SetRow(atoi(line.c_str()));
+      e->SetRow(atoi(line.c_str())-1);
       e->RemoveChild(u);
     }
   }
@@ -85,9 +85,10 @@ string TiXml_linkedFileName(const string &name, int line) {
     return name+":"+ss.str();
 }
 
-vector<string> TiXml_location_vec(TiXmlElement *e, const std::string &pre, const std::string &post) {
+vector<string> TiXml_location_vec(const TiXmlElement *e, const std::string &pre, const std::string &post) {
   vector<string> out;
-  out.push_back(pre+TiXml_linkedFileName(TiXml_GetElementWithXmlBase(e,0)->Attribute("xml:base"), e->Row())+post);
+  const TiXmlElement *base=TiXml_GetElementWithXmlBase(e,0);
+  out.push_back(pre+(base?TiXml_linkedFileName(base->Attribute("xml:base"), e->Row()):"")+post);
   const TiXmlElement *p;
   for(int i=1; (p=TiXml_GetElementWithXmlBase(e,i))!=0; i++) {
     const TiXmlNode *c=TiXml_GetElementWithXmlBase(e,i-1)->FirstChild();
@@ -114,11 +115,32 @@ void TiXml_location(TiXmlElement *e, const string &pre, const string &post) {
     cerr<<*it<<endl;
 }
 
+TiXmlException::TiXmlException(const std::string &msg_, const TiXmlElement *e) : exception() {
+  string pre=": ";
+  msg=TiXml_location_vec(e, "", pre+msg_);
+}
+
+TiXmlException::TiXmlException(const std::vector<std::string> &msg_) {
+  msg=msg_;
+}
+
+const std::vector<std::string> &TiXmlException::getMessage() const {
+  return msg;
+}
+
+const char* TiXmlException::what() const throw() {
+  static string str;
+  str="";
+  for(vector<string>::const_iterator i=msg.begin(); i!=msg.end(); i++)
+    str+=*i+"\n";
+  return str.c_str();
+}
+
 string tinyNamespaceCompStr;
 bool comp(pair<string,string> p) {
   if(p.second==tinyNamespaceCompStr) return true; else return false;
 }
-void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns, ostream *dependencies) {
+void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<string,string> prefixns, vector<boost::filesystem::path> *dependencies) {
   // overwrite existing namespace prefixes with new ones
   // save a list of ALL ns->prefix mappings in nsprefix (this map can be used in unIncorporateNamespace)
   TiXmlAttribute* a=e->FirstAttribute();
@@ -161,8 +183,8 @@ void incorporateNamespace(TiXmlElement* e, map<string,string> &nsprefix, map<str
 
   if(e->ValueStr()==XINCLUDENS"include") {
     string newFile=fixPath(e->GetDocument()->ValueStr(), e->Attribute("href"));
-    if(dependencies!=NULL)
-      (*dependencies)<<newFile<<endl;
+    if(dependencies)
+      dependencies->push_back(newFile);
     // for a xi:include element include the href file in the tree
     TiXmlDocument docInclude;
     docInclude.LoadFile(newFile);

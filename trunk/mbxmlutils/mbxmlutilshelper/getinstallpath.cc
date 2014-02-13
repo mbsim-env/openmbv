@@ -8,13 +8,14 @@
 #endif
 
 using namespace std;
+using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-string getInstallPath() {
+path getInstallPath() {
   // get path of this executable
   static char exePath[4096]="";
-  if(strcmp(exePath, "")!=0) return string(exePath)+"/..";
+  if(strcmp(exePath, "")!=0) return path(exePath)/"..";
 
 #ifdef _WIN32 // Windows
   GetModuleFileName(NULL, exePath, sizeof(exePath));
@@ -27,7 +28,7 @@ string getInstallPath() {
   *strrchr(exePath, '/')=0; // remove the program name
 #endif
 
-  return string(exePath)+"/..";
+  return path(exePath)/"..";
 }
 
 } // end namespace MBXMLUtils

@@ -21,69 +21,104 @@
       attributeFormDefault="unqualified"
       xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
       xmlns:xml="http://www.w3.org/XML/1998/namespace"
-      xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
       <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
 
-      <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/parameter" schemaLocation="parameter.xsd"/>
+      <xs:include schemaLocation="parameter.xsd"/>
+      <xs:include schemaLocation="embed.xsd"/>
 
-      <xs:simpleType name="octaveVariableNameType">
-        <xs:restriction base="xs:token">
-          <xs:pattern value="[a-zA-Z_][a-zA-Z0-9_]*"/>
-        </xs:restriction>
-      </xs:simpleType>
-
-      <!-- element for embeding -->
-      <xs:element name="embed">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element name="localParameter" minOccurs="0">
-              <xs:complexType>
-                <xs:sequence>
-                  <xs:element ref="p:parameter" minOccurs="0"/>
-                </xs:sequence>
-                <xs:attribute name="href" use="optional" type="xs:anyURI"/>
-              </xs:complexType>
-            </xs:element>
-            <!--
-            -<xs:any namespace="##other" processContents="strict" minOccurs="0"/>
-            -->
-            <xs:choice minOccurs="0">
-              <!--
-                 - This choice enables nested embed-Tags. (Need to be tested)
-                 -->
-              <xs:any namespace="##other" processContents="strict"/>
-              <xs:element ref="embed"/>
-            </xs:choice>
-          </xs:sequence>
-          <xs:attribute name="href" type="xs:anyURI" use="optional"/>
-          <xs:attribute name="count" use="optional" type="fullOctaveString" default="1"/>
-          <xs:attribute name="counterName" use="optional" type="octaveVariableNameType"/>
-          <xs:attribute name="onlyif" use="optional" type="fullOctaveString" default="1"/>
-        </xs:complexType>
-      </xs:element>
-
-      <!-- base type for a string which is fully converted by octave -->
-      <xs:simpleType name="fullOctaveString">
+      <!-- base type for a XML text element which is fully converted by octave.-->
+      <xs:simpleType name="fullOctEval">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
 
-      <!-- base type for a string which is partially converted by octave.
-           Only the content between { and } ist converted by octave -->
-      <xs:simpleType name="partialOctaveString">
+      <!-- full octave evaluation which must evaluate to an floating number.-->
+      <xs:simpleType name="floatFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an string.-->
+      <xs:simpleType name="stringFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an integer.-->
+      <xs:simpleType name="integerFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+      <!-- full octave evaluation which must evaluate to an boolean.-->
+      <xs:simpleType name="booleanFullOctEval">
+        <xs:restriction base="fullOctEval"/>
+      </xs:simpleType>
+
+
+      <!-- base type for a attribute which is partially converted by octave.
+           Only the content between { and } ist converted by octave
+           Inside { ... } the character { and } must be quoted qith \ -->
+      <xs:simpleType name="partialOctEval">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
 
-      <!-- A regexp for matching a MBXMLUtils name attribute. E.g. matches: "box1", "box{i+5}", "box2_{2*i+1}_{j+1}" -->
-      <xs:simpleType name="name">
-        <xs:restriction base="partialOctaveString">
-          <xs:pattern>
-            <xsl:attribute name="value">((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)</xsl:attribute>
-          </xs:pattern>
-        </xs:restriction>
+      <!-- partial octave evaluation which must evaluate to an floating number -->
+      <xs:simpleType name="floatPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
       </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string -->
+      <xs:simpleType name="stringPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an integer -->
+      <xs:simpleType name="integerPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an boolean -->
+      <xs:simpleType name="booleanPartialOctEval">
+        <xs:restriction base="partialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string representing a valid variable name -->
+      <xs:simpleType name="varnamePartialOctEval">
+        <xs:restriction base="stringPartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- partial octave evaluation which must evaluate to an string which represents a filename -->
+      <xs:simpleType name="filenamePartialOctEval">
+        <xs:restriction base="stringPartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
+      <xs:simpleType name="symbolicFunctionArgNameType">
+        <xs:restriction base="varnamePartialOctEval"/>
+      </xs:simpleType>
+
+      <!-- the attribute type for vector argument dimension -->
+      <xs:simpleType name="symbolicFunctionArgDimType">
+        <xs:restriction base="integerFullOctEval"/>
+      </xs:simpleType>
+
+
+
+
+      <xs:simpleType name="partialOctaveString"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <xs:simpleType name="name"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <xs:simpleType name="string"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
+        <xs:restriction base="xs:token"/>
+      </xs:simpleType>
+      <!--MFMF more fixed (attribute types to octFullEval, ...) are needed on openmbv after merge to trunk-->
+
+
+
+
 
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
@@ -96,7 +131,7 @@
               All file formats of the octave 'load' command are supported and auto detected.
             </xs:documentation></xs:annotation>
             <xs:complexType>
-              <xs:attribute name="href" use="required" type="xs:anyURI"/>
+              <xs:attribute name="href" use="required" type="filenamePartialOctEval"/>
             </xs:complexType>
           </xs:element>
         </xs:sequence>
@@ -119,19 +154,20 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlMatrixGroup"/>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
+      <xs:group name="xmlMatrixGroup">
+        <xs:choice>
           <xs:element name="xmlMatrix">
             <xs:complexType>
               <xs:sequence>
                 <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                   <xs:complexType>
                     <xs:sequence>
-                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
-                        <xs:simpleType>
-                          <xs:restriction base="xs:string">
-                            <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                          </xs:restriction>
-                        </xs:simpleType>
-                      </xs:element>
+                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
@@ -139,9 +175,8 @@
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:group ref="fromFileGroup"/>
         </xs:choice>
-      </xs:complexType>
+      </xs:group>
 
       <!-- add matrix units -->
       <xsl:apply-templates mode="MATRIX" select="/mm:measurement/mm:measure"/>
@@ -163,23 +198,23 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlVectorGroup"/>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
+      <xs:group name="xmlVectorGroup">
+        <xs:choice>
           <xs:element name="xmlVector">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded">
-                  <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                      <xs:pattern value="\s*.+\s*"/><!-- TODO: add regex for scalar expression (change '.+')-->
-                    </xs:restriction>
-                  </xs:simpleType>
-                </xs:element>
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
               </xs:sequence>
               <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
-          <xs:group ref="fromFileGroup"/>
         </xs:choice>
-      </xs:complexType>
+      </xs:group>
 
       <!-- add vector units -->
       <xsl:apply-templates mode="VECTOR" select="/mm:measurement/mm:measure"/>
@@ -202,8 +237,14 @@
           </xs:appinfo>
         </xs:annotation>
         <xs:choice minOccurs="0">
+          <xs:group ref="xmlScalarGroup"/>
         </xs:choice>
       </xs:complexType>
+
+      <xs:group name="xmlScalarGroup">
+        <!-- dummy group. just te be consistent with vector and matrix types -->
+        <xs:sequence/> <!-- some parsers have problems with no child element in xs:group -->
+      </xs:group>
 
       <!-- add scalar units -->
       <xsl:apply-templates mode="SCALAR" select="/mm:measurement/mm:measure"/>
@@ -218,7 +259,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="scalar">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -232,7 +273,7 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="vector">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -246,21 +287,10 @@
         </xs:annotation>
         <xs:complexContent>
           <xs:extension base="matrix">
-            <xs:attribute name="convertUnit" type="fullOctaveString"/>
+            <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
-
-      <!-- string must be enclosed in '"' (processed by octave) -->
-      <xs:simpleType name="string">
-        <xs:annotation>
-          <xs:documentation>
-            A string value. The value is evaluated by the octave, so a plain string
-            must be enclosed in '"'.
-          </xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string"/>
-      </xs:simpleType>
 
       <!-- rotation matrix -->
       <xs:complexType mixed="true" name="rotationMatrix">
@@ -281,23 +311,24 @@
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="angleScalar"/>
-                    <xs:element name="beta" type="angleScalar"/>
-                    <xs:element name="gamma" type="angleScalar"/>
+                    <xs:element name="alpha" type="floatFullOctEval"/>
+                    <xs:element name="beta" type="floatFullOctEval"/>
+                    <xs:element name="gamma" type="floatFullOctEval"/>
                   </xs:sequence>
+                  <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
               </xs:element>
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="angleScalar"/>
-                    <xs:element name="theta" type="angleScalar"/>
-                    <xs:element name="phi" type="angleScalar"/>
+                    <xs:element name="PHI" type="floatFullOctEval"/>
+                    <xs:element name="theta" type="floatFullOctEval"/>
+                    <xs:element name="phi" type="floatFullOctEval"/>
                   </xs:sequence>
+                  <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
               </xs:element>
             </xs:choice>
-            <xs:attributeGroup ref="nounitMeasure"/> <!-- DEPRECATED -->
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
@@ -311,27 +342,21 @@
             provided by the runtime. The representation of the symbolic function must either be given by
             the MBXMLUtils notation for CasADi::SXFunction or by an octave expression (using the SWIG
             octave interface of CasADi). Using a octave expression you have full access to other scalar,
-            vector or matrix parameters. For each input parameter an attribute named 'arg&lt;n&gt;name',
-            where n equals the number of the input or is empty if only one input exists, must be
-            defined which set the name of this input parameter for the access in the octave expression.
-            For each vector input paramter moreover an attribure named 'arg&lt;n&gt;dim' must be defined
+            vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
+            must be defined which set the name of this input parameter for the access in the octave expression.
+            For each vector input paramter moreover an attribure named 'xyzDim' must be defined
             which defines the vector dimension of this input.
+            (The XML schema must also define a fixed (hidden) attribute named 'xyzNr' which is set the integer
+            number corresponding to the argument number of the function)
           </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
+        <xs:choice>
           <xs:any minOccurs="0" namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" processContents="lax"/>
-        </xs:sequence>
+          <xs:group ref="xmlScalarGroup"/>
+          <xs:group ref="xmlVectorGroup"/>
+          <xs:group ref="xmlMatrixGroup"/>
+        </xs:choice>
       </xs:group>
-
-      <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
-      <xs:simpleType name="symbolicFunctionArgNameType">
-        <xs:restriction base="octaveVariableNameType"/>
-      </xs:simpleType>
-
-      <!-- the attribute type for vector argument dimension -->
-      <xs:simpleType name="symbolicFunctionArgDimType">
-        <xs:restriction base="xs:positiveInteger"/>
-      </xs:simpleType>
 
     </xs:schema>
 
