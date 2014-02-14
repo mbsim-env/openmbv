@@ -4,7 +4,6 @@
 #include <boost/locale.hpp>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/regex.hpp>
 #include <octave/octave.h>
 #include <casadi/symbolic/sx/sx_tools.hpp>
 #include <mbxmlutilshelper/dom.h>
@@ -89,7 +88,7 @@ string OctEval::cast<string>(const octave_value &value) {
       ret<<"]";
     return ret.str();
   }
-  throw runtime_error("Can not convert this octave variable to a string.");
+  throw runtime_error("Can not convert this variable to a string.");
 }
 
 template<>
@@ -100,11 +99,11 @@ long OctEval::cast<long>(const octave_value &value) {
     long ret=boost::math::lround(m[0][0]);
     double delta=fabs(ret-m[0][0]);
     if(delta>eps*m[0][0] && delta>eps)
-      throw runtime_error("Canot cast octave value to long.");
+      throw runtime_error("Canot cast value to long.");
     else
       return ret;
   }
-  throw runtime_error("Cannot cast octave value to long.");
+  throw runtime_error("Cannot cast value to long.");
 }
 
 template<>
@@ -112,7 +111,7 @@ double OctEval::cast<double>(const octave_value &value) {
   vector<vector<double> > m=cast<vector<vector<double> > >(value);
   if(getType(value)==ScalarType)
     return m[0][0];
-  throw runtime_error("Cannot cast octave value to vector<double>.");
+  throw runtime_error("Cannot cast value to vector<double>.");
 }
 
 template<>
@@ -125,7 +124,7 @@ vector<double> OctEval::cast<vector<double> >(const octave_value &value) {
       ret.push_back(m[i][0]);
     return ret;
   }
-  throw runtime_error("Cannot cast octave value to vector<double>.");
+  throw runtime_error("Cannot cast value to vector<double>.");
 }
 
 template<>
@@ -159,14 +158,14 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
     }
     return ret;
   }
-  throw runtime_error("Cannot cast octave value to vector<vector<double> >.");
+  throw runtime_error("Cannot cast value to vector<vector<double> >.");
 }
 
 template<>
 DOMElement* OctEval::cast<DOMElement*>(const octave_value &value, DOMDocument *doc) {
   if(getType(value)==SXFunctionType)
     return convertCasADiToXML(cast<CasADi::SXFunction>(value), doc);
-  throw runtime_error("Cannot cast octave value to DOMElement*.");
+  throw runtime_error("Cannot cast value to DOMElement*.");
 }
 
 template<>
@@ -755,38 +754,39 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
   if(fullEval) {
     octave_value ret=stringToOctValue(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"floatFullOctEval") && (!ret.is_scalar_type() || !ret.is_double_type()))
-      throw DOMEvalException("Octave value is not of type scalar float", pe);
+      throw DOMEvalException("Value is not of type scalar float", pe);
     if(A(a)->isDerivedFrom(PV%"stringFullOctEval") && (!ret.is_scalar_type() && !ret.is_string()))
-      throw DOMEvalException("Octave value is not of type scalar string", pe);
+      throw DOMEvalException("Value is not of type scalar string", pe);
     if(A(a)->isDerivedFrom(PV%"integerFullOctEval") && (!ret.is_scalar_type() && !ret.is_integer_type())) // also symbolicFunctionArgDimType
-      throw DOMEvalException("Octave value is not of type scalar integer", pe);
+      throw DOMEvalException("Value is not of type scalar integer", pe);
     if(A(a)->isDerivedFrom(PV%"booleanFullOctEval") && (!ret.is_scalar_type() && !ret.is_bool_scalar()))
-      throw DOMEvalException("Octave value is not of type scalar boolean", pe);
+      throw DOMEvalException("Value is not of type scalar boolean", pe);
     return ret;
   }
   // evaluate attribute partially
   else {
     string s=partialStringToOctValue(X()%a->getValue(), pe);
-    if(A(a)->isDerivedFrom(PV%"varnamePartialOctEval")) // also symbolicFunctionArgNameType
-      try {
-        string str=boost::lexical_cast<string>(s);
-        static regex varnameRegex("[_a-zA-Z][_a-zA-Z0-9]*");
-        if(!regex_match(str, varnameRegex))
-          throw DOMEvalException("Octave value is not of type variable name ([a-zA-Z][a-zA-Z0-9_]*)", pe);
-      }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Octave value is not of type scalar string", pe); }
+    if(A(a)->isDerivedFrom(PV%"varnamePartialOctEval")) { // also symbolicFunctionArgNameType
+      if(s.length()<1)
+        throw DOMEvalException("A variable name must consist of at least 1 character", pe);
+      if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
+        throw DOMEvalException("A variable name start with _, a-z or A-Z", pe);
+      for(size_t i=1; i<s.length(); i++)
+        if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z')))
+          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe);
+    }
     if(A(a)->isDerivedFrom(PV%"floatPartialOctEval"))
       try { return boost::lexical_cast<double>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Octave value is not of type scalar float", pe); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe); }
     if(A(a)->isDerivedFrom(PV%"stringPartialOctEval")) // also filenamePartialOctEval
       try { return boost::lexical_cast<string>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Octave value is not of type scalar string", pe); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe); }
     if(A(a)->isDerivedFrom(PV%"integerPartialOctEval"))
       try { return boost::lexical_cast<int>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Octave value is not of type scalar integer", pe); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe); }
     if(A(a)->isDerivedFrom(PV%"booleanPartialOctEval"))
       try { return boost::lexical_cast<bool>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Octave value is not of type scalar boolean", pe); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe); }
     throw DOMEvalException("Unknown XML attribute type for evaluation", pe);
   }
 }
@@ -813,7 +813,7 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
       error_state=0;
       if(value.is_string())
         return StringType;
-      throw runtime_error("The provided octave value has an unknown type.");
+      throw runtime_error("The provided value has an unknown type.");
     }
     if(swigType.string_value()=="SXMatrix")
       return SXMatrixType;
@@ -822,7 +822,7 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
     else if(swigType.string_value()=="SXFunction")
       return SXFunctionType;
     else
-      throw runtime_error("The provided octave value has an unknown type.");
+      throw runtime_error("The provided value has an unknown type.");
   }
 }
 
