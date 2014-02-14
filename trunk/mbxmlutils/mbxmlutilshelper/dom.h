@@ -164,6 +164,8 @@ class DOMElementWrapper {
     void setAttribute(const FQN &name, const std::string &value);
     //! check if this element has a attibute named name.
     bool hasAttribute(const FQN &name) const;
+    //! Workaround: convert default attributes to normal attributes (must be used before importNode to also import default attributes)
+    void workaroundDefaultAttributesOnImportNode();
     //! Treat this object as a pointer (like DOMElement*)
     typename boost::conditional<boost::is_same<DOMElementType, const xercesc::DOMElement>::value,
       const DOMElementWrapper*, DOMElementWrapper*>::type operator->() {

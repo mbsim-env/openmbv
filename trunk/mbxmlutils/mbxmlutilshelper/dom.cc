@@ -11,6 +11,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
+#include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/framework/psvi/PSVIElement.hpp>
 #include <xercesc/framework/psvi/PSVIAttributeList.hpp>
@@ -250,6 +251,20 @@ void DOMElementWrapper<DOMElementType>::setOriginalElementLineNumber(int lineNr)
 }
 
 template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::workaroundDefaultAttributesOnImportNode() {
+  // rest all default attributes to the default value exlicitly: this removed the default "flag"
+  DOMNamedNodeMap *attr=me->getAttributes();
+  for(int i=0; i<attr->getLength(); i++) {
+    DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+    if(!a->getSpecified())
+      a->setValue(a->getValue());
+  }
+  // loop over all child elements recursively
+  for(DOMElement *c=me->getFirstElementChild(); c!=0; c=c->getNextElementSibling())
+    E(c)->workaroundDefaultAttributesOnImportNode();
+}
+
+template<typename DOMElementType>
 bool DOMElementWrapper<DOMElementType>::hasAttribute(const FQN &name) const {
   return me->hasAttributeNS(X()%name.first, X()%name.second);
 }
@@ -323,6 +338,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
       parser->errorHandler.getNumErrors()%parser->errorHandler.getNumWarnings()));
 
   // replace old document element with new one
+  E(newDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
   DOMNode *newRoot=me->importNode(newDoc->getDocumentElement(), true);
   me->replaceChild(newRoot, me->getDocumentElement())->release();
 }
@@ -508,6 +524,7 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
   if(E(e)->getTagName()==XINCLUDE%"include") {
     path incFile=absolute(E(e)->getAttribute("href"), E(e)->getOriginalFilename().parent_path());
     boost::shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile);
+    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();
     return;

@@ -63,6 +63,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
       if(!file.empty()) {
         cout<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc=parser->parse(file);
+        E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
           bind(&DOMElement::release, _1));
       }
