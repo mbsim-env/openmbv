@@ -57,10 +57,6 @@ AC_ARG_WITH([boost-locale-lib],
   [  --with-boost-locale-lib=LIBNAME  The library name of boost locale excluding prefix/suffix (Default: boost_locale).],
   [BOOST_LOCALE_LIB="$withval"], [BOOST_LOCALE_LIB="boost_locale"])
 AC_SUBST([BOOST_LOCALE_LIB])
-AC_ARG_WITH([boost-regex-lib],
-  [  --with-boost-regex-lib=LIBNAME  The library name of boost regex excluding prefix/suffix (Default: boost_regex).],
-  [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])
-AC_SUBST([BOOST_REGEX_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
@@ -225,27 +221,11 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     # The prefix for octave m and oct file search path can be changed
     # using the octave envvar OCTAVE_HOME.
     
-    
-    
-    dnl Helper functions to convert path to windows
-    dirtowin() {
-      echo $(cd $1 && pwd -W 2> /dev/null)
-    }
-    filetowin() {
-      echo $(cd $(dirname $1) && pwd -W 2> /dev/null)/$(basename $1)
-    }
-    
     DATADIR="$(eval echo $(eval echo $datadir))"
     AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
     AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
     AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
-    if test "_$host_os" = "_mingw32" ; then
-      mkdir -p $SCHEMADIR $XMLDIR $OCTAVEDIR
-      SCHEMADIR=$(dirtowin $SCHEMADIR)
-      XMLDIR=$(dirtowin $XMLDIR)
-      OCTAVEDIR=$(dirtowin $OCTAVEDIR)
-    fi
     
 ])
 
