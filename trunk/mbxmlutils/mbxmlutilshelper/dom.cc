@@ -257,7 +257,7 @@ void DOMElementWrapper<DOMElementType>::workaroundDefaultAttributesOnImportNode(
   for(int i=0; i<attr->getLength(); i++) {
     DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
     if(!a->getSpecified())
-      a->setValue(a->getValue());
+      a->setValue(X()%(X()%a->getValue()));
   }
   // loop over all child elements recursively
   for(DOMElement *c=me->getFirstElementChild(); c!=0; c=c->getNextElementSibling())
