@@ -296,7 +296,7 @@ int main(int argc, char *argv[]) {
       // save result file
       path mainxmlpp=".pp."+mainxml.filename().string();
       cout<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
-      DOMParser::serialize(mainxmldoc.get(), mainxmlpp);
+      DOMParser::serialize(mainxmldoc.get(), mainxmlpp, false);
       cout<<"Validate preprocessed file"<<endl;
       parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
     }

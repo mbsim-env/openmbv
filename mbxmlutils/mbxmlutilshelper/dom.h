@@ -335,7 +335,7 @@ class DOMParser {
     boost::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource);
     //! Serialize a document.
     //! Helper function to write a node. This normalized the document before.
-    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource);
+    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
