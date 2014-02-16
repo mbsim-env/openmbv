@@ -20,10 +20,12 @@ using namespace boost;
 namespace bfs=boost::filesystem;
 
 namespace {
-  // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  // std::locale::global(boost::locale::generator().generate("UTF8"));
-  // boost::filesystem::path::imbue(std::locale());
-  const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  //TODO not working on Windows
+  //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
+  //TODO // std::locale::global(boost::locale::generator().generate("UTF8"));
+  //TODO // boost::filesystem::path::imbue(std::locale());
+  //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  #define CODECVT
 }
 
 namespace MBXMLUtils {
@@ -286,14 +288,14 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       initialOctavePath=initialOctavePath.substr(2);
   
     // set .../share/mbxmlutils/octave to initial current search path ...
-    string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(*utf8Facet);
+    string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
     initialOctEvalPath=dir;
     // ... and make it available now (for swigLocalLoad below)
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
     // add .../bin to initial current search path ...
-    dir=(MBXMLUtils::getInstallPath()/"bin").string(*utf8Facet);
+    dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
     initialOctEvalPath=dir+pathSep+initialOctEvalPath;
     // ... and make it available now (for swigLocalLoad below)
     feval("addpath", octave_value_list(octave_value(dir)));
@@ -407,8 +409,8 @@ void OctEval::popPath() {
 
 void OctEval::addPath(const bfs::path &dir) {
   if(!dir.is_absolute())
-    DOMEvalException("Can only add absolute path: "+dir.string(*utf8Facet));
-  currentPath=dir.string(*utf8Facet)+(currentPath.empty()?"":pathSep+currentPath);
+    DOMEvalException("Can only add absolute path: "+dir.string(CODECVT));
+  currentPath=dir.string(CODECVT)+(currentPath.empty()?"":pathSep+currentPath);
 
   // add m-files in dir to dependencies
   for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
