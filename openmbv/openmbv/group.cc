@@ -44,7 +44,7 @@
 #include "openmbvcppinterface/spineextrusion.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
-#include <mbxmlutilstinyxml/last_write_time.h>
+#include <mbxmlutilshelper/last_write_time.h>
 
 using namespace std;
 

@@ -35,7 +35,7 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QComboBox>
 #include <QtGui/QLabel>
-#include <mbxmlutilstinyxml/getinstallpath.h>
+#include <mbxmlutilshelper/getinstallpath.h>
 
 using namespace std;
 
@@ -287,15 +287,15 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
 }
 
 string Utils::getIconPath() {
-  return MBXMLUtils::getInstallPath()+"/share/openmbv/icons";
+  return (MBXMLUtils::getInstallPath()/"share"/"openmbv"/"icons").string();
 }
 
 string Utils::getXMLDocPath() {
-  return MBXMLUtils::getInstallPath()+"/share/mbxmlutils/doc";
+  return (MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"doc").string();
 }
 
 string Utils::getDocPath() {
-  return MBXMLUtils::getInstallPath()+"/share/openmbv/doc";
+  return (MBXMLUtils::getInstallPath()/"share"/"openmbv"/"doc").string();
 }
 
 }
