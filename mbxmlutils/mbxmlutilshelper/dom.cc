@@ -36,10 +36,12 @@ namespace MBXMLUtils {
 namespace {
   InitXerces initXerces;
 
-  // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  // std::locale::global(boost::locale::generator().generate("UTF8"));
-  // boost::filesystem::path::imbue(std::locale());
-  const path::codecvt_type *utf8Facet(&use_facet<path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  //TODO not working on Windows
+  //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
+  //TODO // std::locale::global(boost::locale::generator().generate("UTF8"));
+  //TODO // boost::filesystem::path::imbue(std::locale());
+  //TODO const path::codecvt_type *utf8Facet(&use_facet<path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  #define CODECVT
 
   // START: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
@@ -86,7 +88,7 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
 }
 
 EmbedDOMLocator::EmbedDOMLocator(const path &file_, int row_, int embedCount_) : row(row_), embedCount(embedCount_) {
-  file=x%file_.string(*utf8Facet);
+  file=x%file_.string(CODECVT);
 }
 
 std::string EmbedDOMLocator::getEmbedCount() const {
@@ -516,7 +518,7 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
   if(!validate)
     throw runtime_error("Loading a XML schema in a none validating parser is not possible.");
   // load grammar
-  parser->loadGrammar(X()%schemaFilename.string(*utf8Facet), Grammar::SchemaGrammarType, true);
+  parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
 }
 
 void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
@@ -552,10 +554,10 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
 
 shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
   if(!exists(inputSource))
-    throw runtime_error("XML document "+inputSource.string(*utf8Facet)+" not found");
+    throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetCounter();
-  shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(*utf8Facet)), bind(&DOMDocument::release, _1));
+  shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&DOMDocument::release, _1));
   if(errorHandler.getNumErrors()>0)
     throw runtime_error(str(format("Validation failed: %1% Errors, %2% Warnings, see above.")%
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
@@ -563,10 +565,10 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
   DOMElement *root=doc->getDocumentElement();
   if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename") && !E(root)->hasAttribute(XML%"base")) { // Deprecated TiXml: remove XML%"base"
     DOMProcessingInstruction *filenamePI=doc->createProcessingInstruction(X()%"OriginalFilename",
-      X()%absolute(inputSource).string(*utf8Facet));
+      X()%absolute(inputSource).string(CODECVT));
     root->insertBefore(filenamePI, root->getFirstChild());
     // Deprecated TiXml: do not add XML%"base"
-    root->setAttributeNS(X()%XML.getNamespaceURI(), X()%"xml:base", X()%absolute(inputSource).string(*utf8Facet));
+    root->setAttributeNS(X()%XML.getNamespaceURI(), X()%"xml:base", X()%absolute(inputSource).string(CODECVT));
   }
   // handle CDATA nodes
   handleXIncludeAndCDATA(root);
@@ -586,7 +588,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
   shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
   if(prettyPrint)
     ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-  if(!ser->writeToURI(n, X()%outputSource.string(*utf8Facet)))
+  if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
     throw runtime_error("Serializing the document failed.");
 }
 
