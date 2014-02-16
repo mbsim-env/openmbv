@@ -576,7 +576,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
   return doc;
 }
 
-void DOMParser::serialize(DOMNode *n, const path &outputSource) {
+void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
     static_cast<DOMDocument*>(n)->normalizeDocument();
   else
@@ -584,6 +584,8 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource) {
 
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
+  if(prettyPrint)
+    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
   if(!ser->writeToURI(n, X()%outputSource.string(*utf8Facet)))
     throw runtime_error("Serializing the document failed.");
 }
