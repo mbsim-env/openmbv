@@ -17,7 +17,7 @@
 #include <xercesc/framework/psvi/PSVIAttributeList.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
-#include <mbxmlutilshelper/getinstallpath.h>
+#include "getinstallpath.h"
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
 #include <xercesc/internal/XMLScanner.hpp>
