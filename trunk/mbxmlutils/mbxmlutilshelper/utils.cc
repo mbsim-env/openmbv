@@ -19,8 +19,8 @@
 
 #include "config.h"
 #include <cstdlib>
-#include "mbxmlutilshelper/utils.h"
-#include "mbxmlutilshelper/dom.h"
+#include "utils.h"
+#include "dom.h"
 #if defined HAVE_LIBUNWIND_H && defined HAVE_LIBUNWIND
 #  include <libunwind.h>
 #endif
