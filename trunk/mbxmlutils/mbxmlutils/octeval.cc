@@ -357,11 +357,8 @@ void OctEval::addParamSet(const DOMElement *e) {
         err=1;
       }
       if(err==0) { // if no error
-        if(E(*ee)->getTagName()==PV%"searchPath") {
-          bfs::path dir=ret.string_value();
-          dir=bfs::absolute(dir, E(*ee)->getOriginalFilename().parent_path());
-          addPath(dir);
-        }
+        if(E(*ee)->getTagName()==PV%"searchPath")
+          addPath(E(*ee)->convertPath(ret.string_value()));
         else
           addParam(E(*ee)->getAttribute("name"), ret); // add param to list
         ee=c.erase(ee);
@@ -727,7 +724,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     static octave_function *loadFunc=symbol_table::find_function("load").function_value();  // get ones a pointer performance reasons
     octave_value fileName=stringToOctValue(E(ec)->getAttribute("href"), ec);
     if(dependencies)
-      dependencies->push_back(bfs::absolute(fileName.string_value(), E(e)->getOriginalFilename().parent_path()));
+      dependencies->push_back(E(e)->convertPath(fileName.string_value()));
 
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;

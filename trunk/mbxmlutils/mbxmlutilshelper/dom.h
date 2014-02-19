@@ -141,6 +141,9 @@ class DOMElementWrapper {
     //! If a xml:base attribute was found 'found' is set to this element else 'found' is NULL.
     boost::filesystem::path getOriginalFilename(bool skipThis=false,
                                                 const xercesc::DOMElement *&found=DOMElementWrapper<DOMElementType>::dummyArg) const;
+    //! Convert the relative path relPath to an aboslute path by prefixing it with the path of this document.
+    //! If relPath is a absolute path it is returned as it. (see also getOriginalFilename)
+    boost::filesystem::path convertPath(const boost::filesystem::path &relPath) const;
     //! Get the line number.
     //! If a LineNr processing instruction child node exist this number is returned. If not the XML line number is returned.
     int getLineNumber() const;

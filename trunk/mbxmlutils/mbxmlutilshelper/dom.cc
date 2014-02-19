@@ -188,6 +188,12 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
 template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skipThis, const DOMElement *&found) const; // explicit instantiate const variant
 
 template<typename DOMElementType>
+path DOMElementWrapper<DOMElementType>::convertPath(const path &relPath) const {
+  return absolute(relPath, getOriginalFilename().parent_path());
+}
+template path DOMElementWrapper<const DOMElement>::convertPath(const path &relPath) const; // explicit instantiate const variant
+
+template<typename DOMElementType>
 string DOMElementWrapper<DOMElementType>::getAttribute(const FQN &name) const {
   return X()%me->getAttributeNS(X()%name.first, X()%name.second);
 }
@@ -524,7 +530,7 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
 void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
   // handle xinclude
   if(E(e)->getTagName()==XINCLUDE%"include") {
-    path incFile=absolute(E(e)->getAttribute("href"), E(e)->getOriginalFilename().parent_path());
+    path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
     boost::shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile);
     E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
