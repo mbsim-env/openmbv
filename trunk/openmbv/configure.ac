@@ -71,6 +71,7 @@ test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
 
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin)
+AC_CHECK_HEADERS([Inventor/nodes/SoDepthBuffer.h], [], [AC_MSG_WARN([SoDepthBuffer.h not found please update to Coin-3 for best functionallity.])])
 
 dnl OpenMBVCppInterface
 PKG_CHECK_MODULES(OPENMBVCPPINTERFACE, openmbvcppinterface)
