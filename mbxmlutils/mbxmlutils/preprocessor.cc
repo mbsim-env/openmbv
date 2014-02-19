@@ -42,7 +42,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
         string subst=OctEval::cast<string>(ret);
         if(OctEval::getType(ret)==OctEval::StringType)
           subst=subst.substr(1, subst.length()-2);
-        file=absolute(subst, E(e)->getOriginalFilename().parent_path());
+        file=E(e)->convertPath(subst);
         dependencies.push_back(file);
       }
   
@@ -91,7 +91,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
           string subst=OctEval::cast<string>(ret);
           if(OctEval::getType(ret)==OctEval::StringType)
             subst=subst.substr(1, subst.length()-2);
-          path paramFile=absolute(subst, E(e)->getOriginalFilename().parent_path());
+          path paramFile=E(e)->convertPath(subst);
           // add local parameter file to dependencies
           dependencies.push_back(paramFile);
           // validate and local parameter file
