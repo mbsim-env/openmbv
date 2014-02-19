@@ -203,9 +203,10 @@ int main(int argc, char *argv[]) {
   InitXerces initXerces;
   try {
 
-    // use UTF8 globally (expecially in path)
-    std::locale::global(locale::generator().generate("UTF8"));
-    path::imbue(std::locale());
+    //TODO not working on Windows
+    //TODO // use UTF8 globally (expecially in path)
+    //TODO std::locale::global(locale::generator().generate("UTF8"));
+    //TODO path::imbue(std::locale());
 
     // convert argv to list
     list<string> arg;
