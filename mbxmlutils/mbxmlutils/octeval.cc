@@ -259,7 +259,16 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
   if(initCount==0) {
 
     bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-  
+
+    // set the OCTAVE_HOME envvar before initializing octave
+    // (but only if octave is installed in getInstallPath() and the envar is not already set)
+    if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+      // the string for putenv must have program life time
+      static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
+      putenv((char*)OCTAVE_HOME.c_str());
+    }
+
+    // initialize octave
     static vector<char*> octave_argv;
     octave_argv.resize(6);
     octave_argv[0]=const_cast<char*>("embedded");
@@ -270,6 +279,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
     octave_argv[5]=const_cast<char*>("--silent");
     octave_main(6, &octave_argv[0], 1);
   
+    // set some global octave config
     octave_value_list warnArg;
     warnArg.append("error");
     warnArg.append("Octave:divide-by-zero");
