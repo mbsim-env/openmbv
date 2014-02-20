@@ -30,6 +30,8 @@ namespace {
 
 namespace MBXMLUtils {
 
+bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=NULL;
+
 // Store the current directory in the ctor an restore in the dtor
 class PreserveCurrentDir {
   public:
@@ -299,12 +301,12 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
     initialOctEvalPath=dir+pathSep+initialOctEvalPath;
     // ... and make it available now (for swigLocalLoad below)
     feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw string("Internal error: cannot add casadi octave search path."); }
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
 
     {
       BLOCK_STDERR(blockstderr);
       casadiOctValue=feval("swigLocalLoad", octave_value_list("casadi"), 1)(0);
-      if(error_state!=0) { error_state=0; throw string("Internal error: unable to initialize casadi."); }
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
     }
 
     // get units

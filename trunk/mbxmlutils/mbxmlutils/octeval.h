@@ -65,16 +65,19 @@ namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
 
+extern bool deactivateBlock;
 // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
 template<int T>
 class Block {
   public:
     Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
+      if(deactivateBlock) return;
       if(disableCount==0)
         orgcxxx=str.rdbuf(buf);
       disableCount++;
     }
     ~Block() {
+      if(deactivateBlock) return;
       disableCount--;
       if(disableCount==0)
         str.rdbuf(orgcxxx);

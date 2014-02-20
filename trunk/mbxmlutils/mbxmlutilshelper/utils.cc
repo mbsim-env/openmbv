@@ -51,10 +51,10 @@ namespace MBXMLUtils {
 #if defined HAVE_LIBUNWIND_H && defined HAVE_LIBUNWIND
       try {
         unw_context_t context;
-        if(unw_getcontext(&context)<0) throw 1;
+        if(unw_getcontext(&context)<0) throw runtime_error("Internal error: Unable to get unwind context");
         unw_cursor_t cp;
-        if(unw_init_local(&cp, &context)<0) throw 1;
-        if(unw_step(&cp)<=0) throw 1;
+        if(unw_init_local(&cp, &context)<0) throw runtime_error("Internal error: Unable to init local unwind");
+        if(unw_step(&cp)<=0) throw runtime_error("Internal error: Unable to step unwind");
         unw_word_t offp;
         char name[102400];
         int nr=0;
