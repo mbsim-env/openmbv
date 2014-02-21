@@ -592,8 +592,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
 
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
-  if(prettyPrint)
-    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+  ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
   if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
     throw runtime_error("Serializing the document failed.");
 }
