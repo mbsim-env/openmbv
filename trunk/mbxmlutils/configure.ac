@@ -222,12 +222,13 @@ AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
     # using the octave envvar OCTAVE_HOME.
     
     DATADIR="$(eval echo $(eval echo $datadir))"
-    AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
     AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
     AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
     
 ])
+
+AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
