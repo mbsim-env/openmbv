@@ -102,24 +102,6 @@
         <xs:restriction base="integerFullOctEval"/>
       </xs:simpleType>
 
-
-
-
-      <xs:simpleType name="partialOctaveString"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
-        <xs:restriction base="xs:token"/>
-      </xs:simpleType>
-      <xs:simpleType name="name"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
-        <xs:restriction base="xs:token"/>
-      </xs:simpleType>
-      <xs:simpleType name="string"><!--MFMF change in openmbv.xsd after the branch is merged to trunk-->
-        <xs:restriction base="xs:token"/>
-      </xs:simpleType>
-      <!--MFMF more fixed (attribute types to octFullEval, ...) are needed on openmbv after merge to trunk-->
-
-
-
-
-
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
 
