@@ -34,6 +34,11 @@ AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
 dnl Check for optional boost type_trains and static_assert
 AC_CHECK_HEADERS([boost/type_traits.hpp])
 
+AC_ARG_WITH([boost-system-lib],
+  [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
+  [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
+AC_SUBST([BOOST_SYSTEM_LIB])
+
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
