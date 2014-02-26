@@ -251,7 +251,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/check/Makefile doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile doc/Makefile doc/Doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

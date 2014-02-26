@@ -12,7 +12,7 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 
-//MFMF: should also compile if casadi is not present
+//TODO: should also compile if casadi is not present
 
 using namespace std;
 using namespace xercesc;

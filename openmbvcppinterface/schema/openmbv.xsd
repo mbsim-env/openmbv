@@ -50,7 +50,7 @@
 
 
   <xs:simpleType name="objectReferenceType">
-    <xs:restriction base="pv:partialOctaveString">
+    <xs:restriction base="pv:stringPartialOctEval">
       <!-- pattern value="(\.\./)*(X/)*X" with
              X=((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)
       from physicalvariable.xsd name attribute -->
@@ -60,9 +60,9 @@
 
   <xs:element name="Object" abstract="true" type="ObjectType"/>
   <xs:complexType name="ObjectType">
-    <xs:attribute name="name" type="pv:name" use="required"/>
-    <xs:attribute name="enable" type="xs:boolean" default="true"/>
-    <xs:attribute name="boundingBox" type="xs:boolean" default="false"/>
+    <xs:attribute name="name" type="pv:stringPartialOctEval" use="required"/>
+    <xs:attribute name="enable" type="pv:booleanFullOctEval" default="true"/>
+    <xs:attribute name="boundingBox" type="pv:booleanFullOctEval" default="false"/>
   </xs:complexType> 
 
   <xs:element name="Group" substitutionGroup="Object" type="GroupType"/>
@@ -72,7 +72,7 @@
         <xs:sequence>
           <xs:element ref="Object" minOccurs="0" maxOccurs="unbounded"/>  
         </xs:sequence> 
-        <xs:attribute name="expand" type="xs:boolean" default="true"/>
+        <xs:attribute name="expand" type="pv:booleanFullOctEval" default="true"/>
         <xs:attribute ref="xml:base"/>
       </xs:extension>
     </xs:complexContent>
@@ -89,16 +89,9 @@
             </xs:complexType> 
           </xs:element>
         </xs:sequence> 
-        <xs:attribute name="outLine" type="xs:boolean" default="true"/>
-        <xs:attribute name="shilouetteEdge" type="xs:boolean" default="false"/>
-        <xs:attribute name="drawMethod" default="filled">
-          <xs:simpleType>
-            <xs:restriction base="xs:token">
-              <xs:enumeration value="filled"/>
-              <xs:enumeration value="lines"/>
-              <xs:enumeration value="points"/>
-            </xs:restriction>
-          </xs:simpleType>
+        <xs:attribute name="outLine" type="pv:booleanFullOctEval" default="true"/>
+        <xs:attribute name="shilouetteEdge" type="pv:booleanFullOctEval" default="false"/>
+        <xs:attribute name="drawMethod" type="pv:stringPartialOctEval" default="filled">
         </xs:attribute>
       </xs:extension>
     </xs:complexContent>
@@ -128,10 +121,10 @@
           <xs:element name="initialRotation" type="pv:angleVector"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
         </xs:sequence> 
-        <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
-        <xs:attribute name="referenceFrame" type="xs:boolean" default="false"/>
-        <xs:attribute name="path" type="xs:boolean" default="false"/>
-        <xs:attribute name="dragger" type="xs:boolean" default="false"/>
+        <xs:attribute name="localFrame" type="pv:booleanFullOctEval" default="false"/>
+        <xs:attribute name="referenceFrame" type="pv:booleanFullOctEval" default="false"/>
+        <xs:attribute name="path" type="pv:booleanFullOctEval" default="false"/>
+        <xs:attribute name="dragger" type="pv:booleanFullOctEval" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -192,8 +185,8 @@
         <xs:sequence>
           <xs:element name="xSize" type="pv:lengthScalar"/>
           <xs:element name="ySize" type="pv:lengthScalar"/>
-          <xs:element name="nx" type="xs:positiveInteger"/>
-          <xs:element name="ny" type="xs:positiveInteger"/>
+          <xs:element name="nx" type="pv:integerFullOctEval"/>
+          <xs:element name="ny" type="pv:integerFullOctEval"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -204,9 +197,9 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="ivFileName" type="pv:string"/>
+          <xs:element name="ivFileName" type="pv:filenamePartialOctEval"/>
           <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
-          <xs:element name="boundaryEdges" type="xs:boolean" minOccurs="0"/>
+          <xs:element name="boundaryEdges" type="pv:booleanFullOctEval" minOccurs="0"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
@@ -260,17 +253,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="windingRule">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;odd&quot;"/>
-                <xs:enumeration value="&quot;nonzero&quot;"/>
-                <xs:enumeration value="&quot;positive&quot;"/>
-                <xs:enumeration value="&quot;negative&quot;"/>
-                <xs:enumeration value="&quot;absGEqTwo&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
+          <xs:element name="windingRule" type="pv:stringFullOctEval"/>
           <xs:element name="height" type="pv:lengthScalar"/>
           <xs:element name="contour" maxOccurs="unbounded" type="pv:lengthMatrix"/>
         </xs:sequence> 
@@ -285,7 +268,7 @@
         <xs:sequence>
           <xs:element ref="RigidBody" maxOccurs="unbounded"/>
         </xs:sequence> 
-        <xs:attribute name="expand" type="xs:boolean" default="false"/>
+        <xs:attribute name="expand" type="pv:booleanFullOctEval" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -298,31 +281,11 @@
           <xs:element name="diameter" type="pv:lengthScalar"/>
           <xs:element name="headDiameter" type="pv:lengthScalar"/>
           <xs:element name="headLength" type="pv:lengthScalar"/>
-          <xs:element name="type">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;line&quot;"/>
-                <xs:enumeration value="&quot;fromHead&quot;"/>
-                <xs:enumeration value="&quot;toHead&quot;"/>
-                <xs:enumeration value="&quot;bothHeads&quot;"/>
-                <xs:enumeration value="&quot;fromDoubleHead&quot;"/>
-                <xs:enumeration value="&quot;toDoubleHead&quot;"/>
-                <xs:enumeration value="&quot;bothDoubleHeads&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
-          <xs:element name="referencePoint" minOccurs="0">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;toPoint&quot;"/>
-                <xs:enumeration value="&quot;fromPoint&quot;"/>
-                <xs:enumeration value="&quot;midPoint&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
+          <xs:element name="type" type="pv:stringFullOctEval"/>
+          <xs:element name="referencePoint" minOccurs="0" type="pv:stringFullOctEval"/>
           <xs:element name="scaleLength" type="pv:nounitScalar"/>
         </xs:sequence> 
-        <xs:attribute name="path" type="xs:boolean" default="false"/>
+        <xs:attribute name="path" type="pv:booleanFullOctEval" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -343,15 +306,7 @@
     <xs:complexContent>
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
-          <xs:element name="type" minOccurs="0">
-            <xs:simpleType>
-              <xs:restriction base="xs:token">
-                <xs:enumeration value="&quot;tube&quot;"/>
-                <xs:enumeration value="&quot;scaledTube&quot;"/>
-                <xs:enumeration value="&quot;polyline&quot;"/>
-              </xs:restriction>
-            </xs:simpleType>
-          </xs:element>
+          <xs:element name="type" minOccurs="0" type="pv:stringFullOctEval"/>
           <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
           <xs:element name="springRadius" type="pv:lengthScalar"/>
           <xs:element name="crossSectionRadius" type="pv:lengthScalar" minOccurs="0"/>
@@ -378,7 +333,7 @@
           <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
           <xs:element name="knotVecRadial" type="pv:lengthVector"/>
         </xs:sequence> 
-        <xs:attribute name="localFrame" type="xs:boolean" default="false"/>
+        <xs:attribute name="localFrame" type="pv:booleanFullOctEval" default="false"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
