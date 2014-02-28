@@ -3,7 +3,7 @@ swigdir = $(bindir)
 swig_LTLIBRARIES = OpenMBV.la
 
 CLEANFILES=OpenMBV_swig_octave.cc
-OpenMBV_swig_octave.cc: ../OpenMBV.i
+OpenMBV_swig_octave.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
 	$(swig) -octave -Werror -c++ -I../.. -o OpenMBV_swig_octave.cc ../OpenMBV.i
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc

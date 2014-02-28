@@ -3,7 +3,7 @@ swigdir = $(bindir)
 swig_LTLIBRARIES = _OpenMBV.la
 
 CLEANFILES=OpenMBV_swig_pyhton.cc OpenMBV.py
-OpenMBV_swig_pyhton.cc: ../OpenMBV.i
+OpenMBV_swig_pyhton.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
 	$(swig) -python -Werror -c++ -I../.. -o OpenMBV_swig_pyhton.cc ../OpenMBV.i
 OpenMBV.py: OpenMBV_swig_pyhton.cc
 	test ! -f $@ && (rm -f OpenMBV_swig_pyhton.cc && $(MAKE) $(AM_MAKEFLAGS) OpenMBV_swig_pyhton.cc) || :
