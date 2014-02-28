@@ -29,7 +29,6 @@ namespace OpenMBV {
   class DynamicColoredBody : public Body {
     protected:
       ScalarParameter minimalColorValue, maximalColorValue;
-      ScalarParameter staticColor;
       double dynamicColor;
       VectorParameter diffuseColor;
       ScalarParameter transparency;
@@ -56,23 +55,6 @@ namespace OpenMBV {
       }
 
       double getMaximalColorValue() { return get(maximalColorValue); }
-
-      /** Deprecated!
-       * Set a static color for the body.
-       * If this value is set, the color given to the append function
-       * (as last element of the data row) is overwritten with this value.
-       */
-      void setStaticColor(const ScalarParameter col) {
-        MBXMLUtils::Deprecated::registerMessage("setStaticColor is deprecated, use setDiffuseColor instead.");
-        set(staticColor,col);
-      }
-
-      /** Deprecated! */
-      double getStaticColor(bool internalDoNotUse=true) {
-        if(internalDoNotUse)
-          MBXMLUtils::Deprecated::registerMessage("getStaticColor is deprecated, use getDiffuseColor instead.");
-        return get(staticColor);
-      }
 
       /** Set the color for the body dynamically.
        * If this value is set, the color given to the append function

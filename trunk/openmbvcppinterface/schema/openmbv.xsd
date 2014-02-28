@@ -22,7 +22,7 @@
     <Cuboid name="Box1" enable="true">
       <minimalColorValue>0</minimalColorValue>
       <maximalColorValue>1</maximalColorValue>
-      <staticColor>nan</staticColor>
+      <diffuseColor>[0.3;1;1]</diffuseColor>
       <initialTranslation>[0;0;0]</initialTranslation>
       <initialRotation>[0;0;0]</initialRotation>
       <scaleFactor>1</scaleFactor>
@@ -31,7 +31,7 @@
     <Frame name="P1" enable="true">
       <minimalColorValue>0</minimalColorValue>
       <maximalColorValue>1</maximalColorValue>
-      <staticColor>nan</staticColor>
+      <diffuseColor>[-1;1;1]</diffuseColor>
       <initialTranslation>[0;0;0]</initialTranslation>
       <initialRotation>[0;0;0]</initialRotation>
       <scaleFactor>1</scaleFactor>
@@ -104,7 +104,6 @@
         <xs:sequence>
           <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
-          <xs:element name="staticColor" type="pv:nounitScalar" minOccurs="0"/><!-- deprecated -->
           <xs:element name="diffuseColor" type="pv:nounitVector" minOccurs="0"/>
           <xs:element name="transparency" type="pv:nounitScalar" minOccurs="0"/>
         </xs:sequence> 

@@ -33,17 +33,6 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   minimalColorValue=dcb->getMinimalColorValue();
   maximalColorValue=dcb->getMaximalColorValue();
 
-  // handle deprecated getStaticColor (can be simple removed if getStaticColor is removed)
-  double staticColor=dcb->getStaticColor(false);
-  vector<double> hsv=dcb->getDiffuseColor();
-  if(!isnan(staticColor) && hsv[0]<0) {
-    double m=1/(maximalColorValue-minimalColorValue);
-    double col=m*staticColor-m*minimalColorValue;
-    if(col<0) col=0;
-    if(col>1) col=1;
-    dcb->setDiffuseColor((1-col)*2/3, hsv[1], hsv[2]);
-  }
-
   // define a material and base color based on the xml data
   mat=new SoMaterial;
   soSep->addChild(mat);

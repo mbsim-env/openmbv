@@ -19,7 +19,7 @@ clean-local: clean-local-javasource
 .PHONY: clean-local-javasource
 clean-local-javasource:
 	rm -rf de
-OpenMBV_swig_java.cc: ../OpenMBV.i
+OpenMBV_swig_java.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
 	$(MKDIR_P) de/berlios/openmbv/OpenMBV
 	$(swig) -java -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I../.. -o OpenMBV_swig_java.cc ../OpenMBV.i
 
