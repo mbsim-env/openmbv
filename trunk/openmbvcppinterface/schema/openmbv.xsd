@@ -242,6 +242,7 @@
         <xs:sequence>
           <xs:element name="contour" type="pv:lengthMatrix"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="initialRotation" type="pv:angleVector"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
