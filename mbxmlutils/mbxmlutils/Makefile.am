@@ -1,7 +1,7 @@
 SUBDIRS = octave
 
 # distribute and install
-schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils
+schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils_physicalvariable
 xmldir = @datadir@/@PACKAGE@/xml
 dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd
 dist_xml_DATA = measurement.xml
