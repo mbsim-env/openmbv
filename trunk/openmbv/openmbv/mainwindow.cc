@@ -105,6 +105,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
 
   // initialize global frame field
   frame=(SoSFUInt32*)SoDB::createGlobalField("frame",SoSFUInt32::getClassTypeId());
+  frame->getContainer()->ref(); // reference the global field
   frame->setValue(0);
 
   // main widget

@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 
     // load global schema grammar
     cout<<"Load XML grammar for parameters."<<endl;
-    parser->loadGrammar(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils"/"physicalvariable.xsd");
+    parser->loadGrammar(SCHEMADIR/"http___openmbv_berlios_de_MBXMLUtils_physicalvariable"/"physicalvariable.xsd");
 
     // loop over all files
     while(arg.size()>0) {
