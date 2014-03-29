@@ -54,7 +54,6 @@ class Object : public QObject, public QTreeWidgetItem {
     SoTranslation *soBBoxTrans;
     SoCube *soBBox;
     std::string iconFile;
-    bool searchMatched;
     SoNodeSensor *nodeSensor;
     PropertyDialog *properties;
     Object *clone;
@@ -67,9 +66,6 @@ class Object : public QObject, public QTreeWidgetItem {
     OpenMBV::Object *getObject() { return object; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
-    void updateTextColor();
-    bool getSearchMatched() { return searchMatched; }
-    void setSearchMatched(bool m) { searchMatched=m; }
   protected slots:
     void deleteObjectSlot();
 };

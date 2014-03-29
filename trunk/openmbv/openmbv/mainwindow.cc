@@ -220,17 +220,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
-  QLabel *filterL=new QLabel("Filter:");
-  filterL->setToolTip("Filter the object list, showing only objects with object-names matching the entered regular expression.\n\nNOTE:\nIf the search string starts with ':', search objects of a type equal to the string after ':'.\nIf the search string starts with '::', search objects of a type or derived from a type equal to the string after '::'.");
-  filterL->setStatusTip(filterL->toolTip());
-  objectListLO->addWidget(filterL, 0,0);
-  filter=new QLineEdit;
-  filter->setToolTip(filterL->toolTip());
-  filter->setStatusTip(filterL->toolTip());
-  objectListLO->addWidget(filter, 0,1);
-  connect(filter,SIGNAL(returnPressed()),this,SLOT(filterObjectList()));
-  objectList = new QTreeWidget(objectListDW);
-  objectListLO->addWidget(objectList, 1,0,1,2);
+  objectList = new FilteredTreeWidget(objectListDW, "OpenMBVGUI::");
+  objectListLO->addWidget(objectList->getFilterWidget(), 0,0);
+  objectListLO->addWidget(objectList, 1,0);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
@@ -890,7 +882,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   // force a update
   frame->touch();
   // apply object filter
-  if(filter->text()!="") filterObjectList();
+  objectList->updateFilter();
 
   return true;
 }
@@ -1862,48 +1854,6 @@ void MainWindow::shadowRenderingSlot() {
     sceneRoot->isActive.setValue(false);
   else
     sceneRoot->isActive.setValue(true);
-}
-
-bool MainWindow::objectMatchesFilter(const QRegExp& filterRegExp, Object *item) {
-  if(filterRegExp.pattern().startsWith("::"))
-    return item->inherits(filterRegExp.pattern().mid(2).toStdString().c_str());
-  else if(filterRegExp.pattern().startsWith(":"))
-    return QString(item->metaObject()->className()).replace("OpenMBVGUI::", "")==filterRegExp.pattern().mid(1);
-  else
-    return filterRegExp.indexIn(item->text(0))>=0;
-}
-// MainWindow::filterObjectList(...) and MainWindow::searchObjectList(...) are also used in h5plotserie.
-// If changes are made here, please do the same changes in HDF5Serie, h5plotserie
-void MainWindow::filterObjectList() {
-  QRegExp filterRegExp(filter->text());
-  searchObjectList((Object*)objectList->invisibleRootItem(), filterRegExp);
-}
-void MainWindow::searchObjectList(Object *item, const QRegExp& filterRegExp) {
-  for(int i=0; i<item->childCount(); i++) {
-    // search recursive
-    searchObjectList((Object*)item->child(i), filterRegExp);
-    // set color
-    ((Object*)item->child(i))->setSearchMatched(objectMatchesFilter(filterRegExp,(Object*)item->child(i)));
-    ((Object*)item->child(i))->updateTextColor();
-    // if all children and children children are red, collapse
-    int count=0;
-    for(int j=0; j<item->child(i)->childCount(); j++)
-      if((item->child(i)->child(j)->childCount()!=0 && !(((Object*)(item->child(i)->child(j)))->getSearchMatched()) && 
-          item->child(i)->child(j)->isExpanded()==false) ||
-         (item->child(i)->child(j)->childCount()==0 && !(((Object*)(item->child(i)->child(j)))->getSearchMatched())))
-        count++;
-    item->child(i)->setExpanded(count!=item->child(i)->childCount());
-    // hide
-    item->child(i)->setHidden(false);
-    if((item->child(i)->childCount()!=0 && !(((Object*)(item->child(i)))->getSearchMatched()) && 
-        item->child(i)->isExpanded()==false) ||
-       (item->child(i)->childCount()==0 && !(((Object*)(item->child(i)))->getSearchMatched()))) {
-      bool hide=true;
-      for(QTreeWidgetItem *it=item; it!=0; it=it->parent())
-        if(objectMatchesFilter(filterRegExp,(Object*)it)) { hide=false; break; }
-      item->child(i)->setHidden(hide);
-    }
-  }
 }
 
 void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge) {
