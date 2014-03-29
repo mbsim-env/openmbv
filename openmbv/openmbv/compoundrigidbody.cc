@@ -97,7 +97,7 @@ void CompoundRigidBody::newRigidBodySlot() {
   ObjectFactory(obj, this, soSep, -1);
 
   // apply object filter
-  MainWindow::getInstance()->searchObjectList(this, QRegExp(MainWindow::getInstance()->filter->text()));
+  MainWindow::getInstance()->objectList->updateFilter();
 }
 
 double CompoundRigidBody::update() {

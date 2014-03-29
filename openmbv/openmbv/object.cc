@@ -36,7 +36,7 @@ namespace OpenMBVGUI {
 
 set<Object*> Object::objects;
 
-Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true), searchMatched(true) {
+Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true) {
   object=obj;
   objects.insert(this);
   // parent item
@@ -47,11 +47,15 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   setFlags(flags() | Qt::ItemIsEditable);
 
   // enable or disable
-  if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath))
+  QPalette palette;
+  if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
     drawThisPath=true;
-  else
+    setDisabled(false);
+  }
+  else {
     drawThisPath=false;
-  updateTextColor();
+    setDisabled(true);
+  }
   
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
@@ -156,20 +160,6 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     object->soBBox->depth.setValue((z2-z1)*1.05);
     object->soBBoxTrans->translation.setValue((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
   }
-}
-
-void Object::updateTextColor() {
-  QPalette palette;
-  if(drawThisPath) // active
-    if(searchMatched)
-      setForeground(0, palette.brush(QPalette::Active, QPalette::Text));
-    else
-      setForeground(0, QBrush(QColor(255,0,0)));
-  else // inactive
-    if(searchMatched)
-      setForeground(0, palette.brush(QPalette::Disabled, QPalette::Text));
-    else
-      setForeground(0, QBrush(QColor(128,0,0)));
 }
 
 Object *Object::getClone() {

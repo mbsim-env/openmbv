@@ -47,6 +47,7 @@ libopenmbv_la_SOURCES = \
   nurbsdisk.cc \
   editors.cc \
   IndexedTesselationFace.cc \
+  filteredtreewidget.cc \
   QTripleSlider.cc
 
 nodist_libopenmbv_la_SOURCES=$(QT_BUILT_SOURCES)
@@ -78,6 +79,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   group.moc.cc\
   body.moc.cc\
   dynamiccoloredbody.moc.cc \
+  filteredtreewidget.moc.cc \
   QTripleSlider.moc.cc
 
 
@@ -122,6 +124,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   nurbsdisk.h \
   editors.h \
   IndexedTesselationFace.h \
+  filteredtreewidget.h \
   QTripleSlider.h
 noinst_HEADERS = openmbv.qrc
 

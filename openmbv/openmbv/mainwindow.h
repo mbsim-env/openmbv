@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_MAINWINDOW_H_
 #define _OPENMBVGUI_MAINWINDOW_H_
 
+#include "filteredtreewidget.h"
 #include <QtGui/QMainWindow>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QTextEdit>
@@ -90,7 +91,7 @@ class MainWindow : public QMainWindow {
     SoFieldSensor *frameSensor;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
-    QTreeWidget *objectList;
+    FilteredTreeWidget *objectList;
     QTextEdit *objectInfo;
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
     SoQtMyViewer *glViewer;
@@ -117,10 +118,8 @@ class MainWindow : public QMainWindow {
     QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);
-    QLineEdit *filter;
     static void toggleAction(Object *current, QAction *currentAct);
     void execPropertyMenu();
-    static bool objectMatchesFilter(const QRegExp& filterRegExp, Object *item);
     static void disableBBox(Object *obj);
     static void enableBBoxOfID(Object *obj, const std::string &ID);
   protected slots:
@@ -190,8 +189,6 @@ class MainWindow : public QMainWindow {
     void toggleFrameSliderSlot();
     void toggleFullScreenSlot();
     void toggleDecorationSlot();
-    void filterObjectList();
-    void searchObjectList(Object *item, const QRegExp&);
     void collapseItem(QTreeWidgetItem* item);
     void expandItem(QTreeWidgetItem* item);
 
