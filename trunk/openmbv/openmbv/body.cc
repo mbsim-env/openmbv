@@ -228,7 +228,7 @@ void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
   }
   { // THREAD THIS OUT in further development: preproces and edge calculation
     if(preproces)
-      me->edgeCalc->preproces(false); // preproces
+      me->edgeCalc->preproces(me->object->getFullName(), false); // preproces
     if(shilouetteCalc)
       me->edgeCalc->calcShilouetteEdges(n); // calc shilouette edges for normal n
   }

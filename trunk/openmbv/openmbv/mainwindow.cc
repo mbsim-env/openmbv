@@ -82,6 +82,10 @@ enum Mode { no, rotate, translate, zoom };
 
 MainWindow *MainWindow::instance=0;
 
+QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
+  return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
+}
+
 MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) { cerr<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
   instance=this;
@@ -220,8 +224,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
-  objectList = new FilteredTreeWidget(objectListDW, 0, -1, "OpenMBVGUI::");
-  objectListLO->addWidget(objectList->getFilterWidget(), 0,0);
+  objectList = new QTreeWidget(objectListDW);
+  objectListFilter=new AbstractViewFilter(objectList, 0, -1, "OpenMBVGUI::", &qTreeWidgetItemToQObject);
+  objectListLO->addWidget(objectListFilter, 0,0);
   objectListLO->addWidget(objectList, 1,0);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -882,7 +887,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   // force a update
   frame->touch();
   // apply object filter
-  objectList->applyFilter();
+  objectListFilter->applyFilter();
 
   return true;
 }

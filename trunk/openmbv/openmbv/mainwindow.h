@@ -20,7 +20,7 @@
 #ifndef _OPENMBVGUI_MAINWINDOW_H_
 #define _OPENMBVGUI_MAINWINDOW_H_
 
-#include "filteredtreewidget.h"
+#include "abstractviewfilter.h"
 #include <QtGui/QMainWindow>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QTextEdit>
@@ -91,7 +91,8 @@ class MainWindow : public QMainWindow {
     SoFieldSensor *frameSensor;
   protected:
     SoSepNoPickNoBBox *sceneRootBBox;
-    FilteredTreeWidget *objectList;
+    QTreeWidget *objectList;
+    AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
     SoQtMyViewer *glViewer;
