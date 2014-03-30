@@ -27,13 +27,17 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-FilteredTreeWidget::FilteredTreeWidget(QWidget *parent, const QString &typePrefix_, int nameCol_, int typeCol_) : QTreeWidget(parent), typePrefix(typePrefix_), nameCol(nameCol_), typeCol(typeCol_) {
+FilteredTreeWidget::FilteredTreeWidget(QWidget *parent, int nameCol_, int typeCol_, const QString &typePrefix_) : QTreeWidget(parent), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_) {
   QGridLayout *layout=new QGridLayout(this);
   layout->setContentsMargins(0,0,0,0);
   widget=new QWidget(this);
   widget->setLayout(layout);
   QLabel *filterL=new QLabel("Filter:");
-  if(typeCol<0) {
+  if(typeCol==-2) {
+    filterL->setToolTip(tr("Filter the tree view, by applying the given regular expression on the item names (col. %1).").arg(nameCol));
+    filterL->setStatusTip("Filter name by <regex>");
+  }
+  else if(typeCol==-1) {
     filterL->setToolTip(tr("Filter the tree view, by applying the given regular expression on the item names (col. %1),\n"
                            "or\n"
                            "when the filter starts with : by the given type of the items or,\n"
@@ -51,15 +55,15 @@ FilteredTreeWidget::FilteredTreeWidget(QWidget *parent, const QString &typePrefi
   filterLE->setToolTip(filterL->toolTip());
   filterLE->setStatusTip(filterL->statusTip());
   layout->addWidget(filterLE, 0, 1);
-  connect(filterLE, SIGNAL(returnPressed()), this, SLOT(updateFilter()));
+  connect(filterLE, SIGNAL(returnPressed()), this, SLOT(applyFilter()));
 }
 
 void FilteredTreeWidget::setFilter(const QString &filter) {
   filterLE->setText(filter);
-  updateFilter();
+  applyFilter();
 }
 
-void FilteredTreeWidget::updateFilter() {
+void FilteredTreeWidget::applyFilter() {
   QRegExp filter(filterLE->text());
   match.clear();
   updateMatch(invisibleRootItem(), filter);
@@ -76,15 +80,18 @@ void FilteredTreeWidget::updateMatch(QTreeWidgetItem *item, const QRegExp &filte
 
   Match &m=match[item];
   // check for matching items
-  if(filter.pattern().startsWith("::")) { // starting with :: => inherited type search
-    if(typeCol<0) { // no column defined for type name => use the c++/qt-metaobject type of item
+  if(typeCol==-2) {
+    // regex search on string on column nameCol
+    if(filter.indexIn(item->text(nameCol))>=0)
+      m.me=true;
+  }
+  else if(typeCol==-1) {
+    if(filter.pattern().startsWith("::")) { // starting with :: => inherited type search
       QObject *obj=dynamic_cast<QObject*>(item);
       if(obj && obj->inherits((typePrefix+filter.pattern().mid(2)).toStdString().c_str()))
         m.me=true;
     }
-  }
-  else if(filter.pattern().startsWith(":")) { // starting with : => direct type search
-    if(typeCol<0) { // no column devined for type name => use the c++/qt-metaobject type of item
+    else if(filter.pattern().startsWith(":")) { // starting with : => direct type search
       QObject *obj=dynamic_cast<QObject*>(item);
       if(obj) {
         QString str=obj->metaObject()->className();
@@ -93,11 +100,22 @@ void FilteredTreeWidget::updateMatch(QTreeWidgetItem *item, const QRegExp &filte
           m.me=true;
       }
     }
+    else { // not starting with : or :: => regex search on the string of column nameCol
+      if(filter.indexIn(item->text(nameCol))>=0)
+        m.me=true;
+    }
   }
-  else { // not starting with : or :: => regex search on the string of column nameCol
-    if(filter.indexIn(item->text(nameCol))>=0)
-      m.me=true;
+  else {
+    if(filter.pattern().startsWith(":")) { // starting with : => direct type search
+      if(typePrefix+filter.pattern().mid(1)==item->text(typeCol))
+        m.me=true;
+    }
+    else { // not starting with : or :: => regex search on the string of column nameCol
+      if(filter.indexIn(item->text(nameCol))>=0)
+        m.me=true;
+    }
   }
+
   if(m.me) {
     setChildMatchOfParent(item);
     setParentMatchOfChild(item);

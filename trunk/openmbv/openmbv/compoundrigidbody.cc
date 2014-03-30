@@ -97,7 +97,7 @@ void CompoundRigidBody::newRigidBodySlot() {
   ObjectFactory(obj, this, soSep, -1);
 
   // apply object filter
-  MainWindow::getInstance()->objectList->updateFilter();
+  MainWindow::getInstance()->objectList->applyFilter();
 }
 
 double CompoundRigidBody::update() {
