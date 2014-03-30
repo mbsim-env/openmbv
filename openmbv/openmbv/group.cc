@@ -150,7 +150,7 @@ void Group::newObjectSlot() {
   ObjectFactory(obj, this, soSep, -1);
 
   // apply object filter
-  MainWindow::getInstance()->objectList->applyFilter();
+  MainWindow::getInstance()->objectListFilter->applyFilter();
 }
 
 void Group::saveFileSlot() {

@@ -203,7 +203,7 @@ void Editor::replaceObject() {
   // update the scene
   MainWindow::getInstance()->frame->touch();
   // apply object filter
-  MainWindow::getInstance()->objectList->applyFilter();
+  MainWindow::getInstance()->objectListFilter->applyFilter();
 }
 
 
