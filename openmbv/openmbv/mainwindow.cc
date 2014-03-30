@@ -220,7 +220,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
-  objectList = new FilteredTreeWidget(objectListDW, "OpenMBVGUI::");
+  objectList = new FilteredTreeWidget(objectListDW, 0, -1, "OpenMBVGUI::");
   objectListLO->addWidget(objectList->getFilterWidget(), 0,0);
   objectListLO->addWidget(objectList, 1,0);
   objectList->setHeaderHidden(true);
@@ -882,7 +882,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   // force a update
   frame->touch();
   // apply object filter
-  objectList->updateFilter();
+  objectList->applyFilter();
 
   return true;
 }
