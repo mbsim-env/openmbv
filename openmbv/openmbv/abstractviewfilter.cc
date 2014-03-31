@@ -79,56 +79,55 @@ void AbstractViewFilter::applyFilter() {
 }
 
 void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &filter) {
-  // recursively walk the view
-  for(int i=0; i<view->model()->rowCount(index); i++)
-    updateMatch(view->model()->index(i, nameCol, index), filter);
-  // do nothing but walking the view for the invisibleRootItem element
-  if(index==view->rootIndex())
-    return;
-
-  Match &m=match[index];
-  // check for matching items
-  if(typeCol==-2) {
-    // regex search on string on column nameCol
-    if(filter.indexIn(view->model()->data(index, Qt::EditRole).value<QString>())>=0)
-      m.me=true;
-  }
-  else if(typeCol==-1) {
-    if(filter.pattern().startsWith("::")) { // starting with :: => inherited type search
-      QObject *obj=indexToQObject(index);
-      if(obj && obj->inherits((typePrefix+filter.pattern().mid(2)).toStdString().c_str()))
+  // do not update the root index
+  if(index!=view->rootIndex()) {
+    Match &m=match[index];
+    // check for matching items
+    if(typeCol==-2) {
+      // regex search on string on column nameCol
+      if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
         m.me=true;
     }
-    else if(filter.pattern().startsWith(":")) { // starting with : => direct type search
-      QObject *obj=indexToQObject(index);
-      if(obj) {
-        QString str=obj->metaObject()->className();
-        str=str.replace(typePrefix, "");
-        if(str==filter.pattern().mid(1))
+    else if(typeCol==-1) {
+      if(filter.pattern().startsWith("::")) { // starting with :: => inherited type search
+        QObject *obj=indexToQObject(index);
+        if(obj && obj->inherits((typePrefix+filter.pattern().mid(2)).toStdString().c_str()))
+          m.me=true;
+      }
+      else if(filter.pattern().startsWith(":")) { // starting with : => direct type search
+        QObject *obj=indexToQObject(index);
+        if(obj) {
+          QString str=obj->metaObject()->className();
+          str=str.replace(typePrefix, "");
+          if(str==filter.pattern().mid(1))
+            m.me=true;
+        }
+      }
+      else { // not starting with : or :: => regex search on the string of column nameCol
+        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
     }
-    else { // not starting with : or :: => regex search on the string of column nameCol
-      if(filter.indexIn(view->model()->data(index, Qt::EditRole).value<QString>())>=0)
-        m.me=true;
+    else {
+      if(filter.pattern().startsWith(":")) { // starting with : => direct type search
+        const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
+        if(typePrefix+filter.pattern().mid(1)==view->model()->data(colIndex, Qt::DisplayRole).value<QString>())
+          m.me=true;
+      }
+      else { // not starting with : or :: => regex search on the string of column nameCol
+        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
+          m.me=true;
+      }
+    }
+    
+    if(m.me) {
+      setChildMatchOfParent(index);
+      setParentMatchOfChild(index);
     }
   }
-  else {
-    if(filter.pattern().startsWith(":")) { // starting with : => direct type search
-      const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-      if(typePrefix+filter.pattern().mid(1)==view->model()->data(colIndex, Qt::EditRole).value<QString>())
-        m.me=true;
-    }
-    else { // not starting with : or :: => regex search on the string of column nameCol
-      if(filter.indexIn(view->model()->data(index, Qt::EditRole).value<QString>())>=0)
-        m.me=true;
-    }
-  }
-  
-  if(m.me) {
-    setChildMatchOfParent(index);
-    setParentMatchOfChild(index);
-  }
+  // recursively walk the view
+  for(int i=0; i<view->model()->rowCount(index); i++)
+    updateMatch(view->model()->index(i, nameCol, index), filter);
 }
 
 void AbstractViewFilter::setChildMatchOfParent(const QModelIndex &index) {
@@ -150,40 +149,35 @@ void AbstractViewFilter::setParentMatchOfChild(const QModelIndex &index) {
 }
 
 void AbstractViewFilter::updateView(const QModelIndex &index) {
+  // do not update the root index
+  if(index!=view->rootIndex()) {
+    Match &m=match[index];
+    // set hidden (skip further walking of the tree if hidden)
+    if(setRowHidden3(qobject_cast<QTreeView*>(view), m, index)) return;
+    if(setRowHidden2(qobject_cast<QListView*>(view), m, index)) return;
+    if(setRowHidden2(qobject_cast<QTableView*>(view), m, index)) return;
+    // set the color of the column nameCol
+    QPalette palette;
+    if(m.me) {
+      if(view->model()->flags(index).testFlag(Qt::ItemIsEnabled))
+        view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
+      else
+        view->model()->setData(index, palette.brush(QPalette::Disabled, QPalette::Text), Qt::ForegroundRole);
+    }
+    else {
+      if(view->model()->flags(index).testFlag(Qt::ItemIsEnabled))
+        view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
+      else
+        view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
+    }
+    // set expanded
+    QTreeView *tree=qobject_cast<QTreeView*>(view);
+    if(tree)
+      tree->setExpanded(index, m.child);
+  }
   // recursively walk the view
   for(int i=0; i<view->model()->rowCount(index); i++)
     updateView(view->model()->index(i, nameCol, index));
-  // do nothing but walking the view for the invisibleRootItem element
-  if(index==view->rootIndex())
-    return;
-
-  Match &m=match[index];
-  // set hidden
-  if(setRowHidden3(qobject_cast<QTreeView*>(view), m, index)) return;
-  if(setRowHidden2(qobject_cast<QListView*>(view), m, index)) return;
-  if(setRowHidden2(qobject_cast<QTableView*>(view), m, index)) return;
-  // set the color of the column nameCol
-  QPalette palette;
-  if(m.me) {
-    if((view->model()->flags(index) & Qt::ItemIsEnabled) > 0)
-      view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
-    else
-      view->model()->setData(index, palette.brush(QPalette::Disabled, QPalette::Text), Qt::ForegroundRole);
-  }
-  else {
-    if((view->model()->flags(index) & Qt::ItemIsEnabled) > 0)
-      view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
-    else
-      view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
-  }
-  // set expanded
-  QTreeView *tree=qobject_cast<QTreeView*>(view);
-  if(tree) {
-    if(m.child)
-      tree->setExpanded(index, true);
-    else
-      tree->setExpanded(index, false);
-  }
 }
 
 }
