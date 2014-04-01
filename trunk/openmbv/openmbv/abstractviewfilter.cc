@@ -57,7 +57,7 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   filterLE->setToolTip(filterL->toolTip());
   filterLE->setStatusTip(filterL->statusTip());
   layout->addWidget(filterLE, 0, 1);
-  connect(filterLE, SIGNAL(returnPressed()), this, SLOT(applyFilter()));
+  connect(filterLE, SIGNAL(textEdited(const QString&)), this, SLOT(applyFilter()));
 }
 
 void AbstractViewFilter::setFilter(const QString &filter) {
