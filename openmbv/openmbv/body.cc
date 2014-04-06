@@ -170,7 +170,7 @@ void Body::frameSensorCB(void *data, SoSensor*) {
   Body* me=(Body*)data;
   static double time=0;
   double newTime=time;
-  if(me->drawThisPath) 
+  if(me->drawThisPath)
     newTime=me->update();
   if(newTime!=time) { // only on first time change
     time=newTime;

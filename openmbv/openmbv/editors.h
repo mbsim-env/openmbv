@@ -43,6 +43,7 @@
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <cmath>
+#include <queue>
 
 namespace OpenMBVGUI {
 
@@ -92,6 +93,8 @@ class Editor : public QWidget {
   protected:
     PropertyDialog *dialog;
     void replaceObject();
+    static void getSelAndCur(QTreeWidgetItem *item, std::queue<bool> &sel, std::queue<bool> &cur);
+    static void setSelAndCur(QTreeWidgetItem *item, std::queue<bool> &sel, std::queue<bool> &cur);
 };
 
 
