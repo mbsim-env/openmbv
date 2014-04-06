@@ -435,6 +435,15 @@ octave_value OctEval::stringToOctValue(const string &str, const DOMElement *e, b
 }
 
 octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *e) const {
+  // check some common string to avoid time consiming evaluation
+  // check true and false
+  if(str=="true") return 1;
+  if(str=="false") return 0;
+  // check for floating point values
+  try { return boost::lexical_cast<double>(str); }
+  catch(const boost::bad_lexical_cast &) {}
+  // no common string detected -> evaluate using octave now
+
   // restore current dir on exit and change current dir
   PreserveCurrentDir preserveDir;
   if(e) {
@@ -856,15 +865,24 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 }
 
 octave_value OctEval::handleUnit(const xercesc::DOMElement *e, const octave_value &ret) {
-  if(!E(e)->getAttribute("unit").empty() || !E(e)->getAttribute("convertUnit").empty()) {
-    NewParamLevel newParamLevel(*this, true);
-    addParam("value", ret);
-    if(!E(e)->getAttribute("unit").empty()) // convert with predefined unit
-      return stringToOctValue(units[E(e)->getAttribute("unit")], e);
-    if(!E(e)->getAttribute("convertUnit").empty()) // convert with user defined unit
-      return stringToOctValue(E(e)->getAttribute("convertUnit"), e);
+  string eqn;
+  string unit=E(e)->getAttribute("unit");
+  if(!unit.empty())
+    eqn=units[unit];
+  else {
+    string convertUnit=E(e)->getAttribute("convertUnit");
+    if(!convertUnit.empty())
+      eqn=convertUnit;
+    else
+      return ret;
   }
-  return ret;
+  // handle common unit conversions very fast (without octave evaluation)
+  if(eqn=="value")
+    return ret;
+  // all other conversion must be processed using octave
+  NewParamLevel newParamLevel(*this, true);
+  addParam("value", ret);
+  return stringToOctValue(eqn, e);
 }
 
 } // end namespace MBXMLUtils
