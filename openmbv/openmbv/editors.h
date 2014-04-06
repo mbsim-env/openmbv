@@ -107,7 +107,8 @@ class BoolEditor : public Editor {
 
   public:
     /*! Constructor. */
-    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName);
+    BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName,
+               bool replaceObjOnChange_=true);
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
@@ -116,6 +117,9 @@ class BoolEditor : public Editor {
 
     /* return this boolean Editor as an checkable action */
     QAction *getAction() { return action; }
+
+  signals:
+    void stateChanged(bool state);
 
   protected slots:
     void valueChangedSlot(int);
@@ -126,6 +130,7 @@ class BoolEditor : public Editor {
     boost::function<bool ()> ombvGetter;
     boost::function<void (bool)> ombvSetter;
     QAction *action;
+    bool replaceObjOnChange;
 };
 
 
@@ -400,6 +405,7 @@ class TransRotEditor : public Editor {
     /*! Constructor.
      * soTranslation_ and soRotation_ is syncronized with this Editor */
     TransRotEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
+    ~TransRotEditor();
 
     void setGroupMembers(SoGroup *grp);
 

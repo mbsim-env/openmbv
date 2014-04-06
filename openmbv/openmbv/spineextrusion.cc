@@ -154,6 +154,10 @@ SpineExtrusion::SpineExtrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem
     rotation->rotation.getValue().getValue(Orientation);
     additionalTwist = acos(Orientation[2][2]);
   }
+}
+
+void SpineExtrusion::createProperties() {
+  DynamicColoredBody::createProperties();
 
   if(!clone) {
     properties->updateHeader();

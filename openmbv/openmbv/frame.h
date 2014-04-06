@@ -23,12 +23,19 @@
 #include "rigidbody.h"
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Frame;
+}
+
 namespace OpenMBVGUI {
 
 class Frame : public RigidBody {
   Q_OBJECT
   public:
     Frame(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Frame *f;
+    void createProperties();
 };
 
 }

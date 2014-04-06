@@ -36,7 +36,8 @@ namespace OpenMBVGUI {
 
 set<Object*> Object::objects;
 
-Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true) {
+Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
+               properties(NULL), clone(NULL) {
   object=obj;
   objects.insert(this);
   // parent item
@@ -90,27 +91,10 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   setText(0, obj->getName().c_str());
 
   clone=getClone();
-  if(!clone)
-    properties=new PropertyDialog(this);
-  else {
+
+  if(clone && clone->properties) {
     properties=clone->properties;
     properties->setParentObject(this);
-  }
-
-  //GUI editors
-  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", this);
-  deleteObject->setObjectName("Group::deleteObject");
-  connect(deleteObject,SIGNAL(triggered()),this,SLOT(deleteObjectSlot()));
-  properties->addContextAction(deleteObject);
-
-  if(!clone) {
-    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw");
-    enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
-    properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
-
-    BoolEditor *boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::boundingBox");
-    boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
-    properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
   }
 }
 
@@ -133,6 +117,33 @@ Object::~Object() {
   if(!getClone())
     delete properties;
   objects.erase(this);
+}
+
+PropertyDialog *Object::getProperties() {
+  if(!properties)
+    createProperties();
+  return properties;
+}
+
+void Object::createProperties() {
+  properties=new PropertyDialog(this);
+
+  //GUI editors
+  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", this);
+  deleteObject->setObjectName("Group::deleteObject");
+  connect(deleteObject,SIGNAL(triggered()),this,SLOT(deleteObjectSlot()));
+  properties->addContextAction(deleteObject);
+
+  if(!clone) {
+    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw");
+    enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
+    properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
+
+    boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::boundingBox", false);
+    boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
+    properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
+    connect(boundingBoxEditor, SIGNAL(stateChanged(bool)), this, SLOT(setBoundingBox(bool)));
+  }
 }
 
 QString Object::getInfo() {
@@ -176,6 +187,24 @@ void Object::deleteObjectSlot() {
   delete this; // from now no element should be accessed thats why we have saveed the obj member
   // if obj has a parent, remove obj from parent and delete obj
   objPtr->destroy(); // this does not use any member of Object, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
+}
+
+bool Object::getBoundingBox() {
+  return object->getBoundingBox();
+}
+
+void Object::setBoundingBox(bool value) {
+  soBBoxSwitch->whichChild.setValue(value?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  if(properties) {
+    boundingBoxEditor->blockSignals(true);
+    boundingBoxEditor->getAction()->setChecked(value);
+    boundingBoxEditor->blockSignals(false);
+  }
+  else
+    object->setBoundingBox(value);
+  // update if true
+  if(value)
+    nodeSensorCB(this, NULL);
 }
 
 }

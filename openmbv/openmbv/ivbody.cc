@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind), calculateEdgesThread(this) {
-  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)obj;
+  ivb=(OpenMBV::IvBody*)obj;
   iconFile="ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
   edgeCalc=NULL;
@@ -83,6 +83,10 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   connect(this, SIGNAL(statusBarShowMessage(const QString &, int)),
           MainWindow::getInstance()->statusBar(), SLOT(showMessage(const QString &, int)));
+}
+
+void IvBody::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

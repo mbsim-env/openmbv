@@ -23,12 +23,19 @@
 #include "rigidbody.h"
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Grid;
+}
+
 namespace OpenMBVGUI {
 
 class Grid : public RigidBody {
   Q_OBJECT
   public:
     Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Grid *g;
+    void createProperties();
 };
 
 }

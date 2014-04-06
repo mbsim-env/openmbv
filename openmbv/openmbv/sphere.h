@@ -24,12 +24,19 @@
 #include <string>
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Sphere;
+}
+
 namespace OpenMBVGUI {
 
 class Sphere : public RigidBody {
   Q_OBJECT
   public:
     Sphere(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Sphere *s;
+    void createProperties();
 };
 
 }

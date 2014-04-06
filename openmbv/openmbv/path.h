@@ -40,6 +40,7 @@ class Path : public Body {
     SoLineSet *line;
     int maxFrameRead;
     OpenMBV::Path *path;
+    void createProperties();
   public:
     Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

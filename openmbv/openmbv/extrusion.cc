@@ -36,7 +36,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Extrusion *e=(OpenMBV::Extrusion*)obj;
+  e=(OpenMBV::Extrusion*)obj;
   iconFile="extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -182,7 +182,11 @@ Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
     soSepRigidBody->addChild(soTess);
   }
   // scale ref/localFrame
+}
  
+void Extrusion::createProperties() {
+  RigidBody::createProperties();
+
   // GUI editors
   if(!clone) {
     properties->updateHeader();

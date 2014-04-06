@@ -36,7 +36,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Frustum *f=(OpenMBV::Frustum*)obj;
+  f=(OpenMBV::Frustum*)obj;
   iconFile="frustum.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -201,6 +201,10 @@ Frustum::Frustum(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soP
   }
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(outLine);
+}
+
+void Frustum::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

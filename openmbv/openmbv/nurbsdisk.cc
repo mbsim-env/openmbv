@@ -174,9 +174,13 @@ NurbsDisk::NurbsDisk(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup 
   soLocalFrameSwitch->addChild(Utils::soFrame(1,1,false,localFrameScale));
   localFrameScale->ref();
   soLocalFrameSwitch->whichChild.setValue(nurbsDisk->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+}
+
+void NurbsDisk::createProperties() {
+  DynamicColoredBody::createProperties();
 
   //Add option to move camera with body
-  moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
+  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   properties->addContextAction(moveCameraWith);
 

@@ -49,6 +49,10 @@ Path::Path(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   line=new SoLineSet;
   soSep->addChild(line);
   maxFrameRead=-1;
+}
+
+void Path::createProperties() {
+  Body::createProperties();
 
   // GUI editors
   if(!clone) {

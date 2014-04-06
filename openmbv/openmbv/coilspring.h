@@ -90,6 +90,7 @@ class CoilSpring : public DynamicColoredBody {
     virtual double update();
 
     OpenMBV::CoilSpring *coilSpring;
+    void createProperties();
 };
 
 }

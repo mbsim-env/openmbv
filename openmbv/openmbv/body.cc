@@ -116,27 +116,6 @@ Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
     shilouetteEdgeFrameSensor->detach();
     shilouetteEdgeOrientationSensor->detach();
   }
-
-  // GUI editors
-  if(!clone) {
-    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outline");
-    outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
-    properties->addPropertyAction(outLineEditor->getAction());
-
-    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
-    shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
-    properties->addPropertyAction(shilouetteEdgeEditor->getAction());
-
-    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style",
-      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled")
-                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines")
-                                  (OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
-    );
-    drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
-    properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
-
-    // MISSING: hdf5link
-  }
 }
 
 Body::~Body() {
@@ -164,6 +143,31 @@ Body::~Body() {
   // the last Body should reset timeSlider maximum to 0
   if(bodyMap.size()==0)
     MainWindow::getInstance()->timeSlider->setTotalMaximum(0);
+}
+
+void Body::createProperties() {
+  Object::createProperties();
+
+  // GUI editors
+  if(!clone) {
+    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outline");
+    outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
+    properties->addPropertyAction(outLineEditor->getAction());
+
+    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
+    shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
+    properties->addPropertyAction(shilouetteEdgeEditor->getAction());
+
+    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style",
+      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled")
+                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines")
+                                  (OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
+    );
+    drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
+    properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
+
+    // MISSING: hdf5link
+  }
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {

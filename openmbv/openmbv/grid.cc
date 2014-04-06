@@ -30,7 +30,7 @@
 namespace OpenMBVGUI {
 
 Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Grid *g=(OpenMBV::Grid*)obj;
+  g=(OpenMBV::Grid*)obj;
   iconFile="grid.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -67,6 +67,10 @@ Grid::Grid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
 
   // create so
   soSepRigidBody->addChild(sep);
+}
+
+void Grid::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

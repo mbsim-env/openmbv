@@ -24,12 +24,19 @@
 #include <string>
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Frustum;
+}
+
 namespace OpenMBVGUI {
 
 class Frustum : public RigidBody {
   Q_OBJECT
   public:
     Frustum(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Frustum *f;
+    void createProperties();
 };
 
 }

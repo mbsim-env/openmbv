@@ -24,12 +24,19 @@
 #include <string>
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Cube;
+}
+
 namespace OpenMBVGUI {
 
 class Cube : public RigidBody {
   Q_OBJECT
   public:
     Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Cube *c;
+    void createProperties();
 };
 
 }

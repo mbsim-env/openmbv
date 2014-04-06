@@ -65,7 +65,6 @@ class NurbsDisk : public DynamicColoredBody {
     virtual QString getInfo();
 
   protected:
-    QAction *moveCameraWith;
     SoSwitch *soLocalFrameSwitch;
     SoScale *localFrameScale;
     SoSeparator *soSepNurbsDisk;
@@ -113,6 +112,7 @@ class NurbsDisk : public DynamicColoredBody {
     virtual double update();
 
     OpenMBV::NurbsDisk *nurbsDisk;
+    void createProperties();
 
     public slots:
       void moveCameraWithSlot();

@@ -68,6 +68,7 @@ class SpineExtrusion : public DynamicColoredBody {
     double additionalTwist;
 
     OpenMBV::SpineExtrusion *spineExtrusion;
+    void createProperties();
 };
 
 }

@@ -186,7 +186,11 @@ Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
       soOutLineSep->addChild(cylOL2);
     }
   }
+}
  
+void Arrow::createProperties() {
+  DynamicColoredBody::createProperties();
+
   // GUI
   if(!clone) {
     properties->updateHeader();
