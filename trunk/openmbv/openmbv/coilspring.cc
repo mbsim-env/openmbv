@@ -150,6 +150,10 @@ CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGrou
       break;
     }
   }
+}
+
+void CoilSpring::createProperties() {
+  DynamicColoredBody::createProperties();
 
   // GUI editors
   if(!clone) {

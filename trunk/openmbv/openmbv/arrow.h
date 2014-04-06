@@ -52,6 +52,7 @@ class Arrow : public DynamicColoredBody {
     double headLength;
     std::vector<double> data;
     double length, scaleLength;
+    void createProperties();
   public:
     Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

@@ -28,7 +28,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(nan("")) {
-  OpenMBV::DynamicColoredBody *dcb=(OpenMBV::DynamicColoredBody*)obj;
+  dcb=(OpenMBV::DynamicColoredBody*)obj;
   // read XML
   minimalColorValue=dcb->getMinimalColorValue();
   maximalColorValue=dcb->getMaximalColorValue();
@@ -44,6 +44,10 @@ DynamicColoredBody::DynamicColoredBody(OpenMBV::Object *obj, QTreeWidgetItem *pa
   baseColor=new SoBaseColor;
   soSep->addChild(baseColor);
   baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
+}
+
+void DynamicColoredBody::createProperties() {
+  Body::createProperties();
 
   // GUI
   if(!clone) {

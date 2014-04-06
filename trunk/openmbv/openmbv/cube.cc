@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Cube *c=(OpenMBV::Cube*)obj;
+  c=(OpenMBV::Cube*)obj;
   iconFile="cube.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -49,6 +49,10 @@ Cube::Cube(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent,
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
   soOutLineSep->addChild(cube);
+}
+
+void Cube::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

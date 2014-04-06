@@ -41,7 +41,6 @@ class RigidBody : public DynamicColoredBody {
   friend class CompoundRigidBody;
   protected:
     OpenMBV::RigidBody *rigidBody;
-    QAction *moveCameraWith;
     SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
@@ -53,6 +52,8 @@ class RigidBody : public DynamicColoredBody {
     SoScale *refFrameScale, *localFrameScale;
     SoSeparator *soSepRigidBody;
     TransRotEditor *initialTransRotEditor;
+    SoGroup *initTransRotGroup;
+    void createProperties();
   public:
     RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();

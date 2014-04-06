@@ -89,8 +89,16 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
   soReferenceFrameSwitch->whichChild.setValue(rigidBody->getReferenceFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   // add a group for the initial translation/rotation here (the SoTranslation/SoRotation is added later by InitialTransRotEditor)
-  SoGroup *initTransRotGroup=new SoGroup;
+  initTransRotGroup=new SoGroup;
   soSepRigidBody->addChild(initTransRotGroup);
+  SoTranslation *initTrans=new SoTranslation;
+  initTransRotGroup->addChild(initTrans);
+  std::vector<double> t=rigidBody->getInitialTranslation();
+  initTrans->translation.setValue(t[0], t[1], t[2]);
+  SoRotation *initRot=new SoRotation;
+  initTransRotGroup->addChild(initRot);
+  std::vector<double> r=rigidBody->getInitialRotation();
+  initRot->rotation=Utils::cardan2Rotation(SbVec3f(r[0], r[1], r[2])).invert();
 
   // local frame
   soLocalFrameSwitch=new SoSwitch;
@@ -104,8 +112,17 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
   scale->scaleFactor.setValue(rigidBody->getScaleFactor(),rigidBody->getScaleFactor(),rigidBody->getScaleFactor());
   soSepRigidBody->addChild(scale);
 
+  if(clone && clone->properties)
+    initialTransRotEditor=static_cast<RigidBody*>(clone)->initialTransRotEditor;
+  else
+    initialTransRotEditor=NULL;
+}
+
+void RigidBody::createProperties() {
+  DynamicColoredBody::createProperties();
+
   // GUI
-  moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
+  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   properties->addContextAction(moveCameraWith);
 
@@ -133,8 +150,6 @@ RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup
                                                           &OpenMBV::RigidBody::getInitialRotation, &OpenMBV::RigidBody::setInitialRotation,
                                                           &OpenMBV::RigidBody::getDragger, &OpenMBV::RigidBody::setDragger);
   }
-  else
-    initialTransRotEditor=static_cast<RigidBody*>(clone)->initialTransRotEditor;
   initialTransRotEditor->setGroupMembers(initTransRotGroup);
 }
 

@@ -795,33 +795,18 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
 }
 
 void MainWindow::disableBBox(Object *obj) {
-  QList<QAction*> list=obj->properties->getContextMenu()->actions();
-  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::boundingBox" && (*act)->isChecked()) {
-      (*act)->setChecked(false);
-      break;
-    }
+  obj->setBoundingBox(false);
 }
 void MainWindow::highlightObject(Object *current) {
   // disable all bbox
   Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
   // enable current bbox
-  QList<QAction*> list=current->properties->getContextMenu()->actions();
-  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::boundingBox") {
-      (*act)->setChecked(true);
-      break;
-    }
+  current->setBoundingBox(true);
 }
 void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
   if(obj->object->getID()!=ID)
     return;
-  QList<QAction*> list=obj->properties->getContextMenu()->actions();
-  for(QList<QAction*>::iterator act=list.begin(); act!=list.end(); act++)
-    if((*act)->objectName()=="Object::boundingBox") {
-      (*act)->setChecked(true);
-      break;
-    }
+  obj->setBoundingBox(true);
 }
 void MainWindow::highlightObject(string curID) {
   // disable all bbox
@@ -924,14 +909,14 @@ void MainWindow::newFileDialog() {
 }
 
 void MainWindow::toggleAction(Object *current, QAction *currentAct) {
-  QList<QAction*> actions=current->properties->getActions();
+  QList<QAction*> actions=current->getProperties()->getActions();
   for(int i=0; i<actions.size(); i++)
     if(actions[i]->objectName()==currentAct->objectName() && currentAct!=actions[i])
       actions[i]->trigger();
 }
 void MainWindow::execPropertyMenu() {
   Object *object=(Object*)objectList->currentItem();
-  QMenu* menu=object->properties->getContextMenu();
+  QMenu* menu=object->getProperties()->getContextMenu();
   QAction *currentAct=menu->exec(QCursor::pos());
   // if action is not NULL and the action has a object name trigger also the actions with
   // the same name of all other selected objects
@@ -1302,7 +1287,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           Object *object=static_cast<Object*>(objectList->currentItem()?objectList->currentItem():objectList->selectedItems().first());
           // show properties dialog only if objectDoubleClicked is not connected to some other slot
           if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
-            object->properties->show();
+            object->getProperties()->show();
           emit objectDoubleClicked(object->object->getID(), object);
         }
       }
@@ -1840,6 +1825,7 @@ void MainWindow::releaseCameraFromBodySlot() {
   cameraPosition->vector.setValue(0,0,0);
   cameraOrientation->inRotation.disconnect();
   cameraOrientation->inRotation.setValue(0,0,0,1);
+  frame->touch(); // enforce update
 }
 
 void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {

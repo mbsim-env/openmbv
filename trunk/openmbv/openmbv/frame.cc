@@ -29,7 +29,7 @@
 namespace OpenMBVGUI {
 
 Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Frame *f=(OpenMBV::Frame*)obj;
+  f=(OpenMBV::Frame*)obj;
   iconFile="frame.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -38,6 +38,10 @@ Frame::Frame(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // scale ref/localFrame
   refFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
   localFrameScale->scaleFactor.setValue(f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor(),f->getSize()*f->getScaleFactor());
+}
+
+void Frame::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

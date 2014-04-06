@@ -24,12 +24,19 @@
 #include <string>
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Extrusion;
+}
+
 namespace OpenMBVGUI {
 
 class Extrusion : public RigidBody {
   Q_OBJECT
   public:
     Extrusion(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Extrusion *e;
+    void createProperties();
 };
 
 }

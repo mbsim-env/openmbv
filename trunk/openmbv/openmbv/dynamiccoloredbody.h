@@ -25,6 +25,10 @@
 #include <Inventor/nodes/SoBaseColor.h>
 #include "editors.h"
 
+namespace OpenMBV {
+  class DynamicColoredBody;
+}
+
 namespace OpenMBVGUI {
 
 class DynamicColoredBody : public Body {
@@ -38,6 +42,8 @@ class DynamicColoredBody : public Body {
     void setColor(double col);
     void setHueColor(double h);
     double getColor() { return color; }
+    OpenMBV::DynamicColoredBody *dcb;
+    void createProperties();
   public:
     DynamicColoredBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo();

@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Sphere *s=(OpenMBV::Sphere*)obj;
+  s=(OpenMBV::Sphere*)obj;
   iconFile="sphere.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -46,6 +46,10 @@ Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
+}
+
+void Sphere::createProperties() {
+  RigidBody::createProperties();
 
   if(!clone) {
     properties->updateHeader();

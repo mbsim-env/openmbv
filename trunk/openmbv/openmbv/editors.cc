@@ -215,6 +215,7 @@ void Editor::replaceObject() {
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
+  newObj->clone=NULL; // the clone does not longer exist
   // update the scene
   MainWindow::getInstance()->frame->touch();
   // apply object filter
@@ -228,7 +229,8 @@ void Editor::replaceObject() {
 
 
 
-BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName) : Editor(parent_, icon, name) {
+BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName,
+                       bool replaceObjOnChange_) : Editor(parent_, icon, name),replaceObjOnChange(replaceObjOnChange_) {
   checkbox=new QCheckBox;
   connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, checkbox);
@@ -244,7 +246,9 @@ void BoolEditor::valueChangedSlot(int state) {
   action->blockSignals(true);
   action->setChecked(state==Qt::Checked?true:false);
   action->blockSignals(false);
-  replaceObject();
+  if(replaceObjOnChange)
+    replaceObject();
+  emit stateChanged(state==Qt::Checked?true:false);
 }
 
 void BoolEditor::actionChangedSlot() {
@@ -601,13 +605,22 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
 
   // dragger for initial translation and rotation
   soDraggerSwitch=new SoSwitch;
+  soDraggerSwitch->ref();
   soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
   // the dragger is added on the first click on the entry in the property menu (delayed create)
   // (Because the constructor of the dragger takes a long time to execute (performace reason))
   soDragger=NULL;
 
   soTranslation=new SoTranslation;
+  soTranslation->ref();
   soRotation=new SoRotation;
+  soRotation->ref();
+}
+
+TransRotEditor::~TransRotEditor() {
+  soDraggerSwitch->unref();
+  soTranslation->unref();
+  soRotation->unref();
 }
 
 void TransRotEditor::setGroupMembers(SoGroup *grp) {

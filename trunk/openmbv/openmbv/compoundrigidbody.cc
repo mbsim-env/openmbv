@@ -55,6 +55,10 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
   vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
     ObjectFactory(rb[i], this, soSep, -1);
+}
+
+void CompoundRigidBody::createProperties() {
+  RigidBody::createProperties();
 
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", this);

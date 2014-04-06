@@ -24,12 +24,19 @@
 #include <string>
 #include <H5Cpp.h>
 
+namespace OpenMBV {
+  class Rotation;
+}
+
 namespace OpenMBVGUI {
 
 class Rotation : public RigidBody {
   Q_OBJECT
   public:
     Rotation(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+  protected:
+    OpenMBV::Rotation *rot;
+    void createProperties();
 };
 
 }

@@ -26,6 +26,10 @@
 #include <QThread>
 #include <openmbvcppinterface/ivbody.h>
 
+namespace OpenMBV {
+  class IvBody;
+}
+
 namespace OpenMBVGUI {
 
 class EdgeCalculation;
@@ -35,6 +39,9 @@ class IvBody : public RigidBody {
   public:
     IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~IvBody();
+  protected:
+    OpenMBV::IvBody *ivb;
+    void createProperties();
 
   private:
     EdgeCalculation *edgeCalc;

@@ -66,6 +66,7 @@ class Body : public Object {
     SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
     SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
     static std::map<SoNode*,Body*> bodyMap;
+    void createProperties();
     friend class IndexedTesselationFace;
     friend class MainWindow;
 };

@@ -31,7 +31,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  OpenMBV::Rotation* rot=(OpenMBV::Rotation*)obj;
+  rot=(OpenMBV::Rotation*)obj;
   iconFile="rotation.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -142,6 +142,10 @@ Rotation::Rotation(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *s
     csl1->coordIndex.set1Value(nrcsl, -1);
     csl2->coordIndex.set1Value(nrcsl++, -1);
   }
+}
+
+void Rotation::createProperties() {
+  RigidBody::createProperties();
 
   // GUI editors
   if(!clone) {

@@ -37,10 +37,10 @@ class Group : public Object {
   friend class Object;
   protected:
     virtual void update() {}
-    QAction *saveFile, *unloadFile, *reloadFile;
     OpenMBV::Group *grp;
     QTimer *reloadTimer;
     boost::posix_time::ptime xmlLastModified, h5LastModified;
+    void createProperties();
   public:
     Group(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();

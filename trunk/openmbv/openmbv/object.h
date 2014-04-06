@@ -39,11 +39,13 @@ namespace OpenMBV {
 namespace OpenMBVGUI {
 
 class PropertyDialog;
+class BoolEditor;
 
 class Object : public QObject, public QTreeWidgetItem {
   Q_OBJECT
   friend class Editor;
   friend class MainWindow;
+  friend class RigidBody;
   protected:
     OpenMBV::Object *object;
     SoSwitch *soSwitch;
@@ -59,6 +61,9 @@ class Object : public QObject, public QTreeWidgetItem {
     Object *clone;
     Object *getClone();
     static std::set<Object*> objects;
+    bool getBoundingBox();
+    BoolEditor *boundingBoxEditor;
+    virtual void createProperties();
   public:
     Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
@@ -66,8 +71,10 @@ class Object : public QObject, public QTreeWidgetItem {
     OpenMBV::Object *getObject() { return object; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
+    PropertyDialog *getProperties();
   protected slots:
     void deleteObjectSlot();
+    void setBoundingBox(bool value);
 };
 
 }
