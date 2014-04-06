@@ -168,6 +168,19 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   bc->setOverride(true);
   engDrawing->addChild(bc);
 
+  sceneRootBBox=new SoSepNoPickNoBBox;
+  sceneRoot->addChild(sceneRootBBox);
+  SoLightModel *lm=new SoLightModel;
+  sceneRootBBox->addChild(lm);
+  lm->model.setValue(SoLightModel::BASE_COLOR);
+  SoBaseColor *color=new SoBaseColor;
+  sceneRootBBox->addChild(color);
+  color->rgb.setValue(0,1,0);
+  SoDrawStyle *style=new SoDrawStyle;
+  style->style.setValue(SoDrawStyle::LINES);
+  style->lineWidth.setValue(2);
+  sceneRootBBox->addChild(style);
+
   // Move the world system such that the camera is constant relative the the body
   // with moves with the camera; if not, don't move the world system.
   // rot
@@ -195,19 +208,6 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   drawStyle->lineWidth.setValue(2);
   drawStyle->linePattern.setValue(0xF8F8);
   worldFrameSep->addChild(Utils::soFrame(1,1,false));
-
-  sceneRootBBox=new SoSepNoPickNoBBox;
-  sceneRoot->addChild(sceneRootBBox);
-  SoLightModel *lm=new SoLightModel;
-  sceneRootBBox->addChild(lm);
-  lm->model.setValue(SoLightModel::BASE_COLOR);
-  SoBaseColor *color=new SoBaseColor;
-  sceneRootBBox->addChild(color);
-  color->rgb.setValue(0,1,0);
-  SoDrawStyle *style=new SoDrawStyle;
-  style->style.setValue(SoDrawStyle::LINES);
-  style->lineWidth.setValue(2);
-  sceneRootBBox->addChild(style);
   glViewer->setSceneGraph(sceneRoot);
   
   // time slider
@@ -1845,6 +1845,7 @@ void MainWindow::releaseCameraFromBodySlot() {
 void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
   cameraPosition->vector.connectFrom(pos);
   cameraOrientation->inRotation.connectFrom(rot);
+  frame->touch(); // enforce update
 }
 
 void MainWindow::showWorldFrameSlot() {

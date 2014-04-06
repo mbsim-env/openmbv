@@ -173,10 +173,28 @@ Editor::Editor(PropertyDialog *parent_, const QIcon &icon, const std::string &na
   dialog->addEditor(this);
 }
 
+void Editor::getSelAndCur(QTreeWidgetItem *item, queue<bool> &sel, queue<bool> &cur) {
+  sel.push(item->isSelected());
+  item->setSelected(false);
+  cur.push(item==MainWindow::getInstance()->objectList->currentItem());
+}
+void Editor::setSelAndCur(QTreeWidgetItem *item, queue<bool> &sel, queue<bool> &cur) {
+  item->setSelected(sel.front());
+  sel.pop();
+  if(cur.front())
+    MainWindow::getInstance()->objectList->setCurrentItem(item, 0, QItemSelectionModel::NoUpdate);
+  cur.pop();
+}
 void Editor::replaceObject() {
   Object *obj=dynamic_cast<Object*>(dialog->getParentObject());
   if(!obj)
     return;
+  QTreeWidget *objectList=MainWindow::getInstance()->objectList;
+
+  // save selection and current item and clear selection under obj
+  queue<bool> selected;
+  queue<bool> current;
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, boost::bind(&getSelAndCur, _1, boost::ref(selected), boost::ref(current)));
 
   // re-add this object using the same OpenMBVCppInterface::Object
   QTreeWidgetItem *treeWidgetParent=obj->QTreeWidgetItem::parent();
@@ -190,13 +208,10 @@ void Editor::replaceObject() {
   }
   else {
     ind=MainWindow::getInstance()->getRootItemIndexOfChild(static_cast<Group*>(obj));
-    parentItem=MainWindow::getInstance()->objectList->invisibleRootItem();
+    parentItem=objectList->invisibleRootItem();
     soParent=MainWindow::getInstance()->getSceneRoot();
   }
   Object *newObj=ObjectFactory(obj->object, parentItem, soParent, ind);
-  // if the object to be replaced was the current item, set the new object the current item
-  if(obj==MainWindow::getInstance()->objectList->currentItem())
-    MainWindow::getInstance()->objectList->setCurrentItem(newObj, 0, QItemSelectionModel::NoUpdate);
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
@@ -204,6 +219,9 @@ void Editor::replaceObject() {
   MainWindow::getInstance()->frame->touch();
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
+  // restore selection and current item
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, boost::bind(&setSelAndCur, _1, boost::ref(selected), boost::ref(current)));
+  objectList->scrollToItem(objectList->currentItem());
 }
 
 
