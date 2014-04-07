@@ -24,6 +24,14 @@
 #include <QtGui/QAbstractItemView>
 #include <boost/function.hpp>
 
+// If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
+// Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
+#ifdef _WIN32
+#  define DLL_PUBLIC __declspec(dllexport)
+#else
+#  define DLL_PUBLIC
+#endif
+
 namespace OpenMBVGUI {
 
 /*! A filter for QTreeView classes (like QTreeWidget) */
@@ -42,16 +50,16 @@ class AbstractViewFilter : public QWidget {
      * Coloring of matching items is done using the setData function of the view-model using the Qt::ForegroundRole. Hence,
      * to enable filtered coloring the data function of the view-model should directly return the QBrush set using setData.
      * The view-model flag Qt::ItemIsEnabled is honored by the filtered coloring. */
-    AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="", boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>());
+    DLL_PUBLIC AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="", boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>());
 
     //! Set the filter programatically.
     //! Setting the filter applies the filter on the view.
-    void setFilter(const QString &filter);
+    DLL_PUBLIC void setFilter(const QString &filter);
 
   public slots:
     //! Applies the current filter on the view.
     //! This is automatically done when using setFilter or when pressing enter in the filter QTextEdit.
-    void applyFilter();
+    DLL_PUBLIC void applyFilter();
 
   protected:
     // update the match varaible
