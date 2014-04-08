@@ -30,7 +30,11 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, const QString &typePrefix_, boost::function<QObject*(const QModelIndex&)> indexToQObject_) : QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(indexToQObject_) {
+AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, const QString &typePrefix_,
+                                       boost::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
+  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(indexToQObject_),
+  enableRole(enableRole_) {
+
   QGridLayout *layout=new QGridLayout(this);
   layout->setContentsMargins(0,0,0,0);
   setLayout(layout);
@@ -157,15 +161,19 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
     if(setRowHidden2(qobject_cast<QListView*>(view), m, index)) return;
     if(setRowHidden2(qobject_cast<QTableView*>(view), m, index)) return;
     // set the color of the column nameCol
+    bool normalColor=true;
+    if(!view->model()->flags(index).testFlag(Qt::ItemIsEnabled) ||
+       (view->model()->data(index, enableRole).type()==QVariant::Bool && !view->model()->data(index, enableRole).toBool()))
+      normalColor=false;
     QPalette palette;
     if(m.me) {
-      if(view->model()->flags(index).testFlag(Qt::ItemIsEnabled))
+      if(normalColor)
         view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
       else
         view->model()->setData(index, palette.brush(QPalette::Disabled, QPalette::Text), Qt::ForegroundRole);
     }
     else {
-      if(view->model()->flags(index).testFlag(Qt::ItemIsEnabled))
+      if(normalColor)
         view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
       else
         view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);

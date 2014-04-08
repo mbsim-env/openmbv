@@ -51,11 +51,11 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   QPalette palette;
   if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
     drawThisPath=true;
-    setDisabled(false);
+    setData(0, Qt::UserRole, true); // UserRole is used by AbstractViewFilter for normal/grayed items
   }
   else {
     drawThisPath=false;
-    setDisabled(true);
+    setData(0, Qt::UserRole, false); // UserRole is used by AbstractViewFilter for normal/grayed items
   }
   
   // craete so basics (Separator)
