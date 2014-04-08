@@ -50,7 +50,9 @@ class AbstractViewFilter : public QWidget {
      * Coloring of matching items is done using the setData function of the view-model using the Qt::ForegroundRole. Hence,
      * to enable filtered coloring the data function of the view-model should directly return the QBrush set using setData.
      * The view-model flag Qt::ItemIsEnabled is honored by the filtered coloring. */
-    DLL_PUBLIC AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="", boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>());
+    DLL_PUBLIC AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="",
+                       boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>(),
+                       int enableRole_=Qt::UserRole);
 
     //! Set the filter programatically.
     //! Setting the filter applies the filter on the view.
@@ -76,6 +78,7 @@ class AbstractViewFilter : public QWidget {
     int typeCol;
     QString typePrefix;
     boost::function<QObject*(const QModelIndex&)> indexToQObject;
+    int enableRole;
 
     struct Match {
       Match() : parent(false), me(false), child(false) {}
