@@ -48,6 +48,7 @@
 namespace OpenMBVGUI {
 
 class Editor;
+class Object;
 
 
 
@@ -95,6 +96,7 @@ class Editor : public QWidget {
     void replaceObject();
     static void getSelAndCur(QTreeWidgetItem *item, std::queue<bool> &sel, std::queue<bool> &cur);
     static void setSelAndCur(QTreeWidgetItem *item, std::queue<bool> &sel, std::queue<bool> &cur);
+    static void unsetClone(Object *obj);
 };
 
 

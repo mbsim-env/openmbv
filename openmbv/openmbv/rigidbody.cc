@@ -122,7 +122,7 @@ void RigidBody::createProperties() {
   DynamicColoredBody::createProperties();
 
   // GUI
-  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
+  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   properties->addContextAction(moveCameraWith);
 

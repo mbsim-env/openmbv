@@ -185,6 +185,9 @@ void Editor::setSelAndCur(QTreeWidgetItem *item, queue<bool> &sel, queue<bool> &
     MainWindow::getInstance()->objectList->setCurrentItem(item, 0, QItemSelectionModel::NoUpdate);
   cur.pop();
 }
+void Editor::unsetClone(Object *obj) {
+  obj->clone=NULL;
+}
 void Editor::replaceObject() {
   Object *obj=dynamic_cast<Object*>(dialog->getParentObject());
   if(!obj)
@@ -215,7 +218,7 @@ void Editor::replaceObject() {
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
-  newObj->clone=NULL; // the clone does not longer exist
+  Utils::visitTreeWidgetItems<Object*>(newObj, &unsetClone);
   // update the scene
   MainWindow::getInstance()->frame->touch();
   // apply object filter

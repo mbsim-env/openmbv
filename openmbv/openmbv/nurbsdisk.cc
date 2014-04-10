@@ -180,7 +180,7 @@ void NurbsDisk::createProperties() {
   DynamicColoredBody::createProperties();
 
   //Add option to move camera with body
-  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body",this);
+  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,SIGNAL(triggered()),this,SLOT(moveCameraWithSlot()));
   properties->addContextAction(moveCameraWith);
 
