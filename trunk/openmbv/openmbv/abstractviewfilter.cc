@@ -70,9 +70,13 @@ void AbstractViewFilter::setFilter(const QString &filter) {
 }
 
 void AbstractViewFilter::applyFilter() {
-  // update only if the view is visible
+  // update only if the view is visible (for performance reasons)
   if(!view->isVisible())
     return;
+  // do not update if no filter string is set and the filter has not changed
+  if(filterLE->text().isEmpty() && oldFilterValue.isEmpty())
+    return;
+  oldFilterValue=filterLE->text();
 
   QRegExp filter(filterLE->text());
   // updateMatch will fill the variable match

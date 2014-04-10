@@ -52,10 +52,12 @@ Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soPar
   if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
     drawThisPath=true;
     setData(0, Qt::UserRole, true); // UserRole is used by AbstractViewFilter for normal/grayed items
+    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Active, QPalette::Text));
   }
   else {
     drawThisPath=false;
     setData(0, Qt::UserRole, false); // UserRole is used by AbstractViewFilter for normal/grayed items
+    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Disabled, QPalette::Text));
   }
   
   // craete so basics (Separator)
@@ -129,7 +131,7 @@ void Object::createProperties() {
   properties=new PropertyDialog(this);
 
   //GUI editors
-  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", this);
+  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", properties);
   deleteObject->setObjectName("Group::deleteObject");
   connect(deleteObject,SIGNAL(triggered()),this,SLOT(deleteObjectSlot()));
   properties->addContextAction(deleteObject);

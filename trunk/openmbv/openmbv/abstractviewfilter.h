@@ -49,7 +49,8 @@ class AbstractViewFilter : public QWidget {
      * this is a namespace e.g. 'OpenMBVGUI::'.
      * Coloring of matching items is done using the setData function of the view-model using the Qt::ForegroundRole. Hence,
      * to enable filtered coloring the data function of the view-model should directly return the QBrush set using setData.
-     * The view-model flag Qt::ItemIsEnabled is honored by the filtered coloring. */
+     * The boolean view-model flag enableRole_ is honored when coloring is done be the filter:
+     * If this flag is true normal coloring is done if false "disabled" coloring is done. */
     DLL_PUBLIC AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="",
                        boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>(),
                        int enableRole_=Qt::UserRole);
@@ -73,6 +74,7 @@ class AbstractViewFilter : public QWidget {
     void updateView(const QModelIndex &index);
 
     QLineEdit *filterLE;
+    QString oldFilterValue;
     QAbstractItemView *view;
     int nameCol;
     int typeCol;
