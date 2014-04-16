@@ -23,10 +23,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBVNS"Rotation")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBV%"Rotation")
 
 Rotation::Rotation() : RigidBody(),
   startAngle(0),
@@ -45,22 +46,22 @@ Rotation::~Rotation() {
   }
 }
 
-TiXmlElement* Rotation::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"startAngle", startAngle, 0);
-  addElementText(e, OPENMBVNS"endAngle", endAngle, 2*M_PI);
+DOMElement* Rotation::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"startAngle", startAngle, 0);
+  addElementText(e, OPENMBV%"endAngle", endAngle, 2*M_PI);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   return 0;
 }
 
 
-void Rotation::initializeUsingXML(TiXmlElement *element) {
+void Rotation::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"startAngle");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"startAngle");
   if(e) setStartAngle(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"endAngle");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"endAngle");
   if(e) setEndAngle(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"contour");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
 }

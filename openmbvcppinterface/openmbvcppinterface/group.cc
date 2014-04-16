@@ -28,17 +28,20 @@
 #include <H5Cpp.h>
 #include <mbxmlutilstinyxml/tinynamespace.h>
 #include <stdlib.h>
+#include <boost/static_assert.hpp>
 #ifdef HAVE_BOOST_FILE_LOCK
 #  include <boost/interprocess/sync/file_lock.hpp>
 #endif
 
-using namespace OpenMBV;
 using namespace std;
+using namespace boost;
+using namespace OpenMBV;
 using namespace MBXMLUtils;
+using namespace xercesc;
 
 static string dirOfTopLevelFile(Group *grp);
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBVNS"Group")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 
 Group::Group() : Object(), expandStr("true"), separateFile(false) {
 }
@@ -67,9 +70,9 @@ string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
     return includingFileName==false || fileName.empty() ? name : fileName;
 }
 
-TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
+DOMElement *Group::writeXMLFile(DOMNode *parent) {
   if(!separateFile) {
-    TiXmlElement *e=Object::writeXMLFile(parent);
+    DOMElement *e=Object::writeXMLFile(parent);
     addAttribute(e, "expand", expandStr, "true");
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(e);
@@ -79,25 +82,22 @@ TiXmlElement *Group::writeXMLFile(TiXmlNode *parent) {
     string fullName=getFullName();
     for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
     // create link (embed) in current xml file
-    TiXmlElement *inc=new TiXmlElement(XINCLUDENS"include");
-    parent->LinkEndChild(inc);
-    inc->SetAttribute("href", fullName+".ombv.xml");
+    DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
+    DOMElement *inc = D(doc)->createElement(XINCLUDE%"include");
+    parent->insertBefore(inc, NULL);
+    E(inc)->setAttribute("href", fullName+".ombv.xml");
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
     // write simple parameter file
     writeSimpleParameter();
     // create new xml file and write to it till now
     // use the directory of the topLevelFile and the above fullName
-    TiXmlDocument xmlFile(fileName);
-      xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-      TiXmlElement *e=Object::writeXMLFile(&xmlFile);
+    shared_ptr<DOMParser> parser=DOMParser::create(false);
+    shared_ptr<DOMDocument> xmlFile=parser->createDocument();
+      DOMElement *e=Object::writeXMLFile(xmlFile.get());
       addAttribute(e, "expand", expandStr, "true");
       for(unsigned int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(e);
-      map<string,string> nsprefix;
-      nsprefix[OPENMBVNS_]="";
-      nsprefix[XINCLUDENS_]="xi";
-      unIncorporateNamespace(xmlFile.FirstChildElement(), nsprefix);
-    xmlFile.SaveFile();
+    DOMParser::serialize(xmlFile.get(), fileName);
   }
   return 0;
 }
@@ -150,19 +150,15 @@ void Group::openHDF5File() {
 void Group::writeXML() {
   separateFile=true;
   // write .ombv.xml file
-  TiXmlDocument xmlFile(fileName);
-    xmlFile.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-    TiXmlElement *parent=Object::writeXMLFile(&xmlFile);
+    shared_ptr<DOMParser> parser=DOMParser::create(false);
+    shared_ptr<DOMDocument> xmlFile=parser->createDocument();
+    DOMElement *parent=Object::writeXMLFile(xmlFile.get());
     addAttribute(parent, "expand", expandStr, "true");
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(parent);
     // write simple parameter file
     writeSimpleParameter();
-    map<string,string> nsprefix;
-    nsprefix[OPENMBVNS_]="";
-    nsprefix[XINCLUDENS_]="xi";
-    unIncorporateNamespace(xmlFile.FirstChildElement(), nsprefix);
-  xmlFile.SaveFile();
+  DOMParser::serialize(xmlFile.get(), fileName);
 }
 
 void Group::writeH5() {
@@ -183,37 +179,34 @@ void Group::terminate() {
   hdf5Group=0;
 }
 
-void Group::initializeUsingXML(TiXmlElement *element) {
+void Group::initializeUsingXML(DOMElement *element) {
   Object::initializeUsingXML(element);
-  if(element->Attribute("expand") && 
-     (element->Attribute("expand")==string("false") || element->Attribute("expand")==string("0")))
+  if(E(element)->hasAttribute("expand") && 
+     (E(element)->getAttribute("expand")=="false" || E(element)->getAttribute("expand")=="0"))
     setExpand(false);
-  if(element->Attribute("xml:base")) {
+  if(E(element)->hasAttribute(XML%"base")) {
     setSeparateFile(true);
-    fileName=element->Attribute("xml:base");
+    fileName=E(element)->getAttribute(XML%"base");
     readSimpleParameter();
   }
 
-  TiXmlElement *e;
-  e=element->FirstChildElement();
+  DOMElement *e;
+  e=element->getFirstElementChild();
   while (e) {
     Object* obj=ObjectFactory::create<Object>(e);
     obj->initializeUsingXML(e);
     addObject(obj);
-    e=e->NextSiblingElement();
+    e=e->getNextElementSibling();
   }
 }
 
 void Group::readXML() {
   // read XML
-  TiXmlDocument doc;
-  doc.LoadFile(fileName);
-  TiXml_PostLoadFile(&doc);
-  map<string,string> dummy;
-  incorporateNamespace(doc.FirstChildElement(), dummy);
+  shared_ptr<DOMParser> parser=DOMParser::create(false);
+  shared_ptr<DOMDocument> doc=parser->parse(fileName);  
 
   // read XML using OpenMBVCppInterface
-  initializeUsingXML(doc.FirstChildElement());
+  initializeUsingXML(doc->getDocumentElement());
 }
 
 void Group::readH5() {
@@ -222,23 +215,20 @@ void Group::readH5() {
 
 void Group::readSimpleParameter() {
   string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
-  TiXmlDocument paramdoc;
+  shared_ptr<DOMParser> parser=DOMParser::create(false);
   FILE *f=fopen(paramFileName.c_str(),"r");
   if(f!=NULL) {
     fclose(f);
-    paramdoc.LoadFile(paramFileName);
-    TiXml_PostLoadFile(&paramdoc);
-    TiXmlElement *e=paramdoc.FirstChildElement();
-    map<string,string> dummy;
-    incorporateNamespace(e,dummy);
+    shared_ptr<DOMDocument> paramdoc=parser->parse(paramFileName);  
+    DOMElement *e=paramdoc->getDocumentElement();
 
-    for(e=e->FirstChildElement(); e!=0; e=e->NextSiblingElement()) {
-      if(e->ValueStr()==MBXMLUTILSPARAMNS"scalarParameter")
-        scalarParameter[e->Attribute("name")]=atof(e->GetText());
-      else if(e->ValueStr()==MBXMLUTILSPARAMNS"vectorParameter")
-        vectorParameter[e->Attribute("name")]=toVector(e->GetText());
-      else if(e->ValueStr()==MBXMLUTILSPARAMNS"matrixParameter")
-        matrixParameter[e->Attribute("name")]=toMatrix(e->GetText());
+    for(e=e->getFirstElementChild(); e!=0; e=e->getNextElementSibling()) {
+      if(E(e)->getTagName()==MBXMLUTILSPARAM%"scalarParameter")
+        scalarParameter[E(e)->getAttribute("name")]=atof((X()%E(e)->getFirstTextChild()->getData()).c_str());
+      else if(E(e)->getTagName()==MBXMLUTILSPARAM%"vectorParameter")
+        vectorParameter[E(e)->getAttribute("name")]=toVector((X()%E(e)->getFirstTextChild()->getData()).c_str());
+      else if(E(e)->getTagName()==MBXMLUTILSPARAM%"matrixParameter")
+        matrixParameter[E(e)->getAttribute("name")]=toMatrix((X()%E(e)->getFirstTextChild()->getData()).c_str());
     }
   }
 }
@@ -262,27 +252,23 @@ void Group::writeSimpleParameter() {
   if(separateFile &&
      (scalarParameter.size()>0 || vectorParameter.size()>0 || matrixParameter.size()>0)) {
     string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
-    TiXmlDocument xmlDoc(paramFileName);
-      xmlDoc.LinkEndChild(new TiXmlDeclaration("1.0","UTF-8",""));
-      TiXmlElement *rootEle=new TiXmlElement(MBXMLUTILSPARAMNS"parameter");
-      xmlDoc.LinkEndChild(rootEle);
+    shared_ptr<DOMParser> parser=DOMParser::create(false);
+    shared_ptr<DOMDocument> xmlDoc=parser->createDocument();
+      DOMElement *rootEle=D(xmlDoc)->createElement(MBXMLUTILSPARAM%"parameter");
+      xmlDoc->insertBefore(rootEle, NULL);
       for(map<string,double>::iterator i=scalarParameter.begin(); i!=scalarParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAMNS"scalarParameter", i->second);
-        addAttribute(rootEle->LastChild(), "name", i->first);
+        addElementText(rootEle, MBXMLUTILSPARAM%"scalarParameter", i->second);
+        addAttribute(rootEle->getLastChild(), "name", i->first);
       }
       for(map<string,vector<double> >::iterator i=vectorParameter.begin(); i!=vectorParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAMNS"vectorParameter", i->second);
-        addAttribute(rootEle->LastChild(), "name", i->first);
+        addElementText(rootEle, MBXMLUTILSPARAM%"vectorParameter", i->second);
+        addAttribute(rootEle->getLastChild(), "name", i->first);
       }
       for(map<string,vector<vector<double> > >::iterator i=matrixParameter.begin(); i!=matrixParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAMNS"matrixParameter", i->second);
-        addAttribute(rootEle->LastChild(), "name", i->first);
+        addElementText(rootEle, MBXMLUTILSPARAM%"matrixParameter", i->second);
+        addAttribute(rootEle->getLastChild(), "name", i->first);
       }
-      map<string,string> nsprefix;
-      nsprefix[MBXMLUTILSPARAMNS_]="";
-      nsprefix[XINCLUDENS_]="xi";
-      unIncorporateNamespace(xmlDoc.FirstChildElement(), nsprefix);
-    xmlDoc.SaveFile();
+    DOMParser::serialize(xmlDoc.get(), paramFileName);
   }
 }
 

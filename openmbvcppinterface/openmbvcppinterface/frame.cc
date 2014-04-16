@@ -23,27 +23,28 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frame, OPENMBVNS"Frame")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frame, OPENMBV%"Frame")
 
 Frame::Frame() : RigidBody(),
   size(1), offset(1) {
 }
 
-TiXmlElement* Frame::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"size", size);
-  addElementText(e, OPENMBVNS"offset", offset);
+DOMElement* Frame::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"size", size);
+  addElementText(e, OPENMBV%"offset", offset);
   return 0;
 }
 
-void Frame::initializeUsingXML(TiXmlElement *element) {
+void Frame::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"size");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"size");
   setSize(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"offset");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"offset");
   setOffset(getDouble(e));
 }

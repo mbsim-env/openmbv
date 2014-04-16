@@ -23,33 +23,34 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Grid, OPENMBVNS"Grid")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Grid, OPENMBV%"Grid")
 
 Grid::Grid() : RigidBody(),
   xSize(1), ySize(1), nx(10), ny(10) {
 }
 
-TiXmlElement* Grid::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"xSize", xSize);
-  addElementText(e, OPENMBVNS"ySize", ySize);
-  addElementText(e, OPENMBVNS"nx", nx);
-  addElementText(e, OPENMBVNS"ny", ny);
+DOMElement* Grid::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"xSize", xSize);
+  addElementText(e, OPENMBV%"ySize", ySize);
+  addElementText(e, OPENMBV%"nx", nx);
+  addElementText(e, OPENMBV%"ny", ny);
   return 0;
 }
 
-void Grid::initializeUsingXML(TiXmlElement *element) {
+void Grid::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"xSize");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"xSize");
   setXSize(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"ySize");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"ySize");
   setYSize(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"nx");
-  setXNumber((unsigned int)(atof(e->FirstChild()->ValueStr().c_str())+.1));
-  e=element->FirstChildElement(OPENMBVNS"ny");
-  setYNumber((unsigned int)(atof(e->FirstChild()->ValueStr().c_str())+.1));
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"nx");
+  setXNumber((unsigned int)(atof((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"ny");
+  setYNumber((unsigned int)(atof((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
 }

@@ -31,7 +31,7 @@ void ObjectFactory::deallocate(Object *obj) {
   obj->destroy();
 }
 
-void ObjectFactory::registerXMLName(const std::string &name, allocateFkt alloc, deallocateFkt dealloc) {
+void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc, deallocateFkt dealloc) {
   // check if name was already registred with the same &allocate<CreateType>: if yes return and do not add it twice
   std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(name);
   for(MapIt it=range.first; it!=range.second; it++)

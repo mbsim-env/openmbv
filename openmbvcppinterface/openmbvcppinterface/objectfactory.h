@@ -24,6 +24,8 @@
 #include <stdexcept>
 #include <typeinfo>
 #include "mbxmlutilstinyxml/tinyxml.h"
+#include <mbxmlutilshelper/dom.h>
+#include <xercesc/dom/DOMElement.hpp>
 #ifdef HAVE_BOOST_TYPE_TRAITS_HPP
 # include <boost/static_assert.hpp>
 # include <boost/type_traits.hpp>
@@ -44,7 +46,7 @@ class ObjectFactory {
      * You should not use this function directly but
      * see also the macro OPENMBV_OBJECTFACTORY_REGISTERXMLNAME.  */
     template<class CreateType>
-    static void registerXMLName(const std::string &name) {
+    static void registerXMLName(const MBXMLUtils::FQN &name) {
       registerXMLName(name, &allocate<CreateType>, &deallocate);
     }
 
@@ -52,7 +54,7 @@ class ObjectFactory {
      * Throws if the created object is not of type ContainerType.
      * This function returns a new object dependent on the registration of the created object. */
     template<class ContainerType>
-    static ContainerType* create(const MBXMLUtils::TiXmlElement *element) {
+    static ContainerType* create(const xercesc::DOMElement *element) {
 #ifdef HAVE_BOOST_TYPE_TRAITS_HPP
       // just check if ContainerType is derived from Object if not throw a compile error if boost is avaliable
       // if boost is not avaliable a runtime error will occure later. (so it does not care if boost is not available)
@@ -62,7 +64,7 @@ class ObjectFactory {
       // return NULL if no input is supplied
       if(element==NULL) return NULL;
       // loop over all all registred types corresponding to element->ValueStr()
-      std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(element->ValueStr());
+      std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(MBXMLUtils::E(element)->getTagName());
       for(MapIt it=range.first; it!=range.second; it++) {
         // allocate a new object using the allocate function pointer
         Object *ele=it->second.first();
@@ -76,7 +78,7 @@ class ObjectFactory {
           it->second.second(ele);
       }
       // no matching element found: throw error
-      throw std::runtime_error("No class named "+element->ValueStr()+" found which is of type "+
+      throw std::runtime_error("No class named "+MBXMLUtils::X()%element->getTagName()+" found which is of type "+
                                typeid(ContainerType).name()+".");
     }
 
@@ -88,13 +90,13 @@ class ObjectFactory {
     typedef void (*deallocateFkt)(Object *obj);
 
     // convinence typedefs
-    typedef std::multimap<std::string, std::pair<allocateFkt, deallocateFkt> > Map;
+    typedef std::multimap<MBXMLUtils::FQN, std::pair<allocateFkt, deallocateFkt> > Map;
     typedef typename Map::iterator MapIt;
 
     // private ctor
     ObjectFactory() {}
 
-    static void registerXMLName(const std::string &name, allocateFkt alloc, deallocateFkt dealloc);
+    static void registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc, deallocateFkt dealloc);
 
     // create an singleton instance of the object factory.
     // only declaration here and defition and explicit instantation for all Object in objectfactory.cc (required for Windows)
@@ -123,7 +125,7 @@ class ObjectFactoryRegisterXMLNameHelper {
   public:
 
     /** ctor registring the new type */
-    ObjectFactoryRegisterXMLNameHelper(const std::string &name) {
+    ObjectFactoryRegisterXMLNameHelper(const MBXMLUtils::FQN &name) {
       ObjectFactory::registerXMLName<CreateType>(name);
     };
 

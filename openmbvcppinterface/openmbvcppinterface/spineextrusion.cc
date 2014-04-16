@@ -25,8 +25,9 @@
 using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBVNS"SpineExtrusion")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBV%"SpineExtrusion")
 
 SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),
@@ -48,11 +49,11 @@ SpineExtrusion::~SpineExtrusion() {
   }
 }
 
-TiXmlElement* SpineExtrusion::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
-  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
-  addElementText(e, OPENMBVNS"initialRotation", initialRotation);
+  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
+  addElementText(e, OPENMBV%"initialRotation", initialRotation);
   return 0;
 }
 
@@ -88,14 +89,14 @@ void SpineExtrusion::openHDF5File() {
   }
 }
 
-void SpineExtrusion::initializeUsingXML(TiXmlElement *element) {
+void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"contour");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   setScaleFactor(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"initialRotation");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
   setInitialRotation(getVec(e,3));
 }
 

@@ -164,10 +164,10 @@ namespace OpenMBV {
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
+      virtual void initializeUsingXML(xercesc::DOMElement *element);
 
       /** Write XML file for not time-dependent data. */
-      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
 
     protected:
       /** destructor */

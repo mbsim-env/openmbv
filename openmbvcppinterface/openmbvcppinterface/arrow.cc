@@ -23,10 +23,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBVNS"Arrow")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBV%"Arrow")
 
 Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
   data(0),
@@ -42,12 +43,12 @@ Arrow::~Arrow() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   addAttribute(e, "path", pathStr, "false");
-  addElementText(e, OPENMBVNS"diameter", diameter);
-  addElementText(e, OPENMBVNS"headDiameter", headDiameter);
-  addElementText(e, OPENMBVNS"headLength", headLength);
+  addElementText(e, OPENMBV%"diameter", diameter);
+  addElementText(e, OPENMBV%"headDiameter", headDiameter);
+  addElementText(e, OPENMBV%"headLength", headLength);
   string typeStr;
   switch(type) {
     case line:            typeStr="line";            break;
@@ -58,15 +59,15 @@ TiXmlElement *Arrow::writeXMLFile(TiXmlNode *parent) {
     case toDoubleHead:    typeStr="toDoubleHead";    break;
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
-  addElementText(e, OPENMBVNS"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBV%"type", "\""+typeStr+"\"");
   string referencePointStr;
   switch(referencePoint) {
     case toPoint:   referencePointStr="toPoint";   break;
     case fromPoint: referencePointStr="fromPoint"; break;
     case midPoint:  referencePointStr="midPoint";  break;
   }
-  addElementText(e, OPENMBVNS"referencePoint", "\""+referencePointStr+"\"");
-  addElementText(e, OPENMBVNS"scaleLength", scaleLength);
+  addElementText(e, OPENMBV%"referencePoint", "\""+referencePointStr+"\"");
+  addElementText(e, OPENMBV%"scaleLength", scaleLength);
   return 0;
 }
 
@@ -103,20 +104,21 @@ void Arrow::openHDF5File() {
   }
 }
 
-void Arrow::initializeUsingXML(TiXmlElement *element) {
+void Arrow::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
-  if(element->Attribute("path") && 
-     (element->Attribute("path")==string("true") || element->Attribute("path")==string("1")))
+  if(E(element)->hasAttribute("path") && 
+     (E(element)->getAttribute("path")=="true" || E(element)->getAttribute("path")=="1"))
     setPath(true);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"diameter");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"diameter");
   setDiameter(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"headDiameter");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"headDiameter");
   setHeadDiameter(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"headLength");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"headLength");
   setHeadLength(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"type");
-  string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"type");
+  string name = X()%E(e)->getFirstTextChild()->getData();
+  string typeStr=name.substr(1,name.length()-2);
   if(typeStr=="line")            setType(line);
   if(typeStr=="fromHead")        setType(fromHead);
   if(typeStr=="toHead")          setType(toHead);
@@ -124,13 +126,14 @@ void Arrow::initializeUsingXML(TiXmlElement *element) {
   if(typeStr=="fromDoubleHead")  setType(fromDoubleHead);
   if(typeStr=="toDoubleHead")    setType(toDoubleHead);
   if(typeStr=="bothDoubleHeads") setType(bothDoubleHeads);
-  e=element->FirstChildElement(OPENMBVNS"referencePoint");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"referencePoint");
   if(e) {
-    string referencePointStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+    string name = X()%E(e)->getFirstTextChild()->getData();
+    string referencePointStr=name.substr(1,name.length()-2);
     if(referencePointStr=="toPoint")   setReferencePoint(toPoint);
     if(referencePointStr=="fromPoint") setReferencePoint(fromPoint);
     if(referencePointStr=="midPoint")  setReferencePoint(midPoint);
   }
-  e=element->FirstChildElement(OPENMBVNS"scaleLength");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleLength");
   setScaleLength(getDouble(e));
 }

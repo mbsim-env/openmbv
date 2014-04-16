@@ -23,24 +23,25 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cuboid, OPENMBVNS"Cuboid")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cuboid, OPENMBV%"Cuboid")
 
 Cuboid::Cuboid() : RigidBody(),
   length(vector<double>(3, 1)) {
 }
 
-TiXmlElement* Cuboid::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"length", length);
+DOMElement* Cuboid::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"length", length);
   return 0;
 }
 
-void Cuboid::initializeUsingXML(TiXmlElement *element) {
+void Cuboid::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"length");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"length");
   setLength(getVec(e,3));
 }

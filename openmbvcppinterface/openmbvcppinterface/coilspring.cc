@@ -23,10 +23,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBVNS"CoilSpring")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBV%"CoilSpring")
 
 CoilSpring::CoilSpring() : DynamicColoredBody(),
   data(0),
@@ -42,20 +43,20 @@ CoilSpring::~CoilSpring() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-TiXmlElement *CoilSpring::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   string typeStr;
   switch(type) {
     case tube: typeStr="tube"; break;
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
   }
-  addElementText(e, OPENMBVNS"type", "\""+typeStr+"\"");
-  addElementText(e, OPENMBVNS"numberOfCoils", numberOfCoils);
-  addElementText(e, OPENMBVNS"springRadius", springRadius);
-  addElementText(e, OPENMBVNS"crossSectionRadius", crossSectionRadius);
-  addElementText(e, OPENMBVNS"nominalLength", nominalLength);
-  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
+  addElementText(e, OPENMBV%"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBV%"numberOfCoils", numberOfCoils);
+  addElementText(e, OPENMBV%"springRadius", springRadius);
+  addElementText(e, OPENMBV%"crossSectionRadius", crossSectionRadius);
+  addElementText(e, OPENMBV%"nominalLength", nominalLength);
+  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
   return 0;
 }
 
@@ -92,24 +93,25 @@ void CoilSpring::openHDF5File() {
   }
 }
 
-void CoilSpring::initializeUsingXML(TiXmlElement *element) {
+void CoilSpring::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"type");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"type");
   if(e) {
-    string typeStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+    string name = X()%E(e)->getFirstTextChild()->getData();
+    string typeStr=name.substr(1,name.length()-2);
     if(typeStr=="tube") setType(tube);
     if(typeStr=="scaledTube") setType(scaledTube);
     if(typeStr=="polyline") setType(polyline);
   }
-  e=element->FirstChildElement(OPENMBVNS"numberOfCoils");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfCoils");
   setNumberOfCoils(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"springRadius");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"springRadius");
   setSpringRadius(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"crossSectionRadius");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"crossSectionRadius");
   if(e) setCrossSectionRadius(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"nominalLength");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"nominalLength");
   if(e) setNominalLength(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   if(e) setScaleFactor(getDouble(e));
 }

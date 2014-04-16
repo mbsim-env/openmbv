@@ -27,8 +27,9 @@
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
 RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
   initialTranslation(vector<double>(3, 0)),
@@ -42,15 +43,15 @@ RigidBody::~RigidBody() {
   if(!hdf5LinkBody && data) delete data;
 }
 
-TiXmlElement* RigidBody::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=DynamicColoredBody::writeXMLFile(parent);
+DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   addAttribute(e, "localFrame", localFrameStr, "false");
   addAttribute(e, "referenceFrame", referenceFrameStr, "false");
   addAttribute(e, "path", pathStr, "false");
   addAttribute(e, "dragger", draggerStr, "false");
-  addElementText(e, OPENMBVNS"initialTranslation", initialTranslation);
-  addElementText(e, OPENMBVNS"initialRotation", initialRotation);
-  addElementText(e, OPENMBVNS"scaleFactor", scaleFactor);
+  addElementText(e, OPENMBV%"initialTranslation", initialTranslation);
+  addElementText(e, OPENMBV%"initialRotation", initialRotation);
+  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
   return e;
 }
 
@@ -87,26 +88,26 @@ void RigidBody::openHDF5File() {
   }
 }
 
-void RigidBody::initializeUsingXML(TiXmlElement *element) {
+void RigidBody::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
-  if(element->Attribute("localFrame") && 
-     (element->Attribute("localFrame")==string("true") || element->Attribute("localFrame")==string("1")))
+  if(E(element)->hasAttribute("localFrame") && 
+     (E(element)->getAttribute("localFrame")=="true" || E(element)->getAttribute("localFrame")=="1"))
     setLocalFrame(true);
-  if(element->Attribute("referenceFrame") && 
-     (element->Attribute("referenceFrame")==string("true") || element->Attribute("referenceFrame")==string("1")))
+  if(E(element)->hasAttribute("referenceFrame") && 
+     (E(element)->getAttribute("referenceFrame")=="true" || E(element)->getAttribute("referenceFrame")=="1"))
     setReferenceFrame(true);
-  if(element->Attribute("path") && 
-     (element->Attribute("path")==string("true") || element->Attribute("path")==string("1")))
+  if(E(element)->hasAttribute("path") && 
+     (E(element)->getAttribute("path")=="true" || E(element)->getAttribute("path")=="1"))
     setPath(true);
-  if(element->Attribute("dragger") && 
-     (element->Attribute("dragger")==string("true") || element->Attribute("dragger")==string("1")))
+  if(E(element)->hasAttribute("dragger") && 
+     (E(element)->getAttribute("dragger")=="true" || E(element)->getAttribute("dragger")=="1"))
     setDragger(true);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"initialTranslation");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"initialTranslation");
   setInitialTranslation(getVec(e,3));
-  e=element->FirstChildElement(OPENMBVNS"initialRotation");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
   setInitialRotation(getVec(e,3));
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   setScaleFactor(getDouble(e));
 }
 

@@ -182,9 +182,9 @@ namespace OpenMBV {
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
+      virtual void initializeUsingXML(xercesc::DOMElement *element);
 
-      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
 
       virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
 

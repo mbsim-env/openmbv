@@ -24,10 +24,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBVNS"CompoundRigidBody")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBV%"CompoundRigidBody")
 
 CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
 }
@@ -37,27 +38,27 @@ CompoundRigidBody::~CompoundRigidBody() {
     delete rigidBody[i];
 }
 
-TiXmlElement* CompoundRigidBody::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+DOMElement* CompoundRigidBody::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
   addAttribute(e, "expand", expandStr, "false");
   for(unsigned int i=0; i<rigidBody.size(); i++)
     rigidBody[i]->writeXMLFile(e);
   return 0;
 }
 
-void CompoundRigidBody::initializeUsingXML(TiXmlElement *element) {
+void CompoundRigidBody::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  if(element->Attribute("expand") && 
-     (element->Attribute("expand")==string("true") || element->Attribute("expand")==string("1")))
+  if(E(element)->hasAttribute("expand") && 
+     (E(element)->getAttribute("expand")=="true" || E(element)->getAttribute("expand")=="1"))
     setExpand(true);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"scaleFactor");
-  e=e->NextSiblingElement();
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
+  e=e->getNextElementSibling();
   while (e) {
     RigidBody * rb = ObjectFactory::create<RigidBody>(e);
     rb->initializeUsingXML(e);
     addRigidBody(rb);
-    e=e->NextSiblingElement();
+    e=e->getNextElementSibling();
   }
 }
 
