@@ -114,9 +114,9 @@ namespace OpenMBV {
       void terminate();
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
+      virtual void initializeUsingXML(xercesc::DOMElement *element);
 
-      MBXMLUtils::TiXmlElement* writeXMLFile(MBXMLUtils::TiXmlNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup() { return separateFile?this:parent->getSeparateGroup(); }

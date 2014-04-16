@@ -26,13 +26,19 @@
 #include <openmbvcppinterface/objectfactory.h>
 #include <mbxmlutilstinyxml/tinyxml.h>
 #include <mbxmlutilstinyxml/tinynamespace.h>
+#include <mbxmlutilshelper/dom.h>
+#include <xercesc/dom/DOMElement.hpp>
+#include <xercesc/dom/DOMNode.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
 #include <vector>
 
-#define OPENMBVNS_ "http://openmbv.berlios.de/OpenMBV"
-#define OPENMBVNS "{"OPENMBVNS_"}"
+extern MBXMLUtils::NamespaceURI OPENMBV;
+extern MBXMLUtils::NamespaceURI MBXMLUTILSPARAM;
 
-#define MBXMLUTILSPARAMNS_ "http://openmbv.berlios.de/MBXMLUtils/parameter"
-#define MBXMLUTILSPARAMNS "{"MBXMLUTILSPARAMNS_"}"
+namespace XERCES_CPP_NAMESPACE {
+  class DOMNode;
+  class DOMElement;
+}
 
 namespace OpenMBV {
 
@@ -105,9 +111,9 @@ namespace OpenMBV {
       virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(MBXMLUtils::TiXmlElement *element);
+      virtual void initializeUsingXML(xercesc::DOMElement *element);
 
-      virtual MBXMLUtils::TiXmlElement *writeXMLFile(MBXMLUtils::TiXmlNode *parent);
+      virtual xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
       Group* getSeparateGroup();
@@ -130,36 +136,39 @@ namespace OpenMBV {
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
       static std::string fixPath(std::string oldFile, std::string newFile) { return MBXMLUtils::fixPath(oldFile, newFile); }
 
-      static ScalarParameter getDouble(MBXMLUtils::TiXmlElement *e);
-      static VectorParameter getVec(MBXMLUtils::TiXmlElement *e, unsigned int rows=0);
-      static MatrixParameter getMat(MBXMLUtils::TiXmlElement *e, unsigned int rows=0, unsigned int cols=0);
+      static ScalarParameter getDouble(xercesc::DOMElement *e);
+      static VectorParameter getVec(xercesc::DOMElement *e, unsigned int rows=0);
+      static MatrixParameter getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);
 
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
 
 
       template <class T>
-      static void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, T value) {
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, T value) {
         std::ostringstream oss;
         oss<<value;
-        parent->LinkEndChild(new MBXMLUtils::TiXmlElement(name))->LinkEndChild(new MBXMLUtils::TiXmlText(oss.str()));
+        xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
+        ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
+        parent->insertBefore(ele, NULL);
       }
 
-      void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, double value, double def);
+      void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def);
 
-      void addElementText(MBXMLUtils::TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def);
+      void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, SimpleParameter<double> value, double def);
 
       template <class T>
-      static void addAttribute(MBXMLUtils::TiXmlNode *node, std::string name, T value) {
-        if(node->ToElement()) {
+      static void addAttribute(xercesc::DOMNode *node, std::string name, T value) {
+        xercesc::DOMElement *ele = dynamic_cast<xercesc::DOMElement*>(node);
+        if(ele) {
           std::ostringstream oss;
           oss<<value;
-          node->ToElement()->SetAttribute(name, oss.str());
+          MBXMLUtils::E(ele)->setAttribute(name, oss.str());
         }
       }
 
       template <class T>
-      static void addAttribute(MBXMLUtils::TiXmlNode *node, std::string name, T value, std::string def) {
+      static void addAttribute(xercesc::DOMNode *node, std::string name, T value, std::string def) {
         if(value!=def) addAttribute(node, name, value);
       }
 

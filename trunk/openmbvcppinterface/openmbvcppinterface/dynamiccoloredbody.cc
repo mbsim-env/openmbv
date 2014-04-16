@@ -23,8 +23,9 @@
 #include <cmath>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
 DynamicColoredBody::DynamicColoredBody() : Body(),
   minimalColorValue(0),
@@ -41,29 +42,29 @@ DynamicColoredBody::DynamicColoredBody() : Body(),
 
 DynamicColoredBody::~DynamicColoredBody() {}
 
-TiXmlElement* DynamicColoredBody::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=Body::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"minimalColorValue", minimalColorValue, 0);
-  addElementText(e, OPENMBVNS"maximalColorValue", maximalColorValue, 1);
+DOMElement* DynamicColoredBody::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=Body::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"minimalColorValue", minimalColorValue, 0);
+  addElementText(e, OPENMBV%"maximalColorValue", maximalColorValue, 1);
   if(diffuseColor.getValue()[0]>=0 || diffuseColor.getValue()[1]!=1 || diffuseColor.getValue()[2]!=1)
-    addElementText(e, OPENMBVNS"diffuseColor", diffuseColor);
-  addElementText(e, OPENMBVNS"transparency", transparency, 0);
+    addElementText(e, OPENMBV%"diffuseColor", diffuseColor);
+  addElementText(e, OPENMBV%"transparency", transparency, 0);
   return e;
 }
 
-void DynamicColoredBody::initializeUsingXML(TiXmlElement *element) {
+void DynamicColoredBody::initializeUsingXML(DOMElement *element) {
   Body::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"minimalColorValue");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"minimalColorValue");
   if(e)
     setMinimalColorValue(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"maximalColorValue");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"maximalColorValue");
   if(e)
     setMaximalColorValue(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"diffuseColor");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"diffuseColor");
   if(e)
     setDiffuseColor(getVec(e, 3));
-  e=element->FirstChildElement(OPENMBVNS"transparency");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"transparency");
   if(e)
     setTransparency(getDouble(e));
 }

@@ -23,19 +23,20 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(InvisibleBody, OPENMBVNS"InvisibleBody")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(InvisibleBody, OPENMBV%"InvisibleBody")
 
 InvisibleBody::InvisibleBody() : RigidBody() {
 }
 
-TiXmlElement* InvisibleBody::writeXMLFile(TiXmlNode *parent) {
+DOMElement* InvisibleBody::writeXMLFile(DOMNode *parent) {
   RigidBody::writeXMLFile(parent);
   return 0;
 }
 
-void InvisibleBody::initializeUsingXML(TiXmlElement *element) {
+void InvisibleBody::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
 }

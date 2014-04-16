@@ -28,13 +28,14 @@
 using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
+using namespace xercesc;
 
 Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
   hdf5LinkBody(0), hdf5LinkStr("") {
 }
 
-TiXmlElement* Body::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=Object::writeXMLFile(parent);
+DOMElement* Body::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=Object::writeXMLFile(parent);
   addAttribute(e, "outLine", outLineStr, "true");
   addAttribute(e, "shilouetteEdge", shilouetteEdgeStr, "false");
   string dm;
@@ -45,14 +46,16 @@ TiXmlElement* Body::writeXMLFile(TiXmlNode *parent) {
   }
   addAttribute(e, "drawMethod", dm, "filled");
   if(hdf5LinkBody) {
-    TiXmlElement *ee=new TiXmlElement(OPENMBVNS"hdf5Link");
-    e->LinkEndChild(ee);
-    ee->SetAttribute("ref", getRelPathTo(hdf5LinkBody));
+    DOMDocument *doc=parent->getOwnerDocument();
+    DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
+    e->insertBefore(ee, NULL);
+    E(ee)->setAttribute("ref", getRelPathTo(hdf5LinkBody));
   }
   else if(hdf5LinkStr!="") {
-    TiXmlElement *ee=new TiXmlElement(OPENMBVNS"hdf5Link");
-    e->LinkEndChild(ee);
-    ee->SetAttribute("ref", hdf5LinkStr);
+    DOMDocument *doc=parent->getOwnerDocument();
+    DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
+    e->insertBefore(ee, NULL);
+    E(ee)->setAttribute("ref", hdf5LinkStr);
   }
   return e;
 }
@@ -94,20 +97,20 @@ std::string Body::getRelPathTo(Body* destBody) {
 void Body::terminate() {
 }
 
-void Body::initializeUsingXML(TiXmlElement *element) {
+void Body::initializeUsingXML(DOMElement *element) {
   Object::initializeUsingXML(element);
-  TiXmlElement *e;
-  if(element->Attribute("outLine") && 
-     (element->Attribute("outLine")==string("false") || element->Attribute("outLine")==string("0")))
+  DOMElement *e;
+  if(E(element)->hasAttribute("outLine") && 
+     (E(element)->getAttribute("outLine")=="false" || E(element)->getAttribute("outLine")=="0"))
     setOutLine(false);
-  if(element->Attribute("shilouetteEdge") && 
-     (element->Attribute("shilouetteEdge")==string("true") || element->Attribute("shilouetteEdge")==string("1")))
+  if(E(element)->hasAttribute("shilouetteEdge") && 
+     (E(element)->getAttribute("shilouetteEdge")=="true" || E(element)->getAttribute("shilouetteEdge")=="1"))
     setShilouetteEdge(true);
-  if(element->Attribute("drawMethod")) {
-    if(element->Attribute("drawMethod")==string("filled")) setDrawMethod(filled);
-    if(element->Attribute("drawMethod")==string("lines")) setDrawMethod(lines);
-    if(element->Attribute("drawMethod")==string("points")) setDrawMethod(points);
+  if(E(element)->hasAttribute("drawMethod")) {
+    if(E(element)->getAttribute("drawMethod")=="filled") setDrawMethod(filled);
+    if(E(element)->getAttribute("drawMethod")=="lines") setDrawMethod(lines);
+    if(E(element)->getAttribute("drawMethod")=="points") setDrawMethod(points);
   }
-  if((e=element->FirstChildElement(OPENMBVNS"hdf5Link")))
-    hdf5LinkStr=e->Attribute("ref");
+  if((e=E(element)->getFirstElementChildNamed(OPENMBV%"hdf5Link")))
+    hdf5LinkStr=E(e)->getAttribute("ref");
 }

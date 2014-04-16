@@ -26,7 +26,7 @@ using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBVNS"Path")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBV%"Path")
 
 Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
 }
@@ -35,9 +35,9 @@ Path::~Path() {
   if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
-MBXMLUtils::TiXmlElement* Path::writeXMLFile(MBXMLUtils::TiXmlNode *parent) {
-  MBXMLUtils::TiXmlElement *e=Body::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"color", color);
+xercesc::DOMElement* Path::writeXMLFile(xercesc::DOMNode *parent) {
+  xercesc::DOMElement *e=Body::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"color", color);
   return 0;
 }
 
@@ -70,9 +70,9 @@ void Path::openHDF5File() {
   }
 }
 
-void Path::initializeUsingXML(MBXMLUtils::TiXmlElement *element) {
+void Path::initializeUsingXML(xercesc::DOMElement *element) {
   Body::initializeUsingXML(element);
-  MBXMLUtils::TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"color");
+  xercesc::DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"color");
   setColor(getVec(e,3));
 }

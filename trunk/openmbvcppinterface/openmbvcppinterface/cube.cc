@@ -23,24 +23,25 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cube, OPENMBVNS"Cube")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cube, OPENMBV%"Cube")
 
 Cube::Cube() : RigidBody(),
   length(1) {
 }
 
-TiXmlElement* Cube::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"length", length);
+DOMElement* Cube::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"length", length);
   return 0;
 }
 
-void Cube::initializeUsingXML(TiXmlElement *element) {
+void Cube::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"length");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"length");
   setLength(getDouble(e));
 }

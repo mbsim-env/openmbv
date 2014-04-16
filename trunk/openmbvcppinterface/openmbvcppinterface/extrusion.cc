@@ -23,10 +23,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBVNS"Extrusion")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBV%"Extrusion")
 
 Extrusion::Extrusion() : RigidBody(),
   windingRule(odd),
@@ -47,8 +48,8 @@ Extrusion::~Extrusion() {
   }
 }
 
-TiXmlElement *Extrusion::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
+DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
   string windingRuleStr;
   switch(windingRule) {
     case odd: windingRuleStr="odd"; break;
@@ -57,29 +58,30 @@ TiXmlElement *Extrusion::writeXMLFile(TiXmlNode *parent) {
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  addElementText(e, OPENMBVNS"windingRule", "\""+windingRuleStr+"\"");
-  addElementText(e, OPENMBVNS"height", height);
+  addElementText(e, OPENMBV%"windingRule", "\""+windingRuleStr+"\"");
+  addElementText(e, OPENMBV%"height", height);
   for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);
   return 0;
 }
 
 
-void Extrusion::initializeUsingXML(TiXmlElement *element) {
+void Extrusion::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"windingRule");
-  string wrStr=string(e->GetText()).substr(1,string(e->GetText()).length()-2);
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"windingRule");
+  string text = X()%E(e)->getFirstTextChild()->getData();
+  string wrStr=text.substr(1,text.length()-2);
   if(wrStr=="odd") setWindingRule(odd);
   if(wrStr=="nonzero") setWindingRule(nonzero);
   if(wrStr=="positive") setWindingRule(positive);
   if(wrStr=="negative") setWindingRule(negative);
   if(wrStr=="absGEqTwo") setWindingRule(absGEqTwo);
-  e=element->FirstChildElement(OPENMBVNS"height");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
   setHeight(getDouble(e));
-  e=e->NextSiblingElement();
+  e=e->getNextElementSibling();
   while(e) {
     addContour(PolygonPoint::initializeUsingXML(e));
-    e=e->NextSiblingElement();
+    e=e->getNextElementSibling();
   }
 }

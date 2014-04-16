@@ -23,10 +23,11 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBVNS"Frustum")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBV%"Frustum")
 
 Frustum::Frustum() : RigidBody(),
   baseRadius(1),
@@ -36,27 +37,27 @@ Frustum::Frustum() : RigidBody(),
   innerTopRadius(0) {
 }
 
-TiXmlElement* Frustum::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"baseRadius", baseRadius);
-  addElementText(e, OPENMBVNS"topRadius", topRadius);
-  addElementText(e, OPENMBVNS"height", height);
-  addElementText(e, OPENMBVNS"innerBaseRadius", innerBaseRadius);
-  addElementText(e, OPENMBVNS"innerTopRadius", innerTopRadius);
+DOMElement* Frustum::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"baseRadius", baseRadius);
+  addElementText(e, OPENMBV%"topRadius", topRadius);
+  addElementText(e, OPENMBV%"height", height);
+  addElementText(e, OPENMBV%"innerBaseRadius", innerBaseRadius);
+  addElementText(e, OPENMBV%"innerTopRadius", innerTopRadius);
   return 0;
 }
 
-void Frustum::initializeUsingXML(TiXmlElement *element) {
+void Frustum::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"baseRadius");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"baseRadius");
   setBaseRadius(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"topRadius");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"topRadius");
   setTopRadius(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"height");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
   setHeight(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"innerBaseRadius");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"innerBaseRadius");
   setInnerBaseRadius(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"innerTopRadius");
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"innerTopRadius");
   setInnerTopRadius(getDouble(e));
 }

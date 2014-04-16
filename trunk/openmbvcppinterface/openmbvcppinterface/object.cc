@@ -21,6 +21,7 @@
 #include "openmbvcppinterface/object.h"
 #include "openmbvcppinterface/group.h"
 #include <mbxmlutilstinyxml/tinynamespace.h>
+#include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include "openmbvcppinterface/simpleparameter.h"
 #include <assert.h>
 #include <cmath>
@@ -28,6 +29,10 @@
 using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
+using namespace xercesc;
+
+MBXMLUtils::NamespaceURI OPENMBV("http://openmbv.berlios.de/OpenMBV");
+MBXMLUtils::NamespaceURI MBXMLUTILSPARAM("http://openmbv.berlios.de/MBXMLUtils/parameter");
 
 Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), parent(0), hdf5Group(0) {
 }
@@ -43,21 +48,18 @@ string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {
     return name;
 }
 
-void Object::initializeUsingXML(TiXmlElement *element) {
-  setName(element->Attribute("name"));
-  if(element->Attribute("enable") && 
-     (element->Attribute("enable")==string("false") || element->Attribute("enable")==string("0")))
+void Object::initializeUsingXML(DOMElement *element) {
+  setName(E(element)->getAttribute("name"));
+  if(E(element)->hasAttribute("enable") && 
+     (E(element)->getAttribute("enable")=="false" || E(element)->getAttribute("enable")=="0"))
     setEnable(false);
-  if(element->Attribute("boundingBox") && 
-     (element->Attribute("boundingBox")==string("false") || element->Attribute("boundingBox")==string("0")))
+  if(E(element)->hasAttribute("boundingBox") && 
+     (E(element)->getAttribute("boundingBox")=="false" || E(element)->getAttribute("boundingBox")=="0"))
     setBoundingBox(false);
 
-  for(TiXmlNode *child=element->FirstChild(); child; child=child->NextSibling()) {
-    TiXmlUnknown *unknown=child->ToUnknown();
-    const size_t length=strlen("?OPENMBV_ID ");
-    if(unknown && unknown->ValueStr().substr(0, length)=="?OPENMBV_ID ")
-      setID(unknown->ValueStr().substr(length, unknown->ValueStr().length()-length-1));
-  }
+  DOMProcessingInstruction *ID = E(element)->getFirstProcessingInstructionChildNamed("OPENMBV_ID");
+  if(ID)
+    setID(X()%ID->getData());
 }
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
@@ -90,33 +92,34 @@ vector<vector<double> > Object::toMatrix(string str) {
   return ret;
 }
 
-ScalarParameter Object::getDouble(TiXmlElement *e) {
+ScalarParameter Object::getDouble(DOMElement *e) {
   // value is a parameter name
-  if((string(e->GetText())[0]>='a' && string(e->GetText())[0]<='z') ||
-     (string(e->GetText())[0]>='A' && string(e->GetText())[0]<='Z') ||
-     (string(e->GetText())[0]>='_'))
-    return ScalarParameter(e->GetText());
+  string name = X()%E(e)->getFirstTextChild()->getData();
+  if((name[0]>='a' && name[0]<='z') ||
+     (name[0]>='A' && name[0]<='Z') ||
+     (name[0]>='_'))
+    return ScalarParameter(name);
   // value is numeric
-  vector<vector<double> > m=toMatrix(e->GetText());
+  vector<vector<double> > m=toMatrix(name);
   if(m.size()==1 && m[0].size()==1)
     return m[0][0];
   else {
     ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a scalar was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
+         "where a scalar was requested for element "<<X()%e->getTagName();
+    throw MBXMLUtils::DOMEvalException(str.str(), e);
   }
 }
 
-VectorParameter Object::getVec(TiXmlElement *e, unsigned int rows) {
+VectorParameter Object::getVec(DOMElement *e, unsigned int rows) {
   // value is a parameter name
-  if((string(e->GetText())[0]>='a' && string(e->GetText())[0]<='z') ||
-     (string(e->GetText())[0]>='A' && string(e->GetText())[0]<='Z') ||
-     (string(e->GetText())[0]>='_'))
-    return VectorParameter(e->GetText());
+  string name = X()%E(e)->getFirstTextChild()->getData();
+  if((name[0]>='a' && name[0]<='z') ||
+     (name[0]>='A' && name[0]<='Z') ||
+     (name[0]>='_'))
+    return VectorParameter(name);
   // value is numeric
-  vector<vector<double> > m=toMatrix(e->GetText());
+  vector<vector<double> > m=toMatrix(name);
   if((rows==0 || m.size()==rows) && m[0].size()==1) {
     vector<double> v;
     for(unsigned int i=0; i<m.size(); i++)
@@ -125,44 +128,44 @@ VectorParameter Object::getVec(TiXmlElement *e, unsigned int rows) {
   }
   else {
     ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a vector of size "<<rows<<" was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
+         "where a vector of size "<<rows<<" was requested for element "<<X()%e->getTagName();
+    throw MBXMLUtils::DOMEvalException(str.str(), e);
   }
   return vector<double>();
 }
 
-MatrixParameter Object::getMat(TiXmlElement *e, unsigned int rows, unsigned int cols) {
+MatrixParameter Object::getMat(DOMElement *e, unsigned int rows, unsigned int cols) {
   // value is a parameter name
-  if((string(e->GetText())[0]>='a' && string(e->GetText())[0]<='z') ||
-     (string(e->GetText())[0]>='A' && string(e->GetText())[0]<='Z') ||
-     (string(e->GetText())[0]>='_'))
-    return MatrixParameter(e->GetText());
+  string name = X()%E(e)->getFirstTextChild()->getData();
+  if((name[0]>='a' && name[0]<='z') ||
+     (name[0]>='A' && name[0]<='Z') ||
+     (name[0]>='_'))
+    return MatrixParameter(name);
   // value is numeric
-  vector<vector<double> > m=toMatrix(e->GetText());
+  vector<vector<double> > m=toMatrix(name);
   if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
     return m;
   else {
     ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<e->GetText()<<") "<<
-         "where a matrix of size "<<rows<<"x"<<cols<<" was requested for element "<<e->ValueStr();
-    TiXml_location(e, "", str.str());
-    throw 1;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
+         "where a matrix of size "<<rows<<"x"<<cols<<" was requested for element "<<X()%e->getTagName();
+    throw MBXMLUtils::DOMEvalException(str.str(), e);
   }
   return vector<vector<double> >();
 }
 
-TiXmlElement *Object::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=new TiXmlElement(OPENMBVNS+getClassName());
-  parent->LinkEndChild(e);
+DOMElement *Object::writeXMLFile(DOMNode *parent) {
+  DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
+  DOMElement *e=D(doc)->createElement(OPENMBV%getClassName());
+  parent->insertBefore(e, NULL);
   addAttribute(e, "name", name);
   addAttribute(e, "enable", enableStr, string("true"));
   addAttribute(e, "boundingBox", boundingBoxStr, string("false"));
   if(!ID.empty()) {
-    TiXmlUnknown *id=new TiXmlUnknown;
-    e->LinkEndChild(id);
-    id->SetValue("?OPENMBV_ID "+ID+"?");
+    DOMDocument *doc=parent->getOwnerDocument();
+    DOMProcessingInstruction *id=doc->createProcessingInstruction(X()%"OPENMBV_ID", X()%ID);
+    e->insertBefore(id, NULL);
   }
   return e;
 }
@@ -226,12 +229,12 @@ void Object::collectParameter(map<string, double>& sp, map<string, vector<double
     mp[i->first]=i->second;
 }
 
-void Object::addElementText(TiXmlElement *parent, std::string name, double value, double def) {
+void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def) {
   if(!(value==def || (isnan(def) && isnan(value))))
     addElementText(parent, name, value);
 }
 
-void Object::addElementText(TiXmlElement *parent, std::string name, SimpleParameter<double> value, double def) {
+void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, SimpleParameter<double> value, double def) {
   if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
     addElementText(parent, name, value);
 }

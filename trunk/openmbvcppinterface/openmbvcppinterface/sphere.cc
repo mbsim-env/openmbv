@@ -23,24 +23,25 @@
 #include <fstream>
 
 using namespace std;
-using namespace MBXMLUtils;
 using namespace OpenMBV;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBVNS"Sphere")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBV%"Sphere")
 
 Sphere::Sphere() : RigidBody(),
   radius(1) {
 }
 
-TiXmlElement* Sphere::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"radius", radius);
+DOMElement* Sphere::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"radius", radius);
   return 0;
 }
 
-void Sphere::initializeUsingXML(TiXmlElement *element) {
+void Sphere::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"radius");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"radius");
   setRadius(getDouble(e));
 }

@@ -25,27 +25,32 @@
 using namespace std;
 using namespace OpenMBV;
 using namespace MBXMLUtils;
+using namespace xercesc;
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBVNS"IvBody")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBV%"IvBody")
 
 IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 }
 
-TiXmlElement* IvBody::writeXMLFile(TiXmlNode *parent) {
-  TiXmlElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBVNS"ivFileName", "\""+ivFileName+"\"");
-  addElementText(e, OPENMBVNS"creaseEdges", creaseAngle, -1);
-  addElementText(e, OPENMBVNS"boundaryEdges", boundaryEdges, false);
+DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  addElementText(e, OPENMBV%"ivFileName", "\""+ivFileName+"\"");
+  addElementText(e, OPENMBV%"creaseEdges", creaseAngle, -1);
+  addElementText(e, OPENMBV%"boundaryEdges", boundaryEdges, false);
   return 0;
 }
 
-void IvBody::initializeUsingXML(TiXmlElement *element) {
+void IvBody::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
-  TiXmlElement *e;
-  e=element->FirstChildElement(OPENMBVNS"ivFileName");
-  setIvFileName(string(e->GetText()).substr(1,string(e->GetText()).length()-2));
-  e=element->FirstChildElement(OPENMBVNS"creaseEdges");
+  DOMElement *e;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"ivFileName");
+  string str = X()%E(e)->getFirstTextChild()->getData();
+  setIvFileName(str.substr(1,str.length()-2));
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"creaseEdges");
   if(e) setCreaseEdges(getDouble(e));
-  e=element->FirstChildElement(OPENMBVNS"boundaryEdges");
-  if(e) setBoundaryEdges((e->GetText()==string("true") || e->GetText()==string("1"))?true:false);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"boundaryEdges");
+  if(e) {
+    string str = X()%E(e)->getFirstTextChild()->getData();
+    setBoundaryEdges((str=="true" || str=="1")?true:false);
+  }
 }
