@@ -26,7 +26,6 @@
 #include <iostream>
 #include <fstream>
 #include <H5Cpp.h>
-#include <mbxmlutilstinyxml/tinynamespace.h>
 #include <stdlib.h>
 #include <boost/static_assert.hpp>
 #ifdef HAVE_BOOST_FILE_LOCK

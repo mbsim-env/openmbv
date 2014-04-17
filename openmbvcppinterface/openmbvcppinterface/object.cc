@@ -20,7 +20,6 @@
 #include "config.h"
 #include "openmbvcppinterface/object.h"
 #include "openmbvcppinterface/group.h"
-#include <mbxmlutilstinyxml/tinynamespace.h>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include "openmbvcppinterface/simpleparameter.h"
 #include <assert.h>

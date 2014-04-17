@@ -24,8 +24,6 @@
 #include <H5Cpp.h>
 #include <sstream>
 #include <openmbvcppinterface/objectfactory.h>
-#include <mbxmlutilstinyxml/tinyxml.h>
-#include <mbxmlutilstinyxml/tinynamespace.h>
 #include <mbxmlutilshelper/dom.h>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNode.hpp>
@@ -134,8 +132,6 @@ namespace OpenMBV {
       void setSelected(bool selected_) { selected=selected_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-      static std::string fixPath(std::string oldFile, std::string newFile) { return MBXMLUtils::fixPath(oldFile, newFile); }
-
       static ScalarParameter getDouble(xercesc::DOMElement *e);
       static VectorParameter getVec(xercesc::DOMElement *e, unsigned int rows=0);
       static MatrixParameter getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);

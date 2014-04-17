@@ -8,4 +8,4 @@ Description: OpenMBV library consiting of the MainWindow
 Requires: QtCore QtGui QtSvg QtWebKit Coin openmbvcppinterface SoQt hdf5serie
 Version: @VERSION@
 Libs: -L${libdir} -lopenmbv
-Cflags: -I${includedir} -DTIXML_USE_STL -DNDEBUG
+Cflags: -I${includedir} -DNDEBUG

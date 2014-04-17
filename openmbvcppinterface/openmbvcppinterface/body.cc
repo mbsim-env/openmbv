@@ -23,7 +23,6 @@
 #include <fstream>
 #include <H5Cpp.h>
 #include <openmbvcppinterface/group.h>
-#include <mbxmlutilstinyxml/tinynamespace.h>
 
 using namespace std;
 using namespace MBXMLUtils;

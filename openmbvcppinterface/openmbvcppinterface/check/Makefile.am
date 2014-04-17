@@ -6,5 +6,4 @@ testprog_SOURCES = testprog.cc
 
 INCLUDES = $(HDF5SERIE_CFLAGS)
 
-testprog_CXXFLAGS = -DTIXML_USE_STL 
-testprog_LDADD = ../libopenmbvcppinterface.la $(HDF5SERIE_LIBS) $(MBXMLUTILSTINYXML_LIBS)
+testprog_LDADD = ../libopenmbvcppinterface.la $(HDF5SERIE_LIBS)
