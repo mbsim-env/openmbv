@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(InvisibleBody, OPENMBV%"InvisibleBody")
 
@@ -39,4 +40,6 @@ DOMElement* InvisibleBody::writeXMLFile(DOMNode *parent) {
 
 void InvisibleBody::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
+}
+
 }

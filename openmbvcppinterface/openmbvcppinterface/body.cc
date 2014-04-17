@@ -26,9 +26,10 @@
 #include <mbxmlutilstinyxml/tinynamespace.h>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
   hdf5LinkBody(0), hdf5LinkStr("") {
@@ -113,4 +114,6 @@ void Body::initializeUsingXML(DOMElement *element) {
   }
   if((e=E(element)->getFirstElementChildNamed(OPENMBV%"hdf5Link")))
     hdf5LinkStr=E(e)->getAttribute("ref");
+}
+
 }

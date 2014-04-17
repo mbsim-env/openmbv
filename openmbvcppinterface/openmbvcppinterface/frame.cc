@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frame, OPENMBV%"Frame")
 
@@ -47,4 +48,6 @@ void Frame::initializeUsingXML(DOMElement *element) {
   setSize(getDouble(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"offset");
   setOffset(getDouble(e));
+}
+
 }

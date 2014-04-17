@@ -23,8 +23,9 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBV%"Path")
 
@@ -75,4 +76,6 @@ void Path::initializeUsingXML(xercesc::DOMElement *element) {
   xercesc::DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"color");
   setColor(getVec(e,3));
+}
+
 }

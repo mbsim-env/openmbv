@@ -27,10 +27,6 @@ using namespace xercesc;
 using namespace boost;
 using namespace boost::filesystem;
 
-namespace CasADi {
-  MBXMLUtils::NamespaceURI CASADI("http://openmbv.berlios.de/MBXMLUtils/CasADi");
-}
-
 namespace MBXMLUtils {
 
 namespace {
@@ -69,10 +65,10 @@ namespace {
 }
 
 // Definition of some XML namespace prefixes
-NamespaceURI XML("http://www.w3.org/XML/1998/namespace");
-NamespaceURI XS("http://www.w3.org/2001/XMLSchema");
-NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
-NamespaceURI PV("http://openmbv.berlios.de/MBXMLUtils/physicalvariable");
+const NamespaceURI XML("http://www.w3.org/XML/1998/namespace");
+const NamespaceURI XS("http://www.w3.org/2001/XMLSchema");
+const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
+const NamespaceURI PV("http://openmbv.berlios.de/MBXMLUtils/physicalvariable");
 
 bool DOMErrorPrinter::handleError(const DOMError& e)
 {

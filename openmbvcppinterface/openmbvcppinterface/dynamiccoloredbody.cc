@@ -23,9 +23,10 @@
 #include <cmath>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 DynamicColoredBody::DynamicColoredBody() : Body(),
   minimalColorValue(0),
@@ -67,4 +68,6 @@ void DynamicColoredBody::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"transparency");
   if(e)
     setTransparency(getDouble(e));
+}
+
 }

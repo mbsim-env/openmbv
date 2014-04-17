@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBV%"IvBody")
 
@@ -53,4 +54,6 @@ void IvBody::initializeUsingXML(DOMElement *element) {
     string str = X()%E(e)->getFirstTextChild()->getData();
     setBoundaryEdges((str=="true" || str=="1")?true:false);
   }
+}
+
 }

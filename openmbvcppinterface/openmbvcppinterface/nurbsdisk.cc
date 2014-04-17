@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(NurbsDisk, OPENMBV%"NurbsDisk")
 
@@ -151,3 +152,4 @@ void NurbsDisk::initializeUsingXML(DOMElement *element) {
     setLocalFrame(true);
 }
 
+}

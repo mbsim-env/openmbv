@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBV%"SpineExtrusion")
 
@@ -100,3 +101,4 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   setInitialRotation(getVec(e,3));
 }
 
+}

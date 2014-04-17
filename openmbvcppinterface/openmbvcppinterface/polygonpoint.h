@@ -17,13 +17,12 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    */
 
-#ifndef POLYGONPOINT_H
-#define POLYGONPOINT_H
+#ifndef _OPENMBV_POLYGONPOINT_H_
+#define _OPENMBV_POLYGONPOINT_H_
 
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include <mbxmlutilstinyxml/tinyxml.h>
 #include "openmbvcppinterface/body.h"
 #include <stdexcept>
 
@@ -48,27 +47,9 @@ namespace OpenMBV {
 
       /* CONVENIENCE */
       /** write vector of polygon points to XML file */
-      static void serializePolygonPointContour(xercesc::DOMElement *parent, const std::vector<PolygonPoint*> *cont) {
-        std::string str;
-        str="[ ";
-        for(std::vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
-          str+=Object::numtostr((*j)->getXComponent())+", "+Object::numtostr((*j)->getYComponent())+", "+Object::numtostr((*j)->getBorderValue());
-          if(j+1!=cont->end()) str+=";    "; else str+=" ]";
-        }
-        Object::addElementText(parent, OPENMBV%"contour", str);
-      }
+      static void serializePolygonPointContour(xercesc::DOMElement *parent, const std::vector<PolygonPoint*> *cont);
 
-      static std::vector<PolygonPoint*>* initializeUsingXML(xercesc::DOMElement *element) {
-        MatrixParameter matParam=Body::getMat(element);
-        if(matParam.getParamStr()!="") throw std::runtime_error("only numeric values are allowd for contours (vector<PolygonPoint*>)");
-        std::vector<std::vector<double> > mat=matParam.getValue();
-        std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
-        for(size_t r=0; r<mat.size(); r++) {
-          PolygonPoint *pp=new PolygonPoint(mat[r][0], mat[r][1], (int)(mat[r][2]));
-          contour->push_back(pp);
-        }
-        return contour;
-      }
+      static std::vector<PolygonPoint*>* initializeUsingXML(xercesc::DOMElement *element);
 
     private:
       double x, y;

@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBV%"Arrow")
 
@@ -136,4 +137,6 @@ void Arrow::initializeUsingXML(DOMElement *element) {
   }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleLength");
   setScaleLength(getDouble(e));
+}
+
 }

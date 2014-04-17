@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBV%"Sphere")
 
@@ -44,4 +45,6 @@ void Sphere::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"radius");
   setRadius(getDouble(e));
+}
+
 }

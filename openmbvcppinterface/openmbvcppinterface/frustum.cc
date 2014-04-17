@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBV%"Frustum")
 
@@ -60,4 +61,6 @@ void Frustum::initializeUsingXML(DOMElement *element) {
   setInnerBaseRadius(getDouble(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"innerTopRadius");
   setInnerTopRadius(getDouble(e));
+}
+
 }

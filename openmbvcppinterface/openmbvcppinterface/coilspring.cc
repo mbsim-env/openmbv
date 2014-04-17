@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBV%"CoilSpring")
 
@@ -114,4 +115,6 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
   if(e) setNominalLength(getDouble(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   if(e) setScaleFactor(getDouble(e));
+}
+
 }

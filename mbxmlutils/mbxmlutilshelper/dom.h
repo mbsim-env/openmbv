@@ -95,6 +95,7 @@ class FQN : public std::pair<std::string, std::string> {
 //! Helper class to easily construct full qualified XML names (FQN) using XML namespace prefixes.
 class NamespaceURI {
   public:
+    NamespaceURI() : nsuri("") {} // Should never be used; Just to workaround a SWIG java bug
     NamespaceURI(const std::string &nsuri_) : nsuri(nsuri_) {}
     FQN operator%(const std::string &localName) const { return FQN(nsuri, localName); }
     std::string getNamespaceURI() const { return nsuri; }
@@ -103,13 +104,13 @@ class NamespaceURI {
 };
 
 //! Declaration of the XML namespace prefix/URI.
-extern NamespaceURI XML;
+extern const NamespaceURI XML;
 //! Declaration of the XML schema namespace prefix/URI.
-extern NamespaceURI XS;
+extern const NamespaceURI XS;
 //! Declaration of the XML xinclude prefix/URI.
-extern NamespaceURI XINCLUDE;
+extern const NamespaceURI XINCLUDE;
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
-extern NamespaceURI PV;
+extern const NamespaceURI PV;
 
 //! Helper class for extending DOMElement (use the function E(...)).
 template<typename DOMElementType>
