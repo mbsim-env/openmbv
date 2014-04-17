@@ -111,11 +111,11 @@ fi
 
 AC_SUBST([CASADI_CPPFLAGS])
 
-dnl check if only mbxmlutilstinyxml should be installed (necessary for openmbvcppinterface and mbsim)
-AC_ARG_ENABLE([only_mbxmlutilstinyxml],
-	    AS_HELP_STRING([--enable-only-mbxmlutilstinyxml], [Enable only 'tinyxml'-part of the mbxml-utils.]))
+dnl check if only mbxmlutilshelper should be installed (necessary for openmbvcppinterface and mbsim)
+AC_ARG_ENABLE([only_mbxmlutilshelper],
+	    AS_HELP_STRING([--enable-only-mbxmlutilshelper], [Enable only 'helper'-part of the mbxml-utils.]))
 
-AS_IF([test "x$enable_only_mbxmlutilstinyxml" != "xyes"], [
+AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
 
     dnl Check for xslt
     AC_ARG_WITH([xsltprocpath],
@@ -248,10 +248,10 @@ CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno
 LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
 
 dnl set conditional variable for the subdirectories in the Makefile.am
-AM_CONDITIONAL([NOTONLY_MBXMLUTILSTINYXML], [test  "x$enable_only_mbxmlutilstinyxml" != "xyes"])
+AM_CONDITIONAL([NOTONLY_MBXMLUTILSHELPER], [test  "x$enable_only_mbxmlutilshelper" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilstinyxml/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilstinyxml.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile doc/Makefile doc/Doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

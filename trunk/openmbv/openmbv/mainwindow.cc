@@ -1035,7 +1035,7 @@ void MainWindow::aboutOpenMBV() {
       "  <li>'SoQt - A Qt GUI component toolkit library for Coin' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
       "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://code.google.com/p/hdf5serie</tt> (License: LGPL)</li>"
       "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
-      "  <li>'TinyXML - A simple, small, C++ XML parser' by Lee Thomason from <tt>http://www.grinninglizard.com/tinyxml</tt> (Licence: ZLib)</li>"
+      "  <li>'xerces-c - A validating XML parser' by Apache from <tt>http://xerces.apache.org/xerces-c</tt> (Licence: Apache)</li>"
       "  <li>'boost - C++ Libraries' by Boost from <tt>http://www.boost.org</tt> (Licence: Boost Software License)</li>"
 #ifdef HAVE_QWT_WHEEL_H
       "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"

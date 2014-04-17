@@ -27,14 +27,11 @@
 
 namespace MBXMLUtils {
 
-class TiXmlElement;
-
 class Deprecated {
   public:
     /*! register a deprecated feature with name message.
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */
     static void registerMessage(const std::string &message, const xercesc::DOMElement *e=NULL);
-    static void registerMessage(const std::string &message, const TiXmlElement *e) { registerMessage(message); } // deprecated: remove
   private:
     static void printAllMessages();
     static std::set<std::vector<std::string> > allMessages;

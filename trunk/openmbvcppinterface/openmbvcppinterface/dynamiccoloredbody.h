@@ -21,7 +21,6 @@
 #define _OPENMBV_DYNAMICCOLOREDBODY_H_
 
 #include <openmbvcppinterface/body.h>
-#include <mbxmlutilstinyxml/utils.h>
 
 namespace OpenMBV {
 

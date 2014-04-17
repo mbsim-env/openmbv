@@ -1,12 +1,12 @@
-if NOTONLY_MBXMLUTILSTINYXML
+if NOTONLY_MBXMLUTILSHELPER
   ADDITIONAL_SUBDIRS = mbxmlutils xsd2html
   ADDITIONAL_PKG_CONFIG = mbxmlutils.pc
 endif
-SUBDIRS = mbxmlutilshelper mbxmlutilstinyxml $(ADDITIONAL_SUBDIRS)
-DIST_SUBDIRS = mbxmlutilshelper mbxmlutilstinyxml $(ADDITIONAL_SUBDIRS) xmldoc doc
+SUBDIRS = mbxmlutilshelper $(ADDITIONAL_SUBDIRS)
+DIST_SUBDIRS = mbxmlutilshelper $(ADDITIONAL_SUBDIRS) xmldoc doc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = $(ADDITIONAL_PKG_CONFIG) mbxmlutilstinyxml.pc mbxmlutilshelper.pc
+pkgconfig_DATA = $(ADDITIONAL_PKG_CONFIG) mbxmlutilshelper.pc
 
 
 

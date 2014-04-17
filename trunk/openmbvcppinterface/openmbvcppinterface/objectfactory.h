@@ -23,7 +23,6 @@
 #include <map>
 #include <stdexcept>
 #include <typeinfo>
-#include "mbxmlutilstinyxml/tinyxml.h"
 #include <mbxmlutilshelper/dom.h>
 #include <xercesc/dom/DOMElement.hpp>
 #ifdef HAVE_BOOST_TYPE_TRAITS_HPP

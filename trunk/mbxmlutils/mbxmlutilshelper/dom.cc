@@ -165,13 +165,10 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
   else
     e=me;
   while(e) {
-    if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename") || E(e)->hasAttribute(XML%"base")) { // Deprecated TiXml: remove XML%"base"
+    if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
       if(e->getOwnerDocument()->getDocumentElement()!=e)
         found=e;
-      if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
-        return X()%E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")->getData();
-      else
-        return E(e)->getAttribute(XML%"base"); // Deprecated TiXml: remove XML%"base"
+      return X()%E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")->getData();
     }
     e=e->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(e->getParentNode()):NULL;
   }
@@ -565,12 +562,10 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
   // set file name
   DOMElement *root=doc->getDocumentElement();
-  if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename") && !E(root)->hasAttribute(XML%"base")) { // Deprecated TiXml: remove XML%"base"
+  if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
     DOMProcessingInstruction *filenamePI=doc->createProcessingInstruction(X()%"OriginalFilename",
       X()%absolute(inputSource).string(CODECVT));
     root->insertBefore(filenamePI, root->getFirstChild());
-    // Deprecated TiXml: do not add XML%"base"
-    root->setAttributeNS(X()%XML.getNamespaceURI(), X()%"xml:base", X()%absolute(inputSource).string(CODECVT));
   }
   // handle CDATA nodes
   handleXIncludeAndCDATA(root);
