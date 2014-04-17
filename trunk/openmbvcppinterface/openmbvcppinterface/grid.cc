@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Grid, OPENMBV%"Grid")
 
@@ -53,4 +54,6 @@ void Grid::initializeUsingXML(DOMElement *element) {
   setXNumber((unsigned int)(atof((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ny");
   setYNumber((unsigned int)(atof((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
+}
+
 }

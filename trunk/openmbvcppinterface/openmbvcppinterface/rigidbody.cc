@@ -27,9 +27,10 @@
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
   initialTranslation(vector<double>(3, 0)),
@@ -143,4 +144,6 @@ void RigidBody::destroy() const {
   }
   // destroy this rigidBody
   delete this;
+}
+
 }

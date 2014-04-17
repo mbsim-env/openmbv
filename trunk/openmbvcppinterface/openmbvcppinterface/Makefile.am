@@ -22,6 +22,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   extrusion.cc \
   rotation.cc \
   invisiblebody.cc \
+  polygonpoint.cc \
   arrow.cc \
   path.cc \
   coilspring.cc \

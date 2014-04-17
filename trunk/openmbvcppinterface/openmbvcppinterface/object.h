@@ -32,15 +32,15 @@
 #include <xercesc/dom/DOMDocument.hpp>
 #include <vector>
 
-extern MBXMLUtils::NamespaceURI OPENMBV;
-extern MBXMLUtils::NamespaceURI MBXMLUTILSPARAM;
-
 namespace XERCES_CPP_NAMESPACE {
   class DOMNode;
   class DOMElement;
 }
 
 namespace OpenMBV {
+
+  extern const MBXMLUtils::NamespaceURI OPENMBV;
+  extern const MBXMLUtils::NamespaceURI MBXMLUTILSPARAM;
 
   class Group;
 

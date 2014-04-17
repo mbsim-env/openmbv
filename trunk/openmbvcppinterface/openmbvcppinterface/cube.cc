@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cube, OPENMBV%"Cube")
 
@@ -44,4 +45,6 @@ void Cube::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"length");
   setLength(getDouble(e));
+}
+
 }

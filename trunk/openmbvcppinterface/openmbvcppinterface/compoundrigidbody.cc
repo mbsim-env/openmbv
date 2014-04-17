@@ -24,9 +24,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBV%"CompoundRigidBody")
 
@@ -66,4 +67,6 @@ void CompoundRigidBody::collectParameter(map<string, double>& sp, map<string, ve
   Object::collectParameter(sp, vp, mp);
   for(size_t i=0; i<rigidBody.size(); i++)
     rigidBody[i]->collectParameter(sp, vp, mp);
+}
+
 }

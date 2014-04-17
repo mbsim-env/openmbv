@@ -22,7 +22,7 @@ using namespace xercesc;
 using namespace boost;
 using namespace MBXMLUtils;
 
-extern NamespaceURI CASADI;
+const MBXMLUtils::NamespaceURI CASADI("http://openmbv.berlios.de/MBXMLUtils/CasADi");
 
 inline DOMElement *convertCasADiToXML(const SX &s, map<SXNode*, int> &nodes, DOMDocument *doc) {
   // add the node of s to the list of all nodes (creates a integer id for newly added nodes)

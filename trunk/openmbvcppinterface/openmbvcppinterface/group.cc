@@ -35,9 +35,10 @@
 
 using namespace std;
 using namespace boost;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 static string dirOfTopLevelFile(Group *grp);
 
@@ -378,4 +379,6 @@ void Group::read(bool readXMLFile, bool readH5File) {
   if(isFileLocked)
     fileLock.unlock_sharable();
 #endif
+}
+
 }

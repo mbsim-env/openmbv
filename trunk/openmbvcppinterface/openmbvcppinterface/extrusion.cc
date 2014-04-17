@@ -23,9 +23,10 @@
 #include <fstream>
 
 using namespace std;
-using namespace OpenMBV;
 using namespace MBXMLUtils;
 using namespace xercesc;
+
+namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBV%"Extrusion")
 
@@ -84,4 +85,6 @@ void Extrusion::initializeUsingXML(DOMElement *element) {
     addContour(PolygonPoint::initializeUsingXML(e));
     e=e->getNextElementSibling();
   }
+}
+
 }
