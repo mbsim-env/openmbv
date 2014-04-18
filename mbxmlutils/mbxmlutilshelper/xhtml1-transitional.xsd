@@ -152,7 +152,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:restriction base="xs:string">
-      <xs:pattern value="[^,]+(,\s*[^,]+)*"/>
+      <!-- <xs:pattern value="[^,]+(,\s*[^,]+)*"/> wordaround a bug in xerces-c; it throws a error for this regex -->
     </xs:restriction>
   </xs:simpleType>
 

@@ -13,7 +13,7 @@ dist_xml_DATA = measurement.xml
 # validate measurement.xml
 .measurement.xml.isvalid: measurement.xml measurement.xsd
 	rm -f .measurement.xml.isvalid
-	@XMLLINT@ --noout --schema @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
+	../mbxmlutilshelper/mbxmlutilsvalidate @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
 
 
 
@@ -39,6 +39,6 @@ libmbxmlutils_la_HEADERS = octeval.h preprocess.h
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(LIBXML2_CFLAGS) $(MKOCTFILE_CFLAGS)
+mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS)
 mbxmlutilspp_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-mbxmlutilspp_LDADD = $(LIBXML2_LIBS) $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+mbxmlutilspp_LDADD = $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@

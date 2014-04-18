@@ -125,17 +125,6 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     test $xsltproc = "no" && AC_MSG_ERROR([xsltproc not found])
     AC_SUBST([XSLTPROC],[$xsltproc])
     
-    dnl Check for libxml2
-    PKG_CHECK_MODULES(LIBXML2, libxml-2.0,[],[AC_MSG_ERROR([ERROR libxml2 not found])])
-    
-    dnl Check for xmllint
-    AC_ARG_WITH([xmllintpath],
-      [  --with-xmllint-path=PATHTOXMLLINT  The path to the 'xmllint' program.],
-      [xmllintpath="$withval"],[xmllintpath=""])
-    AC_PATH_PROG([xmllint],[xmllint],[no],[$xmllintpath:$prefix/bin:$PATH])
-    test $xmllint = "no" && AC_MSG_ERROR([xmllint not found])
-    AC_SUBST([XMLLINT],[$xmllint])
-    
     dnl Check for octave
     # check for pthread and include if found
     AC_CHECK_LIB(pthread, pthread_mutexattr_init, LIBS="$LIBS -lpthread")

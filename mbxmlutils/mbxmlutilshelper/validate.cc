@@ -10,7 +10,13 @@ using namespace MBXMLUtils;
 int main(int argc, char *argv[]) {
   path schema=argv[1];
   shared_ptr<DOMParser> parser=DOMParser::create(true);
-  parser->loadGrammar(schema);
+  try {
+    parser->loadGrammar(schema);
+  }
+  catch(const runtime_error &ex) {
+    cerr<<ex.what()<<endl;
+    return 1;
+  }
 
   int error=0;
   for(int i=2; i<argc; ++i) {
@@ -21,7 +27,7 @@ int main(int argc, char *argv[]) {
     }
     catch(const runtime_error &ex) {
       error++;
-      cerr<<xml<<" failed to validate."<<endl;
+      cerr<<ex.what()<<endl;
     }
   }
   if(error>0)
