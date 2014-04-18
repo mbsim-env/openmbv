@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/body.h>
 #include <openmbvcppinterface/objectfactory.h>
+#include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <hdf5serie/fileserie.h>
 #include <assert.h>
 #include <iostream>
@@ -184,9 +185,10 @@ void Group::initializeUsingXML(DOMElement *element) {
   if(E(element)->hasAttribute("expand") && 
      (E(element)->getAttribute("expand")=="false" || E(element)->getAttribute("expand")=="0"))
     setExpand(false);
-  if(E(element)->hasAttribute(XML%"base")) {
+  DOMProcessingInstruction *ofn=E(element)->getFirstProcessingInstructionChildNamed("OriginalFilename");
+  if(ofn) {
     setSeparateFile(true);
-    fileName=E(element)->getAttribute(XML%"base");
+    fileName=X()%ofn->getData();
     readSimpleParameter();
   }
 

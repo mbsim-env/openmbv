@@ -11,3 +11,9 @@ libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
 
 w3cschemadir = @SCHEMADIR@/http___www_w3_org
 dist_w3cschema_DATA = XInclude.xsd xml.xsd xhtml1-transitional.xsd
+
+
+# small program to validate xml files
+bin_PROGRAMS = mbxmlutilsvalidate
+mbxmlutilsvalidate_SOURCES = validate.cc
+mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la

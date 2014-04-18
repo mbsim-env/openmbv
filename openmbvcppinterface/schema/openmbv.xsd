@@ -5,7 +5,11 @@
   xmlns="http://openmbv.berlios.de/OpenMBV"
   xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns:xml="http://www.w3.org/XML/1998/namespace"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import namespace="http://www.w3.org/2001/XInclude"
+    schemaLocation="../http___www_w3_org/XInclude.xsd"/>
 
   <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
     schemaLocation="../http___openmbv_berlios_de_MBXMLUtils_physicalvariable/physicalvariable.xsd"/>
@@ -69,11 +73,11 @@
   <xs:complexType name="GroupType">
     <xs:complexContent>
       <xs:extension base="ObjectType">
-        <xs:sequence>
-          <xs:element ref="Object" minOccurs="0" maxOccurs="unbounded"/>  
-        </xs:sequence> 
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="Object"/>  
+          <xs:element ref="xi:include"/>  
+        </xs:choice> 
         <xs:attribute name="expand" type="pv:booleanFullOctEval" default="true"/>
-        <xs:attribute ref="xml:base"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   

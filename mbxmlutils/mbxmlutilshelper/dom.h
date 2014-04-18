@@ -103,8 +103,6 @@ class NamespaceURI {
     std::string nsuri;
 };
 
-//! Declaration of the XML namespace prefix/URI.
-extern const NamespaceURI XML;
 //! Declaration of the XML xinclude prefix/URI.
 extern const NamespaceURI XINCLUDE;
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
