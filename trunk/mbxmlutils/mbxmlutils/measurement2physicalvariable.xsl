@@ -107,7 +107,7 @@
 
       <xs:group name="fromFileGroup">
         <xs:sequence>
-          <xs:element name="fromFile" minOccurs="0"> <!-- minOcuurs is a workaround for a bug in libxml2-2.7 -->
+          <xs:element name="fromFile">
             <xs:annotation><xs:documentation>
               Load the file referenced by 'href' and return it as a vector or matrix.
               All file formats of the octave 'load' command are supported and auto detected.

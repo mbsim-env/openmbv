@@ -66,7 +66,6 @@ namespace {
 
 // Definition of some XML namespace prefixes
 const NamespaceURI XML("http://www.w3.org/XML/1998/namespace");
-const NamespaceURI XS("http://www.w3.org/2001/XMLSchema");
 const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
 const NamespaceURI PV("http://openmbv.berlios.de/MBXMLUtils/physicalvariable");
 
@@ -280,13 +279,6 @@ bool isDerivedFrom(const DOMNode *me, const FQN &baseTypeName) {
   else
     type=static_cast<const DOMAttr*>(me)->getSchemaTypeInfo();
   FQN typeName(X()%type->getTypeNamespace(), X()%type->getTypeName());
-
-  // a hack: some empty content elements return 0 ass getTypeNamespace and getTypeName => treat these like xs:anyType
-  if(typeName.first=="" && typeName.second=="")
-    typeName=XS%"anyType";
-  // handle the XML schema base type "anyType"
-  if(typeName==XS%"anyType")
-    return typeName==baseTypeName;
 
   map<FQN, XSTypeDefinition*>::iterator it=parser->typeMap.find(typeName);
   if(it==parser->typeMap.end())
