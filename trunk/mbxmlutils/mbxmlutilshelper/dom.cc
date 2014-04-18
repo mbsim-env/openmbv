@@ -485,6 +485,8 @@ DOMParser::DOMParser(bool validate_) : validate(validate_) {
     throw runtime_error("Internal error: Parser is not of type AbstractDOMParser.");
   locationFilter.setParser(this);
   parser->setFilter(&locationFilter);
+  // entity resolver (do never load entities using network)
+  abstractParser->setDisableDefaultEntityResolution(true);
   // configure the parser
   DOMConfiguration *config=parser->getDomConfig();
   config->setParameter(XMLUni::fgDOMErrorHandler, &errorHandler);
@@ -493,6 +495,7 @@ DOMParser::DOMParser(bool validate_) : validate(validate_) {
   //config->setParameter(XMLUni::fgDOMCDATASections, false); // is not implemented by xercesc handle it by DOMParser
   // configure validating parser
   if(validate) {
+    config->setParameter(XMLUni::fgXercesScannerName, XMLUni::fgSGXMLScanner);
     config->setParameter(XMLUni::fgDOMValidate, true);
     config->setParameter(XMLUni::fgXercesSchema, true);
     config->setParameter(XMLUni::fgXercesUseCachedGrammarInParse, true);
@@ -508,7 +511,11 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
   if(!validate)
     throw runtime_error("Loading a XML schema in a none validating parser is not possible.");
   // load grammar
+  errorHandler.resetCounter();
   parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
+  if(errorHandler.getNumErrors()>0)
+    throw runtime_error(str(format("Loading XML schema failed: %1% Errors, %2% Warnings, see above.")%
+      errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
 }
 
 void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
