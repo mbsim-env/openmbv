@@ -65,7 +65,6 @@ namespace {
 }
 
 // Definition of some XML namespace prefixes
-const NamespaceURI XML("http://www.w3.org/XML/1998/namespace");
 const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
 const NamespaceURI PV("http://openmbv.berlios.de/MBXMLUtils/physicalvariable");
 
@@ -520,6 +519,7 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
     E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();
+    e=static_cast<DOMElement*>(incNode);
     return;
   }
   // combine CDATA and text nodes

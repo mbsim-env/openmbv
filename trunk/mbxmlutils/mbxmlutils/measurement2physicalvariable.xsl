@@ -154,7 +154,6 @@
                   </xs:complexType>
                 </xs:element>
               </xs:sequence>
-              <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
         </xs:choice>
@@ -192,7 +191,6 @@
               <xs:sequence>
                 <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
               </xs:sequence>
-              <xs:attribute ref="xml:base"/> <!-- allow a XInclude here -->
             </xs:complexType>
           </xs:element>
         </xs:choice>
