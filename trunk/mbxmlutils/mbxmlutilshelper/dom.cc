@@ -64,10 +64,6 @@ namespace {
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
 }
 
-// Definition of some XML namespace prefixes
-const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
-const NamespaceURI PV("http://openmbv.berlios.de/MBXMLUtils/physicalvariable");
-
 bool DOMErrorPrinter::handleError(const DOMError& e)
 {
   string type;

@@ -37,8 +37,10 @@ namespace XERCES_CPP_NAMESPACE {
 
 namespace OpenMBV {
 
-  extern const MBXMLUtils::NamespaceURI OPENMBV;
-  extern const MBXMLUtils::NamespaceURI MBXMLUTILSPARAM;
+#ifndef SWIG // SWIG can not parse this (swig bug?). However it is not needed for the swig interface -> removed for swig
+  const MBXMLUtils::NamespaceURI OPENMBV("http://openmbv.berlios.de/OpenMBV");
+  const MBXMLUtils::NamespaceURI MBXMLUTILSPARAM("http://openmbv.berlios.de/MBXMLUtils/parameter");
+#endif
 
   class Group;
 
