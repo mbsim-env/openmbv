@@ -31,9 +31,6 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-const MBXMLUtils::NamespaceURI OPENMBV("http://openmbv.berlios.de/OpenMBV");
-const MBXMLUtils::NamespaceURI MBXMLUTILSPARAM("http://openmbv.berlios.de/MBXMLUtils/parameter");
-
 Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), parent(0), hdf5Group(0) {
 }
 
