@@ -70,10 +70,10 @@ rm -rf $HTMLDIR
 echo "DONE"
 
 echo "Validate generated HTML documentation"
-echo "  In file: $HTML.xhtml"
+echo "  In file: $HTMLDIR.xhtml"
 echo "  XSD file: @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd"
-${prefix}/bin/mbxmlutilsvalidate${EXEEXT} @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
-
+# note we convert abs path here to rel ones to avoid xalan/xerces to interprete a abs path as rel when using wine
+${prefix}/bin/mbxmlutilsvalidate${EXEEXT} $(pwd | sed -re "s|/[^/]+|/..|g;s|^/||")@datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
   ls $D/*.png >& /dev/null && cp -f $D/*.png $HTMLDIR
