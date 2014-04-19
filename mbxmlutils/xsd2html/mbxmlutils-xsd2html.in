@@ -31,6 +31,7 @@ DOXYGENFUNCTIONPREFIX2="add"
 BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
 BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
+EXEEXT=@EXEEXT@
 
 
 echo "Combine Doxygen XML documentation"
@@ -71,7 +72,7 @@ echo "DONE"
 echo "Validate generated HTML documentation"
 echo "  In file: $HTML.xhtml"
 echo "  XSD file: @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd"
-${prefix}/bin/mbxmlutilsvalidate @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
+${prefix}/bin/mbxmlutilsvalidate${EXEEXT} @datadir@/@PACKAGE@/schema/http___www_w3_org/xhtml1-transitional.xsd $HTMLDIR/index.xhtml || exit 1
 
 echo "Copy *.png"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do

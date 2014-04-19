@@ -13,7 +13,7 @@ dist_xml_DATA = measurement.xml
 # validate measurement.xml
 .measurement.xml.isvalid: measurement.xml measurement.xsd
 	rm -f .measurement.xml.isvalid
-	../mbxmlutilshelper/mbxmlutilsvalidate @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
+	../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
 
 
 
