@@ -38,19 +38,19 @@ echo "Combine Doxygen XML documentation"
 echo "  In file: $DOXYGENDOCDIR/index.xml"
 echo "  XSL file: $DOXYGENDOCDIR/combine.xslt"
 echo "  Out file: .$PROJECT.doxygen.xml"
-@XSLTPROC@ --novalid --output .$PROJECT.doxygen.xml $DOXYGENDOCDIR/combine.xslt $DOXYGENDOCDIR/index.xml || exit 1
+@XALAN@ -o .$PROJECT.doxygen.xml $DOXYGENDOCDIR/index.xml $DOXYGENDOCDIR/combine.xslt || exit 1
 echo "DONE"
 
 echo "Add Doxygen class and element function documentation to XML Schema"
 echo "  In file: $FILE"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl"
 echo "  Out file: $BASENAME.doxygen.xsd"
-@XSLTPROC@ --novalid --output $BASENAME.doxygen.xsd \
-  --param DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
-  --param DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
-  --param DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
-  --param DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
-  @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl $FILE || exit 1
+@XALAN@ -o $BASENAME.doxygen.xsd \
+  -p DOXYGENDOC "'$(pwd)/.$PROJECT.doxygen.xml'" \
+  -p DOXYGENCLASSPREFIX "'$DOXYGENCLASSPREFIX'" \
+  -p DOXYGENFUNCTIONPREFIX1 "'$DOXYGENFUNCTIONPREFIX1'" \
+  -p DOXYGENFUNCTIONPREFIX2 "'$DOXYGENFUNCTIONPREFIX2'" \
+  $FILE @datadir@/@PACKAGE@/xsl/addDoxygenToXsd.xsl || exit 1
 echo "DONE"
 
 
@@ -62,11 +62,12 @@ echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
 echo "  Out file: $HTMLDIR/index.xhtml"
 rm -rf $HTMLDIR
-@XSLTPROC@ --novalid --output $HTMLDIR/index.xhtml \
-  --param PROJECT "'$PROJECT'" \
-  --param DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
-  --param MBXMLUTILSVERSION "'@VERSION@'" \
-  @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl $BASENAME.doxygen.xsd || exit 1
+mkdir $HTMLDIR
+@XALAN@ -o $HTMLDIR/index.xhtml \
+  -p PROJECT "'$PROJECT'" \
+  -p DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
+  -p MBXMLUTILSVERSION "'@VERSION@'" \
+  $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl || exit 1
 echo "DONE"
 
 echo "Validate generated HTML documentation"
@@ -80,10 +81,11 @@ for D in $(echo $FIGUREDIR | tr ':' ' '); do
 done
 
 echo "Export equations"
-echo "  In file: $BASENAME.doxygen.xsd"
+echo "  In file: $HTMLDIR/index.xhtml"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl"
 echo "  Out file: equation.txt"
-@XSLTPROC@ --novalid --output equation.txt @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl $HTMLDIR/index.xhtml || exit 1
+# xalan tries to resolve entities from the DTD which can not be switched of by command line. Hence remove a DOCTYPE first
+sed -re "s/<\!DOCTYPE\s[^>]*>//g" $HTMLDIR/index.xhtml | @XALAN@ -o equation.txt - @datadir@/@PACKAGE@/xsl/xsdToEquation.xsl || exit 1
 
 # Generating equation
 while grep -E "^MBXMLUTILS_BEGINEQN$" equation.txt >& /dev/null; do
@@ -123,9 +125,9 @@ echo "Generate LaTeX documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
 echo "  Out file: $BASENAME2/$BASENAME2.tex"
-@XSLTPROC@ --novalid --output $BASENAME2/$BASENAME2.tex \
-  --param PROJECT "'$PROJECT'" \
-  @datadir@/@PACKAGE@/xsl/xsdToTex.xsl $BASENAME.doxygen.xsd || exit 1
+@XALAN@ -o $BASENAME2/$BASENAME2.tex \
+  -p PROJECT "'$PROJECT'" \
+  $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToTex.xsl || exit 1
 echo "DONE"
 
 echo "Copy *.eps"

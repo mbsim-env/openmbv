@@ -505,7 +505,12 @@
     <xsl:param name="ELEMENTNAME"/>
     <xsl:param name="COLORSTYLE"/>
     <xsl:if test="@minOccurs|@maxOccurs">
-      <xsl:element name="html:{$ELEMENTNAME}" class="{$COLORSTYLE}">
+      <xsl:element name="html:{$ELEMENTNAME}">
+        <xsl:if test="$COLORSTYLE!=''">
+          <xsl:attribute name="class">
+            <xsl:value-of select="$COLORSTYLE"/>
+          </xsl:attribute>
+        </xsl:if>
         <xsl:if test="@minOccurs=0 and not(@maxOccurs)">
           <span class="occurance">[optional]</span>
         </xsl:if>

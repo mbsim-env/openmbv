@@ -19,7 +19,7 @@ dist_xml_DATA = measurement.xml
 
 # generate physicalvariable.xsd
 physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
-	@XSLTPROC@ --output @srcdir@/physicalvariable.xsd @srcdir@/measurement2physicalvariable.xsl @srcdir@/measurement.xml
+	@XALAN@ -o @srcdir@/physicalvariable.xsd @srcdir@/measurement.xml @srcdir@/measurement2physicalvariable.xsl
 
 
 

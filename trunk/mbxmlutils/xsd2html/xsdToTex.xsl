@@ -418,8 +418,6 @@ A indent indicates child elements for a given element.
 
   <!-- element -->
   <xsl:template mode="SIMPLECONTENT" match="xs:element">
-    <xsl:param name="FUNCTIONNAME" select="@name"/>
-    <xsl:param name="CLASSNAME"/>
     <!-- name by not(ref) -->
     <xsl:if test="not(@ref)">\lstinline[basicstyle=\bf\ttfamily]|&lt;<xsl:value-of select="@name"/>&gt;|</xsl:if>
     <!-- name by ref -->
@@ -453,8 +451,6 @@ A indent indicates child elements for a given element.
 
   <!-- any element -->
   <xsl:template mode="SIMPLECONTENT" match="xs:any">
-    <xsl:param name="CLASSNAME"/>
-    <xsl:param name="CLASSNAME"/>
     \lstinline[basicstyle=\bf\ttfamily]|&lt;xs:any&gt;|
     <!-- occurence -->
     <xsl:apply-templates mode="OCCURANCE" select="."><xsl:with-param name="ELEMENTNAME" select="'span'"/></xsl:apply-templates>
