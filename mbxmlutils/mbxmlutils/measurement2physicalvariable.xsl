@@ -28,6 +28,7 @@
 
       <xs:include schemaLocation="parameter.xsd"/>
       <xs:include schemaLocation="embed.xsd"/>
+      <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" schemaLocation="casadi.xsd"/>
 
       <!-- base type for a XML text element which is fully converted by octave.-->
       <xs:simpleType name="fullOctEval">
@@ -331,7 +332,7 @@
           </xs:documentation>
         </xs:annotation>
         <xs:choice>
-          <xs:any minOccurs="0" namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" processContents="lax"/>
+          <xs:element ref="casadi:SXFunction" xmlns:casadi="http://openmbv.berlios.de/MBXMLUtils/CasADi"/>
           <xs:group ref="xmlScalarGroup"/>
           <xs:group ref="xmlVectorGroup"/>
           <xs:group ref="xmlMatrixGroup"/>

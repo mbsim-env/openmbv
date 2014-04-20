@@ -1,0 +1,151 @@
+<xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/CasADi"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  xmlns="http://openmbv.berlios.de/MBXMLUtils/CasADi"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="SXFunction">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="inputs" type="ioType"/>
+        <xs:element name="outputs" type="ioType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="ioType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element ref="SX"/>
+      <xs:element ref="SXMatrix"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:element name="SXMatrix">
+    <xs:complexType>
+      <xs:choice>
+        <!-- matrix -->
+        <xs:element name="matrixRow" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="SX" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <!-- column or row vector -->
+        <xs:element ref="SX" maxOccurs="unbounded"/>
+      </xs:choice>
+      <xs:attribute name="rowVector" type="xs:boolean" use="optional"/>
+      <xs:attribute name="columnVector" type="xs:boolean" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="SX" abstract="true" type="SXType"/>
+  <xs:complexType name="SXType"/>
+
+  <!-- a reference to a SX -->
+  <xs:element name="reference" substitutionGroup="SX" type="referenceType"/>
+  <xs:complexType name="referenceType">
+    <xs:complexContent>
+      <xs:extension base="SXType">
+        <xs:attribute name="refid" type="xs:integer"/> <!-- referenc the SX with id refid -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="SXWithID" abstract="true" substitutionGroup="SX" type="SXWithIDType"/>
+  <xs:complexType name="SXWithIDType">
+    <xs:complexContent>
+      <xs:extension base="SXType">
+        <xs:attribute name="id" type="xs:integer"/> <!-- id if the SX, used by the reference element -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="SymbolicSX" substitutionGroup="SXWithID" type="SymbolicSXType"/>
+  <xs:complexType name="SymbolicSXType" mixed="true"> <!-- the text content (mixed) should be xs:string -->
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="ZeroSX" substitutionGroup="SXWithID" type="ZeroSXType"/>
+  <xs:complexType name="ZeroSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="OneSX" substitutionGroup="SXWithID" type="OneSXType"/>
+  <xs:complexType name="OneSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="MinusOneSX" substitutionGroup="SXWithID" type="MinusOneSXType"/>
+  <xs:complexType name="MinusOneSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="InfSX" substitutionGroup="SXWithID" type="InfSXType"/>
+  <xs:complexType name="InfSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="MinusInfSX" substitutionGroup="SXWithID" type="MinusInfSXType"/>
+  <xs:complexType name="MinusInfSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="NanSX" substitutionGroup="SXWithID" type="NanSXType"/>
+  <xs:complexType name="NanSXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="IntegerSX" substitutionGroup="SXWithID" type="IntegerSXType"/>
+  <xs:complexType name="IntegerSXType" mixed="true"> <!-- the text content (mixed) should be xs:integer -->
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="RealtypeSX" substitutionGroup="SXWithID" type="RealtypeSXType"/>
+  <xs:complexType name="RealtypeSXType" mixed="true"> <!-- the text content (mixed) should be xs:decimal -->
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="BinarySX" substitutionGroup="SXWithID" type="BinarySXType"/>
+  <xs:complexType name="BinarySXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType">
+        <xs:sequence>
+          <xs:element ref="SX" minOccurs="2" maxOccurs="2"/> <!-- a binary op has two elements -->
+        </xs:sequence>
+        <xs:attribute name="op" type="xs:integer"/> <!-- the op id -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="UnarySX" substitutionGroup="SXWithID" type="UnarySXType"/>
+  <xs:complexType name="UnarySXType">
+    <xs:complexContent>
+      <xs:extension base="SXWithIDType">
+        <xs:sequence>
+          <xs:element ref="SX"/> <!-- a unary op has one element -->
+        </xs:sequence>
+        <xs:attribute name="op" type="xs:integer"/> <!-- the op id -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+</xs:schema>

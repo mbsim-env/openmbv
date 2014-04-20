@@ -418,7 +418,9 @@ DOMNodeFilter::ShowType LocationInfoFilter::getWhatToShow() const {
 
 void TypeDerivativeHandler::handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, PSVIElement *info) {
   XSTypeDefinition *type=info->getTypeDefinition();
-  if(!type) return; // skip if no type is defined
+  if(!type)
+    throw runtime_error(str(format("No type defined for element {%1%}%2%. This seems to be a bug in the XML schema.")%
+      (X()%uri)%(X()%localName)));
   FQN name(X()%type->getNamespace(), X()%type->getName());
   parser->typeMap[name]=type;
 }
@@ -426,10 +428,15 @@ void TypeDerivativeHandler::handleElementPSVI(const XMLCh *const localName, cons
 void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, const XMLCh *const uri, PSVIAttributeList *psviAttributes) {
   for(int i=0; i<psviAttributes->getLength(); i++) {
     PSVIAttribute *info=psviAttributes->getAttributePSVIAtIndex(i);
+    // the xmlns attribute has not type -> skip it (maybe a bug in xerces, but this attribute is not needed)
+    if(X()%psviAttributes->getAttributeNamespaceAtIndex(i)=="" && X()%psviAttributes->getAttributeNameAtIndex(i)=="xmlns")
+      continue;
 
     XSTypeDefinition *type=info->getTypeDefinition();
     if(!type)
-      continue;
+      throw runtime_error(str(format("No type defined for attribute {%1%}%2% in element {%3%}%4%. This seems to be a bug in the XML schema.")%
+        (X()%psviAttributes->getAttributeNamespaceAtIndex(i))%(X()%psviAttributes->getAttributeNameAtIndex(i))%
+        (X()%uri)%(X()%localName)));
     FQN name(X()%type->getNamespace(), X()%type->getName());
     parser->typeMap[name]=type;
   }
