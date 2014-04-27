@@ -445,27 +445,19 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
 void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
   void *data, const DOMNode *src, DOMNode *dst) {
   if(X()%key!=DOMParser::domParserKey)
+    throw runtime_error("Internal error: unknown user data key");
+  if(operation==NODE_DELETED) {
+    delete static_cast<shared_ptr<DOMParser>*>(data);
     return;
-  switch(operation) {
-    case NODE_CLONED:
-    case NODE_IMPORTED: {
-      // copy user data (deeply) (this incremnets the ref count on the parser)
-      shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(data);
-      dst->setUserData(X()%DOMParser::domParserKey, new shared_ptr<DOMParser>(parser), &DOMParser::userDataHandler);
-      break;
-    }
-    case NODE_DELETED:
-      // delete user data (this decrements the ref count on the parser)
-      delete static_cast<shared_ptr<DOMParser>*>(data);
-      break;
-    case NODE_RENAMED:
-    case NODE_ADOPTED:
-      // just copy user data pointer
-      dst->setUserData(X()%DOMParser::domParserKey, data, &DOMParser::userDataHandler);
-      break;
-    default:
-      throw runtime_error("Internal error: unknown operation in user data handler");
   }
+  if(src->getNodeType()==DOMNode::DOCUMENT_NODE && operation==NODE_CLONED) { // src->getNodeType()!=DOCUMENT_NODE should not happen see below (maybe a xerces bug)
+    // copy user data (deeply) (this incremnets the ref count on the parser)
+    shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(data);
+    dst->setUserData(X()%DOMParser::domParserKey, new shared_ptr<DOMParser>(parser), &DOMParser::userDataHandler);
+    return;
+  }
+  return; // we should throw here a 'throw runtime_error("Internal error: unknown operation in user data handler");'
+          // however this code part is reached often (maybe a xerces bug). Hence do nothing here.
 }
 
 const string DOMParser::domParserKey("http://openmbv.berlios.de/MBXMLUtils/domParser");

@@ -5,6 +5,7 @@
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
 #include <octave/octave.h>
+#include <octave/toplev.h>
 #include <casadi/symbolic/sx/sx_tools.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/utils.h>
@@ -339,6 +340,10 @@ OctEval::~OctEval() {
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
     eval_string("1+1", true, dummy, 0); // eval as statement list
+
+    // cleanup ocatve, but do NOT call ::exit
+    octave_exit=NULL; // do not call ::exit
+    clean_up_and_exit(0);
   }
 }
 
