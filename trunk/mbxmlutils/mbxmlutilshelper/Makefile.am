@@ -16,4 +16,5 @@ dist_w3cschema_DATA = XInclude.xsd xml.xsd xhtml1-transitional.xsd
 # small program to validate xml files
 bin_PROGRAMS = mbxmlutilsvalidate
 mbxmlutilsvalidate_SOURCES = validate.cc
-mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la
+mbxmlutilsvalidate_CPPFLAGS = $(XERCESC_CFLAGS)
+mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ -l@BOOST_LOCALE_LIB@
