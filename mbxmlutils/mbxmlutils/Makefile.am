@@ -30,15 +30,15 @@ CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd
 # utility library
 lib_LTLIBRARIES = libmbxmlutils.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS)
+libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS)
 libmbxmlutils_la_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(MKOCTFILE_LIBS)
+libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(MKOCTFILE_LIBS) $(XERCESC_LIBS)
 libmbxmlutils_la_SOURCES = octeval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = octeval.h preprocess.h
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS)
+mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS)
 mbxmlutilspp_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-mbxmlutilspp_LDADD = $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+mbxmlutilspp_LDADD = $(MKOCTFILE_LIBS) $(XERCESC_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
