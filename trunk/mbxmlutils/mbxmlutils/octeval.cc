@@ -1,4 +1,6 @@
+#include <config.h>
 #include "mbxmlutils/octeval.h"
+#include <octave/version.h> // we need to check for the octave version (octave interface change)
 #include <stdexcept>
 #include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
@@ -461,7 +463,11 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
   symbol_table::clear_variables();
   // restore current parameters
   for(map<string, octave_value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    symbol_table::varref(i->first)=i->second;
+    #if defined OCTAVE_API_VERSION_NUMBER // check for octave < 3.8: octave < 3.8 defines this macro
+      symbol_table::varref(i->first)=i->second;
+    #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
+      symbol_table::assign(i->first, i->second);
+    #endif
 
   // restore search path only if required (for performance reasons; addpath is very time consuming)
   static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
@@ -511,11 +517,11 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
   }
   octave_value ret;
   if(symbol_table::is_variable(strNoSpace))
-    ret=symbol_table::varref(strNoSpace);
+    ret=symbol_table::varval(strNoSpace);
   else if(!symbol_table::is_variable("ret"))
-    ret=symbol_table::varref("ans");
+    ret=symbol_table::varval("ans");
   else
-    ret=symbol_table::varref("ret");
+    ret=symbol_table::varval("ret");
 
   return ret;
 }
