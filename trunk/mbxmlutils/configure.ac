@@ -121,7 +121,7 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_ARG_WITH([xalan],
       [  --with-xalan=XALAN  The Xalan program.],
       [xalan="$withval"],[xalan="$(which Xalan)"])
-    test -x $xalan || AC_MSG_ERROR([xalan not found])
+    test -x "$xalan" || AC_MSG_ERROR([Xalan not found. Install xalan-c])
     AC_SUBST([XALAN],[$xalan])
     
     dnl Check for octave
