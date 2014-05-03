@@ -39,11 +39,26 @@ AC_ARG_WITH([boost-system-lib],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
 
+# return 1 if the version number provided by the 1st argument is less the one by the 2nd argument
+version_less() {
+  if test "_$1" = "_$2"; then
+    echo 0
+  elif echo -e "$1\n$2" | sort -V | head -n 1 | grep "$1" > /dev/null; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
 AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
 AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
+if test "_$swig" != "_no"; then
+  SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
+  AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+fi
 dnl Check for octave
 DOS2UNIX="cat"
 if test "$cross_compiling" == "yes"; then
@@ -60,12 +75,18 @@ AC_SUBST([native_prefix])
 
 dnl Check for octave
 AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 'no' to disable the octave interface).],
-  [mkoctfile="$withval"],[mkoctfile="no"])
-if test "$mkoctfile" == "no"; then
+  [mkoctfile="$withval"],[mkoctfile=""])
+if test "_$mkoctfile" == "_"; then
   AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
+  OCTAVEVERSION=$(mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
+  AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
+  if test $(version_less 3.8.0 $OCTAVEVERSION) -eq 1 -a $(version_less $SWIGVERSION 2.0.12) -eq 1; then
+    AC_MSG_ERROR([Found octave in version >= 3.8.0 which requires SWIG in version >= 2.0.12.
+                  Install correct versions or disable octave by --with-mkoctfile=no.])
+  fi
   AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
   OCTAVE_LIBS="$(echo $($mkoctfile -p LFLAGS | $DOS2UNIX) $($mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
   OCTAVE_FLAGS="$(echo $($mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"

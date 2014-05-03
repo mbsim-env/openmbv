@@ -10,10 +10,10 @@
 #  define unordered_map map
 #endif
 
-// Include octave/oct.h which includes octave/octave.h which includes octave/.../config.h.
-// This is not allowed since config.h should only be included in .cc files.
-// To avoid macro redefined warnings/errors we save some macros undefine it before including octave/oct.h
-// and undefine and reset it after the include.
+// Include octave/config.h first. This is normally not allowed since config.h should only
+// be included in .cc files but is required by octave.
+// To avoid macro redefined warnings/errors we save some macros, undefine it before
+// including octave/oct.h and undefine and reset it after the include.
 // save macros
 #define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE           PACKAGE
 #define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_BUGREPORT PACKAGE_BUGREPORT
@@ -33,7 +33,7 @@
 #undef PACKAGE_VERSION
 #undef VERSION
 // include
-#include <octave/oct.h>
+#include <octave/config.h>
 // undef macros
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
@@ -53,6 +53,7 @@
 #define PACKAGE_VERSION   MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_VERSION
 #define VERSION           MBXMLUTILS_OCTEVAL_H_SAVED_VERSION
 
+#include <octave/symtab.h>
 #include "mbxmlutilshelper/casadiXML.h"
 #include "mbxmlutilshelper/dom.h"
 #include <octave/parse.h>
