@@ -259,6 +259,8 @@ class MainWindow : public QMainWindow {
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
 
+    QTreeWidget* getObjectList() { return objectList; }
+
   signals:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */
