@@ -33,6 +33,8 @@ BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
 EXEEXT=@EXEEXT@
 
+rm -f .$BASENAME2.done
+
 
 echo "Combine Doxygen XML documentation"
 echo "  In file: $DOXYGENDOCDIR/index.xml"
@@ -117,35 +119,4 @@ EOF
 done
 rm -f equation.*
 
-
-
-
-
-echo "Generate LaTeX documentation"
-echo "  In file: $BASENAME.doxygen.xsd"
-echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToTex.xsl"
-echo "  Out file: $BASENAME2/$BASENAME2.tex"
-@XALAN@ -o $BASENAME2/$BASENAME2.tex \
-  -p PROJECT "'$PROJECT'" \
-  $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToTex.xsl || exit 1
-echo "DONE"
-
-echo "Copy *.eps"
-for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  ls $D/*.eps >& /dev/null && cp -f $D/*.eps $BASENAME2
-done
-
-echo "Generate LaTeX-PS documentation"
-echo "  In file: $BASENAME2/$BASENAME2.tex"
-echo "  Out file: $BASENAME2/$BASENAME2.ps"
-OLDDIR=$(pwd)
-cd $BASENAME2
-if latex -help >& /dev/null; then
-  latex -halt-on-error -file-line-error $BASENAME2.tex || exit 1
-  latex $BASENAME2.tex >& /dev/null # second, silent run to resolve references
-  latex $BASENAME2.tex >& /dev/null # third, silent run to resolve references
-  dvips -o $BASENAME2.ps $BASENAME2.dvi || echo "WARNING: Skip running dvips (dvips not found in PATH)" || exit 1
-else
-  echo "WARNING: Skip running LaTeX for LaTeX documentation (latex command not found in PATH)"
-fi
-cd $OLDDIR
+touch .$BASENAME2.done
