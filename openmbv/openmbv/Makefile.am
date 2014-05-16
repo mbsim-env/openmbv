@@ -89,7 +89,7 @@ openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   main.cc
 openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(MAYBE_QWT_CFLAGS)
 openmbv_LDFLAGS  = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-openmbv_LDADD    = libopenmbv.la
+openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(SOQT_LIBS) -l@BOOST_SYSTEM_LIB@
 
 
 
