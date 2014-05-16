@@ -13,6 +13,6 @@ Name: MBXMLUtils
 Description: XML utilities for physical applications (multi body applications)
 Requires: xerces-c
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutils @MKOCTFILE_LIBS@ @CASADI_LIBS@
+Libs: -L${libdir} -lmbxmlutils @MKOCTFILE_LIBS@ @CASADI_LIBS@ -l@BOOST_SYSTEM_LIB@ -l@BOOST_FILESYSTEM_LIB@
 Cflags: -I${includedir} @MKOCTFILE_CFLAGS@ @CASADI_CPPFLAGS@
 
