@@ -4,9 +4,6 @@
   xmlns="http://www.w3.org/1999/xhtml"
   version="1.0">
 
-  <!-- If changes in this file are made, then the analog changes must
-       be done in the file measurementToTex.xsl -->
-
   <xsl:param name="DATETIME"/>
   <xsl:param name="MBXMLUTILSVERSION"/>
 
