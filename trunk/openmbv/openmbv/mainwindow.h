@@ -259,7 +259,7 @@ class MainWindow : public QMainWindow {
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
 
-    QTreeWidget* getObjectList() { return objectList; }
+    DLL_PUBLIC QTreeWidget* getObjectList() { return objectList; }
 
   signals:
     /** This signal is emitted whenever the selected object changes.
