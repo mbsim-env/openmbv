@@ -153,13 +153,13 @@
     <h2><a name="parameters" href="#parameters-content">Parameters</a></h2>
     <p>A example for a parameter file is given below:</p>
 <pre>&lt;parameter xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+  &lt;scalarParameter name="N"&gt;9&lt;/scalarParameter&gt;
   &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/scalarParameter&gt;
-  &lt;scalarParameter name="N"&gt;&lt;9/scalarParameter&gt;
   &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
 &lt;/parameter&gt;
 </pre>
-    <p>The parameter names must be unique and the parameters can have references to each other. The order of scalar, vector and matrix parameters is arbitary. The parameter values can be given as <a href="#octave">Octave Expressions/Programs</a>.</p>
+    <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#octave">Octave Expressions/Programs</a>. Hence a parameter below another parameter may reference this value.</p>
 
     <h2><a name="octave" href="#octave-content">Octave Expression/Program</a></h2>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
