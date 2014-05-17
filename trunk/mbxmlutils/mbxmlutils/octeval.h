@@ -132,7 +132,9 @@ class OctEval {
 
     //! Add a octave value to the current parameters.
     void addParam(const std::string &paramName, const octave_value& value);
-    //! Add all parameters from XML element e. The parameters may depend on each other.
+    //! Add all parameters from XML element e.
+    //! The parameters are added from top to bottom as they appear in the XML element e.
+    //! Parameters may depend on parameters already added.
     void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to octave search path

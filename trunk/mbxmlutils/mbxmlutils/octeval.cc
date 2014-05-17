@@ -354,54 +354,15 @@ void OctEval::addParam(const std::string &paramName, const octave_value& value) 
 }
 
 void OctEval::addParamSet(const DOMElement *e) {
-  // outer loop to resolve recursive parameters
-  list<const DOMElement*> c;
-  for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling())
-    c.push_back(ee);
-  size_t length=c.size();
-  for(size_t outerLoop=0; outerLoop<length; outerLoop++) {
-    // evaluate parameter
-    list<const DOMElement*>::iterator ee=c.begin();
-    while(ee!=c.end()) {
-      int err=0;
-      octave_value ret;
-      try { 
-        BLOCK_STDERR(blockstderr);
-        if(E(*ee)->getTagName()==PV%"searchPath")
-          ret=eval(E(*ee)->getAttributeNode("href"), *ee);
-        else
-          ret=eval(*ee);
-      }
-      catch(const std::exception &ex) {
-        err=1;
-      }
-      if(err==0) { // if no error
-        if(E(*ee)->getTagName()==PV%"searchPath")
-          addPath(E(*ee)->convertPath(ret.string_value()));
-        else
-          addParam(E(*ee)->getAttribute("name"), ret); // add param to list
-        ee=c.erase(ee);
-      }
-      else
-        ee++;
+  for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
+    if(E(ee)->getTagName()==PV%"searchPath") {
+      octave_value ret=eval(E(ee)->getAttributeNode("href"), ee);
+      addPath(E(ee)->convertPath(ret.string_value()));
     }
-  }
-  if(c.size()>0) { // if parameters are left => error
-    DOMEvalExceptionList error;
-    error.push_back(DOMEvalException("Error in one of the following parameters or infinit loop in this parameters:"));
-    for(list<const DOMElement*>::iterator ee=c.begin(); ee!=c.end(); ee++) {
-      try {
-        eval(*ee);
-      }
-      catch(const DOMEvalException &ex) {
-        error.push_back(ex);
-      }
-      catch(const std::exception &ex) {
-        error.push_back(DOMEvalException(ex.what()));
-      }
+    else {
+      octave_value ret=eval(ee);
+      addParam(E(ee)->getAttribute("name"), ret);
     }
-    error.push_back(DOMEvalException("Error processing parameters. See above."));
-    throw error;
   }
 }
 
