@@ -21,7 +21,6 @@
 #include "openmbvcppinterface/object.h"
 #include "openmbvcppinterface/group.h"
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
-#include "openmbvcppinterface/simpleparameter.h"
 #include <assert.h>
 #include <cmath>
 
@@ -89,14 +88,8 @@ vector<vector<double> > Object::toMatrix(string str) {
   return ret;
 }
 
-ScalarParameter Object::getDouble(DOMElement *e) {
-  // value is a parameter name
+double Object::getDouble(DOMElement *e) {
   string name = X()%E(e)->getFirstTextChild()->getData();
-  if((name[0]>='a' && name[0]<='z') ||
-     (name[0]>='A' && name[0]<='Z') ||
-     (name[0]>='_'))
-    return ScalarParameter(name);
-  // value is numeric
   vector<vector<double> > m=toMatrix(name);
   if(m.size()==1 && m[0].size()==1)
     return m[0][0];
@@ -108,14 +101,8 @@ ScalarParameter Object::getDouble(DOMElement *e) {
   }
 }
 
-VectorParameter Object::getVec(DOMElement *e, unsigned int rows) {
-  // value is a parameter name
+vector<double> Object::getVec(DOMElement *e, unsigned int rows) {
   string name = X()%E(e)->getFirstTextChild()->getData();
-  if((name[0]>='a' && name[0]<='z') ||
-     (name[0]>='A' && name[0]<='Z') ||
-     (name[0]>='_'))
-    return VectorParameter(name);
-  // value is numeric
   vector<vector<double> > m=toMatrix(name);
   if((rows==0 || m.size()==rows) && m[0].size()==1) {
     vector<double> v;
@@ -132,14 +119,8 @@ VectorParameter Object::getVec(DOMElement *e, unsigned int rows) {
   return vector<double>();
 }
 
-MatrixParameter Object::getMat(DOMElement *e, unsigned int rows, unsigned int cols) {
-  // value is a parameter name
+std::vector<std::vector<double> > Object::getMat(DOMElement *e, unsigned int rows, unsigned int cols) {
   string name = X()%E(e)->getFirstTextChild()->getData();
-  if((name[0]>='a' && name[0]<='z') ||
-     (name[0]>='A' && name[0]<='Z') ||
-     (name[0]>='_'))
-    return MatrixParameter(name);
-  // value is numeric
   vector<vector<double> > m=toMatrix(name);
   if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
     return m;
@@ -175,65 +156,30 @@ Group* Object::getTopLevelGroup() {
   return parent->getTopLevelGroup();
 }
 
-double Object::get(const ScalarParameter& src) {
-  if(src.getParamStr()=="")
-    return src.getValue();
-  else if(src.getParamStr()=="nan" || src.getParamStr()=="NaN" || src.getParamStr()=="NAN")
-    return NAN;
-  else
-    return getSeparateGroup()->getScalarParameter(src.getParamStr());
-}
-
-vector<double> Object::get(const VectorParameter& src) {
-  if(src.getParamStr()=="")
-    return src.getValue();
-  else if(src.getParamStr()=="nan" || src.getParamStr()=="NaN" || src.getParamStr()=="NAN")
-    return vector<double>(1, NAN);
-  else
-    return getSeparateGroup()->getVectorParameter(src.getParamStr());
-}
-
-vector<vector<double> > Object::get(const MatrixParameter& src) {
-  if(src.getParamStr()=="")
-    return src.getValue();
-  else if(src.getParamStr()=="nan" || src.getParamStr()=="NaN" || src.getParamStr()=="NAN")
-    return vector<vector<double> >(1, vector<double>(1, NAN));
-  else
-    return getSeparateGroup()->getMatrixParameter(src.getParamStr());
-}
-
-void Object::set(ScalarParameter& dst, const ScalarParameter& src) {
-  dst=src;
-  if(dst.getParamStr()!="" && dst.getAddParameter()==true) scalarParameter[dst.getParamStr()]=dst.getValue();
-}
-
-void Object::set(VectorParameter& dst, const VectorParameter& src) {
-  dst=src;
-  if(dst.getParamStr()!="" && dst.getAddParameter()==true) vectorParameter[dst.getParamStr()]=dst.getValue();
-}
-
-void Object::set(MatrixParameter& dst, const MatrixParameter& src) {
-  dst=src;
-  if(dst.getParamStr()!="" && dst.getAddParameter()==true) matrixParameter[dst.getParamStr()]=dst.getValue();
-}
-
-void Object::collectParameter(map<string, double>& sp, map<string, vector<double> >& vp, map<string, vector<vector<double> > >& mp, bool collectAlsoSeparateGroup) {
-  for(map<string, double>::iterator i=scalarParameter.begin(); i!=scalarParameter.end(); i++)
-    sp[i->first]=i->second;
-  for(map<string, vector<double> >::iterator i=vectorParameter.begin(); i!=vectorParameter.end(); i++)
-    vp[i->first]=i->second;
-  for(map<string, vector<vector<double> > >::iterator i=matrixParameter.begin(); i!=matrixParameter.end(); i++)
-    mp[i->first]=i->second;
-}
-
 void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def) {
   if(!(value==def || (isnan(def) && isnan(value))))
     addElementText(parent, name, value);
 }
 
-void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, SimpleParameter<double> value, double def) {
-  if(!(get(value)==def || (isnan(def) && isnan(get(value)))) || value.getParamStr()!="")
-    addElementText(parent, name, value);
+void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, const vector<double> &value) {
+  std::ostringstream oss;
+  for(vector<double>::const_iterator ele=value.begin(); ele!=value.end(); ++ele)
+    oss<<(ele==value.begin()?"[":"; ")<< *ele;
+  oss<<"]";
+  xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
+  ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
+  parent->insertBefore(ele, NULL);
+}
+
+void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, const vector<vector<double> > &value) {
+  std::ostringstream oss;
+  for(vector<vector<double> >::const_iterator row=value.begin(); row!=value.end(); ++row)
+    for(vector<double>::const_iterator ele=row->begin(); ele!=row->end(); ++ele)
+      oss<<(row==value.begin() && ele==row->begin()?"[":(ele==row->begin()?"; ":", "))<< *ele;
+  oss<<"]";
+  xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
+  ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
+  parent->insertBefore(ele, NULL);
 }
 
 void Object::destroy() const {

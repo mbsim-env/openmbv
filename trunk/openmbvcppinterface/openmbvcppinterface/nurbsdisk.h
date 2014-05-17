@@ -52,11 +52,11 @@ namespace OpenMBV {
       bool getLocalFrame() { return localFrameStr=="true"?true:false; }
 
       /** Set the scale factor of the body. */
-      void setScaleFactor(const ScalarParameter scale) {
-        set(scaleFactor,scale);
+      void setScaleFactor(const double scale) {
+        scaleFactor=scale;
       }
 
-      double getScaleFactor() { return get(scaleFactor); }
+      double getScaleFactor() { return scaleFactor; }
 
       /** Set the number of points drawn between the nodes. */
       void setDrawDegree(int drawDegree_) {
@@ -66,49 +66,41 @@ namespace OpenMBV {
       int getDrawDegree() { return drawDegree; }
 
       /** Set the inner and outer radius of the disk. */
-      void setRadii(ScalarParameter Ri_, ScalarParameter Ro_) {
-        set(Ri,Ri_);
-        set(Ro,Ro_);
+      void setRadii(double Ri_, double Ro_) {
+        Ri=Ri_;
+        Ro=Ro_;
       }
 
       /** Set the inner radius of the disk. */
-      void setRi(ScalarParameter Ri_) {
-        set(Ri,Ri_);
+      void setRi(double Ri_) {
+        Ri=Ri_;
       }
 
       /** Set the inner radius of the disk. */
-      void setRo(ScalarParameter Ro_) {
-        set(Ro,Ro_);
+      void setRo(double Ro_) {
+        Ro=Ro_;
       }
 
-      double getRi() { return get(Ri); }
-      double getRo() { return get(Ro); }
+      double getRi() { return Ri; }
+      double getRo() { return Ro; }
 
       /** Set the azimuthal knot vector. 
        * These values should be set to the optimal circle values.
        */
       void setKnotVecAzimuthal(const std::vector<double> &KnotVecAzimuthal_) {
-        set(KnotVecAzimuthal,KnotVecAzimuthal_);
+        KnotVecAzimuthal=KnotVecAzimuthal_;
       }
 
-      void setKnotVecAzimuthal(const VectorParameter &KnotVecAzimuthal_) {
-        set(KnotVecAzimuthal,KnotVecAzimuthal_);
-      }
-
-      std::vector<double> getKnotVecAzimuthal() { return get(KnotVecAzimuthal); }
+      std::vector<double> getKnotVecAzimuthal() { return KnotVecAzimuthal; }
 
       /** Set the radial knot vector. 
        * These value should be set to 1 each, resulting in a B-Spline curve.
        */
       void setKnotVecRadial(const std::vector<double> &KnotVecRadial_) {
-        set(KnotVecRadial,KnotVecRadial_);
+        KnotVecRadial=KnotVecRadial_;
       }
 
-      void setKnotVecRadial(const VectorParameter &KnotVecRadial_) {
-        set(KnotVecRadial,KnotVecRadial_);
-      }
-
-      std::vector<double> getKnotVecRadial() { return get(KnotVecRadial); }
+      std::vector<double> getKnotVecRadial() { return KnotVecRadial; }
 
       /** Set the azimuthal number of finite elements used for drawing. */
       void setElementNumberAzimuthal(int ElementNumberAzimuthal_) {
@@ -182,13 +174,13 @@ namespace OpenMBV {
       std::string localFrameStr;
 
       /** Scale factor of the body. */
-      ScalarParameter scaleFactor;
+      double scaleFactor;
 
       /** Number of points drawn between the nodes. */
       int drawDegree;
 
       /** Inner and outer radius of disk */
-      ScalarParameter Ri, Ro;
+      double Ri, Ro;
 
       /** Number of finite elements in azimuthal and radial direction */
       int ElementNumberAzimuthal, ElementNumberRadial;
@@ -197,7 +189,7 @@ namespace OpenMBV {
       int InterpolationDegreeAzimuthal, InterpolationDegreeRadial;
 
       /** Knot vector for azimuthal and radial direction */
-      VectorParameter KnotVecAzimuthal, KnotVecRadial;
+      std::vector<double> KnotVecAzimuthal, KnotVecRadial;
 
       /** Normal of the disk in global coordinates */
       float *DiskNormal;

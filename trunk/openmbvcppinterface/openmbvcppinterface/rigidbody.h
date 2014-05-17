@@ -25,7 +25,6 @@
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
 #include <cmath>
-#include <openmbvcppinterface/simpleparameter.h>
 #include <stdexcept>
 
 namespace OpenMBV {
@@ -72,9 +71,9 @@ namespace OpenMBV {
     friend class CompoundRigidBody;
     protected:
       std::string localFrameStr, referenceFrameStr, pathStr, draggerStr;
-      VectorParameter initialTranslation;
-      VectorParameter initialRotation;
-      ScalarParameter scaleFactor;
+      std::vector<double> initialTranslation;
+      std::vector<double> initialRotation;
+      double scaleFactor;
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
@@ -106,18 +105,12 @@ namespace OpenMBV {
       bool getDragger() { return draggerStr=="true"?true:false; }
 
       /** Set initial translaton between the local frame of the body and the reference frame */
-      void setInitialTranslation(const VectorParameter &initTrans) {
-        if(initTrans.getParamStr()=="" && initTrans.getValue().size()!=3) std::runtime_error("the dimension does not match");
-        set(initialTranslation,initTrans);
-      }
-
-      /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(const std::vector<double> &initTrans) {
-        if(initTrans.size()!=3) throw std::runtime_error("the dimension does not match");
-        set(initialTranslation,initTrans);
+        if(initTrans.size()!=3) std::runtime_error("the dimension does not match");
+        initialTranslation=initTrans;
       }
 
-      std::vector<double> getInitialTranslation() { return get(initialTranslation); }
+      std::vector<double> getInitialTranslation() { return initialTranslation; }
 
       /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(double x, double y, double z) {
@@ -131,20 +124,12 @@ namespace OpenMBV {
       /** Set initial rotation between the local frame of the body and the reference frame.
        * Use cardan angles to represent the transformation matrix
        */
-      void setInitialRotation(const VectorParameter& initRot) {
-        if(initRot.getParamStr()=="" && initRot.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(initialRotation,initRot);
-      }
-
-      /** Set initial rotation between the local frame of the body and the reference frame.
-       * Use cardan angles to represent the transformation matrix
-       */
       void setInitialRotation(const std::vector<double>& initRot) {
         if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
-        set(initialRotation,initRot);
+        initialRotation=initRot;
       }
 
-      std::vector<double> getInitialRotation() { return get(initialRotation); }
+      std::vector<double> getInitialRotation() { return initialRotation; }
 
       /** Set initial rotation between the local frame of the body and the reference frame.
        * Use cardan angles to represent the transformation matrix
@@ -158,11 +143,11 @@ namespace OpenMBV {
       }
 
       /** Set the scale factor of the body */
-      void setScaleFactor(const ScalarParameter scale) {
-        set(scaleFactor,scale);
+      void setScaleFactor(double scale) {
+        scaleFactor=scale;
       }
 
-      double getScaleFactor() { return get(scaleFactor); }
+      double getScaleFactor() { return scaleFactor; }
 
       /** Append a data vector the the h5 datsset */
       void append(const std::vector<double>& row) {

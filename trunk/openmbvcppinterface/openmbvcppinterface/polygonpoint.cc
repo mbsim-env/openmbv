@@ -19,25 +19,25 @@
 
 #include "openmbvcppinterface/polygonpoint.h"
 
+using namespace std;
+
 namespace OpenMBV {
 
-void PolygonPoint::serializePolygonPointContour(xercesc::DOMElement *parent, const std::vector<PolygonPoint*> *cont) {
-  std::string str;
+void PolygonPoint::serializePolygonPointContour(xercesc::DOMElement *parent, const vector<PolygonPoint*> *cont) {
+  string str;
   str="[ ";
-  for(std::vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
+  for(vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
     str+=Object::numtostr((*j)->getXComponent())+", "+Object::numtostr((*j)->getYComponent())+", "+Object::numtostr((*j)->getBorderValue());
     if(j+1!=cont->end()) str+=";    "; else str+=" ]";
   }
   Object::addElementText(parent, OPENMBV%"contour", str);
 }
 
-std::vector<PolygonPoint*>* PolygonPoint::initializeUsingXML(xercesc::DOMElement *element) {
-  MatrixParameter matParam=Body::getMat(element);
-  if(matParam.getParamStr()!="") throw std::runtime_error("only numeric values are allowd for contours (vector<PolygonPoint*>)");
-  std::vector<std::vector<double> > mat=matParam.getValue();
-  std::vector<PolygonPoint*> *contour=new std::vector<PolygonPoint*>;
-  for(size_t r=0; r<mat.size(); r++) {
-    PolygonPoint *pp=new PolygonPoint(mat[r][0], mat[r][1], (int)(mat[r][2]));
+vector<PolygonPoint*>* PolygonPoint::initializeUsingXML(xercesc::DOMElement *element) {
+  vector<vector<double> > matParam=Body::getMat(element);
+  vector<PolygonPoint*> *contour=new vector<PolygonPoint*>;
+  for(size_t r=0; r<matParam.size(); r++) {
+    PolygonPoint *pp=new PolygonPoint(matParam[r][0], matParam[r][1], (int)(matParam[r][2]));
     contour->push_back(pp);
   }
   return contour;

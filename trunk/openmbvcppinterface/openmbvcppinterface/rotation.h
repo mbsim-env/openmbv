@@ -29,7 +29,7 @@ namespace OpenMBV {
   /** Rotation of a cross section area */
   class Rotation : public RigidBody {
     protected:
-      ScalarParameter startAngle, endAngle;
+      double startAngle, endAngle;
       std::vector<PolygonPoint*> *contour;
       ~Rotation();
     public:
@@ -40,23 +40,23 @@ namespace OpenMBV {
       std::string getClassName() { return "Rotation"; }
 
       /** Set start angle of the rotation (Default: 0). */
-      void setStartAngle(ScalarParameter angle) {
-        set(startAngle,angle);
+      void setStartAngle(double angle) {
+        startAngle=angle;
       }
 
-      double getStartAngle() { return get(startAngle); }
+      double getStartAngle() { return startAngle; }
 
       /** Set end angle of the rotation (Default: 2*pi). */
-      void setEndAngle(ScalarParameter angle) {
-        set(endAngle,angle);
+      void setEndAngle(double angle) {
+        endAngle=angle;
       }
 
-      double getEndAngle() { return get(endAngle); }
+      double getEndAngle() { return endAngle; }
 
       /** Set start and end angle of the rotation (Default 0-2*pi). */
-      void setAngle(ScalarParameter startAngle_, ScalarParameter endAngle_) {
-        set(startAngle,startAngle_);
-        set(endAngle,endAngle_);
+      void setAngle(double startAngle_, double endAngle_) {
+        startAngle=startAngle_;
+        endAngle=endAngle_;
       }
 
       /** Set cross section area of the rotation.

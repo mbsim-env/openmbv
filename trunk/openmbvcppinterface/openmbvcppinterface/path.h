@@ -21,7 +21,6 @@
 #define _OPENMBV_PATH_H_
 
 #include <openmbvcppinterface/body.h>
-#include <openmbvcppinterface/simpleparameter.h>
 #include <hdf5serie/vectorserie.h>
 #include <vector>
 #include <stdexcept>
@@ -39,7 +38,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
-      VectorParameter color;
+      std::vector<double> color;
       
       /** Destructor */
       virtual ~Path();
@@ -61,18 +60,12 @@ namespace OpenMBV {
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(4); }
 
       /** Set the color of the path (HSV values from 0 to 1). */
-      void setColor(const VectorParameter& hsv) {
-        if(hsv.getParamStr()=="" && hsv.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(color,hsv);
-      }
-
-      /** Set the color of the path (HSV values from 0 to 1). */
       void setColor(const std::vector<double>& hsv) {
         if(hsv.size()!=3) throw std::runtime_error("the dimension does not match");
-        set(color,hsv);
+        color=hsv;
       }
 
-      std::vector<double> getColor() { return get(color); }
+      std::vector<double> getColor() { return color; }
 
       /** Set the color of the path (HSV values from 0 to 1). */
       void setColor(double h, double s, double v) {

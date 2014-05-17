@@ -56,7 +56,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
-      ScalarParameter headDiameter, headLength, diameter, scaleLength;
+      double headDiameter, headLength, diameter, scaleLength;
       Type type;
       ReferencePoint referencePoint;
 
@@ -92,31 +92,31 @@ namespace OpenMBV {
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
-      void setArrowHead(ScalarParameter diameter, ScalarParameter length) {
-        set(headDiameter,diameter);
-        set(headLength,length);
+      void setArrowHead(double diameter, double length) {
+        headDiameter=diameter;
+        headLength=length;
       }
 
       /** Set the diameter of the arrow head (which is a cone) */
-      void setHeadDiameter(ScalarParameter diameter) {
-        set(headDiameter,diameter);
+      void setHeadDiameter(double diameter) {
+        headDiameter=diameter;
       }
 
-      double getHeadDiameter() { return get(headDiameter); }
+      double getHeadDiameter() { return headDiameter; }
 
       /** Set the length of the arrow head (which is a cone) */
-      void setHeadLength(ScalarParameter length) {
-        set(headLength,length);
+      void setHeadLength(double length) {
+        headLength=length;
       }
 
-      double getHeadLength() { return get(headLength); }
+      double getHeadLength() { return headLength; }
 
       /** Set the diameter of the arrow (which is a cylinder) */
-      void setDiameter(ScalarParameter diameter_) {
-        set(diameter,diameter_);
+      void setDiameter(double diameter_) {
+        diameter=diameter_;
       }
 
-      double getDiameter() { return get(diameter); }
+      double getDiameter() { return diameter; }
       
       /** Set the type of the arrow.
        * Use "line" to draw the arrow as a simple line;
@@ -146,11 +146,11 @@ namespace OpenMBV {
       ReferencePoint getReferencePoint() { return referencePoint; }
 
       /** Scale the length of the arrow */
-      void setScaleLength(ScalarParameter scale) {
-        set(scaleLength,scale);
+      void setScaleLength(double scale) {
+        scaleLength=scale;
       }
 
-      double getScaleLength() { return get(scaleLength); }
+      double getScaleLength() { return scaleLength; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

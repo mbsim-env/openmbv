@@ -30,7 +30,7 @@ int main() {
 
     Cuboid *c2=new Cuboid;
     c2->setName("mycubeaa");
-    c2->setLength(VectorParameter("length3",vector<double>(3,1.5)));
+    c2->setLength(vector<double>(3,1.5));
     g->addObject(c2);
 
     IvBody *iv=new IvBody;
@@ -46,7 +46,7 @@ int main() {
       Cuboid *cX=new Cuboid;
       cX->setName("mycubeX");
       subg->addObject(cX);
-      cX->setScaleFactor(ScalarParameter("scale",2));
+      cX->setScaleFactor(2);
       cX->setLocalFrame(true);
 
       Cuboid *c=new Cuboid;
@@ -66,7 +66,7 @@ int main() {
 
     Cube *cube=new Cube;
     cube->setName("mycube");
-    cube->setLength(ScalarParameter("length",5));
+    cube->setLength(5);
     g->addObject(cube);
 
     Frame *frame=new Frame;
@@ -85,8 +85,8 @@ int main() {
     Sphere *sphere=new Sphere;
     sphere->setName("mysphere");
     g->addObject(sphere);
-    sphere->setMaximalColorValue(ScalarParameter("maxcolor",8));
-    sphere->setMinimalColorValue(ScalarParameter("mincolor",5));
+    sphere->setMaximalColorValue(8);
+    sphere->setMinimalColorValue(5);
     
     Extrusion *extrusion=new Extrusion;
     extrusion->setName("myextrusion");

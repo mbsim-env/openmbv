@@ -31,7 +31,6 @@ namespace OpenMBV {
     protected:
       std::string expandStr;
       std::vector<RigidBody*> rigidBody;
-      void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
 
       ~CompoundRigidBody();
     public:

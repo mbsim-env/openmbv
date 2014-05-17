@@ -41,8 +41,8 @@ function cube=createMyGroup(g)
   cube.setName('Box1');
   cube.setReferenceFrame(true);
   cube.setLength(1.234);
-  cube.setLength(OpenMBV.ScalarParameter(1.235));
-  cube.setLength(OpenMBV.ScalarParameter("p1", 1.236));
+  cube.setLength(1.235);
+  cube.setLength(1.236);
   
   % create a cuboid
   cuboid=OpenMBV.Cuboid();

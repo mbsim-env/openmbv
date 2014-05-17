@@ -24,7 +24,6 @@
 #include <sstream>
 #include <vector>
 #include <openmbvcppinterface/object.h>
-#include "openmbvcppinterface/simpleparameter.h"
 
 namespace OpenMBV {
 

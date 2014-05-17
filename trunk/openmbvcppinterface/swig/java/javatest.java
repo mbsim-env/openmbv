@@ -32,8 +32,6 @@ public class javatest {
     cube.setName("Box1");
     cube.setReferenceFrame(true);
     cube.setLength(1.234);
-    //cube.setLength(new ScalarParameter(1.235)); ScalarParameter is not supported by java
-    //cube.setLength(new ScalarParameter("p1", 1.236)); ScalarParameter is not supported by java
     
     // create a cuboid
     Cuboid cuboid=new Cuboid();
