@@ -23,7 +23,6 @@
 #include <fstream>
 #include <openmbvcppinterface/group.h>
 #include <H5Cpp.h>
-#include <openmbvcppinterface/simpleparameter.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;

@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A cube */
   class Cube : public RigidBody {
     protected:
-      ScalarParameter length;
+      double length;
       ~Cube() {}
     public:
       /** Default constructor */
@@ -37,11 +37,11 @@ namespace OpenMBV {
       std::string getClassName() { return "Cube"; }
 
       /** Set the length of the cube (x, y and z)*/
-      void setLength(ScalarParameter length_) {
-        set(length,length_);
+      void setLength(double length_) {
+        length=length_;
       } 
 
-      double getLength() { return get(length); }
+      double getLength() { return length; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

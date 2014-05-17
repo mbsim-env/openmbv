@@ -38,9 +38,6 @@ namespace OpenMBV {
       bool separateFile;
       void createHDF5File();
       void openHDF5File();
-      void readSimpleParameter();
-      void writeSimpleParameter();
-      void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
 
       virtual ~Group();
 
@@ -123,10 +120,6 @@ namespace OpenMBV {
 
       /** return the top level Group */
       Group* getTopLevelGroup() { return parent==NULL?this:parent->getTopLevelGroup(); }
-
-      double getScalarParameter(std::string name);
-      std::vector<double> getVectorParameter(std::string name);
-      std::vector<std::vector<double> > getMatrixParameter(std::string name);
   };
 
 }

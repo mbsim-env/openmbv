@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A frustum (with a frustum hole) */
   class Frustum : public RigidBody {
     protected:
-      ScalarParameter baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
+      double baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
       ~Frustum() {}
     public:
       /** Default constructor */
@@ -37,39 +37,39 @@ namespace OpenMBV {
       std::string getClassName() { return "Frustum"; }
 
       /** Set the radius of the outer side at the base (bottom) */
-      void setBaseRadius(ScalarParameter radius) {
-        set(baseRadius,radius);
+      void setBaseRadius(double radius) {
+        baseRadius=radius;
       } 
 
-      double getBaseRadius() { return get(baseRadius); }
+      double getBaseRadius() { return baseRadius; }
 
       /** Set the radius of the outer side at the top. */
-      void setTopRadius(ScalarParameter radius) {
-        set(topRadius,radius);
+      void setTopRadius(double radius) {
+        topRadius=radius;
       } 
 
-      double getTopRadius() { return get(topRadius); }
+      double getTopRadius() { return topRadius; }
 
       /** Set height of the frustum */
-      void setHeight(ScalarParameter height_) {
-        set(height,height_);
+      void setHeight(double height_) {
+        height=height_;
       } 
 
-      double getHeight() { return get(height); }
+      double getHeight() { return height; }
 
       /** Set the radius of the inner side at the base (bottom). */
-      void setInnerBaseRadius(ScalarParameter radius) {
-        set(innerBaseRadius,radius);
+      void setInnerBaseRadius(double radius) {
+        innerBaseRadius=radius;
       } 
 
-      double getInnerBaseRadius() { return get(innerBaseRadius); }
+      double getInnerBaseRadius() { return innerBaseRadius; }
 
       /** Set the radius of the inner side at the top. */
-      void setInnerTopRadius(ScalarParameter radius) {
-        set(innerTopRadius,radius);
+      void setInnerTopRadius(double radius) {
+        innerTopRadius=radius;
       } 
 
-      double getInnerTopRadius() { return get(innerTopRadius); }
+      double getInnerTopRadius() { return innerTopRadius; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

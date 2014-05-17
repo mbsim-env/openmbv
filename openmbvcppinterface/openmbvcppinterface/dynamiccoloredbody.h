@@ -27,10 +27,10 @@ namespace OpenMBV {
   /** Abstract base class for all dynamically colored bodies */
   class DynamicColoredBody : public Body {
     protected:
-      ScalarParameter minimalColorValue, maximalColorValue;
+      double minimalColorValue, maximalColorValue;
       double dynamicColor;
-      VectorParameter diffuseColor;
-      ScalarParameter transparency;
+      std::vector<double> diffuseColor;
+      double transparency;
 
       ~DynamicColoredBody();
     public:
@@ -40,20 +40,20 @@ namespace OpenMBV {
        * The color value of the body in linearly mapped between minimalColorValue
        * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).
        */
-      void setMinimalColorValue(const ScalarParameter min) {
-        set(minimalColorValue,min);
+      void setMinimalColorValue(double min) {
+        minimalColorValue=min;
       }
 
-      double getMinimalColorValue() { return get(minimalColorValue); }
+      double getMinimalColorValue() { return minimalColorValue; }
 
       /** Set the maximal color value.
        * See also minimalColorValue
        */
-      void setMaximalColorValue(const ScalarParameter max) {
-        set(maximalColorValue,max);
+      void setMaximalColorValue(double max) {
+        maximalColorValue=max;
       }
 
-      double getMaximalColorValue() { return get(maximalColorValue); }
+      double getMaximalColorValue() { return maximalColorValue; }
 
       /** Set the color for the body dynamically.
        * If this value is set, the color given to the append function
@@ -69,14 +69,9 @@ namespace OpenMBV {
        * If the hue is less then 0 (default = -1) then the dynamic color from the
        * append routine is used as hue value.
        */
-      void setDiffuseColor(const VectorParameter &hsv) {
-        if(hsv.getParamStr()=="" && hsv.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(diffuseColor,hsv);
-      }
-
       void setDiffuseColor(const std::vector<double> &hsv) {
-        if(hsv.size()!=3) throw std::runtime_error("the diemension does not match");
-        set(diffuseColor,hsv);
+        if(hsv.size()!=3) throw std::runtime_error("the dimension does not match");
+        diffuseColor=hsv;
       }
 
       void setDiffuseColor(double h, double s, double v) {
@@ -87,14 +82,14 @@ namespace OpenMBV {
         diffuseColor=hsv;
       }
 
-      std::vector<double> getDiffuseColor() { return get(diffuseColor); }
+      std::vector<double> getDiffuseColor() { return diffuseColor; }
 
       /** Set the transparency of the body. */
-      void setTransparency(ScalarParameter t) {
-        set(transparency,t);
+      void setTransparency(double t) {
+        transparency=t;
       }
 
-      double getTransparency() { return get(transparency); }
+      double getTransparency() { return transparency; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

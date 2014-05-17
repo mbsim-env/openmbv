@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A cuboid */
   class Cuboid : public RigidBody {
     protected:
-      VectorParameter length;
+      std::vector<double> length;
       ~Cuboid() {}
     public:
       /** Default constructor */
@@ -37,18 +37,12 @@ namespace OpenMBV {
       std::string getClassName() { return "Cuboid"; }
 
       /** Set the length of the cuboid */
-      void setLength(const VectorParameter& length_) {
-        if(length_.getParamStr()=="" && length_.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(length,length_);
-      } 
-
-      /** Set the length of the cuboid */
       void setLength(const std::vector<double>& length_) {
-        if(length_.size()!=3) throw std::runtime_error("the diemension does not match");
-        set(length,length_);
+        if(length_.size()!=3) throw std::runtime_error("the dimension does not match");
+        length=length_;
       } 
 
-      std::vector<double> getLength() { return get(length); }
+      std::vector<double> getLength() { return length; }
 
       /** Set the length of the cuboid */
       void setLength(double x, double y, double z) {

@@ -46,7 +46,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
-      ScalarParameter springRadius, crossSectionRadius, scaleFactor, numberOfCoils, nominalLength;
+      double springRadius, crossSectionRadius, scaleFactor, numberOfCoils, nominalLength;
       Type type;
       
       /** Destructor */
@@ -74,22 +74,22 @@ namespace OpenMBV {
       int getRows() { return data?data->getRows():-1; }
       std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
 
-      void setSpringRadius(ScalarParameter radius) { set(springRadius,radius); }
-      double getSpringRadius() { return get(springRadius); }
+      void setSpringRadius(double radius) { springRadius=radius; }
+      double getSpringRadius() { return springRadius; }
 
       /** The radius of the coil spring cross-section if type=tube or type=scaledTube.
        * If type=polyline this parameter defines the point size of the polyline.
        * If crossSectionRadius is less then 0, the cross-section radius
        * is choosen automatically.
        */
-      void setCrossSectionRadius(ScalarParameter radius) { set(crossSectionRadius,radius); }
-      double getCrossSectionRadius() { return get(crossSectionRadius); }
+      void setCrossSectionRadius(double radius) { crossSectionRadius=radius; }
+      double getCrossSectionRadius() { return crossSectionRadius; }
 
-      void setScaleFactor(ScalarParameter scale) { set(scaleFactor,scale); }
-      double getScaleFactor() { return get(scaleFactor); }
+      void setScaleFactor(double scale) { scaleFactor=scale; }
+      double getScaleFactor() { return scaleFactor; }
 
-      void setNumberOfCoils(ScalarParameter nr) { set(numberOfCoils,nr); }
-      double getNumberOfCoils() { return get(numberOfCoils); }
+      void setNumberOfCoils(double nr) { numberOfCoils=nr; }
+      double getNumberOfCoils() { return numberOfCoils; }
 
       /** Set the nominal length of the coil spring.
        * This parameter is only usefull, if type=scaledTube: in this case
@@ -99,8 +99,8 @@ namespace OpenMBV {
        * If nominalLength is less than 0, the nominalLength is
        * choosen automatically.
        */
-      void setNominalLength(ScalarParameter l) { set(nominalLength,l); }
-      double getNominalLength() { return get(nominalLength); }
+      void setNominalLength(double l) { nominalLength=l; }
+      double getNominalLength() { return nominalLength; }
 
       /** The type of the coil spring.
        * "tube": The coil spring geometry is an extrusion of a circle along

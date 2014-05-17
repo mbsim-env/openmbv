@@ -44,12 +44,6 @@ namespace OpenMBV {
 
   class Group;
 
-  template<class t>
-  class SimpleParameter;
-  typedef SimpleParameter<double> ScalarParameter;
-  typedef SimpleParameter<std::vector<double> > VectorParameter;
-  typedef SimpleParameter<std::vector<std::vector<double> > > MatrixParameter;
-
   /** Abstract base class */
   class Object {
     friend class Group;
@@ -64,20 +58,6 @@ namespace OpenMBV {
       virtual void openHDF5File()=0;
       H5::Group *hdf5Group;
       virtual void terminate()=0;
-
-      std::map<std::string, double> scalarParameter;
-      std::map<std::string, std::vector<double> > vectorParameter;
-      std::map<std::string, std::vector<std::vector<double> > > matrixParameter;
-
-      double get(const ScalarParameter& src);
-      std::vector<double> get(const VectorParameter& src);
-      std::vector<std::vector<double> > get(const MatrixParameter& src);
-
-      void set(ScalarParameter& dst, const ScalarParameter& src);
-      void set(VectorParameter& dst, const VectorParameter& src);
-      void set(MatrixParameter& dst, const MatrixParameter& src);
-      
-      virtual void collectParameter(std::map<std::string, double>& sp, std::map<std::string, std::vector<double> >& vp, std::map<std::string, std::vector<std::vector<double> > >& mp, bool collectAlsoSeparateGroup=false);
 
       /** Virtual destructor */
       virtual ~Object();
@@ -134,26 +114,25 @@ namespace OpenMBV {
       void setSelected(bool selected_) { selected=selected_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
-      static ScalarParameter getDouble(xercesc::DOMElement *e);
-      static VectorParameter getVec(xercesc::DOMElement *e, unsigned int rows=0);
-      static MatrixParameter getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);
+      static double getDouble(xercesc::DOMElement *e);
+      static std::vector<double> getVec(xercesc::DOMElement *e, unsigned int rows=0);
+      static std::vector<std::vector<double> > getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);
 
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
 
 
-      template <class T>
-      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, T value) {
+      template<class T>
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const T &value) {
         std::ostringstream oss;
         oss<<value;
         xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
         ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
         parent->insertBefore(ele, NULL);
       }
-
-      void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def);
-
-      void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, SimpleParameter<double> value, double def);
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def);
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const std::vector<double> &value);
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const std::vector<std::vector<double> > &value);
 
       template <class T>
       static void addAttribute(xercesc::DOMNode *node, std::string name, T value) {

@@ -22,7 +22,6 @@
 
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoTranslation.h>
-#include <openmbvcppinterface/simpleparameter.h>
 #include <openmbvcppinterface/polygonpoint.h>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
@@ -165,7 +164,7 @@ class FloatEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(OpenMBV::ScalarParameter));
+    void setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double));
 
   protected slots:
     void valueChangedSlot(double);
@@ -490,7 +489,7 @@ void BoolEditor::setOpenMBVParameter(OMBVClass *ombv_, bool (OMBVClass::*getter)
 
 
 template<class OMBVClass>
-void FloatEditor::setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(OpenMBV::ScalarParameter)) {
+void FloatEditor::setOpenMBVParameter(OMBVClass *ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   spinBox->blockSignals(true);

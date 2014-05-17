@@ -38,7 +38,7 @@ namespace OpenMBV {
       };
     protected:
       WindingRule windingRule;
-      ScalarParameter height;
+      double height;
       std::vector<std::vector<PolygonPoint*>*> contour;
       ~Extrusion();
     public:
@@ -61,11 +61,11 @@ namespace OpenMBV {
       /** Set the height of the extrusion.
        * The extrusion is along the normal of the cross section area (local z-axis).
        */
-      void setHeight(ScalarParameter height_) {
-        set(height,height_);
+      void setHeight(double height_) {
+        height=height_;
       }
       
-      double getHeight() { return get(height); }
+      double getHeight() { return height; }
 
       /** Clear all previously added contours. */
       void clearContours() {

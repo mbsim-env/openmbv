@@ -88,8 +88,6 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
     parent->insertBefore(inc, NULL);
     E(inc)->setAttribute("href", fullName+".ombv.xml");
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
-    // write simple parameter file
-    writeSimpleParameter();
     // create new xml file and write to it till now
     // use the directory of the topLevelFile and the above fullName
     shared_ptr<DOMParser> parser=DOMParser::create(false);
@@ -157,8 +155,6 @@ void Group::writeXML() {
     addAttribute(parent, "expand", expandStr, "true");
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(parent);
-    // write simple parameter file
-    writeSimpleParameter();
   DOMParser::serialize(xmlFile.get(), fileName);
 }
 
@@ -189,7 +185,6 @@ void Group::initializeUsingXML(DOMElement *element) {
   if(ofn) {
     setSeparateFile(true);
     fileName=X()%ofn->getData();
-    readSimpleParameter();
   }
 
   DOMElement *e;
@@ -213,71 +208,6 @@ void Group::readXML() {
 
 void Group::readH5() {
   openHDF5File();
-}
-
-void Group::readSimpleParameter() {
-  string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
-  shared_ptr<DOMParser> parser=DOMParser::create(false);
-  FILE *f=fopen(paramFileName.c_str(),"r");
-  if(f!=NULL) {
-    fclose(f);
-    shared_ptr<DOMDocument> paramdoc=parser->parse(paramFileName);  
-    DOMElement *e=paramdoc->getDocumentElement();
-
-    for(e=e->getFirstElementChild(); e!=0; e=e->getNextElementSibling()) {
-      if(E(e)->getTagName()==MBXMLUTILSPARAM%"scalarParameter")
-        scalarParameter[E(e)->getAttribute("name")]=atof((X()%E(e)->getFirstTextChild()->getData()).c_str());
-      else if(E(e)->getTagName()==MBXMLUTILSPARAM%"vectorParameter")
-        vectorParameter[E(e)->getAttribute("name")]=toVector((X()%E(e)->getFirstTextChild()->getData()).c_str());
-      else if(E(e)->getTagName()==MBXMLUTILSPARAM%"matrixParameter")
-        matrixParameter[E(e)->getAttribute("name")]=toMatrix((X()%E(e)->getFirstTextChild()->getData()).c_str());
-    }
-  }
-}
-
-double Group::getScalarParameter(std::string name) {
-  return scalarParameter[name];
-}
-
-vector<double> Group::getVectorParameter(std::string name) {
-  return vectorParameter[name];
-}
-
-vector<vector<double> > Group::getMatrixParameter(std::string name) {
-  return matrixParameter[name];
-}
-
-void Group::writeSimpleParameter() {
-  // collect parameters
-  collectParameter(scalarParameter, vectorParameter, matrixParameter, true);
-  // write .ombv.param.xml file if simple parameters exist
-  if(separateFile &&
-     (scalarParameter.size()>0 || vectorParameter.size()>0 || matrixParameter.size()>0)) {
-    string paramFileName=fileName.substr(0,fileName.length()-4)+".param.xml";
-    shared_ptr<DOMParser> parser=DOMParser::create(false);
-    shared_ptr<DOMDocument> xmlDoc=parser->createDocument();
-      DOMElement *rootEle=D(xmlDoc)->createElement(MBXMLUTILSPARAM%"parameter");
-      xmlDoc->insertBefore(rootEle, NULL);
-      for(map<string,double>::iterator i=scalarParameter.begin(); i!=scalarParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAM%"scalarParameter", i->second);
-        addAttribute(rootEle->getLastChild(), "name", i->first);
-      }
-      for(map<string,vector<double> >::iterator i=vectorParameter.begin(); i!=vectorParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAM%"vectorParameter", i->second);
-        addAttribute(rootEle->getLastChild(), "name", i->first);
-      }
-      for(map<string,vector<vector<double> > >::iterator i=matrixParameter.begin(); i!=matrixParameter.end(); i++) {
-        addElementText(rootEle, MBXMLUTILSPARAM%"matrixParameter", i->second);
-        addAttribute(rootEle->getLastChild(), "name", i->first);
-      }
-    DOMParser::serialize(xmlDoc.get(), paramFileName);
-  }
-}
-
-void Group::collectParameter(map<string, double>& sp, map<string, vector<double> >& vp, map<string, vector<vector<double> > >& mp, bool collectAlsoSeparateGroup) {
-  if(!separateFile || collectAlsoSeparateGroup)
-    for(size_t i=0; i<object.size(); i++)
-      object[i]->collectParameter(sp, vp, mp);
 }
 
 string dirOfTopLevelFile(Group *grp) {

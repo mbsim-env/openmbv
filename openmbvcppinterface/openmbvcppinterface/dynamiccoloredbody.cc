@@ -38,7 +38,7 @@ DynamicColoredBody::DynamicColoredBody() : Body(),
   hsv[0]=-1;
   hsv[1]=1;
   hsv[2]=1;
-  set(diffuseColor,hsv);
+  diffuseColor=hsv;
 }
 
 DynamicColoredBody::~DynamicColoredBody() {}
@@ -47,7 +47,7 @@ DOMElement* DynamicColoredBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
   addElementText(e, OPENMBV%"minimalColorValue", minimalColorValue, 0);
   addElementText(e, OPENMBV%"maximalColorValue", maximalColorValue, 1);
-  if(diffuseColor.getValue()[0]>=0 || diffuseColor.getValue()[1]!=1 || diffuseColor.getValue()[2]!=1)
+  if(diffuseColor[0]>=0 || diffuseColor[1]!=1 || diffuseColor[2]!=1)
     addElementText(e, OPENMBV%"diffuseColor", diffuseColor);
   addElementText(e, OPENMBV%"transparency", transparency, 0);
   return e;

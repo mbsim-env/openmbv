@@ -68,22 +68,16 @@ namespace OpenMBV {
       std::vector<PolygonPoint*>* getContour() { return contour; }
 
       /** Set the scale factor of the body. */
-      void setScaleFactor(const ScalarParameter scale) {
-        set(scaleFactor,scale);
+      void setScaleFactor(const double scale) {
+        scaleFactor=scale;
       }
 
-      double getScaleFactor() { return get(scaleFactor); }
+      double getScaleFactor() { return scaleFactor; }
 
-      /** Set the initial rotation of the body. */
-      void setInitialRotation(const VectorParameter& initRot) {
-        if(initRot.getParamStr()=="" && initRot.getValue().size()!=3) throw std::runtime_error("the dimension does not match");
-        set(initialRotation,initRot);
-      }
-      
       /** Set the initial rotation of the body. */
       void setInitialRotation(const std::vector<double>& initRot) {
         if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
-        set(initialRotation,initRot);
+        initialRotation=initRot;
       }
 
       /** Set the initial rotation of the body. */
@@ -96,7 +90,7 @@ namespace OpenMBV {
       }
 
       /** Get the initial rotation of the body. */
-      std::vector<double> getInitialRotation() { return get(initialRotation); }
+      std::vector<double> getInitialRotation() { return initialRotation; }
 
       /** Append a data vector to the h5 datsset */
       void append(const std::vector<double>& row) { 
@@ -127,10 +121,10 @@ namespace OpenMBV {
       H5::VectorSerie<double>* data;
 
       /** Scale factor of the body. */
-      ScalarParameter scaleFactor;
+      double scaleFactor;
       
       /** Intial rotation of the body. */
-      VectorParameter initialRotation;
+      std::vector<double> initialRotation;
       
       /** Write H5 file for time-dependent data. */
       void createHDF5File();

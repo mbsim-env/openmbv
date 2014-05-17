@@ -35,7 +35,6 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
   body.h \
-  simpleparameter.h \
   dynamiccoloredbody.h \
   group.h \
   rigidbody.h \

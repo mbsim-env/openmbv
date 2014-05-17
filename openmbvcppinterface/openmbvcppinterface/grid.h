@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A grid in x-y-Plane */
   class Grid : public RigidBody {
     protected:
-      ScalarParameter xSize, ySize;
+      double xSize, ySize;
       unsigned int nx, ny;
       ~Grid() {}
     public:
@@ -38,18 +38,18 @@ namespace OpenMBV {
       std::string getClassName() { return "Grid"; }
 
       /** Set the length in x-direction*/
-      void setXSize(ScalarParameter length_) {
-        set(xSize,length_);
+      void setXSize(double length_) {
+        xSize=length_;
       } 
 
-      double getXSize() { return get(xSize); }
+      double getXSize() { return xSize; }
 
       /** Set the length in y-direction*/
-      void setYSize(ScalarParameter length_) {
-        set(ySize,length_);
+      void setYSize(double length_) {
+        ySize=length_;
       } 
 
-      double getYSize() { return get(ySize); }
+      double getYSize() { return ySize; }
 
       /** Set the number of lines in x-direction*/
       void setXNumber(unsigned int n_) {

@@ -27,7 +27,7 @@ namespace OpenMBV {
   /** A sphere */
   class Sphere : public RigidBody {
     protected:
-      ScalarParameter radius;
+      double radius;
       ~Sphere() {}
     public:
       /** Default constructor */
@@ -37,11 +37,11 @@ namespace OpenMBV {
       std::string getClassName() { return "Sphere"; }
 
       /** Set the radius of the shpere */
-      void setRadius(ScalarParameter radius_) {
-        set(radius,radius_);
+      void setRadius(double radius_) {
+        radius=radius_;
       } 
 
-      double getRadius() { return get(radius); }
+      double getRadius() { return radius; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);
