@@ -25,6 +25,14 @@
 #include <H5Cpp.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+// If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
+// Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
+#ifdef _WIN32
+#  define DLL_PUBLIC __declspec(dllexport)
+#else
+#  define DLL_PUBLIC
+#endif
+
 namespace OpenMBV {
   class Group;
 }
@@ -50,7 +58,7 @@ class Group : public Object {
     void reloadFileSlotIfNewer();
     void reloadFileSlot();
   public slots:
-    void unloadFileSlot();
+    DLL_PUBLIC void unloadFileSlot();
 };
 
 }

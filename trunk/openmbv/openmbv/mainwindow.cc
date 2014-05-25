@@ -794,6 +794,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   setAcceptDrops(true);
 }
 
+MainWindow* const MainWindow::getInstance() {
+  return instance;
+}
+
 void MainWindow::disableBBox(Object *obj) {
   obj->setBoundingBox(false);
 }
