@@ -231,9 +231,9 @@ class MainWindow : public QMainWindow {
   public:
     DLL_PUBLIC MainWindow(std::list<std::string>& arg);
     DLL_PUBLIC ~MainWindow();
-    bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
+    DLL_PUBLIC bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
-    static MainWindow*const getInstance() { return instance; }
+    DLL_PUBLIC static MainWindow* const getInstance();
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
