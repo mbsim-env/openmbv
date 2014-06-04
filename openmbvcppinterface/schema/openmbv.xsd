@@ -200,7 +200,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="ivFileName" type="pv:filenamePartialOctEval"/>
+          <xs:element name="ivFileName" type="pv:filenameFullOctEval"/>
           <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="boundaryEdges" type="pv:booleanFullOctEval" minOccurs="0"/>
         </xs:sequence> 

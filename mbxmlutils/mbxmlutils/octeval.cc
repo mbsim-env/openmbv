@@ -652,8 +652,12 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       throw DOMEvalException("Octave value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && ret.columns()!=1)
       throw DOMEvalException("Octave value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"stringFullOctEval") && !ret.is_scalar_type() && !ret.is_string())
+    if(E(e)->isDerivedFrom(PV%"stringFullOctEval") && !ret.is_scalar_type() && !ret.is_string()) // also filenameFullOctEval
       throw DOMEvalException("Octave value is not of type scalar string", e);
+
+    // add filenames to dependencies
+    if(E(e)->isDerivedFrom(PV%"filenameFullOctEval"))
+      dependencies->push_back(E(e)->convertPath(ret.string_value()));
   
     // convert unit
     ret=handleUnit(e, ret);
@@ -747,12 +751,17 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
     octave_value ret=stringToOctValue(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"floatFullOctEval") && (!ret.is_scalar_type() || !ret.is_double_type()))
       throw DOMEvalException("Value is not of type scalar float", pe);
-    if(A(a)->isDerivedFrom(PV%"stringFullOctEval") && (!ret.is_scalar_type() && !ret.is_string()))
+    if(A(a)->isDerivedFrom(PV%"stringFullOctEval") && (!ret.is_scalar_type() && !ret.is_string())) // also filenameFullOctEval
       throw DOMEvalException("Value is not of type scalar string", pe);
     if(A(a)->isDerivedFrom(PV%"integerFullOctEval") && (!ret.is_scalar_type() && !ret.is_integer_type())) // also symbolicFunctionArgDimType
       throw DOMEvalException("Value is not of type scalar integer", pe);
     if(A(a)->isDerivedFrom(PV%"booleanFullOctEval") && (!ret.is_scalar_type() && !ret.is_bool_scalar()))
       throw DOMEvalException("Value is not of type scalar boolean", pe);
+
+    // add filenames to dependencies
+    if(A(a)->isDerivedFrom(PV%"filenameFullOctEval"))
+      dependencies->push_back(E(pe)->convertPath(ret.string_value()));
+
     return ret;
   }
   // evaluate attribute partially
@@ -780,6 +789,10 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
       try { return boost::lexical_cast<bool>(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe); }
     throw DOMEvalException("Unknown XML attribute type for evaluation", pe);
+
+    // add filenames to dependencies
+    if(A(a)->isDerivedFrom(PV%"filenamePartialOctEval"))
+      dependencies->push_back(E(pe)->convertPath(s));
   }
 }
 

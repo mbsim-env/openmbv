@@ -55,6 +55,11 @@
         <xs:restriction base="fullOctEval"/>
       </xs:simpleType>
 
+      <!-- full octave evaluation which must evaluate to an string which represents a filename -->
+      <xs:simpleType name="filenameFullOctEval">
+        <xs:restriction base="stringFullOctEval"/>
+      </xs:simpleType>
+
 
       <!-- base type for a attribute which is partially converted by octave.
            Only the content between { and } ist converted by octave
