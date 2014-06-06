@@ -62,6 +62,20 @@ namespace {
   typename rob<Tag, p>::filler rob<Tag, p>::filler_obj;
   // END: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
+
+  path toRelativePath(path absPath, path relTo=current_path()) {
+    if(!absPath.is_absolute())
+      throw runtime_error("First argument of toRelativePath must be a absolute path.");
+    path::iterator curIt, absIt;
+    for(curIt=relTo.begin(), absIt=absPath.begin(); curIt!=relTo.end() && *curIt==*absIt; ++curIt, ++absIt);
+    if(curIt==relTo.end()) {
+      path relPathRet;
+      for(; absIt!=absPath.end(); ++absIt)
+        relPathRet/=*absIt;
+      return relPathRet;
+    }
+    return absPath;
+  }
 }
 
 bool DOMErrorPrinter::handleError(const DOMError& e)
@@ -73,7 +87,7 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
     case DOMError::DOM_SEVERITY_FATAL_ERROR: type="Fatal error"; errorCount++;   break;
   }
   DOMLocator *loc=e.getLocation();
-  cerr<<X()%loc->getURI()<<":"<<loc->getLineNumber()<<": "<<type<<": "<<X()%e.getMessage()<<endl;
+  cerr<<toRelativePath(X()%loc->getURI()).string(CODECVT)<<":"<<loc->getLineNumber()<<": "<<type<<": "<<X()%e.getMessage()<<endl;
   return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
 }
 
@@ -176,7 +190,9 @@ template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skip
 
 template<typename DOMElementType>
 path DOMElementWrapper<DOMElementType>::convertPath(const path &relPath) const {
-  return absolute(relPath, getOriginalFilename().parent_path());
+  if(relPath.is_absolute())
+    return relPath;
+  return toRelativePath(absolute(relPath, getOriginalFilename().parent_path()));
 }
 template path DOMElementWrapper<const DOMElement>::convertPath(const path &relPath) const; // explicit instantiate const variant
 
@@ -558,7 +574,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
   DOMElement *root=doc->getDocumentElement();
   if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
     DOMProcessingInstruction *filenamePI=doc->createProcessingInstruction(X()%"OriginalFilename",
-      X()%absolute(inputSource).string(CODECVT));
+      X()%inputSource.string(CODECVT));
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes

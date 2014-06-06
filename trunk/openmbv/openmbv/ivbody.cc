@@ -47,8 +47,6 @@ IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soPar
 
   // read XML
   string fileName=ivb->getIvFileName();
-  // fix relative path name of file to be included (will hopefully work also on windows)
-  fileName=boost::filesystem::absolute(fileName, boost::filesystem::path(ivb->getSeparateGroup()->getFileName()).parent_path()).string();
 
   // create so
   SoSeparator *sep=new SoSeparator; // to enable caching
