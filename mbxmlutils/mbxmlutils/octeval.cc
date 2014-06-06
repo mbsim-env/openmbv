@@ -357,7 +357,7 @@ void OctEval::addParamSet(const DOMElement *e) {
   for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       octave_value ret=eval(E(ee)->getAttributeNode("href"), ee);
-      addPath(E(ee)->convertPath(ret.string_value()));
+      addPath(absolute(E(ee)->convertPath(ret.string_value())));
     }
     else {
       octave_value ret=eval(ee);
@@ -386,7 +386,7 @@ void OctEval::popPath() {
 
 void OctEval::addPath(const bfs::path &dir) {
   if(!dir.is_absolute())
-    DOMEvalException("Can only add absolute path: "+dir.string(CODECVT));
+    throw DOMEvalException("Can only add absolute path: "+dir.string(CODECVT));
   currentPath=dir.string(CODECVT)+(currentPath.empty()?"":pathSep+currentPath);
 
   // add m-files in dir to dependencies

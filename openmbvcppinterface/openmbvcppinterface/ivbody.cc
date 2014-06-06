@@ -46,7 +46,7 @@ void IvBody::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ivFileName");
   string str = X()%E(e)->getFirstTextChild()->getData();
-  setIvFileName(str.substr(1,str.length()-2));
+  setIvFileName(E(e)->convertPath(str.substr(1,str.length()-2)).string());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"creaseEdges");
   if(e) setCreaseEdges(getDouble(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"boundaryEdges");
