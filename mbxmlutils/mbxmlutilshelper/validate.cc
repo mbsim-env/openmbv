@@ -1,6 +1,6 @@
 #include <iostream>
 #include <boost/filesystem/path.hpp>
-#include "mbxmlutilshelper/dom.h"
+#include "dom.h"
 
 using namespace std;
 using namespace boost;
