@@ -21,7 +21,7 @@ clean-local-javasource:
 	rm -rf de
 OpenMBV_swig_java.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
 	$(MKDIR_P) de/berlios/openmbv/OpenMBV
-	$(swig) -java -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I../.. -o OpenMBV_swig_java.cc ../OpenMBV.i
+	$(swig) -java -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I../.. $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc ../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
 
 de/berlios/openmbv/OpenMBV/Object.class: OpenMBV_swig_java.cc
 	@JAVAC@ de/berlios/openmbv/OpenMBV/*.java

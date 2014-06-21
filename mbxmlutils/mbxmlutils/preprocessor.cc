@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
       // embed/validate/toOctave/unit/eval files
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
-      preprocess(parser, octEval, dependencies, mainxmlele);
+      Preprocess::preprocess(parser, octEval, dependencies, mainxmlele);
 
       // save result file
       path mainxmlpp=".pp."+mainxml.filename().string();

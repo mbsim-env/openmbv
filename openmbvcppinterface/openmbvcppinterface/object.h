@@ -20,6 +20,7 @@
 #ifndef _OPENMBV_OBJECT_H_
 #define _OPENMBV_OBJECT_H_
 
+#include <fmatvec/atom.h>
 #include <string>
 #include <H5Cpp.h>
 #include <sstream>
@@ -45,7 +46,7 @@ namespace OpenMBV {
   class Group;
 
   /** Abstract base class */
-  class Object {
+  class Object : public fmatvec::Atom {
     friend class Group;
     protected:
       std::string name;

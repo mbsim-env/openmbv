@@ -60,14 +60,14 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
     case toDoubleHead:    typeStr="toDoubleHead";    break;
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
-  addElementText(e, OPENMBV%"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBV%"type", "'"+typeStr+"'");
   string referencePointStr;
   switch(referencePoint) {
     case toPoint:   referencePointStr="toPoint";   break;
     case fromPoint: referencePointStr="fromPoint"; break;
     case midPoint:  referencePointStr="midPoint";  break;
   }
-  addElementText(e, OPENMBV%"referencePoint", "\""+referencePointStr+"\"");
+  addElementText(e, OPENMBV%"referencePoint", "'"+referencePointStr+"'");
   addElementText(e, OPENMBV%"scaleLength", scaleLength);
   return 0;
 }
@@ -100,7 +100,7 @@ void Arrow::openHDF5File() {
     catch(...) {
       delete data;
       data=NULL;
-      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }
 }

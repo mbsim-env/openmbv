@@ -230,6 +230,8 @@ fi
 dnl Check for xerces-c
 PKG_CHECK_MODULES(XERCESC, xerces-c,[],[AC_MSG_ERROR([ERROR xerces-c not found])])
 
+PKG_CHECK_MODULES(FMATVEC, fmatvec)
+
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno-delete-non-virtual-dtor"
 
 # from now on only libtool is used for linking

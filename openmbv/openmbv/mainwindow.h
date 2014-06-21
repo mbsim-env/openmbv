@@ -64,7 +64,7 @@ class QListWidgetItem;
 
 namespace OpenMBVGUI {
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, public fmatvec::Atom {
   Q_OBJECT
   friend class Body;
   friend class Editor;

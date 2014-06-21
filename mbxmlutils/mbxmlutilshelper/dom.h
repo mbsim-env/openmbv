@@ -1,6 +1,7 @@
 #ifndef _MBXMLUTILSHELPER_DOM_H_
 #define _MBXMLUTILSHELPER_DOM_H_
 
+#include <fmatvec/atom.h>
 #include <string>
 #include <vector>
 #include <set>
@@ -64,8 +65,8 @@ class X {
     std::vector<boost::shared_ptr<const XMLCh> > store;
 };
 
-//! Print DOM error messages to cout
-class DOMErrorPrinter: public xercesc::DOMErrorHandler
+//! Print DOM error messages
+class DOMErrorPrinter: public xercesc::DOMErrorHandler, public fmatvec::Atom
 {
   public:
     DOMErrorPrinter() : warningCount(0), errorCount(0) {}

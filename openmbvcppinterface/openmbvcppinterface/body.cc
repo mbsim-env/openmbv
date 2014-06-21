@@ -73,7 +73,7 @@ void Body::openHDF5File() {
     hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
   }
   catch(...) {
-    cout<<"WARNING: Unable to open the HDF5 Group '"<<name<<"'"<<endl;
+    msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
   }
 }
 

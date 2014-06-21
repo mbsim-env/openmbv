@@ -204,7 +204,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
     if(printMessage) {
       QString str("Calculating edges for %1!"); str=str.arg(fullName.c_str());
       emit statusBarShowMessage(str, 1000);
-      cout<<str.toStdString()<<endl;
+      msg(Info)<<str.toStdString()<<endl;
     }
 
     // CALCULATE
@@ -255,7 +255,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
   if(printMessage) {
     QString str("Use cached data! Waiting for cached data to get ready!");
     emit statusBarShowMessage(str, 1000);
-    cout<<str.toStdString()<<endl;
+    msg(Info)<<str.toStdString()<<endl;
   }
   
   delete vertex; // is no longer required

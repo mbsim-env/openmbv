@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_EDITORS_H_
 #define _OPENMBVGUI_EDITORS_H_
 
+#include <fmatvec/atom.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <openmbvcppinterface/polygonpoint.h>
@@ -87,7 +88,7 @@ class PropertyDialog : public QDialog {
 
 
 
-class Editor : public QWidget {
+class Editor : public QWidget, public fmatvec::Atom {
   public:
     Editor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
   protected:

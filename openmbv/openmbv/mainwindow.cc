@@ -87,7 +87,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
-  if(instance) { cerr<<"FATAL ERROR! The class MainWindow is a singleton class!"<<endl; _exit(1); }
+  if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
   list<string>::iterator i, i2;
@@ -855,7 +855,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   else {
     QString str("Unknown file type: %1!"); str=str.arg(fileName.c_str());
     statusBar()->showMessage(str, 10000);
-    cout<<str.toStdString()<<endl;
+    msg(Warn)<<str.toStdString()<<endl;
     return false;
   }
 
@@ -865,7 +865,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   rootGroup->read(true, !env);
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
-  Object *object=ObjectFactory(rootGroup, parentItem, soParent, ind);
+  Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
   object->setText(0, fileName.c_str());
   if(!env)
     object->getIconFile()="h5file.svg";
@@ -1222,7 +1222,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       // get objects by point/path
       list<Body*> pickedObject;
       float x=1e99, y=1e99, z=1e99;
-      cout<<"Clicked points:"<<endl;
+      msg(Info)<<"Clicked points:\n";
       for(int i=0; pickedPoints[i]; i++) {
         SoPath *path=pickedPoints[i]->getPath();
         bool found=false;
@@ -1244,8 +1244,9 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
 
         QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((*(--pickedObject.end()))->object->getFullName(true, true).c_str());
         statusBar()->showMessage(str);
-        cout<<str.toStdString()<<endl;
+        msg(Info)<<str.toStdString()<<"\n";
       }
+      msg(Info)<<endl;
       // mid button clicked => seed rotation center to clicked point
       if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=0)
         glViewer->seekToPoint(pickedPoints[0]->getPoint());
@@ -1554,13 +1555,13 @@ void MainWindow::exportCurrentAsPNG() {
 
   QString str("Exporting current frame, please wait!");
   statusBar()->showMessage(str);
-  cout<<str.toStdString()<<endl;
+  msg(Info)<<str.toStdString()<<endl;
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
   str="Done";
   statusBar()->showMessage(str, 10000);
-  cout<<str.toStdString()<<endl;
+  msg(Info)<<str.toStdString()<<endl;
 }
 
 void MainWindow::exportSequenceAsPNG() {
@@ -1594,13 +1595,13 @@ void MainWindow::exportSequenceAsPNG() {
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
-    cout<<str.toStdString()<<endl;
+    msg(Info)<<str.toStdString()<<endl;
     frame->setValue(frame_);
     exportAsPNG(width, height, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
   QString str("Done");
   statusBar()->showMessage(str, 10000);
-  cout<<str.toStdString()<<endl;
+  msg(Info)<<str.toStdString()<<endl;
 }
 
 void MainWindow::stopSCSlot() {
@@ -1719,7 +1720,7 @@ void MainWindow::saveWindowState() {
   str=str.arg(size().width()).arg(size().height()).
           arg(pos().x()).arg(pos().y());
   statusBar()->showMessage(str, 10000);
-  cout<<str.toStdString()<<endl;
+  msg(Info)<<str.toStdString()<<endl;
 
   QString filename=QFileDialog::getSaveFileName(0, "Save window state", ".", "*.ombv.wst");
   if(filename.isNull()) return;
@@ -1762,7 +1763,7 @@ void MainWindow::loadCamera(string filename) {
   else {
     QString str("Only SoPerspectiveCamera and SoOrthographicCamera are allowed!");
     statusBar()->showMessage(str, 10000);
-    cout<<str.toStdString()<<endl;
+    msg(Info)<<str.toStdString()<<endl;
   }
 }
 

@@ -69,7 +69,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   vector<OpenMBV::Object*> child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
     if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
-    ObjectFactory(child[i], this, soSep, -1);
+    ObjectFactory::create(child[i], this, soSep, -1);
   }
 
   // timer for reloading file automatically
@@ -151,7 +151,7 @@ void Group::newObjectSlot() {
   if(obj==NULL) return;
 
   grp->addObject(obj);
-  ObjectFactory(obj, this, soSep, -1);
+  ObjectFactory::create(obj, this, soSep, -1);
 
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();

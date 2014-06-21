@@ -54,7 +54,7 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
   // read XML
   vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
-    ObjectFactory(rb[i], this, soSep, -1);
+    ObjectFactory::create(rb[i], this, soSep, -1);
 }
 
 void CompoundRigidBody::createProperties() {
@@ -98,7 +98,7 @@ void CompoundRigidBody::newRigidBodySlot() {
   if(obj==NULL) return;
 
   crb->addRigidBody(static_cast<OpenMBV::RigidBody*>(obj));
-  ObjectFactory(obj, this, soSep, -1);
+  ObjectFactory::create(obj, this, soSep, -1);
 
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();

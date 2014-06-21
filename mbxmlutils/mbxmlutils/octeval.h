@@ -1,6 +1,7 @@
 #ifndef _MBXMLUTILS_OCTEVAL_H_
 #define _MBXMLUTILS_OCTEVAL_H_
 
+#include <fmatvec/atom.h>
 #include <string>
 #include <stack>
 #ifdef HAVE_UNORDERED_MAP
@@ -110,7 +111,7 @@ class NewParamLevel {
 };
 
 /*! Octave expression evaluator and converter. */
-class OctEval {
+class OctEval : public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 

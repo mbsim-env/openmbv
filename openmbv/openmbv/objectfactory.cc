@@ -44,7 +44,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
+Object *ObjectFactory::create(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
   if(obj->getClassName()=="Group")
     return new Group(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Arrow")
@@ -79,9 +79,9 @@ Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup
     return new Sphere(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="SpineExtrusion")
     return new SpineExtrusion(obj, parentItem, soParent, ind);
-  QString str("ERROR: Unknown OpenMBV::Object: %1"); str=str.arg(obj->getClassName().c_str());
+  QString str("Unknown OpenMBV::Object: %1"); str=str.arg(obj->getClassName().c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-  cout<<str.toStdString()<<endl;
+  msgStatic(Warn)<<str.toStdString()<<endl;
   return 0;
 }
 

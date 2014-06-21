@@ -69,7 +69,7 @@ string OctEval::cast<string>(const octave_value &value) {
   ostringstream ret;
   ret.precision(numeric_limits<double>::digits10+1);
   if(type==StringType) {
-    ret<<"\""<<value.string_value()<<"\"";
+    ret<<"'"<<value.string_value()<<"'";
     return ret.str();
   }
   if(type==ScalarType || type==VectorType || type==MatrixType || type==SXMatrixType || type==DMatrixType) {
@@ -323,7 +323,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
     }
 
     // get units
-    cout<<"Build unit list for measurements."<<endl;
+    msg(Info)<<"Build unit list for measurements."<<endl;
     boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml");
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
@@ -341,7 +341,7 @@ OctEval::~OctEval() {
   if(initCount==0) {
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
-    eval_string("1+1", true, dummy, 0); // eval as statement list
+    eval_string("1+1;", true, dummy, 0); // eval as statement list
 
     // cleanup ocatve, but do NOT call ::exit
     octave_exit=NULL; // do not call ::exit
