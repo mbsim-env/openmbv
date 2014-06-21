@@ -191,17 +191,17 @@ void Body::resetAnimRange(int numOfRows, double dt) {
       MainWindow::getInstance()->frameMinSB->setMaximum(numOfRows-1);
       MainWindow::getInstance()->frameMaxSB->setMaximum(numOfRows-1);
       if(existFiles) {
-        QString str("WARNING! Resetting maximal frame number!");
+        QString str("Resetting maximal frame number!");
         MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-        cout<<str.toStdString()<<endl;
+        msg(Warn)<<str.toStdString()<<endl;
       }
     }
     if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
       MainWindow::getInstance()->getDeltaTime()=dt;
       if(existFiles) {
-        QString str("WARNING! dt in HDF5 datas are not the same!");
+        QString str("dt in HDF5 datas are not the same!");
         MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-        cout<<str.toStdString()<<endl;
+        msg(Warn)<<str.toStdString()<<endl;
       }
     }
   }

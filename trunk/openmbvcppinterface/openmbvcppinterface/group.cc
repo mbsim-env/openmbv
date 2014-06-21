@@ -130,7 +130,7 @@ void Group::openHDF5File() {
       hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
     }
     catch(...) {
-      cout<<"WARNING: Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-4)+".h5"<<"'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-4)+".h5"<<"'"<<endl;
     }
   }
   else {
@@ -138,7 +138,7 @@ void Group::openHDF5File() {
       hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
     }
     catch(...) {
-      cout<<"WARNING: Unable to open the HDF5 Group '"<<name<<"'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
     }
   }
   if(hdf5Group)
@@ -246,7 +246,7 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
     }
   }
   catch(const boost::interprocess::interprocess_exception &ex) {
-    cout<<"WARNING: Unable to lock the file "<<lockFileName<<endl;
+    msg(Warn)<<"Unable to lock the file "<<lockFileName<<endl;
   }
 #endif
   try {
@@ -290,7 +290,7 @@ void Group::read(bool readXMLFile, bool readH5File) {
     }
   }
   catch(const boost::interprocess::interprocess_exception &ex) {
-    cout<<"WARNING: Unable to lock the file "<<lockFileName<<endl;
+    msg(Warn)<<"Unable to lock the file "<<lockFileName<<endl;
   }
 #endif
   try {

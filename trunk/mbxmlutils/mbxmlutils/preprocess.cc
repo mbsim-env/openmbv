@@ -10,7 +10,7 @@ using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
+void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
   try {
     if(E(e)->getTagName()==PV%"Embed") {
       NewParamLevel newParamLevel(octEval);
@@ -52,7 +52,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
-        cout<<"Read and validate "<<file<<endl;
+        octEval.msg(Info)<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc=parser->parse(file);
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
@@ -74,7 +74,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
       if(inlineParamEle && E(e)->hasAttribute("parameterHref"))
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
       if(inlineParamEle || E(e)->hasAttribute("parameterHref")) {
-        cout<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)<<endl;
+        octEval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)<<endl;
         if(inlineParamEle) // inline parameter
           octEval.addParamSet(inlineParamEle);
         else { // parameter from parameterHref attribute
@@ -86,7 +86,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
           // add local parameter file to dependencies
           dependencies.push_back(paramFile);
           // validate and local parameter file
-          cout<<"Read and validate local parameter file "<<paramFile<<endl;
+          octEval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
           shared_ptr<DOMDocument> localparamxmldoc=parser->parse(paramFile);
           // generate local parameters
           octEval.addParamSet(localparamxmldoc->getDocumentElement());
@@ -102,7 +102,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
         if(E(e)->hasAttribute("onlyif"))
           onlyif=(OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("onlyif"), e))==1);
         if(onlyif) {
-          cout<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+          octEval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           DOMNode *p=e->getParentNode();
           if(i==1) {
             DOMElement *ereplaced=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
@@ -119,7 +119,7 @@ void preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &de
           preprocess(parser, octEval, dependencies, e);
         }
         else
-          cout<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+          octEval.msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       return;
     }

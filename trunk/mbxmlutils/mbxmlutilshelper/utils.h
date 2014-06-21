@@ -20,6 +20,7 @@
 #ifndef _MBXMLUTILSHELPER_UTILS_H_
 #define _MBXMLUTILSHELPER_UTILS_H_
 
+#include <fmatvec/atom.h>
 #include <string>
 #include <set>
 #include <vector>
@@ -27,7 +28,7 @@
 
 namespace MBXMLUtils {
 
-class Deprecated {
+class Deprecated : public fmatvec::Atom {
   public:
     /*! register a deprecated feature with name message.
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */

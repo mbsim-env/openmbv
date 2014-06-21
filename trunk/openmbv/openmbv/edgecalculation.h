@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_EDGECALCULATION_H_
 #define _OPENMBVGUI_EDGECALCULATION_H_
 
+#include <fmatvec/atom.h>
 #include <QtCore/QObject>
 #include <vector>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -28,7 +29,7 @@
 
 namespace OpenMBVGUI {
 
-class EdgeCalculation : public QObject {
+class EdgeCalculation : public QObject, public fmatvec::Atom {
   Q_OBJECT
   public:
     /** Collect the data to be edge calculated from grp.

@@ -4,7 +4,7 @@ swig_LTLIBRARIES = OpenMBV.la
 
 CLEANFILES=OpenMBV_swig_octave.cc
 OpenMBV_swig_octave.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
-	$(swig) -octave -Werror -c++ -I../.. -o OpenMBV_swig_octave.cc ../OpenMBV.i
+	$(swig) -octave -Werror -c++ -I../.. $(FMATVEC_CFLAGS) -o OpenMBV_swig_octave.cc ../OpenMBV.i || (rm -f OpenMBV_swig_octave.cc; exit 1)
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
 OpenMBV_la_LDFLAGS = -module -Wl,-rpath,\$$ORIGIN/../lib -shrext .oct -avoid-version

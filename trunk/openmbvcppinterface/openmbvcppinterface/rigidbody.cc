@@ -83,7 +83,7 @@ void RigidBody::openHDF5File() {
     catch(...) {
       delete data;
       data=NULL;
-      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }
 }

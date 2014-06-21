@@ -214,7 +214,7 @@ void Editor::replaceObject() {
     parentItem=objectList->invisibleRootItem();
     soParent=MainWindow::getInstance()->getSceneRoot();
   }
-  Object *newObj=ObjectFactory(obj->object, parentItem, soParent, ind);
+  Object *newObj=ObjectFactory::create(obj->object, parentItem, soParent, ind);
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
   delete obj;
@@ -733,7 +733,7 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
            .arg(me->spinBox[5]->value()*M_PI/180)
            .arg(obj->getObject()->getFullName(true, true).c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-    cout<<str.toStdString()<<endl;
+    me->msg(Info)<<str.toStdString()<<endl;
   }
 }
 

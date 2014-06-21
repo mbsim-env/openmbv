@@ -18,6 +18,8 @@ AC_SUBST([DEFINES])
 dnl Check for hdf5serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
+PKG_CHECK_MODULES(FMATVEC, fmatvec)
+
 PKG_CHECK_MODULES(MBXMLUTILSHELPER, mbxmlutilshelper)
 
 AM_CONDITIONAL([COND_MINGW], [test "_$host_os" = "_mingw32"])

@@ -35,7 +35,7 @@ IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"ivFileName", "\""+ivFileName+"\"");
+  addElementText(e, OPENMBV%"ivFileName", "'"+ivFileName+"'");
   addElementText(e, OPENMBV%"creaseEdges", creaseAngle, -1);
   addElementText(e, OPENMBV%"boundaryEdges", boundaryEdges, false);
   return 0;

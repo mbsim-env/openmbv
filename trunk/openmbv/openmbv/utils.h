@@ -44,7 +44,7 @@
 namespace OpenMBVGUI {
 
 /** Utilitiy class */
-class Utils {
+class Utils : public fmatvec::Atom {
   public:
     // INITIALIZATION
 

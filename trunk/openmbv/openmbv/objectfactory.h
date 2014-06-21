@@ -26,7 +26,10 @@
 
 namespace OpenMBVGUI {
 
-Object *ObjectFactory(OpenMBV::Object *obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);
+class ObjectFactory : public fmatvec::Atom {
+  public:
+    static Object *create(OpenMBV::Object *obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);
+};
 
 }
 

@@ -52,7 +52,7 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
   }
-  addElementText(e, OPENMBV%"type", "\""+typeStr+"\"");
+  addElementText(e, OPENMBV%"type", "'"+typeStr+"'");
   addElementText(e, OPENMBV%"numberOfCoils", numberOfCoils);
   addElementText(e, OPENMBV%"springRadius", springRadius);
   addElementText(e, OPENMBV%"crossSectionRadius", crossSectionRadius);
@@ -89,7 +89,7 @@ void CoilSpring::openHDF5File() {
     catch(...) {
       delete data;
       data=NULL;
-      cout<<"WARNING: Unable to open the HDF5 Dataset 'data'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }
 }

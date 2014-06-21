@@ -76,18 +76,19 @@ namespace MBXMLUtils {
   }
 
   void Deprecated::printAllMessages() {
-    cerr<<endl;
-    cerr<<"WARNING: "<<allMessages.size()<<" deprecated features were called:"<<endl;
+    msgStatic(Warn)<<"\n";
+    msgStatic(Warn)<<allMessages.size()<<" deprecated features were called:\n";
     set<vector<string> >::const_iterator it;
     int nr=0;
     for(it=allMessages.begin(); it!=allMessages.end(); it++) {
       nr++;
-      cerr<<"* "<<"("<<nr<<"/"<<allMessages.size()<<") "<<(*it)[0]<<endl;
+      msgStatic(Warn)<<"* "<<"("<<nr<<"/"<<allMessages.size()<<") "<<(*it)[0]<<"\n";
       vector<string>::const_iterator it2=it->begin();
       it2++;
       for(; it2!=it->end(); it2++)
-        cerr<<"  "<<*it2<<endl;
+        msgStatic(Warn)<<"  "<<*it2<<"\n";
     }
+    msgStatic(Warn)<<endl;
   }
 
   std::string demangleSymbolName(std::string name) {

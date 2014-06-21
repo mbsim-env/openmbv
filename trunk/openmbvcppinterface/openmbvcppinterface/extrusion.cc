@@ -59,7 +59,7 @@ DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  addElementText(e, OPENMBV%"windingRule", "\""+windingRuleStr+"\"");
+  addElementText(e, OPENMBV%"windingRule", "'"+windingRuleStr+"'");
   addElementText(e, OPENMBV%"height", height);
   for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);

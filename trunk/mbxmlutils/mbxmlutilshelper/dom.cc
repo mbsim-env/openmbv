@@ -87,7 +87,8 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
     case DOMError::DOM_SEVERITY_FATAL_ERROR: type="Fatal error"; errorCount++;   break;
   }
   DOMLocator *loc=e.getLocation();
-  cerr<<toRelativePath(X()%loc->getURI()).string(CODECVT)<<":"<<loc->getLineNumber()<<": "<<type<<": "<<X()%e.getMessage()<<endl;
+  // Note we print here all message types to the Warn stream. If a error occurred a exception is thrown later
+  msg(Warn)<<toRelativePath(X()%loc->getURI()).string(CODECVT)<<":"<<loc->getLineNumber()<<": "<<type<<": "<<X()%e.getMessage()<<endl;
   return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
 }
 

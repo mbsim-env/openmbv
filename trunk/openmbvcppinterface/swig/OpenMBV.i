@@ -110,6 +110,7 @@
 
 
 // generate interfaces for these files
+%include <fmatvec/atom.h>
 %include <openmbvcppinterface/polygonpoint.h>
 %include <openmbvcppinterface/object.h>
 %include <openmbvcppinterface/group.h>

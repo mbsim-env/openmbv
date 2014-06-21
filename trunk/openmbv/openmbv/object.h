@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_OBJECT_H_
 #define _OPENMBVGUI_OBJECT_H_
 
+#include <fmatvec/atom.h>
 #include <QtGui/QTreeWidgetItem>
 #include <string>
 #include <set>
@@ -41,7 +42,7 @@ namespace OpenMBVGUI {
 class PropertyDialog;
 class BoolEditor;
 
-class Object : public QObject, public QTreeWidgetItem {
+class Object : public QObject, public QTreeWidgetItem, public fmatvec::Atom {
   Q_OBJECT
   friend class Editor;
   friend class MainWindow;

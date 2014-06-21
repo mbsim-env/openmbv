@@ -4,9 +4,9 @@ lib_LTLIBRARIES = libopenmbvcppinterface.la
 
 libopenmbvcppinterface_ladir = $(includedir)/openmbvcppinterface
 
-libopenmbvcppinterface_la_CPPFLAGS = -I$(top_srcdir) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS)
+libopenmbvcppinterface_la_CPPFLAGS = -I$(top_srcdir) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) $(FMATVEC_CFLAGS)
 
-libopenmbvcppinterface_la_LDFLAGS = $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS)-l@BOOST_SYSTEM_LIB@ 
+libopenmbvcppinterface_la_LDFLAGS = $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS) $(FMATVEC_LIBS) -l@BOOST_SYSTEM_LIB@ 
 
 libopenmbvcppinterface_la_SOURCES = object.cc \
   objectfactory.cc\
