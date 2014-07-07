@@ -52,6 +52,8 @@ version_less() {
   fi
 }
 
+AM_CONDITIONAL([COND_CROSSCOMPILE], [test "$cross_compiling" == "yes"])
+
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
