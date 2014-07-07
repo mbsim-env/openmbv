@@ -36,7 +36,10 @@ uninstall-local:
 
 
 
-TESTS = javatest.sh
+if COND_CROSSCOMPILE
+else
+  TESTS = javatest.sh
+endif
 javatest.class: javatest.java
 	@JAVAC@ javatest.java
 
