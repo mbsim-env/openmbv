@@ -25,7 +25,7 @@ OpenMBV_swig_java.cc: ../OpenMBV.i ../../openmbvcppinterface/*.h
 
 de/berlios/openmbv/OpenMBV/Object.class: OpenMBV_swig_java.cc
 	@JAVAC@ de/berlios/openmbv/OpenMBV/*.java
-openmbv.jar: de/berlios/openmbv/OpenMBV/Object.class javatest.class # this is a hack: javatest.class should be build only for check target
+openmbv.jar: de/berlios/openmbv/OpenMBV/Object.class
 	jar cf openmbv.jar de/berlios/openmbv/OpenMBV/*.class
 
 install-exec-hook: openmbv.jar
@@ -36,10 +36,12 @@ uninstall-local:
 
 
 
+TEST_EXTENSIONS=.sh
 if COND_CROSSCOMPILE
 else
   TESTS = javatest.sh
 endif
+javatest.log: javatest.class
 javatest.class: javatest.java
 	@JAVAC@ javatest.java
 
