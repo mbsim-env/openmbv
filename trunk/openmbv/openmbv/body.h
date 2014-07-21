@@ -22,7 +22,6 @@
 
 #include "object.h"
 #include <Inventor/sensors/SoFieldSensor.h>
-#include <H5Cpp.h>
 #include <QtGui/QActionGroup>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoScale.h>

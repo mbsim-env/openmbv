@@ -22,9 +22,9 @@
 
 #include <fmatvec/atom.h>
 #include <string>
-#include <H5Cpp.h>
 #include <sstream>
 #include <openmbvcppinterface/objectfactory.h>
+#include <hdf5serie/group.h>
 #include <mbxmlutilshelper/dom.h>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNode.hpp>
@@ -57,7 +57,7 @@ namespace OpenMBV {
 
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
-      H5::Group *hdf5Group;
+      H5::GroupBase *hdf5Group;
       virtual void terminate()=0;
 
       /** Virtual destructor */
@@ -103,6 +103,8 @@ namespace OpenMBV {
       Group* getTopLevelGroup();
 
       Group* getParent() { return parent; }
+
+      H5::GroupBase *getHDF5Group() { return hdf5Group; };
 
       /** get the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
       std::string getID() const { return ID; }

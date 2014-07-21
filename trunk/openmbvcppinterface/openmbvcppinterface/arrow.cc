@@ -41,7 +41,6 @@ Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
 }
 
 Arrow::~Arrow() {
-  if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
 DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
@@ -75,7 +74,7 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
 void Arrow::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
     vector<string> columns;
     columns.push_back("Time");
     columns.push_back("toPoint x");
@@ -85,7 +84,7 @@ void Arrow::createHDF5File() {
     columns.push_back("delta y");
     columns.push_back("delta z");
     columns.push_back("color");
-    data->create(*hdf5Group,"data",columns);
+    data->setColumnLabel(columns);
   }
 }
 
@@ -93,12 +92,10 @@ void Arrow::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
     try {
-      data->open(*hdf5Group,"data");
+      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      delete data;
       data=NULL;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }

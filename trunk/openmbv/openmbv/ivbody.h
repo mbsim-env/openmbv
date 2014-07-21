@@ -22,7 +22,6 @@
 
 #include "rigidbody.h"
 #include <string>
-#include <H5Cpp.h>
 #include <QThread>
 #include <openmbvcppinterface/ivbody.h>
 

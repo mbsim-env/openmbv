@@ -48,7 +48,6 @@ NurbsDisk::NurbsDisk() : DynamicColoredBody(),
   }
 
 NurbsDisk::~NurbsDisk() {
-  if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
 DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
@@ -75,10 +74,10 @@ DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
 void NurbsDisk::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
-    vector<string> columns;
     int NodeDofs;
     NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
+    vector<string> columns;
     columns.push_back("Time");
 
     //Global position (position of center of gravity)
@@ -103,7 +102,7 @@ void NurbsDisk::createHDF5File() {
       columns.push_back("z"+numtostr(i+NodeDofs));
     }
 
-    data->create(*hdf5Group,"data",columns);
+    data->setColumnLabel(columns);
   }
 }
 
@@ -111,12 +110,10 @@ void NurbsDisk::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
     try {
-      data->open(*hdf5Group,"data");
+      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      delete data;
       data=NULL;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }

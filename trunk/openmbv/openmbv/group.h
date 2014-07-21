@@ -22,7 +22,6 @@
 
 #include "object.h"
 #include <string>
-#include <H5Cpp.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).

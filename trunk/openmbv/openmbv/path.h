@@ -23,7 +23,6 @@
 #include "body.h"
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
-#include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {

@@ -118,9 +118,6 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  // disalbe HDF5 error message print
-  H5::Exception::dontPrint();
-
   QApplication app(argc, argv);
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);

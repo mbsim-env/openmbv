@@ -23,7 +23,7 @@
 #include <openmbvcppinterface/object.h>
 #include <vector>
 #include <map>
-#include <H5Cpp.h>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMBV {
 
@@ -36,6 +36,7 @@ namespace OpenMBV {
       std::string expandStr;
       std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
       bool separateFile;
+      boost::shared_ptr<H5::File> hdf5File;
       void createHDF5File();
       void openHDF5File();
 
