@@ -39,7 +39,6 @@ SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
 }
 
 SpineExtrusion::~SpineExtrusion() {
-  if(!hdf5LinkBody && data) { delete data; data=0; }
   if(contour) { 
     for(unsigned int i=0;i<contour->size();i++) {
       delete (*contour)[i];
@@ -61,7 +60,7 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
 void SpineExtrusion::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numberOfSpinePoints;i++) {
@@ -70,7 +69,7 @@ void SpineExtrusion::createHDF5File() {
       columns.push_back("z"+numtostr(i));
       columns.push_back("twist"+numtostr(i));
     }
-    data->create(*hdf5Group,"data",columns);
+    data->setColumnLabel(columns);
   }
 }
 
@@ -78,12 +77,10 @@ void SpineExtrusion::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
     try {
-      data->open(*hdf5Group,"data");
+      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      delete data;
       data=NULL;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }

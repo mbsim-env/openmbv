@@ -34,7 +34,6 @@ Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), I
 }
 
 Object::~Object() {
-  if(hdf5Group!=0) { delete hdf5Group; hdf5Group=0; }
 }
 
 string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {

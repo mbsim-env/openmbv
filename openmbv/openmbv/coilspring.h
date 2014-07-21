@@ -26,7 +26,6 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/SbLinear.h>
-#include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
 

@@ -21,7 +21,6 @@
 #include <openmbvcppinterface/body.h>
 #include <iostream>
 #include <fstream>
-#include <H5Cpp.h>
 #include <openmbvcppinterface/group.h>
 
 using namespace std;
@@ -62,15 +61,15 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
 
 void Body::createHDF5File() {
   if(!hdf5LinkBody)
-    hdf5Group=new H5::Group(parent->hdf5Group->createGroup(name));
+    hdf5Group=parent->hdf5Group->createChildObject<H5::Group>(name)();
   else
-    parent->hdf5Group->link(H5L_TYPE_SOFT, getRelPathTo(hdf5LinkBody), name);
+    parent->hdf5Group->createSoftLink(name, getRelPathTo(hdf5LinkBody));
 }
 
 void Body::openHDF5File() {
   hdf5Group=NULL;
   try {
-    hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+    hdf5Group=parent->hdf5Group->openChildObject<H5::Group>(name);
   }
   catch(...) {
     msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;

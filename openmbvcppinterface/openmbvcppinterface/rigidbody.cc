@@ -22,7 +22,6 @@
 #include <iostream>
 #include <fstream>
 #include <openmbvcppinterface/group.h>
-#include <H5Cpp.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 using namespace std;
@@ -40,7 +39,6 @@ RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), reference
 }
 
 RigidBody::~RigidBody() {
-  if(!hdf5LinkBody && data) delete data;
 }
 
 DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
@@ -58,7 +56,7 @@ DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
 void RigidBody::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
     vector<string> columns;
     columns.push_back("Time");
     columns.push_back("x");
@@ -68,7 +66,7 @@ void RigidBody::createHDF5File() {
     columns.push_back("beta");
     columns.push_back("gamma");
     columns.push_back("color");
-    data->create(*hdf5Group,"data",columns);
+    data->setColumnLabel(columns);
   }
 }
 
@@ -76,12 +74,10 @@ void RigidBody::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
     try {
-      data->open(*hdf5Group,"data");
+      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      delete data;
       data=NULL;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }

@@ -22,7 +22,6 @@
 
 #include "object.h"
 #include <openmbvcppinterface/object.h>
-#include <H5Cpp.h>
 
 namespace OpenMBVGUI {
 

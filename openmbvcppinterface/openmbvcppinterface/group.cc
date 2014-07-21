@@ -22,11 +22,10 @@
 #include <openmbvcppinterface/body.h>
 #include <openmbvcppinterface/objectfactory.h>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
-#include <hdf5serie/fileserie.h>
+#include <hdf5serie/file.h>
 #include <assert.h>
 #include <iostream>
 #include <fstream>
-#include <H5Cpp.h>
 #include <stdlib.h>
 #include <boost/static_assert.hpp>
 #ifdef HAVE_BOOST_FILE_LOCK
@@ -103,7 +102,7 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
 
 void Group::createHDF5File() {
   if(!separateFile) {
-    hdf5Group=new H5::Group(parent->hdf5Group->createGroup(name));
+    hdf5Group=parent->hdf5Group->createChildObject<H5::Group>(name)();
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
   }
@@ -111,13 +110,12 @@ void Group::createHDF5File() {
     string fullName=getFullName();
     for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
     // create link in current h5 file
-    H5Lcreate_external((fullName+".ombv.h5").c_str(), "/",
-                       parent->hdf5Group->getId(), name.c_str(),
-                       H5P_DEFAULT, H5P_DEFAULT);
+    parent->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombv.h5"), string("/")));
     // create new h5 file and write to in till now
     // use the directory of the topLevelFile and the above fullName
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
-    hdf5Group=(H5::Group*)new H5::FileSerie(fileName.substr(0,fileName.length()-4)+".h5", H5F_ACC_TRUNC);
+    hdf5File=boost::make_shared<H5::File>(fileName.substr(0,fileName.length()-4)+".h5", H5::File::write);
+    hdf5Group=hdf5File.get();
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
   }
@@ -127,7 +125,8 @@ void Group::openHDF5File() {
   hdf5Group=NULL;
   if(parent==NULL) {
     try {
-      hdf5Group=(H5::Group*)new H5::FileSerie(getFileName().substr(0,getFileName().length()-4)+".h5", H5F_ACC_RDONLY);
+      hdf5File=boost::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-4)+".h5", H5::File::read);
+      hdf5Group=hdf5File.get();
     }
     catch(...) {
       msg(Warn)<<"Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-4)+".h5"<<"'"<<endl;
@@ -135,7 +134,7 @@ void Group::openHDF5File() {
   }
   else {
     try {
-      hdf5Group=new H5::Group(parent->hdf5Group->openGroup(name));
+      hdf5Group=parent->hdf5Group->openChildObject<H5::Group>(name);
     }
     catch(...) {
       msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
@@ -160,19 +159,18 @@ void Group::writeXML() {
 
 void Group::writeH5() {
   string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
-  hdf5Group=(H5::Group*)new H5::FileSerie(h5FileName, H5F_ACC_TRUNC);
+  hdf5File=boost::make_shared<H5::File>(h5FileName, H5::File::write);
+  hdf5Group=hdf5File.get();
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->createHDF5File();
-  H5::FileSerie::flushAllFiles();
+  hdf5File->flush();
 }
 
 void Group::terminate() {
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->terminate();
-  if(!separateFile)
-    delete hdf5Group;
-  else
-    delete (H5::FileSerie*)hdf5Group;
+  if(separateFile)
+    delete static_cast<H5::File*>(hdf5Group);
   hdf5Group=0;
 }
 

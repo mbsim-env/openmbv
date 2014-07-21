@@ -21,7 +21,6 @@
 #define _OPENMBVGUI_COMPOUNDRIGIDBODY_H_
 
 #include "rigidbody.h"
-#include <H5Cpp.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 
 namespace OpenMBVGUI {

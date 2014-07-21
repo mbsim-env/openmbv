@@ -116,6 +116,7 @@ class MainWindow : public QMainWindow, public fmatvec::Atom {
 #endif
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
+    OpenMBV::Body *openMBVBodyForLastFrame;
     QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     void help(std::string type, QDialog *helpDialog);

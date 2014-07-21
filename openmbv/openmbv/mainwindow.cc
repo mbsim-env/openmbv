@@ -67,7 +67,7 @@
 #include "compoundrigidbody.h"
 #include <string>
 #include <set>
-#include <hdf5serie/fileserie.h>
+#include <hdf5serie/file.h>
 #include <Inventor/SbViewportRegion.h>
 #include <Inventor/actions/SoRayPickAction.h>
 #include <Inventor/SoPickedPoint.h>
@@ -1424,21 +1424,20 @@ void MainWindow::heavyWorkSlot() {
   }
   else if(lastFrameAct->isChecked()) {
     // get number of rows of first none enviroment body
-    int currentNumOfRows=-1;
-    map<SoNode*,Body*>::iterator it=Body::getBodyMap().begin();
-    while(it!=Body::getBodyMap().end() && (currentNumOfRows=((OpenMBV::Body*)(it->second->object))->getRows())==-1)
-      it++;
+    if(!openMBVBodyForLastFrame) {
+      map<SoNode*,Body*>::iterator it=Body::getBodyMap().begin();
+      while(it!=Body::getBodyMap().end() && static_cast<OpenMBV::Body*>(it->second->object)->getRows()==-1)
+        it++;
+      openMBVBodyForLastFrame=static_cast<OpenMBV::Body*>(it->second->object);
+    }
+    openMBVBodyForLastFrame->getHDF5Group()->getFile()->refresh();
+    int currentNumOfRows=openMBVBodyForLastFrame->getRows();
     if(currentNumOfRows==-1) return;
+
     // update if a new row is available
     if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
       timeSlider->setTotalMaximum(currentNumOfRows-1);
-      timeSlider->setCurrentMaximum(currentNumOfRows-1);
-      frameSB->setMaximum(currentNumOfRows-1);
-      frameMinSB->setMaximum(currentNumOfRows-1);
-      frameMaxSB->setMaximum(currentNumOfRows-1);
-      // show the last but one frame since the last frame may not be wrote for all Bodies till now
-      timeSlider->setValue(currentNumOfRows-2);
-      frame->setValue(currentNumOfRows-2);
+      frame->setValue(currentNumOfRows-1);
     }
   }
 }
@@ -1618,13 +1617,7 @@ void MainWindow::lastFrameSCSlot() {
     return;
   }
 
-  // show last frame
-  timeSlider->setCurrentMaximum(timeSlider->totalMaximum());
-  timeSlider->setValue(timeSlider->currentMaximum()-1);
-  frameSB->setMaximum(timeSlider->totalMaximum());
-  frameMinSB->setMaximum(timeSlider->totalMaximum());
-  frameMaxSB->setMaximum(timeSlider->totalMaximum());
-  frame->setValue(timeSlider->currentMaximum()-1);
+  openMBVBodyForLastFrame=NULL;
 
   stopAct->setChecked(false);
   playAct->setChecked(false);

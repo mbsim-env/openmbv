@@ -21,7 +21,6 @@
 #define _OPENMBVGUI_GRID_H_
 
 #include "rigidbody.h"
-#include <H5Cpp.h>
 
 namespace OpenMBV {
   class Grid;

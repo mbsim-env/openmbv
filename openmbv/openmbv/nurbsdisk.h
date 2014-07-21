@@ -33,7 +33,6 @@
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoSeparator.h>
 
-#include <H5Cpp.h>
 #include <hdf5serie/vectorserie.h>
 #include <QtGui/QMenu>
 

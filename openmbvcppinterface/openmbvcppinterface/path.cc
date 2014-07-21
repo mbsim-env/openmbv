@@ -33,7 +33,6 @@ Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
 }
 
 Path::~Path() {
-  if(!hdf5LinkBody && data) { delete data; data=0; }
 }
 
 xercesc::DOMElement* Path::writeXMLFile(xercesc::DOMNode *parent) {
@@ -45,13 +44,13 @@ xercesc::DOMElement* Path::writeXMLFile(xercesc::DOMNode *parent) {
 void Path::createHDF5File() {
   Body::createHDF5File();
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(4);
     vector<string> columns;
     columns.push_back("Time");
     columns.push_back("x");
     columns.push_back("y");
     columns.push_back("z");
-    data->create(*hdf5Group,"data",columns);
+    data->setColumnLabel(columns);
   }
 }
 
@@ -59,12 +58,10 @@ void Path::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
-    data=new H5::VectorSerie<double>;
     try {
-      data->open(*hdf5Group,"data");
+      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      delete data;
       data=NULL;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
