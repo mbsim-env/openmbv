@@ -1430,14 +1430,16 @@ void MainWindow::heavyWorkSlot() {
         it++;
       openMBVBodyForLastFrame=static_cast<OpenMBV::Body*>(it->second->object);
     }
-    openMBVBodyForLastFrame->getHDF5Group()->getFile()->refresh();
+    // refresh all files
+    H5::File::refreshAllFilesAfterWriterFlush();
+    // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
-    if(currentNumOfRows==-1) return;
+    if(currentNumOfRows<2) return;
 
     // update if a new row is available
-    if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
-      timeSlider->setTotalMaximum(currentNumOfRows-1);
-      frame->setValue(currentNumOfRows-1);
+    if(currentNumOfRows-2!=timeSlider->totalMaximum()) {
+      timeSlider->setTotalMaximum(currentNumOfRows-2);
+      frame->setValue(currentNumOfRows-2);
     }
   }
 }
