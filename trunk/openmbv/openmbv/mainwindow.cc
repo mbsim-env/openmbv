@@ -1434,11 +1434,14 @@ void MainWindow::heavyWorkSlot() {
     H5::File::refreshAllFilesAfterWriterFlush();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
+    if(deltaTime==0 && currentNumOfRows>=2)
+      deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
     if(currentNumOfRows<2) return;
 
     // update if a new row is available
     if(currentNumOfRows-2!=timeSlider->totalMaximum()) {
       timeSlider->setTotalMaximum(currentNumOfRows-2);
+      timeSlider->setCurrentMaximum(currentNumOfRows-2);
       frame->setValue(currentNumOfRows-2);
     }
   }
