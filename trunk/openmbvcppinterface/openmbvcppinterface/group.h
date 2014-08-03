@@ -85,6 +85,7 @@ namespace OpenMBV {
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
 
       bool getSeparateFile() { return separateFile; }
+      boost::shared_ptr<H5::File> getHDF5File() { return hdf5File; }
 
       /** Returns the file name of the .ombv.xml file of this separateFile Group
        * including the absolute or relatvie path */
