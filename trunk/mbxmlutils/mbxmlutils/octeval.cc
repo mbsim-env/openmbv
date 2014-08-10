@@ -719,7 +719,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
   ec=E(e)->getFirstElementChildNamed(PV%"fromFile");
   if(ec) {
     static octave_function *loadFunc=symbol_table::find_function("load").function_value();  // get ones a pointer performance reasons
-    octave_value fileName=stringToOctValue(E(ec)->getAttribute("href"), ec);
+    octave_value fileName=stringToOctValue(E(ec)->getAttribute("href"), ec, false);
     if(dependencies)
       dependencies->push_back(E(e)->convertPath(fileName.string_value()));
 
