@@ -32,7 +32,7 @@ lib_LTLIBRARIES = libmbxmlutils.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS)
 libmbxmlutils_la_LDFLAGS = -Wl,-rpath -Wl,\$$ORIGIN/../lib
-libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(MKOCTFILE_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_la_SOURCES = octeval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = octeval.h preprocess.h
 
