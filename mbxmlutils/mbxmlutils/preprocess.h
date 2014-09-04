@@ -9,7 +9,7 @@
 
 namespace MBXMLUtils {
 
-class Preprocess : public fmatvec::Atom {
+class Preprocess : virtual public fmatvec::Atom {
   public:
     static void preprocess(boost::shared_ptr<MBXMLUtils::DOMParser> parser, OctEval &octEval, std::vector<boost::filesystem::path> &dependencies, xercesc::DOMElement *&e);
 };

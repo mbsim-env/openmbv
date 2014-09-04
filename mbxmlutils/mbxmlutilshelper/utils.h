@@ -28,7 +28,7 @@
 
 namespace MBXMLUtils {
 
-class Deprecated : public fmatvec::Atom {
+class Deprecated : virtual public fmatvec::Atom {
   public:
     /*! register a deprecated feature with name message.
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */

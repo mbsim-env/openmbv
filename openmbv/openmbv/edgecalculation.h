@@ -29,7 +29,7 @@
 
 namespace OpenMBVGUI {
 
-class EdgeCalculation : public QObject, public fmatvec::Atom {
+class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
   Q_OBJECT
   public:
     /** Collect the data to be edge calculated from grp.

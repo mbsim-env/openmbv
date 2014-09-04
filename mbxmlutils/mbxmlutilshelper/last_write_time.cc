@@ -1,3 +1,4 @@
+#include <config.h>
 #include "last_write_time.h"
 #include <sys/stat.h>
 #ifdef _WIN32

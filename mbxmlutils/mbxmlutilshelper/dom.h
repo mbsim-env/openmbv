@@ -66,7 +66,7 @@ class X {
 };
 
 //! Print DOM error messages
-class DOMErrorPrinter: public xercesc::DOMErrorHandler, public fmatvec::Atom
+class DOMErrorPrinter: public xercesc::DOMErrorHandler, virtual public fmatvec::Atom
 {
   public:
     DOMErrorPrinter() : warningCount(0), errorCount(0) {}

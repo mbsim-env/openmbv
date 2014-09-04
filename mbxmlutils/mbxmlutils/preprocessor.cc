@@ -1,3 +1,4 @@
+#include <config.h>
 #include "mbxmlutils/preprocess.h"
 #include <mbxmlutilshelper/getinstallpath.h>
 

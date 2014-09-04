@@ -46,7 +46,7 @@ namespace OpenMBV {
   class Group;
 
   /** Abstract base class */
-  class Object : public fmatvec::Atom {
+  class Object : virtual public fmatvec::Atom {
     friend class Group;
     protected:
       std::string name;

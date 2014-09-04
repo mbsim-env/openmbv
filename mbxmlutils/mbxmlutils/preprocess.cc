@@ -1,3 +1,4 @@
+#include <config.h>
 #include "mbxmlutils/preprocess.h"
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>

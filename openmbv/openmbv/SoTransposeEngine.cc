@@ -1,3 +1,4 @@
+#include <config.h>
 #include "SoTransposeEngine.h"
 #include <Inventor/SbLinear.h>
 

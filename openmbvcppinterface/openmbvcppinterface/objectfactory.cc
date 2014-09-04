@@ -17,6 +17,7 @@
  * Contact: friedrich.at.gc@googlemail.com
  */
 
+#include <config.h>
 #include <openmbvcppinterface/objectfactory.h>
 #include <openmbvcppinterface/object.h>
 

@@ -1,3 +1,4 @@
+#include <config.h>
 #include "getinstallpath.h"
 #include <string.h>
 #include <unistd.h>
