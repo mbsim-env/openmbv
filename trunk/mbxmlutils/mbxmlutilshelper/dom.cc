@@ -1,3 +1,4 @@
+#include <config.h>
 #include "dom.h"
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>

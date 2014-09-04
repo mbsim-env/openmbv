@@ -88,7 +88,7 @@ class PropertyDialog : public QDialog {
 
 
 
-class Editor : public QWidget, public fmatvec::Atom {
+class Editor : public QWidget, virtual public fmatvec::Atom {
   public:
     Editor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
   protected:

@@ -42,7 +42,7 @@ namespace OpenMBVGUI {
 class PropertyDialog;
 class BoolEditor;
 
-class Object : public QObject, public QTreeWidgetItem, public fmatvec::Atom {
+class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::Atom {
   Q_OBJECT
   friend class Editor;
   friend class MainWindow;

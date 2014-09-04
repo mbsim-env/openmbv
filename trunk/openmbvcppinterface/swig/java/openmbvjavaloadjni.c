@@ -1,3 +1,4 @@
+#include <config.h>
 #include <jni.h>
 #if _WIN32
 # include <windows.h>

@@ -111,7 +111,7 @@ class NewParamLevel {
 };
 
 /*! Octave expression evaluator and converter. */
-class OctEval : public fmatvec::Atom {
+class OctEval : virtual public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 
