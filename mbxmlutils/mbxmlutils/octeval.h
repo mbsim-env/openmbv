@@ -370,7 +370,7 @@ class OctEval : virtual public fmatvec::Atom {
     static octave_value casadiOctValue;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
-                                        const std::string &msg=std::string(), const xercesc::DOMElement *e=NULL);
+                                        const std::string &msg=std::string());
 
     octave_value handleUnit(const xercesc::DOMElement *e, const octave_value &ret);
 };

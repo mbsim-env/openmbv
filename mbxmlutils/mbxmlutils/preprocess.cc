@@ -31,9 +31,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       path file;
       if(E(e)->hasAttribute("href")) {
         octave_value ret=octEval.eval(E(e)->getAttributeNode("href"), e);
-        string subst=OctEval::cast<string>(ret);
-        if(OctEval::getType(ret)==OctEval::StringType)
-          subst=subst.substr(1, subst.length()-2);
+        string subst;
+        try {
+          subst=OctEval::cast<string>(ret);
+          if(OctEval::getType(ret)==OctEval::StringType)
+            subst=subst.substr(1, subst.length()-2);
+        } MBXMLUTILS_RETHROW(e)
         file=E(e)->convertPath(subst);
         dependencies.push_back(file);
       }
@@ -41,12 +44,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       // evaluate count using parameters
       long count=1;
       if(E(e)->hasAttribute("count"))
-        count=OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("count"), e));
+        try { count=OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
   
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName")) {
-        counterName=OctEval::cast<string>(octEval.eval(E(e)->getAttributeNode("counterName"), e));
+        try { counterName=OctEval::cast<string>(octEval.eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
         counterName=counterName.substr(1, counterName.length()-2);
       }
   
@@ -80,9 +83,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           octEval.addParamSet(inlineParamEle);
         else { // parameter from parameterHref attribute
           octave_value ret=octEval.eval(E(e)->getAttributeNode("parameterHref"), e);
-          string subst=OctEval::cast<string>(ret);
-          if(OctEval::getType(ret)==OctEval::StringType)
-            subst=subst.substr(1, subst.length()-2);
+          string subst;
+          try {
+            subst=OctEval::cast<string>(ret);
+            if(OctEval::getType(ret)==OctEval::StringType)
+              subst=subst.substr(1, subst.length()-2);
+          } MBXMLUTILS_RETHROW(e)
           path paramFile=E(e)->convertPath(subst);
           // add local parameter file to dependencies
           dependencies.push_back(paramFile);
@@ -101,7 +107,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(E(e)->hasAttribute("onlyif"))
-          onlyif=(OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("onlyif"), e))==1);
+          try { onlyif=(OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
         if(onlyif) {
           octEval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           DOMNode *p=e->getParentNode();
@@ -143,9 +149,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         if(!A(a)->isDerivedFrom(PV%"fullOctEval") && !A(a)->isDerivedFrom(PV%"partialOctEval"))
           continue;
         octave_value value=octEval.eval(a, e);
-        string s=OctEval::cast<string>(value);
-        if(OctEval::getType(value)==OctEval::StringType)
-          s=s.substr(1, s.length()-2);
+        string s;
+        try {
+          s=OctEval::cast<string>(value);
+          if(OctEval::getType(value)==OctEval::StringType)
+            s=s.substr(1, s.length()-2);
+        } MBXMLUTILS_RETHROW(e)
         a->setValue(X()%s);
       }
 
@@ -163,10 +172,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
             e->removeChild(E(e)->getFirstTextChild())->release();
           DOMNode *node;
           DOMDocument *doc=e->getOwnerDocument();
-          if(OctEval::getType(value)==OctEval::SXFunctionType)
-            node=OctEval::cast<DOMElement*>(value, doc);
-          else
-            node=doc->createTextNode(X()%OctEval::cast<string>(value));
+          try {
+            if(OctEval::getType(value)==OctEval::SXFunctionType)
+              node=OctEval::cast<DOMElement*>(value, doc);
+            else
+              node=doc->createTextNode(X()%OctEval::cast<string>(value));
+          } MBXMLUTILS_RETHROW(e)
           e->appendChild(node);
         }
       }

@@ -54,7 +54,8 @@ Group::~Group() {
 void Group::addObject(Object* newObject) {
   if(newObject->name=="") throw runtime_error("object to add must have a name");
   for(unsigned int i=0; i<object.size(); i++)
-    if(object[i]->name==newObject->name) throw runtime_error("the name of the object alread exists");
+    if(object[i]->name==newObject->name)
+      throw runtime_error("A object of name "+object[i]->name+" already exists.");
   object.push_back(newObject);
   newObject->parent=this;
 }
