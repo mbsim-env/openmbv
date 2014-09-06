@@ -361,17 +361,20 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e)
   // store error message
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
-  if(e) {
-    const DOMElement *ee=e;
-    const DOMElement *found;
-    locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber()));
+  if(e)
+    setContext(e);
+}
+
+void DOMEvalException::setContext(const DOMElement *e) {
+  const DOMElement *ee=e;
+  const DOMElement *found;
+  locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber()));
+  ee=found;
+  while(ee) {
+    locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(true, found),
+                                            E(ee)->getOriginalElementLineNumber(),
+                                            E(ee)->getEmbedCountNumber()));
     ee=found;
-    while(ee) {
-      locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(true, found),
-                                              E(ee)->getOriginalElementLineNumber(),
-                                              E(ee)->getEmbedCountNumber()));
-      ee=found;
-    }
   }
 }
 

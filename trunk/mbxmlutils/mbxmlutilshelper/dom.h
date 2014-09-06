@@ -257,6 +257,14 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     int embedCount;
 };
 
+// Exception wrapping for DOMEvalException.
+// Catch a exception of type DOMEvalException, set the current XML context to DOMElement e and rethrow.
+#define MBXMLUTILS_RETHROW(e) \
+  catch(MBXMLUtils::DOMEvalException &ex) { \
+    ex.setContext(e); \
+    throw; \
+  }
+
 //! Exception during evaluation of the DOM tree including a location stack
 class DOMEvalException : public std::exception {
   public:
@@ -268,6 +276,7 @@ class DOMEvalException : public std::exception {
       return *this;
     }
     ~DOMEvalException() throw() {}
+    void setContext(const xercesc::DOMElement *e);
     const std::string& getMessage() const { return errorMsg; }
     const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
     const char* what() const throw();
