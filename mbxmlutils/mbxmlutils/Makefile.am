@@ -11,15 +11,15 @@ dist_xml_DATA = measurement.xml
 
 
 # validate measurement.xml
-.measurement.xml.isvalid: measurement.xml measurement.xsd
+.measurement.xml.isvalid: $(srcdir)/measurement.xml $(srcdir)/measurement.xsd
 	rm -f .measurement.xml.isvalid
-	../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) @srcdir@/measurement.xsd @srcdir@/measurement.xml && touch .measurement.xml.isvalid
+	../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $(srcdir)/measurement.xsd $(srcdir)/measurement.xml && touch .measurement.xml.isvalid
 
 
 
 # generate physicalvariable.xsd
-physicalvariable.xsd: measurement.xml measurement2physicalvariable.xsl .measurement.xml.isvalid
-	@XALAN@ -o @srcdir@/physicalvariable.xsd @srcdir@/measurement.xml @srcdir@/measurement2physicalvariable.xsl
+physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl .measurement.xml.isvalid
+	@XALAN@ -o physicalvariable.xsd $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
 
