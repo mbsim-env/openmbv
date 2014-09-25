@@ -26,7 +26,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       if((!E(e)->hasAttribute("count") &&  E(e)->hasAttribute("counterName")) ||
          ( E(e)->hasAttribute("count") && !E(e)->hasAttribute("counterName")))
         throw DOMEvalException("Only both, the count and counterName attribute must be given or none of both!", e);
-  
+    
       // get file name if href attribute exist
       path file;
       if(E(e)->hasAttribute("href")) {
@@ -40,19 +40,19 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         file=E(e)->convertPath(subst);
         dependencies.push_back(file);
       }
-  
+    
       // evaluate count using parameters
       long count=1;
       if(E(e)->hasAttribute("count"))
         try { count=OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
-  
+    
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName")) {
         try { counterName=OctEval::cast<string>(octEval.eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
         counterName=counterName.substr(1, counterName.length()-2);
       }
-  
+    
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
@@ -66,10 +66,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
           bind(&DOMElement::release, _1));
       }
-  
+    
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
-  
+    
       // generate local paramter for embed
       // check that not both the parameterHref attribute and the child element pv:Parameter exists (This is not checked by the schema)
       DOMElement *inlineParamEle=e->getFirstElementChild();
@@ -99,7 +99,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           octEval.addParamSet(localparamxmldoc->getDocumentElement());
         }
       }
-  
+    
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
         octEval.addParam(counterName, i);
@@ -118,7 +118,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           }
           else
             e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
-  
+    
           // include a processing instruction with the count number
           E(e)->setEmbedCountNumber(i);
       
@@ -182,7 +182,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         }
       }
     }
-  
+    
     // walk tree
     DOMElement *c=e->getFirstElementChild();
     while(c) {
@@ -190,16 +190,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       if(c==NULL) break;
       c=c->getNextElementSibling();
     }
-  }
-  catch(const DOMEvalException &ex) {
-    throw ex;
-  }
-  catch(const DOMEvalExceptionList &ex) {
-    throw ex;
-  }
-  catch(const std::exception &ex) {
-    throw DOMEvalException(ex.what(), e);
-  }
+  } MBXMLUTILS_RETHROW(e);
 }
 
 }

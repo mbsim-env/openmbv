@@ -121,11 +121,8 @@ int main(int argc, char *argv[]) {
     }
   }
   catch(const std::exception &ex) {
-    cerr<<ex.what()<<endl;
-    return 1;
-  }
-  catch(const DOMException &ex) {
-    cerr<<"DOM exception: "<<X()%ex.getMessage()<<endl;
+    cerr<<"Exception:"<<endl
+        <<ex.what()<<endl;
     return 1;
   }
   catch(...) {
