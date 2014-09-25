@@ -259,16 +259,18 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
 
 // Exception wrapping for DOMEvalException.
 // Catch a exception of type DOMEvalException, set the current XML context to DOMElement e and rethrow.
+// Not not change the context if it was alread set before.
 #define MBXMLUTILS_RETHROW(e) \
   catch(MBXMLUtils::DOMEvalException &ex) { \
-    ex.setContext(e); \
+    if(ex.getLocationStack().size()==0) \
+      ex.setContext(e); \
     throw; \
   }
 
 //! Exception during evaluation of the DOM tree including a location stack
 class DOMEvalException : public std::exception {
   public:
-    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=NULL);
+    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=NULL, const xercesc::DOMAttr *a=NULL);
     DOMEvalException(const DOMEvalException &src) : errorMsg(src.errorMsg),
       locationStack(src.locationStack) {}
     DOMEvalException &operator=(const DOMEvalException &src) {
@@ -283,21 +285,7 @@ class DOMEvalException : public std::exception {
   private:
     std::string errorMsg;
     std::vector<EmbedDOMLocator> locationStack;
-    mutable std::string whatStr;
-};
-
-//! A list of DOMEvalException
-class DOMEvalExceptionList : public std::vector<DOMEvalException>, public std::exception {
-  public:
-    DOMEvalExceptionList() {}
-    DOMEvalExceptionList(const DOMEvalExceptionList &src) : std::vector<DOMEvalException>(src), std::exception(src) {}
-    DOMEvalExceptionList &operator=(const DOMEvalExceptionList &src) {
-      operator=(src);
-      return *this;
-    }
-    ~DOMEvalExceptionList() throw() {}
-    const char* what() const throw();
-  private:
+    std::string attrName;
     mutable std::string whatStr;
 };
 
@@ -314,7 +302,7 @@ class LocationInfoFilter : public xercesc::DOMLSParserFilter {
     static const std::string lineNumberKey;
 };
 
-class TypeDerivativeHandler : public xercesc::PSVIHandler {
+class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatvec::Atom {
   public:
     void setParser(DOMParser *parser_) { parser=parser_; }
     void handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIElement *elementInfo);

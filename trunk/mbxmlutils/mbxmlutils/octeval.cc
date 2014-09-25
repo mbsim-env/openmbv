@@ -454,16 +454,23 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
     REDIR_STDERR(redirstderr, err.rdbuf());
     eval_string(str, true, dummy, 0); // eval as statement list
   }
-  catch(const std::exception &ex) {
+  catch(const std::exception &ex) { // should not happend
     error_state=0;
-    throw DOMEvalException(err.str()+ex.what(), e);
+    throw DOMEvalException(string("Exception: ")+ex.what()+": "+err.str(), e);
   }
-  catch(...) {
+  catch(...) { // should not happend
     error_state=0;
-    throw;
+    throw DOMEvalException("Unknwon exception: "+err.str(), e);
   }
   if(error_state!=0) { // if error => wrong code => throw error
     error_state=0;
+    //MFMF
+    DOMEvalException ex(err.str()+"Unable to evaluate expression: "+str, e);
+    vector<EmbedDOMLocator> ls=ex.getLocationStack();
+    for(int i=0; i<ls.size(); ++i) {
+      cout<<"MFMF "<<X()%ls[i].getURI()<<":"<<ls[i].getLineNumber()<<endl;
+    }
+    //MFMF
     throw DOMEvalException(err.str()+"Unable to evaluate expression: "+str, e);
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
@@ -759,19 +766,31 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
   else if(A(a)->isDerivedFrom(PV%"partialOctEval"))
     fullEval=false;
   else
-    throw DOMEvalException("Unknown XML attribute type for evaluation", pe);
+    throw DOMEvalException("Unknown XML attribute type", pe, a);
 
   // evaluate attribute fully
   if(fullEval) {
     octave_value ret=stringToOctValue(X()%a->getValue(), pe);
-    if(A(a)->isDerivedFrom(PV%"floatFullOctEval") && (!ret.is_scalar_type() || !ret.is_double_type()))
-      throw DOMEvalException("Value is not of type scalar float", pe);
-    if(A(a)->isDerivedFrom(PV%"stringFullOctEval") && (!ret.is_scalar_type() && !ret.is_string())) // also filenameFullOctEval
-      throw DOMEvalException("Value is not of type scalar string", pe);
-    if(A(a)->isDerivedFrom(PV%"integerFullOctEval") && (!ret.is_scalar_type() && !ret.is_integer_type())) // also symbolicFunctionArgDimType
-      throw DOMEvalException("Value is not of type scalar integer", pe);
-    if(A(a)->isDerivedFrom(PV%"booleanFullOctEval") && (!ret.is_scalar_type() && !ret.is_bool_scalar()))
-      throw DOMEvalException("Value is not of type scalar boolean", pe);
+    if(A(a)->isDerivedFrom(PV%"floatFullOctEval")) {
+      if(!ret.is_scalar_type() || !ret.is_real_type())
+        throw DOMEvalException("Value is not of type scalar float", pe, a);
+    }
+    else if(A(a)->isDerivedFrom(PV%"stringFullOctEval")) {
+      if(!ret.is_scalar_type() || !ret.is_string()) // also filenameFullOctEval
+        throw DOMEvalException("Value is not of type scalar string", pe, a);
+    }
+    else if(A(a)->isDerivedFrom(PV%"integerFullOctEval")) {
+      bool isInt=true;
+      try { boost::lexical_cast<int>(ret.double_value()); } catch(const boost::bad_lexical_cast &) { isInt=false; }
+      if(!ret.is_scalar_type() || !ret.is_real_type() || !isInt) // also symbolicFunctionArgDimType
+        throw DOMEvalException("Value is not of type scalar integer", pe, a);
+    }
+    else if(A(a)->isDerivedFrom(PV%"booleanFullOctEval")) {
+      if(!ret.is_scalar_type() || !ret.is_real_type() || (ret.double_value()!=0 && ret.double_value()!=1))
+        throw DOMEvalException("Value is not of type scalar boolean", pe, a);
+    }
+    else
+      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
     if(A(a)->isDerivedFrom(PV%"filenameFullOctEval"))
@@ -781,33 +800,38 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
   }
   // evaluate attribute partially
   else {
+    octave_value ret;
     string s=partialStringToOctValue(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"varnamePartialOctEval")) { // also symbolicFunctionArgNameType
       if(s.length()<1)
-        throw DOMEvalException("A variable name must consist of at least 1 character", pe);
+        throw DOMEvalException("A variable name must consist of at least 1 character", pe, a);
       if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
-        throw DOMEvalException("A variable name start with _, a-z or A-Z", pe);
+        throw DOMEvalException("A variable name start with _, a-z or A-Z", pe, a);
       for(size_t i=1; i<s.length(); i++)
         if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z')))
-          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe);
+          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe, a);
+      ret=s;
     }
-    if(A(a)->isDerivedFrom(PV%"floatPartialOctEval"))
-      try { return boost::lexical_cast<double>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe); }
-    if(A(a)->isDerivedFrom(PV%"stringPartialOctEval")) // also filenamePartialOctEval
-      try { return boost::lexical_cast<string>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe); }
-    if(A(a)->isDerivedFrom(PV%"integerPartialOctEval"))
-      try { return boost::lexical_cast<int>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe); }
-    if(A(a)->isDerivedFrom(PV%"booleanPartialOctEval"))
-      try { return boost::lexical_cast<bool>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe); }
-    throw DOMEvalException("Unknown XML attribute type for evaluation", pe);
+    else if(A(a)->isDerivedFrom(PV%"floatPartialOctEval"))
+      try { ret=boost::lexical_cast<double>(s); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
+    else if(A(a)->isDerivedFrom(PV%"stringPartialOctEval")) // also filenamePartialOctEval
+      try { ret=boost::lexical_cast<string>(s); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
+    else if(A(a)->isDerivedFrom(PV%"integerPartialOctEval"))
+      try { ret=boost::lexical_cast<int>(s); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+    else if(A(a)->isDerivedFrom(PV%"booleanPartialOctEval"))
+      try { ret=boost::lexical_cast<bool>(s); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
+    else
+      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
     if(A(a)->isDerivedFrom(PV%"filenamePartialOctEval"))
       dependencies->push_back(E(pe)->convertPath(s));
+
+    return ret;
   }
 }
 

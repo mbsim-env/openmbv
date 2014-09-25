@@ -10,14 +10,10 @@
   try {
     $action
   }
-  catch(const H5::Exception &e) {
-    std::stringstream str;
-    str<<"H5::Exception: "<<e.what();
-    SWIG_exception(SWIG_RuntimeError, str.str().c_str());
-  }
   catch(const std::exception &e) {
     std::stringstream str;
-    str<<"std::exception: "<<e.what();
+    str<<"Exception: "<<std::endl
+       <<e.what()<<std::endl;
     SWIG_exception(SWIG_RuntimeError, str.str().c_str());
   }
   catch(...) {

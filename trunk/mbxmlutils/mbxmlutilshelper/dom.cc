@@ -357,17 +357,20 @@ xercesc::DOMElement* DOMDocumentWrapper<DOMDocumentType>::createElement(const FQ
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMDocumentWrapper<DOMDocument>;
 
-DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e) {
+DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e, const DOMAttr *a) {
   // store error message
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
   if(e)
     setContext(e);
+  if(a)
+    attrName=X()%a->getName();
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
   const DOMElement *ee=e;
   const DOMElement *found;
+  locationStack.clear();
   locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber()));
   ee=found;
   while(ee) {
@@ -381,24 +384,15 @@ void DOMEvalException::setContext(const DOMElement *e) {
 const char* DOMEvalException::what() const throw() {
   // create return string
   stringstream str;
+  str<<errorMsg<<endl;
   if(!locationStack.empty()) {
     vector<EmbedDOMLocator>::const_iterator it=locationStack.begin();
-    str<<X()%it->getURI()<<":"<<it->getLineNumber()<<": "<<errorMsg;
+    str<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<X()%it->getURI()<<":"<<it->getLineNumber()<<endl;
     for(it++; it!=locationStack.end(); it++)
-      str<<endl<<"  included by: "<<X()%it->getURI()<<":"<<it->getLineNumber()<<it->getEmbedCount();
+      str<<"included by "<<X()%it->getURI()<<":"<<it->getLineNumber()<<it->getEmbedCount()<<endl;
   }
-  else
-    str<<errorMsg;
   whatStr=str.str();
-  return whatStr.c_str();
-}
-
-const char* DOMEvalExceptionList::what() const throw() {
-  whatStr="";
-  for(vector<DOMEvalException>::const_iterator it=begin(); it!=end(); it++) {
-    if(it!=begin()) whatStr+="\n";
-    whatStr+=it->what();
-  }
+  whatStr.resize(whatStr.length()-1); // remote the trailing line feed
   return whatStr.c_str();
 }
 
@@ -439,9 +433,10 @@ DOMNodeFilter::ShowType LocationInfoFilter::getWhatToShow() const {
 
 void TypeDerivativeHandler::handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, PSVIElement *info) {
   XSTypeDefinition *type=info->getTypeDefinition();
-  if(!type)
-    throw runtime_error(str(format("No type defined for element {%1%}%2%. This seems to be a bug in the XML schema.")%
-      (X()%uri)%(X()%localName)));
+  if(!type) {
+    msg(Warn)<<"No type defined for element {"<<X()%uri<<"}"<<X()%localName<<"."<<endl;
+    return;
+  }
   FQN name(X()%type->getNamespace(), X()%type->getName());
   parser->typeMap[name]=type;
 }
@@ -454,10 +449,11 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
       continue;
 
     XSTypeDefinition *type=info->getTypeDefinition();
-    if(!type)
-      throw runtime_error(str(format("No type defined for attribute {%1%}%2% in element {%3%}%4%. This seems to be a bug in the XML schema.")%
-        (X()%psviAttributes->getAttributeNamespaceAtIndex(i))%(X()%psviAttributes->getAttributeNameAtIndex(i))%
-        (X()%uri)%(X()%localName)));
+    if(!type) {
+      msg(Warn)<<"No type defined for attribute {"<<X()%psviAttributes->getAttributeNamespaceAtIndex(i)<<"}"
+               <<X()%psviAttributes->getAttributeNameAtIndex(i)<<" in element {"<<X()%uri<<"}"<<X()%localName<<"."<<endl;
+      return;
+    }
     FQN name(X()%type->getNamespace(), X()%type->getName());
     parser->typeMap[name]=type;
   }

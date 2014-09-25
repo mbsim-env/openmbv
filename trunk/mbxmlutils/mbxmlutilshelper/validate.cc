@@ -14,8 +14,9 @@ int main(int argc, char *argv[]) {
   try {
     parser->loadGrammar(schema);
   }
-  catch(const runtime_error &ex) {
-    cerr<<ex.what()<<endl;
+  catch(const std::exception &ex) {
+    cerr<<"Exception:"<<endl
+         <<ex.what()<<endl;
     return 1;
   }
 
@@ -26,9 +27,10 @@ int main(int argc, char *argv[]) {
       parser->parse(xml);
       cerr<<xml<<" validates."<<endl;
     }
-    catch(const runtime_error &ex) {
+    catch(const std::exception &ex) {
       error++;
-      cerr<<ex.what()<<endl;
+      cerr<<"Exception:"<<endl
+          <<ex.what()<<endl;
     }
   }
   if(error>0)
