@@ -464,13 +464,6 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
   }
   if(error_state!=0) { // if error => wrong code => throw error
     error_state=0;
-    //MFMF
-    DOMEvalException ex(err.str()+"Unable to evaluate expression: "+str, e);
-    vector<EmbedDOMLocator> ls=ex.getLocationStack();
-    for(int i=0; i<ls.size(); ++i) {
-      cout<<"MFMF "<<X()%ls[i].getURI()<<":"<<ls[i].getLineNumber()<<endl;
-    }
-    //MFMF
     throw DOMEvalException(err.str()+"Unable to evaluate expression: "+str, e);
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
