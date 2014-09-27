@@ -89,7 +89,7 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
   }
   DOMLocator *loc=e.getLocation();
   // Note we print here all message types to the Warn stream. If a error occurred a exception is thrown later
-  msg(Warn)<<toRelativePath(X()%loc->getURI()).string(CODECVT)<<":"<<loc->getLineNumber()<<": "<<type<<": "<<X()%e.getMessage()<<endl;
+  msg(Warn)<<DOMEvalException::fileOutput(*loc)<<": "<<type<<": "<<X()%e.getMessage()<<endl;
   return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
 }
 
@@ -385,10 +385,20 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
                                             const string &attrName, ostream &str) {
   if(!locationStack.empty()) {
     vector<EmbedDOMLocator>::const_iterator it=locationStack.begin();
-    str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<X()%it->getURI()<<":"<<it->getLineNumber()<<endl;
+    str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<fileOutput(*it)<<endl;
     for(it++; it!=locationStack.end(); it++)
-      str<<indent<<"included by "<<X()%it->getURI()<<":"<<it->getLineNumber()<<it->getEmbedCount()<<endl;
+      str<<indent<<"included by "<<fileOutput(*it)<<it->getEmbedCount()<<endl;
   }
+}
+
+string DOMEvalException::fileOutput(const DOMLocator &loc) {
+  if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
+    // normal (ascii) output of filenames and line numbers
+    return X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber());
+  else
+    // html output of filenames and line numbers
+    return "<a href=\""+X()%loc.getURI()+"?line="+boost::lexical_cast<string>(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
