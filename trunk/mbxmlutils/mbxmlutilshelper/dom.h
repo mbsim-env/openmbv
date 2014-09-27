@@ -278,6 +278,9 @@ class DOMEvalException : public std::exception {
       return *this;
     }
     ~DOMEvalException() throw() {}
+    static void generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack);
+    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
+                                     const std::string &attrName, std::ostream &str);
     void setContext(const xercesc::DOMElement *e);
     const std::string& getMessage() const { return errorMsg; }
     const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }

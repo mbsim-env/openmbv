@@ -367,7 +367,7 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e,
     attrName=X()%a->getName();
 }
 
-void DOMEvalException::setContext(const DOMElement *e) {
+void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack) {
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();
@@ -381,16 +381,25 @@ void DOMEvalException::setContext(const DOMElement *e) {
   }
 }
 
+void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack,
+                                            const string &attrName, ostream &str) {
+  if(!locationStack.empty()) {
+    vector<EmbedDOMLocator>::const_iterator it=locationStack.begin();
+    str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<X()%it->getURI()<<":"<<it->getLineNumber()<<endl;
+    for(it++; it!=locationStack.end(); it++)
+      str<<indent<<"included by "<<X()%it->getURI()<<":"<<it->getLineNumber()<<it->getEmbedCount()<<endl;
+  }
+}
+
+void DOMEvalException::setContext(const DOMElement *e) {
+  generateLocationStack(e, locationStack);
+}
+
 const char* DOMEvalException::what() const throw() {
   // create return string
   stringstream str;
   str<<errorMsg<<endl;
-  if(!locationStack.empty()) {
-    vector<EmbedDOMLocator>::const_iterator it=locationStack.begin();
-    str<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<X()%it->getURI()<<":"<<it->getLineNumber()<<endl;
-    for(it++; it!=locationStack.end(); it++)
-      str<<"included by "<<X()%it->getURI()<<":"<<it->getLineNumber()<<it->getEmbedCount()<<endl;
-  }
+  locationStack2Stream("", locationStack, attrName, str);
   whatStr=str.str();
   whatStr.resize(whatStr.length()-1); // remote the trailing line feed
   return whatStr.c_str();
