@@ -42,8 +42,8 @@ else
   TESTS = javatest.sh
 endif
 javatest.log: javatest.class
-javatest.class: javatest.java
-	@JAVAC@ javatest.java
+javatest.class: $(srcdir)/javatest.java
+	@JAVAC@ -d . $(srcdir)/javatest.java
 
 exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
-example_DATA = javatest.java matlabtest.m
+example_DATA = $(srcdir)/javatest.java matlabtest.m
