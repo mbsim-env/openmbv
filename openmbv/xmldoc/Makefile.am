@@ -1,6 +1,6 @@
 all: openmbv/openmbv.tex
 
-xml/index.xml: @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface/*.h
+xml/index.xml: Doxyfile @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface/*.h
 	doxygen
 
 openmbv/openmbv.tex: xml/index.xml

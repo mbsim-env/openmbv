@@ -3,7 +3,7 @@ docdir = @datadir@/doc/@PACKAGE@
 clean:
 	rm -rf html
 
-all:
+all: Doxyfile
 	$(doxygen)
 
 install:
