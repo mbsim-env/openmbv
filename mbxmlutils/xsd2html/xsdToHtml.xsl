@@ -404,7 +404,7 @@
       <div class="expandcollapseexample" onclick="expandcollapseexample(this)">Collapse Example:</div>
       <pre class="expandcollapsethisexample">
       <xsl:apply-templates mode="EXAMPLEELEMENT" select=".">
-        <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))"/>
+        <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))"/>
         <!-- this FULLNAME is equal to select="@name" with full namespace awareness -->
         <xsl:with-param name="INDENT" select="''"/>
         <xsl:with-param name="CURRENTNS" select="''"/>
@@ -714,7 +714,7 @@
     <xsl:param name="CURRENTNS"/>
     <xsl:param name="NS_SUBSTITUTIONGROUP" select="namespace::*[name()=substring-before(current()/@substitutionGroup,':')]"/>
     <xsl:param name="NAME_SUBSTITUTIONGROUP" select="translate(substring(@substitutionGroup,string-length(substring-before(@substitutionGroup,':'))+1),':','')"/>
-    <xsl:if test="concat('{',namespace::*[name()=substring-before(current/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
+    <xsl:if test="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
       <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/>
     </xsl:if>
     <xsl:apply-templates mode="EXAMPLEELEMENT" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)]">
@@ -728,7 +728,7 @@
         <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
       </xsl:if>
     </xsl:for-each>
-    <xsl:if test="concat('{',namespace::*[name()=substring-before(current/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
+    <xsl:if test="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
       <xsl:apply-templates mode="XXX" select=".">
         <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
       </xsl:apply-templates>&gt;<xsl:text></xsl:text>
