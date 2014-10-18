@@ -133,7 +133,8 @@
         ]]>
       </script>
     </head>
-    <body onload="collapseexamplesonload();collapsedoxygenonload()">
+    <!--mfmf<body onload="collapseexamplesonload();collapsedoxygenonload()">-->
+    <body>
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <p>XML-Namespace: <i><xsl:value-of select="/xs:schema/@targetNamespace"/></i></p>
     <h2>Contents</h2>
@@ -717,11 +718,13 @@
     <xsl:if test="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
       <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/>
     </xsl:if>
-    <xsl:apply-templates mode="EXAMPLEELEMENT" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)]">
-      <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@substitutionGroup]" with namespace aware attribute values -->
+    <!-- this apply-templates (includeing the EXAMPLEELEMENT_WITHATTRFQN template) is equal to select=".../[@name=current()/@substitutionGroup]" with namespace aware attributes values -->
+    <xsl:apply-templates mode="EXAMPLEELEMENT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
       <xsl:with-param name="FULLNAME" select="$FULLNAME"/>
       <xsl:with-param name="INDENT" select="$INDENT"/>
       <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      <xsl:with-param name="FQN" select="concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)"/>
+      <xsl:with-param name="ATTRNAME" select="'name'"/>
     </xsl:apply-templates>
     <xsl:for-each select="/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:attribute|/xs:schema/xs:complexType[@name=current()/@type]/xs:attribute">
       <xsl:if test="@name!='xml:base'"> <!-- do not output the (internal) xml:base attribute -->
@@ -732,6 +735,23 @@
       <xsl:apply-templates mode="XXX" select=".">
         <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
       </xsl:apply-templates>&gt;<xsl:text></xsl:text>
+    </xsl:if>
+  </xsl:template>
+  <!-- just required to workaround the issue that many xslt processors (e.g. Xalan) does not provide the correct parent element for
+  a namespace node -->
+  <xsl:template match="*" mode="EXAMPLEELEMENT_WITHATTRFQN">
+    <xsl:param name="FULLNAME"/>
+    <xsl:param name="INDENT"/>
+    <xsl:param name="CURRENTNS"/>
+    <xsl:param name="FQN"/>
+    <xsl:param name="ATTRNAME"/>
+    <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
+    <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN">
+      <xsl:apply-templates select="." mode="EXAMPLEELEMENT">
+        <xsl:with-param name="FULLNAME" select="$FULLNAME"/>
+        <xsl:with-param name="INDENT" select="$INDENT"/>
+        <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      </xsl:apply-templates>
     </xsl:if>
   </xsl:template>
   <xsl:template mode="XXX" match="*">
@@ -753,15 +773,32 @@
     <xsl:param name="NS_SUBSTITUTIONGROUP" select="namespace::*[name()=substring-before(current()/@substitutionGroup,':')]"/>
     <xsl:param name="NAME_SUBSTITUTIONGROUP" select="translate(substring(@substitutionGroup,string-length(substring-before(@substitutionGroup,':'))+1),':','')"/>
     <xsl:param name="CURRENTNS"/>
-    <xsl:apply-templates mode="EXAMPLECHILDS" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)]">
-      <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@substitutionGroup]" with namespace aware attribute values -->
+    <!-- this apply-templates (includeing the EXAMPLECHILDS_WITHATTRFQN template) is equal to select="...[@name=current()/@substitutionGroup]" with namespace aware attributes values -->
+    <xsl:apply-templates mode="EXAMPLECHILDS_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
       <xsl:with-param name="INDENT" select="$INDENT"/>
       <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      <xsl:with-param name="FQN" select="concat('{',$NS_SUBSTITUTIONGROUP,'}',$NAME_SUBSTITUTIONGROUP)"/>
+      <xsl:with-param name="ATTRNAME" select="'name'"/>
     </xsl:apply-templates>
     <xsl:apply-templates mode="EXAMPLELOCAL" select="/xs:schema/xs:complexType[@name=current()/@type]/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:element|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:sequence|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:choice|/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:element">
       <xsl:with-param name="INDENT" select="$INDENT"/>
       <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
     </xsl:apply-templates>
+  </xsl:template>
+  <!-- just required to workaround the issue that many xslt processors (e.g. Xalan) does not provide the correct parent element for
+  a namespace node -->
+  <xsl:template match="*" mode="EXAMPLECHILDS_WITHATTRFQN">
+    <xsl:param name="INDENT"/>
+    <xsl:param name="CURRENTNS"/>
+    <xsl:param name="FQN"/>
+    <xsl:param name="ATTRNAME"/>
+    <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
+    <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN">
+      <xsl:apply-templates select="." mode="EXAMPLECHILDS">
+        <xsl:with-param name="INDENT" select="$INDENT"/>
+        <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      </xsl:apply-templates>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template mode="EXAMPLELOCAL" match="xs:sequence">
@@ -787,26 +824,30 @@
     <xsl:param name="NS_REF" select="namespace::*[name()=substring-before(current()/@ref,':')]"/>
     <xsl:param name="NAME_REF" select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/>
     <xsl:param name="CURRENTNS"/>
+    <!-- a ref to a not abstract top level element -->
     <xsl:if test="@ref and $ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF) and (@abstract='false' or not(@abstract))]">
-      <!-- this test is equal to test="@ref and /xs:schema/xs:element[@name=current()/@ref and (@abstract='false' or not(@abstract))]" -->
-      <xsl:apply-templates mode="EXAMPLEELEMENT" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF)]">
-        <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@ref]" with namespace aware attribute values -->
+      <!-- this apply-templates (includeing the EXAMPLEELEMENT_WITHATTRFQN template) is equal to select="...[@name=current()/@ref]" with namespace aware attributes values -->
+      <xsl:apply-templates mode="EXAMPLEELEMENT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
         <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current()/@ref,':')],'}',translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':',''))"/>
         <!-- this FULLNAME is equal to select="@ref" with full namespace awareness -->
         <xsl:with-param name="INDENT" select="$INDENT"/>
         <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+        <xsl:with-param name="FQN" select="concat('{',$NS_REF,'}',$NAME_REF)"/>
+        <xsl:with-param name="ATTRNAME" select="'name'"/>
       </xsl:apply-templates><xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:text>
 </xsl:text>
-      <xsl:apply-templates mode="EXAMPLECHILDS" select="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF)]">
-        <!-- this apply-templates is equal to select="/xs:schema/xs:element[@name=current()/@ref]" with namespace aware attribute values -->
+      <!-- this apply-templates (includeing the EXAMPLECHILDS_WITHATTRFQN template) is equal to select="...[@substitutionGroup=current()/@ref]" with namespace aware attributes values -->
+      <xsl:apply-templates mode="EXAMPLECHILDS_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
         <xsl:with-param name="INDENT" select="concat($INDENT,'  ')"/>
         <xsl:with-param name="CURRENTNS" select="namespace::*[name()=substring-before(current()/@ref,':')]"/>
+        <xsl:with-param name="FQN" select="concat('{',$NS_REF,'}',$NAME_REF)"/>
+        <xsl:with-param name="ATTRNAME" select="'name'"/>
       </xsl:apply-templates>
       <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/><xsl:text>&gt;
 </xsl:text>
     </xsl:if>
+    <!-- ELSE -->
     <xsl:if test="not(@ref and $ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF) and (@abstract='false' or not(@abstract))])">
-    <!-- this test is equal to test="not(@ref and /xs:schema/xs:element[@name=current()/@ref and (@abstract='false' or not(@abstract))])" -->
       <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/>
       <xsl:value-of select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/>
       <xsl:for-each select="xs:complexType/xs:attribute">
@@ -835,13 +876,23 @@
           <xsl:apply-templates mode="XXX" select=".">
             <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
           </xsl:apply-templates>/&gt;<xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/>
-          <xsl:if test="$ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF) and @abstract='true']"> &lt;!-- Abstract --&gt;</xsl:if>
-          <!-- this if is equal test"/xs:schema/xs:element[@name=current()/@ref and @abstract='true']" with full namespace awareness -->
-          <xsl:text>
+          <!-- this apply-templates (includeing the EXAMPLEELEMENT_WITHATTRFQN template) is equal to select=".../[@name=current()/@substitutionGroup]" with namespace aware attributes values -->
+          <xsl:apply-templates mode="ABSTRACT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
+            <xsl:with-param name="FQN" select="concat('{',$NS_REF,'}',$NAME_REF)"/>
+            <xsl:with-param name="ATTRNAME" select="'name'"/>
+          </xsl:apply-templates><xsl:text>
 </xsl:text>
         </xsl:if>
       </xsl:if>
     </xsl:if>
+  </xsl:template>
+  <!-- just required to workaround the issue that many xslt processors (e.g. Xalan) does not provide the correct parent element for
+  a namespace node -->
+  <xsl:template match="*" mode="ABSTRACT_WITHATTRFQN">
+    <xsl:param name="FQN"/>
+    <xsl:param name="ATTRNAME"/>
+    <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
+    <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN and @abstract='true'"> &lt;!-- Abstract --&gt;</xsl:if>
   </xsl:template>
   
   <xsl:template mode="EXAMPLEOPTIONAL" match="*">
