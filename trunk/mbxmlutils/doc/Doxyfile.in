@@ -3,4 +3,4 @@ PROJECT_NAME           = @PACKAGE@
 PROJECT_NUMBER         = @VERSION@
 GENERATE_TAGFILE       = @PACKAGE@.tag
 HTML_HEADER            = @srcdir@/myheader.html
-INPUT                  = ../mbxmlutils
+INPUT                  = @top_srcdir@/mbxmlutils
