@@ -133,8 +133,7 @@
         ]]>
       </script>
     </head>
-    <!--mfmf<body onload="collapseexamplesonload();collapsedoxygenonload()">-->
-    <body>
+    <body onload="collapseexamplesonload();collapsedoxygenonload()">
     <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
     <p>XML-Namespace: <i><xsl:value-of select="/xs:schema/@targetNamespace"/></i></p>
     <h2>Contents</h2>
@@ -824,32 +823,24 @@
     <xsl:param name="NS_REF" select="namespace::*[name()=substring-before(current()/@ref,':')]"/>
     <xsl:param name="NAME_REF" select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/>
     <xsl:param name="CURRENTNS"/>
-    <!-- a ref to a not abstract top level element -->
-    <xsl:if test="@ref and $ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF) and (@abstract='false' or not(@abstract))]">
-      <!-- this apply-templates (includeing the EXAMPLEELEMENT_WITHATTRFQN template) is equal to select="...[@name=current()/@ref]" with namespace aware attributes values -->
-      <xsl:apply-templates mode="EXAMPLEELEMENT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
-        <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current()/@ref,':')],'}',translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':',''))"/>
-        <!-- this FULLNAME is equal to select="@ref" with full namespace awareness -->
+    <xsl:if test="@ref">
+      <!-- this apply-templates (includeing the REFABSTRACT_WITHATTRFQN template) is equal to select=".../[@name=current()/@ref and @abstract='true']" with namespace aware attributes values -->
+      <xsl:apply-templates mode="REFABSTRACT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
         <xsl:with-param name="INDENT" select="$INDENT"/>
         <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
         <xsl:with-param name="FQN" select="concat('{',$NS_REF,'}',$NAME_REF)"/>
         <xsl:with-param name="ATTRNAME" select="'name'"/>
-      </xsl:apply-templates><xsl:apply-templates mode="EXAMPLEOPTIONAL" select="."/><xsl:text>
-</xsl:text>
-      <!-- this apply-templates (includeing the EXAMPLECHILDS_WITHATTRFQN template) is equal to select="...[@substitutionGroup=current()/@ref]" with namespace aware attributes values -->
-      <xsl:apply-templates mode="EXAMPLECHILDS_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
-        <xsl:with-param name="INDENT" select="concat($INDENT,'  ')"/>
-        <xsl:with-param name="CURRENTNS" select="namespace::*[name()=substring-before(current()/@ref,':')]"/>
+      </xsl:apply-templates>
+      <!-- this apply-templates (includeing the REFNOTABSTRACT_WITHATTRFQN template) is equal to select=".../[@name=current()/@ref and (@abstract='false' or not(@abstract)]" with namespace aware attributes values -->
+      <xsl:apply-templates mode="REFNOTABSTRACT_WITHATTRFQN" select="$ALLNODES/xs:schema/xs:element">
+        <xsl:with-param name="INDENT" select="$INDENT"/>
+        <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
         <xsl:with-param name="FQN" select="concat('{',$NS_REF,'}',$NAME_REF)"/>
         <xsl:with-param name="ATTRNAME" select="'name'"/>
       </xsl:apply-templates>
-      <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/><xsl:text>&gt;
-</xsl:text>
     </xsl:if>
-    <!-- ELSE -->
-    <xsl:if test="not(@ref and $ALLNODES/xs:schema/xs:element[concat('{',namespace::*[name()=substring-before(../@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=concat('{',$NS_REF,'}',$NAME_REF) and (@abstract='false' or not(@abstract))])">
+    <xsl:if test="@name">
       <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/>
-      <xsl:value-of select="translate(substring(@ref,string-length(substring-before(@ref,':'))+1),':','')"/>
       <xsl:for-each select="xs:complexType/xs:attribute">
         <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
       </xsl:for-each>
@@ -869,7 +860,7 @@
             <xsl:with-param name="INDENT" select="concat($INDENT, '  ')"/>
             <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
           </xsl:apply-templates>
-          <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/><xsl:value-of select="@ref"/><xsl:text>&gt;
+          <xsl:value-of select="$INDENT"/>&lt;/<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/><xsl:text>&gt;
 </xsl:text>
         </xsl:if>
         <xsl:if test="not(xs:complexType/xs:sequence|xs:complexType/xs:choice|xs:complexType/xs:element)">
@@ -893,6 +884,48 @@
     <xsl:param name="ATTRNAME"/>
     <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
     <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN and @abstract='true'"> &lt;!-- Abstract --&gt;</xsl:if>
+  </xsl:template>
+  <!-- just required to workaround the issue that many xslt processors (e.g. Xalan) does not provide the correct parent element for
+  a namespace node -->
+  <xsl:template match="*" mode="REFABSTRACT_WITHATTRFQN">
+    <xsl:param name="INDENT"/>
+    <xsl:param name="CURRENTNS"/>
+    <xsl:param name="FQN"/>
+    <xsl:param name="ATTRNAME"/>
+    <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
+    <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN and @abstract='true'">
+      <xsl:value-of select="$INDENT"/>&lt;<xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/>
+      <xsl:apply-templates mode="XXX" select=".">
+        <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      </xsl:apply-templates>/&gt; &lt;!-- abstract --&gt;<xsl:text>
+</xsl:text>
+    </xsl:if>
+  </xsl:template>
+  <!-- just required to workaround the issue that many xslt processors (e.g. Xalan) does not provide the correct parent element for
+  a namespace node -->
+  <xsl:template match="*" mode="REFNOTABSTRACT_WITHATTRFQN">
+    <xsl:param name="INDENT"/>
+    <xsl:param name="CURRENTNS"/>
+    <xsl:param name="FQN"/>
+    <xsl:param name="ATTRNAME"/>
+    <xsl:param name="ATTR" select="@*[name()=$ATTRNAME]"/>
+    <xsl:if test="concat('{',namespace::*[name()=substring-before($ATTR,':')],'}',translate(substring($ATTR,string-length(substring-before($ATTR,':'))+1),':',''))=$FQN and (@abstract='false' or not(@abstract))">
+      <xsl:apply-templates mode="EXAMPLEELEMENT" select=".">
+        <xsl:with-param name="FULLNAME" select="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))"/>
+        <!-- this FULLNAME is equal to select="@name" with full namespace awareness -->
+        <xsl:with-param name="INDENT" select="$INDENT"/>
+        <xsl:with-param name="CURRENTNS" select="$CURRENTNS"/>
+      </xsl:apply-templates><xsl:text>
+</xsl:text>
+      <xsl:apply-templates mode="EXAMPLECHILDS" select=".">
+        <xsl:with-param name="INDENT" select="concat($INDENT, '  ')"/>
+        <xsl:with-param name="CURRENTNS" select="namespace::*[name()=substring-before(current()/@name,':')]"/>
+      </xsl:apply-templates>
+      <xsl:value-of select="$INDENT"/>
+      <xsl:text>&lt;/</xsl:text>
+      <xsl:value-of select="translate(substring(@name,string-length(substring-before(@name,':'))+1),':','')"/><xsl:text>&gt;
+</xsl:text>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template mode="EXAMPLEOPTIONAL" match="*">
