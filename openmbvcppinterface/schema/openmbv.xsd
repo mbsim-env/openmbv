@@ -5,7 +5,6 @@
   xmlns="http://openmbv.berlios.de/OpenMBV"
   xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
   xmlns:xml="http://www.w3.org/XML/1998/namespace"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:import namespace="http://www.w3.org/2001/XInclude"
@@ -18,9 +17,9 @@
   <xs:import namespace="http://www.w3.org/XML/1998/namespace"
     schemaLocation="../http___www_w3_org/xml.xsd"/>
 
-  <xs:annotation><xs:documentation xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
-    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<tt>&lt;filename&gt;.ombv.xml</tt>) and a HDF5 file (<tt>&lt;filename&gt;.ombv.h5</tt>).</p>
-    <p>The root element of the XML file must be <tt>&lt;Group&gt;</tt>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombv.xml) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+  <xs:annotation><xs:documentation lang="en" xmlns="">
+    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombv.xml</code>) and a HDF5 file (<code>&lt;filename&gt;.ombv.h5</code>).</p>
+    <p>The root element of the XML file must be <span class="_element">&lt;Group&gt;</span>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombv.xml) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <Group name="TS" expand="true" enable="true" xmlns="http://openmbv.berlios.de/OpenMBV">
   <Group name="Hauptgruppe1" expand="true" enable="true">
     <Cuboid name="Box1" enable="true">
@@ -75,7 +74,7 @@
       <xs:extension base="ObjectType">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Object"/>  
-          <xs:element ref="xi:include"/>  
+          <xs:element ref="xi:include" xmlns:xi="http://www.w3.org/2001/XInclude"/>  
         </xs:choice> 
         <xs:attribute name="expand" type="pv:booleanFullOctEval" default="true"/>
       </xs:extension>

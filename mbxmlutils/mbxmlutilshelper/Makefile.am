@@ -10,7 +10,7 @@ libmbxmlutilshelper_la_HEADERS = dom.h getinstallpath.h last_write_time.h utils.
 libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
 
 w3cschemadir = @SCHEMADIR@/http___www_w3_org
-dist_w3cschema_DATA = XInclude.xsd xml.xsd xhtml1-transitional.xsd
+dist_w3cschema_DATA = XInclude.xsd xml.xsd
 
 
 # small program to validate xml files

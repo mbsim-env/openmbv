@@ -7,7 +7,7 @@ openmbv/openmbv.tex: xml/index.xml
 	@MBXMLUTILSBINDIR@/mbxmlutils-xsd2html @MBXMLUTILSSCHEMADIR@/http___openmbv_berlios_de_OpenMBV/openmbv.xsd xml @OPENMBVCPPINTERFACEINCDIR@/openmbvcppinterface OpenMBV OpenMBV::
 
 
-install:
+install-data-local:
 	cp -r http___* @MBXMLUTILSDOCDIR@
 
 
