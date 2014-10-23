@@ -1,7 +1,6 @@
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://www.w3.org/1999/xhtml"
   version="1.0">
 
   <!-- adds the doxygen class and class member documentation to a xsd-file -->

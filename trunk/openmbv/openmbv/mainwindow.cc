@@ -969,13 +969,13 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
     if(type=="GUI") {
       helpDialog->setWindowTitle("OpenMBV - GUI Help");
       connect(home, SIGNAL(clicked()), this, SLOT(helpHomeGUI()));
-      helpViewer->load(QUrl((Utils::getDocPath()+"/guihelp.xhtml").c_str()));
+      helpViewer->load(QUrl((Utils::getDocPath()+"/guihelp.html").c_str()));
       helpViewerGUI=helpViewer;
     }
     else if(type=="XML") {
       helpDialog->setWindowTitle("OpenMBV - XML Help");
       connect(home, SIGNAL(clicked()), this, SLOT(helpHomeXML()));
-      helpViewer->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.xhtml").c_str()));
+      helpViewer->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.html").c_str()));
       helpViewerXML=helpViewer;
     }
   }
@@ -1000,11 +1000,11 @@ void MainWindow::loadFinished() {
 }
 
 void MainWindow::helpHomeGUI() {
-  helpViewerGUI->load(QUrl((Utils::getDocPath()+"/guihelp.xhtml").c_str()));
+  helpViewerGUI->load(QUrl((Utils::getDocPath()+"/guihelp.html").c_str()));
 }
 
 void MainWindow::helpHomeXML() {
-  helpViewerXML->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.xhtml").c_str()));
+  helpViewerXML->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.html").c_str()));
 }
 
 void MainWindow::aboutOpenMBV() {

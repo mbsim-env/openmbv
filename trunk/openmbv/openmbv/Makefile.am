@@ -193,7 +193,7 @@ dist_icon_DATA = openmbv.svg \
   compoundrigidbody.svg \
   olselinewidth.svg \
   olsecolor.svg \
-  guihelp.xhtml \
+  guihelp.html \
   complexitytype.svg \
   complexityvalue.svg \
   newobject.svg \
@@ -201,9 +201,9 @@ dist_icon_DATA = openmbv.svg \
   cover.png \
   knurl.png
 
-# guihelp.xhtml
+# guihelp.html
 docdir = @datadir@/openmbv/doc
-dist_doc_DATA = guihelp.xhtml
+dist_doc_DATA = guihelp.html
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc
