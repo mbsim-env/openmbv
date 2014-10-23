@@ -707,9 +707,7 @@
       <xsl:with-param name="ATTRNAME" select="'name'"/>
     </xsl:apply-templates>
     <xsl:for-each select="/xs:schema/xs:complexType[@name=current()/@type]/xs:complexContent/xs:extension/xs:attribute|/xs:schema/xs:complexType[@name=current()/@type]/xs:attribute">
-      <xsl:if test="@name!='xml:base'"> <!-- do not output the (internal) xml:base attribute -->
-        <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
-      </xsl:if>
+      <xsl:text> </xsl:text><xsl:value-of select="@name"/><xsl:value-of select="@ref"/>="VALUE"<xsl:text></xsl:text>
     </xsl:for-each>
     <xsl:if test="concat('{',namespace::*[name()=substring-before(current()/@name,':')],'}',translate(substring(@name,string-length(substring-before(@name,':'))+1),':',''))=$FULLNAME">
       <xsl:apply-templates mode="XXX" select=".">

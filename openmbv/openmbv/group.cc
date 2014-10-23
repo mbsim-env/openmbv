@@ -58,7 +58,7 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
   // expand or collapse
   setExpanded(grp->getExpand());
 
-  // if xml:base attribute exist => new sub file
+  // seperator file? => new sub file
   if(grp->getSeparateFile()) {
     iconFile="h5file.svg";
     setIcon(0, Utils::QIconCached(iconFile));

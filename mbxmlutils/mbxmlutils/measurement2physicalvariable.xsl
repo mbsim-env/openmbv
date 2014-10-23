@@ -23,9 +23,6 @@
       xmlns:xml="http://www.w3.org/XML/1998/namespace"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-      <!-- for xml:base attribute added by XInclude aware parser: include xml namespaces defining attribute xml:base -->
-      <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="../http___www_w3_org/xml.xsd"/>
-
       <xs:include schemaLocation="parameter.xsd"/>
       <xs:include schemaLocation="embed.xsd"/>
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" schemaLocation="casadi.xsd"/>
