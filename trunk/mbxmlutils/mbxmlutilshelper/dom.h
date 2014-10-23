@@ -132,10 +132,10 @@ class DOMElementWrapper {
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &base) const;
     //! Get the base URI.
-    //! Returns the value of the first xml:base attribute define by a parent element or the document uri if no such element is found.
-    //! If skipThis is false the xml:base attribute of this element in honored else
+    //! Returns the value of the first OriginalFileName PI define by a parent element or the document uri if no such element is found.
+    //! If skipThis is false the OriginalFileName PI of this element in honored else
     //! this element is skipped and only parent elements are honored.
-    //! If a xml:base attribute was found 'found' is set to this element else 'found' is NULL.
+    //! If a OriginalFileName PI was found 'found' is set to this element else 'found' is NULL.
     boost::filesystem::path getOriginalFilename(bool skipThis=false,
                                                 const xercesc::DOMElement *&found=DOMElementWrapper<DOMElementType>::dummyArg) const;
     //! Convert the relative path relPath to an aboslute path by prefixing it with the path of this document.

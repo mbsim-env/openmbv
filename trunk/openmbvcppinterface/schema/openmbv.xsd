@@ -13,11 +13,7 @@
   <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
     schemaLocation="../http___openmbv_berlios_de_MBXMLUtils_physicalvariable/physicalvariable.xsd"/>
 
-  <!-- for xml:base attribute: include xml namespaces defining attribute xml:base -->
-  <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-    schemaLocation="../http___www_w3_org/xml.xsd"/>
-
-  <xs:annotation><xs:documentation lang="en" xmlns="">
+  <xs:annotation><xs:documentation xml:lang="en" xmlns="">
     <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombv.xml</code>) and a HDF5 file (<code>&lt;filename&gt;.ombv.h5</code>).</p>
     <p>The root element of the XML file must be <span class="_element">&lt;Group&gt;</span>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombv.xml) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <Group name="TS" expand="true" enable="true" xmlns="http://openmbv.berlios.de/OpenMBV">
