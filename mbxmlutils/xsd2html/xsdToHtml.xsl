@@ -233,7 +233,7 @@
 
     <p class="text-right small">
       <a href="http://validator.w3.org/check?uri=referer">
-        <img src="http://www.w3.org/Icons/valid-xhtml10-blue" alt="Valid XHTML 1.0 Transitional"/>
+        <img src="http://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
       </a>
       Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>
