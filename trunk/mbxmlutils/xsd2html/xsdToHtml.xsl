@@ -83,18 +83,18 @@
     </div>
     <div class="h2">Contents</div>
     <ul class="_content">
-      <li>1 <a name="introduction-content" href="#introduction">Introduction</a></li>
-      <li>2 <a name="nomenclature-content" href="#nomenclature">Nomenclature</a>
+      <li>1 <a id="introduction-content" href="#introduction">Introduction</a></li>
+      <li>2 <a id="nomenclature-content" href="#nomenclature">Nomenclature</a>
         <ul class="_content">
-          <li>2.1 <a name="alegend-content" href="#alegend">Legend</a></li>
-          <li>2.2 <a name="aelement-content" href="#aelement">An element</a></li>
-          <li>2.3 <a name="achoice-content" href="#achoice">A choice of element</a></li>
-          <li>2.4 <a name="asequence-content" href="#asequence">A sequence of elements</a></li>
-          <li>2.5 <a name="nested-content" href="#nested">Nested sequences/choices</a></li>
-          <li>2.6 <a name="childelements-content" href="#childelements">Child Elements</a></li>
+          <li>2.1 <a id="legend-content" href="#legend">Legend</a></li>
+          <li>2.2 <a id="aelement-content" href="#aelement">An element</a></li>
+          <li>2.3 <a id="achoice-content" href="#achoice">A choice of element</a></li>
+          <li>2.4 <a id="asequence-content" href="#asequence">A sequence of elements</a></li>
+          <li>2.5 <a id="nested-content" href="#nested">Nested sequences/choices</a></li>
+          <li>2.6 <a id="childelements-content" href="#childelements">Child Elements</a></li>
         </ul>
       </li>
-      <li>3 <a name="elements-content" href="#elements">Elements</a>
+      <li>3 <a id="elements-content" href="#elements">Elements</a>
         <ul class="_content">
           <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
             <xsl:sort select="."/>
@@ -117,22 +117,22 @@
           </xsl:apply-templates>
         </ul>
       </li>
-      <li>4 <a name="simpletypes-content" href="#simpletypes">Simple Types</a>
+      <li>4 <a id="simpletypes-content" href="#simpletypes">Simple Types</a>
         <xsl:if test="/xs:schema/xs:simpleType">
           <ul class="_content">
             <xsl:for-each select="/xs:schema/xs:simpleType">
               <xsl:sort select="@name"/>
-              <li><a class="glyphicon glyphicon-unchecked _linkpointer"/><a class="label label-primary _type" name="{@name}-content" href="#{@name}"><xsl:value-of select="@name"/></a></li>
+              <li><a class="glyphicon glyphicon-unchecked _linkpointer"/><a class="label label-primary _type" id="{@name}-content" href="#{@name}"><xsl:value-of select="@name"/></a></li>
             </xsl:for-each>
           </ul>
         </xsl:if>
       </li>
     </ul>
     <hr class="_hr"/>
-    <h1>1 <a name="introduction" href="#introduction-content">Introduction</a></h1>
+    <h1>1 <a id="introduction" href="#introduction-content">Introduction</a></h1>
     <xsl:apply-templates mode="CLASSANNOTATION" select="/xs:schema/xs:annotation/xs:documentation"/>
-    <h1>2 <a name="nomenclature" href="#nomenclature-content">Nomenclature</a></h1>
-    <h2>2.1 <a name="alegend" href="#alegend-content">Legend</a></h2>
+    <h1>2 <a id="nomenclature" href="#nomenclature-content">Nomenclature</a></h1>
+    <h2>2.1 <a id="legend" href="#legend-content">Legend</a></h2>
     <table class="table table-condensed">
       <thead>
         <tr><th>Icon</th><th>Description</th></tr>
@@ -146,7 +146,7 @@
         <tr><td><span class="badge">0-2</span></td><td>A occurance of XML elements or attributes</td></tr>
       </tbody>
     </table>
-    <h2>2.2 <a name="aelement" href="#aelement-content">An element</a></h2>
+    <h2>2.2 <a id="aelement" href="#aelement-content">An element</a></h2>
     <p><span class="_element">&lt;ElementName&gt;</span><xsl:text> </xsl:text><span class="badge">0-2</span><xsl:text> </xsl:text><span class="label label-primary _type">elementType</span>
     <br/><span class="_attribute">attrName1</span><xsl:text> </xsl:text><span class="badge progress-bar-success">required</span><xsl:text> </xsl:text><span class="label label-primary _type">typeOfTheAttribute</span>
     <br/><span class="_attribute">attrName2</span><xsl:text> </xsl:text><span class="badge">optional</span><xsl:text> </xsl:text><span class="label label-primary _type">typeOfTheAttribute</span></p>
@@ -156,7 +156,7 @@
     <p>The upper nomenclature defines a XML element named <span class="_element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="label label-primary _type">elementType</span>.<br/>
     A occurance of <span class="badge">optional</span> means <span class="badge">0-1</span>.<br/>
     The element has two attributes named <span class="_attributeNoMargin">attrName1</span> and <span class="_attributeNoMargin">attrName2</span> of type <span class="label label-primary _type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
-    <h2>2.3 <a name="achoice" href="#achoice-content">A choice of element</a></h2>
+    <h2>2.3 <a id="achoice" href="#achoice-content">A choice of element</a></h2>
     <ul class="_elementchoice">
       <li><span class="badge _badgechoice">1-2</span></li>
       <li><span class="_element">&lt;ElemenetA&gt;</span></li>
@@ -164,7 +164,7 @@
     </ul>
     <p>The upper nomenclature defines a choice of elements. Only one element of the given ones can be used. The choice has, if given, a minimal occurance of 1 and a maximal maximal occurence of 2.<br/>
     A occurance of <span class="badge _badgechoice">optional</span> means <span class="badge _badgechoice">0-1</span>.</p>
-    <h2>2.4 <a name="asequence" href="#asequence-content">A sequence of elements</a></h2>
+    <h2>2.4 <a id="asequence" href="#asequence-content">A sequence of elements</a></h2>
     <ul class="_elementsequence">
       <li><span class="badge _badgesequence">0-3</span></li>
       <li><span class="_element">&lt;ElemenetA&gt;</span></li>
@@ -172,7 +172,7 @@
     </ul>
     <p>The upper nomenclature defines a sequence of elements. Each element must be given in that order. The sequence has, if given, a minimal occurance of 0 and a maximal maximal occurence of 3.<br/>
     A occurance of <span class="badge _badgesequence">optional</span> means <span class="badge _badgesequence">0-1</span>.</p>
-    <h2>2.5 <a name="nested" href="#nested-content">Nested sequences/choices</a></h2>
+    <h2>2.5 <a id="nested" href="#nested-content">Nested sequences/choices</a></h2>
     <ul class="_elementsequence">
       <li><span class="badge _badgesequence">1-2</span></li>
       <li><span class="_element">&lt;ElemenetA&gt;</span></li>
@@ -186,7 +186,7 @@
       <li><span class="_element">&lt;ElemenetB&gt;</span></li>
     </ul>
     <p>Sequences and choices can be nested like above.</p>
-    <h2>2.6 <a name="childelements" href="#childelements-content">Child Elements</a></h2>
+    <h2>2.6 <a id="childelements" href="#childelements-content">Child Elements</a></h2>
     <ul class="_elementsequence">
       <li><span class="badge _badgesequence">1-2</span></li>
       <li><span class="_element">&lt;ParantElemenet&gt;</span>
@@ -203,7 +203,7 @@
     </ul>
     <p>A indent indicates child elements for a given element.</p>
 
-    <h1>3 <a name="elements" href="#elements-content">Elements</a></h1>
+    <h1>3 <a id="elements" href="#elements-content">Elements</a></h1>
     <xsl:for-each select="/xs:schema/xs:element/@substitutionGroup[not(.=/xs:schema/xs:element/@name) and not(.=preceding::*/@substitutionGroup)]">
       <xsl:sort select="."/>
       <!-- heading -->
@@ -226,7 +226,7 @@
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
-    <h1>4 <a name="simpletypes" href="#simpletypes-content">Simple Types</a></h1>
+    <h1>4 <a id="simpletypes" href="#simpletypes-content">Simple Types</a></h1>
     <xsl:apply-templates mode="SIMPLETYPE" select="/xs:schema/xs:simpleType">
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
@@ -271,7 +271,7 @@
         <xsl:value-of select="$LEVELNR"/>.<xsl:value-of select="position()"/>
       </xsl:if>
       <xsl:text> </xsl:text>
-      <a class="_element" name="{@name}-content" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <a class="_element" id="{@name}-content" href="#{@name}">&lt;<xsl:value-of select="@name"/>&gt;</a>
       <xsl:if test="/xs:schema/xs:element[@substitutionGroup=$NAME]">
         <ul class="_content">
           <xsl:apply-templates mode="CONTENT" select="/xs:schema/xs:element[@substitutionGroup=$NAME]">
@@ -313,7 +313,7 @@
         <xsl:value-of select="$TITLENR"/>
       </xsl:if>
       <xsl:text> </xsl:text>
-      <a name="{@name}" href="#{@name}-content">&lt;<xsl:value-of select="@name"/>&gt;</a>
+      <a id="{@name}" href="#{@name}-content">&lt;<xsl:value-of select="@name"/>&gt;</a>
     </div>
     <!-- properties -->
     <div class="panel panel-success">
@@ -407,7 +407,7 @@
 
   <!-- simple type -->
   <xsl:template mode="SIMPLETYPE" match="/xs:schema/xs:simpleType">
-    <a class="label label-primary _type" name="{@name}" href="#{@name}-content"><xsl:value-of select="@name"/></a>
+    <a class="label label-primary _type" id="{@name}" href="#{@name}-content"><xsl:value-of select="@name"/></a>
     <!-- simpleType documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
     <hr class="_hr"/>
