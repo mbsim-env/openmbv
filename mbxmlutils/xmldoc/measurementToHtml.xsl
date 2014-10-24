@@ -45,25 +45,25 @@
     </div>
     <div class="h2">Contents</div>
     <ul class="_content">
-      <li><a name="introduction-content" href="#introduction">1 Introduction</a></li>
-      <li><a name="legend-content" href="#legend">2 Legend</a></li>
-      <li><a name="name-content" href="#name">3 Element Name</a></li>
-      <li><a name="type-content" href="#type">4 Types</a>
+      <li><a id="introduction-content" href="#introduction">1 Introduction</a></li>
+      <li><a id="legend-content" href="#legend">2 Legend</a></li>
+      <li><a id="name-content" href="#name">3 Element Name</a></li>
+      <li><a id="type-content" href="#type">4 Types</a>
         <ul class="_content">
-          <li><a name="scalartype-content" href="#scalartype">4.1 Scalar Type</a></li>
-          <li><a name="vectortype-content" href="#vectortype">4.2 Vector Type</a></li>
-          <li><a name="matrixtype-content" href="#matrixtype">4.3 Matrix Type</a></li>
+          <li><a id="scalartype-content" href="#scalartype">4.1 Scalar Type</a></li>
+          <li><a id="vectortype-content" href="#vectortype">4.2 Vector Type</a></li>
+          <li><a id="matrixtype-content" href="#matrixtype">4.3 Matrix Type</a></li>
         </ul>
       </li>
-      <li><a name="parameters-content" href="#parameters">5 Parameters</a></li>
-      <li><a name="octave-content" href="#octave">6 Octave Expression/Program</a></li>
-      <li><a name="embed-content" href="#embed">7 Embeding</a></li>
-      <li><a name="measurements-content" href="#measurements">8 Measurements</a>
+      <li><a id="parameters-content" href="#parameters">5 Parameters</a></li>
+      <li><a id="octave-content" href="#octave">6 Octave Expression/Program</a></li>
+      <li><a id="embed-content" href="#embed">7 Embeding</a></li>
+      <li><a id="measurements-content" href="#measurements">8 Measurements</a>
         <ul class="_content">
           <xsl:for-each select="/mm:measurement/mm:measure">
             <xsl:sort select="@name"/>
             <li>
-              <a><xsl:attribute name="name"><xsl:value-of select="@name"/>-content</xsl:attribute>
+              <a><xsl:attribute name="id"><xsl:value-of select="@name"/>-content</xsl:attribute>
                 <xsl:attribute name="href">#<xsl:value-of select="@name"/></xsl:attribute>
                 <span class="glyphicon glyphicon-unchecked"/><xsl:text> </xsl:text><xsl:value-of select="@name"/></a>
             </li>
@@ -73,9 +73,9 @@
     </ul>
     <hr class="_hr"/>
 
-    <h1><a name="introduction" href="#introduction-content">1 Introduction</a></h1>
+    <h1><a id="introduction" href="#introduction-content">1 Introduction</a></h1>
 
-    <h1><a name="legend" href="#legend-content">2 Legend</a></h1>
+    <h1><a id="legend" href="#legend-content">2 Legend</a></h1>
     <table class="table table-condensed">
       <thead>
         <tr><th>Icon</th><th>Description</th></tr>
@@ -88,7 +88,7 @@
       </tbody>
     </table>
 
-    <h1><a name="name" href="#name-content">3 Element Name</a></h1>
+    <h1><a id="name" href="#name-content">3 Element Name</a></h1>
     <p>Elements which must be referable must have a name. Mostly this name is given by the attribute <span class="_attributeNoMargin">name</span>. A valid name starts with a letter or a underscore. The following characters can be letters, underscores or digits. The content between '<code>{</code>' and '<code>}</code>' can be any <a href="#octave">Octave Expression/Program</a> and is substituted by the result of Octave (which must be a valid name; normal a integer number).</p>
     <p>The following table shows examples for valid element names (on the left) and the substituted names (on the right), if there exist a scalar (integer) parameter of name <code>n</code> with the value <code>2</code>:</p>
     <table class="table table-condensed table-striped table-hover">
@@ -103,10 +103,10 @@
       </tbody>
     </table>
 
-    <h1><a name="type" href="#type-content">4 Types</a></h1>
-    <h2><a name="scalartype" href="#scalartype-content">4.1 Scalar Type</a>
+    <h1><a id="type" href="#type-content">4 Types</a></h1>
+    <h2><a id="scalartype" href="#scalartype-content">4.1 Scalar Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">
-        <a name="{@name}Scalar"/>
+        <a id="{@name}Scalar"/>
       </xsl:for-each>
     </h2>
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
@@ -121,9 +121,9 @@
       <a href="#octave">Octave Expression</a>
       which must contain a parameter of name <code>value</code>. The given value is then converted by this expression.</p>
 
-    <h2><a name="vectortype" href="#vectortype-content">4.2 Vector Type</a>
+    <h2><a id="vectortype" href="#vectortype-content">4.2 Vector Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">
-        <a name="{@name}Vector"/>
+        <a id="{@name}Vector"/>
       </xsl:for-each>
     </h2>
     <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
@@ -148,9 +148,9 @@
     </ul>
     <p>For the special unit of name <code>unknown</code> see <a href="#scalartype">Scalar Type</a></p>
 
-    <h2><a name="matrixtype" href="#matrixtype-content">4.3 Matrix Type</a>
+    <h2><a id="matrixtype" href="#matrixtype-content">4.3 Matrix Type</a>
       <xsl:for-each select="/mm:measurement/mm:measure">
-        <a name="{@name}Matrix"/>
+        <a id="{@name}Matrix"/>
       </xsl:for-each>
     </h2>
     <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
@@ -180,7 +180,7 @@
     </ul>
     <p>For the special unit of name <code>unknown</code> see <a href="#scalartype">Scalar Type</a></p>
 
-    <h1><a name="parameters" href="#parameters-content">5 Parameters</a></h1>
+    <h1><a id="parameters" href="#parameters-content">5 Parameters</a></h1>
     <p>A example for a parameter file is given below:</p>
 <pre>&lt;parameter xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
   &lt;scalarParameter name="N"&gt;9&lt;/scalarParameter&gt;
@@ -191,7 +191,7 @@
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#octave">Octave Expressions/Programs</a>. Hence a parameter below another parameter may reference this value.</p>
 
-    <h1><a name="octave" href="#octave-content">6 Octave Expression/Program</a></h1>
+    <h1><a id="octave" href="#octave-content">6 Octave Expression/Program</a></h1>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
    <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
@@ -264,7 +264,7 @@ ret=myfunc(m1/2);
   <dd>Returns r=a*pi/180</dd>
 </dl>
 
-    <h1><a name="embed" href="#embed-content">7 Embeding</a></h1>
+    <h1><a id="embed" href="#embed-content">7 Embeding</a></h1>
     <p>Using the <span class="_element">&lt;pv:embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
 <pre>&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
 <p>or</p>
@@ -287,7 +287,7 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
 &lt;/pv:embed&gt;
 </pre>
 
-    <h1><a name="measurements" href="#measurements-content">8 Measurements</a></h1>
+    <h1><a id="measurements" href="#measurements-content">8 Measurements</a></h1>
     <p>The following subsections show all defined measurements.</p>
     <p>The column "Unit Name" in the tables is the name of the unit and the column
       "Conversion to SI Unit" is a expression which converts a value of this unit to the SI unit.</p>
@@ -308,7 +308,7 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
 
   <xsl:template match="/mm:measurement/mm:measure">
     <h2><a>
-      <xsl:attribute name="name">
+      <xsl:attribute name="id">
         <xsl:value-of select="@name"/>
       </xsl:attribute>
       <xsl:attribute name="href">#<xsl:value-of select="@name"/>-content</xsl:attribute>
