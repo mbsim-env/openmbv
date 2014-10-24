@@ -301,9 +301,6 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
       <a href="http://validator.w3.org/check?uri=referer">
         <img src="http://www.w3.org/Icons/valid-xhtml10-blue" alt="Valid XHTML 1.0 Transitional"/>
       </a>
-      <a href="http://jigsaw.w3.org/css-validator/check/referer">
-        <img src="http://jigsaw.w3.org/css-validator/images/vcss-blue" alt="Valid CSS!"/>
-      </a>
       Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>
     </body></html>
