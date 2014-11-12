@@ -351,7 +351,10 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
 template<typename DOMDocumentType>
 xercesc::DOMElement* DOMDocumentWrapper<DOMDocumentType>::createElement(const FQN &name) {
-  return me->createElementNS(X()%name.first, X()%name.second);
+  if(name.first.empty()) // we interprete a empty namespace (string "") as no namespace
+    return me->createElement(X()%name.second);
+  else
+    return me->createElementNS(X()%name.first, X()%name.second);
 }
 
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
@@ -617,6 +620,8 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
 
 void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
+  // disable the XML declaration which will be UTF-16 but we convert ti later to UTF-8
+  ser->getDomConfig()->setParameter(XMLUni::fgDOMXMLDeclaration, false);
   shared_ptr<XMLCh> data(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
