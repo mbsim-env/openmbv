@@ -13,17 +13,9 @@
 
 // Include octave/config.h first. This is normally not allowed since config.h should only
 // be included in .cc files but is required by octave.
-// To avoid macro redefined warnings/errors we save some macros, undefine it before
-// including octave/oct.h and undefine and reset it after the include.
-// save macros
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE           PACKAGE
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_BUGREPORT PACKAGE_BUGREPORT
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_NAME      PACKAGE_NAME
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_STRING    PACKAGE_STRING
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_TARNAME   PACKAGE_TARNAME
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_URL       PACKAGE_URL
-#define MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_VERSION   PACKAGE_VERSION
-#define MBXMLUTILS_OCTEVAL_H_SAVED_VERSION           VERSION
+// To avoid macro redefined warnings/errors we undefine it before
+// including octave/oct.h. Note that we can not restore the values. So you have to reinclude
+// your config.h after this file to get the original values.
 // undef macros
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
@@ -44,15 +36,8 @@
 #undef PACKAGE_URL
 #undef PACKAGE_VERSION
 #undef VERSION
-// reset macros
-#define PACKAGE           MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE
-#define PACKAGE_BUGREPORT MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_BUGREPORT
-#define PACKAGE_NAME      MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_NAME
-#define PACKAGE_STRING    MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_STRING
-#define PACKAGE_TARNAME   MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_TARNAME
-#define PACKAGE_URL       MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_URL
-#define PACKAGE_VERSION   MBXMLUTILS_OCTEVAL_H_SAVED_PACKAGE_VERSION
-#define VERSION           MBXMLUTILS_OCTEVAL_H_SAVED_VERSION
+// We cannot reset the macros so you have to reinclude your config.h after this file
+// to get the original values
 
 #include <octave/symtab.h>
 #include "mbxmlutilshelper/casadiXML.h"
