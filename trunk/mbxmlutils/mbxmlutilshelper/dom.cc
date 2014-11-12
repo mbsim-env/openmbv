@@ -605,17 +605,36 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
   return doc;
 }
 
-void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
-  if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-    static_cast<DOMDocument*>(n)->normalizeDocument();
-  else
-    n->getOwnerDocument()->normalizeDocument();
+namespace {
+  shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint);
+}
 
-  DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
-  shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
-  ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
+void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
+  shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
   if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
     throw runtime_error("Serializing the document failed.");
+}
+
+void DOMParser::serialize(DOMNode *n, string &outputData, bool prettyPrint) {
+  shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
+  shared_ptr<XMLCh> data(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
+  if(!data.get())
+    throw runtime_error("Serializing the document to memory failed.");
+  outputData=X()%data.get();
+}
+
+namespace {
+  shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint) {
+    if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
+      static_cast<DOMDocument*>(n)->normalizeDocument();
+    else
+      n->getOwnerDocument()->normalizeDocument();
+
+    DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
+    shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
+    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
+    return ser;
+  }
 }
 
 void DOMParser::resetCachedGrammarPool() {

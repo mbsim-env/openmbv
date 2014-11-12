@@ -60,8 +60,8 @@ class X {
       return reinterpret_cast<const char*>(xercesc::TranscodeToStr(unicode, "UTF8").str());
     }
     std::string operator()(const XMLCh *unicode) { return operator%(unicode); }
-  private:
     static void releaseXMLCh(const XMLCh *s) { xercesc::XMLPlatformUtils::fgMemoryManager->deallocate(const_cast<XMLCh*>(s)); }
+  private:
     std::vector<boost::shared_ptr<const XMLCh> > store;
 };
 
@@ -334,9 +334,12 @@ class DOMParser {
     void loadGrammar(const boost::filesystem::path &schemaFilename);
     //! Parse a XML document
     boost::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource);
-    //! Serialize a document.
+    //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
+    //! Serialize a document to a memory (std::string).
+    //! Helper function to write a node. This normalized the document before.
+    static void serialize(xercesc::DOMNode *n, std::string &outputData, bool prettyPrint=true);
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
