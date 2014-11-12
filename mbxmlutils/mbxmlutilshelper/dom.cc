@@ -615,7 +615,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
     throw runtime_error("Serializing the document failed.");
 }
 
-void DOMParser::serialize(DOMNode *n, string &outputData, bool prettyPrint) {
+void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
   shared_ptr<XMLCh> data(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
   if(!data.get())

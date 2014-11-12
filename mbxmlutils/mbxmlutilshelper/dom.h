@@ -339,7 +339,7 @@ class DOMParser {
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
     //! Serialize a document to a memory (std::string).
     //! Helper function to write a node. This normalized the document before.
-    static void serialize(xercesc::DOMNode *n, std::string &outputData, bool prettyPrint=true);
+    static void serializeToString(xercesc::DOMNode *n, std::string &outputData, bool prettyPrint=true);
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
