@@ -215,6 +215,7 @@ class DOMDocumentWrapper {
     //! (re)validate the document using the parser this document was created
     void validate();
     //! create element with the given FQN
+    //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
     //! Treat this object as a pointer (like DOMDocument*)
     typename boost::conditional<boost::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
