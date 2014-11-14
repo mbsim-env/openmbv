@@ -45,6 +45,7 @@
 #include <octave/parse.h>
 #include <boost/filesystem.hpp>
 #include <boost/static_assert.hpp> 
+#include <boost/scoped_ptr.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 
@@ -352,7 +353,7 @@ class OctEval : virtual public fmatvec::Atom {
 
     static InitXerces initXerces;
 
-    static octave_value casadiOctValue;
+    static boost::scoped_ptr<octave_value> casadiOctValue;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
