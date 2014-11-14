@@ -191,6 +191,14 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
 template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skipThis, const DOMElement *&found) const; // explicit instantiate const variant
 
 template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::setOriginalFilename() {
+  path orgFileName=E(me)->getOriginalFilename();
+  DOMProcessingInstruction *filenamePI=me->getOwnerDocument()->createProcessingInstruction(X()%"OriginalFilename",
+    X()%orgFileName.string());
+  me->insertBefore(filenamePI, me->getFirstChild());
+}
+
+template<typename DOMElementType>
 path DOMElementWrapper<DOMElementType>::convertPath(const path &relPath) const {
   if(relPath.is_absolute())
     return relPath;
