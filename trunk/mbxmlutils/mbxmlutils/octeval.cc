@@ -244,7 +244,7 @@ octave_value OctEval::createCasADi(const string &name) {
     idx.push_back(octave_value_list());
   }
   *idx.begin()=octave_value_list(name);
-  return casadiOctValue.subsref(".(", idx);
+  return casadiOctValue->subsref(".(", idx);
 }
 
 int OctEval::initCount=0;
@@ -256,7 +256,7 @@ std::map<std::string, std::string> OctEval::units;
 
 InitXerces OctEval::initXerces;
 
-octave_value OctEval::casadiOctValue;
+boost::scoped_ptr<octave_value> OctEval::casadiOctValue;
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   if(initCount==0) {
@@ -318,7 +318,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
 
     {
       BLOCK_STDERR(blockstderr);
-      casadiOctValue=feval("swigLocalLoad", octave_value_list("casadi"), 1)(0);
+      casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
       if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
     }
 
@@ -339,6 +339,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
 OctEval::~OctEval() {
   initCount--;
   if(initCount==0) {
+    casadiOctValue.reset();
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
     eval_string("1+1;", true, dummy, 0); // eval as statement list
@@ -544,7 +545,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
   NewParamLevel newParamLevel(*this, function);
   vector<CasADi::SXMatrix> inputs;
   if(function) {
-    addParam("casadi", casadiOctValue);
+    addParam("casadi", *casadiOctValue);
     // loop over all attributes and search for arg1name, arg2name attributes
     DOMNamedNodeMap *attr=e->getAttributes();
     for(int i=0; i<attr->getLength(); i++) {
