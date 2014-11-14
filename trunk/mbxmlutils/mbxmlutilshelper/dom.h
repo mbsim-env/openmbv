@@ -138,6 +138,10 @@ class DOMElementWrapper {
     //! If a OriginalFileName PI was found 'found' is set to this element else 'found' is NULL.
     boost::filesystem::path getOriginalFilename(bool skipThis=false,
                                                 const xercesc::DOMElement *&found=DOMElementWrapper<DOMElementType>::dummyArg) const;
+    //! Set original filename.
+    //! Calls getOriginalFilename on itself and set this value to itself.
+    //! This function should/must be called when a element is removed from a tree but still used after that.
+    void setOriginalFilename();
     //! Convert the relative path relPath to an aboslute path by prefixing it with the path of this document.
     //! If relPath is a absolute path it is returned as it. (see also getOriginalFilename)
     boost::filesystem::path convertPath(const boost::filesystem::path &relPath) const;

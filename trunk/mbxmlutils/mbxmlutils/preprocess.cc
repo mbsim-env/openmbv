@@ -14,7 +14,6 @@ namespace MBXMLUtils {
 void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
   try {
     if(E(e)->getTagName()==PV%"Embed") {
-      NewParamLevel newParamLevel(octEval);
       // check if only href OR child element (other than pv:Parameter) exists (This is not checked by the schema)
       DOMElement *inlineEmbedEle=e->getFirstElementChild();
       if(inlineEmbedEle && E(inlineEmbedEle)->getTagName()==PV%"Parameter")
@@ -63,6 +62,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           bind(&DOMElement::release, _1));
       }
       else { // or take the child element (inlineEmbedEle)
+        E(inlineEmbedEle)->setOriginalFilename();
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
           bind(&DOMElement::release, _1));
       }
@@ -70,39 +70,48 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
     
-      // generate local paramter for embed
       // check that not both the parameterHref attribute and the child element pv:Parameter exists (This is not checked by the schema)
       DOMElement *inlineParamEle=e->getFirstElementChild();
       if(inlineParamEle && E(inlineParamEle)->getTagName()!=PV%"Parameter")
         inlineParamEle=NULL;
       if(inlineParamEle && E(e)->hasAttribute("parameterHref"))
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
-      if(inlineParamEle || E(e)->hasAttribute("parameterHref")) {
-        octEval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)<<endl;
-        if(inlineParamEle) // inline parameter
-          octEval.addParamSet(inlineParamEle);
-        else { // parameter from parameterHref attribute
-          octave_value ret=octEval.eval(E(e)->getAttributeNode("parameterHref"), e);
-          string subst;
-          try {
-            subst=OctEval::cast<string>(ret);
-            if(OctEval::getType(ret)==OctEval::StringType)
-              subst=subst.substr(1, subst.length()-2);
-          } MBXMLUTILS_RETHROW(e)
-          path paramFile=E(e)->convertPath(subst);
-          // add local parameter file to dependencies
-          dependencies.push_back(paramFile);
-          // validate and local parameter file
-          octEval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
-          shared_ptr<DOMDocument> localparamxmldoc=parser->parse(paramFile);
-          // generate local parameters
-          octEval.addParamSet(localparamxmldoc->getDocumentElement());
-        }
+      // get localParamEle
+      shared_ptr<DOMElement> localParamEle;
+      shared_ptr<DOMDocument> localparamxmldoc;
+      if(inlineParamEle) { // inline parameter
+        E(inlineParamEle)->setOriginalFilename();
+        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
       }
-    
+      else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
+        octave_value ret=octEval.eval(E(e)->getAttributeNode("parameterHref"), e);
+        string subst;
+        try {
+          subst=OctEval::cast<string>(ret);
+          if(OctEval::getType(ret)==OctEval::StringType)
+            subst=subst.substr(1, subst.length()-2);
+        } MBXMLUTILS_RETHROW(e)
+        path paramFile=E(e)->convertPath(subst);
+        // add local parameter file to dependencies
+        dependencies.push_back(paramFile);
+        // validate and local parameter file
+        octEval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
+        localparamxmldoc=parser->parse(paramFile);
+        // generate local parameters
+        E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
+        localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),
+          bind(&DOMElement::release, _1));
+      }
+
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
+        NewParamLevel newParamLevel(octEval);
         octEval.addParam(counterName, i);
+        if(localParamEle) {
+          octEval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)
+                           <<" ("<<i<<"/"<<count<<")"<<endl;
+          octEval.addParamSet(localParamEle.get());
+        }
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
