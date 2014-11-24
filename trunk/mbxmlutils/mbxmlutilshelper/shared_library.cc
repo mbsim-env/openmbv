@@ -3,8 +3,6 @@
 #include <boost/lexical_cast.hpp>
 #ifndef _WIN32
 #  include <dlfcn.h>
-#else
-#  include <windows.h>
 #endif
 
 using namespace std;
@@ -42,7 +40,7 @@ void* SharedLibrary::getAddress(const std::string &symbolName) {
 #ifndef _WIN32
   void *addr=dlsym(handle, symbolName.c_str());
 #else
-  void *addr=GetProcAddress(handle, symbolName.c_str());
+  void *addr=reinterpret_cast<void*>(GetProcAddress(handle, symbolName.c_str()));
 #endif
   if(!addr)
     throw runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+

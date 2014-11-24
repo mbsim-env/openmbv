@@ -3,6 +3,9 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#ifdef _WIN32
+#  include <windows.h>
+#endif
 
 namespace MBXMLUtils {
 
