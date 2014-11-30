@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
       shared_ptr<xercesc::DOMDocument> paramxmldoc;
       if(paramxml!="none") {
         cout<<"Read and validate "<<paramxml<<endl;
-        paramxmldoc=parser->parse(paramxml);
+        paramxmldoc=parser->parse(paramxml, &dependencies);
         dependencies.push_back(paramxml);
       }
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 
       // validate main file and get DOM
       cout<<"Read and validate "<<mainxml<<endl;
-      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml);
+      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
       dependencies.push_back(mainxml);
 
       // embed/validate/toOctave/unit/eval files

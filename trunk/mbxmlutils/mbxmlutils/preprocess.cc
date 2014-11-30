@@ -2,6 +2,7 @@
 #include "mbxmlutils/preprocess.h"
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -56,7 +57,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       // validate/load if file is given
       if(!file.empty()) {
         octEval.msg(Info)<<"Read and validate "<<file<<endl;
-        shared_ptr<DOMDocument> newdoc=parser->parse(file);
+        shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies);
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
           bind(&DOMElement::release, _1));
@@ -96,7 +97,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         dependencies.push_back(paramFile);
         // validate and local parameter file
         octEval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
-        localparamxmldoc=parser->parse(paramFile);
+        localparamxmldoc=parser->parse(paramFile, &dependencies);
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),
