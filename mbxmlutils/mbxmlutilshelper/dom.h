@@ -338,7 +338,8 @@ class DOMParser {
     //! Load XML Schema grammar file
     void loadGrammar(const boost::filesystem::path &schemaFilename);
     //! Parse a XML document
-    boost::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource);
+    boost::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
+                                                  std::vector<boost::filesystem::path> *dependencies=NULL);
     //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
@@ -363,7 +364,7 @@ class DOMParser {
     TypeDerivativeHandler typeDerHandler;
     static DOMParserUserDataHandler userDataHandler;
 
-    void handleXIncludeAndCDATA(xercesc::DOMElement *&e);
+    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=NULL);
 };
 
 }

@@ -324,7 +324,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
 
     // get units
     msg(Info)<<"Build unit list for measurements."<<endl;
-    boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml");
+    boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
       for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
@@ -358,7 +358,7 @@ void OctEval::addParamSet(const DOMElement *e) {
   for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       octave_value ret=eval(E(ee)->getAttributeNode("href"), ee);
-      try { addPath(absolute(E(ee)->convertPath(ret.string_value()))); } MBXMLUTILS_RETHROW(e)
+      try { addPath(E(ee)->convertPath(ret.string_value())); } MBXMLUTILS_RETHROW(e)
     }
     else {
       octave_value ret=eval(ee);
@@ -386,10 +386,10 @@ void OctEval::popPath() {
 }
 
 void OctEval::addPath(const bfs::path &dir) {
-  if(!dir.is_absolute())
-    throw DOMEvalException("Can only add absolute path: "+dir.string(CODECVT));
-  currentPath=dir.string(CODECVT)+(currentPath.empty()?"":pathSep+currentPath);
+  currentPath=absolute(dir).string(CODECVT)+(currentPath.empty()?"":pathSep+currentPath);
 
+  if(!dependencies)
+    return;
   // add m-files in dir to dependencies
   for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
     if(it->path().extension()==".m")
@@ -664,7 +664,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       throw DOMEvalException("Octave value is not of type scalar string", e);
 
     // add filenames to dependencies
-    if(E(e)->isDerivedFrom(PV%"filenameFullOctEval"))
+    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullOctEval"))
       dependencies->push_back(E(e)->convertPath(ret.string_value()));
   
     // convert unit
@@ -787,7 +787,7 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
-    if(A(a)->isDerivedFrom(PV%"filenameFullOctEval"))
+    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullOctEval"))
       dependencies->push_back(E(pe)->convertPath(ret.string_value()));
 
     return ret;
@@ -822,7 +822,7 @@ octave_value OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement 
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
-    if(A(a)->isDerivedFrom(PV%"filenamePartialOctEval"))
+    if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialOctEval"))
       dependencies->push_back(E(pe)->convertPath(s));
 
     return ret;

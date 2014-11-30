@@ -170,8 +170,12 @@ template<typename DOMElementType>
 path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const DOMElement *&found) const {
   found=NULL;
   const DOMElement *e;
-  if(skipThis)
-    e=me->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(me->getParentNode()):NULL;
+  if(skipThis) {
+    if(me->getParentNode() && me->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE)
+      e=static_cast<DOMElement*>(me->getParentNode());
+    else
+      e=NULL;
+  }
   else
     e=me;
   while(e) {
@@ -560,11 +564,13 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
 }
 
-void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
+void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies) {
   // handle xinclude
   if(E(e)->getTagName()==XINCLUDE%"include") {
     path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
-    boost::shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile);
+    if(dependencies)
+      dependencies->push_back(incFile);
+    boost::shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile, dependencies);
     E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();
@@ -587,12 +593,12 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e) {
     }
   // walk tree
   for(DOMElement *c=e->getFirstElementChild(); c!=0; c=c->getNextElementSibling()) {
-    handleXIncludeAndCDATA(c);
+    handleXIncludeAndCDATA(c, dependencies);
     if(c==NULL) break;
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
@@ -609,7 +615,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource) {
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
-  handleXIncludeAndCDATA(root);
+  handleXIncludeAndCDATA(root, dependencies);
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(me), &userDataHandler);
   // return DOM document

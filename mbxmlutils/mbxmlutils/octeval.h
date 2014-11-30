@@ -125,6 +125,7 @@ class OctEval : virtual public fmatvec::Atom {
     void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to octave search path
+    //! A relative path in dir is expanded to an absolute path using the current directory.
     void addPath(const boost::filesystem::path &dir);
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
