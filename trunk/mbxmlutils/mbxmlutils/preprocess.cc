@@ -12,8 +12,11 @@ using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e) {
+void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e,
+                            shared_ptr<XPathParamSet> param, const string &parentXPath,
+                            shared_ptr<PositionMap> position) {
   try {
+    string thisXPath; // the XPath of this element (for a Embed its the target element name, for others its just the element name
     if(E(e)->getTagName()==PV%"Embed") {
       // check if only href OR child element (other than pv:Parameter) exists (This is not checked by the schema)
       DOMElement *inlineEmbedEle=e->getFirstElementChild();
@@ -67,6 +70,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
           bind(&DOMElement::release, _1));
       }
+
+      // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
+      int pos=++(*position)[E(enew)->getTagName()];
+      thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+lexical_cast<string>(pos)+"]";
     
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
@@ -104,6 +111,39 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           bind(&DOMElement::release, _1));
       }
 
+      // add/overwrite local parameter to/by param
+      if(localParamEle && param) {
+        pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
+        // no such XPath in param -> output this parameter set to the caller
+        if(ret.second) {
+          OctEval plainEval;
+          for(const DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
+            octave_value parValue;
+            // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
+            try {
+              parValue=plainEval.eval(p);
+            }
+            catch(DOMEvalException &ex) {
+              continue;
+            }
+            ret.first->second.push_back(make_pair(E(p)->getAttribute("name"), parValue));
+          }
+        }
+        // XPath already existing in param (specified by caller) -> overwrite all these parameters
+        else {
+          for(ParamSet::iterator it=ret.first->second.begin(); it!=ret.first->second.end(); ++it) {
+            // serach for a parameter named it->first in localParamEle
+            for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
+              if(E(p)->getAttribute("name")==it->first) {
+                // if found overwrite this parameter
+                p->removeChild(E(p)->getFirstTextChild())->release();
+                p->appendChild(p->getOwnerDocument()->createTextNode(X()%OctEval::cast<string>(it->second)));
+              }
+            }
+          }
+        }
+      }
+
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(octEval);
@@ -133,6 +173,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           E(e)->setEmbedCountNumber(i);
       
           // apply embed to new element
+          // (do not pass param here since we report only top level parameter sets; parentXPath is also not longer needed)
           preprocess(parser, octEval, dependencies, e);
         }
         else
@@ -144,6 +185,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       return; // skip processing of SXFunction elements
     else {
       bool isCasADi=false;
+
+      // set the XPath of this (none Embed) element to the name of the element itself (including the proper position)
+      int pos=++(*position)[E(e)->getTagName()];
+      thisXPath="{"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+"["+lexical_cast<string>(pos)+"]";
 
       // evaluate attributes
       DOMNamedNodeMap *attr=e->getAttributes();
@@ -196,7 +241,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
     // walk tree
     DOMElement *c=e->getFirstElementChild();
     while(c) {
-      preprocess(parser, octEval, dependencies, c);
+      // pass param and the new parent XPath to preprocess
+      preprocess(parser, octEval, dependencies, c, param, parentXPath+"/"+thisXPath);
       if(c==NULL) break;
       c=c->getNextElementSibling();
     }
