@@ -53,10 +53,6 @@ AC_ARG_WITH([boost-system-lib],
   [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
-AC_ARG_WITH([boost-locale-lib],
-  [  --with-boost-locale-lib=LIBNAME  The library name of boost locale excluding prefix/suffix (Default: boost_locale).],
-  [BOOST_LOCALE_LIB="$withval"], [BOOST_LOCALE_LIB="boost_locale"])
-AC_SUBST([BOOST_LOCALE_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
