@@ -1,3 +1,4 @@
+#include "config.h"
 #include "shared_library.h"
 #include "last_write_time.h"
 #include <boost/lexical_cast.hpp>
