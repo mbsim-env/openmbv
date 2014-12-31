@@ -99,7 +99,12 @@ cp <casadi-build-dir>/lib/casadi_interface.oct $prefix/bin
 cp <casadi-build-dir>/lib/casadi.m $prefix/bin
 cp <casadi-build-dir>/lib/casadi_helpers.m $prefix/bin
 cp -r <casadi-build-dir>/lib/@swig_ref $prefix/bin
-Alternatively you can disable the CasADi support using --disable-casadi
+Alternatively you can disable the CasADi support using --disable-casadi.
+Please note that with CasADi 2.X the octave interface has been dropped. Hence
+you have to use CasADi 1.X and this octave interface only works with
+octave < 3.8.
+It is recommended to use the CasADi fork from
+https://github.com/friedrichatgc/casadi.git
       ])
     fi
   fi
