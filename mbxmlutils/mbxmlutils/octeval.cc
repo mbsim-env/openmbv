@@ -72,7 +72,7 @@ string OctEval::cast<string>(const octave_value &value) {
     ret<<"'"<<value.string_value()<<"'";
     return ret.str();
   }
-  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXMatrixType || type==DMatrixType) {
+  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType || type==DMatrixType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
     if(type!=ScalarType)
       ret<<"[";
@@ -148,10 +148,10 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
     }
     return ret;
   }
-  if(type==SXMatrixType || type==DMatrixType) {
-    CasADi::SXMatrix m;
-    if(type==SXMatrixType)
-      m=cast<CasADi::SXMatrix>(value);
+  if(type==SXType || type==DMatrixType) {
+    CasADi::SX m;
+    if(type==SXType)
+      m=cast<CasADi::SX>(value);
     else
       m=cast<CasADi::DMatrix>(value);
     if(!CasADi::isConstant(m))
@@ -176,28 +176,28 @@ DOMElement* OctEval::cast<DOMElement*>(const octave_value &value, DOMDocument *d
 }
 
 template<>
-CasADi::SXMatrix OctEval::cast<CasADi::SXMatrix>(const octave_value &value) {
+CasADi::SX OctEval::cast<CasADi::SX>(const octave_value &value) {
   ValueType type=getType(value);
-  if(type==SXMatrixType)
-    return castToSwig<CasADi::SXMatrix>(value);
+  if(type==SXType)
+    return castToSwig<CasADi::SX>(value);
   if(type==DMatrixType)
     return castToSwig<CasADi::DMatrix>(value);
   if(type==ScalarType || type==VectorType || type==MatrixType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    CasADi::SXMatrix ret(m.size(), m[0].size());
+    CasADi::SX ret(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
       for(int j=0; j<m[i].size(); j++)
         ret.elem(i,j)=m[i][j];
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to CasADi::SXMatrix*.");
+  throw DOMEvalException("Cannot cast this value to CasADi::SX*.");
 }
 
 template<>
-CasADi::SXMatrix* OctEval::cast<CasADi::SXMatrix*>(const octave_value &value) {
-  if(getType(value)==SXMatrixType)
-    return castToSwig<CasADi::SXMatrix*>(value);
-  throw DOMEvalException("Cannot cast this value to CasADi::SXMatrix*.");
+CasADi::SX* OctEval::cast<CasADi::SX*>(const octave_value &value) {
+  if(getType(value)==SXType)
+    return castToSwig<CasADi::SX*>(value);
+  throw DOMEvalException("Cannot cast this value to CasADi::SX*.");
 }
 
 template<>
@@ -205,7 +205,7 @@ CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value) {
   ValueType type=getType(value);
   if(type==DMatrixType)
     return castToSwig<CasADi::DMatrix>(value);
-  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXMatrixType) {
+  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
     CasADi::DMatrix ret(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
@@ -543,7 +543,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(*this, function);
-  vector<CasADi::SXMatrix> inputs;
+  vector<CasADi::SX> inputs;
   if(function) {
     addParam("casadi", *casadiOctValue);
     // loop over all attributes and search for arg1name, arg2name attributes
@@ -564,9 +564,9 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
       int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
-      octave_value octArg=createCasADi("SXMatrix");
-      CasADi::SXMatrix *arg;
-      try { arg=cast<CasADi::SXMatrix*>(octArg); } MBXMLUTILS_RETHROW(e)
+      octave_value octArg=createCasADi("SX");
+      CasADi::SX *arg;
+      try { arg=cast<CasADi::SX*>(octArg); } MBXMLUTILS_RETHROW(e)
       *arg=CasADi::ssym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), octArg);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
@@ -574,7 +574,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     }
     // check if one argument was not set. If so error
     for(int i=0; i<inputs.size(); i++)
-      if(inputs[i].isNull()) // a isNull() object is a error (see above), since not all arg?name args were defined
+      if(inputs[i].sparsity().isEmpty()) // a empty object is a error (see above), since not all arg?name args were defined
         throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
   }
   
@@ -587,7 +587,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     Matrix m(i, 1);
-    CasADi::SXMatrix M;
+    CasADi::SX M;
     if(function)
       M.resize(i, 1);
     i=0;
@@ -595,8 +595,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       if(!function)
         m(i)=stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele).double_value();
       else {
-        CasADi::SXMatrix Mele;
-        try { Mele=cast<CasADi::SXMatrix>(stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
+        CasADi::SX Mele;
+        try { Mele=cast<CasADi::SX>(stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M.elem(i,0)=Mele.elem(0,0);
       }
@@ -621,7 +621,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     Matrix m(i, j);
-    CasADi::SXMatrix M;
+    CasADi::SX M;
     if(function)
       M.resize(i, j);
     i=0;
@@ -631,8 +631,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
         if(!function)
           m(j*m.rows()+i)=stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col).double_value();
         else {
-          CasADi::SXMatrix Mele;
-          try { Mele=cast<CasADi::SXMatrix>(stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
+          CasADi::SX Mele;
+          try { Mele=cast<CasADi::SX>(stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M.elem(i,0)=Mele.elem(0,0);
         }
@@ -675,7 +675,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     else {
       octave_value octF=createCasADi("SXFunction");
       try {
-        CasADi::SXFunction f(inputs, cast<CasADi::SXMatrix>(ret));
+        CasADi::SXFunction f(inputs, cast<CasADi::SX>(ret));
         cast<CasADi::SXFunction*>(octF)->assignNode(f.get());
       } MBXMLUTILS_RETHROW(e)
       return octF;
@@ -853,8 +853,8 @@ OctEval::ValueType OctEval::getType(const octave_value &value) {
         return StringType;
       throw DOMEvalException("The provided value has an unknown type.");
     }
-    if(swigType.string_value()=="SXMatrix")
-      return SXMatrixType;
+    if(swigType.string_value()=="SX")
+      return SXType;
     else if(swigType.string_value()=="DMatrix")
       return DMatrixType;
     else if(swigType.string_value()=="SXFunction")

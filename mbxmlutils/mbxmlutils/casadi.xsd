@@ -15,48 +15,48 @@
 
   <xs:complexType name="ioType">
     <xs:choice maxOccurs="unbounded">
+      <xs:element ref="SXElement"/>
       <xs:element ref="SX"/>
-      <xs:element ref="SXMatrix"/>
     </xs:choice>
   </xs:complexType>
 
-  <xs:element name="SXMatrix">
+  <xs:element name="SX">
     <xs:complexType>
       <xs:choice>
         <!-- matrix -->
         <xs:element name="matrixRow" maxOccurs="unbounded">
           <xs:complexType>
             <xs:sequence>
-              <xs:element ref="SX" maxOccurs="unbounded"/>
+              <xs:element ref="SXElement" maxOccurs="unbounded"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
         <!-- column or row vector -->
-        <xs:element ref="SX" maxOccurs="unbounded"/>
+        <xs:element ref="SXElement" maxOccurs="unbounded"/>
       </xs:choice>
       <xs:attribute name="rowVector" type="xs:boolean" use="optional"/>
       <xs:attribute name="columnVector" type="xs:boolean" use="optional"/>
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="SX" abstract="true" type="SXType"/>
+  <xs:element name="SXElement" abstract="true" type="SXType"/>
   <xs:complexType name="SXType"/>
 
-  <!-- a reference to a SX -->
-  <xs:element name="reference" substitutionGroup="SX" type="referenceType"/>
+  <!-- a reference to a SXElement -->
+  <xs:element name="reference" substitutionGroup="SXElement" type="referenceType"/>
   <xs:complexType name="referenceType">
     <xs:complexContent>
       <xs:extension base="SXType">
-        <xs:attribute name="refid" type="xs:integer"/> <!-- referenc the SX with id refid -->
+        <xs:attribute name="refid" type="xs:integer"/> <!-- referenc the SXElement with id refid -->
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="SXWithID" abstract="true" substitutionGroup="SX" type="SXWithIDType"/>
+  <xs:element name="SXWithID" abstract="true" substitutionGroup="SXElement" type="SXWithIDType"/>
   <xs:complexType name="SXWithIDType">
     <xs:complexContent>
       <xs:extension base="SXType">
-        <xs:attribute name="id" type="xs:integer"/> <!-- id if the SX, used by the reference element -->
+        <xs:attribute name="id" type="xs:integer"/> <!-- id if the SXElement, used by the reference element -->
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -129,7 +129,7 @@
     <xs:complexContent>
       <xs:extension base="SXWithIDType">
         <xs:sequence>
-          <xs:element ref="SX" minOccurs="2" maxOccurs="2"/> <!-- a binary op has two elements -->
+          <xs:element ref="SXElement" minOccurs="2" maxOccurs="2"/> <!-- a binary op has two elements -->
         </xs:sequence>
         <xs:attribute name="op" type="xs:integer"/> <!-- the op id -->
       </xs:extension>
@@ -141,7 +141,7 @@
     <xs:complexContent>
       <xs:extension base="SXWithIDType">
         <xs:sequence>
-          <xs:element ref="SX"/> <!-- a unary op has one element -->
+          <xs:element ref="SXElement"/> <!-- a unary op has one element -->
         </xs:sequence>
         <xs:attribute name="op" type="xs:integer"/> <!-- the op id -->
       </xs:extension>
