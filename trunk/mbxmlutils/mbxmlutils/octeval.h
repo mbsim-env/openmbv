@@ -107,7 +107,7 @@ class OctEval : virtual public fmatvec::Atom {
       VectorType,
       MatrixType,
       StringType,
-      SXMatrixType,
+      SXType,
       DMatrixType,
       SXFunctionType
     };
@@ -155,7 +155,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <th>real</th>
      *     <th>string</th>
      *     <th><i>SWIG</i> <tt>CasADi::SXFunction</tt></th>
-     *     <th><i>SWIG</i> <tt>CasADi::SXMatrix</tt></th>
+     *     <th><i>SWIG</i> <tt>CasADi::SX</tt></th>
      *     <th><i>SWIG</i> <tt>CasADi::DMatrix</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
@@ -165,7 +165,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>only if 1 x 1 and a integral number</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>only if 1 x 1 and constant and a integral number</td>
+     *     <!--SX-->         <td>only if 1 x 1 and constant and a integral number</td>
      *     <!--DMatrix-->    <td>only if 1 x 1 and a integral number</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -174,7 +174,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>only if 1 x 1</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>only if 1 x 1 and constant</td>
+     *     <!--SX-->         <td>only if 1 x 1 and constant</td>
      *     <!--DMatrix-->    <td>only if 1 x 1</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -183,7 +183,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>only if n x 1</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>only if n x 1 and constant</td>
+     *     <!--SX-->         <td>only if n x 1 and constant</td>
      *     <!--DMatrix-->    <td>only if n x 1</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -192,7 +192,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>only if constant</td>
+     *     <!--SX-->         <td>only if constant</td>
      *     <!--DMatrix-->    <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -201,7 +201,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>returns e.g. "5" or "[1,3;5,4]"</td>
      *     <!--string-->     <td>returns e.g. "'foo'"</td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>only if constant; returns e.g. "5" or "[1,3;5,4]"</td>
+     *     <!--SX-->         <td>only if constant; returns e.g. "5" or "[1,3;5,4]"</td>
      *     <!--DMatrix-->    <td>returns e.g. "5" or "[1,3;5,4]"</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -210,7 +210,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -219,7 +219,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -228,25 +228,25 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SXMatrix</tt></th>
+     *     <!--CAST TO-->    <th><tt>CasADi::SX</tt></th>
      *     <!--real-->       <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--SX-->         <td>X</td>
      *     <!--DMatrix-->    <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SXMatrix*</tt></th>
+     *     <!--CAST TO-->    <th><tt>CasADi::SX*</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--SX-->         <td>X</td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -255,7 +255,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td>X</td>
+     *     <!--SX-->         <td>X</td>
      *     <!--DMatrix-->    <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -264,7 +264,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--DMatrix-->    <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -273,7 +273,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->l        <td></td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td>not type save</td>
      *   </tr>
@@ -282,7 +282,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SXMatrix-->   <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td>not type save</td>
      *   </tr>
@@ -405,8 +405,8 @@ template<> long OctEval::cast<long>(const octave_value &value);
 template<> double OctEval::cast<double>(const octave_value &value);
 template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
 template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
-template<> CasADi::SXMatrix OctEval::cast<CasADi::SXMatrix>(const octave_value &value);
-template<> CasADi::SXMatrix* OctEval::cast<CasADi::SXMatrix*>(const octave_value &value);
+template<> CasADi::SX OctEval::cast<CasADi::SX>(const octave_value &value);
+template<> CasADi::SX* OctEval::cast<CasADi::SX*>(const octave_value &value);
 template<> CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value);
 template<> CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value);
 template<> CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value);
