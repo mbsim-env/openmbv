@@ -67,7 +67,7 @@ if test $usecasadi == yes;  then
     [  --with-casadi-lib-prefix=PFX  Prefix where casadi lib is installed],
     [ CASADILDFLAGS="-L$withval" ],
     [ CASADILDFLAGS="-L$prefix/lib" ])
-  CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS -DWITHOUT_PRE_1_9_X" # do not allow deprecated functions from casadi
   casadi="no"
   AC_CHECK_HEADERS([casadi/symbolic/sx/sx_node.hpp], [casadi="yes"],
     [AC_MSG_RESULT([Can not find casadi c++ header casadi/symbolic/sx/sx_node.hpp])])

@@ -154,7 +154,7 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
       m=cast<CasADi::SX>(value);
     else
       m=cast<CasADi::DMatrix>(value);
-    if(!CasADi::isConstant(m))
+    if(!m.isConstant())
       throw DOMEvalException("Can only cast this constant value to vector<vector<double> >.");
     vector<vector<double> > ret;
     for(int i=0; i<m.size1(); i++) {
@@ -184,7 +184,7 @@ CasADi::SX OctEval::cast<CasADi::SX>(const octave_value &value) {
     return castToSwig<CasADi::DMatrix>(value);
   if(type==ScalarType || type==VectorType || type==MatrixType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    CasADi::SX ret(m.size(), m[0].size());
+    CasADi::SX ret=CasADi::SX::zeros(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
       for(int j=0; j<m[i].size(); j++)
         ret.elem(i,j)=m[i][j];
@@ -207,7 +207,7 @@ CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value) {
     return castToSwig<CasADi::DMatrix>(value);
   if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    CasADi::DMatrix ret(m.size(), m[0].size());
+    CasADi::DMatrix ret=CasADi::DMatrix::zeros(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
       for(int j=0; j<m[i].size(); j++)
         ret.elem(i,j)=m[i][j];
@@ -567,7 +567,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       octave_value octArg=createCasADi("SX");
       CasADi::SX *arg;
       try { arg=cast<CasADi::SX*>(octArg); } MBXMLUTILS_RETHROW(e)
-      *arg=CasADi::ssym(X()%a->getValue(), dim, 1);
+      *arg=CasADi::SX::sym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), octArg);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
       inputs[nr-1]=*arg;

@@ -147,7 +147,7 @@ inline CasADi::SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<
     sxelement=CasADi::SXElement::unary(op, dep);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SymbolicSX") {
-    sxelement=CasADi::SXElement(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
+    sxelement=CasADi::SXElement::sym(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"RealtypeSX") {
     std::stringstream str(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
