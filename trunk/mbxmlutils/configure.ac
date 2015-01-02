@@ -84,7 +84,7 @@ if test $usecasadi == yes;  then
   fi
   if test $casadi = "yes" ; then
     AC_MSG_CHECKING([for casadi octave interface (by SWIG)])
-    if test -f $prefix/bin/casadi_interface.oct -a -f $prefix/bin/casadi.m -a -f $prefix/bin/casadi_helpers.m -a -d $prefix/bin/@swig_ref; then
+    if test -f $prefix/bin/casadi_interface.oct -a -f $prefix/bin/casadi.m -a -d $prefix/bin/@swig_ref; then
       AC_MSG_RESULT([yes])
     else
       AC_MSG_RESULT([no])
@@ -97,12 +97,10 @@ not build code for installing the octave part of CasADi this must be done
 manually. After build the octave interface in CasADi copy the following files:
 cp <casadi-build-dir>/lib/casadi_interface.oct $prefix/bin
 cp <casadi-build-dir>/lib/casadi.m $prefix/bin
-cp <casadi-build-dir>/lib/casadi_helpers.m $prefix/bin
 cp -r <casadi-build-dir>/lib/@swig_ref $prefix/bin
 Alternatively you can disable the CasADi support using --disable-casadi.
 Please note that with CasADi 2.X the octave interface has been dropped. Hence
-you have to use CasADi 1.X and this octave interface only works with
-octave < 3.8.
+you have to use CasADi 1.X.
 It is recommended to use the CasADi fork from
 https://github.com/friedrichatgc/casadi.git
       ])
