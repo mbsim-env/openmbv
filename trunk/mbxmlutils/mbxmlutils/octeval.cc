@@ -310,7 +310,10 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
     // add .../bin to initial current search path ...
-    dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
+    if(bfs::path(MBXMLUTILS_CASADI_BIN).is_absolute())
+      dir=MBXMLUTILS_CASADI_BIN;
+    else
+      dir=(MBXMLUtils::getInstallPath()/MBXMLUTILS_CASADI_BIN).string(CODECVT);
     initialOctEvalPath=dir+pathSep+initialOctEvalPath;
     // ... and make it available now (for swigLocalLoad below)
     feval("addpath", octave_value_list(octave_value(dir)));
