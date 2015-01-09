@@ -67,6 +67,13 @@ if test $usecasadi == yes;  then
     [  --with-casadi-lib-prefix=PFX  Prefix where casadi lib is installed],
     [ CASADILDFLAGS="-L$withval" ],
     [ CASADILDFLAGS="-L$prefix/lib" ])
+  AC_ARG_WITH(casadi_bin_prefix,
+    [  --with-casadi-bin-prefix=PFX  Prefix where casadi octave interface is installed (default: $prefix/bin).
+       For relocatable installations this MUST NOT BE set (casadi MUST be installed to $prefix)!
+       Must be equal to casadi-lib-prefix on Windows.],
+    [ CASADIBIN="$withval" ],
+    [ CASADIBIN="$prefix/bin" ])
+  AC_DEFINE_UNQUOTED(MBXMLUTILS_CASADI_BIN, ["$(test $CASADIBIN == "$prefix/bin" && echo "bin" || echo $CASADIBIN)"], [absolute or relatvie dir to CasADi.])
   CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS -DWITHOUT_PRE_1_9_X" # do not allow deprecated functions from casadi
   casadi="no"
   AC_CHECK_HEADERS([casadi/symbolic/sx/sx_node.hpp], [casadi="yes"],
@@ -77,14 +84,16 @@ if test $usecasadi == yes;  then
     CASADI_LIBS="-lcasadi"
     CASADI_CPPFLAGS="$CASADICPPFLAGS"
     test "_$host_os" != "_mingw32" && CASADI_LIBS="$CASADI_LIBS -ldl"
+    SAVED_LIBS="$LIBS"
     LIBS="$LIBS $CASADI_LIBS"
     AC_SUBST([CASADI_LIBS])
     AC_TRY_LINK([#include <casadi/symbolic/sx/sx_node.hpp>],[CasADi::SX x],[AC_MSG_RESULT([yes]);],
       [casadi="no"; AC_MSG_RESULT([no]); AC_MSG_ERROR([CasADi headers found but can not link with CasADi c++ library])])
+    LIBS="$SAVED_LIBS"
   fi
   if test $casadi = "yes" ; then
     AC_MSG_CHECKING([for casadi octave interface (by SWIG)])
-    if test -f $prefix/bin/casadi_interface.oct -a -f $prefix/bin/casadi.m -a -d $prefix/bin/@swig_ref; then
+    if test -f $CASADIBIN/casadi_interface.oct -a -f $CASADIBIN/casadi.m -a -d $CASADIBIN/@swig_ref; then
       AC_MSG_RESULT([yes])
     else
       AC_MSG_RESULT([no])
@@ -95,9 +104,9 @@ SWIG interface of CasADi for octave. This code is build using the command
 before running "make octave" using your package manager). Since CasADi has
 not build code for installing the octave part of CasADi this must be done
 manually. After build the octave interface in CasADi copy the following files:
-cp <casadi-build-dir>/lib/casadi_interface.oct $prefix/bin
-cp <casadi-build-dir>/lib/casadi.m $prefix/bin
-cp -r <casadi-build-dir>/lib/@swig_ref $prefix/bin
+cp <casadi-build-dir>/lib/casadi_interface.oct $CASADIBIN
+cp <casadi-build-dir>/lib/casadi.m $CASADIBIN
+cp -r <casadi-build-dir>/lib/@swig_ref $CASADIBIN
 Alternatively you can disable the CasADi support using --disable-casadi.
 Please note that with CasADi 2.X the octave interface has been dropped. Hence
 you have to use CasADi 1.X.
