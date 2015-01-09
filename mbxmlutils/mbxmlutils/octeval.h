@@ -305,6 +305,10 @@ class OctEval : virtual public fmatvec::Atom {
 
   protected:
 
+    //! This function deinitialized octave. It is used in the dtor and before exceptions in the ctor are thrown
+    // (in the later case the dtor is not called but octave must be uninitialized before exit)
+    void deinitOctave();
+
     //! evaluate str fully and return result as an octave variable
     octave_value fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
 

@@ -259,87 +259,96 @@ InitXerces OctEval::initXerces;
 boost::scoped_ptr<octave_value> OctEval::casadiOctValue;
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
-  if(initCount==0) {
-
-    bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-
-    // set the OCTAVE_HOME envvar before initializing octave
-    // (but only if octave is installed in getInstallPath() and the envar is not already set)
-    if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
-      // the string for putenv must have program life time
-      static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
-      putenv((char*)OCTAVE_HOME.c_str());
-    }
-
-    // initialize octave
-    static vector<char*> octave_argv;
-    octave_argv.resize(6);
-    octave_argv[0]=const_cast<char*>("embedded");
-    octave_argv[1]=const_cast<char*>("--no-history");
-    octave_argv[2]=const_cast<char*>("--no-init-file");
-    octave_argv[3]=const_cast<char*>("--no-line-editing");
-    octave_argv[4]=const_cast<char*>("--no-window-system");
-    octave_argv[5]=const_cast<char*>("--silent");
-    octave_main(6, &octave_argv[0], 1);
-  
-    // set some global octave config
-    octave_value_list warnArg;
-    warnArg.append("error");
-    warnArg.append("Octave:divide-by-zero");
-    feval("warning", warnArg);
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
-
-    if(pathSep.empty()) {
-      octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
-        "Internal error: Unable to get the path seperator")(0);
-      pathSep=ret.string_value();
-    }
-
-    // first restore default path
-    feval("restoredefaultpath", octave_value_list());
-    // save initial octave path
-    initialOctavePath=feval("path", octave_value_list(), 1)(0).string_value();
-    if(initialOctavePath.substr(0, 2)=="."+pathSep)
-      initialOctavePath=initialOctavePath.substr(2);
-  
-    // set .../share/mbxmlutils/octave to initial current search path ...
-    string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
-    initialOctEvalPath=dir;
-    // ... and make it available now (for swigLocalLoad below)
-    feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-    // add .../bin to initial current search path ...
-    if(bfs::path(MBXMLUTILS_CASADI_BIN).is_absolute())
-      dir=MBXMLUTILS_CASADI_BIN;
-    else
-      dir=(MBXMLUtils::getInstallPath()/MBXMLUTILS_CASADI_BIN).string(CODECVT);
-    initialOctEvalPath=dir+pathSep+initialOctEvalPath;
-    // ... and make it available now (for swigLocalLoad below)
-    feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
-
-    {
-      BLOCK_STDERR(blockstderr);
-      casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
-    }
-
-    // get units
-    msg(Info)<<"Build unit list for measurements."<<endl;
-    boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
-    DOMElement *ele, *el2;
-    for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
-      for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
-        if(units.find(E(el2)->getAttribute("name"))!=units.end())
-          throw runtime_error(string("Internal error: Unit name ")+E(el2)->getAttribute("name")+" is defined more than once.");
-        units[E(el2)->getAttribute("name")]=X()%E(el2)->getFirstTextChild()->getData();
-      }
-  }
   initCount++;
+  if(initCount==1) {
+    try {
+      bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
+
+      // set the OCTAVE_HOME envvar before initializing octave
+      // (but only if octave is installed in getInstallPath() and the envar is not already set)
+      if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+        // the string for putenv must have program life time
+        static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
+        putenv((char*)OCTAVE_HOME.c_str());
+      }
+
+      // initialize octave
+      static vector<char*> octave_argv;
+      octave_argv.resize(6);
+      octave_argv[0]=const_cast<char*>("embedded");
+      octave_argv[1]=const_cast<char*>("--no-history");
+      octave_argv[2]=const_cast<char*>("--no-init-file");
+      octave_argv[3]=const_cast<char*>("--no-line-editing");
+      octave_argv[4]=const_cast<char*>("--no-window-system");
+      octave_argv[5]=const_cast<char*>("--silent");
+      octave_main(6, &octave_argv[0], 1);
+  
+      // set some global octave config
+      octave_value_list warnArg;
+      warnArg.append("error");
+      warnArg.append("Octave:divide-by-zero");
+      feval("warning", warnArg);
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
+
+      if(pathSep.empty()) {
+        octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
+          "Internal error: Unable to get the path seperator")(0);
+        pathSep=ret.string_value();
+      }
+
+      // first restore default path
+      feval("restoredefaultpath", octave_value_list());
+      // save initial octave path
+      initialOctavePath=feval("path", octave_value_list(), 1)(0).string_value();
+      if(initialOctavePath.substr(0, 2)=="."+pathSep)
+        initialOctavePath=initialOctavePath.substr(2);
+  
+      // set .../share/mbxmlutils/octave to initial current search path ...
+      string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
+      initialOctEvalPath=dir;
+      // ... and make it available now (for swigLocalLoad below)
+      feval("addpath", octave_value_list(octave_value(dir)));
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
+
+      // add .../bin to initial current search path ...
+      if(bfs::path(MBXMLUTILS_CASADI_BIN).is_absolute())
+        dir=MBXMLUTILS_CASADI_BIN;
+      else
+        dir=(MBXMLUtils::getInstallPath()/MBXMLUTILS_CASADI_BIN).string(CODECVT);
+      initialOctEvalPath=dir+pathSep+initialOctEvalPath;
+      // ... and make it available now (for swigLocalLoad below)
+      feval("addpath", octave_value_list(octave_value(dir)));
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
+
+      {
+        BLOCK_STDERR(blockstderr);
+        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
+        if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
+      }
+
+      // get units
+      msg(Info)<<"Build unit list for measurements."<<endl;
+      boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
+      DOMElement *ele, *el2;
+      for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
+        for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
+          if(units.find(E(el2)->getAttribute("name"))!=units.end())
+            throw runtime_error(string("Internal error: Unit name ")+E(el2)->getAttribute("name")+" is defined more than once.");
+          units[E(el2)->getAttribute("name")]=X()%E(el2)->getFirstTextChild()->getData();
+        }
+    }
+    catch(...) {
+      deinitOctave();
+      throw;
+    }
+  }
 };
 
 OctEval::~OctEval() {
+  deinitOctave();
+}
+
+void OctEval::deinitOctave() {
   initCount--;
   if(initCount==0) {
     casadiOctValue.reset();
