@@ -1,7 +1,12 @@
+if MBXMLUTILS_MINGW
+  DL_LIB = 
+else
+  DL_LIB = -ldl
+endif
 lib_LTLIBRARIES = libmbxmlutilshelper.la
 libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS)
-libmbxmlutilshelper_la_LIBADD = $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutilshelper_la_LIBADD = $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(DL_LIB)
 
 libmbxmlutilshelper_la_SOURCES = dom.cc getinstallpath.cc last_write_time.cc utils.cc shared_library.cc
 
