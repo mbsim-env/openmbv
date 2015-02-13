@@ -2,8 +2,6 @@
 #  error "MBXMLUTILS_SHAREDLIBNAME must be defined before including this implementation file."
 #endif
 
-#include <boost/filesystem.hpp>
-
 #ifdef _WIN32
 #  include <windows.h>
 #else
@@ -18,14 +16,15 @@ namespace {
 #ifdef _WIN32
 extern "C" void *__ImageBase;
 #else
-boost::filesystem::path pathAtLoadTime=boost::filesystem::current_path();
+char buffer[2048];
+std::string pathAtLoadTime=getcwd(buffer, sizeof(buffer));
 #endif
 
 }
 
 namespace MBXMLUtils {
 
-boost::filesystem::path BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))() {
+std::string BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))() {
   // get the shared library file path containing this function
 #ifdef _WIN32
   wchar_t moduleName[2048];
@@ -34,7 +33,9 @@ boost::filesystem::path BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME,
 #else
   Dl_info info;
   dladdr(reinterpret_cast<void*>(&BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))), &info);
-  return boost::filesystem::absolute(info.dli_fname, pathAtLoadTime);
+  // convert to absolute path and return
+  std::string name(info.dli_fname);
+  return name[0]=='/'?name:pathAtLoadTime+"/"+name;
 #endif
 }
 

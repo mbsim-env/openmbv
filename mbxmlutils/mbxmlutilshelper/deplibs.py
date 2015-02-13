@@ -42,7 +42,8 @@ def getDependencies(filename):
     pass
   res=[set(), True]
   getDependencies.result[filename]=res
-  if re.search("\.so($|\.)", filename)!=None: # Linux
+  content=subprocess.check_output(["objdump", "-a", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  if content.find('file format elf')>=0: # Linux
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
       match=re.search("^.*\s=>\s(.*)\s\(0x[0-9a-fA-F]+\)$", line)
       if match!=None:
@@ -50,7 +51,7 @@ def getDependencies(filename):
           res[0].add(match.expand("\\1"))
     res[1]=True
     return res
-  elif os.path.splitext(filename)[1]==".dll": # Windows
+  elif content.find('file format pei')>=0: # Windows
     try:
       for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
         match=re.search("^\s*DLL Name:\s(.*)$", line)

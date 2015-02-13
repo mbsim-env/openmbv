@@ -1,7 +1,7 @@
 #ifndef _MBXMLUTILS_SHAREDLIBRARY_H_
 #define _MBXMLUTILS_SHAREDLIBRARY_H_
 
-#include <boost/filesystem.hpp>
+#include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #ifdef _WIN32
 #  include <windows.h>
@@ -11,11 +11,11 @@ namespace MBXMLUtils {
 
 class SharedLibrary {
   public:
-    SharedLibrary(const boost::filesystem::path &file_);
+    SharedLibrary(const std::string &file_);
     SharedLibrary(const SharedLibrary& src);
     ~SharedLibrary();
     void* getAddress(const std::string &symbolName);
-    const boost::filesystem::path file;
+    const std::string file;
     const boost::posix_time::ptime writeTime;
     bool operator<(const SharedLibrary& b) const { return file<b.file; }
   private:
