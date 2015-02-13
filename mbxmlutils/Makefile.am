@@ -6,7 +6,7 @@ SUBDIRS = mbxmlutilshelper $(ADDITIONAL_SUBDIRS)
 DIST_SUBDIRS = mbxmlutilshelper $(ADDITIONAL_SUBDIRS) xmldoc doc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = $(ADDITIONAL_PKG_CONFIG) mbxmlutilshelper.pc
+pkgconfig_DATA = $(ADDITIONAL_PKG_CONFIG) mbxmlutilsbase.pc mbxmlutilshelper.pc
 
 
 
