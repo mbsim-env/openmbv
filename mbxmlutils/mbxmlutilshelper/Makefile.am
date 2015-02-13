@@ -23,3 +23,7 @@ bin_PROGRAMS = mbxmlutilsvalidate
 mbxmlutilsvalidate_SOURCES = validate.cc
 mbxmlutilsvalidate_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+
+
+pythondir = @datadir@/@PACKAGE@/python
+dist_python_DATA = deplibs.py deplibs.mk
