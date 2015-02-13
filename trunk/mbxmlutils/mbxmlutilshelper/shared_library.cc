@@ -10,8 +10,8 @@ using namespace std;
 
 namespace MBXMLUtils {
 
-SharedLibrary::SharedLibrary(const boost::filesystem::path &file_) : file(file_),
-  writeTime(boost::myfilesystem::last_write_time(file.generic_string())) {
+SharedLibrary::SharedLibrary(const string &file_) : file(file_),
+  writeTime(boost::myfilesystem::last_write_time(file)) {
   init();
 }
 
@@ -21,12 +21,12 @@ SharedLibrary::SharedLibrary(const SharedLibrary& src) : file(src.file), writeTi
 
 void SharedLibrary::init() {
 #ifndef _WIN32
-  handle=dlopen(file.generic_string().c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 #else
   handle=LoadLibraryEx(file.generic_string().c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #endif
   if(!handle)
-    throw runtime_error("Unable to load the library '"+file.generic_string()+"': "+getLastError());
+    throw runtime_error("Unable to load the library '"+file+"': "+getLastError());
 }
 
 SharedLibrary::~SharedLibrary() {
@@ -45,7 +45,7 @@ void* SharedLibrary::getAddress(const std::string &symbolName) {
 #endif
   if(!addr)
     throw runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
-                        file.generic_string()+"': "+getLastError());
+                        file+"': "+getLastError());
   return addr;
 }
 

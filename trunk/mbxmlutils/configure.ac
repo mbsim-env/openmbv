@@ -139,65 +139,25 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_SUBST([XALAN],[$xalan])
     
     dnl Check for octave
-    # check for pthread and include if found
-    AC_CHECK_LIB(pthread, pthread_mutexattr_init, LIBS="$LIBS -lpthread")
     # user supplied mkoctfile program
     AC_ARG_WITH([mkoctfile],
       [  --with-mkoctfile=PATHTOMKOCTFILE  The 'mkoctfile' program.],
       [mkoctfile="$withval"],[mkoctfile="no"])
-    # user supplied libraries for static linking against octave
-    # add static version of octave DLD (*.oct) files here
-    AC_ARG_WITH([octave-dld],
-      [  --with-octave-dld=STATICLIBARCHIV  Add STATICLIBARCHIV between -loctinterp and -loctave liker flags. (This is only used if static octave DLD (*.oct) files should be included)],
-      [STATICOCTAVEDLDLIB="$withval"],[STATICOCTAVEDLDLIB=""])
     # get mkoctfile program
     if test "$mkoctfile" == "no"; then
       AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
     fi
     test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
-    AC_SUBST([MKOCTFILE],[$mkoctfile])
     # get mkoctfile compiler flags
     DOS2UNIX="cat"
     if test "$cross_compiling" == "yes"; then
       DOS2UNIX="dos2unix"
     fi
-    MKOCTFILE_CFLAGS="$(echo $($MKOCTFILE -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-    MKOCTFILE_LIBS="$(echo \
-      $(unset RLD_FLAG; $MKOCTFILE -p RLD_FLAG | $DOS2UNIX) \
-      $(unset LFLAGS; $MKOCTFILE -p LFLAGS | $DOS2UNIX) \
-      $(unset LIBOCTINTERP; $MKOCTFILE -p LIBOCTINTERP | $DOS2UNIX) \
-      $STATICOCTAVEDLDLIB \
-      $(unset LIBOCTAVE; $MKOCTFILE -p LIBOCTAVE | $DOS2UNIX) \
-      $(unset LIBCRUFT; $MKOCTFILE -p LIBCRUFT | $DOS2UNIX) \
-      $(unset FFTW_LIBS; $MKOCTFILE -p FFTW_LIBS | $DOS2UNIX) \
-      $(unset BLAS_LIBS; $MKOCTFILE -p BLAS_LIBS | $DOS2UNIX) \
-      $(unset FLIBS; $MKOCTFILE -p FLIBS | $DOS2UNIX) \
-      $(unset LIBS; $MKOCTFILE -p LIBS | $DOS2UNIX) \
-      | sed -re 's|\\|/|g')"
+    MKOCTFILE_CFLAGS="$($mkoctfile -p INCFLAGS | $DOS2UNIX | tr '\\' '/')"
+    LIBOCTINTERPDIR="$($mkoctfile -p OCTLIBDIR | $DOS2UNIX | tr '\\' '/')"
+    LIBOCTINTERPDEPS=$($srcdir/mbxmlutilshelper/deplibs.py $LIBOCTINTERPDIR/liboctinterp.so | sed -rne 's|.* orgdir *= *"(.*)" *>lib(.*)\.so.*<.*|-L\1 -l\2|p' | tr '\n' ' ')
+    MKOCTFILE_LIBS="-L$LIBOCTINTERPDIR -loctinterp $LIBOCTINTERPDEPS"
     
-    if test "$cross_compiling" == "yes"; then
-      # convert MKOCTFILE_CFLAGS to unix path if cross compiling
-      RERUN=0
-      while test $RERUN -eq 0; do
-        WINPATH=$(echo $MKOCTFILE_CFLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-        UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
-        MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
-        echo $MKOCTFILE_CFLAGS | grep "\-I" &> /dev/null
-        RERUN=$?
-      done
-      MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|-X|-I|g")
-    
-      # convert MKOCTFILE_LIBS to unix path if cross compiling
-      RERUN=0
-      while test $RERUN -eq 0; do
-        WINPATH=$(echo $MKOCTFILE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-        UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
-        MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
-        echo $MKOCTFILE_LIBS | grep "\-L" &> /dev/null
-        RERUN=$?
-      done
-      MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
-    fi
     
     AC_SUBST([MKOCTFILE_CFLAGS])
     AC_SUBST([MKOCTFILE_LIBS])

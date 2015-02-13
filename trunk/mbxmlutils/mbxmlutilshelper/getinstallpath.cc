@@ -9,7 +9,7 @@ using namespace boost::filesystem;
 namespace MBXMLUtils {
 
 path getInstallPath() {
-  return getMBXMLUtilsHelperSharedLibPath().parent_path().parent_path();
+  return path(getMBXMLUtilsHelperSharedLibPath()).parent_path().parent_path();
 }
 
 } // end namespace MBXMLUtils

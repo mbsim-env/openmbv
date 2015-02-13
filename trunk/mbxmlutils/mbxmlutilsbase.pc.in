@@ -7,5 +7,5 @@ Name: MBXMLUtilsBase
 Description: MBXMLUtils Base Utilities
 Requires: 
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutilsbase -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ @LIBDL@
+Libs: -L${libdir} -lmbxmlutilsbase @LIBDL@
 Cflags: -I${includedir}
