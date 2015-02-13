@@ -29,6 +29,13 @@ namespace {
   //TODO // boost::filesystem::path::imbue(std::locale());
   //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
   #define CODECVT
+
+  // some platform dependent values
+#ifdef _WIN32
+  string LIBDIR="bin";
+#else
+  string LIBDIR="lib";
+#endif
 }
 
 namespace MBXMLUtils {
@@ -310,15 +317,23 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       feval("addpath", octave_value_list(octave_value(dir)));
       if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
-      // add .../bin to initial current search path ...
-      if(bfs::path(MBXMLUTILS_CASADI_BIN).is_absolute())
+      // add .../bin OR MBXMLUTILS_CASADI_BIN to initial current search path ...
+      if(string(MBXMLUTILS_CASADI_BIN)!="RELTOPREFIX" && bfs::exists(MBXMLUTILS_CASADI_BIN))
         dir=MBXMLUTILS_CASADI_BIN;
       else
-        dir=(MBXMLUtils::getInstallPath()/MBXMLUTILS_CASADI_BIN).string(CODECVT);
+        dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
       initialOctEvalPath=dir+pathSep+initialOctEvalPath;
       // ... and make it available now (for swigLocalLoad below)
       feval("addpath", octave_value_list(octave_value(dir)));
       if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
+
+      // add .../LIBDIR to initial current search path ...
+      dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
+      initialOctEvalPath=dir+pathSep+initialOctEvalPath;
+      // ... and make it available now (required e.g. for FMUs where the all octave oct-file are installed to .../LIBDIR
+      // where also all other dependent libraries are installed)
+      feval("addpath", octave_value_list(octave_value(dir)));
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add .../[bin|lib] to octave search path."); }
 
       {
         BLOCK_STDERR(blockstderr);
