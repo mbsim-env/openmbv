@@ -88,6 +88,8 @@ def walkDependencies(filename, deps):
 
 deps=set()
 walkDependencies(sys.argv[1], deps)
+# remove the library itself
+deps.remove(sys.argv[1])
 
 for n in getDoNotAdd():
   if n in deps:
