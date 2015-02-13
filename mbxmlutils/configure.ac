@@ -79,7 +79,7 @@ if test $usecasadi == yes;  then
        Must be equal to casadi-lib-prefix on Windows.],
     [ CASADIBIN="$withval" ],
     [ CASADIBIN="$prefix/bin" ])
-  AC_DEFINE_UNQUOTED(MBXMLUTILS_CASADI_BIN, ["$(test $CASADIBIN == "$prefix/bin" && echo "bin" || echo $CASADIBIN)"], [absolute or relatvie dir to CasADi.])
+  AC_DEFINE_UNQUOTED(MBXMLUTILS_CASADI_BIN, ["$(test $CASADIBIN == "$prefix/bin" && echo "RELTOPREFIX" || echo $CASADIBIN)"], [absolute or relatvie dir to CasADi.])
   CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS -DWITHOUT_PRE_1_9_X" # do not allow deprecated functions from casadi
   casadi="no"
   AC_CHECK_HEADERS([casadi/symbolic/sx/sx_node.hpp], [casadi="yes"],
@@ -149,12 +149,8 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     fi
     test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
     # get mkoctfile compiler flags
-    DOS2UNIX="cat"
-    if test "$cross_compiling" == "yes"; then
-      DOS2UNIX="dos2unix"
-    fi
-    MKOCTFILE_CFLAGS="$($mkoctfile -p INCFLAGS | $DOS2UNIX | tr '\\' '/')"
-    LIBOCTINTERPDIR="$($mkoctfile -p OCTLIBDIR | $DOS2UNIX | tr '\\' '/')"
+    MKOCTFILE_CFLAGS="$($mkoctfile -p INCFLAGS | dos2unix | tr '\\' '/')"
+    LIBOCTINTERPDIR="$($mkoctfile -p OCTLIBDIR | dos2unix | tr '\\' '/')"
     LIBOCTINTERPDEPS=$($srcdir/mbxmlutilshelper/deplibs.py $LIBOCTINTERPDIR/liboctinterp.so | sed -rne 's|.* orgdir *= *"(.*)" *>lib(.*)\.so.*<.*|-L\1 -l\2|p' | tr '\n' ' ')
     MKOCTFILE_LIBS="-L$LIBOCTINTERPDIR -loctinterp $LIBOCTINTERPDEPS"
     
