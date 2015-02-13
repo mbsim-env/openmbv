@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: MBXMLUtilsBase
 Description: MBXMLUtils Base Utilities
-Requires: xerces-c fmatvec
+Requires: 
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutilsbase
+Libs: -L${libdir} -lmbxmlutilsbase -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ @LIBDL@
 Cflags: -I${includedir}
