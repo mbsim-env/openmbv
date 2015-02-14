@@ -27,8 +27,8 @@ namespace MBXMLUtils {
 std::string BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))() {
   // get the shared library file path containing this function
 #ifdef _WIN32
-  wchar_t moduleName[2048];
-  GetModuleFileNameW(reinterpret_cast<HMODULE>(&__ImageBase), moduleName, sizeof(moduleName));
+  char moduleName[2048];
+  GetModuleFileName(reinterpret_cast<HMODULE>(&__ImageBase), moduleName, sizeof(moduleName));
   return moduleName;
 #else
   Dl_info info;

@@ -23,7 +23,7 @@ void SharedLibrary::init() {
 #ifndef _WIN32
   handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 #else
-  handle=LoadLibraryEx(file.generic_string().c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+  handle=LoadLibraryEx(file.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #endif
   if(!handle)
     throw runtime_error("Unable to load the library '"+file+"': "+getLastError());

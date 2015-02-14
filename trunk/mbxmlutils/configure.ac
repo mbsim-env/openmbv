@@ -149,11 +149,43 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     fi
     test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
     # get mkoctfile compiler flags
-    MKOCTFILE_CFLAGS="$($mkoctfile -p INCFLAGS | dos2unix | tr '\\' '/')"
-    LIBOCTINTERPDIR="$($mkoctfile -p OCTLIBDIR | dos2unix | tr '\\' '/')"
-    LIBOCTINTERPDEPS=$($srcdir/mbxmlutilshelper/deplibs.py $LIBOCTINTERPDIR/liboctinterp.so | sed -rne 's|.* orgdir *= *"(.*)" *>lib(.*)\.so.*<.*|-L\1 -l\2|p' | tr '\n' ' ')
-    MKOCTFILE_LIBS="-L$LIBOCTINTERPDIR -loctinterp $LIBOCTINTERPDEPS"
-    
+    MKOCTFILE_CFLAGS="$(echo $($mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
+    MKOCTFILE_LIBS="$(echo \
+      $(unset RLD_FLAG; $mkoctfile -p RLD_FLAG | dos2unix) \
+      $(unset LFLAGS; $mkoctfile -p LFLAGS | dos2unix) \
+      $(unset LIBOCTINTERP; $mkoctfile -p LIBOCTINTERP | dos2unix) \
+      $STATICOCTAVEDLDLIB \
+      $(unset LIBOCTAVE; $mkoctfile -p LIBOCTAVE | dos2unix) \
+      $(unset LIBCRUFT; $mkoctfile -p LIBCRUFT | dos2unix) \
+      $(unset FFTW_LIBS; $mkoctfile -p FFTW_LIBS | dos2unix) \
+      $(unset BLAS_LIBS; $mkoctfile -p BLAS_LIBS | dos2unix) \
+      $(unset FLIBS; $mkoctfile -p FLIBS | dos2unix) \
+      $(unset LIBS; $mkoctfile -p LIBS | dos2unix) \
+      | sed -re 's|\\|/|g')"
+
+    if test "$cross_compiling" == "yes"; then
+      # convert MKOCTFILE_CFLAGS to unix path if cross compiling
+      RERUN=0
+      while test $RERUN -eq 0; do
+        WINPATH=$(echo $MKOCTFILE_CFLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
+        UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+        MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+        echo $MKOCTFILE_CFLAGS | grep "\-I" &> /dev/null
+        RERUN=$?
+      done
+      MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|-X|-I|g")
+
+      # convert MKOCTFILE_LIBS to unix path if cross compiling
+      RERUN=0
+      while test $RERUN -eq 0; do
+        WINPATH=$(echo $MKOCTFILE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
+        UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+        MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+        echo $MKOCTFILE_LIBS | grep "\-L" &> /dev/null
+        RERUN=$?
+      done
+      MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
+    fi
     
     AC_SUBST([MKOCTFILE_CFLAGS])
     AC_SUBST([MKOCTFILE_LIBS])
