@@ -3,7 +3,6 @@ lib_LTLIBRARIES = libmbxmlutilsbase.la libmbxmlutilshelper.la
 # base helper functions (should not depend on any library except pure system libraries)
 libmbxmlutilsbase_la_SOURCES = last_write_time.cc shared_library.cc
 libmbxmlutilsbase_la_HEADERS = last_write_time.h shared_library.h getsharedlibpath.h getsharedlibpath_impl.h
-libmbxmlutilsbase_la_LDFLAGS = -static
 libmbxmlutilsbase_ladir = $(includedir)/mbxmlutilshelper
 
 # XML helper functions

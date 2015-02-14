@@ -42,7 +42,12 @@ def getDependencies(filename):
     pass
   res=[set(), True]
   getDependencies.result[filename]=res
-  content=subprocess.check_output(["objdump", "-a", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  try:
+    content=subprocess.check_output(["objdump", "-a", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  except subprocess.CalledProcessError:
+    print('WARNING: '+filename+' is not a real library. Skipping.', file=sys.stderr)
+    res[1]=False
+    return res
   if content.find('file format elf')>=0: # Linux
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
       match=re.search("^.*\s=>\s(.*)\s\(0x[0-9a-fA-F]+\)$", line)
@@ -52,15 +57,10 @@ def getDependencies(filename):
     res[1]=True
     return res
   elif content.find('file format pei')>=0: # Windows
-    try:
-      for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
-        match=re.search("^\s*DLL Name:\s(.*)$", line)
-        if match!=None:
-          res[0].add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
-    except subprocess.CalledProcessError:
-      print('WARNING: '+filename+' is not a real library', file=sys.stderr)
-      res[1]=False
-      return res
+    for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
+      match=re.search("^\s*DLL Name:\s(.*)$", line)
+      if match!=None:
+        res[0].add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
     res[1]=True
     return res
   else:
