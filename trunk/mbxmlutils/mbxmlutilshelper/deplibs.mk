@@ -3,7 +3,7 @@ deplibs.target:
 	echo "Create dependency file(s) (only if python is found) for $(lib_LTLIBRARIES)"
 	if which python &> /dev/null; then \
 	  for lib_la in $(lib_LTLIBRARIES); do \
-	    . ./$$lib_la; \
+	    . $(libdir)/$$lib_la; \
 	    if test -n "$$dlname"; then \
 	      if test $$libdir/$$dlname -nt $$libdir/$$dlname.deplibs; then \
 	        echo "Create dependency files for $$libdir/$$dlname"; \
