@@ -54,7 +54,9 @@ def searchWindowsLibrary(libname, libdir):
 def getDependencies(filename):
   res=set()
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB', content)!=None:
+  if re.search('ELF [0-9]+-bit LSB executable', content)!=None or re.search('ELF [0-9]+-bit LSB shared object', content)!=None:
+    if re.search('statically linked', content)!=None:
+      return res # skip static executables
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
       match=re.search("^\s*(.+)\s=>\snot found$", line)
       if match!=None:
@@ -91,7 +93,7 @@ def getDoNotAdd():
 @lru_cache(maxsize=None)
 def relDir(filename):
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB', content)!=None:
+  if re.search('ELF [0-9]+-bit LSB executable', content)!=None or re.search('ELF [0-9]+-bit LSB shared object', content)!=None:
     return "lib" # Linux
   elif re.search('PE[0-9]+ executable', content)!=None:
     return "bin" # Windows
