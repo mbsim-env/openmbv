@@ -49,17 +49,17 @@ def getDependencies(filename):
   res=set()
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
   if re.search('ELF [0-9]+-bit LSB', content)!=None:
-    for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
-      match=re.search("^\s*(.*)\s=>\snot found$", line)
+    for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
+      match=re.search("^\s*(.+)\s=>\snot found$", line)
       if match!=None:
         raise RuntimeError('Library '+match.expand("\\1")+' not found')
-      match=re.search("^.*\s=>\s(.*)\s\(0x[0-9a-fA-F]+\)$", line)
+      match=re.search("^.*\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
       if match!=None:
         res.add(match.expand("\\1"))
     return res
   elif re.search('PE[0-9]+ executable', content)!=None:
-    for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
-      match=re.search("^\s*DLL Name:\s(.*)$", line)
+    for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
+      match=re.search("^\s*DLL Name:\s(.+)$", line)
       if match!=None:
         res.add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
     return res
@@ -74,7 +74,7 @@ def getDoNotAdd():
   ]
   for s in system:
     if distutils.spawn.find_executable(s[0]):
-      for line in subprocess.check_output([s[0]]+s[1], stderr=open(os.devnull,"w")).decode('utf-8').split('\n'):
+      for line in subprocess.check_output([s[0]]+s[1], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
         notAdd.add(line)
       return notAdd
   return notAdd
