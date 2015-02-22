@@ -154,7 +154,6 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
       $(unset RLD_FLAG; $mkoctfile -p RLD_FLAG | dos2unix) \
       $(unset LFLAGS; $mkoctfile -p LFLAGS | dos2unix) \
       $(unset LIBOCTINTERP; $mkoctfile -p LIBOCTINTERP | dos2unix) \
-      $STATICOCTAVEDLDLIB \
       $(unset LIBOCTAVE; $mkoctfile -p LIBOCTAVE | dos2unix) \
       $(unset LIBCRUFT; $mkoctfile -p LIBCRUFT | dos2unix) \
       $(unset FFTW_LIBS; $mkoctfile -p FFTW_LIBS | dos2unix) \
