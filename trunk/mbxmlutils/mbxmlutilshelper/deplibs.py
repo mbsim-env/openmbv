@@ -18,18 +18,24 @@ else:
 
 
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None) the cache is very importend for this function!!!
 def getWindowsEnvPath(name):
-  if platform.system()=="Windows":
-    return os.environ[name]
-  if platform.system()=="Linux":
-    value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
-    ret=[]
-    for v in value.split(';'):
-      vwin=subprocess.check_output(["winepath", "-u", v], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
-      ret.append(vwin)
-    return ';'.join(ret)
-  raise RuntimeError('Unknown platform')
+  if name in getWindowsEnvPath.res:
+    return getWindowsEnvPath.res[name]
+  else:
+    if platform.system()=="Windows":
+      getWindowsEnvPath.res[name]=os.environ[name]
+      return getWindowsEnvPath.res[name]
+    if platform.system()=="Linux":
+      value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
+      ret=[]
+      cmd=["winepath", "-u"]
+      cmd.extend(value.split(';'))
+      vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
+      getWindowsEnvPath.res[name]=';'.join(vwin)
+      return getWindowsEnvPath.res[name]
+    raise RuntimeError('Unknown platform')
+getWindowsEnvPath.res={}
 
 def searchWindowsLibrary(libname, libdir):
   searchDir=[] # is search in order
@@ -58,11 +64,14 @@ def getDependencies(filename):
         res.add(match.expand("\\1"))
     return res
   elif re.search('PE[0-9]+ executable', content)!=None:
-    for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
-      match=re.search("^\s*DLL Name:\s(.+)$", line)
-      if match!=None:
-        res.add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
-    return res
+    try:
+      for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
+        match=re.search("^\s*DLL Name:\s(.+)$", line)
+        if match!=None:
+          res.add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
+      return res
+    except subprocess.CalledProcessError:
+      return res
   raise RuntimeError(filename+' unknown executable format')
 
 @lru_cache(maxsize=None)
