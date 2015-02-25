@@ -21,24 +21,26 @@
 #include "openmbvcppinterface/polygonpoint.h"
 
 using namespace std;
+using namespace boost;
 
 namespace OpenMBV {
 
-void PolygonPoint::serializePolygonPointContour(xercesc::DOMElement *parent, const vector<PolygonPoint*> *cont) {
+void PolygonPoint::serializePolygonPointContour(xercesc::DOMElement *parent,
+  const shared_ptr<vector<shared_ptr<PolygonPoint> > > &cont) {
   string str;
   str="[ ";
-  for(vector<PolygonPoint*>::const_iterator j=cont->begin(); j!=cont->end(); j++) {
+  for(vector<shared_ptr<PolygonPoint> >::const_iterator j=cont->begin(); j!=cont->end(); j++) {
     str+=Object::numtostr((*j)->getXComponent())+", "+Object::numtostr((*j)->getYComponent())+", "+Object::numtostr((*j)->getBorderValue());
     if(j+1!=cont->end()) str+=";    "; else str+=" ]";
   }
   Object::addElementText(parent, OPENMBV%"contour", str);
 }
 
-vector<PolygonPoint*>* PolygonPoint::initializeUsingXML(xercesc::DOMElement *element) {
+shared_ptr<vector<shared_ptr<PolygonPoint> > > PolygonPoint::initializeUsingXML(xercesc::DOMElement *element) {
   vector<vector<double> > matParam=Body::getMat(element);
-  vector<PolygonPoint*> *contour=new vector<PolygonPoint*>;
+  shared_ptr<vector<shared_ptr<PolygonPoint> > > contour=make_shared<vector<shared_ptr<PolygonPoint> > >();
   for(size_t r=0; r<matParam.size(); r++) {
-    PolygonPoint *pp=new PolygonPoint(matParam[r][0], matParam[r][1], (int)(matParam[r][2]));
+    shared_ptr<PolygonPoint> pp=create(matParam[r][0], matParam[r][1], (int)(matParam[r][2]));
     contour->push_back(pp);
   }
   return contour;

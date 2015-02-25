@@ -21,6 +21,7 @@
 #include <Inventor/fields/SoSFRotation.h>
 
 using namespace std;
+using namespace boost;
 
 namespace OpenMBVGUI {
 
@@ -400,17 +401,12 @@ void FloatMatrixEditor::valueChangedSlot() {
   if(ombvSetterPolygonPoint && ombvGetterPolygonPoint) {
     // asserts
     assert(cols==3);
-    vector<OpenMBV::PolygonPoint*>* contour;
-    // delete old heap PolygonPoints
-    contour=ombvGetterPolygonPoint();
-    for(unsigned int r=0; r<contour->size(); r++)
-      delete (*contour)[r];
-    delete contour;
+    shared_ptr<vector<shared_ptr<OpenMBV::PolygonPoint> > > contour;
     // create new heap PolygonPoints
-    contour=new vector<OpenMBV::PolygonPoint*>;
+    contour=make_shared<vector<shared_ptr<OpenMBV::PolygonPoint> > >();
     // get values from Qt
     for(int r=0; r<table->rowCount(); r++) {
-      OpenMBV::PolygonPoint *polyPoint=new OpenMBV::PolygonPoint(
+      shared_ptr<OpenMBV::PolygonPoint> polyPoint=OpenMBV::PolygonPoint::create(
                                static_cast<QDoubleSpinBox*>(table->cellWidget(r, 0))->value(),
                                static_cast<QDoubleSpinBox*>(table->cellWidget(r, 1))->value(),
         static_cast<int>(round(static_cast<QDoubleSpinBox*>(table->cellWidget(r, 2))->value())));

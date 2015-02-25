@@ -91,18 +91,18 @@ int main() {
     
     shared_ptr<Extrusion> extrusion=ObjectFactory::create<Extrusion>();
     extrusion->setName("myextrusion");
-    PolygonPoint *point11=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point12=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point13=new PolygonPoint(0.6,0.2,0);
-    vector<PolygonPoint*> *contour1=new vector<PolygonPoint*>;
+    shared_ptr<PolygonPoint> point11=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point12=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point13=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<vector<shared_ptr<PolygonPoint> > > contour1=make_shared<vector<shared_ptr<PolygonPoint> > >();
     contour1->push_back(point11);
     contour1->push_back(point12);
     contour1->push_back(point13);
     extrusion->addContour(contour1);
-    PolygonPoint *point21=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point22=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point23=new PolygonPoint(0.6,0.2,0);
-    vector<PolygonPoint*> *contour2=new vector<PolygonPoint*>;
+    shared_ptr<PolygonPoint> point21=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point22=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point23=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<vector<shared_ptr<PolygonPoint> > > contour2=make_shared<vector<shared_ptr<PolygonPoint> > >();
     contour2->push_back(point21);
     contour2->push_back(point22);
     contour2->push_back(point23);
@@ -111,10 +111,10 @@ int main() {
 
     shared_ptr<Rotation> rotation=ObjectFactory::create<Rotation>();
     rotation->setName("myrotation");
-    PolygonPoint *point31=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point32=new PolygonPoint(0.6,0.2,0);
-    PolygonPoint *point33=new PolygonPoint(0.6,0.2,0);
-    vector<PolygonPoint*> *contour3=new vector<PolygonPoint*>;
+    shared_ptr<PolygonPoint> point31=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point32=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<PolygonPoint> point33=PolygonPoint::create(0.6,0.2,0);
+    shared_ptr<vector<shared_ptr<PolygonPoint> > > contour3=make_shared<vector<shared_ptr<PolygonPoint> > >();
     contour3->push_back(point31);
     contour3->push_back(point32);
     contour3->push_back(point33);
@@ -133,10 +133,10 @@ int main() {
     crb->setName("mycrb");
       shared_ptr<Rotation> rotationc=ObjectFactory::create<Rotation>();
       rotationc->setName("myrotationc");
-      PolygonPoint *point41=new PolygonPoint(0.6,0.2,0);
-      PolygonPoint *point42=new PolygonPoint(0.6,0.2,0);
-      PolygonPoint *point43=new PolygonPoint(0.6,0.2,0);
-      vector<PolygonPoint*> *contour4=new vector<PolygonPoint*>;
+      shared_ptr<PolygonPoint> point41=PolygonPoint::create(0.6,0.2,0);
+      shared_ptr<PolygonPoint> point42=PolygonPoint::create(0.6,0.2,0);
+      shared_ptr<PolygonPoint> point43=PolygonPoint::create(0.6,0.2,0);
+      shared_ptr<vector<shared_ptr<PolygonPoint> > > contour4=make_shared<vector<shared_ptr<PolygonPoint> > >();
       contour4->push_back(point41);
       contour4->push_back(point42);
       contour4->push_back(point43);

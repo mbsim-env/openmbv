@@ -32,19 +32,10 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBV%"Rotation")
 
 Rotation::Rotation() : RigidBody(),
   startAngle(0),
-  endAngle(2*M_PI),
-  contour(0) {
+  endAngle(2*M_PI) {
 }
 
 Rotation::~Rotation() {
-  if(contour) { 
-    for(unsigned int i=0;i<contour->size();i++) {
-      delete (*contour)[i];
-      (*contour)[i]=0;
-    }
-    delete contour;
-    contour=0;
-  }
 }
 
 DOMElement* Rotation::writeXMLFile(DOMNode *parent) {
