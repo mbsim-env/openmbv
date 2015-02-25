@@ -36,10 +36,10 @@ class EdgeCalculation;
 class IvBody : public RigidBody {
   Q_OBJECT
   public:
-    IvBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    IvBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~IvBody();
   protected:
-    OpenMBV::IvBody *ivb;
+    boost::shared_ptr<OpenMBV::IvBody> ivb;
     void createProperties();
 
   private:
@@ -50,7 +50,7 @@ class IvBody : public RigidBody {
         CalculateEdgesThread(IvBody *ivBody_) : ivBody(ivBody_) {}
       protected:
         void run() {
-          OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)(ivBody->object);
+          boost::shared_ptr<OpenMBV::IvBody> ivb=boost::static_pointer_cast<OpenMBV::IvBody>(ivBody->object);
           ivBody->calculateEdges(ivb->getFullName(), ivb->getCreaseEdges(), ivb->getBoundaryEdges());
         }
         IvBody *ivBody;

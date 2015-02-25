@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class Cube : public RigidBody {
   Q_OBJECT
   public:
-    Cube(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Cube(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    OpenMBV::Cube *c;
+    boost::shared_ptr<OpenMBV::Cube> c;
     void createProperties();
 };
 

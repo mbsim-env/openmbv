@@ -36,7 +36,7 @@ namespace OpenMBVGUI {
 
 set<Object*> Object::objects;
 
-Object::Object(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
+Object::Object(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
                properties(NULL), clone(NULL) {
   object=obj;
   objects.insert(this);
@@ -184,11 +184,8 @@ Object *Object::getClone() {
 }
 
 void Object::deleteObjectSlot() {
-  OpenMBV::Object *objPtr=object;
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
-  delete this; // from now no element should be accessed thats why we have saveed the obj member
-  // if obj has a parent, remove obj from parent and delete obj
-  objPtr->destroy(); // this does not use any member of Object, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
+  delete this;
 }
 
 bool Object::getBoundingBox() {

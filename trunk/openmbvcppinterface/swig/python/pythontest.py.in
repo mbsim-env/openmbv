@@ -6,7 +6,7 @@ import OpenMBV;
 # main program
 def main():
   # create main group
-  group=OpenMBV.Group();
+  group=OpenMBV.ObjectFactory.create_Group();
   group.setName("MBS");
   
   # add some objects to group in this subroutine and return a added cube
@@ -26,7 +26,7 @@ def main():
 # a subroutine
 def createMyGroup(g):
   # create a cube
-  cube=OpenMBV.Cube();
+  cube=OpenMBV.ObjectFactory.create_Cube();
   cube.setName("Box1");
   cube.setReferenceFrame(True);
   cube.setLength(1.234);
@@ -34,7 +34,7 @@ def createMyGroup(g):
   cube.setLength(1.236);
   
   # create a cuboid
-  cuboid=OpenMBV.Cuboid();
+  cuboid=OpenMBV.ObjectFactory.create_Cuboid();
   cuboid.setName("Box2");
   cuboid.setReferenceFrame(True);
   cuboid.setLength(1.234, 3, 4);

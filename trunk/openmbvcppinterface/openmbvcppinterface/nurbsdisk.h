@@ -38,10 +38,8 @@ namespace OpenMBV {
    * \date 2010-08-09 adapt to new concept of Markus Friedrich (Schindler)
    */
   class NurbsDisk : public DynamicColoredBody {
+    friend class ObjectFactory;
     public:
-      /** constructor */ 
-      NurbsDisk(); 
-
       /** Retrun the class name */
       std::string getClassName() { return "NurbsDisk"; }
 
@@ -160,9 +158,8 @@ namespace OpenMBV {
 
       /** Write XML file for not time-dependent data. */
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
-
     protected:
-      /** destructor */
+      NurbsDisk(); 
       virtual ~NurbsDisk();
 
       /** Each row comprises [time,]. */

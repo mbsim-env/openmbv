@@ -45,12 +45,13 @@ namespace OpenMBVGUI {
 
 map<SoNode*,Body*> Body::bodyMap;
 
-Body::Body(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
-  body=(OpenMBV::Body*)obj;
+Body::Body(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
+  body=boost::static_pointer_cast<OpenMBV::Body>(obj);
   frameSensor=NULL;
   shilouetteEdgeFrameSensor=NULL;
   shilouetteEdgeOrientationSensor=NULL;
-  if(obj->getParent()) { // do nothing for rigidbodies inside a compountrigidbody
+  boost::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
+  if(p) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
     frameSensor=new SoFieldSensor(frameSensorCB, this);
     frameSensor->attach(MainWindow::getInstance()->getFrame());

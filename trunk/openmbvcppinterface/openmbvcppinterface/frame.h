@@ -26,13 +26,13 @@ namespace OpenMBV {
 
   /** A frame; A coordinate system */
   class Frame : public RigidBody {
+    friend class ObjectFactory;
     protected:
       double size;
       double offset;
+      Frame();
       ~Frame() {}
     public:
-      /** Default constructor */
-      Frame();
 
       /** Retrun the class name */
       std::string getClassName() { return "Frame"; }

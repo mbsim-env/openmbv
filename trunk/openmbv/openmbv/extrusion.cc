@@ -35,8 +35,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Extrusion::Extrusion(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  e=(OpenMBV::Extrusion*)obj;
+Extrusion::Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  e=boost::static_pointer_cast<OpenMBV::Extrusion>(obj);
   iconFile="extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

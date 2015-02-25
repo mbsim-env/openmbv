@@ -31,9 +31,9 @@ namespace OpenMBVGUI {
 class Grid : public RigidBody {
   Q_OBJECT
   public:
-    Grid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Grid(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    OpenMBV::Grid *g;
+    boost::shared_ptr<OpenMBV::Grid> g;
     void createProperties();
 };
 

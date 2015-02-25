@@ -26,13 +26,12 @@ namespace OpenMBV {
 
   /** A cuboid */
   class Cuboid : public RigidBody {
+    friend class ObjectFactory;
     protected:
       std::vector<double> length;
+      Cuboid();
       ~Cuboid() {}
     public:
-      /** Default constructor */
-      Cuboid();
-
       /** Retrun the class name */
       std::string getClassName() { return "Cuboid"; }
 

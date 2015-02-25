@@ -22,35 +22,40 @@
 
 #include <openmbvcppinterface/rigidbody.h>
 #include <vector>
+#include <boost/enable_shared_from_this.hpp>
 
 namespace OpenMBV {
 
   /** A compound of rigid bodies */
-  class CompoundRigidBody : public RigidBody {
+  class CompoundRigidBody : public RigidBody
+#ifndef SWIG
+      , public boost::enable_shared_from_this<CompoundRigidBody>
+#endif
+    {
     friend class RigidBody;
+    friend class ObjectFactory;
     protected:
       std::string expandStr;
-      std::vector<RigidBody*> rigidBody;
+      std::vector<boost::shared_ptr<RigidBody> > rigidBody;
 
+      CompoundRigidBody();
       ~CompoundRigidBody();
     public:
-      /** Default constructor */
-      CompoundRigidBody();
 
       /** Retrun the class name */
       std::string getClassName() { return "CompoundRigidBody"; }
 
       /** Add a RigidBody to this compound */
-      void addRigidBody(RigidBody* rigidBody_) {
+      void addRigidBody(boost::shared_ptr<RigidBody> rigidBody_) {
         if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");
         for(unsigned int i=0; i<rigidBody.size(); i++)
           if(rigidBody[i]->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");
         rigidBody.push_back(rigidBody_);
-        rigidBody_->parent=0;
-        rigidBody_->compound=this;
+        rigidBody_->parent.reset();
+        rigidBody_->compound=shared_from_this();
       }
 
-      std::vector<RigidBody*> getRigidBodies() {
+      std::vector<boost::shared_ptr<RigidBody> >& getRigidBodies() {
         return rigidBody;
       }
 

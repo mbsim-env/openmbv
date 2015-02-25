@@ -32,30 +32,29 @@ namespace OpenMBV {
     public:
       enum DrawStyle { filled, lines, points };
     private:
-      std::string getRelPathTo(Body* destBody);
+      std::string getRelPathTo(const boost::shared_ptr<Body> &destBody);
     protected:
       std::string outLineStr, shilouetteEdgeStr;
       DrawStyle drawMethod;
-      Body* hdf5LinkBody;
+      boost::shared_ptr<Body> hdf5LinkBody;
       std::string hdf5LinkStr;
       void createHDF5File();
       void openHDF5File();
       void terminate();
+      Body();
       ~Body() {}
     public:
-      /** Default constructor */
-      Body();
 
       /** Retrun the class name */
       std::string getClassName() { return "Body"; }
 
       /** Link this body with dest in the HDF5 file */
-      void setHDF5LinkTarget(Body* dest) { hdf5LinkBody=dest; }
+      void setHDF5LinkTarget(const boost::shared_ptr<Body> &dest) { hdf5LinkBody=dest; }
       
-      Body* getHDF5LinkTarget() { return hdf5LinkBody; }
+      boost::shared_ptr<Body>& getHDF5LinkTarget() { return hdf5LinkBody; }
 
       /** Returns if this body is linked to another */
-      bool isHDF5Link() { return (hdf5LinkBody!=0 || hdf5LinkStr!=""); }
+      bool isHDF5Link() { return (hdf5LinkBody || hdf5LinkStr!=""); }
 
       /** Draw outline of this object in the viewer if true (the default) */
       void setOutLine(bool ol) { outLineStr=(ol==true)?"true":"false"; }

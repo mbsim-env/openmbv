@@ -30,7 +30,7 @@ using namespace xercesc;
 namespace OpenMBV {
 
 Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
-  hdf5LinkBody(0), hdf5LinkStr("") {
+  hdf5LinkStr("") {
 }
 
 DOMElement* Body::writeXMLFile(DOMNode *parent) {
@@ -60,23 +60,25 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
 }
 
 void Body::createHDF5File() {
+  boost::shared_ptr<Group> p=parent.lock();
   if(!hdf5LinkBody)
-    hdf5Group=parent->hdf5Group->createChildObject<H5::Group>(name)();
+    hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
   else
-    parent->hdf5Group->createSoftLink(name, getRelPathTo(hdf5LinkBody));
+    p->hdf5Group->createSoftLink(name, getRelPathTo(hdf5LinkBody));
 }
 
 void Body::openHDF5File() {
   hdf5Group=NULL;
   try {
-    hdf5Group=parent->hdf5Group->openChildObject<H5::Group>(name);
+    boost::shared_ptr<Group> p=parent.lock();
+    hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
   }
   catch(...) {
     msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
   }
 }
 
-std::string Body::getRelPathTo(Body* destBody) {
+std::string Body::getRelPathTo(const boost::shared_ptr<Body> &destBody) {
   // create relative path to destination
   string dest=destBody->getFullName();
   string src=getFullName();

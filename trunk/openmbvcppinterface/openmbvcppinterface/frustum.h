@@ -26,12 +26,12 @@ namespace OpenMBV {
 
   /** A frustum (with a frustum hole) */
   class Frustum : public RigidBody {
+    friend class ObjectFactory;
     protected:
       double baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
+      Frustum();
       ~Frustum() {}
     public:
-      /** Default constructor */
-      Frustum();
 
       /** Retrun the class name */
       std::string getClassName() { return "Frustum"; }

@@ -34,8 +34,7 @@ RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), reference
   initialTranslation(vector<double>(3, 0)),
   initialRotation(vector<double>(3, 0)),
   scaleFactor(1),
-  data(0),
-  compound(0) {
+  data(0) {
 }
 
 RigidBody::~RigidBody() {
@@ -107,38 +106,22 @@ void RigidBody::initializeUsingXML(DOMElement *element) {
   setScaleFactor(getDouble(e));
 }
 
-Group* RigidBody::getSeparateGroup() {
-  return compound?compound->parent->getSeparateGroup():parent->getSeparateGroup();
+boost::shared_ptr<Group> RigidBody::getSeparateGroup() {
+  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+  return c?c->parent.lock()->getSeparateGroup():parent.lock()->getSeparateGroup();
 }
 
-Group* RigidBody::getTopLevelGroup() {
-  return compound?compound->parent->getTopLevelGroup():parent->getTopLevelGroup();
+boost::shared_ptr<Group> RigidBody::getTopLevelGroup() {
+  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+  return c?c->parent.lock()->getTopLevelGroup():parent.lock()->getTopLevelGroup();
 }
 
 string RigidBody::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  if(compound)
-    return compound->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+  if(c)
+    return c->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   else
     return DynamicColoredBody::getFullName(includingFileName, stopAtSeparateFile);
-}
-
-void RigidBody::destroy() const {
-  // a RigidBody may be part of a compoundrigidbody. If so delete from this if not treat it like other objects
-
-  // delete this rigidBody from compound if compound exists
-  if(compound) {
-    for(vector<RigidBody*>::iterator i=compound->rigidBody.begin(); i!=compound->rigidBody.end(); i++)
-      if(*i==this) {
-        compound->rigidBody.erase(i);
-        break;
-      }
-  }
-  else {
-    DynamicColoredBody::destroy();
-    return;
-  }
-  // destroy this rigidBody
-  delete this;
 }
 
 }

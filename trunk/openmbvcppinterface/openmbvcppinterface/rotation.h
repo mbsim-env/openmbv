@@ -28,14 +28,13 @@ namespace OpenMBV {
 
   /** Rotation of a cross section area */
   class Rotation : public RigidBody {
+    friend class ObjectFactory;
     protected:
       double startAngle, endAngle;
       std::vector<PolygonPoint*> *contour;
+      Rotation();
       ~Rotation();
     public:
-      /** Default constructor */
-      Rotation();
-
       /** Retrun the class name */
       std::string getClassName() { return "Rotation"; }
 

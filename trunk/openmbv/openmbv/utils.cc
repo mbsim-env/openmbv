@@ -229,7 +229,7 @@ void Utils::tessEndCB(void) {
   }
 }
 
-OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory, const vector<string> &existingNames, const string &title) {
+boost::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryElement> &factory, const vector<string> &existingNames, const string &title) {
   bool exist;
   int i=0;
   string name;
@@ -272,7 +272,7 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
 
   bool unique;
   do {
-    if(dialog.exec()!=QDialog::Accepted) return NULL;
+    if(dialog.exec()!=QDialog::Accepted) return boost::shared_ptr<OpenMBV::Object>();
     unique=true;
     for(unsigned int j=0; j<existingNames.size(); j++)
       if(existingNames[j]==lineEdit->text().toStdString()) {
@@ -282,7 +282,7 @@ OpenMBV::Object *Utils::createObjectEditor(const vector<FactoryElement> &factory
       }
   } while(!unique);
 
-  OpenMBV::Object *obj=factory[cb->currentIndex()].get<2>()();
+  boost::shared_ptr<OpenMBV::Object> obj=factory[cb->currentIndex()].get<2>()();
   obj->setName(lineEdit->text().toStdString());
   return obj;
 }

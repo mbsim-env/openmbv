@@ -31,8 +31,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Cuboid::Cuboid(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  c=(OpenMBV::Cuboid*)obj;
+Cuboid::Cuboid(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  c=boost::static_pointer_cast<OpenMBV::Cuboid>(obj);
   iconFile="cuboid.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

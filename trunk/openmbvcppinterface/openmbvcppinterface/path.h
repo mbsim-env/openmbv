@@ -34,18 +34,16 @@ namespace OpenMBV {
    * A row consists of the following columns in order given in
    * world frame: time, x, y, z */
   class Path : public Body {
+    friend class ObjectFactory;
     protected:
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
       std::vector<double> color;
       
-      /** Destructor */
+      Path();
       virtual ~Path();
     public:
-      /** Default constructor */
-      Path();
-
       /** Retrun the class name */
       std::string getClassName() { return "Path"; }
 

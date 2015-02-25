@@ -28,18 +28,14 @@ ObjectFactory& ObjectFactory::instance() {
   return of;
 }
 
-void ObjectFactory::deallocate(Object *obj) {
-  obj->destroy();
-}
-
-void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc, deallocateFkt dealloc) {
+void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc) {
   // check if name was already registred with the same &allocate<CreateType>: if yes return and do not add it twice
   std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(name);
   for(MapIt it=range.first; it!=range.second; it++)
-    if(it->second.first==alloc)
+    if(it->second==alloc)
       return;
   // name is not registred with &allocate<CreateType>: register it
-  instance().registeredType.insert(std::make_pair(name, std::make_pair(alloc, dealloc)));
+  instance().registeredType.insert(std::make_pair(name, alloc));
 }
 
 }

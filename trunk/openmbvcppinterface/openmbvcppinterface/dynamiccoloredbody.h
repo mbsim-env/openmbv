@@ -26,16 +26,16 @@ namespace OpenMBV {
 
   /** Abstract base class for all dynamically colored bodies */
   class DynamicColoredBody : public Body {
+    friend class ObjectFactory;
     protected:
       double minimalColorValue, maximalColorValue;
       double dynamicColor;
       std::vector<double> diffuseColor;
       double transparency;
 
+      DynamicColoredBody();
       ~DynamicColoredBody();
     public:
-      DynamicColoredBody();
-
       /** Set the minimal color value.
        * The color value of the body in linearly mapped between minimalColorValue
        * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).

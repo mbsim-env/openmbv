@@ -43,8 +43,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  crb=(OpenMBV::CompoundRigidBody*)obj;
+CompoundRigidBody::CompoundRigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  crb=boost::static_pointer_cast<OpenMBV::CompoundRigidBody>(obj);
   iconFile="compoundrigidbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -52,7 +52,7 @@ CompoundRigidBody::CompoundRigidBody(OpenMBV::Object *obj, QTreeWidgetItem *pare
   setExpanded(crb->getExpand());
 
   // read XML
-  vector<OpenMBV::RigidBody*> rb=crb->getRigidBodies();
+  vector<boost::shared_ptr<OpenMBV::RigidBody> > rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
     ObjectFactory::create(rb[i], this, soSep, -1);
 }
@@ -78,26 +78,26 @@ QString CompoundRigidBody::getInfo() {
 
 void CompoundRigidBody::newRigidBodySlot() {
   static vector<Utils::FactoryElement> factory=boost::assign::list_of
-    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),          "Cube",          boost::factory<OpenMBV::Cube*>()))
-    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),        "Cuboid",        boost::factory<OpenMBV::Cuboid*>()))
-    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),     "Extrusion",     boost::factory<OpenMBV::Extrusion*>()))
-    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),         "Frame",         boost::factory<OpenMBV::Frame*>()))
-    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),       "Frustum",       boost::factory<OpenMBV::Frustum*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "Grid",          boost::factory<OpenMBV::Grid*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "InvisibleBody", boost::factory<OpenMBV::InvisibleBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),        "IvBody",        boost::factory<OpenMBV::IvBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),      "Rotation",      boost::factory<OpenMBV::Rotation*>()))
-    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),        "Sphere",        boost::factory<OpenMBV::Sphere*>()))
+    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),          "Cube",          Utils::factory<OpenMBV::Cube>()))
+    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),        "Cuboid",        Utils::factory<OpenMBV::Cuboid>()))
+    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),     "Extrusion",     Utils::factory<OpenMBV::Extrusion>()))
+    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),         "Frame",         Utils::factory<OpenMBV::Frame>()))
+    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),       "Frustum",       Utils::factory<OpenMBV::Frustum>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "Grid",          Utils::factory<OpenMBV::Grid>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "InvisibleBody", Utils::factory<OpenMBV::InvisibleBody>()))
+    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),        "IvBody",        Utils::factory<OpenMBV::IvBody>()))
+    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),      "Rotation",      Utils::factory<OpenMBV::Rotation>()))
+    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),        "Sphere",        Utils::factory<OpenMBV::Sphere>()))
   .to_container(factory);  
 
   vector<string> existingNames;
   for(unsigned int j=0; j<crb->getRigidBodies().size(); j++)
     existingNames.push_back(crb->getRigidBodies()[j]->getName());
 
-  OpenMBV::Object *obj=Utils::createObjectEditor(factory, existingNames, "Create new RigidBody");
-  if(obj==NULL) return;
+  boost::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new RigidBody");
+  if(!obj) return;
 
-  crb->addRigidBody(static_cast<OpenMBV::RigidBody*>(obj));
+  crb->addRigidBody(boost::static_pointer_cast<OpenMBV::RigidBody>(obj));
   ObjectFactory::create(obj, this, soSep, -1);
 
   // apply object filter

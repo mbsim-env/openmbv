@@ -77,13 +77,11 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
-      CompoundRigidBody *compound;
+      boost::weak_ptr<CompoundRigidBody> compound;
 
+      RigidBody();
       ~RigidBody();
     public:
-      /** Default constructor */
-      RigidBody();
-
       /** Draw local frame of this object in the viewer if true (the default) */
       void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
 
@@ -173,10 +171,8 @@ namespace OpenMBV {
 
       virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
 
-      Group* getSeparateGroup();
-      Group* getTopLevelGroup();
-
-      virtual void destroy() const;
+      boost::shared_ptr<Group> getSeparateGroup();
+      boost::shared_ptr<Group> getTopLevelGroup();
   };
 
 }

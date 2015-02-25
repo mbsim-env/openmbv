@@ -53,7 +53,7 @@ class Body : public Object {
     EdgeCalculation *edgeCalc;
     SoFieldSensor *frameSensor;
   public:
-    Body(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Body(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~Body();
     static void frameSensorCB(void *data, SoSensor*);
     virtual double update()=0; // return the current time
@@ -61,7 +61,7 @@ class Body : public Object {
   public slots:
     static std::map<SoNode*,Body*>& getBodyMap() { return bodyMap; }
   protected:
-    OpenMBV::Body *body;
+    boost::shared_ptr<OpenMBV::Body> body;
     SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
     SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
     static std::map<SoNode*,Body*> bodyMap;

@@ -36,6 +36,7 @@ namespace OpenMBV {
    * "to" point x, "to" point y,
    * "to" point z, delta x, delta y, delta z, color */
   class Arrow : public DynamicColoredBody {
+    friend class ObjectFactory;
     public:
       enum Type {
         line,
@@ -60,12 +61,9 @@ namespace OpenMBV {
       Type type;
       ReferencePoint referencePoint;
 
-      /** Destructor */
+      Arrow();
       virtual ~Arrow();
     public:
-      /** Default Constructor */
-      Arrow();
-
       /** Retrun the class name */
       std::string getClassName() { return "Arrow"; }
 

@@ -27,6 +27,7 @@
 #include "utils.h"
 #include <QtGui/QMessageBox>
 #include <boost/functional/factory.hpp>
+#include "openmbvcppinterface/objectfactory.h"
 #include "openmbvcppinterface/arrow.h"
 #include "openmbvcppinterface/coilspring.h"
 #include "openmbvcppinterface/nurbsdisk.h"
@@ -50,8 +51,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
-  grp=(OpenMBV::Group*)obj;
+Group::Group(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
+  grp=boost::static_pointer_cast<OpenMBV::Group>(obj);
   iconFile="group.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -66,16 +67,17 @@ Group::Group(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParen
     setFlags(flags() & ~Qt::ItemIsEditable);
   }
   // read XML
-  vector<OpenMBV::Object*> child=grp->getObjects();
+  vector<boost::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
-    if(child[i]->getClassName()=="Group" && ((OpenMBV::Group*)child[i])->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
+    if(child[i]->getClassName()=="Group" && (boost::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
     ObjectFactory::create(child[i], this, soSep, -1);
   }
 
   // timer for reloading file automatically
   reloadTimer=NULL;
   // if reloading is enabled and this Group is a toplevel file create timer
-  if(grp->getParent()==NULL && MainWindow::getInstance()->getReloadTimeout()>0) {
+  boost::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
+  if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString().c_str());
     h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString().c_str());
 
@@ -124,31 +126,31 @@ QString Group::getInfo() {
 
 void Group::newObjectSlot() {
   static vector<Utils::FactoryElement> factory=boost::assign::list_of
-    (Utils::FactoryElement(Utils::QIconCached("arrow.svg"),             "Arrow",             boost::factory<OpenMBV::Arrow*>()))
-    (Utils::FactoryElement(Utils::QIconCached("coilspring.svg"),        "CoilSpring",        boost::factory<OpenMBV::CoilSpring*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "NurbsDisk",         boost::factory<OpenMBV::NurbsDisk*>()))
-    (Utils::FactoryElement(Utils::QIconCached("compoundrigidbody.svg"), "CompoundRigidBody", boost::factory<OpenMBV::CompoundRigidBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),              "Cube",              boost::factory<OpenMBV::Cube*>()))
-    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),            "Cuboid",            boost::factory<OpenMBV::Cuboid*>()))
-    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),         "Extrusion",         boost::factory<OpenMBV::Extrusion*>()))
-    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),             "Frame",             boost::factory<OpenMBV::Frame*>()))
-    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),           "Frustum",           boost::factory<OpenMBV::Frustum*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "Grid",              boost::factory<OpenMBV::Grid*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "InvisibleBody",     boost::factory<OpenMBV::InvisibleBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),            "IvBody",            boost::factory<OpenMBV::IvBody*>()))
-    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          boost::factory<OpenMBV::Rotation*>()))
-    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            boost::factory<OpenMBV::Sphere*>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    boost::factory<OpenMBV::SpineExtrusion*>()))
-    (Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              boost::factory<OpenMBV::Path*>()))
-    (Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             boost::factory<OpenMBV::Group*>()))
+    (Utils::FactoryElement(Utils::QIconCached("arrow.svg"),             "Arrow",             Utils::factory<OpenMBV::Arrow>()))
+    (Utils::FactoryElement(Utils::QIconCached("coilspring.svg"),        "CoilSpring",        Utils::factory<OpenMBV::CoilSpring>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "NurbsDisk",         Utils::factory<OpenMBV::NurbsDisk>()))
+    (Utils::FactoryElement(Utils::QIconCached("compoundrigidbody.svg"), "CompoundRigidBody", Utils::factory<OpenMBV::CompoundRigidBody>()))
+    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),              "Cube",              Utils::factory<OpenMBV::Cube>()))
+    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),            "Cuboid",            Utils::factory<OpenMBV::Cuboid>()))
+    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),         "Extrusion",         Utils::factory<OpenMBV::Extrusion>()))
+    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),             "Frame",             Utils::factory<OpenMBV::Frame>()))
+    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),           "Frustum",           Utils::factory<OpenMBV::Frustum>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "Grid",              Utils::factory<OpenMBV::Grid>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "InvisibleBody",     Utils::factory<OpenMBV::InvisibleBody>()))
+    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),            "IvBody",            Utils::factory<OpenMBV::IvBody>()))
+    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          Utils::factory<OpenMBV::Rotation>()))
+    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            Utils::factory<OpenMBV::Sphere>()))
+    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>()))
+    (Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>()))
+    (Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>()))
   .to_container(factory);  
 
   vector<string> existingNames;
   for(unsigned int j=0; j<grp->getObjects().size(); j++)
     existingNames.push_back(grp->getObjects()[j]->getName());
 
-  OpenMBV::Object *obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
-  if(obj==NULL) return;
+  boost::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
+  if(!obj) return;
 
   grp->addObject(obj);
   ObjectFactory::create(obj, this, soSep, -1);
@@ -183,12 +185,8 @@ void Group::saveFileSlot() {
 }
 
 void Group::unloadFileSlot() {
-  OpenMBV::Group *grpPtr=grp;
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
-  delete this; // from now no element should be accessed thats why we have saveed the grp member
-  // if grp has a parent, remove grp from parent and delete grp
-  grpPtr->destroy(); // this does not use any member of Group, so we can call it after "detete this". We delete the OpenMBVCppInterface after the Object such that in the Object dtor the getPath is available
-
+  delete this;
 }
 
 void Group::reloadFileSlot() {

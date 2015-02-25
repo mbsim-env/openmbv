@@ -38,10 +38,10 @@ class Path : public Body {
     SoCoordinate3 *coord;
     SoLineSet *line;
     int maxFrameRead;
-    OpenMBV::Path *path;
+    boost::shared_ptr<OpenMBV::Path> path;
     void createProperties();
   public:
-    Path(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Path(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
 };
 

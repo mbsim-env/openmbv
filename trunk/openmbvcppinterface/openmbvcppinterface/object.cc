@@ -30,15 +30,16 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), parent(0), hdf5Group(0) {
+Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), hdf5Group(0) {
 }
 
 Object::~Object() {
 }
 
 string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  if(parent)
-    return parent->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+  boost::shared_ptr<Group> p=parent.lock();
+  if(p)
+    return p->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   else
     return name;
 }
@@ -147,12 +148,12 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   return e;
 }
 
-Group* Object::getSeparateGroup() {
-  return parent->getSeparateGroup();
+boost::shared_ptr<Group> Object::getSeparateGroup() {
+  return parent.lock()->getSeparateGroup();
 }
 
-Group* Object::getTopLevelGroup() {
-  return parent->getTopLevelGroup();
+boost::shared_ptr<Group> Object::getTopLevelGroup() {
+  return parent.lock()->getTopLevelGroup();
 }
 
 void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def) {
@@ -179,18 +180,6 @@ void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, con
   xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
   ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
   parent->insertBefore(ele, NULL);
-}
-
-void Object::destroy() const {
-  // delete this object from parent if parent exists
-  if(parent)
-    for(vector<Object*>::iterator i=parent->object.begin(); i!=parent->object.end(); i++)
-      if(*i==this) {
-        parent->object.erase(i);
-        break;
-      }
-  // destroy this object
-  delete this;
 }
 
 }

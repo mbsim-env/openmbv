@@ -31,8 +31,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Sphere::Sphere(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  s=(OpenMBV::Sphere*)obj;
+Sphere::Sphere(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  s=boost::static_pointer_cast<OpenMBV::Sphere>(obj);
   iconFile="sphere.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

@@ -39,7 +39,7 @@ class RigidBody : public DynamicColoredBody {
   Q_OBJECT
   friend class CompoundRigidBody;
   protected:
-    OpenMBV::RigidBody *rigidBody;
+    boost::shared_ptr<OpenMBV::RigidBody> rigidBody;
     SoSwitch *soLocalFrameSwitch, *soReferenceFrameSwitch, *soPathSwitch;
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
@@ -54,7 +54,7 @@ class RigidBody : public DynamicColoredBody {
     SoGroup *initTransRotGroup;
     void createProperties();
   public:
-    RigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
+    RigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody();
     virtual QString getInfo();
   public slots:

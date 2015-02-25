@@ -39,8 +39,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-IvBody::IvBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind), calculateEdgesThread(this) {
-  ivb=(OpenMBV::IvBody*)obj;
+IvBody::IvBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind), calculateEdgesThread(this) {
+  ivb=boost::static_pointer_cast<OpenMBV::IvBody>(obj);
   iconFile="ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
   edgeCalc=NULL;
@@ -122,7 +122,7 @@ void IvBody::calculateEdges(string fullName, double creaseEdges, bool boundaryEd
 }
 
 void IvBody::addEdgesToScene() {
-  OpenMBV::IvBody *ivb=(OpenMBV::IvBody*)object;
+  boost::shared_ptr<OpenMBV::IvBody> ivb=boost::static_pointer_cast<OpenMBV::IvBody>(object);
   soOutLineSep->addChild(edgeCalc->getCoordinates());
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
