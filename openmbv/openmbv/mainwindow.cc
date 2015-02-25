@@ -860,7 +860,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   }
 
   // read XML
-  OpenMBV::Group* rootGroup=new OpenMBV::Group;
+  boost::shared_ptr<OpenMBV::Group> rootGroup=OpenMBV::ObjectFactory::create<OpenMBV::Group>();
   rootGroup->setFileName(fileName);
   rootGroup->read(true, !env);
   rootGroup->getHDF5File()->refreshAfterWriterFlush();
@@ -1427,9 +1427,9 @@ void MainWindow::heavyWorkSlot() {
     // get number of rows of first none enviroment body
     if(!openMBVBodyForLastFrame) {
       map<SoNode*,Body*>::iterator it=Body::getBodyMap().begin();
-      while(it!=Body::getBodyMap().end() && static_cast<OpenMBV::Body*>(it->second->object)->getRows()==-1)
+      while(it!=Body::getBodyMap().end() && boost::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==-1)
         it++;
-      openMBVBodyForLastFrame=static_cast<OpenMBV::Body*>(it->second->object);
+      openMBVBodyForLastFrame=boost::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
     // refresh all files
     H5::File::refreshAllFilesAfterWriterFlush();
@@ -1623,7 +1623,7 @@ void MainWindow::lastFrameSCSlot() {
     return;
   }
 
-  openMBVBodyForLastFrame=NULL;
+  openMBVBodyForLastFrame=boost::shared_ptr<OpenMBV::Body>();
 
   stopAct->setChecked(false);
   playAct->setChecked(false);

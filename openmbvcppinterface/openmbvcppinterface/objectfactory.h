@@ -46,14 +46,14 @@ class ObjectFactory {
      * see also the macro OPENMBV_OBJECTFACTORY_REGISTERXMLNAME.  */
     template<class CreateType>
     static void registerXMLName(const MBXMLUtils::FQN &name) {
-      registerXMLName(name, &allocate<CreateType>, &deallocate);
+      registerXMLName(name, &allocate<CreateType>);
     }
 
     /** Create an object corresponding to the XML element element and return a pointer of type ContainerType.
      * Throws if the created object is not of type ContainerType.
      * This function returns a new object dependent on the registration of the created object. */
     template<class ContainerType>
-    static ContainerType* create(const xercesc::DOMElement *element) {
+    static boost::shared_ptr<ContainerType> create(const xercesc::DOMElement *element) {
 #ifdef HAVE_BOOST_TYPE_TRAITS_HPP
       // just check if ContainerType is derived from Object if not throw a compile error if boost is avaliable
       // if boost is not avaliable a runtime error will occure later. (so it does not care if boost is not available)
@@ -61,41 +61,48 @@ class ObjectFactory {
         "In OpenMBV::ObjectFactory::create<ContainerType>(...) ContainerType must be derived from Object.");
 #endif
       // return NULL if no input is supplied
-      if(element==NULL) return NULL;
+      if(element==NULL) return boost::shared_ptr<ContainerType>();
       // loop over all all registred types corresponding to element->ValueStr()
       std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(MBXMLUtils::E(element)->getTagName());
       for(MapIt it=range.first; it!=range.second; it++) {
         // allocate a new object using the allocate function pointer
-        Object *ele=it->second.first();
+        boost::shared_ptr<Object> ele=it->second();
         // try to cast ele up to ContainerType
-        ContainerType *ret=dynamic_cast<ContainerType*>(ele);
+        boost::shared_ptr<ContainerType> ret=boost::dynamic_pointer_cast<ContainerType>(ele);
         // if possible, return it
         if(ret)
           return ret;
-        // if not possible, deallocate newly created (wrong) object and continue searching
-        else
-          it->second.second(ele);
       }
       // no matching element found: throw error
       throw std::runtime_error("No class named "+MBXMLUtils::X()%element->getTagName()+" found which is of type "+
                                typeid(ContainerType).name()+".");
     }
 
+    /** Create an empty object of type CreateType. */
+    template<class CreateType>
+    static boost::shared_ptr<CreateType> create() {
+      return boost::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
+    }
+
+    /** Return a copy of t. */
+    template<class CreateType>
+    static boost::shared_ptr<CreateType> create(const boost::shared_ptr<CreateType> &t) {
+      return boost::shared_ptr<CreateType>(new CreateType(*t.get()), &deleter<CreateType>);
+    }
+
   private:
 
     // a pointer to a function allocating an object
-    typedef Object* (*allocateFkt)();
-    // a pointer to a function deallocating an object
-    typedef void (*deallocateFkt)(Object *obj);
+    typedef boost::shared_ptr<Object> (*allocateFkt)();
 
     // convinence typedefs
-    typedef std::multimap<MBXMLUtils::FQN, std::pair<allocateFkt, deallocateFkt> > Map;
+    typedef std::multimap<MBXMLUtils::FQN, allocateFkt> Map;
     typedef typename Map::iterator MapIt;
 
     // private ctor
     ObjectFactory() {}
 
-    static void registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc, deallocateFkt dealloc);
+    static void registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc);
 
     // create an singleton instance of the object factory.
     // only declaration here and defition and explicit instantation for all Object in objectfactory.cc (required for Windows)
@@ -104,14 +111,15 @@ class ObjectFactory {
     // a multimap of all registered types
     Map registeredType;
 
-    // a wrapper to allocate an object of type CreateType
+    // a wrapper to allocate an object of type CreateType: used by create(xercesc::DOMElement *)
     template<class CreateType>
-    static Object* allocate() {
-      return new CreateType;
+    static boost::shared_ptr<Object> allocate() {
+      return boost::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
     }
 
-    // a wrapper to deallocate an object created by allocate
-    static void deallocate(Object *obj);
+    // a wrapper to deallocate an object of type T: all dtors are protected but ObjectFactory is a friend of all classes
+    template<class T>
+    static void deleter(T *t) { delete t; }
 
 };
 

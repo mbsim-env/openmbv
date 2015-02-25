@@ -26,13 +26,12 @@ namespace OpenMBV {
 
   /** A sphere */
   class Sphere : public RigidBody {
+    friend class ObjectFactory;
     protected:
       double radius;
+      Sphere();
       ~Sphere() {}
     public:
-      /** Default constructor */
-      Sphere();
-
       /** Retrun the class name */
       std::string getClassName() { return "Sphere"; }
 

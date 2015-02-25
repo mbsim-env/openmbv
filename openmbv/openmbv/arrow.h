@@ -39,7 +39,7 @@ namespace OpenMBVGUI {
 class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
-    OpenMBV::Arrow *arrow;
+    boost::shared_ptr<OpenMBV::Arrow> arrow;
     SoSwitch *soPathSwitch;
     SoCoordinate3 *pathCoord, *lineCoord;
     SoLineSet *pathLine;
@@ -53,7 +53,7 @@ class Arrow : public DynamicColoredBody {
     double length, scaleLength;
     void createProperties();
   public:
-    Arrow(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Arrow(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
 };
 

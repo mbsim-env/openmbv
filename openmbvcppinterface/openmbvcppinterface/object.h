@@ -53,22 +53,16 @@ namespace OpenMBV {
       std::string enableStr, boundingBoxStr;
       std::string ID; // Note: the ID is metadata and stored as a processing instruction in XML
       bool selected; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
-      Group* parent;
+      boost::weak_ptr<Group> parent;
 
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
       H5::GroupBase *hdf5Group;
       virtual void terminate()=0;
 
-      /** Virtual destructor */
+      Object();
       virtual ~Object();
     public:
-      /** Default constructor */
-      Object();
-
-      /** It must be possible to delete the top level Group: use this function for therefore.
-       * If this object is was added into a parent object this object is first removed from this parent and then deleted. */
-      virtual void destroy() const;
 
       /** Retrun the class name */
       virtual std::string getClassName()=0;
@@ -97,12 +91,12 @@ namespace OpenMBV {
       virtual xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
-      Group* getSeparateGroup();
+      boost::shared_ptr<Group> getSeparateGroup();
 
       /** return the top level Group */
-      Group* getTopLevelGroup();
+      boost::shared_ptr<Group> getTopLevelGroup();
 
-      Group* getParent() { return parent; }
+      boost::weak_ptr<Group> getParent() { return parent; }
 
       H5::GroupBase *getHDF5Group() { return hdf5Group; };
 

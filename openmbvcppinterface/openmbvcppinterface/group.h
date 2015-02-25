@@ -24,15 +24,21 @@
 #include <vector>
 #include <map>
 #include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 namespace OpenMBV {
 
   /** A container for bodies */
-  class Group : public Object {
+  class Group : public Object
+#ifndef SWIG
+      , public boost::enable_shared_from_this<Group>
+#endif
+    {
     friend class Body;
     friend class Object;
+    friend class ObjectFactory;
     protected:
-      std::vector<Object*> object;
+      std::vector<boost::shared_ptr<Object> > object;
       std::string expandStr;
       std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
       bool separateFile;
@@ -40,6 +46,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
 
+      Group();
       virtual ~Group();
 
       /** Initialisze/Write the XML file.
@@ -63,9 +70,6 @@ namespace OpenMBV {
       void readH5();
 
     public:
-      /** Default constructor */
-      Group();
-
       /** Retrun the class name */
       std::string getClassName() { return "Group"; }
 
@@ -75,9 +79,9 @@ namespace OpenMBV {
       bool getExpand() { return expandStr=="true"?true:false; }
 
       /** Add a object to this object container */
-      void addObject(Object* object);
+      void addObject(boost::shared_ptr<Object> object);
 
-      std::vector<Object*> getObjects() {
+      std::vector<boost::shared_ptr<Object> >& getObjects() {
         return object;
       }
       
@@ -85,7 +89,7 @@ namespace OpenMBV {
       void setSeparateFile(bool sepFile) { separateFile=sepFile; }
 
       bool getSeparateFile() { return separateFile; }
-      boost::shared_ptr<H5::File> getHDF5File() { return hdf5File; }
+      boost::shared_ptr<H5::File>& getHDF5File() { return hdf5File; }
 
       /** Returns the file name of the .ombv.xml file of this separateFile Group
        * including the absolute or relatvie path */
@@ -118,10 +122,15 @@ namespace OpenMBV {
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
 
       /** return the first Group in the tree which is an separateFile */
-      Group* getSeparateGroup() { return separateFile?this:parent->getSeparateGroup(); }
+      boost::shared_ptr<Group> getSeparateGroup() {
+        return separateFile?shared_from_this():parent.lock()->getSeparateGroup();
+      }
 
       /** return the top level Group */
-      Group* getTopLevelGroup() { return parent==NULL?this:parent->getTopLevelGroup(); }
+      boost::shared_ptr<Group> getTopLevelGroup() {
+        boost::shared_ptr<Group> p=parent.lock();
+        return !p?shared_from_this():p->getTopLevelGroup();
+      }
   };
 
 }

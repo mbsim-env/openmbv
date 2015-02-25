@@ -47,25 +47,24 @@ Group::Group() : Object(), expandStr("true"), separateFile(false) {
 }
 
 Group::~Group() {
-  for(unsigned int i=0; i<object.size(); i++)
-    delete object[i];
 }
 
-void Group::addObject(Object* newObject) {
+void Group::addObject(shared_ptr<Object> newObject) {
   if(newObject->name=="") throw runtime_error("object to add must have a name");
   for(unsigned int i=0; i<object.size(); i++)
     if(object[i]->name==newObject->name)
       throw runtime_error("A object of name "+object[i]->name+" already exists.");
   object.push_back(newObject);
-  newObject->parent=this;
+  newObject->parent=shared_from_this();
 }
 
 string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  if(parent) {
+  boost::shared_ptr<Group> p=parent.lock();
+  if(p) {
     if(separateFile && stopAtSeparateFile)
       return fileName;
     else
-      return parent->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+      return p->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   }
   else
     return includingFileName==false || fileName.empty() ? name : fileName;
@@ -102,8 +101,9 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
 }
 
 void Group::createHDF5File() {
+  boost::shared_ptr<Group> p=parent.lock();
   if(!separateFile) {
-    hdf5Group=parent->hdf5Group->createChildObject<H5::Group>(name)();
+    hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
   }
@@ -111,7 +111,7 @@ void Group::createHDF5File() {
     string fullName=getFullName();
     for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
     // create link in current h5 file
-    parent->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombv.h5"), string("/")));
+    p->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombv.h5"), string("/")));
     // create new h5 file and write to in till now
     // use the directory of the topLevelFile and the above fullName
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
@@ -124,7 +124,8 @@ void Group::createHDF5File() {
 
 void Group::openHDF5File() {
   hdf5Group=NULL;
-  if(parent==NULL) {
+  boost::shared_ptr<Group> p=parent.lock();
+  if(!p) {
     try {
       hdf5File=boost::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-4)+".h5", H5::File::read);
       hdf5Group=hdf5File.get();
@@ -135,7 +136,7 @@ void Group::openHDF5File() {
   }
   else {
     try {
-      hdf5Group=parent->hdf5Group->openChildObject<H5::Group>(name);
+      hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
     }
     catch(...) {
       msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
@@ -189,7 +190,7 @@ void Group::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=element->getFirstElementChild();
   while (e) {
-    Object* obj=ObjectFactory::create<Object>(e);
+    shared_ptr<Object> obj=ObjectFactory::create<Object>(e);
     obj->initializeUsingXML(e);
     addObject(obj);
     e=e->getNextElementSibling();

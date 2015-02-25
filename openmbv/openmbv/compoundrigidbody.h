@@ -29,13 +29,13 @@ class CompoundRigidBody : public RigidBody {
   friend class MainWindow;
   Q_OBJECT
   public:
-    CompoundRigidBody(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    CompoundRigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
   protected:
     virtual double update();
     void createProperties();
   private:
-    OpenMBV::CompoundRigidBody *crb;
+    boost::shared_ptr<OpenMBV::CompoundRigidBody> crb;
   protected slots:
     void newRigidBodySlot();
 };

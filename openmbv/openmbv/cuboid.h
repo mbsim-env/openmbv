@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class Cuboid : public RigidBody {
   Q_OBJECT
   public:
-    Cuboid(OpenMBV::Object* obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Cuboid(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    OpenMBV::Cuboid *c;
+    boost::shared_ptr<OpenMBV::Cuboid> c;
     void createProperties();
 };
 

@@ -30,8 +30,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-CoilSpring::CoilSpring(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
-  coilSpring=(OpenMBV::CoilSpring*)obj;
+CoilSpring::CoilSpring(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
+  coilSpring=boost::static_pointer_cast<OpenMBV::CoilSpring>(obj);
   iconFile="coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

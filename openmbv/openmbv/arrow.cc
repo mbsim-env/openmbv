@@ -33,8 +33,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Arrow::Arrow(OpenMBV::Object *obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
-  arrow=(OpenMBV::Arrow*)obj;
+Arrow::Arrow(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
+  arrow=boost::static_pointer_cast<OpenMBV::Arrow>(obj);
   iconFile="arrow.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

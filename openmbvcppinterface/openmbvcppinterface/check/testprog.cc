@@ -16,79 +16,80 @@
 
 using namespace OpenMBV;
 using namespace std;
+using namespace boost;
 
-void walkHierarchy(Group *grp);
+void walkHierarchy(const shared_ptr<Group> &grp);
 
 int main() {
 
   cout<<"CREATE"<<endl;
   {
 
-  Group *g=new Group;
+  shared_ptr<Group> g=ObjectFactory::create<Group>();
   g->setName("mygrp");
   g->setFileName("mygrp.ombv.xml");
 
-    Cuboid *c2=new Cuboid;
+    shared_ptr<Cuboid> c2=ObjectFactory::create<Cuboid>();
     c2->setName("mycubeaa");
     c2->setLength(vector<double>(3,1.5));
     g->addObject(c2);
 
-    IvBody *iv=new IvBody;
+    shared_ptr<IvBody> iv=ObjectFactory::create<IvBody>();
     iv->setName("myiv");
     iv->setIvFileName("ivcube.iv");
     g->addObject(iv);
 
-    Group *subg=new Group;
+    shared_ptr<Group> subg=ObjectFactory::create<Group>();
     subg->setName("mysubgrp");
     subg->setSeparateFile(true);
     g->addObject(subg);
 
-      Cuboid *cX=new Cuboid;
+      shared_ptr<Cuboid> cX=ObjectFactory::create<Cuboid>();
       cX->setName("mycubeX");
       subg->addObject(cX);
       cX->setScaleFactor(2);
       cX->setLocalFrame(true);
 
-      Cuboid *c=new Cuboid;
+      shared_ptr<Cuboid> c=ObjectFactory::create<Cuboid>();
       c->setName("mycubeaa");
       c->setHDF5LinkTarget(cX);
       subg->addObject(c);
 
-      Cuboid *cZ=new Cuboid;
+      shared_ptr<Cuboid> cZ=ObjectFactory::create<Cuboid>();
       cZ->setName("mycubeZ");
       cZ->setHDF5LinkTarget(cX);
       subg->addObject(cZ);
 
-    Cuboid *c3=new Cuboid;
+    shared_ptr<Cuboid> c3=ObjectFactory::create<Cuboid>();
     c3->setName("mycube3");
     c3->setHDF5LinkTarget(cX);
     g->addObject(c3);
 
-    Cube *cube=new Cube;
+    shared_ptr<Cube> cube=ObjectFactory::create<Cube>();
     cube->setName("mycube");
     cube->setLength(5);
     g->addObject(cube);
 
-    Frame *frame=new Frame;
+    shared_ptr<Frame> frame=ObjectFactory::create<Frame>();
     frame->setName("myframe");
     frame->setSize(2);
     g->addObject(frame);
 
-    Arrow *arrow=new Arrow;
+    shared_ptr<Arrow> arrow=ObjectFactory::create<Arrow>();
     arrow->setName("myarrow");
     g->addObject(arrow);
 
-    Frustum *cylinder=new Frustum;
+    shared_ptr<Frustum> cylinder=ObjectFactory::create<Frustum>();
     cylinder->setName("mycylinder");
     g->addObject(cylinder);
     
-    Sphere *sphere=new Sphere;
+    shared_ptr<Sphere> sphere=ObjectFactory::create<Sphere>();
     sphere->setName("mysphere");
     g->addObject(sphere);
     sphere->setMaximalColorValue(8);
     sphere->setMinimalColorValue(5);
     
-    Extrusion *extrusion=new Extrusion;
+    shared_ptr<Extrusion> extrusion=ObjectFactory::create<Extrusion>();
     extrusion->setName("myextrusion");
     PolygonPoint *point11=new PolygonPoint(0.6,0.2,0);
     PolygonPoint *point12=new PolygonPoint(0.6,0.2,0);
@@ -108,7 +109,7 @@ int main() {
     extrusion->addContour(contour2);
     g->addObject(extrusion);
 
-    Rotation *rotation=new Rotation;
+    shared_ptr<Rotation> rotation=ObjectFactory::create<Rotation>();
     rotation->setName("myrotation");
     PolygonPoint *point31=new PolygonPoint(0.6,0.2,0);
     PolygonPoint *point32=new PolygonPoint(0.6,0.2,0);
@@ -120,17 +121,17 @@ int main() {
     rotation->setContour(contour3);
     g->addObject(rotation);
     
-    InvisibleBody *invisiblebody=new InvisibleBody;
+    shared_ptr<InvisibleBody> invisiblebody=ObjectFactory::create<InvisibleBody>();
     invisiblebody->setName("myinvisiblebody");
     g->addObject(invisiblebody);
     
-    CoilSpring *coilspring=new CoilSpring;
+    shared_ptr<CoilSpring> coilspring=ObjectFactory::create<CoilSpring>();
     coilspring->setName("mycoilspring");
     g->addObject(coilspring);
     
-    CompoundRigidBody *crb=new CompoundRigidBody;
+    shared_ptr<CompoundRigidBody> crb=ObjectFactory::create<CompoundRigidBody>();
     crb->setName("mycrb");
-      Rotation *rotationc=new Rotation;
+      shared_ptr<Rotation> rotationc=ObjectFactory::create<Rotation>();
       rotationc->setName("myrotationc");
       PolygonPoint *point41=new PolygonPoint(0.6,0.2,0);
       PolygonPoint *point42=new PolygonPoint(0.6,0.2,0);
@@ -141,7 +142,7 @@ int main() {
       contour4->push_back(point43);
       rotationc->setContour(contour4);
     crb->addRigidBody(rotationc);
-      IvBody *ivc=new IvBody;
+      shared_ptr<IvBody> ivc=ObjectFactory::create<IvBody>();
       ivc->setName("myivc");
       ivc->setIvFileName("ivcube.iv");
     crb->addRigidBody(ivc);
@@ -168,29 +169,28 @@ int main() {
     crb->append(row);
   }
 
-  g->destroy();
   }
   cout<<"WALKHIERARCHY"<<endl;
   {
 
-  Group *g=new Group;
+  shared_ptr<Group> g=ObjectFactory::create<Group>();
   g->setFileName("mygrp.ombv.xml");
   g->read();
   walkHierarchy(g);
   
-  g->destroy();
-
   }
 }
 
-void walkHierarchy(Group *grp) {
+void walkHierarchy(const shared_ptr<Group> &grp) {
   cout<<grp->getFullName()<<endl;
-  vector<Object*> obj=grp->getObjects();
+  vector<shared_ptr<Object> > obj=grp->getObjects();
   for(size_t i=0; i<obj.size(); i++) {
-    if(obj[i]->getClassName()=="Group")
-      walkHierarchy((Group*)obj[i]);
+    shared_ptr<Group> g=dynamic_pointer_cast<Group>(obj[i]);
+    if(g)
+      walkHierarchy(g);
     else {
-      cout<<obj[i]->getFullName()<<" [rows="<<((Body*)obj[i])->getRows()<<"]"<<endl;
+      shared_ptr<Body> b=dynamic_pointer_cast<Body>(obj[i]);
+      cout<<obj[i]->getFullName()<<" [rows="<<b->getRows()<<"]"<<endl;
     }
   }
 }

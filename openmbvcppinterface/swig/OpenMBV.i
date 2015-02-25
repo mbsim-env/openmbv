@@ -5,6 +5,31 @@
 %include "std_string.i"
 %include "exception.i"
 
+// boost::shared_ptr
+%include "boost_shared_ptr.i"
+%shared_ptr(fmatvec::Atom)
+%shared_ptr(OpenMBV::Object)
+%shared_ptr(OpenMBV::Group)
+%shared_ptr(OpenMBV::Body)
+%shared_ptr(OpenMBV::DynamicColoredBody)
+%shared_ptr(OpenMBV::RigidBody)
+%shared_ptr(OpenMBV::CompoundRigidBody)
+%shared_ptr(OpenMBV::SpineExtrusion)
+%shared_ptr(OpenMBV::Cube)
+%shared_ptr(OpenMBV::NurbsDisk)
+%shared_ptr(OpenMBV::Rotation)
+%shared_ptr(OpenMBV::Arrow)
+%shared_ptr(OpenMBV::IvBody)
+%shared_ptr(OpenMBV::Frustum)
+%shared_ptr(OpenMBV::InvisibleBody)
+%shared_ptr(OpenMBV::Frame)
+%shared_ptr(OpenMBV::CoilSpring)
+%shared_ptr(OpenMBV::Sphere)
+%shared_ptr(OpenMBV::Extrusion)
+%shared_ptr(OpenMBV::Cuboid)
+%shared_ptr(OpenMBV::Grid)
+%shared_ptr(OpenMBV::Path)
+
 // handle exceptions
 %exception {
   try {
@@ -19,14 +44,6 @@
   catch(...) {
     SWIG_exception(SWIG_RuntimeError, "Unknown exception");
   }
-}
-
-// memory management
-%delobject Object::destroy;
-%delobject RigidBody::destroy;
-%feature("unref") Object {
-  if($this->getParent()==NULL)
-    $this->destroy();
 }
 
 #ifdef SWIGPYTHON
@@ -129,6 +146,24 @@
 %include <openmbvcppinterface/grid.h>
 %include <openmbvcppinterface/path.h>
 
+%include <openmbvcppinterface/objectfactory.h>
+%template(create_Group) OpenMBV::ObjectFactory::create<OpenMBV::Group>;
+%template(create_CompoundRigidBody) OpenMBV::ObjectFactory::create<OpenMBV::CompoundRigidBody>;
+%template(create_SpineExtrusion) OpenMBV::ObjectFactory::create<OpenMBV::SpineExtrusion>;
+%template(create_Cube) OpenMBV::ObjectFactory::create<OpenMBV::Cube>;
+%template(create_NurbsDisk) OpenMBV::ObjectFactory::create<OpenMBV::NurbsDisk>;
+%template(create_Rotation) OpenMBV::ObjectFactory::create<OpenMBV::Rotation>;
+%template(create_Arrow) OpenMBV::ObjectFactory::create<OpenMBV::Arrow>;
+%template(create_IvBody) OpenMBV::ObjectFactory::create<OpenMBV::IvBody>;
+%template(create_Frustum) OpenMBV::ObjectFactory::create<OpenMBV::Frustum>;
+%template(create_InvisibleBody) OpenMBV::ObjectFactory::create<OpenMBV::InvisibleBody>;
+%template(create_Frame) OpenMBV::ObjectFactory::create<OpenMBV::Frame>;
+%template(create_CoilSpring) OpenMBV::ObjectFactory::create<OpenMBV::CoilSpring>;
+%template(create_Sphere) OpenMBV::ObjectFactory::create<OpenMBV::Sphere>;
+%template(create_Extrusion) OpenMBV::ObjectFactory::create<OpenMBV::Extrusion>;
+%template(create_Cuboid) OpenMBV::ObjectFactory::create<OpenMBV::Cuboid>;
+%template(create_Grid) OpenMBV::ObjectFactory::create<OpenMBV::Grid>;
+%template(create_Path) OpenMBV::ObjectFactory::create<OpenMBV::Path>;
 
 
 // include these headers to the wraper c++ source code (required to compile)
@@ -151,4 +186,6 @@
 #include <openmbvcppinterface/cuboid.h>
 #include <openmbvcppinterface/grid.h>
 #include <openmbvcppinterface/path.h>
+
+#include <openmbvcppinterface/objectfactory.h>
 %}

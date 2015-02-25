@@ -27,10 +27,8 @@ namespace OpenMBV {
 
   /** A body defines by a Open Inventor file or a VRML file */
   class IvBody : public RigidBody {
+    friend class ObjectFactory;
     public:
-      /** Default constructor */
-      IvBody();
-
       /** Retrun the class name */
       std::string getClassName() { return "IvBody"; }
 
@@ -56,7 +54,9 @@ namespace OpenMBV {
       virtual void initializeUsingXML(xercesc::DOMElement *element);
 
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+
     protected:
+      IvBody();
       ~IvBody() {}
       std::string ivFileName;
       double creaseAngle;

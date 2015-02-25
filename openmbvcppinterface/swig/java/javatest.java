@@ -7,7 +7,7 @@ public class javatest {
   // main program
   public static void main(String argv[]) {
     // create main group
-    Group group=new Group();
+    Group group=ObjectFactory.create_Group();
     group.setName("MBS");
 
     // add some objects to group in this subroutine and return a added cube
@@ -28,13 +28,13 @@ public class javatest {
   // a subroutine
   public static Cube createMyGroup(Group g) {
     // create a cube
-    Cube cube=new Cube();
+    Cube cube=ObjectFactory.create_Cube();
     cube.setName("Box1");
     cube.setReferenceFrame(true);
     cube.setLength(1.234);
     
     // create a cuboid
-    Cuboid cuboid=new Cuboid();
+    Cuboid cuboid=ObjectFactory.create_Cuboid();
     cuboid.setName("Box2");
     cuboid.setReferenceFrame(true);
     cuboid.setLength(1.234, 3, 4);

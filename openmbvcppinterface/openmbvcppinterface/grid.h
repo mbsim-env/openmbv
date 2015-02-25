@@ -26,13 +26,13 @@ namespace OpenMBV {
 
   /** A grid in x-y-Plane */
   class Grid : public RigidBody {
+    friend class ObjectFactory;
     protected:
       double xSize, ySize;
       unsigned int nx, ny;
+      Grid();
       ~Grid() {}
     public:
-      /** Default constructor */
-      Grid();
 
       /** Retrun the class name */
       std::string getClassName() { return "Grid"; }

@@ -35,8 +35,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-RigidBody::RigidBody(OpenMBV::Object *obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem_, soParent, ind) {
-  rigidBody=(OpenMBV::RigidBody*)obj;
+RigidBody::RigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem_, soParent, ind) {
+  rigidBody=boost::static_pointer_cast<OpenMBV::RigidBody>(obj);
   //h5 dataset
   int rows=rigidBody->getRows();
   double dt;

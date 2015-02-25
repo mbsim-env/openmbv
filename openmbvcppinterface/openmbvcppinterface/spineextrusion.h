@@ -42,10 +42,8 @@ namespace OpenMBV {
    * ...,
    * spine point N x, spine point N y, spine point N z, spine twist N */
   class SpineExtrusion : public DynamicColoredBody {
+    friend class ObjectFactory;
     public:
-      /** constructor */
-      SpineExtrusion();
-
       /** Retrun the class name */
       std::string getClassName() { return "SpineExtrusion"; }
 
@@ -106,9 +104,8 @@ namespace OpenMBV {
 
       /** Write XML file for not time-dependent data. */
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
-
     protected:
-      /** destructor */
+      SpineExtrusion();
       virtual ~SpineExtrusion();
 
       /** Number of spine points used for extrusion along a path. */

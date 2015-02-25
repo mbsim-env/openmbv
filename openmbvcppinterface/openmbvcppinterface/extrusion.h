@@ -28,6 +28,7 @@ namespace OpenMBV {
 
   /** A extrusion of a cross section area (with holes) */
   class Extrusion : public RigidBody {
+    friend class ObjectFactory;
     public:
       enum WindingRule {
         odd,
@@ -40,10 +41,9 @@ namespace OpenMBV {
       WindingRule windingRule;
       double height;
       std::vector<std::vector<PolygonPoint*>*> contour;
+      Extrusion();
       ~Extrusion();
     public:
-      /** Default constructor */
-      Extrusion();
 
       /** Retrun the class name */
       std::string getClassName() { return "Extrusion"; }

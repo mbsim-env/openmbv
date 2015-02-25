@@ -36,6 +36,7 @@ namespace OpenMBV {
    * "from" point x, "from" point y,
    * "from" point z, "to" point x, "to" point y, "to" point z, color */
   class CoilSpring : public DynamicColoredBody {
+    friend class ObjectFactory;
     public:
       enum Type {
         tube,
@@ -49,12 +50,9 @@ namespace OpenMBV {
       double springRadius, crossSectionRadius, scaleFactor, numberOfCoils, nominalLength;
       Type type;
       
-      /** Destructor */
+      CoilSpring();
       virtual ~CoilSpring();
     public:
-      /** Default Constructor */
-      CoilSpring();
-
       /** Retrun the class name */
       std::string getClassName() { return "CoilSpring"; }
       

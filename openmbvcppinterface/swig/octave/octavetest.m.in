@@ -14,8 +14,13 @@ function main()
   global OpenMBV;
 
   % create main group
-  group=OpenMBV.Group();
+  1
+  group=OpenMBV.ObjectFactory.create_Group();
+  2
+  group
+  3
   group.setName('MBS');
+  4
   
   % add some objects to group in this subroutine and return a added cube
   cube=createMyGroup(group);
@@ -37,7 +42,7 @@ function cube=createMyGroup(g)
   global OpenMBV;
 
   % create a cube
-  cube=OpenMBV.Cube();
+  cube=OpenMBV.ObjectFactory.create_Cube();
   cube.setName('Box1');
   cube.setReferenceFrame(true);
   cube.setLength(1.234);
@@ -45,7 +50,7 @@ function cube=createMyGroup(g)
   cube.setLength(1.236);
   
   % create a cuboid
-  cuboid=OpenMBV.Cuboid();
+  cuboid=OpenMBV.ObjectFactory.create_Cuboid();
   cuboid.setName('Box2');
   cuboid.setReferenceFrame(true);
   cuboid.setLength(1.234, 3, 4);

@@ -35,8 +35,6 @@ CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
 }
 
 CompoundRigidBody::~CompoundRigidBody() {
-  for(unsigned int i=0; i<rigidBody.size(); i++)
-    delete rigidBody[i];
 }
 
 DOMElement* CompoundRigidBody::writeXMLFile(DOMNode *parent) {
@@ -56,7 +54,7 @@ void CompoundRigidBody::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   e=e->getNextElementSibling();
   while (e) {
-    RigidBody * rb = ObjectFactory::create<RigidBody>(e);
+    boost::shared_ptr<RigidBody> rb = ObjectFactory::create<RigidBody>(e);
     rb->initializeUsingXML(e);
     addRigidBody(rb);
     e=e->getNextElementSibling();

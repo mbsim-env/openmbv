@@ -26,11 +26,11 @@ namespace OpenMBV {
 
   /** A invisible body */
   class InvisibleBody : public RigidBody {
+    friend class ObjectFactory;
     protected:
+      InvisibleBody();
       ~InvisibleBody() {}
     public:
-      /** Default constructor */
-      InvisibleBody();
 
       /** Retrun the class name */
       std::string getClassName() { return "InvisibleBody"; }
