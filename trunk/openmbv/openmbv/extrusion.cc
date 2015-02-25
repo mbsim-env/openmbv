@@ -32,6 +32,7 @@
 #include <cfloat>
 
 using namespace std;
+using namespace boost;
 
 namespace OpenMBVGUI {
 
@@ -50,7 +51,7 @@ Extrusion::Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   if(windingRule_==OpenMBV::Extrusion::absGEqTwo) windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
   double height=e->getHeight();
   if(fabs(height)<1e-13) height=0;
-  std::vector<std::vector<OpenMBV::PolygonPoint*>* > contour=e->getContours();
+  std::vector<shared_ptr<std::vector<shared_ptr<OpenMBV::PolygonPoint> > > > contour=e->getContours();
 
   // create so
   // outline

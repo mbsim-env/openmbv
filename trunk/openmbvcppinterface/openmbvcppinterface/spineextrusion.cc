@@ -32,21 +32,12 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBV%"SpineExtrusion")
 
 SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
   numberOfSpinePoints(0),
-  contour(0),
   data(0), 
   scaleFactor(1),
   initialRotation(vector<double>(3, 0)) {
 }
 
 SpineExtrusion::~SpineExtrusion() {
-  if(contour) { 
-    for(unsigned int i=0;i<contour->size();i++) {
-      delete (*contour)[i];
-      (*contour)[i]=0;
-    }
-    delete contour;
-    contour=0;
-  }
 }
 
 DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {

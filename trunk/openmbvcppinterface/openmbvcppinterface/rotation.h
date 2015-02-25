@@ -31,7 +31,7 @@ namespace OpenMBV {
     friend class ObjectFactory;
     protected:
       double startAngle, endAngle;
-      std::vector<PolygonPoint*> *contour;
+      boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > contour;
       Rotation();
       ~Rotation();
     public:
@@ -61,11 +61,11 @@ namespace OpenMBV {
       /** Set cross section area of the rotation.
        * The cross section is rotation around the local y-axis
        */
-      void setContour(std::vector<PolygonPoint*> *contour_) {
+      void setContour(const boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > &contour_) {
         contour=contour_;
       }
 
-      std::vector<PolygonPoint*>* getContour() { return contour; }
+      boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > getContour() { return contour; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

@@ -25,6 +25,7 @@
 using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
+using namespace boost;
 
 namespace OpenMBV {
 
@@ -36,17 +37,6 @@ Extrusion::Extrusion() : RigidBody(),
 }
 
 Extrusion::~Extrusion() {
-  for(unsigned int i=0;i<contour.size();i++) {
-    std::vector<PolygonPoint*> *curContour=contour[i];
-    if(curContour) { 
-      for(unsigned int i=0;i<curContour->size();i++) {
-        delete (*curContour)[i];
-        (*curContour)[i]=0;
-      }
-      delete curContour;
-      curContour=0;
-    }
-  }
 }
 
 DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
@@ -61,7 +51,7 @@ DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
   }
   addElementText(e, OPENMBV%"windingRule", "'"+windingRuleStr+"'");
   addElementText(e, OPENMBV%"height", height);
-  for(vector<vector<PolygonPoint*>*>::const_iterator i=contour.begin(); i!=contour.end(); i++) 
+  for(vector<boost::shared_ptr<vector<boost::shared_ptr<PolygonPoint> > > >::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);
   return 0;
 }

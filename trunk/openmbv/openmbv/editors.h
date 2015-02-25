@@ -206,10 +206,11 @@ class FloatMatrixEditor : public Editor {
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface.
-     * std::vector<OpenMBV::PolygonPoint*>* version. */
+     * boost::shared:ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > version. */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<OpenMBV::PolygonPoint*>* (OMBVClass::*getter)(),
-                                               void (OMBVClass::*setter)(std::vector<OpenMBV::PolygonPoint*>*));
+    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
+      boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
+      void (OMBVClass::*setter)(const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &));
 
   protected slots:
     void addRowSlot(); // calls valueChanged (also see addRow)
@@ -227,8 +228,8 @@ class FloatMatrixEditor : public Editor {
     boost::function<void (const std::vector<double>&)> ombvSetterVector;
     boost::function<std::vector<std::vector<double> > ()> ombvGetterMatrix;
     boost::function<void (const std::vector<std::vector<double> >&)> ombvSetterMatrix;
-    boost::function<std::vector<OpenMBV::PolygonPoint*>* ()> ombvGetterPolygonPoint;
-    boost::function<void (std::vector<OpenMBV::PolygonPoint*>*)> ombvSetterPolygonPoint;
+    boost::function<boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > ()> ombvGetterPolygonPoint;
+    boost::function<void (const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &)> ombvSetterPolygonPoint;
 };
 
 
@@ -564,8 +565,9 @@ void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
 
 
 template<class OMBVClass>
-void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<OpenMBV::PolygonPoint*>* (OMBVClass::*getter)(),
-                                                              void (OMBVClass::*setter)(std::vector<OpenMBV::PolygonPoint*>*)) {
+void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
+  boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
+  void (OMBVClass::*setter)(const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &)) {
   // set functions
   ombvGetterPolygonPoint=boost::bind(getter, ombv_);
   ombvSetterPolygonPoint=boost::bind(setter, ombv_, _1);

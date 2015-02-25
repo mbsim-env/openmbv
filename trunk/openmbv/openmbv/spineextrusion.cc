@@ -1,5 +1,4 @@
-/*
-   OpenMBV - Open Multi Body Viewer.
+/* OpenMBV - Open Multi Body Viewer.
    Copyright (C) 2009 Markus Friedrich
 
    This program is free software; you can redistribute it and/or modify
@@ -26,6 +25,7 @@
 #include <cfloat>
 
 using namespace std;
+using namespace boost;
 
 namespace OpenMBVGUI {
 
@@ -99,7 +99,7 @@ SpineExtrusion::SpineExtrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QT
   resetAnimRange(rows, dt);
 
   // read XML
-  vector<OpenMBV::PolygonPoint*>* contour=spineExtrusion->getContour();
+  shared_ptr<vector<shared_ptr<OpenMBV::PolygonPoint> > > contour=spineExtrusion->getContour();
 
   // create so
 

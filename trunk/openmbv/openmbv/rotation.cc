@@ -27,6 +27,7 @@
 #include <QMenu>
 
 using namespace std;
+using namespace boost;
 
 namespace OpenMBVGUI {
 
@@ -36,7 +37,7 @@ Rotation::Rotation(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
-  vector<OpenMBV::PolygonPoint*>* contour=rot->getContour();
+  shared_ptr<vector<shared_ptr<OpenMBV::PolygonPoint> > > contour=rot->getContour();
 
   // create so
   int open=fabs(rot->getEndAngle()-rot->getStartAngle()-2*M_PI)<1e-6?0:1;

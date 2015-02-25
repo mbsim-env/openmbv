@@ -35,9 +35,14 @@ namespace OpenMBV {
    * this edge is rendered non-smooth in OpenMBV.
    */
   class PolygonPoint {
-    public:
-      /** constructor */
+    protected:
       PolygonPoint(double x_, double y_, int b_) : x(x_), y(y_), b(b_) {}
+      ~PolygonPoint() {}
+      static void deleter(PolygonPoint *pp) { delete pp; }
+    public:
+      static boost::shared_ptr<PolygonPoint> create(double x_, double y_, int b_) {
+        return boost::shared_ptr<PolygonPoint>(new PolygonPoint(x_, y_, b_), &deleter);
+      };
 
       /* GETTER / SETTER */
       double getXComponent() { return x; } 
@@ -47,9 +52,10 @@ namespace OpenMBV {
 
       /* CONVENIENCE */
       /** write vector of polygon points to XML file */
-      static void serializePolygonPointContour(xercesc::DOMElement *parent, const std::vector<PolygonPoint*> *cont);
+      static void serializePolygonPointContour(xercesc::DOMElement *parent,
+        const boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > &cont);
 
-      static std::vector<PolygonPoint*>* initializeUsingXML(xercesc::DOMElement *element);
+      static boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > initializeUsingXML(xercesc::DOMElement *element);
 
     private:
       double x, y;
