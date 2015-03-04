@@ -1,6 +1,6 @@
-#MFMFif COND_MKOCTFILE
-#MFMF  MAYBE_OCTAVE_DIR = octave
-#MFMFendif
+if COND_MKOCTFILE
+  MAYBE_OCTAVE_DIR = octave
+endif
 
 if COND_PYTHON
   MAYBE_PYTHON_DIR = python
