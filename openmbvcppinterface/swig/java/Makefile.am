@@ -41,7 +41,7 @@ if COND_CROSSCOMPILE
 else
   TESTS = javatest.sh
 endif
-javatest.log: javatest.class
+javatest.sh: javatest.class
 javatest.class: $(srcdir)/javatest.java
 	@JAVAC@ -d . $(srcdir)/javatest.java
 
