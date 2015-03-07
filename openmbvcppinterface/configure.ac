@@ -87,9 +87,9 @@ AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
   OCTAVEVERSION=$(mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
   AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
-  if test $(version_less 3.8.0 $OCTAVEVERSION) -eq 1 -a $(version_less $SWIGVERSION 2.0.12) -eq 1; then
-    AC_MSG_ERROR([Found octave in version >= 3.8.0 which requires SWIG in version >= 2.0.12.
-                  Install correct versions or disable octave by --with-mkoctfile=no.])
+  if test $(version_less $SWIGVERSION 3.0.5) -eq 1; then
+    AC_MSG_ERROR([octave interface requires SWIG in version >= 3.0.5.
+                  Install correct SWIG versions or disable octave by --with-mkoctfile=no.])
   fi
   AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
   OCTAVE_LIBS="$(echo $($mkoctfile -p LFLAGS | $DOS2UNIX) $($mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
