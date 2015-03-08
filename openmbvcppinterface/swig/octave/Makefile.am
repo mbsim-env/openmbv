@@ -13,7 +13,7 @@ OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface
 	$(swig) -octave -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_octave.cc; exit 1)
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
-OpenMBV_la_LDFLAGS = -module -Wl,-rpath,\$$ORIGIN/../lib -shrext .oct -avoid-version
+OpenMBV_la_LDFLAGS = -module -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -shrext .oct -avoid-version
 OpenMBV_la_CPPFLAGS = $(OCTAVE_FLAGS) $(HDF5SERIE_CFLAGS) -I$(top_srcdir) -Wno-error=sign-compare -Wno-error=unused-function -Wno-sign-compare -Wno-unused-function -Wno-error=unused-value -Wno-unused-value
 OpenMBV_la_LIBADD = $(OCTAVE_LIBS) ../../openmbvcppinterface/libopenmbvcppinterface.la
 
