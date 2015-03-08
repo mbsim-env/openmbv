@@ -8,7 +8,7 @@ libmbxmlutilsbase_ladir = $(includedir)/mbxmlutilshelper
 
 # XML helper functions
 libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS) -Wl,-rpath,\$$ORIGIN/../lib
+libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS) -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib
 libmbxmlutilshelper_la_LIBADD = libmbxmlutilsbase.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutilshelper_la_SOURCES = dom.cc getinstallpath.cc utils.cc
 libmbxmlutilshelper_la_HEADERS = dom.h getinstallpath.h utils.h casadiXML.h
