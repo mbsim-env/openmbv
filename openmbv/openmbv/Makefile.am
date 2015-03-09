@@ -14,7 +14,6 @@ endif
 
 lib_LTLIBRARIES = libopenmbv.la
 libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(MBXMLUTILSBASE_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) $(HDF5SERIE_CFLAGS) $(MAYBE_QWT_CFLAGS)
-libopenmbv_la_LDFLAGS = -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(MBXMLUTILSBASE_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(MAYBE_QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libopenmbv_la_SOURCES = \
   body.cc\
@@ -88,7 +87,6 @@ bin_PROGRAMS = openmbv
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   main.cc
 openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(MAYBE_QWT_CFLAGS)
-openmbv_LDFLAGS  = -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib
 openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(SOQT_LIBS) -l@BOOST_SYSTEM_LIB@
 
 

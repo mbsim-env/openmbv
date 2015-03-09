@@ -135,6 +135,7 @@ CPPFLAGS="$CPPFLAGS -Wall -fpermissive -Waddress -Warray-bounds -Wchar-subscript
 CFLAGS="$CFLAGS -Wpointer-sign -Wimplicit-int -Wimplicit-function-declaration"
 CXXFLAGS="$CXXFLAGS -Wreorder"
 LDFLAGS="-no-undefined -Wl,--no-undefined $LDFLAGS"
+test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 
 AC_CONFIG_FILES([Makefile openmbv.pc openmbv/Makefile xmldoc/Makefile xmldoc/Doxyfile])
 
