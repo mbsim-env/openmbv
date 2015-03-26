@@ -305,15 +305,13 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
         pathSep=ret.string_value();
       }
 
-      // add .../bin OR MBXMLUTILS_CASADI_BIN to initial current search path ...
-      string dir1;
-      if(string(MBXMLUTILS_CASADI_BIN)!="RELTOPREFIX" && bfs::exists(MBXMLUTILS_CASADI_BIN))
-        dir1=MBXMLUTILS_CASADI_BIN;
-      else
-        dir1=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
-      // ... and make it available now (for swigLocalLoad below)
-      feval("addpath", octave_value_list(octave_value(dir1)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
+      // remove the default oct serach path ...
+      // (first get octave octfiledir without octave_prefix)
+      bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
+      { // print no warning, path may not exist
+        BLOCK_STDERR(blockstderr);
+        feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
+      }
 
       // ... and add .../[bin|lib] to octave search path (their we push all oct files)
       string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);

@@ -40,3 +40,36 @@ bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(MKOCTFILE_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+
+
+
+# generate deplib files for octave oct-files and casaid_interface.oct
+install-exec-local:
+	set -e; \
+	OCTLIBDIR=$$($(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
+        test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
+	mkdir -p $(libdir); \
+	for i in $$OCTLIBDIR/oct/*/*.oct; do \
+	  if test $$i -nt $(libdir)/$$(basename $$i).deplibs; then \
+	    echo "Create dependency file and wrapper file for $$i"; \
+	    if [ $(host_os) != "mingw32" ]; then \
+	      cp $$i $(libdir)/$$(basename $$i .oct).so; \
+	      $(CC) -shared -fPIC -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -o $(libdir)/$$(basename $$i) \
+	        $(libdir)/$$(basename $$i .oct).so; \
+	    else \
+	      cp $$i $(libdir)/$$(basename $$i); \
+	    fi; \
+	    python $(prefix)/share/mbxmlutils/python/deplibs.py $(libdir)/$$(basename $$i) > \
+	      $(libdir)/$$(basename $$i).deplibs.tmp; \
+	    mv -f $(libdir)/$$(basename $$i).deplibs.tmp $(libdir)/$$(basename $$i).deplibs; \
+	  fi; \
+	done; \
+	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(libdir)
+	set -e; \
+	if test $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct -nt $(libdir)/casadi_interface.oct.deplibs; then \
+	  echo "Create dependency file for $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct"; \
+	  cp $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(libdir)/casadi_interface.oct; \
+	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(libdir)/casadi_interface.oct > \
+	    $(libdir)/casadi_interface.oct.deplibs.tmp; \
+	  mv -f $(libdir)/casadi_interface.oct.deplibs.tmp $(libdir)/casadi_interface.oct.deplibs; \
+	fi

@@ -79,7 +79,7 @@ if test $usecasadi == yes;  then
        Must be equal to casadi-lib-prefix on Windows.],
     [ CASADIBIN="$withval" ],
     [ CASADIBIN="$prefix/bin" ])
-  AC_DEFINE_UNQUOTED(MBXMLUTILS_CASADI_BIN, ["$(test $CASADIBIN == "$prefix/bin" && echo "RELTOPREFIX" || echo $CASADIBIN)"], [absolute or relatvie dir to CasADi.])
+  AC_SUBST(MBXMLUTILS_CASADI_BIN, [$CASADIBIN], [absolute or relatvie dir to CasADi.])
   CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS -DWITHOUT_PRE_1_9_X" # do not allow deprecated functions from casadi
   casadi="no"
   AC_CHECK_HEADERS([casadi/symbolic/sx/sx_node.hpp], [casadi="yes"],
