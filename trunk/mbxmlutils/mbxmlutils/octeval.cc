@@ -7,6 +7,7 @@
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
 #include <octave/octave.h>
+#include <octave/defaults.h>
 #include <octave/toplev.h>
 #include <casadi/symbolic/sx/sx_tools.hpp>
 #include <mbxmlutilshelper/dom.h>
@@ -255,9 +256,8 @@ octave_value OctEval::createCasADi(const string &name) {
 }
 
 int OctEval::initCount=0;
+string OctEval::initialPath;
 string OctEval::pathSep;
-string OctEval::initialOctavePath;
-string OctEval::initialOctEvalPath;
 
 std::map<std::string, std::string> OctEval::units;
 
@@ -269,11 +269,13 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
   initCount++;
   if(initCount==1) {
     try {
-      bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-
-      // set the OCTAVE_HOME envvar before initializing octave
-      // (but only if octave is installed in getInstallPath() and the envar is not already set)
-      if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+      // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
+      bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
+      if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
+        octave_prefix=getenv("OCTAVE_HOME");
+      else if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+        // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
+        octave_prefix=MBXMLUtils::getInstallPath();
         // the string for putenv must have program life time
         static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
         putenv((char*)OCTAVE_HOME.c_str());
@@ -303,38 +305,35 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
         pathSep=ret.string_value();
       }
 
-      // first restore default path
-      feval("restoredefaultpath", octave_value_list());
-      // save initial octave path
-      initialOctavePath=feval("path", octave_value_list(), 1)(0).string_value();
-      if(initialOctavePath.substr(0, 2)=="."+pathSep)
-        initialOctavePath=initialOctavePath.substr(2);
-  
-      // set .../share/mbxmlutils/octave to initial current search path ...
-      string dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
-      initialOctEvalPath=dir;
+      // add .../bin OR MBXMLUTILS_CASADI_BIN to initial current search path ...
+      string dir1;
+      if(string(MBXMLUTILS_CASADI_BIN)!="RELTOPREFIX" && bfs::exists(MBXMLUTILS_CASADI_BIN))
+        dir1=MBXMLUTILS_CASADI_BIN;
+      else
+        dir1=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
       // ... and make it available now (for swigLocalLoad below)
+      feval("addpath", octave_value_list(octave_value(dir1)));
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
+
+      // ... and add .../[bin|lib] to octave search path (their we push all oct files)
+      string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
       feval("addpath", octave_value_list(octave_value(dir)));
       if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
-      // add .../bin OR MBXMLUTILS_CASADI_BIN to initial current search path ...
-      if(string(MBXMLUTILS_CASADI_BIN)!="RELTOPREFIX" && bfs::exists(MBXMLUTILS_CASADI_BIN))
-        dir=MBXMLUTILS_CASADI_BIN;
-      else
-        dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
-      initialOctEvalPath=dir+pathSep+initialOctEvalPath;
-      // ... and make it available now (for swigLocalLoad below)
+      // ... and add .../bin to octave search path (their we push all oct files)
+      dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
       feval("addpath", octave_value_list(octave_value(dir)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add casadi octave search path."); }
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
-      // add .../LIBDIR to initial current search path ...
-      dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
-      initialOctEvalPath=dir+pathSep+initialOctEvalPath;
-      // ... and make it available now (required e.g. for FMUs where the all octave oct-file are installed to .../LIBDIR
-      // where also all other dependent libraries are installed)
+      // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
+      dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
       feval("addpath", octave_value_list(octave_value(dir)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add .../[bin|lib] to octave search path."); }
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
+      // save initial octave search path
+      initialPath=feval("path", octave_value_list(), 1)(0).string_value();
+
+      // load casadi
       {
         BLOCK_STDERR(blockstderr);
         casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
@@ -343,6 +342,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
 
       // get units
       msg(Info)<<"Build unit list for measurements."<<endl;
+      bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
       boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
       DOMElement *ele, *el2;
       for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
@@ -357,6 +357,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       throw;
     }
   }
+  pathStack.push(initialPath);
 };
 
 OctEval::~OctEval() {
@@ -385,7 +386,7 @@ void OctEval::addParamSet(const DOMElement *e) {
   for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       octave_value ret=eval(E(ee)->getAttributeNode("href"), ee);
-      try { addPath(E(ee)->convertPath(ret.string_value())); } MBXMLUTILS_RETHROW(e)
+      try { addPath(E(ee)->convertPath(ret.string_value()), ee); } MBXMLUTILS_RETHROW(e)
     }
     else {
       octave_value ret=eval(ee);
@@ -404,16 +405,30 @@ void OctEval::popParams() {
 }
 
 void OctEval::pushPath() {
-  pathStack.push(currentPath);
+  pathStack.push(pathStack.top());
 }
 
 void OctEval::popPath() {
-  currentPath=pathStack.top();
   pathStack.pop();
 }
 
-void OctEval::addPath(const bfs::path &dir) {
-  currentPath=absolute(dir).string(CODECVT)+(currentPath.empty()?"":pathSep+currentPath);
+void OctEval::addPath(const bfs::path &dir, const DOMElement *e) {
+  static octave_function *addpath=symbol_table::find_function("addpath").function_value(); // get ones a pointer for performance reasons
+  static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
+  // set octave path to top of stack of not already done
+  string curPath;
+  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
+  if(curPath!=pathStack.top())
+  {
+    // set path
+    try { fevalThrow(path, octave_value_list(octave_value(pathStack.top())), 0,
+      "Unable to set the octave search path "+pathStack.top()); } MBXMLUTILS_RETHROW(e)
+  }
+  // add dir to octave path
+  try { fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
+    "Unable to add octave search path "+absolute(dir).string()); } MBXMLUTILS_RETHROW(e)
+  // get new path and store it in top of stack
+  try { pathStack.top()=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
 
   if(!dependencies)
     return;
@@ -458,21 +473,15 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
       symbol_table::assign(i->first, i->second);
     #endif
 
-  // restore search path only if required (for performance reasons; addpath is very time consuming)
+  // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
   string curPath;
   try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
-  if(curPath.substr(0, 2)=="."+pathSep)
-    curPath=curPath.substr(2);
-  if(curPath!=(currentPath.empty()?"":currentPath+pathSep)+initialOctEvalPath+pathSep+initialOctavePath)
+  if(curPath!=pathStack.top())
   {
-    // clear octave path
-    static octave_function *restoredefaultpath=symbol_table::find_function("restoredefaultpath").function_value();  // get ones a pointer for performance reasons
-    try { fevalThrow(restoredefaultpath, octave_value_list()); } MBXMLUTILS_RETHROW(e)
-    // restore current path
-    static octave_function *addpath=symbol_table::find_function("addpath").function_value();  // get ones a pointer for performance reasons
-    try { fevalThrow(addpath, octave_value_list(octave_value((currentPath.empty()?"":currentPath+pathSep)+initialOctEvalPath)), 0,
-      "Unable to set the octave search path "+currentPath); } MBXMLUTILS_RETHROW(e)
+    // set path
+    try { fevalThrow(path, octave_value_list(octave_value(pathStack.top())), 0,
+      "Unable to set the octave search path "+pathStack.top()); } MBXMLUTILS_RETHROW(e)
   }
 
   ostringstream err;
