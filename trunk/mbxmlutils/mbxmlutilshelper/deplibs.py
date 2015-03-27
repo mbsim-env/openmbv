@@ -102,16 +102,22 @@ def relDir(filename):
 
 @lru_cache(maxsize=None)
 def depLibs(filename):
-  def walkDependencies(filename, deps):
-    if filename not in deps:
-      res=getDependencies(filename)
-      deps.add(filename)
-      for d in res:
-        walkDependencies(d, deps)
   ret=set()
-  walkDependencies(filename, ret)
-  # remove the library itself
-  ret.remove(filename)
+  content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  if re.search('ELF [0-9]+-bit LSB executable', content)!=None or re.search('ELF [0-9]+-bit LSB shared object', content)!=None:
+    # on Linux search none recursively using ldd
+    ret=getDependencies(filename)
+  elif re.search('PE[0-9]+ executable', content)!=None:
+    # on Windows search recursively using objdump
+    def walkDependencies(filename, deps):
+      if filename not in deps:
+        res=getDependencies(filename)
+        deps.add(filename)
+        for d in res:
+          walkDependencies(d, deps)
+    walkDependencies(filename, ret)
+    # remove the library itself
+    ret.remove(filename)
   
   for n in getDoNotAdd():
     if n in ret:
