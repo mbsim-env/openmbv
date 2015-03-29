@@ -44,32 +44,37 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 
 
 # generate deplib files for octave oct-files and casaid_interface.oct
+if MBXMLUTILS_MINGW
+  runlibdir = $(bindir)
+else
+  runlibdir = $(libdir)
+endif
 install-exec-local:
 	set -e; \
 	OCTLIBDIR=$$($(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
         test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
-	mkdir -p $(libdir); \
+	mkdir -p $(runlibdir); \
 	for i in $$OCTLIBDIR/oct/*/*.oct; do \
-	  if test $$i -nt $(libdir)/$$(basename $$i).deplibs; then \
+	  if test $$i -nt $(runlibdir)/$$(basename $$i).deplibs; then \
 	    echo "Create dependency file and wrapper file for $$i"; \
 	    if [ $(host_os) != "mingw32" ]; then \
-	      cp $$i $(libdir)/$$(basename $$i .oct).so; \
-	      $(CC) -shared -fPIC -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -o $(libdir)/$$(basename $$i) \
-	        $(libdir)/$$(basename $$i .oct).so; \
+	      cp $$i $(runlibdir)/$$(basename $$i .oct).so; \
+	      $(CC) -shared -fPIC -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -o $(runlibdir)/$$(basename $$i) \
+	        $(runlibdir)/$$(basename $$i .oct).so; \
 	    else \
-	      cp $$i $(libdir)/$$(basename $$i); \
+	      cp $$i $(runlibdir)/$$(basename $$i); \
 	    fi; \
-	    python $(prefix)/share/mbxmlutils/python/deplibs.py $(libdir)/$$(basename $$i) > \
-	      $(libdir)/$$(basename $$i).deplibs.tmp; \
-	    mv -f $(libdir)/$$(basename $$i).deplibs.tmp $(libdir)/$$(basename $$i).deplibs; \
+	    python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/$$(basename $$i) > \
+	      $(runlibdir)/$$(basename $$i).deplibs.tmp; \
+	    mv -f $(runlibdir)/$$(basename $$i).deplibs.tmp $(runlibdir)/$$(basename $$i).deplibs; \
 	  fi; \
 	done; \
-	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(libdir)
+	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	if test $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct -nt $(libdir)/casadi_interface.oct.deplibs; then \
+	if test $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct -nt $(runlibdir)/casadi_interface.oct.deplibs; then \
 	  echo "Create dependency file for $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct"; \
-	  cp $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(libdir)/casadi_interface.oct; \
-	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(libdir)/casadi_interface.oct > \
-	    $(libdir)/casadi_interface.oct.deplibs.tmp; \
-	  mv -f $(libdir)/casadi_interface.oct.deplibs.tmp $(libdir)/casadi_interface.oct.deplibs; \
+	  cp $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(runlibdir)/casadi_interface.oct; \
+	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_interface.oct > \
+	    $(runlibdir)/casadi_interface.oct.deplibs.tmp; \
+	  mv -f $(runlibdir)/casadi_interface.oct.deplibs.tmp $(runlibdir)/casadi_interface.oct.deplibs; \
 	fi
