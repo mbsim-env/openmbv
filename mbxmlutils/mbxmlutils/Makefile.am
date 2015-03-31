@@ -58,11 +58,11 @@ install-exec-local:
 	  if test $$i -nt $(runlibdir)/$$(basename $$i).deplibs; then \
 	    echo "Create dependency file and wrapper file for $$i"; \
 	    if [ $(host_os) != "mingw32" ]; then \
-	      cp $$i $(runlibdir)/$$(basename $$i .oct).so; \
+	      cp -u $$i $(runlibdir)/$$(basename $$i .oct).so; \
 	      $(CC) -shared -fPIC -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -o $(runlibdir)/$$(basename $$i) \
 	        $(runlibdir)/$$(basename $$i .oct).so; \
 	    else \
-	      cp $$i $(runlibdir)/$$(basename $$i); \
+	      cp -u $$i $(runlibdir)/$$(basename $$i); \
 	    fi; \
 	    python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/$$(basename $$i) > \
 	      $(runlibdir)/$$(basename $$i).deplibs.tmp; \
@@ -73,7 +73,8 @@ install-exec-local:
 	set -e; \
 	if test $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct -nt $(runlibdir)/casadi_interface.oct.deplibs; then \
 	  echo "Create dependency file for $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct"; \
-	  cp $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(runlibdir)/casadi_interface.oct; \
+	  cp -u $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(runlibdir)/casadi_interface.oct 2> /dev/null || \
+	    echo "Copying skipped, maybe same file"; \
 	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_interface.oct > \
 	    $(runlibdir)/casadi_interface.oct.deplibs.tmp; \
 	  mv -f $(runlibdir)/casadi_interface.oct.deplibs.tmp $(runlibdir)/casadi_interface.oct.deplibs; \
