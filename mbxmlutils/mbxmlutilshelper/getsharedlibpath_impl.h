@@ -25,18 +25,23 @@ std::string pathAtLoadTime=getcwd(buffer, sizeof(buffer));
 namespace MBXMLUtils {
 
 std::string BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))() {
+  static std::string ret;
+  if(!ret.empty())
+    return ret;
+
   // get the shared library file path containing this function
 #ifdef _WIN32
   char moduleName[2048];
   GetModuleFileName(reinterpret_cast<HMODULE>(&__ImageBase), moduleName, sizeof(moduleName));
-  return moduleName;
+  ret=moduleName;
 #else
   Dl_info info;
   dladdr(reinterpret_cast<void*>(&BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))), &info);
   // convert to absolute path and return
   std::string name(info.dli_fname);
-  return name[0]=='/'?name:pathAtLoadTime+"/"+name;
+  ret=name[0]=='/'?name:BOOST_PP_CAT(pathAtLoadTime, MBXMLUTILS_SHAREDLIBNAME)+"/"+name;
 #endif
+  return ret;
 }
 
 }
