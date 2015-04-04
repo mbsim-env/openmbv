@@ -39,7 +39,7 @@ std::string BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPa
   dladdr(reinterpret_cast<void*>(&BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))), &info);
   // convert to absolute path and return
   std::string name(info.dli_fname);
-  ret=name[0]=='/'?name:BOOST_PP_CAT(pathAtLoadTime, MBXMLUTILS_SHAREDLIBNAME)+"/"+name;
+  ret=name[0]=='/'?name:pathAtLoadTime+"/"+name;
 #endif
   return ret;
 }
