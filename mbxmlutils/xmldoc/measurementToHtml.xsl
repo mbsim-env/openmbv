@@ -22,6 +22,7 @@
     <html lang="en">
     <head>
       <title>Physical Variable - XML Documentation</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
