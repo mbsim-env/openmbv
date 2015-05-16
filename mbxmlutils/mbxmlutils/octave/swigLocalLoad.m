@@ -22,9 +22,9 @@ end
 function ret=autoload(func, file)
   global SWIG_autoload_handling;
   % add these functions always (independent of the SWIG_autoload_handling flag)
-  alwaysAdd={'swig_type', 'swig_typequery', 'swig_this', 'subclass'};
+  alwaysAdd={'^swig_type$', '^swig_typequery$', '^swig_this$', '^subclass$', '^op_.*$'};
   % call the builtin function (original function) only if ...
-  if ~SWIG_autoload_handling || ~exist('func') || sum(strcmp(func, alwaysAdd))>0
+  if ~SWIG_autoload_handling || ~exist('func') || size(cell2mat(regexp(func, alwaysAdd)), 2)>0
     if nargout==1
       ret=builtin('autoload');
     else

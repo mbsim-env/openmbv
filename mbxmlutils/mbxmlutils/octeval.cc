@@ -9,7 +9,6 @@
 #include <octave/octave.h>
 #include <octave/defaults.h>
 #include <octave/toplev.h>
-#include <casadi/symbolic/sx/sx_tools.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/utils.h>
 #include <mbxmlutilshelper/getinstallpath.h>
@@ -157,11 +156,11 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
     return ret;
   }
   if(type==SXType || type==DMatrixType) {
-    CasADi::SX m;
+    casadi::SX m;
     if(type==SXType)
-      m=cast<CasADi::SX>(value);
+      m=cast<casadi::SX>(value);
     else
-      m=cast<CasADi::DMatrix>(value);
+      m=cast<casadi::DMatrix>(value);
     if(!m.isConstant())
       throw DOMEvalException("Can only cast this constant value to vector<vector<double> >.");
     vector<vector<double> > ret;
@@ -179,70 +178,70 @@ vector<vector<double> > OctEval::cast<vector<vector<double> > >(const octave_val
 template<>
 DOMElement* OctEval::cast<DOMElement*>(const octave_value &value, DOMDocument *doc) {
   if(getType(value)==SXFunctionType)
-    return convertCasADiToXML(cast<CasADi::SXFunction>(value), doc);
+    return convertCasADiToXML(cast<casadi::SXFunction>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
 }
 
 template<>
-CasADi::SX OctEval::cast<CasADi::SX>(const octave_value &value) {
+casadi::SX OctEval::cast<casadi::SX>(const octave_value &value) {
   ValueType type=getType(value);
   if(type==SXType)
-    return castToSwig<CasADi::SX>(value);
+    return castToSwig<casadi::SX>(value);
   if(type==DMatrixType)
-    return castToSwig<CasADi::DMatrix>(value);
+    return castToSwig<casadi::DMatrix>(value);
   if(type==ScalarType || type==VectorType || type==MatrixType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    CasADi::SX ret=CasADi::SX::zeros(m.size(), m[0].size());
+    casadi::SX ret=casadi::SX::zeros(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
       for(int j=0; j<m[i].size(); j++)
         ret.elem(i,j)=m[i][j];
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to CasADi::SX*.");
+  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
 }
 
 template<>
-CasADi::SX* OctEval::cast<CasADi::SX*>(const octave_value &value) {
+casadi::SX* OctEval::cast<casadi::SX*>(const octave_value &value) {
   if(getType(value)==SXType)
-    return castToSwig<CasADi::SX*>(value);
-  throw DOMEvalException("Cannot cast this value to CasADi::SX*.");
+    return castToSwig<casadi::SX*>(value);
+  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
 }
 
 template<>
-CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value) {
+casadi::DMatrix OctEval::cast<casadi::DMatrix>(const octave_value &value) {
   ValueType type=getType(value);
   if(type==DMatrixType)
-    return castToSwig<CasADi::DMatrix>(value);
+    return castToSwig<casadi::DMatrix>(value);
   if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    CasADi::DMatrix ret=CasADi::DMatrix::zeros(m.size(), m[0].size());
+    casadi::DMatrix ret=casadi::DMatrix::zeros(m.size(), m[0].size());
     for(int i=0; i<m.size(); i++)
       for(int j=0; j<m[i].size(); j++)
         ret.elem(i,j)=m[i][j];
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to CasADi::DMatrix.");
+  throw DOMEvalException("Cannot cast this value to casadi::DMatrix.");
 }
 
 template<>
-CasADi::DMatrix* OctEval::cast<CasADi::DMatrix*>(const octave_value &value) {
+casadi::DMatrix* OctEval::cast<casadi::DMatrix*>(const octave_value &value) {
   if(getType(value)==DMatrixType)
-    return castToSwig<CasADi::DMatrix*>(value);
-  throw DOMEvalException("Cannot cast this value to CasADi::DMatrix*.");
+    return castToSwig<casadi::DMatrix*>(value);
+  throw DOMEvalException("Cannot cast this value to casadi::DMatrix*.");
 }
 
 template<>
-CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value) {
+casadi::SXFunction OctEval::cast<casadi::SXFunction>(const octave_value &value) {
   if(getType(value)==SXFunctionType)
-    return castToSwig<CasADi::SXFunction>(value);
-  throw DOMEvalException("Cannot cast this value to CasADi::SXFunction.");
+    return castToSwig<casadi::SXFunction>(value);
+  throw DOMEvalException("Cannot cast this value to casadi::SXFunction.");
 }
 
 template<>
-CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value) {
+casadi::SXFunction* OctEval::cast<casadi::SXFunction*>(const octave_value &value) {
   if(getType(value)==SXFunctionType)
-    return castToSwig<CasADi::SXFunction*>(value);
-  throw DOMEvalException("Cannot cast this value to CasADi::SXFunction*.");
+    return castToSwig<casadi::SXFunction*>(value);
+  throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
 }
 
 octave_value OctEval::createCasADi(const string &name) {
@@ -577,7 +576,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(*this, function);
-  vector<CasADi::SX> inputs;
+  vector<casadi::SX> inputs;
   if(function) {
     addParam("casadi", *casadiOctValue);
     // loop over all attributes and search for arg1name, arg2name attributes
@@ -599,9 +598,9 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       octave_value octArg=createCasADi("SX");
-      CasADi::SX *arg;
-      try { arg=cast<CasADi::SX*>(octArg); } MBXMLUTILS_RETHROW(e)
-      *arg=CasADi::SX::sym(X()%a->getValue(), dim, 1);
+      casadi::SX *arg;
+      try { arg=cast<casadi::SX*>(octArg); } MBXMLUTILS_RETHROW(e)
+      *arg=casadi::SX::sym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), octArg);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
       inputs[nr-1]=*arg;
@@ -621,7 +620,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     Matrix m(i, 1);
-    CasADi::SX M;
+    casadi::SX M;
     if(function)
       M.resize(i, 1);
     i=0;
@@ -629,8 +628,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       if(!function)
         m(i)=stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele).double_value();
       else {
-        CasADi::SX Mele;
-        try { Mele=cast<CasADi::SX>(stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
+        casadi::SX Mele;
+        try { Mele=cast<casadi::SX>(stringToOctValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M.elem(i,0)=Mele.elem(0,0);
       }
@@ -638,8 +637,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       return handleUnit(e, m);
     else {
       octave_value octF=createCasADi("SXFunction");
-      CasADi::SXFunction f(inputs, M);
-      try { cast<CasADi::SXFunction*>(octF)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
+      casadi::SXFunction f(inputs, M);
+      try { cast<casadi::SXFunction*>(octF)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return octF;
     }
   }
@@ -655,7 +654,7 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     Matrix m(i, j);
-    CasADi::SX M;
+    casadi::SX M;
     if(function)
       M.resize(i, j);
     i=0;
@@ -665,8 +664,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
         if(!function)
           m(j*m.rows()+i)=stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col).double_value();
         else {
-          CasADi::SX Mele;
-          try { Mele=cast<CasADi::SX>(stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
+          casadi::SX Mele;
+          try { Mele=cast<casadi::SX>(stringToOctValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M.elem(i,0)=Mele.elem(0,0);
         }
@@ -675,8 +674,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
       return handleUnit(e, m);
     else {
       octave_value octF=createCasADi("SXFunction");
-      CasADi::SXFunction f(inputs, M);
-      try { cast<CasADi::SXFunction*>(octF)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
+      casadi::SXFunction f(inputs, M);
+      try { cast<casadi::SXFunction*>(octF)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return octF;
     }
   }
@@ -709,8 +708,8 @@ octave_value OctEval::eval(const xercesc::DOMElement *e) {
     else {
       octave_value octF=createCasADi("SXFunction");
       try {
-        CasADi::SXFunction f(inputs, cast<CasADi::SX>(ret));
-        cast<CasADi::SXFunction*>(octF)->assignNode(f.get());
+        casadi::SXFunction f(inputs, cast<casadi::SX>(ret));
+        cast<casadi::SXFunction*>(octF)->assignNode(f.get());
       } MBXMLUTILS_RETHROW(e)
       return octF;
     }

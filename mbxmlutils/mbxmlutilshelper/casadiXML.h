@@ -1,7 +1,7 @@
 #ifndef _MBXMLUTILS_CASADIXML_H_
 #define _MBXMLUTILS_CASADIXML_H_
 
-#include <casadi/symbolic/function/sx_function.hpp>
+#include <casadi/core/function/sx_function.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <map>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -10,7 +10,7 @@
 #include <xercesc/dom/DOMImplementation.hpp>
 
 
-namespace CasADi {
+namespace casadi {
 
 const MBXMLUtils::NamespaceURI CASADI("http://openmbv.berlios.de/MBXMLUtils/CasADi");
 
@@ -80,7 +80,7 @@ inline xercesc::DOMElement *convertCasADiToXML(const SXElement &s, std::map<SXNo
     e->insertBefore(convertCasADiToXML(s.getDep(0), nodes, doc), NULL);
   }
   else
-    throw std::runtime_error("Unknown CasADi::SXElement type in convertCasADiToXML");
+    throw std::runtime_error("Unknown casadi::SXElement type in convertCasADiToXML");
 
   // write also the id of a newly node to XML
   MBXMLUtils::E(e)->setAttribute("id", idStr);
@@ -129,25 +129,25 @@ inline xercesc::DOMElement* convertCasADiToXML(const SXFunction &f, xercesc::DOM
   return e;
 }
 
-inline CasADi::SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, CasADi::SXNode*> &nodes) {
+inline casadi::SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, casadi::SXNode*> &nodes) {
   // creata an SXElement dependent on the type
-  CasADi::SXElement sxelement;
+  casadi::SXElement sxelement;
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"BinarySX") {
     int op = atoi(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
-    CasADi::SXElement dep0=createCasADiSXFromXML(ee, nodes);
+    casadi::SXElement dep0=createCasADiSXFromXML(ee, nodes);
     ee=ee->getNextElementSibling();
-    CasADi::SXElement dep1=createCasADiSXFromXML(ee, nodes);
-    sxelement=CasADi::SXElement::binary(op, dep0, dep1);
+    casadi::SXElement dep1=createCasADiSXFromXML(ee, nodes);
+    sxelement=casadi::SXElement::binary(op, dep0, dep1);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"UnarySX") {
     int op = atoi(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
-    CasADi::SXElement dep=createCasADiSXFromXML(ee, nodes);
-    sxelement=CasADi::SXElement::unary(op, dep);
+    casadi::SXElement dep=createCasADiSXFromXML(ee, nodes);
+    sxelement=casadi::SXElement::unary(op, dep);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SymbolicSX") {
-    sxelement=CasADi::SXElement::sym(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
+    sxelement=casadi::SXElement::sym(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"RealtypeSX") {
     std::stringstream str(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
@@ -162,21 +162,21 @@ inline CasADi::SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<
     sxelement=value;
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"ZeroSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::zero;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::zero;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"OneSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::one;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::one;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"MinusOneSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::minus_one;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::minus_one;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"InfSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::inf;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::inf;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"MinusInfSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::minus_inf;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::minus_inf;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"NanSX")
-    sxelement=CasADi::casadi_limits<CasADi::SXElement>::nan;
+    sxelement=casadi::casadi_limits<casadi::SXElement>::nan;
   // reference elements must be handled specially: return the referenced node instead of creating a new one
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"reference") {
     int refid = atoi(MBXMLUtils::E(e)->getAttribute("refid").c_str());
-    sxelement=CasADi::SXElement(nodes[refid], false);
+    sxelement=casadi::SXElement(nodes[refid], false);
     return sxelement;
   }
   else
@@ -188,15 +188,15 @@ inline CasADi::SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<
   return sxelement;
 }
 
-inline CasADi::SX createCasADiSXMatrixFromXML(xercesc::DOMElement *e, std::map<int, CasADi::SXNode*> &nodes) {
+inline casadi::SX createCasADiSXMatrixFromXML(xercesc::DOMElement *e, std::map<int, casadi::SXNode*> &nodes) {
   // create a SX
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"SX") {
     // loop over all rows
-    std::vector<std::vector<CasADi::SXElement> > ret;
+    std::vector<std::vector<casadi::SXElement> > ret;
     xercesc::DOMElement *matrixRow=e->getFirstElementChild();
     while(matrixRow) {
       // loop over all elements in a matrixRow
-      std::vector<CasADi::SXElement> stdrow;
+      std::vector<casadi::SXElement> stdrow;
       xercesc::DOMElement *matrixEle;
       if((MBXMLUtils::E(e)->hasAttribute("rowVector") && MBXMLUtils::E(e)->getAttribute("rowVector")=="true") ||
          (MBXMLUtils::E(e)->hasAttribute("columnVector") && MBXMLUtils::E(e)->getAttribute("columnVector")=="true"))
@@ -215,21 +215,21 @@ inline CasADi::SX createCasADiSXMatrixFromXML(xercesc::DOMElement *e, std::map<i
       ret.push_back(stdrow);
     }
     if(MBXMLUtils::E(e)->hasAttribute("columnVector") && MBXMLUtils::E(e)->getAttribute("columnVector")=="true")
-      return CasADi::SX(ret).trans();
+      return casadi::SX();//mfmfcasadi::SX(ret).T();
     else
-      return CasADi::SX(ret);
+      return casadi::SX();//mfmfcasadi::SX(ret);
   }
   // if it is a scalar create a SXElement
   else
     return createCasADiSXFromXML(e, nodes);
 }
 
-inline CasADi::SXFunction createCasADiSXFunctionFromXML(xercesc::DOMElement *e) {
+inline casadi::SXFunction createCasADiSXFunctionFromXML(xercesc::DOMElement *e) {
   // create a SXFunction
-  std::map<int, CasADi::SXNode*> nodes;
+  std::map<int, casadi::SXNode*> nodes;
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"SXFunction") {
     // get all inputs
-    std::vector<CasADi::SX> in;
+    std::vector<casadi::SX> in;
     xercesc::DOMElement *input=e->getFirstElementChild();
     xercesc::DOMElement *inputEle=input->getFirstElementChild();
     while(inputEle) {
@@ -237,7 +237,7 @@ inline CasADi::SXFunction createCasADiSXFunctionFromXML(xercesc::DOMElement *e) 
       inputEle=inputEle->getNextElementSibling();
     }
     // get all outputs
-    std::vector<CasADi::SX> out;
+    std::vector<casadi::SX> out;
     xercesc::DOMElement *output=input->getNextElementSibling();
     xercesc::DOMElement *outputEle=output->getFirstElementChild();
     while(outputEle) {
@@ -245,7 +245,7 @@ inline CasADi::SXFunction createCasADiSXFunctionFromXML(xercesc::DOMElement *e) 
       outputEle=outputEle->getNextElementSibling();
     }
 
-    return CasADi::SXFunction(in, out);
+    return casadi::SXFunction(in, out);
   }
   else
     throw std::runtime_error("Unknown XML element named "+MBXMLUtils::X()%e->getTagName()+" in createCasADiSXFunctionFromXML.");

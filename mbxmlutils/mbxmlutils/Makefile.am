@@ -1,10 +1,18 @@
 SUBDIRS = octave
 
+if MBXMLUTILS_MINGW
+  runlibdir = $(bindir)
+else
+  runlibdir = $(libdir)
+endif
+
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils_physicalvariable
 xmldir = @datadir@/@PACKAGE@/xml
+swigrefdir = $(runlibdir)
 dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd casadi.xsd
 dist_xml_DATA = measurement.xml
+dist_swigref_DATA = @swig_ref
 
 
 
@@ -23,14 +31,10 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd
-
-
-
 # utility library
-lib_LTLIBRARIES = libmbxmlutils.la
+lib_LTLIBRARIES = libmbxmlutils.la casadi.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_la_SOURCES = octeval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = octeval.h preprocess.h
@@ -38,17 +42,31 @@ libmbxmlutils_la_HEADERS = octeval.h preprocess.h
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 
 
 
-# generate deplib files for octave oct-files and casaid_interface.oct
-if MBXMLUTILS_MINGW
-  runlibdir = $(bindir)
-else
-  runlibdir = $(libdir)
-endif
+# Newer octave version (>=3.8!?) use #include <config.h> instead of #include "config.h"
+# in oct.h. Hence we are not allowed to add -I$(abs_top_srcdir) to compile flags since
+# this will include config.h from this project (openmbvcppinterface) instead of the octave
+# one. Since top_srcdir is added as a default include path by automake we must prevent this.
+AUTOMAKE_OPTIONS = nostdinc
+casadi_swig_octave.cc: $(srcdir)/casadi.i
+	$(swig) -octave -Werror -c++ -o casadi_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi.i || (rm -f casadi_swig_octave.cc; exit 1)
+
+casadi_la_SOURCES = casadi_swig_octave.cc
+casadi_la_LDFLAGS = -module -shrext .oct -avoid-version
+casadi_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS)
+casadi_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
+
+
+
+CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_swig_octave.cc
+
+
+
+# generate deplib files for octave oct-files and casaid.oct
 install-exec-local:
 	set -e; \
 	OCTLIBDIR=$$($(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
@@ -71,11 +89,9 @@ install-exec-local:
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	if test $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct -nt $(runlibdir)/casadi_interface.oct.deplibs; then \
-	  echo "Create dependency file for $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct"; \
-	  cp -u $(MBXMLUTILS_CASADI_BIN)/casadi_interface.oct $(runlibdir)/casadi_interface.oct 2> /dev/null || \
-	    echo "Copying skipped, maybe same file"; \
-	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_interface.oct > \
-	    $(runlibdir)/casadi_interface.oct.deplibs.tmp; \
-	  mv -f $(runlibdir)/casadi_interface.oct.deplibs.tmp $(runlibdir)/casadi_interface.oct.deplibs; \
+	if test $(runlibdir)/casadi.oct -nt $(runlibdir)/casadi.oct.deplibs; then \
+	  echo "Create dependency file for $(runlibdir)/casadi.oct"; \
+	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi.oct > \
+	    $(runlibdir)/casadi.oct.deplibs.tmp; \
+	  mv -f $(runlibdir)/casadi.oct.deplibs.tmp $(runlibdir)/casadi.oct.deplibs; \
 	fi

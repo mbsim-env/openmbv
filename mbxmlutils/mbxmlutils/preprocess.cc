@@ -181,7 +181,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       }
       return;
     }
-    else if(E(e)->getTagName()==CasADi::CASADI%"SXFunction")
+    else if(E(e)->getTagName()==casadi::CASADI%"SXFunction")
       return; // skip processing of SXFunction elements
     else {
       bool isCasADi=false;

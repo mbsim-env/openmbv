@@ -63,67 +63,19 @@ fi
 AC_SUBST([LIBDL])
 
 dnl Check for casadi 
-AC_ARG_ENABLE([casadi],[  --disable-casadi   disable casadi support],[usecasadi="no"],[usecasadi="yes"])
-if test $usecasadi == yes;  then
-  AC_ARG_WITH(casadi_inc_prefix,
-    [  --with-casadi-inc-prefix=PFX  Prefix where casadi includes are installed],
-    [CASADICPPFLAGS="-I$withval"],
-    [CASADICPPFLAGS="-I$prefix/include"])
-  AC_ARG_WITH(casadi_lib_prefix,
-    [  --with-casadi-lib-prefix=PFX  Prefix where casadi lib is installed],
-    [ CASADILDFLAGS="-L$withval" ],
-    [ CASADILDFLAGS="-L$prefix/lib" ])
-  AC_ARG_WITH(casadi_bin_prefix,
-    [  --with-casadi-bin-prefix=PFX  Prefix where casadi octave interface is installed (default: $prefix/bin).
-       For relocatable installations this MUST NOT BE set (casadi MUST be installed to $prefix)!
-       Must be equal to casadi-lib-prefix on Windows.],
-    [ CASADIBIN="$withval" ],
-    [ CASADIBIN="$prefix/bin" ])
-  AC_SUBST(MBXMLUTILS_CASADI_BIN, [$CASADIBIN], [absolute or relatvie dir to CasADi.])
-  CPPFLAGS="$CPPFLAGS $CASADICPPFLAGS -DWITHOUT_PRE_1_9_X" # do not allow deprecated functions from casadi
-  casadi="no"
-  AC_CHECK_HEADERS([casadi/symbolic/sx/sx_node.hpp], [casadi="yes"],
-    [AC_MSG_RESULT([Can not find casadi c++ header casadi/symbolic/sx/sx_node.hpp])])
-  if test $casadi = "yes" ; then
-    AC_MSG_CHECKING([for casadi c++ library])
-    LDFLAGS="$LDFLAGS $CASADILDFLAGS"
-    CASADI_LIBS="-lcasadi"
-    CASADI_CPPFLAGS="$CASADICPPFLAGS"
-    test "_$host_os" != "_mingw32" && CASADI_LIBS="$CASADI_LIBS -ldl"
-    SAVED_LIBS="$LIBS"
-    LIBS="$LIBS $CASADI_LIBS"
-    AC_SUBST([CASADI_LIBS])
-    AC_TRY_LINK([#include <casadi/symbolic/sx/sx_node.hpp>],[CasADi::SX x],[AC_MSG_RESULT([yes]);],
-      [casadi="no"; AC_MSG_RESULT([no]); AC_MSG_ERROR([CasADi headers found but can not link with CasADi c++ library])])
-    LIBS="$SAVED_LIBS"
-  fi
-  if test $casadi = "yes" ; then
-    AC_MSG_CHECKING([for casadi octave interface (by SWIG)])
-    if test -f $CASADIBIN/casadi_interface.oct -a -f $CASADIBIN/casadi.m -a -d $CASADIBIN/@swig_ref; then
-      AC_MSG_RESULT([yes])
-    else
-      AC_MSG_RESULT([no])
-      AC_MSG_ERROR([
-CasADi headers and c++ libraries found. However MBXMLUtils requires also the
-SWIG interface of CasADi for octave. This code is build using the command
-"make octave" in the CasADi build directory (SWIG is required. Install it
-before running "make octave" using your package manager). Since CasADi has
-not build code for installing the octave part of CasADi this must be done
-manually. After build the octave interface in CasADi copy the following files:
-cp <casadi-build-dir>/lib/casadi_interface.oct $CASADIBIN
-cp <casadi-build-dir>/lib/casadi.m $CASADIBIN
-cp -r <casadi-build-dir>/lib/@swig_ref $CASADIBIN
-Alternatively you can disable the CasADi support using --disable-casadi.
-Please note that with CasADi 2.X the octave interface has been dropped. Hence
-you have to use CasADi 1.X.
-It is recommended to use the CasADi fork from
-https://github.com/friedrichatgc/casadi.git
-      ])
-    fi
-  fi
-fi
+PKG_CHECK_MODULES(CASADI, [casadi])
 
-AC_SUBST([CASADI_CPPFLAGS])
+dnl Check for SWIG
+AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
+  [swigpath="$withval"],[swigpath=""])
+AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
+AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
+if test "_$swig" != "_no"; then
+  SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
+  AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+else
+  AC_MSG_ERROR([SWIG not found])
+fi
 
 dnl check if only mbxmlutilshelper should be installed (necessary for openmbvcppinterface and mbsim)
 AC_ARG_ENABLE([only_mbxmlutilshelper],

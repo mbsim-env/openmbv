@@ -154,9 +154,9 @@ class OctEval : virtual public fmatvec::Atom {
      *     <th>Template Type <tt>T</tt> equals ...</th>
      *     <th>real</th>
      *     <th>string</th>
-     *     <th><i>SWIG</i> <tt>CasADi::SXFunction</tt></th>
-     *     <th><i>SWIG</i> <tt>CasADi::SX</tt></th>
-     *     <th><i>SWIG</i> <tt>CasADi::DMatrix</tt></th>
+     *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
+     *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
+     *     <th><i>SWIG</i> <tt>casadi::DMatrix</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
@@ -215,7 +215,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SXFunction</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::SXFunction</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
@@ -224,7 +224,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SXFunction*</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::SXFunction*</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
@@ -233,7 +233,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SX</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::SX</tt></th>
      *     <!--real-->       <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
@@ -242,7 +242,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::SX*</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
@@ -251,7 +251,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::DMatrix</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::DMatrix</tt></th>
      *     <!--real-->       <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
@@ -260,7 +260,7 @@ class OctEval : virtual public fmatvec::Atom {
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>CasADi::DMatrix*</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::DMatrix*</tt></th>
      *     <!--real-->       <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
@@ -404,12 +404,12 @@ template<> long OctEval::cast<long>(const octave_value &value);
 template<> double OctEval::cast<double>(const octave_value &value);
 template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
 template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
-template<> CasADi::SX OctEval::cast<CasADi::SX>(const octave_value &value);
-template<> CasADi::SX* OctEval::cast<CasADi::SX*>(const octave_value &value);
-template<> CasADi::SXFunction OctEval::cast<CasADi::SXFunction>(const octave_value &value);
-template<> CasADi::SXFunction* OctEval::cast<CasADi::SXFunction*>(const octave_value &value);
-template<> CasADi::DMatrix OctEval::cast<CasADi::DMatrix>(const octave_value &value);
-template<> CasADi::DMatrix* OctEval::cast<CasADi::DMatrix*>(const octave_value &value);
+template<> casadi::SX OctEval::cast<casadi::SX>(const octave_value &value);
+template<> casadi::SX* OctEval::cast<casadi::SX*>(const octave_value &value);
+template<> casadi::SXFunction OctEval::cast<casadi::SXFunction>(const octave_value &value);
+template<> casadi::SXFunction* OctEval::cast<casadi::SXFunction*>(const octave_value &value);
+template<> casadi::DMatrix OctEval::cast<casadi::DMatrix>(const octave_value &value);
+template<> casadi::DMatrix* OctEval::cast<casadi::DMatrix*>(const octave_value &value);
 
 template<typename T>
 T OctEval::cast(const octave_value &value, xercesc::DOMDocument *doc) {
