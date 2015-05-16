@@ -9,7 +9,6 @@
 
 // import std stirng and pair support
 %include "std_string.i"
-%include "std_pair.i"
 %include "exception.i"
 
 
@@ -32,21 +31,26 @@
 // disable some not working elements
 %ignore casadi::Matrix<casadi::SXElement>::get;
 %ignore casadi::Matrix<casadi::SXElement>::getNZ;
+
 %ignore casadi::Matrix<double           >::get;
 %ignore casadi::Matrix<double           >::getNZ;
+
 %ignore casadi::Matrix<casadi::SXElement>::operator-; // readadded later
 %ignore casadi::Matrix<casadi::SXElement>::operator+; // readadded later
 
 // index operator
 %extend casadi::Matrix<casadi::SXElement> {
   casadi::Matrix<casadi::SXElement> __paren__(int r, int c=1) const { return $self->elem(r-1, c-1); }
+
   void __paren_asgn__(int r, const casadi::Matrix<casadi::SXElement> &x) { $self->elem(r-1)=x.elem(0); }
   void __paren_asgn__(int r, double x) { $self->elem(r-1)=x; }
   void __paren_asgn__(int r, int c, const casadi::Matrix<casadi::SXElement> &x) { $self->elem(r-1, c-1)=x.elem(0, 0); }
   void __paren_asgn__(int r, int c, double x) { $self->elem(r-1, c-1)=x; }
 };
+
 %extend casadi::Matrix<double> {
   double __paren__(int r, int c=1) const { return $self->elem(r-1, c-1); }
+
   void __paren_asgn__(int r, double x) { $self->elem(r-1)=x; }
   void __paren_asgn__(int r, int c, double x) { $self->elem(r-1, c-1)=x; }
 };
@@ -137,7 +141,6 @@
   casadi::DMatrix op_DMatrix_el_or_DMatrix (const casadi::DMatrix& a, const casadi::DMatrix& b) { return a||b; }
   casadi::DMatrix op_scalar_el_or_DMatrix  (double                 a, const casadi::DMatrix& b) { return a||b; }
   casadi::DMatrix op_DMatrix_el_or_scalar  (const casadi::DMatrix& a, double                 b) { return a||b; }
-
   casadi::SX      op_SX_add_DMatrix        (const casadi::SX&      a, const casadi::DMatrix& b) { return a+casadi::SX(b);  }
   casadi::SX      op_DMatrix_add_SX        (const casadi::DMatrix& a, const casadi::SX&      b) { return casadi::SX(a)+b;  }
   casadi::SX      op_SX_sub_DMatrix        (const casadi::SX&      a, const casadi::DMatrix& b) { return a-casadi::SX(b);  }
@@ -170,27 +173,31 @@
 %rename(__str__) casadi::PrintableObject<casadi::Matrix<casadi::SXElement> >::getDescription;
 %rename(__str__) casadi::PrintableObject<casadi::Matrix<double           > >::getDescription;
 
+// forward declaration for swig
+namespace casadi {
+  typedef casadi::Matrix<casadi::SXElement> SX;
+  enum SparsityType;
+  class Sparsity;
+  class Slice;
+}
+
 // include headers to wrap (including template instantations)
-%include <casadi/core/sx/sx_element.hpp>
-%include <casadi/core/printable_object.hpp>
-%template(PrintableObject_SharedObject) casadi::PrintableObject<casadi::SharedObject>;
-%template(PrintableObject_Slice) casadi::PrintableObject<casadi::Slice>;
-%include <casadi/core/matrix/slice.hpp>
-%include <casadi/core/shared_object.hpp>
 %include <casadi/core/printable_object.hpp>
 %template(PrintableObject_Matrix_SXElement) casadi::PrintableObject<casadi::Matrix<casadi::SXElement> >;
 %template(PrintableObject_Matrix_double) casadi::PrintableObject<casadi::Matrix<double> >;
+
 %include <casadi/core/matrix/sparsity_interface.hpp>
 %template(SparsityInterface_Matrix_SXElement) casadi::SparsityInterface<casadi::Matrix<casadi::SXElement> >;
 %template(SparsityInterface_Matrix_double) casadi::SparsityInterface<casadi::Matrix<double> >;
-%template(SparsityInterface_Sparsity) casadi::SparsityInterface<casadi::Sparsity>;
-%include <casadi/core/matrix/sparsity.hpp>
+
 %include <casadi/core/matrix/generic_matrix.hpp>
 %template(GenericMatrix_Matrix_SXElement) casadi::GenericMatrix<casadi::Matrix<casadi::SXElement> >;
 %template(GenericMatrix_Matrix_double) casadi::GenericMatrix<casadi::Matrix<double> >;
+
 %include <casadi/core/matrix/generic_expression.hpp>
 %template(GenericExpression_Matrix_SXElement) casadi::GenericExpression<casadi::Matrix<casadi::SXElement> >;
 %template(GenericExpression_Matrix_double) casadi::GenericExpression<casadi::Matrix<double> >;
+
 %include <casadi/core/matrix/matrix.hpp>
 %template(SX) casadi::Matrix<casadi::SXElement>;
 %template(DMatrix) casadi::Matrix<double>;

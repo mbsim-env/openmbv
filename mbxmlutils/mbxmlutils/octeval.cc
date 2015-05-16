@@ -197,7 +197,7 @@ casadi::SX OctEval::cast<casadi::SX>(const octave_value &value) {
         ret.elem(i,j)=m[i][j];
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
+  throw DOMEvalException("Cannot cast this value to casadi::SX.");
 }
 
 template<>
