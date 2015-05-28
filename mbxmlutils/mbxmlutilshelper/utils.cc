@@ -34,15 +34,28 @@ using namespace xercesc;
 
 namespace MBXMLUtils {
 
-  set<vector<string> > Deprecated::allMessages;
-  bool Deprecated::atExitRegistred=false;
+  Deprecated& Deprecated::getInstance() {
+    static Deprecated instance;
+    return instance;
+  }
+
+  Deprecated::~Deprecated() {
+    msg(Warn)<<"\n";
+    msg(Warn)<<allMessages.size()<<" deprecated features were called:\n";
+    set<vector<string> >::const_iterator it;
+    int nr=0;
+    for(it=allMessages.begin(); it!=allMessages.end(); it++) {
+      nr++;
+      msg(Warn)<<"* "<<"("<<nr<<"/"<<allMessages.size()<<") "<<(*it)[0]<<"\n";
+      vector<string>::const_iterator it2=it->begin();
+      it2++;
+      for(; it2!=it->end(); it2++)
+        msg(Warn)<<"  "<<*it2<<"\n";
+    }
+    msg(Warn)<<endl;
+  }
 
   void Deprecated::registerMessage(const std::string &message, const DOMElement *e) {
-    if(!atExitRegistred) {
-      atexit(&Deprecated::printAllMessages);
-      atExitRegistred=true;
-    }
-
     vector<string> stack;
     stack.push_back(message);
     if(e)
@@ -72,23 +85,7 @@ namespace MBXMLUtils {
       stack.push_back("(no stack trace available)");
 #endif
     }
-    allMessages.insert(stack);
-  }
-
-  void Deprecated::printAllMessages() {
-    msgStatic(Warn)<<"\n";
-    msgStatic(Warn)<<allMessages.size()<<" deprecated features were called:\n";
-    set<vector<string> >::const_iterator it;
-    int nr=0;
-    for(it=allMessages.begin(); it!=allMessages.end(); it++) {
-      nr++;
-      msgStatic(Warn)<<"* "<<"("<<nr<<"/"<<allMessages.size()<<") "<<(*it)[0]<<"\n";
-      vector<string>::const_iterator it2=it->begin();
-      it2++;
-      for(; it2!=it->end(); it2++)
-        msgStatic(Warn)<<"  "<<*it2<<"\n";
-    }
-    msgStatic(Warn)<<endl;
+    getInstance().allMessages.insert(stack);
   }
 
   std::string demangleSymbolName(std::string name) {

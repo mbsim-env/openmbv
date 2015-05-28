@@ -245,12 +245,9 @@ casadi::SXFunction* OctEval::cast<casadi::SXFunction*>(const octave_value &value
 }
 
 octave_value OctEval::createCasADi(const string &name) {
-  static list<octave_value_list> idx;
-  if(idx.empty()) {
-    idx.push_back(octave_value_list(name));
-    idx.push_back(octave_value_list());
-  }
-  *idx.begin()=octave_value_list(name);
+  list<octave_value_list> idx;
+  idx.push_back(octave_value_list(name));
+  idx.push_back(octave_value_list());
   return casadiOctValue->subsref(".(", idx);
 }
 

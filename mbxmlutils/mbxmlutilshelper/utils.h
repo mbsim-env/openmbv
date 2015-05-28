@@ -34,9 +34,9 @@ class Deprecated : virtual public fmatvec::Atom {
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */
     static void registerMessage(const std::string &message, const xercesc::DOMElement *e=NULL);
   private:
-    static void printAllMessages();
-    static std::set<std::vector<std::string> > allMessages;
-    static bool atExitRegistred;
+    ~Deprecated();
+    static Deprecated& getInstance();
+    std::set<std::vector<std::string> > allMessages;
 };
 
 std::string demangleSymbolName(std::string name);
