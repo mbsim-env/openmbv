@@ -12,7 +12,12 @@ xmldir = @datadir@/@PACKAGE@/xml
 swigrefdir = $(runlibdir)/@swig_ref
 dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd casadi.xsd
 dist_xml_DATA = measurement.xml
-dist_swigref_DATA = @swig_ref/*.m
+dist_swigref_DATA = \
+  @swig_ref/abs.m @swig_ref/acosh.m @swig_ref/acos.m @swig_ref/asinh.m @swig_ref/asin.m @swig_ref/atan2.m \
+  @swig_ref/atanh.m @swig_ref/atan.m @swig_ref/ceil.m @swig_ref/cosh.m @swig_ref/cos.m @swig_ref/erf.m \
+  @swig_ref/exp.m @swig_ref/floor.m @swig_ref/fmod.m @swig_ref/horzcat.m @swig_ref/log10.m @swig_ref/log.m \
+  @swig_ref/max.m @swig_ref/min.m @swig_ref/power.m @swig_ref/sign.m @swig_ref/sinh.m @swig_ref/sin.m \
+  @swig_ref/sqrt.m @swig_ref/tanh.m @swig_ref/tan.m @swig_ref/vertcat.m
 
 
 
