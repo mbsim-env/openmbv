@@ -9,10 +9,10 @@ endif
 # distribute and install
 schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils_physicalvariable
 xmldir = @datadir@/@PACKAGE@/xml
-swigrefdir = $(runlibdir)
+swigrefdir = $(runlibdir)/@swig_ref
 dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd casadi.xsd
 dist_xml_DATA = measurement.xml
-dist_swigref_DATA = @swig_ref
+dist_swigref_DATA = @swig_ref/*.m
 
 
 
@@ -57,7 +57,7 @@ casadi_swig_octave.cc: $(srcdir)/casadi.i
 
 casadi_la_SOURCES = casadi_swig_octave.cc
 casadi_la_LDFLAGS = -module -shrext .oct -avoid-version
-casadi_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS)
+casadi_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) -Wno-unused-value -Wno-error=maybe-uninitialized -Wno-unused-function
 casadi_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
 
 
