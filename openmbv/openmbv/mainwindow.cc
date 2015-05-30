@@ -1862,13 +1862,11 @@ void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool
   }
 }
 void MainWindow::toggleEngDrawingViewSlot() {
-  static SoMFColor bgColorSaved;
-  static SoMFColor fgColorBottomSaved, fgColorTopSaved;
   if(engDrawingView->isChecked()) {
     // save bg color
-    bgColorSaved=*bgColor;
-    fgColorBottomSaved=*fgColorBottom;
-    fgColorTopSaved=*fgColorTop;
+    engDrawingBGColorSaved=*bgColor;
+    engDrawingFGColorBottomSaved=*fgColorBottom;
+    engDrawingFGColorTopSaved=*fgColorTop;
     // set new bg color
     bgColor->set1Value(0, 1.0,1.0,1.0);
     bgColor->set1Value(1, 1.0,1.0,1.0);
@@ -1883,9 +1881,9 @@ void MainWindow::toggleEngDrawingViewSlot() {
     bottomBGColorAct->setEnabled(false);
   }
   else {
-    *bgColor=bgColorSaved; // restore bg color
-    *fgColorBottom=fgColorBottomSaved;
-    *fgColorTop=fgColorTopSaved;
+    *bgColor=engDrawingBGColorSaved; // restore bg color
+    *fgColorBottom=engDrawingFGColorBottomSaved;
+    *fgColorTop=engDrawingFGColorTopSaved;
     engDrawing->whichChild.setValue(SO_SWITCH_NONE); // disable engineering drawing
     setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, false); // enable outline and disable shilouetteEdge
     topBGColorAct->setEnabled(true);

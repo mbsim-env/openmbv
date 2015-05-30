@@ -85,6 +85,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoTransposeEngine *cameraOrientation;
     SoSwitch *worldFrameSwitch;
     SoSwitch *engDrawing;
+    SoMFColor engDrawingBGColorSaved, engDrawingFGColorBottomSaved, engDrawingFGColorTopSaved;
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
     int reloadTimeout;

@@ -11,7 +11,6 @@ using namespace boost::filesystem;
 path SCHEMADIR;
 
 int main(int argc, char *argv[]) {
-  InitXerces initXerces;
   try {
 
     //TODO not working on Windows

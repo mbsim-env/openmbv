@@ -351,8 +351,6 @@ class OctEval : virtual public fmatvec::Atom {
 
     static std::map<std::string, std::string> units;
 
-    static InitXerces initXerces;
-
     static boost::scoped_ptr<octave_value> casadiOctValue;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
