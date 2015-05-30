@@ -257,8 +257,6 @@ string OctEval::pathSep;
 
 std::map<std::string, std::string> OctEval::units;
 
-InitXerces OctEval::initXerces;
-
 boost::scoped_ptr<octave_value> OctEval::casadiOctValue;
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
