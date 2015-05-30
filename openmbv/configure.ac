@@ -131,9 +131,7 @@ AC_SUBST([WINDRES])
 
 # Note -Werror does not work since Coin/SoQt requires -fpermissive which can be be disable when -Werror is used
 # hence we add all warnings seperately.
-CPPFLAGS="$CPPFLAGS -Wall -fpermissive -Waddress -Warray-bounds -Wchar-subscripts -Wenum-compare -Wcomment -Wformat -Wmain -Wmissing-braces -Wparentheses -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized -Wunknown-pragmas -Wunused-function -Wunused-label -Wunused-value -Wunused-variable -Wvolatile-register-var"
-CFLAGS="$CFLAGS -Wpointer-sign -Wimplicit-int -Wimplicit-function-declaration"
-CXXFLAGS="$CXXFLAGS -Wreorder"
+CPPFLAGS="$CPPFLAGS -Wall -Werror"
 LDFLAGS="-no-undefined -Wl,--no-undefined $LDFLAGS"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 

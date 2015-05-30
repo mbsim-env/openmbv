@@ -217,8 +217,8 @@ inline SX createCasADiSXMatrixFromXML(xercesc::DOMElement *e, std::map<int, SXNo
 
     SX m=SX::zeros(ret.size(), ret[0].size());
     std::vector<SXElement>::iterator it=m.begin();
-    for(int c=0; c<ret[0].size(); ++c)
-      for(int r=0; r<ret.size(); ++r)
+    for(size_t c=0; c<ret[0].size(); ++c)
+      for(size_t r=0; r<ret.size(); ++r)
         *it++=ret[r][c];
 
     if(MBXMLUtils::E(e)->hasAttribute("columnVector") && MBXMLUtils::E(e)->getAttribute("columnVector")=="true")
