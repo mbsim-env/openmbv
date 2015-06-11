@@ -20,9 +20,12 @@
 #ifndef _OPENMBVGUI_INDEXEDTESSELATIONFACE_H_
 #define _OPENMBVGUI_INDEXEDTESSELATIONFACE_H_
 
-#include <Inventor/nodes/SoGroup.h>
+#pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#define NDEBUG
 #include <Inventor/fields/SoMFInt32.h>
+#include <Inventor/nodes/SoGroup.h>
 #include <Inventor/fields/SoMFVec3d.h>
+#pragma pop_macro("NDEBUG")
 #include <Inventor/fields/SoSFEnum.h>
 
 namespace OpenMBVGUI {

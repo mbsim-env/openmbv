@@ -21,7 +21,10 @@
 #define _OPENMBVGUI_EDITORS_H_
 
 #include <fmatvec/atom.h>
+#pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#define NDEBUG
 #include <Inventor/nodes/SoRotation.h>
+#pragma pop_macro("NDEBUG")
 #include <Inventor/nodes/SoTranslation.h>
 #include <openmbvcppinterface/polygonpoint.h>
 #include <boost/function.hpp>

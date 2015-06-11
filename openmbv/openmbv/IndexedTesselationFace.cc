@@ -1,6 +1,9 @@
 #include "config.h"
 #include "IndexedTesselationFace.h"
+#pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#define NDEBUG
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#pragma pop_macro("NDEBUG")
 #include <GL/glu.h>
 #include "body.h"
 
