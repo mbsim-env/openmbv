@@ -80,14 +80,17 @@ def getDependencies(filename):
 def getDoNotAdd():
   notAdd=set()
   system=[
-    ("equery", ["-C", "files", "glibc", "mesa",       "fontconfig",]), # portage
-    ("rpm",    ["-ql",         "glibc", "mesa-libGL", "fontconfig",]), # rpm
+    ("equery", ["-C", "files"], ["glibc", "mesa",       "fontconfig",]), # portage
+    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "fontconfig",]), # rpm
   ]
   for s in system:
-    if distutils.spawn.find_executable(s[0]):
-      for line in subprocess.check_output([s[0]]+s[1], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
-        notAdd.add(line)
-      return notAdd
+    for p in s[2]:
+      if distutils.spawn.find_executable(s[0]):
+        try:
+          for line in subprocess.check_output([s[0]]+s[1]+[p], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
+            notAdd.add(line)
+        except subprocess.CalledProcessError:
+          print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
   return notAdd
 
 @lru_cache(maxsize=None)
