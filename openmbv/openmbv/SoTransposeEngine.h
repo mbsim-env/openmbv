@@ -21,7 +21,9 @@
 #define _OPENMBVGUI_SOTRANSPOSEENGINE_H_
 
 #pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include <Inventor/engines/SoSubEngine.h>
 #include <Inventor/fields/SoSFRotation.h>
 #pragma pop_macro("NDEBUG")

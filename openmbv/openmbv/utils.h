@@ -22,7 +22,9 @@
 
 #include <QtGui/QIcon>
 #pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/SbRotation.h>

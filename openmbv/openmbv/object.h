@@ -25,7 +25,9 @@
 #include <string>
 #include <set>
 #pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include <Inventor/nodes/SoSeparator.h>
 #pragma pop_macro("NDEBUG")
 #include <Inventor/nodes/SoSwitch.h>

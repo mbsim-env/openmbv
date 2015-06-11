@@ -24,7 +24,9 @@
 #include <QtCore/QObject>
 #include <vector>
 #pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #include <Inventor/nodes/SoCoordinate3.h>
 #pragma pop_macro("NDEBUG")
 #include <Inventor/nodes/SoIndexedLineSet.h>
