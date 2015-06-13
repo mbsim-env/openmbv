@@ -5,7 +5,7 @@ function swigModuleVar=swigLocalLoad(moduleName)
   SWIG_autoload_handling=1;
   % load swig module
   try
-    eval(moduleName);
+    eval([moduleName ';']);
   catch
     % reset to normal autoload handling
     SWIG_autoload_handling=0;
@@ -15,6 +15,9 @@ function swigModuleVar=swigLocalLoad(moduleName)
   SWIG_autoload_handling=0;
   % return swig module variable (as local namespace)
   swigModuleVar=eval(moduleName);
+  % save module as global variable
+  eval(['global swigGlobalModuleVar_' moduleName ';']);
+  eval(['swigGlobalModuleVar_' moduleName '=swigModuleVar;']);
 end
 
 % overloaded 'autoload' function which behavies like the builtin function except

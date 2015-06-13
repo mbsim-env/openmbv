@@ -1,5 +1,5 @@
 // module name
-%module casadi
+%module casadi_oct
 
 // include casadi headers
 %{

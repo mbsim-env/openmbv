@@ -328,7 +328,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       // load casadi
       {
         BLOCK_STDERR(blockstderr);
-        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
+        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0)));
         if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
       }
 

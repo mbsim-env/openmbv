@@ -37,7 +37,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 # utility library
-lib_LTLIBRARIES = libmbxmlutils.la casadi.la
+lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
@@ -57,17 +57,17 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 # this will include config.h from this project (openmbvcppinterface) instead of the octave
 # one. Since top_srcdir is added as a default include path by automake we must prevent this.
 AUTOMAKE_OPTIONS = nostdinc
-casadi_swig_octave.cc: $(srcdir)/casadi.i
-	$(swig) -octave -Werror -c++ -o casadi_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi.i || (rm -f casadi_swig_octave.cc; exit 1)
+casadi_oct_swig_octave.cc: $(srcdir)/casadi_oct.i
+	$(swig) -octave -Werror -c++ -o casadi_oct_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi_oct.i || (rm -f casadi_oct_swig_octave.cc; exit 1)
 
-casadi_la_SOURCES = casadi_swig_octave.cc
-casadi_la_LDFLAGS = -module -shrext .oct -avoid-version
-casadi_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) -Wno-unused-value -Wno-error=maybe-uninitialized -Wno-unused-function
-casadi_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
+casadi_oct_la_SOURCES = casadi_oct_swig_octave.cc
+casadi_oct_la_LDFLAGS = -module -shrext .oct -avoid-version
+casadi_oct_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) -Wno-unused-value -Wno-error=maybe-uninitialized -Wno-unused-function
+casadi_oct_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_swig_octave.cc
+CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octave.cc
 
 
 
@@ -94,9 +94,9 @@ install-exec-local:
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	if test $(runlibdir)/casadi.oct -nt $(runlibdir)/casadi.oct.deplibs; then \
-	  echo "Create dependency file for $(runlibdir)/casadi.oct"; \
-	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi.oct > \
-	    $(runlibdir)/casadi.oct.deplibs.tmp; \
-	  mv -f $(runlibdir)/casadi.oct.deplibs.tmp $(runlibdir)/casadi.oct.deplibs; \
+	if test $(runlibdir)/casadi_oct.oct -nt $(runlibdir)/casadi_oct.oct.deplibs; then \
+	  echo "Create dependency file for $(runlibdir)/casadi_oct.oct"; \
+	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_oct.oct > \
+	    $(runlibdir)/casadi_oct.oct.deplibs.tmp; \
+	  mv -f $(runlibdir)/casadi_oct.oct.deplibs.tmp $(runlibdir)/casadi_oct.oct.deplibs; \
 	fi
