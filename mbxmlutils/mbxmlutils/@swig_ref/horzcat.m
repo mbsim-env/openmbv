@@ -1,8 +1,8 @@
 function y=horzcat(varargin)
-  global casadi;
+  global swigGlobalModuleVar_casadi_oct;
   I=size(varargin, 2);
-  y=casadi.SX.zeros(0,0);
+  y=swigGlobalModuleVar_casadi_oct.SX.zeros(0,0);
   for i=1:I
-    y.appendColumns(casadi.SX(varargin{1, i}));
+    y.appendColumns(swigGlobalModuleVar_casadi_oct.SX(varargin{1, i}));
   end
 end

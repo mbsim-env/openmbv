@@ -29,13 +29,6 @@ namespace {
   //TODO // boost::filesystem::path::imbue(std::locale());
   //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
   #define CODECVT
-
-  // some platform dependent values
-#ifdef _WIN32
-  string LIBDIR="bin";
-#else
-  string LIBDIR="lib";
-#endif
 }
 
 namespace MBXMLUtils {
@@ -308,7 +301,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       }
 
       // ... and add .../[bin|lib] to octave search path (their we push all oct files)
-      string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
+      string dir=(MBXMLUtils::getInstallPath()/"lib").string(CODECVT);
       feval("addpath", octave_value_list(octave_value(dir)));
       if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
@@ -328,7 +321,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : dependencies(dependencies_)
       // load casadi
       {
         BLOCK_STDERR(blockstderr);
-        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi"), 1)(0)));
+        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0)));
         if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
       }
 

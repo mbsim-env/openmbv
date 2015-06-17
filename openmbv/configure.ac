@@ -129,9 +129,7 @@ AC_ARG_WITH(windres,
   [WINDRES="windres"])
 AC_SUBST([WINDRES])
 
-# Note -Werror does not work since Coin/SoQt requires -fpermissive which can be be disable when -Werror is used
-# hence we add all warnings seperately.
-CPPFLAGS="$CPPFLAGS -Wall -Werror"
+CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=attributes"
 LDFLAGS="-no-undefined -Wl,--no-undefined $LDFLAGS"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 

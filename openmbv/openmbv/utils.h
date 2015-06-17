@@ -21,12 +21,17 @@
 #define _OPENMBVGUI_UTILS_H_
 
 #include <QtGui/QIcon>
+#pragma push_macro("NDEBUG") // reworkaround some debugging bug in Coin3D
+#ifndef NDEBUG
+#define NDEBUG
+#endif
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/SbRotation.h>
+#include <Inventor/nodes/SoTriangleStripSet.h>
+#pragma pop_macro("NDEBUG")
 #include <string>
 #include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <GL/glu.h>
 #include <boost/functional/factory.hpp>
