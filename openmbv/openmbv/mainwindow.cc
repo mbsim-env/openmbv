@@ -112,6 +112,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   frame->getContainer()->ref(); // reference the global field
   frame->setValue(0);
 
+  engDrawingBGColorSaved=new SoMFColor();
+  engDrawingFGColorBottomSaved=new SoMFColor();
+  engDrawingFGColorTopSaved=new SoMFColor();
+
   // main widget
   QWidget *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
@@ -836,6 +840,9 @@ MainWindow::~MainWindow() {
   delete bgColor;
   delete fgColorTop;
   delete fgColorBottom;
+  delete engDrawingBGColorSaved;
+  delete engDrawingFGColorBottomSaved;
+  delete engDrawingFGColorTopSaved;
   SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
   SoQt::done();
@@ -1864,9 +1871,9 @@ void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool
 void MainWindow::toggleEngDrawingViewSlot() {
   if(engDrawingView->isChecked()) {
     // save bg color
-    engDrawingBGColorSaved=*bgColor;
-    engDrawingFGColorBottomSaved=*fgColorBottom;
-    engDrawingFGColorTopSaved=*fgColorTop;
+    *engDrawingBGColorSaved=*bgColor;
+    *engDrawingFGColorBottomSaved=*fgColorBottom;
+    *engDrawingFGColorTopSaved=*fgColorTop;
     // set new bg color
     bgColor->set1Value(0, 1.0,1.0,1.0);
     bgColor->set1Value(1, 1.0,1.0,1.0);
@@ -1881,9 +1888,9 @@ void MainWindow::toggleEngDrawingViewSlot() {
     bottomBGColorAct->setEnabled(false);
   }
   else {
-    *bgColor=engDrawingBGColorSaved; // restore bg color
-    *fgColorBottom=engDrawingFGColorBottomSaved;
-    *fgColorTop=engDrawingFGColorTopSaved;
+    *bgColor=*engDrawingBGColorSaved; // restore bg color
+    *fgColorBottom=*engDrawingFGColorBottomSaved;
+    *fgColorTop=*engDrawingFGColorTopSaved;
     engDrawing->whichChild.setValue(SO_SWITCH_NONE); // disable engineering drawing
     setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, false); // enable outline and disable shilouetteEdge
     topBGColorAct->setEnabled(true);
