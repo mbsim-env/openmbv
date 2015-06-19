@@ -1,7 +1,7 @@
 #ifndef _MBXMLUTILS_OCTEVAL_H_
 #define _MBXMLUTILS_OCTEVAL_H_
 
-#include <fmatvec/atom.h>
+#include "eval.h"
 #include <string>
 #include <stack>
 #ifdef HAVE_UNORDERED_MAP
@@ -53,72 +53,26 @@ namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
 
-extern bool deactivateBlock;
-// A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
-template<int T>
-class Block {
-  public:
-    Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
-      if(deactivateBlock) return;
-      if(disableCount==0)
-        orgcxxx=str.rdbuf(buf);
-      disableCount++;
-    }
-    ~Block() {
-      if(deactivateBlock) return;
-      disableCount--;
-      if(disableCount==0)
-        str.rdbuf(orgcxxx);
-    }
-  private:
-    std::ostream &str;
-    static std::streambuf *orgcxxx;
-    static int disableCount;
-};
-template<int T> std::streambuf *Block<T>::orgcxxx;
-template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT(name) Block<1> name(std::cout)
-#define BLOCK_STDERR(name) Block<2> name(std::cerr)
-#define REDIR_STDOUT(name, buf) Block<1> name(std::cout, buf)
-#define REDIR_STDERR(name, buf) Block<2> name(std::cerr, buf)
+inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
+  return boost::static_pointer_cast<octave_value>(value);
+}
+
+inline boost::shared_ptr<void> C(const octave_value &value) {
+  return boost::make_shared<octave_value>(value);
+}
 
 class OctEval;
 
-//! Create a new parameter level for a octave evaluator which is automatically resetted if the scope of this object is left.
-class NewParamLevel {
-  public:
-    //! Create a new parameter level in the octave evaluator oe_
-    NewParamLevel(OctEval &oe_, bool newLevel_=true);
-    //! Reset to the previous parameter level
-    ~NewParamLevel();
-  protected:
-    OctEval &oe;
-    bool newLevel;
-};
-
 /*! Octave expression evaluator and converter. */
-class OctEval : virtual public fmatvec::Atom {
+class OctEval : public Eval {
   public:
-    friend class NewParamLevel;
-
-    //! Known type for the "ret" variable
-    enum ValueType {
-      ScalarType,
-      VectorType,
-      MatrixType,
-      StringType,
-      SXType,
-      DMatrixType,
-      SXFunctionType
-    };
-
     //! Constructor.
     OctEval(std::vector<boost::filesystem::path> *dependencies_=NULL);
     //! Destructor.
     ~OctEval();
 
     //! Add a octave value to the current parameters.
-    void addParam(const std::string &paramName, const octave_value& value);
+    void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
@@ -130,178 +84,20 @@ class OctEval : virtual public fmatvec::Atom {
     
     //! Evaluate the XML element e using the current parameters returning the resulting octave value.
     //! The type of evaluation depends on the type of e.
-    octave_value eval(const xercesc::DOMElement *e);
+    boost::shared_ptr<void> eval(const xercesc::DOMElement *e);
 
     //! Evaluate the XML attribute a using the current parameters returning the resulting octave value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a octave string even so it is not really a string.
-    octave_value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
-
-    /*! Cast the octave value value to type <tt>T</tt>.
-     * Possible combinations of allowed octave value types and template types <tt>T</tt> are listed in the
-     * following table. If a combination is not allowed a exception is thrown, except for casts which are marked
-     * as not type save in the table.
-     * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the octave object
-     * \p value being passed as argument.
-     * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
-     * return types this function must be called with only one argument cast(const octave_value &value);
-     * <table>
-     *   <tr>
-     *     <th></th>
-     *     <th colspan="6"><tt>value</tt> is of Octave Type ...</th>
-     *   </tr>
-     *   <tr>
-     *     <th>Template Type <tt>T</tt> equals ...</th>
-     *     <th>real</th>
-     *     <th>string</th>
-     *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
-     *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
-     *     <th><i>SWIG</i> <tt>casadi::DMatrix</tt></th>
-     *     <th><i>SWIG</i> <tt>XYZ</tt></th>
-     *   </tr>
-     *
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>int</tt></th>
-     *     <!--real-->       <td>only if 1 x 1 and a integral number</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if 1 x 1 and constant and a integral number</td>
-     *     <!--DMatrix-->    <td>only if 1 x 1 and a integral number</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>double</tt></th>
-     *     <!--real-->       <td>only if 1 x 1</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if 1 x 1 and constant</td>
-     *     <!--DMatrix-->    <td>only if 1 x 1</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>vector&lt;double&gt;</tt></th>
-     *     <!--real-->       <td>only if n x 1</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if n x 1 and constant</td>
-     *     <!--DMatrix-->    <td>only if n x 1</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th>
-     *     <!--real-->       <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if constant</td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>string</tt></th>
-     *     <!--real-->       <td>returns e.g. "5" or "[1,3;5,4]"</td>
-     *     <!--string-->     <td>returns e.g. "'foo'"</td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if constant; returns e.g. "5" or "[1,3;5,4]"</td>
-     *     <!--DMatrix-->    <td>returns e.g. "5" or "[1,3;5,4]"</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>DOMElement*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SXFunction</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SXFunction*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX</tt></th>
-     *     <!--real-->       <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::DMatrix</tt></th>
-     *     <!--real-->       <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::DMatrix*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>XYZ</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->l        <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td>not type save</td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>XYZ*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td>not type save</td>
-     *   </tr>
-     * </table>
-     */
-    template<typename T>
-    static T cast(const octave_value &value, xercesc::DOMDocument *doc);
-
-    //! see cast(const octave_value &value, shared_ptr<DOMDocument> &doc)
-    template<typename T>
-    static T cast(const octave_value &value);
+    boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     //! get the type of value
-    static ValueType getType(const octave_value &value);
+    ValueType getType(const boost::shared_ptr<void> &value);
 
     //! evaluate str and return result as an octave variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a octave string even so it is not really a string.
-    octave_value stringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
+    boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true);
 
   protected:
 
@@ -310,42 +106,20 @@ class OctEval : virtual public fmatvec::Atom {
     void deinitOctave();
 
     //! evaluate str fully and return result as an octave variable
-    octave_value fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
+    octave_value fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL);
 
     //! evaluate str partially and return result as an std::string
-    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e) const;
-
-    //! Push the current parameters to a internal stack.
-    void pushParams();
-
-    //! Overwrite the current parameter with the top level set from the internal stack.
-    void popParams();
-
-    //! Push the current path to a internal stack.
-    void pushPath();
-
-    //! Overwrite the current path with the top level path from the internal stack.
-    void popPath();
+    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e);
 
     //! cast value to the corresponding swig object of type T, without ANY type check.
-    template<typename T>
-    static T castToSwig(const octave_value &value);
-
-    std::vector<boost::filesystem::path> *dependencies;
+    void* castToSwig(const boost::shared_ptr<void> &value);
 
     //! create octave value of CasADi type name. Created using the default ctor.
     static octave_value createCasADi(const std::string &name);
 
-    // map of the current parameters
-    std::unordered_map<std::string, octave_value> currentParam;
     // initial path
     static std::string initialPath;
     static std::string pathSep;
-
-    // stack of parameters
-    std::stack<std::unordered_map<std::string, octave_value> > paramStack;
-    // stack of path
-    std::stack<std::string> pathStack;
 
     static int initCount;
 
@@ -356,68 +130,21 @@ class OctEval : virtual public fmatvec::Atom {
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
 
-    octave_value handleUnit(const xercesc::DOMElement *e, const octave_value &ret);
+    boost::shared_ptr<octave_value> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<octave_value> &ret);
+
+    virtual int                               cast_int                 (const boost::shared_ptr<void> &value);
+    virtual double                            cast_double              (const boost::shared_ptr<void> &value);
+    virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value);
+    virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value);
+    virtual std::string                       cast_string              (const boost::shared_ptr<void> &value);
+    virtual casadi::SXFunction                cast_SXFunction          (const boost::shared_ptr<void> &value);
+    virtual casadi::SXFunction*               cast_SXFunction_p        (const boost::shared_ptr<void> &value);
+    virtual casadi::SX                        cast_SX                  (const boost::shared_ptr<void> &value);
+    virtual casadi::SX*                       cast_SX_p                (const boost::shared_ptr<void> &value);
+    virtual casadi::DMatrix                   cast_DMatrix             (const boost::shared_ptr<void> &value);
+    virtual casadi::DMatrix*                  cast_DMatrix_p           (const boost::shared_ptr<void> &value);
+    virtual xercesc::DOMElement*              cast_DOMElement_p        (const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
 };
-
-// Helper class which convert a void* to T* or T.
-template<typename T>
-struct Ptr {
-  static T cast(void *ptr) { return *static_cast<T*>(ptr); }
-};
-template<typename T>
-struct Ptr<T*> {
-  static T* cast(void *ptr) { return static_cast<T*>(ptr); }
-};
-
-// cast octave value to swig object ptr or swig object copy
-template<typename T>
-T OctEval::castToSwig(const octave_value &value) {
-  // get the casadi pointer: octave returns a 64bit integer which represents the pointer
-  static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
-  octave_value swigThis;
-  {
-    BLOCK_STDERR(blockstderr);
-    swigThis=feval(swig_this, value, 1)(0);
-  }
-  if(error_state!=0)
-    throw std::runtime_error("Internal error: Not a swig object");
-  void *swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
-  // convert the void pointer to the correct casadi type
-  return Ptr<T>::cast(swigPtr);
-}
-
-template<typename T>
-T OctEval::cast(const octave_value &value) {
-  // do not allow T == DOMElement* here ...
-  BOOST_STATIC_ASSERT_MSG((boost::is_same<T, xercesc::DOMElement*>::type), 
-    "Calling OctEval::cast<DOMElement*>(const octave_value&) is not allowed "
-    "use OctEval::cast<DOMElement*>(const octave_value&, DOMDocument*)"
-  );
-  // ... but treat all other type as octave swig types ...
-  return castToSwig<T>(value);
-}
-// ... but prevere these specializations
-template<> std::string OctEval::cast<std::string>(const octave_value &value);
-template<> long OctEval::cast<long>(const octave_value &value);
-template<> double OctEval::cast<double>(const octave_value &value);
-template<> std::vector<double> OctEval::cast<std::vector<double> >(const octave_value &value);
-template<> std::vector<std::vector<double> > OctEval::cast<std::vector<std::vector<double> > >(const octave_value &value);
-template<> casadi::SX OctEval::cast<casadi::SX>(const octave_value &value);
-template<> casadi::SX* OctEval::cast<casadi::SX*>(const octave_value &value);
-template<> casadi::SXFunction OctEval::cast<casadi::SXFunction>(const octave_value &value);
-template<> casadi::SXFunction* OctEval::cast<casadi::SXFunction*>(const octave_value &value);
-template<> casadi::DMatrix OctEval::cast<casadi::DMatrix>(const octave_value &value);
-template<> casadi::DMatrix* OctEval::cast<casadi::DMatrix*>(const octave_value &value);
-
-template<typename T>
-T OctEval::cast(const octave_value &value, xercesc::DOMDocument *doc) {
-  // only allow T == DOMElement* here ...
-  BOOST_STATIC_ASSERT_MSG(!(boost::is_same<T, xercesc::DOMElement*>::type), 
-    "Calling OctEval::cast<T>(const octave_value&, DOMDocument*) is only allowed for T=DOMElement*"
-  );
-}
-// ... but use these spezializations
-template<> xercesc::DOMElement* OctEval::cast<xercesc::DOMElement*>(const octave_value &value, xercesc::DOMDocument *doc);
 
 } // end namespace MBXMLUtils
 

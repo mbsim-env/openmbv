@@ -41,8 +41,8 @@ lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
-libmbxmlutils_la_SOURCES = octeval.cc preprocess.cc
-libmbxmlutils_la_HEADERS = octeval.h preprocess.h
+libmbxmlutils_la_SOURCES = eval.cc octeval.cc preprocess.cc
+libmbxmlutils_la_HEADERS = eval.h octeval.h preprocess.h
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp

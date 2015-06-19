@@ -1,7 +1,9 @@
 #include <config.h>
 #include "mbxmlutils/preprocess.h"
+#include "mbxmlutils/octeval.h"
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
 #include <boost/lexical_cast.hpp>
 
 using namespace std;
@@ -12,7 +14,7 @@ using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vector<path> &dependencies, DOMElement *&e,
+void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<path> &dependencies, DOMElement *&e,
                             shared_ptr<XPathParamSet> param, const string &parentXPath,
                             shared_ptr<PositionMap> position) {
   try {
@@ -33,11 +35,11 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       // get file name if href attribute exist
       path file;
       if(E(e)->hasAttribute("href")) {
-        octave_value ret=octEval.eval(E(e)->getAttributeNode("href"), e);
+        shared_ptr<void> ret=eval.eval(E(e)->getAttributeNode("href"), e);
         string subst;
         try {
-          subst=OctEval::cast<string>(ret);
-          if(OctEval::getType(ret)==OctEval::StringType)
+          subst=eval.cast<string>(ret);
+          if(eval.getType(ret)==Eval::StringType)
             subst=subst.substr(1, subst.length()-2);
         } MBXMLUTILS_RETHROW(e)
         file=E(e)->convertPath(subst);
@@ -47,19 +49,19 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       // evaluate count using parameters
       long count=1;
       if(E(e)->hasAttribute("count"))
-        try { count=OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
+        try { count=eval.cast<int>(eval.eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
     
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName")) {
-        try { counterName=OctEval::cast<string>(octEval.eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
+        try { counterName=eval.cast<string>(eval.eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
         counterName=counterName.substr(1, counterName.length()-2);
       }
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
-        octEval.msg(Info)<<"Read and validate "<<file<<endl;
+        eval.msg(Info)<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies);
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
@@ -92,18 +94,18 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
-        octave_value ret=octEval.eval(E(e)->getAttributeNode("parameterHref"), e);
+        shared_ptr<void> ret=eval.eval(E(e)->getAttributeNode("parameterHref"), e);
         string subst;
         try {
-          subst=OctEval::cast<string>(ret);
-          if(OctEval::getType(ret)==OctEval::StringType)
+          subst=eval.cast<string>(ret);
+          if(eval.getType(ret)==Eval::StringType)
             subst=subst.substr(1, subst.length()-2);
         } MBXMLUTILS_RETHROW(e)
         path paramFile=E(e)->convertPath(subst);
         // add local parameter file to dependencies
         dependencies.push_back(paramFile);
         // validate and local parameter file
-        octEval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
+        eval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
         localparamxmldoc=parser->parse(paramFile, &dependencies);
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
@@ -116,9 +118,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
         // no such XPath in param -> output this parameter set to the caller
         if(ret.second) {
-          OctEval plainEval;
+          OctEval dummy;
+          Eval &plainEval=dummy;
           for(const DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
-            octave_value parValue;
+            shared_ptr<void> parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {
               parValue=plainEval.eval(p);
@@ -137,7 +140,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
               if(E(p)->getAttribute("name")==it->first) {
                 // if found overwrite this parameter
                 p->removeChild(E(p)->getFirstTextChild())->release();
-                p->appendChild(p->getOwnerDocument()->createTextNode(X()%OctEval::cast<string>(it->second)));
+                p->appendChild(p->getOwnerDocument()->createTextNode(X()%eval.cast<string>(it->second)));
               }
             }
           }
@@ -146,20 +149,20 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
 
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
-        NewParamLevel newParamLevel(octEval);
-        octEval.addParam(counterName, i);
+        NewParamLevel newParamLevel(eval);
+        eval.addParam(counterName, C(i));
         if(localParamEle) {
-          octEval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)
+          eval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
-          octEval.addParamSet(localParamEle.get());
+          eval.addParamSet(localParamEle.get());
         }
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(E(e)->hasAttribute("onlyif"))
-          try { onlyif=(OctEval::cast<long>(octEval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
+          try { onlyif=(eval.cast<int>(eval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
         if(onlyif) {
-          octEval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+          eval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           DOMNode *p=e->getParentNode();
           if(i==1) {
             DOMElement *ereplaced=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
@@ -174,10 +177,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
       
           // apply embed to new element
           // (do not pass param here since we report only top level parameter sets; parentXPath is also not longer needed)
-          preprocess(parser, octEval, dependencies, e);
+          preprocess(parser, eval, dependencies, e);
         }
         else
-          octEval.msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+          eval.msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       return;
     }
@@ -203,11 +206,11 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
         // skip attributes which are not evaluated
         if(!A(a)->isDerivedFrom(PV%"fullOctEval") && !A(a)->isDerivedFrom(PV%"partialOctEval"))
           continue;
-        octave_value value=octEval.eval(a, e);
+        shared_ptr<void> value=eval.eval(a, e);
         string s;
         try {
-          s=OctEval::cast<string>(value);
-          if(OctEval::getType(value)==OctEval::StringType)
+          s=eval.cast<string>(value);
+          if(eval.getType(value)==Eval::StringType)
             s=s.substr(1, s.length()-2);
         } MBXMLUTILS_RETHROW(e)
         a->setValue(X()%s);
@@ -219,8 +222,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
          E(e)->isDerivedFrom(PV%"matrix") ||
          E(e)->isDerivedFrom(PV%"fullOctEval") ||
          isCasADi) {
-        octave_value value=octEval.eval(e);
-        if(!value.is_empty()) {
+        shared_ptr<void> value=eval.eval(e);
+        if(value.get()) {//MFMF
           if(e->getFirstElementChild())
             e->removeChild(e->getFirstElementChild())->release();
           else if(E(e)->getFirstTextChild())
@@ -228,10 +231,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
           DOMNode *node;
           DOMDocument *doc=e->getOwnerDocument();
           try {
-            if(OctEval::getType(value)==OctEval::SXFunctionType)
-              node=OctEval::cast<DOMElement*>(value, doc);
+            if(eval.getType(value)==Eval::SXFunctionType)
+              node=eval.cast<DOMElement*>(value, doc);
             else
-              node=doc->createTextNode(X()%OctEval::cast<string>(value));
+              node=doc->createTextNode(X()%eval.cast<string>(value));
           } MBXMLUTILS_RETHROW(e)
           e->appendChild(node);
         }
@@ -242,7 +245,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, OctEval &octEval, vect
     DOMElement *c=e->getFirstElementChild();
     while(c) {
       // pass param and the new parent XPath to preprocess
-      preprocess(parser, octEval, dependencies, c, param, parentXPath+"/"+thisXPath);
+      preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath);
       if(c==NULL) break;
       c=c->getNextElementSibling();
     }
