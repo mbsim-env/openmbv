@@ -273,6 +273,10 @@ class Eval : virtual public fmatvec::Atom {
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
     virtual boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true)=0;
 
+    //! create a value of the given type
+    template<class T>
+    boost::shared_ptr<void> create(const T& v);
+
   protected:
     //! Push the current parameters to a internal stack.
     void pushParams();
@@ -312,6 +316,12 @@ class Eval : virtual public fmatvec::Atom {
     virtual casadi::DMatrix*                  cast_DMatrix_p           (const boost::shared_ptr<void> &value)=0;
     // virtual spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
     virtual xercesc::DOMElement*              cast_DOMElement_p        (const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)=0;
+
+    // virtual spezialization of create(...)
+    virtual boost::shared_ptr<void> create_double              (const double& v)=0;
+    virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v)=0;
+    virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v)=0;
+    virtual boost::shared_ptr<void> create_string              (const std::string& v)=0;
 };
 
 // Helper class which convert a void* to T* or T.
@@ -356,6 +366,12 @@ T Eval::cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) {
 }
 // ... but use these spezializations
 template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
+
+// spezializations for create
+template<> boost::shared_ptr<void> Eval::create<double>                            (const double& v);
+template<> boost::shared_ptr<void> Eval::create<std::vector<double> >              (const std::vector<double>& v);
+template<> boost::shared_ptr<void> Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v);
+template<> boost::shared_ptr<void> Eval::create<std::string>                       (const std::string& v);
 
 } // end namespace MBXMLUtils
 

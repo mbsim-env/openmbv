@@ -14,9 +14,15 @@
 // Include octave/config.h first. This is normally not allowed since config.h should only
 // be included in .cc files but is required by octave.
 // To avoid macro redefined warnings/errors we undefine it before
-// including octave/oct.h. Note that we can not restore the values. So you have to reinclude
-// your config.h after this file to get the original values.
-// undef macros
+// including octave/oct.h.
+#pragma push_macro("PACKAGE")
+#pragma push_macro("PACKAGE_BUGREPORT")
+#pragma push_macro("PACKAGE_NAME")
+#pragma push_macro("PACKAGE_STRING")
+#pragma push_macro("PACKAGE_TARNAME")
+#pragma push_macro("PACKAGE_URL")
+#pragma push_macro("PACKAGE_VERSION")
+#pragma push_macro("VERSION")
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
@@ -28,16 +34,14 @@
 // include
 #include <octave/config.h>
 // undef macros
-#undef PACKAGE
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_URL
-#undef PACKAGE_VERSION
-#undef VERSION
-// We cannot reset the macros so you have to reinclude your config.h after this file
-// to get the original values
+#pragma pop_macro("PACKAGE")
+#pragma pop_macro("PACKAGE_BUGREPORT")
+#pragma pop_macro("PACKAGE_NAME")
+#pragma pop_macro("PACKAGE_STRING")
+#pragma pop_macro("PACKAGE_TARNAME")
+#pragma pop_macro("PACKAGE_URL")
+#pragma pop_macro("PACKAGE_VERSION")
+#pragma pop_macro("VERSION")
 
 #include <octave/symtab.h>
 #include "mbxmlutilshelper/casadiXML.h"
@@ -144,6 +148,11 @@ class OctEval : public Eval {
     virtual casadi::DMatrix                   cast_DMatrix             (const boost::shared_ptr<void> &value);
     virtual casadi::DMatrix*                  cast_DMatrix_p           (const boost::shared_ptr<void> &value);
     virtual xercesc::DOMElement*              cast_DOMElement_p        (const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
+
+    virtual boost::shared_ptr<void> create_double              (const double& v);
+    virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v);
+    virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v);
+    virtual boost::shared_ptr<void> create_string              (const std::string& v);
 };
 
 } // end namespace MBXMLUtils

@@ -107,4 +107,24 @@ void Eval::popPath() {
   pathStack.pop();
 }
 
+template<>
+shared_ptr<void> Eval::create<double>(const double& v) {
+  return create_double(v);
+}
+
+template<>
+shared_ptr<void> Eval::create<vector<double> >(const vector<double>& v) {
+  return create_vector_double(v);
+}
+
+template<>
+shared_ptr<void> Eval::create<vector<vector<double> > >(const vector<vector<double> >& v) {
+  return create_vector_vector_double(v);
+}
+
+template<>
+shared_ptr<void> Eval::create<string>(const string& v) {
+  return create_string(v);
+}
+
 } // end namespace MBXMLUtils

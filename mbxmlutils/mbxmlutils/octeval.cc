@@ -209,6 +209,29 @@ casadi::SXFunction* OctEval::cast_SXFunction_p(const shared_ptr<void> &value) {
   throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
 }
 
+shared_ptr<void> OctEval::create_double(const double& v) {
+  return make_shared<octave_value>(v);
+}
+
+shared_ptr<void> OctEval::create_vector_double(const std::vector<double>& v) {
+  Matrix m(v.size(), 1);
+  for(int i=0; i<v.size(); ++i)
+    m(i)=v[i];
+  return make_shared<octave_value>(m);
+}
+
+shared_ptr<void> OctEval::create_vector_vector_double(const std::vector<std::vector<double> >& v) {
+  Matrix m(v.size(), v[0].size());
+  for(int r=0; r<v.size(); ++r)
+    for(int c=0; c<v[r].size(); ++c)
+      m(c*m.rows()+r)=v[r][c];
+  return make_shared<octave_value>(m);
+}
+
+shared_ptr<void> OctEval::create_string(const string& v) {
+  return make_shared<octave_value>(v);
+}
+
 octave_value OctEval::createCasADi(const string &name) {
   list<octave_value_list> idx;
   idx.push_back(octave_value_list(name));
