@@ -10,13 +10,13 @@
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="searchPath">
           <xs:complexType>
-            <xs:attribute name="href" type="filenamePartialOctEval"/>
+            <xs:attribute name="href" type="filenamePartialEval"/>
           </xs:complexType>
         </xs:element>
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>
-              <xs:extension base="stringFullOctEval">
+              <xs:extension base="stringFullEval">
                 <xs:attribute name="name" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">

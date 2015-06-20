@@ -662,7 +662,7 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMElement *e) {
      (E(e)->isDerivedFrom(PV%"scalar") ||
       E(e)->isDerivedFrom(PV%"vector") ||
       E(e)->isDerivedFrom(PV%"matrix") ||
-      E(e)->isDerivedFrom(PV%"fullOctEval") ||
+      E(e)->isDerivedFrom(PV%"fullEval") ||
       function)
     ) {
     shared_ptr<octave_value> ret=C(stringToValue(X()%E(e)->getFirstTextChild()->getData(), e));
@@ -670,11 +670,11 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMElement *e) {
       throw DOMEvalException("Octave value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && ret->columns()!=1)
       throw DOMEvalException("Octave value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"stringFullOctEval") && !ret->is_scalar_type() && !ret->is_string()) // also filenameFullOctEval
+    if(E(e)->isDerivedFrom(PV%"stringFullEval") && !ret->is_scalar_type() && !ret->is_string()) // also filenameFullEval
       throw DOMEvalException("Octave value is not of type scalar string", e);
 
     // add filenames to dependencies
-    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullOctEval"))
+    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval"))
       dependencies->push_back(E(e)->convertPath(ret->string_value()));
   
     // convert unit
@@ -765,9 +765,9 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMElement *e) {
 
 shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe) {
   bool fullEval;
-  if(A(a)->isDerivedFrom(PV%"fullOctEval"))
+  if(A(a)->isDerivedFrom(PV%"fullEval"))
     fullEval=true;
-  else if(A(a)->isDerivedFrom(PV%"partialOctEval"))
+  else if(A(a)->isDerivedFrom(PV%"partialEval"))
     fullEval=false;
   else
     throw DOMEvalException("Unknown XML attribute type", pe, a);
@@ -775,21 +775,21 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElem
   // evaluate attribute fully
   if(fullEval) {
     shared_ptr<octave_value> ret=C(stringToValue(X()%a->getValue(), pe));
-    if(A(a)->isDerivedFrom(PV%"floatFullOctEval")) {
+    if(A(a)->isDerivedFrom(PV%"floatFullEval")) {
       if(!ret->is_scalar_type() || !ret->is_real_type())
         throw DOMEvalException("Value is not of type scalar float", pe, a);
     }
-    else if(A(a)->isDerivedFrom(PV%"stringFullOctEval")) {
-      if(!ret->is_scalar_type() || !ret->is_string()) // also filenameFullOctEval
+    else if(A(a)->isDerivedFrom(PV%"stringFullEval")) {
+      if(!ret->is_scalar_type() || !ret->is_string()) // also filenameFullEval
         throw DOMEvalException("Value is not of type scalar string", pe, a);
     }
-    else if(A(a)->isDerivedFrom(PV%"integerFullOctEval")) {
+    else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
       bool isInt=true;
       try { boost::lexical_cast<int>(ret->double_value()); } catch(const boost::bad_lexical_cast &) { isInt=false; }
       if(!ret->is_scalar_type() || !ret->is_real_type() || !isInt) // also symbolicFunctionArgDimType
         throw DOMEvalException("Value is not of type scalar integer", pe, a);
     }
-    else if(A(a)->isDerivedFrom(PV%"booleanFullOctEval")) {
+    else if(A(a)->isDerivedFrom(PV%"booleanFullEval")) {
       if(!ret->is_scalar_type() || !ret->is_real_type() || (ret->double_value()!=0 && ret->double_value()!=1))
         throw DOMEvalException("Value is not of type scalar boolean", pe, a);
     }
@@ -797,7 +797,7 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElem
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
-    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullOctEval"))
+    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullEval"))
       dependencies->push_back(E(pe)->convertPath(ret->string_value()));
 
     return ret;
@@ -806,7 +806,7 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElem
   else {
     octave_value ret;
     string s=partialStringToOctValue(X()%a->getValue(), pe);
-    if(A(a)->isDerivedFrom(PV%"varnamePartialOctEval")) { // also symbolicFunctionArgNameType
+    if(A(a)->isDerivedFrom(PV%"varnamePartialEval")) { // also symbolicFunctionArgNameType
       if(s.length()<1)
         throw DOMEvalException("A variable name must consist of at least 1 character", pe, a);
       if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
@@ -816,23 +816,23 @@ shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElem
           throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe, a);
       ret=s;
     }
-    else if(A(a)->isDerivedFrom(PV%"floatPartialOctEval"))
+    else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
       try { ret=boost::lexical_cast<double>(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"stringPartialOctEval")) // also filenamePartialOctEval
+    else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
       try { ret=boost::lexical_cast<string>(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"integerPartialOctEval"))
+    else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
       try { ret=boost::lexical_cast<int>(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"booleanPartialOctEval"))
+    else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
       try { ret=boost::lexical_cast<bool>(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
     else
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
-    if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialOctEval"))
+    if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialEval"))
       dependencies->push_back(E(pe)->convertPath(s));
 
     return C(ret);

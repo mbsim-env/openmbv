@@ -205,7 +205,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         if(A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
           isCasADi=true;
         // skip attributes which are not evaluated
-        if(!A(a)->isDerivedFrom(PV%"fullOctEval") && !A(a)->isDerivedFrom(PV%"partialOctEval"))
+        if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
           continue;
         shared_ptr<void> value=eval.eval(a, e);
         string s;
@@ -221,7 +221,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       if(E(e)->isDerivedFrom(PV%"scalar") ||
          E(e)->isDerivedFrom(PV%"vector") ||
          E(e)->isDerivedFrom(PV%"matrix") ||
-         E(e)->isDerivedFrom(PV%"fullOctEval") ||
+         E(e)->isDerivedFrom(PV%"fullEval") ||
          isCasADi) {
         shared_ptr<void> value=eval.eval(e);
         if(value.get()) {//MFMF

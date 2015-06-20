@@ -16,11 +16,11 @@
           <xs:element ref="Embed"/>
         </xs:choice>
       </xs:sequence>
-      <xs:attribute name="href" type="filenamePartialOctEval" use="optional"/>
-      <xs:attribute name="parameterHref" type="filenamePartialOctEval" use="optional"/>
-      <xs:attribute name="count" use="optional" type="integerFullOctEval"/>
-      <xs:attribute name="counterName" use="optional" type="varnamePartialOctEval"/>
-      <xs:attribute name="onlyif" use="optional" type="booleanFullOctEval" default="1"/>
+      <xs:attribute name="href" type="filenamePartialEval" use="optional"/>
+      <xs:attribute name="parameterHref" type="filenamePartialEval" use="optional"/>
+      <xs:attribute name="count" use="optional" type="integerFullEval"/>
+      <xs:attribute name="counterName" use="optional" type="varnamePartialEval"/>
+      <xs:attribute name="onlyif" use="optional" type="booleanFullEval" default="1"/>
     </xs:complexType>
   </xs:element>
 

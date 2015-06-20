@@ -27,82 +27,82 @@
       <xs:include schemaLocation="embed.xsd"/>
       <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" schemaLocation="casadi.xsd"/>
 
-      <!-- base type for a XML text element which is fully converted by octave.-->
-      <xs:simpleType name="fullOctEval">
+      <!-- base type for a XML text element which is fully converted by the evaluator. -->
+      <xs:simpleType name="fullEval">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
 
-      <!-- full octave evaluation which must evaluate to an floating number.-->
-      <xs:simpleType name="floatFullOctEval">
-        <xs:restriction base="fullOctEval"/>
+      <!-- full evaluation which must evaluate to an floating number.-->
+      <xs:simpleType name="floatFullEval">
+        <xs:restriction base="fullEval"/>
       </xs:simpleType>
 
-      <!-- full octave evaluation which must evaluate to an string.-->
-      <xs:simpleType name="stringFullOctEval">
-        <xs:restriction base="fullOctEval"/>
+      <!-- full evaluation which must evaluate to an string.-->
+      <xs:simpleType name="stringFullEval">
+        <xs:restriction base="fullEval"/>
       </xs:simpleType>
 
-      <!-- full octave evaluation which must evaluate to an integer.-->
-      <xs:simpleType name="integerFullOctEval">
-        <xs:restriction base="fullOctEval"/>
+      <!-- full evaluation which must evaluate to an integer.-->
+      <xs:simpleType name="integerFullEval">
+        <xs:restriction base="fullEval"/>
       </xs:simpleType>
 
-      <!-- full octave evaluation which must evaluate to an boolean.-->
-      <xs:simpleType name="booleanFullOctEval">
-        <xs:restriction base="fullOctEval"/>
+      <!-- full evaluation which must evaluate to an boolean.-->
+      <xs:simpleType name="booleanFullEval">
+        <xs:restriction base="fullEval"/>
       </xs:simpleType>
 
-      <!-- full octave evaluation which must evaluate to an string which represents a filename -->
-      <xs:simpleType name="filenameFullOctEval">
-        <xs:restriction base="stringFullOctEval"/>
+      <!-- full evaluation which must evaluate to an string which represents a filename -->
+      <xs:simpleType name="filenameFullEval">
+        <xs:restriction base="stringFullEval"/>
       </xs:simpleType>
 
 
-      <!-- base type for a attribute which is partially converted by octave.
-           Only the content between { and } ist converted by octave
+      <!-- base type for a attribute which is partially converted by the evaluator.
+           Only the content between { and } ist converted by the evaluator
            Inside { ... } the character { and } must be quoted qith \ -->
-      <xs:simpleType name="partialOctEval">
+      <xs:simpleType name="partialEval">
         <xs:restriction base="xs:token"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an floating number -->
-      <xs:simpleType name="floatPartialOctEval">
-        <xs:restriction base="partialOctEval"/>
+      <!-- partial evaluation which must evaluate to an floating number -->
+      <xs:simpleType name="floatPartialEval">
+        <xs:restriction base="partialEval"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an string -->
-      <xs:simpleType name="stringPartialOctEval">
-        <xs:restriction base="partialOctEval"/>
+      <!-- partial evaluation which must evaluate to an string -->
+      <xs:simpleType name="stringPartialEval">
+        <xs:restriction base="partialEval"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an integer -->
-      <xs:simpleType name="integerPartialOctEval">
-        <xs:restriction base="partialOctEval"/>
+      <!-- partial evaluation which must evaluate to an integer -->
+      <xs:simpleType name="integerPartialEval">
+        <xs:restriction base="partialEval"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an boolean -->
-      <xs:simpleType name="booleanPartialOctEval">
-        <xs:restriction base="partialOctEval"/>
+      <!-- partial evaluation which must evaluate to an boolean -->
+      <xs:simpleType name="booleanPartialEval">
+        <xs:restriction base="partialEval"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an string representing a valid variable name -->
-      <xs:simpleType name="varnamePartialOctEval">
-        <xs:restriction base="stringPartialOctEval"/>
+      <!-- partial evaluation which must evaluate to an string representing a valid variable name -->
+      <xs:simpleType name="varnamePartialEval">
+        <xs:restriction base="stringPartialEval"/>
       </xs:simpleType>
 
-      <!-- partial octave evaluation which must evaluate to an string which represents a filename -->
-      <xs:simpleType name="filenamePartialOctEval">
-        <xs:restriction base="stringPartialOctEval"/>
+      <!-- partial evaluation which must evaluate to an string which represents a filename -->
+      <xs:simpleType name="filenamePartialEval">
+        <xs:restriction base="stringPartialEval"/>
       </xs:simpleType>
 
       <!-- just a special type to be able to detect such attributes by a schema-aware processor -->
       <xs:simpleType name="symbolicFunctionArgNameType">
-        <xs:restriction base="varnamePartialOctEval"/>
+        <xs:restriction base="varnamePartialEval"/>
       </xs:simpleType>
 
       <!-- the attribute type for vector argument dimension -->
       <xs:simpleType name="symbolicFunctionArgDimType">
-        <xs:restriction base="integerFullOctEval"/>
+        <xs:restriction base="integerFullEval"/>
       </xs:simpleType>
 
       <!-- add unit types -->
@@ -113,10 +113,10 @@
           <xs:element name="fromFile">
             <xs:annotation><xs:documentation>
               Load the file referenced by 'href' and return it as a vector or matrix.
-              All file formats of the octave 'load' command are supported and auto detected.
+              All file formats of the evaluator are supported.
             </xs:documentation></xs:annotation>
             <xs:complexType>
-              <xs:attribute name="href" use="required" type="filenamePartialOctEval"/>
+              <xs:attribute name="href" use="required" type="filenamePartialEval"/>
             </xs:complexType>
           </xs:element>
         </xs:sequence>
@@ -152,7 +152,7 @@
                 <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                   <xs:complexType>
                     <xs:sequence>
-                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
+                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullEval"/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:element>
@@ -192,7 +192,7 @@
           <xs:element name="xmlVector">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullOctEval"/>
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="floatFullEval"/>
               </xs:sequence>
             </xs:complexType>
           </xs:element>
@@ -237,7 +237,7 @@
         <xs:annotation>
           <xs:documentation>
             A scalar value in a unknown unit. The value is evaluated by the
-            octave string given in the convertUnit attribute.
+            string given in the convertUnit attribute.
           </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -251,7 +251,7 @@
         <xs:annotation>
           <xs:documentation>
             A vector value in a unknown unit. The value is evaluated by the
-            octave string given in the convertUnit attribute.
+            string given in the convertUnit attribute.
           </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -265,7 +265,7 @@
         <xs:annotation>
           <xs:documentation>
             A matrix value in a unknown unit. The value is evaluated by the
-            octave string given in the convertUnit attribute.
+            string given in the convertUnit attribute.
           </xs:documentation>
         </xs:annotation>
         <xs:complexContent>
@@ -294,9 +294,9 @@
               <xs:element name="cardan">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="alpha" type="floatFullOctEval"/>
-                    <xs:element name="beta" type="floatFullOctEval"/>
-                    <xs:element name="gamma" type="floatFullOctEval"/>
+                    <xs:element name="alpha" type="floatFullEval"/>
+                    <xs:element name="beta" type="floatFullEval"/>
+                    <xs:element name="gamma" type="floatFullEval"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
@@ -304,9 +304,9 @@
               <xs:element name="euler">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="PHI" type="floatFullOctEval"/>
-                    <xs:element name="theta" type="floatFullOctEval"/>
-                    <xs:element name="phi" type="floatFullOctEval"/>
+                    <xs:element name="PHI" type="floatFullEval"/>
+                    <xs:element name="theta" type="floatFullEval"/>
+                    <xs:element name="phi" type="floatFullEval"/>
                   </xs:sequence>
                   <xs:attributeGroup ref="angleMeasure"/>
                 </xs:complexType>
@@ -323,10 +323,10 @@
           <xs:documentation>
             A symbolic function definition which is evaluated at runtime using dynamic input parameters
             provided by the runtime. The representation of the symbolic function must either be given by
-            the MBXMLUtils notation for CasADi::SXFunction or by an octave expression (using the SWIG
-            octave interface of CasADi). Using a octave expression you have full access to other scalar,
+            the MBXMLUtils notation for CasADi::SXFunction or by an expression (using the SWIG
+            interface of CasADi). Using a expression you have full access to other scalar,
             vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
-            must be defined which set the name of this input parameter for the access in the octave expression.
+            must be defined which set the name of this input parameter for the access in the expression.
             For each vector input paramter moreover an attribure named 'xyzDim' must be defined
             which defines the vector dimension of this input.
             (The XML schema must also define a fixed (hidden) attribute named 'xyzNr' which is set the integer

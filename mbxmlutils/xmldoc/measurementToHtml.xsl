@@ -57,7 +57,7 @@
         </ul>
       </li>
       <li><a id="parameters-content" href="#parameters">5 Parameters</a></li>
-      <li><a id="octave-content" href="#octave">6 Octave Expression/Program</a></li>
+      <li><a id="evaluator-content" href="#evaluator">6 Expression Evaluator</a></li>
       <li><a id="embed-content" href="#embed">7 Embeding</a></li>
       <li><a id="measurements-content" href="#measurements">8 Measurements</a>
         <ul class="_content">
@@ -90,7 +90,7 @@
     </table>
 
     <h1><a id="name" href="#name-content">3 Element Name</a></h1>
-    <p>Elements which must be referable must have a name. Mostly this name is given by the attribute <span class="_attributeNoMargin">name</span>. A valid name starts with a letter or a underscore. The following characters can be letters, underscores or digits. The content between '<code>{</code>' and '<code>}</code>' can be any <a href="#octave">Octave Expression/Program</a> and is substituted by the result of Octave (which must be a valid name; normal a integer number).</p>
+    <p>Elements which must be referable must have a name. Mostly this name is given by the attribute <span class="_attributeNoMargin">name</span>. A valid name starts with a letter or a underscore. The following characters can be letters, underscores or digits. The content between '<code>{</code>' and '<code>}</code>' can be any <a href="#evaluator">Expression Evaluator</a> and is substituted by the result of the evaluator (which must be a valid name; normal a integer number).</p>
     <p>The following table shows examples for valid element names (on the left) and the substituted names (on the right), if there exist a scalar (integer) parameter of name <code>n</code> with the value <code>2</code>:</p>
     <table class="table table-condensed table-striped table-hover">
       <thead>
@@ -114,12 +114,12 @@
       attribute of name <span class="_attributeNoMargin">unit</span>.
       The type name of a scalar of measure length is <span class="label label-primary _type">pv:lengthScalar</span> and so on.
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
-    <p>The content of a scalar type must be a <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:</p>
+    <p>The content of a scalar type must be a <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:</p>
     <pre>&lt;myScalarElement unit="mm"&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
     <p>There is also a special unit of name <code>unknown</code> defined. This unit dose not take the optional <code>unit</code>
       attribute, it takes an optional attribute of name <span class="_attributeNoMargin">convertUnit</span>. The value of this attribute can be a
-      <a href="#octave">Octave Expression</a>
+      <a href="#evaluator">Expression Evaluator</a>
       which must contain a parameter of name <code>value</code>. The given value is then converted by this expression.</p>
 
     <h2><a id="vectortype" href="#vectortype-content">4.2 Vector Type</a>
@@ -133,10 +133,10 @@
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
-      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
+      <li>A <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
           <pre>&lt;myVectorElement unit="mm"&gt;[1;b;a;7]&lt;/myVectorElement&gt;</pre>
           <pre>&lt;myVectorElement&gt;[a,2;5.6,7]*[3;b]&lt;/myVectorElement&gt;</pre>
-       <p>Using the octave load command it is also possible to load the data from a external file:</p>
+       <p>Using the corresponding evaluator command it is also possible to load the data from a external file (for octave):</p>
        <pre>&lt;myMatrixElement&gt;ret=load('mydata.dat')&lt;/myMatrixElement&gt;</pre>
       </li>
       <li>A XML representation of a vector: The following shows a example of such a XML representation.<pre>
@@ -160,10 +160,10 @@
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>
-      <li>A <a href="#octave">octave expression/program</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
+      <li>A <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
           <pre>&lt;myMatrixElement unit="mm"&gt;[1,b;a,7]&lt;/myMatrixElement&gt;</pre>
           <pre>&lt;myMatrixElement&gt;[a,2;5.6,7]*rand(2,2)&lt;/myMatrixElement&gt;</pre>
-       <p>Using the octave load command it is also possible to load the data from a external file:</p>
+       <p>Using the corresponding evaluator command it is also possible to load the data from a external file (for octave):</p>
        <pre>&lt;myMatrixElement&gt;ret=load('mydata.dat')&lt;/myMatrixElement&gt;</pre>
       </li>
       <li>A XML representation of a matrix: The following shows a example of such a XML representation.<pre>
@@ -190,9 +190,10 @@
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
 &lt;/parameter&gt;
 </pre>
-    <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#octave">Octave Expressions/Programs</a>. Hence a parameter below another parameter may reference this value.</p>
+    <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
 
-    <h1><a id="octave" href="#octave-content">6 Octave Expression/Program</a></h1>
+    <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
+    <p>Different expression evaluators can be used. Currently implemented is only octave as evaluator. Hence this section covers only the octave expression evaluator.</p>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
    <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
