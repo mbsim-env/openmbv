@@ -40,6 +40,7 @@
 // now all octave includes can follow
 #include <octave/oct-obj.h>
 #include <octave/octave.h>
+#include <octave/symtab.h>
 #include <octave/parse.h>
 #include <octave/defaults.h>
 #include <octave/toplev.h>
