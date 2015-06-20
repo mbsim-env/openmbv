@@ -36,13 +36,22 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-# utility library
 lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la
+
+# utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
-libmbxmlutils_la_SOURCES = eval.cc octeval.cc preprocess.cc
-libmbxmlutils_la_HEADERS = eval.h octeval.h preprocess.h
+libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -I.. -I. $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la libmbxmlutils-octave.la $(CASADI_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_la_SOURCES = eval.cc preprocess.cc
+libmbxmlutils_la_HEADERS = eval.h preprocess.h
+
+# octave part of the utility library
+libmbxmlutils_octave_ladir = $(includedir)/mbxmlutils
+noinst_LTLIBRARIES = libmbxmlutils-octave.la
+libmbxmlutils_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_octave_la_LIBADD = $(MKOCTFILE_LIBS)
+libmbxmlutils_octave_la_SOURCES = octeval.cc
+libmbxmlutils_octave_la_HEADERS = octeval.h
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
