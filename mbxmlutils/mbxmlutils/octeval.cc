@@ -1,21 +1,17 @@
-#include <config.h>
+#include "config.h"
 #include "mbxmlutils/octeval.h"
-#include <octave/version.h> // we need to check for the octave version (octave interface change)
-#include <stdexcept>
-#include <boost/filesystem.hpp>
-#include <boost/locale.hpp>
+#include "mbxmlutilshelper/casadiXML.h"
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
+#include <octave/oct-obj.h>
 #include <octave/octave.h>
+#include <octave/parse.h>
 #include <octave/defaults.h>
 #include <octave/toplev.h>
 #include <mbxmlutilshelper/dom.h>
-#include <mbxmlutilshelper/utils.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
-
-//TODO: should also compile if casadi is not present
 
 using namespace std;
 using namespace xercesc;
@@ -29,9 +25,24 @@ namespace {
   //TODO // boost::filesystem::path::imbue(std::locale());
   //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
   #define CODECVT
+
+  // some platform dependent values
+#ifdef _WIN32
+  bfs::path LIBDIR="bin";
+#else
+  bfs::path LIBDIR="lib";
+#endif
 }
 
 namespace MBXMLUtils {
+
+inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
+  return boost::static_pointer_cast<octave_value>(value);
+}
+
+inline boost::shared_ptr<void> C(const octave_value &value) {
+  return boost::make_shared<octave_value>(value);
+}
 
 // Store the current directory in the ctor an restore in the dtor
 class PreserveCurrentDir {
@@ -913,6 +924,61 @@ void* OctEval::castToSwig(const shared_ptr<void> &value) {
   void *swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
   // convert the void pointer to the correct casadi type
   return swigPtr;
+}
+
+map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {
+  static map<bfs::path, pair<bfs::path, bool> > files;
+  if(!files.empty())
+    return files;
+
+  cout<<"Generate file list for the octave casadi wrapper files."<<endl;
+  // note: casadi.oct is copied automatically with all other octave oct files later
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR/"@swig_ref");
+    srcIt!=bfs::directory_iterator(); ++srcIt)
+    files[srcIt->path()]=make_pair(LIBDIR/"@swig_ref", false);
+
+  cout<<"Generate file list for MBXMLUtils m-files."<<endl;
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
+    srcIt!=bfs::directory_iterator(); ++srcIt)
+    files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", 0);
+
+  // get octave prefix
+  bfs::path octave_prefix(getInstallPath()); // use octave in install path
+  if(!exists(octave_prefix/"share"/"octave")) // if not found use octave in system path
+    octave_prefix=OCTAVE_PREFIX;
+  // get octave libdir without octave_prefix
+  bfs::path octave_libdir(string(OCTAVE_LIBDIR).substr(string(OCTAVE_PREFIX).length()+1));
+  // get octave octfiledir without octave_prefix
+  bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
+  // get octave fcnfiledir without octave_prefix
+  bfs::path octave_fcnfiledir(string(OCTAVE_FCNFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
+
+  cout<<"Generate file list for octave m-files."<<endl;
+  bfs::path dir=octave_prefix/octave_fcnfiledir;
+  size_t depth=distance(dir.begin(), dir.end());
+  for(bfs::recursive_directory_iterator srcIt=bfs::recursive_directory_iterator(octave_prefix/octave_fcnfiledir);
+      srcIt!=bfs::recursive_directory_iterator(); ++srcIt) {
+    if(is_directory(*srcIt)) // skip directories
+      continue;
+    bfs::path::iterator dstIt=srcIt->path().begin();
+    for(int i=0; i<depth; ++i) ++dstIt;
+    bfs::path dst;
+    for(; dstIt!=--srcIt->path().end(); ++dstIt)
+      dst/=*dstIt;
+    files[srcIt->path()]=make_pair(octave_fcnfiledir/dst, false);
+  }
+
+  cout<<"Generate file list for octave oct-files (excluding dependencies)."<<endl;
+  // octave oct-files are copied to $FMU/resources/local/$LIBDIR since their are also all dependent libraries
+  // installed (and are found their due to Linux rpath or Windows alternate search order flag).
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR); srcIt!=bfs::directory_iterator(); ++srcIt) {
+    if(srcIt->path().extension()==".oct")
+      files[srcIt->path()]=make_pair(LIBDIR, false);
+    if(srcIt->path().filename()=="PKG_ADD")
+      files[srcIt->path()]=make_pair(LIBDIR, true);
+  }
+
+  return files;
 }
 
 } // end namespace MBXMLUtils

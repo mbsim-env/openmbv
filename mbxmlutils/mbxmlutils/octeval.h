@@ -2,68 +2,21 @@
 #define _MBXMLUTILS_OCTEVAL_H_
 
 #include "eval.h"
-#include <string>
-#include <stack>
-#ifdef HAVE_UNORDERED_MAP
-#  include <unordered_map>
-#else
-#  include <map>
-#  define unordered_map map
-#endif
-
-// Include octave/config.h first. This is normally not allowed since config.h should only
-// be included in .cc files but is required by octave.
-// To avoid macro redefined warnings/errors we undefine it before
-// including octave/oct.h.
-#pragma push_macro("PACKAGE")
-#pragma push_macro("PACKAGE_BUGREPORT")
-#pragma push_macro("PACKAGE_NAME")
-#pragma push_macro("PACKAGE_STRING")
-#pragma push_macro("PACKAGE_TARNAME")
-#pragma push_macro("PACKAGE_URL")
-#pragma push_macro("PACKAGE_VERSION")
-#pragma push_macro("VERSION")
-#undef PACKAGE
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_URL
-#undef PACKAGE_VERSION
-#undef VERSION
-// include
-#include <octave/config.h>
-// undef macros
-#pragma pop_macro("PACKAGE")
-#pragma pop_macro("PACKAGE_BUGREPORT")
-#pragma pop_macro("PACKAGE_NAME")
-#pragma pop_macro("PACKAGE_STRING")
-#pragma pop_macro("PACKAGE_TARNAME")
-#pragma pop_macro("PACKAGE_URL")
-#pragma pop_macro("PACKAGE_VERSION")
-#pragma pop_macro("VERSION")
-
-#include <octave/symtab.h>
-#include "mbxmlutilshelper/casadiXML.h"
-#include "mbxmlutilshelper/dom.h"
-#include <octave/parse.h>
-#include <boost/filesystem.hpp>
-#include <boost/static_assert.hpp> 
 #include <boost/scoped_ptr.hpp>
-#include <xercesc/util/XercesDefs.hpp>
-#include <xercesc/dom/DOMDocument.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+
+class octave_value;
+class octave_value_list;
+class octave_function;
 
 namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
 
-inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
-  return boost::static_pointer_cast<octave_value>(value);
-}
+boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value);
 
-inline boost::shared_ptr<void> C(const octave_value &value) {
-  return boost::make_shared<octave_value>(value);
-}
+boost::shared_ptr<void> C(const octave_value &value);
 
 class OctEval;
 
@@ -102,6 +55,9 @@ class OctEval : public Eval {
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a octave string even so it is not really a string.
     boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true);
+
+    //! return a list of all required files of octave (excluding dependent files of libraries)
+    std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles();
 
   protected:
 

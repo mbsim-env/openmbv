@@ -2,6 +2,7 @@
 #include "mbxmlutils/preprocess.h"
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <mbxmlutils/octeval.h>
+#include <xercesc/dom/DOMDocument.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;

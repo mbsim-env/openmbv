@@ -1,10 +1,8 @@
 #ifndef _MBXMLUTILS_EVAL_H_
 #define _MBXMLUTILS_EVAL_H_
 
-#include <ostream>
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <casadi/core/function/sx_function.hpp>
 #ifdef HAVE_UNORDERED_MAP
@@ -276,6 +274,9 @@ class Eval : virtual public fmatvec::Atom {
     //! create a value of the given type
     template<class T>
     boost::shared_ptr<void> create(const T& v);
+
+    //! return a list of all required files of the evaluator (excluding dependent files of libraries)
+    virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles()=0;
 
   protected:
     //! Push the current parameters to a internal stack.

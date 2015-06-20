@@ -5,6 +5,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <boost/lexical_cast.hpp>
+#include "mbxmlutilshelper/casadiXML.h"
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -150,7 +151,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
-        eval.addParam(counterName, C(i));
+        eval.addParam(counterName, eval.create(static_cast<double>(i)));
         if(localParamEle) {
           eval.msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
