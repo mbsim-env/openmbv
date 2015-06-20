@@ -38,6 +38,7 @@
 // now include octave/config.h which must be the first octave include
 #include <octave/config.h>
 // now all octave includes can follow
+#include <octave/version.h>
 #include <octave/oct-obj.h>
 #include <octave/octave.h>
 #include <octave/symtab.h>
