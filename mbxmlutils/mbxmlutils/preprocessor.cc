@@ -87,9 +87,9 @@ int main(int argc, char *argv[]) {
         dependencies.push_back(paramxml);
       }
 
-      // generate octave parameter string
+      // generate parameter string
       if(paramxmldoc.get()) {
-        cout<<"Generate octave parameter set from "<<paramxml<<endl;
+        cout<<"Generate parameter set from "<<paramxml<<endl;
         eval.addParamSet(paramxmldoc->getDocumentElement());
       }
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
       shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
       dependencies.push_back(mainxml);
 
-      // embed/validate/toOctave/unit/eval files
+      // embed/validate/unit/eval files
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
       Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
 

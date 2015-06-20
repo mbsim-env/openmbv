@@ -338,10 +338,10 @@ template<typename T>
 T Eval::cast(const boost::shared_ptr<void> &value) {
   // do not allow T == DOMElement* here ...
   BOOST_STATIC_ASSERT_MSG((boost::is_same<T, xercesc::DOMElement*>::type), 
-    "Calling Eval::cast<DOMElement*>(const octave_value&) is not allowed "
-    "use Eval::cast<DOMElement*>(const octave_value&, DOMDocument*)"
+    "Calling Eval::cast<DOMElement*>(const boost::shared_ptr<void>&) is not allowed "
+    "use Eval::cast<DOMElement*>(const boost::shared_ptr<void>&, DOMDocument*)"
   );
-  // ... but treat all other type as octave swig types ...
+  // ... but treat all other type as swig types ...
   return Ptr<T>::cast(castToSwig(value));
 }
 // ... but prevere these specializations

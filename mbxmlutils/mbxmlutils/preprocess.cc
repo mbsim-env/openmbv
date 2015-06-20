@@ -152,7 +152,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         NewParamLevel newParamLevel(eval);
         eval.addParam(counterName, C(i));
         if(localParamEle) {
-          eval.msg(Info)<<"Generate local octave parameters for "<<(file.empty()?"<inline element>":file)
+          eval.msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
           eval.addParamSet(localParamEle.get());
         }
