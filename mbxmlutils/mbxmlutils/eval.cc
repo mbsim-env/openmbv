@@ -1,6 +1,8 @@
 #include <config.h>
 #include "mbxmlutils/eval.h"
 #include "mbxmlutils/octeval.h"
+#include <xercesc/dom/DOMElement.hpp>
+#include <mbxmlutilshelper/dom.h>
 
 using namespace std;
 using namespace casadi;
@@ -132,6 +134,26 @@ shared_ptr<void> Eval::create<vector<vector<double> > >(const vector<vector<doub
 template<>
 shared_ptr<void> Eval::create<string>(const string& v) {
   return create_string(v);
+}
+
+void Eval::addParam(const std::string &paramName, const shared_ptr<void>& value) {
+  currentParam[paramName]=value;
+}
+
+void Eval::addParamSet(const xercesc::DOMElement *e) {
+  for(const xercesc::DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
+    if(E(ee)->getTagName()==PV%"searchPath") {
+      shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
+      if(getType(ret)!=StringType)
+        throw DOMEvalException("Expecting a variable of type string.", e);
+      string str=cast<string>(ret);
+      try { addPath(E(ee)->convertPath(str.substr(1, str.length()-2)), ee); } MBXMLUTILS_RETHROW(e)
+    }
+    else {
+      shared_ptr<octave_value> ret=C(eval(ee));
+      addParam(E(ee)->getAttribute("name"), ret);
+    }
+  }
 }
 
 } // end namespace MBXMLUtils

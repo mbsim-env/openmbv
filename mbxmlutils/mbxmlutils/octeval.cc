@@ -411,23 +411,6 @@ void OctEval::deinitOctave() {
   }
 }
 
-void OctEval::addParam(const std::string &paramName, const shared_ptr<void>& value) {
-  currentParam[paramName]=value;
-}
-
-void OctEval::addParamSet(const DOMElement *e) {
-  for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
-    if(E(ee)->getTagName()==PV%"searchPath") {
-      shared_ptr<octave_value> ret=C(eval(E(ee)->getAttributeNode("href"), ee));
-      try { addPath(E(ee)->convertPath(ret->string_value()), ee); } MBXMLUTILS_RETHROW(e)
-    }
-    else {
-      shared_ptr<octave_value> ret=C(eval(ee));
-      addParam(E(ee)->getAttribute("name"), ret);
-    }
-  }
-}
-
 void OctEval::addPath(const bfs::path &dir, const DOMElement *e) {
   static octave_function *addpath=symbol_table::find_function("addpath").function_value(); // get ones a pointer for performance reasons
   static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
@@ -974,7 +957,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {
     return files;
 
   cout<<"Generate file list for the octave casadi wrapper files."<<endl;
-  // note: casadi.oct is copied automatically with all other octave oct files later
+  // note: casadi_oct.oct is copied automatically with all other octave oct files later
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR/"@swig_ref");
     srcIt!=bfs::directory_iterator(); ++srcIt)
     files[srcIt->path()]=make_pair(LIBDIR/"@swig_ref", false);

@@ -94,11 +94,11 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::string getEvaluatorName()=0;
 
     //! Add a value to the current parameters.
-    virtual void addParam(const std::string &paramName, const boost::shared_ptr<void>& value)=0;
+    virtual void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
-    virtual void addParamSet(const xercesc::DOMElement *e)=0;
+    virtual void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to the evauator search path.
     //! A relative path in dir is expanded to an absolute path using the current directory.

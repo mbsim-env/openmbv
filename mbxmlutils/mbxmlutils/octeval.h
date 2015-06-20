@@ -36,13 +36,6 @@ class OctEval : public Eval {
       return "octave";
     }
 
-    //! Add a octave value to the current parameters.
-    void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
-    //! Add all parameters from XML element e.
-    //! The parameters are added from top to bottom as they appear in the XML element e.
-    //! Parameters may depend on parameters already added.
-    void addParamSet(const xercesc::DOMElement *e);
-
     //! Add dir to octave search path
     //! A relative path in dir is expanded to an absolute path using the current directory.
     void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
