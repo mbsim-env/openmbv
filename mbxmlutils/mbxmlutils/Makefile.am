@@ -39,7 +39,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 # utility library
 lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_la_SOURCES = eval.cc octeval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = eval.h octeval.h preprocess.h
@@ -53,9 +53,9 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 
 
 # Newer octave version (>=3.8!?) use #include <config.h> instead of #include "config.h"
-# in oct.h. Hence we are not allowed to add -I$(abs_top_srcdir) to compile flags since
-# this will include config.h from this project (openmbvcppinterface) instead of the octave
-# one. Since top_srcdir is added as a default include path by automake we must prevent this.
+# in oct.h. Hence we are not allowed to add -I.. to compile flags since
+# this will include config.h from this project (mbxmlutils) instead of the octave
+# one. Since -I.. is added as a default include path by automake we must prevent this.
 AUTOMAKE_OPTIONS = nostdinc
 casadi_oct_swig_octave.cc: $(srcdir)/casadi_oct.i
 	$(swig) -octave -Werror -c++ -o casadi_oct_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi_oct.i || (rm -f casadi_oct_swig_octave.cc; exit 1)

@@ -1,17 +1,57 @@
-#include "config.h"
-#include "mbxmlutils/octeval.h"
+// includes are somehow tricky with octave, see also Makefile.am
+
+// include config.h
+// we cannot add -I.. to the compiler options, see Makefile.am, hence we add -I.. and
+// use this to include config.h
+#include <../mbxmlutils/../config.h>
+
+// normal includes
 #include "mbxmlutilshelper/casadiXML.h"
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
+#include <mbxmlutilshelper/dom.h>
+#include <mbxmlutilshelper/getinstallpath.h>
+#include <xercesc/dom/DOMNamedNodeMap.hpp>
+#include <xercesc/dom/DOMAttr.hpp>
+#include "mbxmlutils/octeval.h"
+
+// octave includes: this will include the octave/config.h hence we must take care
+// about redefintions of preprocessor defines
+// push some macros
+#pragma push_macro("PACKAGE")
+#pragma push_macro("PACKAGE_BUGREPORT")
+#pragma push_macro("PACKAGE_NAME")
+#pragma push_macro("PACKAGE_STRING")
+#pragma push_macro("PACKAGE_TARNAME")
+#pragma push_macro("PACKAGE_URL")
+#pragma push_macro("PACKAGE_VERSION")
+#pragma push_macro("VERSION")
+// undefined some macros
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_URL
+#undef PACKAGE_VERSION
+#undef VERSION
+// now include octave/config.h which must be the first octave include
+#include <octave/config.h>
+// now all octave includes can follow
 #include <octave/oct-obj.h>
 #include <octave/octave.h>
 #include <octave/parse.h>
 #include <octave/defaults.h>
 #include <octave/toplev.h>
-#include <mbxmlutilshelper/dom.h>
-#include <mbxmlutilshelper/getinstallpath.h>
-#include <xercesc/dom/DOMNamedNodeMap.hpp>
-#include <xercesc/dom/DOMAttr.hpp>
+// pop the above macros
+#pragma pop_macro("PACKAGE")
+#pragma pop_macro("PACKAGE_BUGREPORT")
+#pragma pop_macro("PACKAGE_NAME")
+#pragma pop_macro("PACKAGE_STRING")
+#pragma pop_macro("PACKAGE_TARNAME")
+#pragma pop_macro("PACKAGE_URL")
+#pragma pop_macro("PACKAGE_VERSION")
+#pragma pop_macro("VERSION")
 
 using namespace std;
 using namespace xercesc;
