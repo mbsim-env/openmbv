@@ -31,6 +31,7 @@ class OctEval : public Eval {
     //! Destructor.
     ~OctEval();
 
+    //! Get the name of this evaluator.
     std::string getEvaluatorName() {
       return "octave";
     }
