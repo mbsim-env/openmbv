@@ -484,7 +484,7 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
   // restore current parameters
   for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     #if defined OCTAVE_API_VERSION_NUMBER // check for octave < 3.8: octave < 3.8 defines this macro
-      symbol_table::varref(i->first)=C(i->second);
+      symbol_table::varref(i->first)=*C(i->second);
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
       symbol_table::assign(i->first, *C(i->second));
     #endif
