@@ -22,11 +22,18 @@ class OctEval;
 
 /*! Octave expression evaluator and converter. */
 class OctEval : public Eval {
-  public:
+  friend class Eval;
+
+  protected:
     //! Constructor.
     OctEval(std::vector<boost::filesystem::path> *dependencies_=NULL);
+  public:
     //! Destructor.
     ~OctEval();
+
+    std::string getEvaluatorName() {
+      return "octave";
+    }
 
     //! Add a octave value to the current parameters.
     void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);

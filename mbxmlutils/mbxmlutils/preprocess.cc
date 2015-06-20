@@ -1,6 +1,6 @@
 #include <config.h>
 #include "mbxmlutils/preprocess.h"
-#include "mbxmlutils/octeval.h"
+#include "mbxmlutils/eval.h"
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -119,13 +119,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
         // no such XPath in param -> output this parameter set to the caller
         if(ret.second) {
-          OctEval dummy;
-          Eval &plainEval=dummy;
+          shared_ptr<Eval> plainEval=Eval::createEvaluator("octave");
           for(const DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
             shared_ptr<void> parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {
-              parValue=plainEval.eval(p);
+              parValue=plainEval->eval(p);
             }
             catch(DOMEvalException &ex) {
               continue;
@@ -224,21 +223,19 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
          E(e)->isDerivedFrom(PV%"fullEval") ||
          isCasADi) {
         shared_ptr<void> value=eval.eval(e);
-        if(value.get()) {//MFMF
-          if(e->getFirstElementChild())
-            e->removeChild(e->getFirstElementChild())->release();
-          else if(E(e)->getFirstTextChild())
-            e->removeChild(E(e)->getFirstTextChild())->release();
-          DOMNode *node;
-          DOMDocument *doc=e->getOwnerDocument();
-          try {
-            if(eval.getType(value)==Eval::SXFunctionType)
-              node=eval.cast<DOMElement*>(value, doc);
-            else
-              node=doc->createTextNode(X()%eval.cast<string>(value));
-          } MBXMLUTILS_RETHROW(e)
-          e->appendChild(node);
-        }
+        if(e->getFirstElementChild())
+          e->removeChild(e->getFirstElementChild())->release();
+        else if(E(e)->getFirstTextChild())
+          e->removeChild(E(e)->getFirstTextChild())->release();
+        DOMNode *node;
+        DOMDocument *doc=e->getOwnerDocument();
+        try {
+          if(eval.getType(value)==Eval::SXFunctionType)
+            node=eval.cast<DOMElement*>(value, doc);
+          else
+            node=doc->createTextNode(X()%eval.cast<string>(value));
+        } MBXMLUTILS_RETHROW(e)
+        e->appendChild(node);
       }
     }
     

@@ -1,5 +1,6 @@
 #include <config.h>
 #include "mbxmlutils/eval.h"
+#include "mbxmlutils/octeval.h"
 
 using namespace std;
 using namespace casadi;
@@ -26,6 +27,12 @@ NewParamLevel::~NewParamLevel() {
 
 Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
 };
+
+boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
+  if(evalName=="octave")
+    return shared_ptr<OctEval>(new OctEval(dependencies_));
+  throw runtime_error("Unknown evaluator "+evalName);
+}
 
 Eval::~Eval() {
 }

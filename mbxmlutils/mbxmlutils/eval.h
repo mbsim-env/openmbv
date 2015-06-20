@@ -80,10 +80,18 @@ class Eval : virtual public fmatvec::Atom {
       SXFunctionType
     };
 
+  protected:
     //! Constructor.
     Eval(std::vector<boost::filesystem::path> *dependencies_=NULL);
+  public:
     //! Destructor.
     ~Eval();
+
+    //! Create a evaluator.
+    static boost::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);
+
+    //! Get the type of this evaluator
+    virtual std::string getEvaluatorName()=0;
 
     //! Add a value to the current parameters.
     virtual void addParam(const std::string &paramName, const boost::shared_ptr<void>& value)=0;

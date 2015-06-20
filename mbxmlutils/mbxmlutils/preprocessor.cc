@@ -1,7 +1,7 @@
 #include <config.h>
 #include "mbxmlutils/preprocess.h"
 #include <mbxmlutilshelper/getinstallpath.h>
-#include <mbxmlutils/octeval.h>
+#include <mbxmlutils/eval.h>
 #include <xercesc/dom/DOMDocument.hpp>
 
 using namespace std;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     }
 
     // a global oct evaluator just to prevent multiple init/deinit calles
-    OctEval globalEvalDummy;
+    shared_ptr<Eval> globalEvalDummy=Eval::createEvaluator("octave");
 
     // the XML DOM parser
     shared_ptr<DOMParser> parser=DOMParser::create(true);
@@ -73,8 +73,7 @@ int main(int argc, char *argv[]) {
     // loop over all files
     while(arg.size()>0) {
       // initialize the parameter stack (clear ALL caches)
-      OctEval dummy(&dependencies);
-      Eval &eval=dummy;
+      shared_ptr<Eval> eval=Eval::createEvaluator("octave", &dependencies);
 
       path paramxml(*arg.begin()); arg.erase(arg.begin());
       path mainxml(*arg.begin()); arg.erase(arg.begin());
@@ -91,7 +90,7 @@ int main(int argc, char *argv[]) {
       // generate parameter string
       if(paramxmldoc.get()) {
         cout<<"Generate parameter set from "<<paramxml<<endl;
-        eval.addParamSet(paramxmldoc->getDocumentElement());
+        eval->addParamSet(paramxmldoc->getDocumentElement());
       }
 
       // load grammar
@@ -105,7 +104,7 @@ int main(int argc, char *argv[]) {
 
       // embed/validate/unit/eval files
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
-      Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
+      Preprocess::preprocess(parser, *eval, dependencies, mainxmlele);
 
       // save result file
       path mainxmlpp=".pp."+mainxml.filename().string();
