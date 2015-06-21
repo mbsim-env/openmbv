@@ -43,11 +43,6 @@ class OctEval : public Eval {
     //! get the type of value
     ValueType getType(const boost::shared_ptr<void> &value);
 
-    //! evaluate str and return result as an octave variable, this can be used to evaluate outside of XML.
-    //! If e is given it is used as location information in case of errors.
-    //! If fullEval is false the "partially" evaluation is returned as a octave string even so it is not really a string.
-    boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true);
-
     //! return a list of all required files of octave (excluding dependent files of libraries)
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles();
 
@@ -58,7 +53,7 @@ class OctEval : public Eval {
     void deinitOctave();
 
     //! evaluate str fully and return result as an octave variable
-    virtual boost::shared_ptr<void> fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL);
+    virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL);
 
     //! cast value to the corresponding swig object of type T, without ANY type check.
     void* castToSwig(const boost::shared_ptr<void> &value);

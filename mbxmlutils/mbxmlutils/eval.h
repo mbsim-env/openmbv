@@ -290,7 +290,7 @@ class Eval : virtual public fmatvec::Atom {
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
-    virtual boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true)=0;
+    boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true);
 
     //! create a value of the given type
     template<class T>
@@ -327,10 +327,10 @@ class Eval : virtual public fmatvec::Atom {
 
     static boost::shared_ptr<void> casadiValue;
 
-    virtual boost::shared_ptr<void> fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL)=0;
+    virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL)=0;
 
     //! evaluate str partially and return result as an std::string
-    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e);
+    std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e);
 
   private:
     virtual void* castToSwig(const boost::shared_ptr<void> &value)=0;

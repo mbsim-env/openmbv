@@ -409,14 +409,7 @@ void OctEval::addPath(const bfs::path &dir, const DOMElement *e) {
       dependencies->push_back(it->path());
 }
 
-shared_ptr<void> OctEval::stringToValue(const string &str, const DOMElement *e, bool fullEval) {
-  if(fullEval)
-    return C(fullStringToOctValue(str, e));
-  else
-    return C(partialStringToOctValue(str, e));
-}
-
-shared_ptr<void> OctEval::fullStringToOctValue(const string &str, const DOMElement *e) {
+shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement *e) {
   // check some common string to avoid time consiming evaluation
   // check true and false
   if(str=="true") return make_shared<octave_value>(1);

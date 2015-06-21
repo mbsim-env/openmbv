@@ -456,7 +456,7 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   // evaluate attribute partially
   else {
     shared_ptr<void> ret;
-    string s=partialStringToOctValue(X()%a->getValue(), pe);
+    string s=partialStringToString(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"varnamePartialEval")) { // also symbolicFunctionArgNameType
       if(s.length()<1)
         throw DOMEvalException("A variable name must consist of at least 1 character", pe, a);
@@ -511,7 +511,7 @@ shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr
   return C(stringToValue(eqn, e));
 }
 
-string Eval::partialStringToOctValue(const string &str, const DOMElement *e) {
+string Eval::partialStringToString(const string &str, const DOMElement *e) {
   string s=str;
   size_t i;
   while((i=s.find('{'))!=string::npos) {
@@ -534,7 +534,7 @@ string Eval::partialStringToOctValue(const string &str, const DOMElement *e) {
       evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
     }
     
-    shared_ptr<void> ret=fullStringToOctValue(evalStr, e);
+    shared_ptr<void> ret=fullStringToValue(evalStr, e);
     string subst;
     try {
       subst=cast<string>(ret);
@@ -544,6 +544,13 @@ string Eval::partialStringToOctValue(const string &str, const DOMElement *e) {
     s=s.substr(0,i)+subst+s.substr(j+1);
   }
   return s;
+}
+
+shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) {
+  if(fullEval)
+    return fullStringToValue(str, e);
+  else
+    return create(partialStringToString(str, e));
 }
 
 } // end namespace MBXMLUtils
