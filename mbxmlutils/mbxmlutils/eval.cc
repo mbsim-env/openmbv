@@ -8,6 +8,7 @@
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <boost/lexical_cast.hpp>
+#include "mbxmlutilshelper/casadiXML.h"
 
 using namespace std;
 using namespace casadi;
@@ -551,6 +552,68 @@ shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, boo
     return fullStringToValue(str, e);
   else
     return create(partialStringToString(str, e));
+}
+
+DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) {
+  if(getType(value)==SXFunctionType)
+    return convertCasADiToXML(cast<casadi::SXFunction>(value), doc);
+  throw DOMEvalException("Cannot cast this value to DOMElement*.");
+}
+
+casadi::SX Eval::cast_SX(const shared_ptr<void> &value) {
+  ValueType type=getType(value);
+  if(type==SXType)
+    return Ptr<casadi::SX>::cast(castToSwig(value));
+  if(type==DMatrixType)
+    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
+  if(type==ScalarType || type==VectorType || type==MatrixType) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    casadi::SX ret=casadi::SX::zeros(m.size(), m[0].size());
+    for(int i=0; i<m.size(); i++)
+      for(int j=0; j<m[i].size(); j++)
+        ret.elem(i,j)=m[i][j];
+    return ret;
+  }
+  throw DOMEvalException("Cannot cast this value to casadi::SX.");
+}
+
+casadi::SX* Eval::cast_SX_p(const shared_ptr<void> &value) {
+  if(getType(value)==SXType)
+    return Ptr<casadi::SX*>::cast(castToSwig(value));
+  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
+}
+
+casadi::DMatrix Eval::cast_DMatrix(const shared_ptr<void> &value) {
+  ValueType type=getType(value);
+  if(type==DMatrixType)
+    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
+  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    casadi::DMatrix ret=casadi::DMatrix::zeros(m.size(), m[0].size());
+    for(int i=0; i<m.size(); i++)
+      for(int j=0; j<m[i].size(); j++)
+        ret.elem(i,j)=m[i][j];
+    return ret;
+  }
+  throw DOMEvalException("Cannot cast this value to casadi::DMatrix.");
+}
+
+casadi::DMatrix* Eval::cast_DMatrix_p(const shared_ptr<void> &value) {
+  if(getType(value)==DMatrixType)
+    return Ptr<casadi::DMatrix*>::cast(castToSwig(value));
+  throw DOMEvalException("Cannot cast this value to casadi::DMatrix*.");
+}
+
+casadi::SXFunction Eval::cast_SXFunction(const shared_ptr<void> &value) {
+  if(getType(value)==SXFunctionType)
+    return Ptr<casadi::SXFunction>::cast(castToSwig(value));
+  throw DOMEvalException("Cannot cast this value to casadi::SXFunction.");
+}
+
+casadi::SXFunction* Eval::cast_SXFunction_p(const shared_ptr<void> &value) {
+  if(getType(value)==SXFunctionType)
+    return Ptr<casadi::SXFunction*>::cast(castToSwig(value));
+  throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
 }
 
 } // end namespace MBXMLUtils

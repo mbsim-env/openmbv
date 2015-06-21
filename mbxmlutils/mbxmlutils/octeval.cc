@@ -6,7 +6,6 @@
 #include <../mbxmlutils/../config.h>
 
 // normal includes
-#include "mbxmlutilshelper/casadiXML.h"
 #include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
 #include <mbxmlutilshelper/dom.h>
@@ -87,7 +86,7 @@ inline boost::shared_ptr<void> C(const octave_value &value) {
 
 map<string, octave_function*> OctEval::functionValue;
 
-string OctEval::cast_string(const shared_ptr<void> &value) {
+string OctEval::cast_string(const shared_ptr<void> &value) {//MFMF make new type EvaluatorCode beside string
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
   ValueType type=getType(value);
   ostringstream ret;
@@ -186,68 +185,6 @@ vector<vector<double> > OctEval::cast_vector_vector_double(const shared_ptr<void
     return ret;
   }
   throw DOMEvalException("Cannot cast this value to vector<vector<double> >.");
-}
-
-DOMElement* OctEval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) {
-  if(getType(value)==SXFunctionType)
-    return convertCasADiToXML(cast<casadi::SXFunction>(value), doc);
-  throw DOMEvalException("Cannot cast this value to DOMElement*.");
-}
-
-casadi::SX OctEval::cast_SX(const shared_ptr<void> &value) {
-  ValueType type=getType(value);
-  if(type==SXType)
-    return Ptr<casadi::SX>::cast(castToSwig(value));
-  if(type==DMatrixType)
-    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
-  if(type==ScalarType || type==VectorType || type==MatrixType) {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    casadi::SX ret=casadi::SX::zeros(m.size(), m[0].size());
-    for(int i=0; i<m.size(); i++)
-      for(int j=0; j<m[i].size(); j++)
-        ret.elem(i,j)=m[i][j];
-    return ret;
-  }
-  throw DOMEvalException("Cannot cast this value to casadi::SX.");
-}
-
-casadi::SX* OctEval::cast_SX_p(const shared_ptr<void> &value) {
-  if(getType(value)==SXType)
-    return Ptr<casadi::SX*>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
-}
-
-casadi::DMatrix OctEval::cast_DMatrix(const shared_ptr<void> &value) {
-  ValueType type=getType(value);
-  if(type==DMatrixType)
-    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
-  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    casadi::DMatrix ret=casadi::DMatrix::zeros(m.size(), m[0].size());
-    for(int i=0; i<m.size(); i++)
-      for(int j=0; j<m[i].size(); j++)
-        ret.elem(i,j)=m[i][j];
-    return ret;
-  }
-  throw DOMEvalException("Cannot cast this value to casadi::DMatrix.");
-}
-
-casadi::DMatrix* OctEval::cast_DMatrix_p(const shared_ptr<void> &value) {
-  if(getType(value)==DMatrixType)
-    return Ptr<casadi::DMatrix*>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::DMatrix*.");
-}
-
-casadi::SXFunction OctEval::cast_SXFunction(const shared_ptr<void> &value) {
-  if(getType(value)==SXFunctionType)
-    return Ptr<casadi::SXFunction>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SXFunction.");
-}
-
-casadi::SXFunction* OctEval::cast_SXFunction_p(const shared_ptr<void> &value) {
-  if(getType(value)==SXFunctionType)
-    return Ptr<casadi::SXFunction*>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
 }
 
 shared_ptr<void> OctEval::create_double(const double& v) {

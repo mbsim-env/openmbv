@@ -77,13 +77,6 @@ class OctEval : public Eval {
     virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value);
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value);
     virtual std::string                       cast_string              (const boost::shared_ptr<void> &value);
-    virtual casadi::SXFunction                cast_SXFunction          (const boost::shared_ptr<void> &value);
-    virtual casadi::SXFunction*               cast_SXFunction_p        (const boost::shared_ptr<void> &value);
-    virtual casadi::SX                        cast_SX                  (const boost::shared_ptr<void> &value);
-    virtual casadi::SX*                       cast_SX_p                (const boost::shared_ptr<void> &value);
-    virtual casadi::DMatrix                   cast_DMatrix             (const boost::shared_ptr<void> &value);
-    virtual casadi::DMatrix*                  cast_DMatrix_p           (const boost::shared_ptr<void> &value);
-    virtual xercesc::DOMElement*              cast_DOMElement_p        (const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
 
     virtual boost::shared_ptr<void> create_double              (const double& v);
     virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v);

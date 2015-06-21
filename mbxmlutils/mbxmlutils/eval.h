@@ -341,14 +341,16 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value)=0;
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value)=0;
     virtual std::string                       cast_string              (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::SXFunction                cast_SXFunction          (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::SXFunction*               cast_SXFunction_p        (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::SX                        cast_SX                  (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::SX*                       cast_SX_p                (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::DMatrix                   cast_DMatrix             (const boost::shared_ptr<void> &value)=0;
-    virtual casadi::DMatrix*                  cast_DMatrix_p           (const boost::shared_ptr<void> &value)=0;
-    // virtual spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
-    virtual xercesc::DOMElement*              cast_DOMElement_p        (const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)=0;
+    // spezialization of cast(const boost::shared_ptr<void> &value)
+    casadi::SXFunction  cast_SXFunction  (const boost::shared_ptr<void> &value);
+    casadi::SXFunction* cast_SXFunction_p(const boost::shared_ptr<void> &value);
+    casadi::SX          cast_SX          (const boost::shared_ptr<void> &value);
+    casadi::SX*         cast_SX_p        (const boost::shared_ptr<void> &value);
+    casadi::DMatrix     cast_DMatrix     (const boost::shared_ptr<void> &value);
+    casadi::DMatrix*    cast_DMatrix_p   (const boost::shared_ptr<void> &value);
+
+    // spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
+    xercesc::DOMElement* cast_DOMElement_p(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
 
     // virtual spezialization of create(...)
     virtual boost::shared_ptr<void> create_double              (const double& v)=0;
