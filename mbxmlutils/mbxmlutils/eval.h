@@ -22,6 +22,19 @@ namespace MBXMLUtils {
 
 extern bool deactivateBlock;
 
+// Store the current directory in the ctor an restore in the dtor
+class PreserveCurrentDir {
+  public:
+    PreserveCurrentDir() {
+      dir=boost::filesystem::current_path();
+    }
+    ~PreserveCurrentDir() {
+      boost::filesystem::current_path(dir);
+    }
+  private:
+    boost::filesystem::path dir;
+};
+
 // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
 template<int T>
 class Block {
@@ -102,16 +115,16 @@ class Eval : virtual public fmatvec::Atom {
 
     //! Add dir to the evauator search path.
     //! A relative path in dir is expanded to an absolute path using the current directory.
-    virtual void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e)=0;
+    virtual void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e)=0;//MFMF this is not portable for different evaluators
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
-    virtual boost::shared_ptr<void> eval(const xercesc::DOMElement *e)=0;
+    boost::shared_ptr<void> eval(const xercesc::DOMElement *e);
 
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    virtual boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL)=0;
+    virtual boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -308,6 +321,17 @@ class Eval : virtual public fmatvec::Atom {
     // stack of path
     std::stack<std::string> pathStack;
 
+    virtual boost::shared_ptr<void> createCasADi(const std::string &name)=0;
+
+    virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args)=0;
+
+    static boost::shared_ptr<void> casadiValue;
+
+    virtual boost::shared_ptr<void> fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL)=0;
+
+    //! evaluate str partially and return result as an std::string
+    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e);
+
   private:
     virtual void* castToSwig(const boost::shared_ptr<void> &value)=0;
 
@@ -331,6 +355,10 @@ class Eval : virtual public fmatvec::Atom {
     virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v)=0;
     virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v)=0;
     virtual boost::shared_ptr<void> create_string              (const std::string& v)=0;
+
+    boost::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
+
+    static std::map<std::string, std::string> units;
 };
 
 // Helper class which convert a void* to T* or T.

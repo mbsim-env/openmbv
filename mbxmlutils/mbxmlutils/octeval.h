@@ -39,15 +39,6 @@ class OctEval : public Eval {
     //! Add dir to octave search path
     //! A relative path in dir is expanded to an absolute path using the current directory.
     void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
-    
-    //! Evaluate the XML element e using the current parameters returning the resulting octave value.
-    //! The type of evaluation depends on the type of e.
-    boost::shared_ptr<void> eval(const xercesc::DOMElement *e);
-
-    //! Evaluate the XML attribute a using the current parameters returning the resulting octave value.
-    //! The type of evaluation depends on the type of a.
-    //! The result of a "partially" evaluation is returned as a octave string even so it is not really a string.
-    boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     //! get the type of value
     ValueType getType(const boost::shared_ptr<void> &value);
@@ -67,16 +58,13 @@ class OctEval : public Eval {
     void deinitOctave();
 
     //! evaluate str fully and return result as an octave variable
-    octave_value fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL);
-
-    //! evaluate str partially and return result as an std::string
-    std::string partialStringToOctValue(const std::string &str, const xercesc::DOMElement *e);
+    virtual boost::shared_ptr<void> fullStringToOctValue(const std::string &str, const xercesc::DOMElement *e=NULL);
 
     //! cast value to the corresponding swig object of type T, without ANY type check.
     void* castToSwig(const boost::shared_ptr<void> &value);
 
     //! create octave value of CasADi type name. Created using the default ctor.
-    static octave_value createCasADi(const std::string &name);
+    virtual boost::shared_ptr<void> createCasADi(const std::string &name);
 
     // initial path
     static std::string initialPath;
@@ -84,14 +72,10 @@ class OctEval : public Eval {
 
     static int initCount;
 
-    static std::map<std::string, std::string> units;
-
-    static boost::scoped_ptr<octave_value> casadiOctValue;
-
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
 
-    boost::shared_ptr<octave_value> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<octave_value> &ret);
+    virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args);
 
     virtual int                               cast_int                 (const boost::shared_ptr<void> &value);
     virtual double                            cast_double              (const boost::shared_ptr<void> &value);
@@ -110,6 +94,9 @@ class OctEval : public Eval {
     virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v);
     virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v);
     virtual boost::shared_ptr<void> create_string              (const std::string& v);
+
+  private:
+    static std::map<std::string, octave_function*> functionValue;
 };
 
 } // end namespace MBXMLUtils

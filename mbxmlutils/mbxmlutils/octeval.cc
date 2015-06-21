@@ -11,7 +11,6 @@
 #include <boost/lexical_cast.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
-#include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
 
@@ -86,18 +85,7 @@ inline boost::shared_ptr<void> C(const octave_value &value) {
   return boost::make_shared<octave_value>(value);
 }
 
-// Store the current directory in the ctor an restore in the dtor
-class PreserveCurrentDir {
-  public:
-    PreserveCurrentDir() {
-      dir=bfs::current_path();
-    }
-    ~PreserveCurrentDir() {
-      bfs::current_path(dir);
-    }
-  private:
-    bfs::path dir;
-};
+map<string, octave_function*> OctEval::functionValue;
 
 string OctEval::cast_string(const shared_ptr<void> &value) {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
@@ -285,20 +273,16 @@ shared_ptr<void> OctEval::create_string(const string& v) {
   return make_shared<octave_value>(v);
 }
 
-octave_value OctEval::createCasADi(const string &name) {
+shared_ptr<void> OctEval::createCasADi(const string &name) {
   list<octave_value_list> idx;
   idx.push_back(octave_value_list(name));
   idx.push_back(octave_value_list());
-  return casadiOctValue->subsref(".(", idx);
+  return C(C(casadiValue)->subsref(".(", idx));
 }
 
 int OctEval::initCount=0;
 string OctEval::initialPath;
 string OctEval::pathSep;
-
-std::map<std::string, std::string> OctEval::units;
-
-boost::scoped_ptr<octave_value> OctEval::casadiOctValue;
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   initCount++;
@@ -369,21 +353,9 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
       // load casadi
       {
         BLOCK_STDERR(blockstderr);
-        casadiOctValue.reset(new octave_value(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0)));
+        casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
         if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
       }
-
-      // get units
-      msg(Info)<<"Build unit list for measurements."<<endl;
-      bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-      boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
-      DOMElement *ele, *el2;
-      for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
-        for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
-          if(units.find(E(el2)->getAttribute("name"))!=units.end())
-            throw runtime_error(string("Internal error: Unit name ")+E(el2)->getAttribute("name")+" is defined more than once.");
-          units[E(el2)->getAttribute("name")]=X()%E(el2)->getFirstTextChild()->getData();
-        }
     }
     catch(...) {
       deinitOctave();
@@ -400,7 +372,7 @@ OctEval::~OctEval() {
 void OctEval::deinitOctave() {
   initCount--;
   if(initCount==0) {
-    casadiOctValue.reset();
+    casadiValue.reset();
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
     eval_string("1+1;", true, dummy, 0); // eval as statement list
@@ -444,13 +416,13 @@ shared_ptr<void> OctEval::stringToValue(const string &str, const DOMElement *e, 
     return C(partialStringToOctValue(str, e));
 }
 
-octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *e) {
+shared_ptr<void> OctEval::fullStringToOctValue(const string &str, const DOMElement *e) {
   // check some common string to avoid time consiming evaluation
   // check true and false
-  if(str=="true") return 1;
-  if(str=="false") return 0;
+  if(str=="true") return make_shared<octave_value>(1);
+  if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
-  try { return boost::lexical_cast<double>(str); }
+  try { return make_shared<octave_value>(boost::lexical_cast<double>(str)); }
   catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using octave now
 
@@ -521,347 +493,7 @@ octave_value OctEval::fullStringToOctValue(const string &str, const DOMElement *
   else
     ret=symbol_table::varval("ret");
 
-  return ret;
-}
-
-string OctEval::partialStringToOctValue(const string &str, const DOMElement *e) {
-  string s=str;
-  size_t i;
-  while((i=s.find('{'))!=string::npos) {
-    size_t j=i;
-    do {
-      j=s.find('}', j+1);
-      if(j==string::npos) throw DOMEvalException("no matching } found in attriubte.", e);
-    }
-    while(s[j-1]=='\\'); // skip } which is quoted with backslash
-    string evalStr=s.substr(i+1,j-i-1);
-    // remove the backlash quote from { and }
-    size_t k=0;
-    while((k=evalStr.find('{', k))!=string::npos) {
-      if(k==0 || evalStr[k-1]!='\\') throw DOMEvalException("{ must be quoted with a backslash inside {...}.", e);
-      evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-    }
-    k=0;
-    while((k=evalStr.find('}', k))!=string::npos) {
-      if(k==0 || evalStr[k-1]!='\\') throw DOMEvalException("} must be quoted with a backslash inside {...}.", e);
-      evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-    }
-    
-    octave_value ret=fullStringToOctValue(evalStr, e);
-    string subst;
-    try {
-      subst=cast<string>(C(ret));
-      if(getType(C(ret))==StringType)
-        subst=subst.substr(1, subst.length()-2);
-    } MBXMLUTILS_RETHROW(e)
-    s=s.substr(0,i)+subst+s.substr(j+1);
-  }
-  return s;
-}
-
-shared_ptr<void> OctEval::eval(const xercesc::DOMElement *e) {
-  const DOMElement *ec;
-
-  // check if we are evaluating a symbolic function element
-  bool function=false;
-  DOMNamedNodeMap *attr=e->getAttributes();
-  for(int i=0; i<attr->getLength(); i++) {
-    DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
-    // skip xml* attributes
-    if((X()%a->getName()).substr(0, 3)=="xml")
-      continue;
-    if(A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType")) {
-      function=true;
-      break;
-    }
-  }
-
-  // for functions add the function arguments as parameters
-  NewParamLevel newParamLevel(*this, function);
-  vector<casadi::SX> inputs;
-  if(function) {
-    addParam("casadi", C(*casadiOctValue));
-    // loop over all attributes and search for arg1name, arg2name attributes
-    DOMNamedNodeMap *attr=e->getAttributes();
-    for(int i=0; i<attr->getLength(); i++) {
-      DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
-      // skip xml* attributes
-      if((X()%a->getName()).substr(0, 3)=="xml")
-        continue;
-      // skip all attributes not of type symbolicFunctionArgNameType
-      if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
-        continue;
-      string base=X()%a->getName();
-      if(!E(e)->hasAttribute(base+"Dim"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
-      if(!E(e)->hasAttribute(base+"Nr"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
-
-      octave_value octArg=createCasADi("SX");
-      casadi::SX *arg;
-      try { arg=cast<casadi::SX*>(C(octArg)); } MBXMLUTILS_RETHROW(e)
-      *arg=casadi::SX::sym(X()%a->getValue(), dim, 1);
-      addParam(X()%a->getValue(), C(octArg));
-      inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
-      inputs[nr-1]=*arg;
-    }
-    // check if one argument was not set. If so error
-    for(int i=0; i<inputs.size(); i++)
-      if(inputs[i].sparsity().isEmpty()) // a empty object is a error (see above), since not all arg?name args were defined
-        throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
-  }
-  
-  // a XML vector
-  ec=E(e)->getFirstElementChildNamed(PV%"xmlVector");
-  if(ec) {
-    int i;
-    // calculate nubmer for rows
-    i=0;
-    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++);
-    // get/eval values
-    Matrix m(i, 1);
-    casadi::SX M;
-    if(function)
-      M.resize(i, 1);
-    i=0;
-    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++)
-      if(!function)
-        m(i)=C(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele))->double_value();
-      else {
-        casadi::SX Mele;
-        try { Mele=cast<casadi::SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
-        if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-        M.elem(i,0)=Mele.elem(0,0);
-      }
-    if(!function)
-      return C(handleUnit(e, make_shared<octave_value>(m)));
-    else {
-      octave_value octF=createCasADi("SXFunction");
-      casadi::SXFunction f(inputs, M);
-      try { cast<casadi::SXFunction*>(C(octF))->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
-      return C(octF);
-    }
-  }
-  
-  // a XML matrix
-  ec=E(e)->getFirstElementChildNamed(PV%"xmlMatrix");
-  if(ec) {
-    int i, j;
-    // calculate nubmer for rows and cols
-    i=0;
-    for(const DOMElement* row=ec->getFirstElementChild(); row!=0; row=row->getNextElementSibling(), i++);
-    j=0;
-    for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), j++);
-    // get/eval values
-    Matrix m(i, j);
-    casadi::SX M;
-    if(function)
-      M.resize(i, j);
-    i=0;
-    for(const DOMElement* row=ec->getFirstElementChild(); row!=0; row=row->getNextElementSibling(), i++) {
-      j=0;
-      for(const DOMElement* col=row->getFirstElementChild(); col!=0; col=col->getNextElementSibling(), j++)
-        if(!function)
-          m(j*m.rows()+i)=C(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col))->double_value();
-        else {
-          casadi::SX Mele;
-          try { Mele=cast<casadi::SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
-          if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-          M.elem(i,0)=Mele.elem(0,0);
-        }
-    }
-    if(!function)
-      return C(handleUnit(e, make_shared<octave_value>(m)));
-    else {
-      octave_value octF=createCasADi("SXFunction");
-      casadi::SXFunction f(inputs, M);
-      try { cast<casadi::SXFunction*>(C(octF))->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
-      return C(octF);
-    }
-  }
-  
-  // a element with a single text child (including unit conversion)
-  if(!e->getFirstElementChild() &&
-     (E(e)->isDerivedFrom(PV%"scalar") ||
-      E(e)->isDerivedFrom(PV%"vector") ||
-      E(e)->isDerivedFrom(PV%"matrix") ||
-      E(e)->isDerivedFrom(PV%"fullEval") ||
-      function)
-    ) {
-    shared_ptr<octave_value> ret=C(stringToValue(X()%E(e)->getFirstTextChild()->getData(), e));
-    if(E(e)->isDerivedFrom(PV%"scalar") && !ret->is_scalar_type())
-      throw DOMEvalException("Octave value is not of type scalar", e);
-    if(E(e)->isDerivedFrom(PV%"vector") && ret->columns()!=1)
-      throw DOMEvalException("Octave value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"stringFullEval") && !ret->is_scalar_type() && !ret->is_string()) // also filenameFullEval
-      throw DOMEvalException("Octave value is not of type scalar string", e);
-
-    // add filenames to dependencies
-    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval"))
-      dependencies->push_back(E(e)->convertPath(ret->string_value()));
-  
-    // convert unit
-    ret=handleUnit(e, ret);
-  
-    if(!function)
-      return ret;
-    else {
-      octave_value octF=createCasADi("SXFunction");
-      try {
-        casadi::SXFunction f(inputs, cast<casadi::SX>(ret));
-        cast<casadi::SXFunction*>(C(octF))->assignNode(f.get());
-      } MBXMLUTILS_RETHROW(e)
-      return C(octF);
-    }
-  }
-  
-  // rotation about x,y,z
-  for(char ch='X'; ch<='Z'; ch++) {
-    static octave_function *rotFunc[3]={
-      symbol_table::find_function("rotateAboutX").function_value(), // get ones a pointer performance reasons
-      symbol_table::find_function("rotateAboutY").function_value(), // get ones a pointer performance reasons
-      symbol_table::find_function("rotateAboutZ").function_value()  // get ones a pointer performance reasons
-    };
-    ec=E(e)->getFirstElementChildNamed(PV%(string("about")+ch));
-    if(ec) {
-      // convert
-      shared_ptr<octave_value> angle=C(eval(ec));
-      octave_value_list ret;
-      try { ret=fevalThrow(rotFunc[ch-'X'], octave_value_list(*angle), 1,
-        string("Unable to generate rotation matrix using rotateAbout")+ch+"."); } MBXMLUTILS_RETHROW(ec)
-      return C(ret(0));
-    }
-  }
-  
-  // rotation cardan or euler
-  for(int i=0; i<2; i++) {
-    static const string rotFuncName[2]={
-      "cardan",
-      "euler"
-    };
-    static octave_function *rotFunc[2]={
-      symbol_table::find_function(rotFuncName[0]).function_value(), // get ones a pointer performance reasons
-      symbol_table::find_function(rotFuncName[1]).function_value()  // get ones a pointer performance reasons
-    };
-    ec=E(e)->getFirstElementChildNamed(PV%rotFuncName[i]);
-    if(ec) {
-      // convert
-      octave_value_list angles;
-      const DOMElement *ele;
-  
-      ele=ec->getFirstElementChild();
-      angles.append(*handleUnit(ec, C(eval(ele))));
-      ele=ele->getNextElementSibling();
-      angles.append(*handleUnit(ec, C(eval(ele))));
-      ele=ele->getNextElementSibling();
-      angles.append(*handleUnit(ec, C(eval(ele))));
-      octave_value_list ret;
-      try { ret=fevalThrow(rotFunc[i], angles, 1,
-        string("Unable to generate rotation matrix using ")+rotFuncName[i]); } MBXMLUTILS_RETHROW(ec)
-      return C(ret(0));
-    }
-  }
-  
-  // from file
-  ec=E(e)->getFirstElementChildNamed(PV%"fromFile");
-  if(ec) {
-    static octave_function *loadFunc=symbol_table::find_function("load").function_value();  // get ones a pointer performance reasons
-    shared_ptr<octave_value> fileName=C(stringToValue(E(ec)->getAttribute("href"), ec, false));
-    if(dependencies)
-      dependencies->push_back(E(e)->convertPath(fileName->string_value()));
-
-    // restore current dir on exit and change current dir
-    PreserveCurrentDir preserveDir;
-    bfs::path chdir=E(e)->getOriginalFilename().parent_path();
-    if(!chdir.empty())
-      bfs::current_path(chdir);
-
-    octave_value_list ret;
-    try { ret=fevalThrow(loadFunc, octave_value_list(*fileName), 1,
-      string("Unable to load file ")+E(ec)->getAttribute("href")); } MBXMLUTILS_RETHROW(ec)
-    return C(ret(0));
-  }
-  
-  // unknown element: throw
-  throw DOMEvalException("Dont know how to evaluate this element", e);
-}
-
-shared_ptr<void> OctEval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe) {
-  bool fullEval;
-  if(A(a)->isDerivedFrom(PV%"fullEval"))
-    fullEval=true;
-  else if(A(a)->isDerivedFrom(PV%"partialEval"))
-    fullEval=false;
-  else
-    throw DOMEvalException("Unknown XML attribute type", pe, a);
-
-  // evaluate attribute fully
-  if(fullEval) {
-    shared_ptr<octave_value> ret=C(stringToValue(X()%a->getValue(), pe));
-    if(A(a)->isDerivedFrom(PV%"floatFullEval")) {
-      if(!ret->is_scalar_type() || !ret->is_real_type())
-        throw DOMEvalException("Value is not of type scalar float", pe, a);
-    }
-    else if(A(a)->isDerivedFrom(PV%"stringFullEval")) {
-      if(!ret->is_scalar_type() || !ret->is_string()) // also filenameFullEval
-        throw DOMEvalException("Value is not of type scalar string", pe, a);
-    }
-    else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
-      bool isInt=true;
-      try { boost::lexical_cast<int>(ret->double_value()); } catch(const boost::bad_lexical_cast &) { isInt=false; }
-      if(!ret->is_scalar_type() || !ret->is_real_type() || !isInt) // also symbolicFunctionArgDimType
-        throw DOMEvalException("Value is not of type scalar integer", pe, a);
-    }
-    else if(A(a)->isDerivedFrom(PV%"booleanFullEval")) {
-      if(!ret->is_scalar_type() || !ret->is_real_type() || (ret->double_value()!=0 && ret->double_value()!=1))
-        throw DOMEvalException("Value is not of type scalar boolean", pe, a);
-    }
-    else
-      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
-
-    // add filenames to dependencies
-    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullEval"))
-      dependencies->push_back(E(pe)->convertPath(ret->string_value()));
-
-    return ret;
-  }
-  // evaluate attribute partially
-  else {
-    octave_value ret;
-    string s=partialStringToOctValue(X()%a->getValue(), pe);
-    if(A(a)->isDerivedFrom(PV%"varnamePartialEval")) { // also symbolicFunctionArgNameType
-      if(s.length()<1)
-        throw DOMEvalException("A variable name must consist of at least 1 character", pe, a);
-      if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
-        throw DOMEvalException("A variable name start with _, a-z or A-Z", pe, a);
-      for(size_t i=1; i<s.length(); i++)
-        if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z')))
-          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe, a);
-      ret=s;
-    }
-    else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
-      try { ret=boost::lexical_cast<double>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
-      try { ret=boost::lexical_cast<string>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
-      try { ret=boost::lexical_cast<int>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
-    else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
-      try { ret=boost::lexical_cast<bool>(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
-    else
-      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
-
-    // add filenames to dependencies
-    if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialEval"))
-      dependencies->push_back(E(pe)->convertPath(s));
-
-    return C(ret);
-  }
+  return C(ret);
 }
 
 OctEval::ValueType OctEval::getType(const shared_ptr<void> &value) {
@@ -912,27 +544,6 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
     throw DOMEvalException(err.str()+msg);
   }
   return ret;
-}
-
-shared_ptr<octave_value> OctEval::handleUnit(const xercesc::DOMElement *e, const shared_ptr<octave_value> &ret) {
-  string eqn;
-  string unit=E(e)->getAttribute("unit");
-  if(!unit.empty())
-    eqn=units[unit];
-  else {
-    string convertUnit=E(e)->getAttribute("convertUnit");
-    if(!convertUnit.empty())
-      eqn=convertUnit;
-    else
-      return ret;
-  }
-  // handle common unit conversions very fast (without octave evaluation)
-  if(eqn=="value")
-    return ret;
-  // all other conversion must be processed using octave
-  NewParamLevel newParamLevel(*this, true);
-  addParam("value", C(ret));
-  return C(stringToValue(eqn, e));
 }
 
 // cast octave value to swig object ptr or swig object copy
@@ -1004,6 +615,18 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {
   }
 
   return files;
+}
+
+shared_ptr<void> OctEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) {
+  pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(NULL)));
+  if(f.second)
+    f.first->second=symbol_table::find_function(name).function_value(); // get ones a pointer performance reasons
+  octave_value_list octargs;
+  for(vector<shared_ptr<void> >::const_iterator it=args.begin(); it!=args.end(); ++it)
+    octargs.append(*C(*it));
+  octave_value_list ret=fevalThrow(f.first->second, octargs, 1,
+    "Unable to call function "+name+".");
+  return C(ret(0));
 }
 
 } // end namespace MBXMLUtils
