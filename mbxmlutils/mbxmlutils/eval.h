@@ -3,6 +3,7 @@
 
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
+#include <boost/function.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <casadi/core/function/sx_function.hpp>
 #ifdef HAVE_UNORDERED_MAP
@@ -103,8 +104,14 @@ class Eval : virtual public fmatvec::Atom {
     //! Create a evaluator.
     static boost::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);
 
+    // Register a new evaluator.
+    template<class E>
+    static void registerEvaluator() {
+      getEvaluators()[E::getNameStatic()]=&newEvaluator<E>;
+    }
+
     //! Get the type of this evaluator
-    virtual std::string getEvaluatorName()=0;
+    virtual std::string getName()=0;
 
     //! Add a value to the current parameters.
     virtual void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
@@ -332,6 +339,11 @@ class Eval : virtual public fmatvec::Atom {
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e);
 
+    template<class E>
+    static boost::shared_ptr<Eval> newEvaluator(std::vector<boost::filesystem::path>* dependencies_) {
+      return boost::shared_ptr<E>(new E(dependencies_));
+    }
+
   private:
     virtual void* castToSwig(const boost::shared_ptr<void> &value)=0;
 
@@ -361,6 +373,12 @@ class Eval : virtual public fmatvec::Atom {
     boost::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
 
     static std::map<std::string, std::string> units;
+
+    static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators() {
+      static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> > evaluators;
+      return evaluators;
+    };
+
 };
 
 // Helper class which convert a void* to T* or T.

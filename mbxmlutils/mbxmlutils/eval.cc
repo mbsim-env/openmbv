@@ -1,6 +1,5 @@
 #include <config.h>
 #include "mbxmlutils/eval.h"
-#include "mbxmlutils/octeval.h"
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
@@ -36,7 +35,7 @@ NewParamLevel::~NewParamLevel() {
 
 shared_ptr<void> Eval::casadiValue;
 
-std::map<std::string, std::string> Eval::units;
+map<string, string> Eval::units;
 
 Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   static bool initialized=false;
@@ -57,9 +56,10 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
 };
 
 boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
-  if(evalName=="octave")
-    return shared_ptr<OctEval>(new OctEval(dependencies_));
-  throw runtime_error("Unknown evaluator "+evalName);
+  map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >::iterator it=getEvaluators().find(evalName);
+  if(it==getEvaluators().end())
+    throw runtime_error("No evaluator named "+evalName+" registered.");
+  return it->second(dependencies_);
 }
 
 Eval::~Eval() {
@@ -162,7 +162,7 @@ shared_ptr<void> Eval::create<string>(const string& v) {
   return create_string(v);
 }
 
-void Eval::addParam(const std::string &paramName, const shared_ptr<void>& value) {
+void Eval::addParam(const string &paramName, const shared_ptr<void>& value) {
   currentParam[paramName]=value;
 }
 
@@ -176,7 +176,7 @@ void Eval::addParamSet(const DOMElement *e) {
       try { addPath(E(ee)->convertPath(str.substr(1, str.length()-2)), ee); } MBXMLUTILS_RETHROW(e)
     }
     else {
-      shared_ptr<octave_value> ret=C(eval(ee));
+      shared_ptr<void> ret=eval(ee);
       addParam(E(ee)->getAttribute("name"), ret);
     }
   }
@@ -316,13 +316,13 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     shared_ptr<void> ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
     ValueType retType=getType(ret);
     if(E(e)->isDerivedFrom(PV%"scalar") && retType!=ScalarType)
-      throw DOMEvalException("Octave value is not of type scalar", e);
+      throw DOMEvalException("Value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && retType!=VectorType && retType!=ScalarType)
-      throw DOMEvalException("Octave value is not of type vector", e);
+      throw DOMEvalException("Value is not of type vector", e);
     if(E(e)->isDerivedFrom(PV%"matrix") && retType!=MatrixType && retType!=VectorType && retType!=ScalarType)
-      throw DOMEvalException("Octave value is not of type matrix", e);
+      throw DOMEvalException("Value is not of type matrix", e);
     if(E(e)->isDerivedFrom(PV%"stringFullEval") && retType!=StringType) // also filenameFullEval
-      throw DOMEvalException("Octave value is not of type scalar string", e);
+      throw DOMEvalException("Value is not of type scalar string", e);
 
     // add filenames to dependencies
     if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval")) {
@@ -503,13 +503,13 @@ shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr
     else
       return ret;
   }
-  // handle common unit conversions very fast (without octave evaluation)
+  // handle common unit conversions very fast (without evaluation)
   if(eqn=="value")
     return ret;
-  // all other conversion must be processed using octave
+  // all other conversion must be processed using the evaluator
   NewParamLevel newParamLevel(*this, true);
-  addParam("value", C(ret));
-  return C(stringToValue(eqn, e));
+  addParam("value", ret);
+  return stringToValue(eqn, e);
 }
 
 string Eval::partialStringToString(const string &str, const DOMElement *e) {

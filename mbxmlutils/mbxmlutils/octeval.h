@@ -27,14 +27,14 @@ class OctEval : public Eval {
   protected:
     //! Constructor.
     OctEval(std::vector<boost::filesystem::path> *dependencies_=NULL);
+
   public:
     //! Destructor.
     ~OctEval();
 
     //! Get the name of this evaluator.
-    std::string getEvaluatorName() {
-      return "octave";
-    }
+    static std::string getNameStatic() { return "octave"; }
+    std::string getName() { return getNameStatic(); }
 
     //! Add dir to octave search path
     //! A relative path in dir is expanded to an absolute path using the current directory.
