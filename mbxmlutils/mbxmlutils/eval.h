@@ -21,6 +21,12 @@ namespace XERCES_CPP_NAMESPACE {
 
 namespace MBXMLUtils {
 
+//! A dummy object representing a value as string in the syntax of the Eval.
+class CodeString : public std::string {
+  public:
+    CodeString(const std::string &str) : std::string(str) {}
+};
+
 extern bool deactivateBlock;
 
 // Store the current directory in the ctor an restore in the dtor
@@ -194,6 +200,15 @@ class Eval : virtual public fmatvec::Atom {
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>string</tt></th>
+     *     <!--real-->       <td></td>
+     *     <!--string-->     <td>returns e.g. "foo"</td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--SX-->         <td></td>
+     *     <!--DMatrix-->    <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>CodeString</tt></th>
      *     <!--real-->       <td>returns e.g. "5" or "[1,3;5,4]"</td>
      *     <!--string-->     <td>returns e.g. "'foo'"</td>
      *     <!--SXFunction--> <td></td>
@@ -354,6 +369,7 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value)=0;
     virtual std::string                       cast_string              (const boost::shared_ptr<void> &value)=0;
     // spezialization of cast(const boost::shared_ptr<void> &value)
+    CodeString          cast_CodeString  (const boost::shared_ptr<void> &value);
     casadi::SXFunction  cast_SXFunction  (const boost::shared_ptr<void> &value);
     casadi::SXFunction* cast_SXFunction_p(const boost::shared_ptr<void> &value);
     casadi::SX          cast_SX          (const boost::shared_ptr<void> &value);
@@ -403,6 +419,7 @@ T Eval::cast(const boost::shared_ptr<void> &value) {
 }
 // ... but prevere these specializations
 template<> std::string Eval::cast<std::string>(const boost::shared_ptr<void> &value);
+template<> CodeString Eval::cast<CodeString>(const boost::shared_ptr<void> &value);
 template<> int Eval::cast<int>(const boost::shared_ptr<void> &value);
 template<> double Eval::cast<double>(const boost::shared_ptr<void> &value);
 template<> std::vector<double> Eval::cast<std::vector<double> >(const boost::shared_ptr<void> &value);

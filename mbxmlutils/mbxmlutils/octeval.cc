@@ -95,39 +95,10 @@ inline boost::shared_ptr<void> C(const octave_value &value) {
 
 map<string, octave_function*> OctEval::functionValue;
 
-string OctEval::cast_string(const shared_ptr<void> &value) {//MFMF make new type EvaluatorCode beside string
-  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
-  ValueType type=getType(value);
-  ostringstream ret;
-  ret.precision(numeric_limits<double>::digits10+1);
-  if(type==StringType) {
-    ret<<"'"<<C(value)->string_value()<<"'";
-    return ret.str();
-  }
-  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType || type==DMatrixType) {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    if(type!=ScalarType)
-      ret<<"[";
-    for(int i=0; i<m.size(); i++) {
-      for(int j=0; j<m[i].size(); j++) {
-        int mint=0;
-        try {
-           mint=boost::math::lround(m[i][j]);
-        }
-        catch(...) {}
-        double delta=fabs(mint-m[i][j]);
-        if(delta>eps*m[i][j] && delta>eps)
-          ret<<m[i][j]<<(j<m[i].size()-1?",":"");
-        else
-          ret<<mint<<(j<m[i].size()-1?",":"");
-      }
-      ret<<(i<m.size()-1?" ; ":"");
-    }
-    if(type!=ScalarType || m.size()==0)
-      ret<<"]";
-    return ret.str();
-  }
-  throw DOMEvalException("Cannot cast this value to a string.");
+string OctEval::cast_string(const shared_ptr<void> &value) {
+  if(getType(value)==StringType)
+    return C(value)->string_value();
+  throw DOMEvalException("Cannot cast this value to string.");
 }
 
 int OctEval::cast_int(const shared_ptr<void> &value) {

@@ -71,6 +71,11 @@ string Eval::cast<string>(const shared_ptr<void> &value) {
 }
 
 template<>
+CodeString Eval::cast<CodeString>(const shared_ptr<void> &value) {
+  return cast_CodeString(value);
+}
+
+template<>
 int Eval::cast<int>(const shared_ptr<void> &value) {
   return cast_int(value);
 }
@@ -172,8 +177,7 @@ void Eval::addParamSet(const DOMElement *e) {
       shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
       if(getType(ret)!=StringType)
         throw DOMEvalException("Expecting a variable of type string.", e);
-      string str=cast<string>(ret);
-      try { addPath(E(ee)->convertPath(str.substr(1, str.length()-2)), ee); } MBXMLUTILS_RETHROW(e)
+      try { addPath(E(ee)->convertPath(cast<string>(ret)), ee); } MBXMLUTILS_RETHROW(e)
     }
     else {
       shared_ptr<void> ret=eval(ee);
@@ -328,8 +332,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval")) {
       if(getType(ret)!=StringType)
         throw DOMEvalException("Value must be of type string", e);
-      string str=cast<string>(ret);
-      dependencies->push_back(E(e)->convertPath(str.substr(1, str.length()-2)));
+      dependencies->push_back(E(e)->convertPath(cast<string>(ret)));
     }
   
     // convert unit
@@ -391,10 +394,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     shared_ptr<void> fileName=stringToValue(E(ec)->getAttribute("href"), ec, false);
     if(getType(fileName)!=StringType)
       throw DOMEvalException("Value must be of type string", ec);
-    string fileNameStr=cast<string>(fileName);
-    fileNameStr=fileNameStr.substr(1, fileNameStr.length()-2);
     if(dependencies)
-      dependencies->push_back(E(e)->convertPath(fileNameStr));
+      dependencies->push_back(E(e)->convertPath(cast<string>(fileName)));
 
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;
@@ -447,10 +448,8 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
     // add filenames to dependencies
-    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullEval")) {
-      string str=cast<string>(ret);
-      dependencies->push_back(E(pe)->convertPath(str.substr(1, str.length()-2)));
-    }
+    if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullEval"))
+      dependencies->push_back(E(pe)->convertPath(cast<string>(ret)));
 
     return ret;
   }
@@ -538,10 +537,12 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) {
     shared_ptr<void> ret=fullStringToValue(evalStr, e);
     string subst;
     try {
-      subst=cast<string>(ret);
-      if(getType(ret)==StringType)
-        subst=subst.substr(1, subst.length()-2);
-    } MBXMLUTILS_RETHROW(e)
+      switch(getType(ret)) {
+        case ScalarType: subst=lexical_cast<string>(cast<double>(ret)); break;
+        case StringType: subst=cast<string>(ret); break;
+        default: throw runtime_error("Partial evaluations can only be of type scalar or string.");
+      }
+    } MBXMLUTILS_RETHROW(e);
     s=s.substr(0,i)+subst+s.substr(j+1);
   }
   return s;
@@ -558,6 +559,40 @@ DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *
   if(getType(value)==SXFunctionType)
     return convertCasADiToXML(cast<casadi::SXFunction>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
+}
+
+CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
+  switch(getType(value)) {
+    case ScalarType:
+      return lexical_cast<string>(cast<double>(value));
+    case VectorType: {
+      vector<double> v=cast<vector<double> >(value);
+      string ret("[");
+      for(int i=0; i<v.size(); ++i) {
+        ret+=lexical_cast<string>(v[i]);
+        if(i!=v.size()-1) ret+="; ";
+      }
+      ret+="]";
+      return ret;
+    }
+    case MatrixType: {
+      vector<vector<double> > m=cast<vector<vector<double> > >(value);
+      string ret("[");
+      for(int r=0; r<m.size(); ++r) {
+        for(int c=0; c<m[r].size(); ++c) {
+          ret+=lexical_cast<string>(m[r][c]);
+          if(c!=m[r].size()-1) ret+=", ";
+        }
+        if(r!=m.size()-1) ret+="; ";
+      }
+      ret+="]";
+      return ret;
+    }
+    case StringType:
+      return "'"+cast<string>(value)+"'";
+    default:
+      throw DOMEvalException("Cannot cast this value to a evaluator code string.");
+  }
 }
 
 casadi::SX Eval::cast_SX(const shared_ptr<void> &value) {
