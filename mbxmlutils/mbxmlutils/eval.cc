@@ -7,6 +7,7 @@
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/math/special_functions/round.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
 
 using namespace std;
@@ -76,13 +77,13 @@ CodeString Eval::cast<CodeString>(const shared_ptr<void> &value) {
 }
 
 template<>
-int Eval::cast<int>(const shared_ptr<void> &value) {
-  return cast_int(value);
+double Eval::cast<double>(const shared_ptr<void> &value) {
+  return cast_double(value);
 }
 
 template<>
-double Eval::cast<double>(const shared_ptr<void> &value) {
-  return cast_double(value);
+int Eval::cast<int>(const shared_ptr<void> &value) {
+  return cast_int(value);
 }
 
 template<>
@@ -96,33 +97,13 @@ vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<vo
 }
 
 template<>
-SX Eval::cast<SX>(const shared_ptr<void> &value) {
-  return cast_SX(value);
-}
-
-template<>
 SX* Eval::cast<SX*>(const shared_ptr<void> &value) {
   return cast_SX_p(value);
 }
 
 template<>
-SXFunction Eval::cast<SXFunction>(const shared_ptr<void> &value) {
-  return cast_SXFunction(value);
-}
-
-template<>
 SXFunction* Eval::cast<SXFunction*>(const shared_ptr<void> &value) {
   return cast_SXFunction_p(value);
-}
-
-template<>
-DMatrix Eval::cast<DMatrix>(const shared_ptr<void> &value) {
-  return cast_DMatrix(value);
-}
-
-template<>
-DMatrix* Eval::cast<DMatrix*>(const shared_ptr<void> &value) {
-  return cast_DMatrix_p(value);
 }
 
 template<>
@@ -175,8 +156,6 @@ void Eval::addParamSet(const DOMElement *e) {
   for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
-      if(getType(ret)!=StringType)
-        throw DOMEvalException("Expecting a variable of type string.", e);
       try { addPath(E(ee)->convertPath(cast<string>(ret)), ee); } MBXMLUTILS_RETHROW(e)
     }
     else {
@@ -205,7 +184,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(*this, function);
-  vector<casadi::SX> inputs;
+  vector<SX> inputs;
   if(function) {
     addParam("casadi", casadiValue);
     // loop over all attributes and search for arg1name, arg2name attributes
@@ -227,9 +206,9 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       shared_ptr<void> casadiSX=createCasADi("SX");
-      casadi::SX *arg;
-      try { arg=cast<casadi::SX*>(casadiSX); } MBXMLUTILS_RETHROW(e)
-      *arg=casadi::SX::sym(X()%a->getValue(), dim, 1);
+      SX *arg;
+      try { arg=cast<SX*>(casadiSX); } MBXMLUTILS_RETHROW(e)
+      *arg=SX::sym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), casadiSX);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
       inputs[nr-1]=*arg;
@@ -249,7 +228,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     vector<double> m(i);
-    casadi::SX M;
+    SX M;
     if(function)
       M.resize(i, 1);
     i=0;
@@ -257,8 +236,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       if(!function)
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
-        casadi::SX Mele;
-        try { Mele=cast<casadi::SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
+        SX Mele;
+        try { Mele=*cast<SX*>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M.elem(i,0)=Mele.elem(0,0);
       }
@@ -266,8 +245,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       return handleUnit(e, create(m));
     else {
       shared_ptr<void> func=createCasADi("SXFunction");
-      casadi::SXFunction f(inputs, M);
-      try { cast<casadi::SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
+      SXFunction f(inputs, M);
+      try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return func;
     }
   }
@@ -283,7 +262,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     vector<vector<double> > m(i, vector<double>(j));
-    casadi::SX M;
+    SX M;
     if(function)
       M.resize(i, j);
     i=0;
@@ -293,8 +272,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
         if(!function)
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
-          casadi::SX Mele;
-          try { Mele=cast<casadi::SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
+          SX Mele;
+          try { Mele=*cast<SX*>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M.elem(i,0)=Mele.elem(0,0);
         }
@@ -303,8 +282,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       return handleUnit(e, create(m));
     else {
       shared_ptr<void> func=createCasADi("SXFunction");
-      casadi::SXFunction f(inputs, M);
-      try { cast<casadi::SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
+      SXFunction f(inputs, M);
+      try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return func;
     }
   }
@@ -318,22 +297,18 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       function)
     ) {
     shared_ptr<void> ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
-    ValueType retType=getType(ret);
-    if(E(e)->isDerivedFrom(PV%"scalar") && retType!=ScalarType)
+    if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
       throw DOMEvalException("Value is not of type scalar", e);
-    if(E(e)->isDerivedFrom(PV%"vector") && retType!=VectorType && retType!=ScalarType)
+    if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(ret, VectorType))
       throw DOMEvalException("Value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"matrix") && retType!=MatrixType && retType!=VectorType && retType!=ScalarType)
+    if(E(e)->isDerivedFrom(PV%"matrix") && !valueIsOfType(ret, MatrixType))
       throw DOMEvalException("Value is not of type matrix", e);
-    if(E(e)->isDerivedFrom(PV%"stringFullEval") && retType!=StringType) // also filenameFullEval
+    if(E(e)->isDerivedFrom(PV%"stringFullEval") && !valueIsOfType(ret, StringType)) // also filenameFullEval
       throw DOMEvalException("Value is not of type scalar string", e);
 
     // add filenames to dependencies
-    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval")) {
-      if(getType(ret)!=StringType)
-        throw DOMEvalException("Value must be of type string", e);
+    if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval"))
       dependencies->push_back(E(e)->convertPath(cast<string>(ret)));
-    }
   
     // convert unit
     ret=handleUnit(e, ret);
@@ -343,8 +318,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     else {
       shared_ptr<void> func=createCasADi("SXFunction");
       try {
-        casadi::SXFunction f(inputs, cast<casadi::SX>(ret));
-        cast<casadi::SXFunction*>(func)->assignNode(f.get());
+        SXFunction f(inputs, *cast<SX*>(ret));
+        cast<SXFunction*>(func)->assignNode(f.get());
       } MBXMLUTILS_RETHROW(e)
       return func;
     }
@@ -392,8 +367,6 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   ec=E(e)->getFirstElementChildNamed(PV%"fromFile");
   if(ec) {
     shared_ptr<void> fileName=stringToValue(E(ec)->getAttribute("href"), ec, false);
-    if(getType(fileName)!=StringType)
-      throw DOMEvalException("Value must be of type string", ec);
     if(dependencies)
       dependencies->push_back(E(e)->convertPath(cast<string>(fileName)));
 
@@ -426,13 +399,12 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   // evaluate attribute fully
   if(fullEval) {
     shared_ptr<void> ret=stringToValue(X()%a->getValue(), pe);
-    ValueType retType=getType(ret);
     if(A(a)->isDerivedFrom(PV%"floatFullEval")) {
-      if(retType!=ScalarType)
+      if(!valueIsOfType(ret, ScalarType))
         throw DOMEvalException("Value is not of type scalar float", pe, a);
     }
     else if(A(a)->isDerivedFrom(PV%"stringFullEval")) {
-      if(retType!=StringType) // also filenameFullEval
+      if(!valueIsOfType(ret, StringType)) // also filenameFullEval
         throw DOMEvalException("Value is not of type scalar string", pe, a);
     }
     else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
@@ -537,11 +509,12 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) {
     shared_ptr<void> ret=fullStringToValue(evalStr, e);
     string subst;
     try {
-      switch(getType(ret)) {
-        case ScalarType: subst=lexical_cast<string>(cast<double>(ret)); break;
-        case StringType: subst=cast<string>(ret); break;
-        default: throw runtime_error("Partial evaluations can only be of type scalar or string.");
-      }
+      if(valueIsOfType(ret, ScalarType))
+        subst=lexical_cast<string>(cast<double>(ret));
+      else if(valueIsOfType(ret, StringType))
+        subst=cast<string>(ret);
+      else
+        throw runtime_error("Partial evaluations can only be of type scalar or string.");
     } MBXMLUTILS_RETHROW(e);
     s=s.substr(0,i)+subst+s.substr(j+1);
   }
@@ -556,99 +529,64 @@ shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, boo
 }
 
 DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) {
-  if(getType(value)==SXFunctionType)
-    return convertCasADiToXML(cast<casadi::SXFunction>(value), doc);
+  if(valueIsOfType(value, SXFunctionType))
+    return convertCasADiToXML(*cast<SXFunction*>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
 }
 
 CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
-  switch(getType(value)) {
-    case ScalarType:
-      return lexical_cast<string>(cast<double>(value));
-    case VectorType: {
-      vector<double> v=cast<vector<double> >(value);
-      string ret("[");
-      for(int i=0; i<v.size(); ++i) {
-        ret+=lexical_cast<string>(v[i]);
-        if(i!=v.size()-1) ret+="; ";
-      }
-      ret+="]";
-      return ret;
+  if(valueIsOfType(value, ScalarType))
+    return lexical_cast<string>(cast<double>(value));
+  if(valueIsOfType(value, VectorType)) {
+    vector<double> v=cast<vector<double> >(value);
+    string ret("[");
+    for(int i=0; i<v.size(); ++i) {
+      ret+=lexical_cast<string>(v[i]);
+      if(i!=v.size()-1) ret+="; ";
     }
-    case MatrixType: {
-      vector<vector<double> > m=cast<vector<vector<double> > >(value);
-      string ret("[");
-      for(int r=0; r<m.size(); ++r) {
-        for(int c=0; c<m[r].size(); ++c) {
-          ret+=lexical_cast<string>(m[r][c]);
-          if(c!=m[r].size()-1) ret+=", ";
-        }
-        if(r!=m.size()-1) ret+="; ";
-      }
-      ret+="]";
-      return ret;
-    }
-    case StringType:
-      return "'"+cast<string>(value)+"'";
-    default:
-      throw DOMEvalException("Cannot cast this value to a evaluator code string.");
-  }
-}
-
-casadi::SX Eval::cast_SX(const shared_ptr<void> &value) {
-  ValueType type=getType(value);
-  if(type==SXType)
-    return Ptr<casadi::SX>::cast(castToSwig(value));
-  if(type==DMatrixType)
-    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
-  if(type==ScalarType || type==VectorType || type==MatrixType) {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    casadi::SX ret=casadi::SX::zeros(m.size(), m[0].size());
-    for(int i=0; i<m.size(); i++)
-      for(int j=0; j<m[i].size(); j++)
-        ret.elem(i,j)=m[i][j];
+    ret+="]";
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to casadi::SX.");
+  else if(valueIsOfType(value, MatrixType)) {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    string ret("[");
+    for(int r=0; r<m.size(); ++r) {
+      for(int c=0; c<m[r].size(); ++c) {
+        ret+=lexical_cast<string>(m[r][c]);
+        if(c!=m[r].size()-1) ret+=", ";
+      }
+      if(r!=m.size()-1) ret+="; ";
+    }
+    ret+="]";
+    return ret;
+  }
+  else if(valueIsOfType(value, StringType))
+    return "'"+cast<string>(value)+"'";
+  else
+    throw DOMEvalException("Cannot cast this value to a evaluator code string.");
 }
 
-casadi::SX* Eval::cast_SX_p(const shared_ptr<void> &value) {
-  if(getType(value)==SXType)
-    return Ptr<casadi::SX*>::cast(castToSwig(value));
+SX* Eval::cast_SX_p(const shared_ptr<void> &value) {
+  if(valueIsOfType(value, SXType))
+    return static_cast<SX*>(castToSwig(value));
   throw DOMEvalException("Cannot cast this value to casadi::SX*.");
 }
 
-casadi::DMatrix Eval::cast_DMatrix(const shared_ptr<void> &value) {
-  ValueType type=getType(value);
-  if(type==DMatrixType)
-    return Ptr<casadi::DMatrix>::cast(castToSwig(value));
-  if(type==ScalarType || type==VectorType || type==MatrixType || type==SXType) {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    casadi::DMatrix ret=casadi::DMatrix::zeros(m.size(), m[0].size());
-    for(int i=0; i<m.size(); i++)
-      for(int j=0; j<m[i].size(); j++)
-        ret.elem(i,j)=m[i][j];
-    return ret;
-  }
-  throw DOMEvalException("Cannot cast this value to casadi::DMatrix.");
-}
-
-casadi::DMatrix* Eval::cast_DMatrix_p(const shared_ptr<void> &value) {
-  if(getType(value)==DMatrixType)
-    return Ptr<casadi::DMatrix*>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::DMatrix*.");
-}
-
-casadi::SXFunction Eval::cast_SXFunction(const shared_ptr<void> &value) {
-  if(getType(value)==SXFunctionType)
-    return Ptr<casadi::SXFunction>::cast(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SXFunction.");
-}
-
-casadi::SXFunction* Eval::cast_SXFunction_p(const shared_ptr<void> &value) {
-  if(getType(value)==SXFunctionType)
-    return Ptr<casadi::SXFunction*>::cast(castToSwig(value));
+SXFunction* Eval::cast_SXFunction_p(const shared_ptr<void> &value) {
+  if(valueIsOfType(value, SXFunctionType))
+    return static_cast<SXFunction*>(castToSwig(value));
   throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
+}
+
+int Eval::cast_int(const shared_ptr<void> &value) {
+  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
+
+  double d=cast<double>(value);
+  int i=boost::math::lround(d);
+  double delta=fabs(d-i);
+  if(delta>eps*i && delta>eps)
+    throw DOMEvalException("Canot cast this value to int.");
+  return i;
 }
 
 } // end namespace MBXMLUtils

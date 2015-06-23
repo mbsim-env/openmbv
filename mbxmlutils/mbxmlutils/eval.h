@@ -89,14 +89,14 @@ class Eval : virtual public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 
-    //! Known type for the "ret" variable
+    //! Known types for a variable
+    //! See also valueIsOfType.
     enum ValueType {
       ScalarType,
       VectorType,
       MatrixType,
       StringType,
       SXType,
-      DMatrixType,
       SXFunctionType
     };
 
@@ -120,11 +120,11 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::string getName()=0;
 
     //! Add a value to the current parameters.
-    virtual void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
+    void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
-    virtual void addParamSet(const xercesc::DOMElement *e);
+    void addParamSet(const xercesc::DOMElement *e);
 
     //! Add dir to the evauator search path.
     //! A relative path in dir is expanded to an absolute path using the current directory.
@@ -137,7 +137,7 @@ class Eval : virtual public fmatvec::Atom {
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    virtual boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
+    boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -150,151 +150,117 @@ class Eval : virtual public fmatvec::Atom {
      * <table>
      *   <tr>
      *     <th></th>
-     *     <th colspan="6"><tt>value</tt> is of Type ...</th>
+     *     <th colspan="7"><tt>value</tt> is of Type ...</th>
      *   </tr>
      *   <tr>
      *     <th>Template Type <tt>T</tt> equals ...</th>
-     *     <th>real</th>
+     *     <th>real scalar</th>
+     *     <th>real vector</th>
+     *     <th>real matrix</th>
      *     <th>string</th>
      *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
      *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
-     *     <th><i>SWIG</i> <tt>casadi::DMatrix</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
      *   <tr>
      *     <!--CAST TO-->    <th><tt>int</tt></th>
-     *     <!--real-->       <td>only if 1 x 1 and a integral number</td>
+     *     <!--scalar-->     <td>only if its integral number</td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if 1 x 1 and constant and a integral number</td>
-     *     <!--DMatrix-->    <td>only if 1 x 1 and a integral number</td>
+     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>double</tt></th>
-     *     <!--real-->       <td>only if 1 x 1</td>
+     *     <!--scalar-->     <td>X</td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if 1 x 1 and constant</td>
-     *     <!--DMatrix-->    <td>only if 1 x 1</td>
+     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>vector&lt;double&gt;</tt></th>
-     *     <!--real-->       <td>only if n x 1</td>
+     *     <!--scalar-->     <td>X</td>
+     *     <!--vector-->     <td>X</td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if n x 1 and constant</td>
-     *     <!--DMatrix-->    <td>only if n x 1</td>
+     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th>
-     *     <!--real-->       <td>X</td>
+     *     <!--scalar-->     <td>X</td>
+     *     <!--vector-->     <td>X</td>
+     *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if constant</td>
-     *     <!--DMatrix-->    <td>X</td>
+     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>string</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td>returns e.g. "foo"</td>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
+     *     <!--string-->     <td>X</td>
      *     <!--SXFunction--> <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>CodeString</tt></th>
-     *     <!--real-->       <td>returns e.g. "5" or "[1,3;5,4]"</td>
-     *     <!--string-->     <td>returns e.g. "'foo'"</td>
+     *     <!--scalar-->     <td>returns e.g. <code>5</code></td>
+     *     <!--vector-->     <td>returns e.g. <code>[3;7]</code></td>
+     *     <!--matrix-->     <td>returns e.g. <code>[1,3;5,4]</code></td>
+     *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>only if constant; returns e.g. "5" or "[1,3;5,4]"</td>
-     *     <!--DMatrix-->    <td>returns e.g. "5" or "[1,3;5,4]"</td>
+     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>DOMElement*</tt></th>
-     *     <!--real-->       <td></td>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
      *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SXFunction</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>casadi::SXFunction*</tt></th>
-     *     <!--real-->       <td></td>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
      *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX</tt></th>
-     *     <!--real-->       <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
-     *     <!--real-->       <td></td>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::DMatrix</tt></th>
-     *     <!--real-->       <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::DMatrix*</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>XYZ</tt></th>
-     *     <!--real-->       <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->l        <td></td>
-     *     <!--DMatrix-->    <td></td>
-     *     <!--XYZ-->        <td>not type save</td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>XYZ*</tt></th>
-     *     <!--real-->       <td></td>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--DMatrix-->    <td></td>
      *     <!--XYZ-->        <td>not type save</td>
      *   </tr>
      * </table>
@@ -306,8 +272,13 @@ class Eval : virtual public fmatvec::Atom {
     template<typename T>
     T cast(const boost::shared_ptr<void> &value);
 
-    //! get the type of value
-    virtual ValueType getType(const boost::shared_ptr<void> &value)=0;
+    //! check whether value is of type type.
+    //! Note that true is only returned if the value is really of type type. If value can be casted
+    //! to type type but is not of this type then false is returned.
+    //! Note that their are evaluators (e.g. octave) which cannot distinguish between e.g. a scalar,
+    //! a vector of size 1 or a matrix of size 1x1. Hence, these evaluators will return true for ScalarType
+    //! in all these three cases and analog for VectorType.
+    virtual bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type)=0;
 
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
@@ -363,19 +334,15 @@ class Eval : virtual public fmatvec::Atom {
     virtual void* castToSwig(const boost::shared_ptr<void> &value)=0;
 
     // virtual spezialization of cast(const boost::shared_ptr<void> &value)
-    virtual int                               cast_int                 (const boost::shared_ptr<void> &value)=0;
     virtual double                            cast_double              (const boost::shared_ptr<void> &value)=0;
     virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value)=0;
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value)=0;
     virtual std::string                       cast_string              (const boost::shared_ptr<void> &value)=0;
     // spezialization of cast(const boost::shared_ptr<void> &value)
     CodeString          cast_CodeString  (const boost::shared_ptr<void> &value);
-    casadi::SXFunction  cast_SXFunction  (const boost::shared_ptr<void> &value);
     casadi::SXFunction* cast_SXFunction_p(const boost::shared_ptr<void> &value);
-    casadi::SX          cast_SX          (const boost::shared_ptr<void> &value);
     casadi::SX*         cast_SX_p        (const boost::shared_ptr<void> &value);
-    casadi::DMatrix     cast_DMatrix     (const boost::shared_ptr<void> &value);
-    casadi::DMatrix*    cast_DMatrix_p   (const boost::shared_ptr<void> &value);
+    int                 cast_int         (const boost::shared_ptr<void> &value);
 
     // spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
     xercesc::DOMElement* cast_DOMElement_p(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
@@ -397,16 +364,6 @@ class Eval : virtual public fmatvec::Atom {
 
 };
 
-// Helper class which convert a void* to T* or T.
-template<typename T>
-struct Ptr {
-  static T cast(void *ptr) { return *static_cast<T*>(ptr); }
-};
-template<typename T>
-struct Ptr<T*> {
-  static T* cast(void *ptr) { return static_cast<T*>(ptr); }
-};
-
 template<typename T>
 T Eval::cast(const boost::shared_ptr<void> &value) {
   // do not allow T == DOMElement* here ...
@@ -415,21 +372,17 @@ T Eval::cast(const boost::shared_ptr<void> &value) {
     "use Eval::cast<DOMElement*>(const boost::shared_ptr<void>&, DOMDocument*)"
   );
   // ... but treat all other type as swig types ...
-  return Ptr<T>::cast(castToSwig(value));
+  return castToSwig(value);
 }
 // ... but prevere these specializations
 template<> std::string Eval::cast<std::string>(const boost::shared_ptr<void> &value);
 template<> CodeString Eval::cast<CodeString>(const boost::shared_ptr<void> &value);
-template<> int Eval::cast<int>(const boost::shared_ptr<void> &value);
 template<> double Eval::cast<double>(const boost::shared_ptr<void> &value);
+template<> int Eval::cast<int>(const boost::shared_ptr<void> &value);
 template<> std::vector<double> Eval::cast<std::vector<double> >(const boost::shared_ptr<void> &value);
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const boost::shared_ptr<void> &value);
-template<> casadi::SX Eval::cast<casadi::SX>(const boost::shared_ptr<void> &value);
 template<> casadi::SX* Eval::cast<casadi::SX*>(const boost::shared_ptr<void> &value);
-template<> casadi::SXFunction Eval::cast<casadi::SXFunction>(const boost::shared_ptr<void> &value);
 template<> casadi::SXFunction* Eval::cast<casadi::SXFunction*>(const boost::shared_ptr<void> &value);
-template<> casadi::DMatrix Eval::cast<casadi::DMatrix>(const boost::shared_ptr<void> &value);
-template<> casadi::DMatrix* Eval::cast<casadi::DMatrix*>(const boost::shared_ptr<void> &value);
 
 template<typename T>
 T Eval::cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) {

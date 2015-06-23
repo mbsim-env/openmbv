@@ -12,6 +12,7 @@
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
+#include <casadi/core/matrix/matrix.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
 // about redefintions of preprocessor defines
@@ -96,72 +97,46 @@ inline boost::shared_ptr<void> C(const octave_value &value) {
 map<string, octave_function*> OctEval::functionValue;
 
 string OctEval::cast_string(const shared_ptr<void> &value) {
-  if(getType(value)==StringType)
+  if(valueIsOfType(value, StringType))
     return C(value)->string_value();
   throw DOMEvalException("Cannot cast this value to string.");
 }
 
-int OctEval::cast_int(const shared_ptr<void> &value) {
-  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
-  vector<vector<double> > m=cast<vector<vector<double> > >(value);
-  if(getType(value)==ScalarType) {
-    int ret=boost::math::lround(m[0][0]);
-    double delta=fabs(ret-m[0][0]);
-    if(delta>eps*m[0][0] && delta>eps)
-      throw DOMEvalException("Canot cast this value to int.");
-    else
-      return ret;
-  }
-  throw DOMEvalException("Cannot cast this value to int.");
-}
-
 double OctEval::cast_double(const shared_ptr<void> &value) {
-  vector<vector<double> > m=cast<vector<vector<double> > >(value);
-  if(getType(value)==ScalarType)
-    return m[0][0];
+  if(valueIsOfType(value, ScalarType))
+    return C(value)->double_value();
   throw DOMEvalException("Cannot cast this value to double.");
 }
 
 vector<double> OctEval::cast_vector_double(const shared_ptr<void> &value) {
-  vector<vector<double> > m=cast<vector<vector<double> > >(value);
-  ValueType type=getType(value);
-  if(type==ScalarType || type==VectorType) {
-    vector<double> ret;
-    for(size_t i=0; i<m.size(); i++)
-      ret.push_back(m[i][0]);
+  if(valueIsOfType(value, ScalarType))
+    return vector<double>(1, cast<double>(value));
+  else if(valueIsOfType(value, VectorType)) {
+    Matrix m=C(value)->matrix_value();
+    vector<double> ret(m.rows());
+    for(int i=0; i<m.rows(); ++i)
+      ret[i]=m(i, 0);
     return ret;
   }
   throw DOMEvalException("Cannot cast this value to vector<double>.");
 }
 
 vector<vector<double> > OctEval::cast_vector_vector_double(const shared_ptr<void> &value) {
-  ValueType type=getType(value);
-  if(type==ScalarType || type==VectorType || type==MatrixType) {
-    vector<vector<double> > ret;
+  if(valueIsOfType(value, ScalarType))
+    return vector<vector<double> >(1, vector<double>(1, cast<double>(value)));
+  if(valueIsOfType(value, VectorType)) {
     Matrix m=C(value)->matrix_value();
-    for(int i=0; i<m.rows(); i++) {
-      vector<double> row;
-      for(int j=0; j<m.cols(); j++)
-        row.push_back(m(j*m.rows()+i));
-      ret.push_back(row);
-    }
+    vector<vector<double> > ret(m.rows(), vector<double>(1));
+    for(int i=0; i<m.rows(); ++i)
+      ret[i][0]=m(i,0);
     return ret;
   }
-  if(type==SXType || type==DMatrixType) {
-    casadi::SX m;
-    if(type==SXType)
-      m=cast<casadi::SX>(value);
-    else
-      m=cast<casadi::DMatrix>(value);
-    if(!m.isConstant())
-      throw DOMEvalException("Can only cast this constant value to vector<vector<double> >.");
-    vector<vector<double> > ret;
-    for(int i=0; i<m.size1(); i++) {
-      vector<double> row;
-      for(int j=0; j<m.size2(); j++)
-        row.push_back(m.elem(i,j).getValue());
-      ret.push_back(row);
-    }
+  else if(valueIsOfType(value, MatrixType)) {
+    Matrix m=C(value)->matrix_value();
+    vector<vector<double> > ret(m.rows(), vector<double>(m.cols()));
+    for(int r=0; r<m.rows(); ++r)
+      for(int c=0; c<m.cols(); ++c)
+        ret[r][c]=m(r, c);
     return ret;
   }
   throw DOMEvalException("Cannot cast this value to vector<vector<double> >.");
@@ -406,39 +381,44 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   return C(ret);
 }
 
-OctEval::ValueType OctEval::getType(const shared_ptr<void> &value) {
-  if(C(value)->is_scalar_type() && C(value)->is_real_type() && !C(value)->is_string())
-    return ScalarType;
-  else if(C(value)->is_matrix_type() && C(value)->is_real_type() && !C(value)->is_string()) {
-    Matrix m=C(value)->matrix_value();
-    if(m.cols()==1)
-      return VectorType;
-    else
-      return MatrixType;
+bool OctEval::valueIsOfType(const shared_ptr<void> &value, OctEval::ValueType type) {
+  shared_ptr<octave_value> v=C(value);
+  switch(type) {
+    case ScalarType:
+      if(!v->is_string() && v->is_scalar_type() && v->is_real_type()) return true;
+      return false;
+
+    case VectorType:
+      if(valueIsOfType(value, ScalarType)) return true;
+      if(!v->is_string() && v->is_matrix_type() && v->is_real_type()) {
+        Matrix m=v->matrix_value();
+        if(m.cols()==1) return true;
+      }
+      return false;
+
+    case MatrixType:
+      if(valueIsOfType(value, ScalarType)) return true;
+      if(valueIsOfType(value, VectorType)) return true;
+      if(!v->is_string() && v->is_matrix_type() && v->is_real_type()) return true;
+      return false;
+
+    case StringType:
+      if(v->is_string()) return true;
+      return false;
+
+    // swig types
+    case SXType:
+    case SXFunctionType:
+      if(v->class_name()!="swig_ref")
+        return false;
+      // get the swig type (get ones a pointer to swig_type for performance reasons)
+      static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
+      string swigType=fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();
+      if(type==SXType && swigType=="SX") return true;
+      if(type==SXFunctionType && swigType=="SXFunction") return true;
+      return false;
   }
-  else {
-    // get the casadi type
-    static octave_function *swig_type=symbol_table::find_function("swig_type").function_value(); // get ones a pointer to swig_type for performance reasons
-    octave_value swigType;
-    {
-      BLOCK_STDERR(blockstderr);
-      swigType=feval(swig_type, *C(value), 1)(0);
-    }
-    if(error_state!=0) {
-      error_state=0;
-      if(C(value)->is_string())
-        return StringType;
-      throw DOMEvalException("The provided value has an unknown type.");
-    }
-    if(swigType.string_value()=="SX")
-      return SXType;
-    else if(swigType.string_value()=="DMatrix")
-      return DMatrixType;
-    else if(swigType.string_value()=="SXFunction")
-      return SXFunctionType;
-    else
-      throw DOMEvalException("The provided value has an unknown type.");
-  }
+  return false;
 }
 
 octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_list &arg, int n,
@@ -458,18 +438,13 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 
 // cast octave value to swig object ptr or swig object copy
 void* OctEval::castToSwig(const shared_ptr<void> &value) {
-  // get the casadi pointer: octave returns a 64bit integer which represents the pointer
   static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
-  octave_value swigThis;
-  {
-    BLOCK_STDERR(blockstderr);
-    swigThis=feval(swig_this, *C(value), 1)(0);
-  }
-  if(error_state!=0)
-    throw std::runtime_error("Internal error: Not a swig object");
-  void *swigPtr=reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
-  // convert the void pointer to the correct casadi type
-  return swigPtr;
+  // get the casadi pointer: octave returns a 64bit integer which represents the pointer
+  shared_ptr<octave_value> v=C(value);
+  if(v->class_name()!="swig_ref")
+    throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
+  octave_value swigThis=fevalThrow(swig_this, *v, 1, "Cannot get pointer to the SWIG wrapped object.")(0);
+  return reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
 }
 
 map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {

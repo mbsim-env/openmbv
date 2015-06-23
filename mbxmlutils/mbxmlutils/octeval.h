@@ -41,7 +41,7 @@ class OctEval : public Eval {
     void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
 
     //! get the type of value
-    ValueType getType(const boost::shared_ptr<void> &value);
+    bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type);
 
     //! return a list of all required files of octave (excluding dependent files of libraries)
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles();
@@ -72,7 +72,6 @@ class OctEval : public Eval {
 
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args);
 
-    virtual int                               cast_int                 (const boost::shared_ptr<void> &value);
     virtual double                            cast_double              (const boost::shared_ptr<void> &value);
     virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value);
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value);

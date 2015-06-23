@@ -39,11 +39,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         shared_ptr<void> ret=eval.eval(E(e)->getAttributeNode("href"), e);
         string subst;
         try {
-          switch(eval.getType(ret)) {
-            case Eval::ScalarType: subst=lexical_cast<string>(eval.cast<double>(ret)); break;
-            case Eval::StringType: subst=eval.cast<string>(ret); break;
-            default: throw runtime_error("Attribute evaluations can only be of type scalar or string.");
-          }
+          if(eval.valueIsOfType(ret, Eval::ScalarType))
+            subst=lexical_cast<string>(eval.cast<double>(ret));
+          else if(eval.valueIsOfType(ret, Eval::StringType))
+            subst=eval.cast<string>(ret);
+          else
+            throw runtime_error("Attribute evaluations can only be of type scalar or string.");
         } MBXMLUTILS_RETHROW(e)
         file=E(e)->convertPath(subst);
         dependencies.push_back(file);
@@ -156,7 +157,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(E(e)->hasAttribute("onlyif"))
-          try { onlyif=(eval.cast<int>(eval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
+          try { onlyif=(eval.cast<double>(eval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
         if(onlyif) {
           eval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           DOMNode *p=e->getParentNode();
@@ -205,11 +206,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         shared_ptr<void> value=eval.eval(a, e);
         string s;
         try {
-          switch(eval.getType(value)) {
-            case Eval::ScalarType: s=lexical_cast<string>(eval.cast<double>(value)); break;
-            case Eval::StringType: s=eval.cast<string>(value); break;
-            default: throw runtime_error("Attribute evaluations can only be of type scalar or string.");
-          }
+          if(eval.valueIsOfType(value, Eval::ScalarType))
+            s=lexical_cast<string>(eval.cast<double>(value));
+          else if(eval.valueIsOfType(value, Eval::StringType))
+            s=eval.cast<string>(value);
+          else
+            throw runtime_error("Attribute evaluations can only be of type scalar or string.");
         } MBXMLUTILS_RETHROW(e)
         a->setValue(X()%s);
       }
@@ -228,7 +230,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         DOMNode *node;
         DOMDocument *doc=e->getOwnerDocument();
         try {
-          if(eval.getType(value)==Eval::SXFunctionType)
+          if(eval.valueIsOfType(value, Eval::SXFunctionType))
             node=eval.cast<DOMElement*>(value, doc);
           else
             node=doc->createTextNode(X()%eval.cast<CodeString>(value));
