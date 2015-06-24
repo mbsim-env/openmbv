@@ -165,7 +165,7 @@ shared_ptr<void> OctEval::create_string(const string& v) {
   return make_shared<octave_value>(v);
 }
 
-shared_ptr<void> OctEval::createCasADi(const string &name) {
+shared_ptr<void> OctEval::createSwigByTypeName(const string &name) {
   list<octave_value_list> idx;
   idx.push_back(octave_value_list(name));
   idx.push_back(octave_value_list());
@@ -406,16 +406,11 @@ bool OctEval::valueIsOfType(const shared_ptr<void> &value, OctEval::ValueType ty
       if(v->is_string()) return true;
       return false;
 
-    // swig types
-    case SXType:
     case SXFunctionType:
       if(v->class_name()!="swig_ref")
         return false;
-      // get the swig type (get ones a pointer to swig_type for performance reasons)
-      static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
-      string swigType=fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();
-      if(type==SXType && swigType=="SX") return true;
-      if(type==SXFunctionType && swigType=="SXFunction") return true;
+      if(getSwigType(v)==SwigType<casadi::SXFunction*>::name)
+        return true;
       return false;
   }
   return false;
@@ -437,7 +432,7 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 }
 
 // cast octave value to swig object ptr or swig object copy
-void* OctEval::castToSwig(const shared_ptr<void> &value) {
+void* OctEval::getSwigThis(const shared_ptr<void> &value) {
   static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
   // get the casadi pointer: octave returns a 64bit integer which represents the pointer
   shared_ptr<octave_value> v=C(value);
@@ -445,6 +440,15 @@ void* OctEval::castToSwig(const shared_ptr<void> &value) {
     throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
   octave_value swigThis=fevalThrow(swig_this, *v, 1, "Cannot get pointer to the SWIG wrapped object.")(0);
   return reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
+}
+
+string OctEval::getSwigType(const shared_ptr<void> &value) {
+  shared_ptr<octave_value> v=C(value);
+  if(v->class_name()!="swig_ref")
+    throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
+  // get the swig type (get ones a pointer to swig_type for performance reasons)
+  static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
+  return fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();
 }
 
 map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {

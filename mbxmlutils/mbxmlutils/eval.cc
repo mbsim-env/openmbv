@@ -4,7 +4,6 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-#include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/special_functions/round.hpp>
@@ -33,6 +32,9 @@ NewParamLevel::~NewParamLevel() {
     oe.popPath();
   }
 }
+
+template<> string SwigType<SX        *>::name("SX"        );
+template<> string SwigType<SXFunction*>::name("SXFunction");
 
 shared_ptr<void> Eval::casadiValue;
 
@@ -94,16 +96,6 @@ vector<double> Eval::cast<vector<double> >(const shared_ptr<void> &value) {
 template<>
 vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<void> &value) {
   return cast_vector_vector_double(value);
-}
-
-template<>
-SX* Eval::cast<SX*>(const shared_ptr<void> &value) {
-  return cast_SX_p(value);
-}
-
-template<>
-SXFunction* Eval::cast<SXFunction*>(const shared_ptr<void> &value) {
-  return cast_SXFunction_p(value);
 }
 
 template<>
@@ -205,7 +197,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
       int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
-      shared_ptr<void> casadiSX=createCasADi("SX");
+      shared_ptr<void> casadiSX=createSwig<SX*>();
       SX *arg;
       try { arg=cast<SX*>(casadiSX); } MBXMLUTILS_RETHROW(e)
       *arg=SX::sym(X()%a->getValue(), dim, 1);
@@ -244,7 +236,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(!function)
       return handleUnit(e, create(m));
     else {
-      shared_ptr<void> func=createCasADi("SXFunction");
+      shared_ptr<void> func=createSwig<SXFunction*>();
       SXFunction f(inputs, M);
       try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return func;
@@ -281,7 +273,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(!function)
       return handleUnit(e, create(m));
     else {
-      shared_ptr<void> func=createCasADi("SXFunction");
+      shared_ptr<void> func=createSwig<SXFunction*>();
       SXFunction f(inputs, M);
       try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
       return func;
@@ -316,7 +308,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(!function)
       return ret;
     else {
-      shared_ptr<void> func=createCasADi("SXFunction");
+      shared_ptr<void> func=createSwig<SXFunction*>();
       try {
         SXFunction f(inputs, *cast<SX*>(ret));
         cast<SXFunction*>(func)->assignNode(f.get());
@@ -564,18 +556,6 @@ CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
     return "'"+cast<string>(value)+"'";
   else
     throw DOMEvalException("Cannot cast this value to a evaluator code string.");
-}
-
-SX* Eval::cast_SX_p(const shared_ptr<void> &value) {
-  if(valueIsOfType(value, SXType))
-    return static_cast<SX*>(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SX*.");
-}
-
-SXFunction* Eval::cast_SXFunction_p(const shared_ptr<void> &value) {
-  if(valueIsOfType(value, SXFunctionType))
-    return static_cast<SXFunction*>(castToSwig(value));
-  throw DOMEvalException("Cannot cast this value to casadi::SXFunction*.");
 }
 
 int Eval::cast_int(const shared_ptr<void> &value) {

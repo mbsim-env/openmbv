@@ -55,11 +55,13 @@ class OctEval : public Eval {
     //! evaluate str fully and return result as an octave variable
     virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL);
 
-    //! cast value to the corresponding swig object of type T, without ANY type check.
-    void* castToSwig(const boost::shared_ptr<void> &value);
+    //! get the SWIG pointer of this value.
+    void* getSwigThis(const boost::shared_ptr<void> &value);
 
-    //! create octave value of CasADi type name. Created using the default ctor.
-    virtual boost::shared_ptr<void> createCasADi(const std::string &name);
+    //! get the SWIG class name of this value.
+    std::string getSwigType(const boost::shared_ptr<void> &value);
+
+    boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName);
 
     // initial path
     static std::string initialPath;

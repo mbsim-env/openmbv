@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
 #include <xercesc/util/XercesDefs.hpp>
+#include <mbxmlutilshelper/dom.h>
 #include <casadi/core/function/sx_function.hpp>
 #ifdef HAVE_UNORDERED_MAP
 #  include <unordered_map>
@@ -84,6 +85,8 @@ class NewParamLevel {
     bool newLevel;
 };
 
+template<class T> struct SwigType { static std::string name; };
+
 /*! Expression evaluator and converter. */
 class Eval : virtual public fmatvec::Atom {
   public:
@@ -96,7 +99,6 @@ class Eval : virtual public fmatvec::Atom {
       VectorType,
       MatrixType,
       StringType,
-      SXType,
       SXFunctionType
     };
 
@@ -141,8 +143,7 @@ class Eval : virtual public fmatvec::Atom {
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
-     * following table. If a combination is not allowed a exception is thrown, except for casts which are marked
-     * as not type save in the table.
+     * following table. If a combination is not allowed a exception is thrown.
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the object
      * \p value being passed as argument.
      * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
@@ -150,7 +151,7 @@ class Eval : virtual public fmatvec::Atom {
      * <table>
      *   <tr>
      *     <th></th>
-     *     <th colspan="7"><tt>value</tt> is of Type ...</th>
+     *     <th colspan="6"><tt>value</tt> is of Type ...</th>
      *   </tr>
      *   <tr>
      *     <th>Template Type <tt>T</tt> equals ...</th>
@@ -159,7 +160,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <th>real matrix</th>
      *     <th>string</th>
      *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
-     *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
@@ -170,7 +170,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -180,7 +179,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -190,7 +188,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -200,7 +197,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -210,7 +206,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td>X</td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -220,7 +215,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td>returns e.g. <code>[1,3;5,4]</code></td>
      *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -230,7 +224,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -240,17 +233,6 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td>X</td>
-     *     <!--SX-->         <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
-     *     <!--scalar-->     <td></td>
-     *     <!--vector-->     <td></td>
-     *     <!--matrix-->     <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -260,10 +242,12 @@ class Eval : virtual public fmatvec::Atom {
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SXFunction--> <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--XYZ-->        <td>not type save</td>
+     *     <!--XYZ-->        <td>*</td>
      *   </tr>
      * </table>
+     * For arbitary evaluator values of type SWIG wrapper object (see * in table) a instantiation of
+     * <code>template<> string SwigType<XYZ*>::name("<swig_type_name_of_XYZ>");</code>
+     * is required. Eval instantiates this for casadi::SX and casadi::SXFunction.
      */
     template<typename T>
     T cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
@@ -314,7 +298,10 @@ class Eval : virtual public fmatvec::Atom {
     // stack of path
     std::stack<std::string> pathStack;
 
-    virtual boost::shared_ptr<void> createCasADi(const std::string &name)=0;
+    template<typename T>
+    boost::shared_ptr<void> createSwig();
+
+    virtual boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName)=0;
 
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args)=0;
 
@@ -330,9 +317,12 @@ class Eval : virtual public fmatvec::Atom {
       return boost::shared_ptr<E>(new E(dependencies_));
     }
 
-  private:
-    virtual void* castToSwig(const boost::shared_ptr<void> &value)=0;
+    //! get the SWIG pointer of this value.
+    virtual void* getSwigThis(const boost::shared_ptr<void> &value)=0;
+    //! get the SWIG type (class name) of this value.
+    virtual std::string getSwigType(const boost::shared_ptr<void> &value)=0;
 
+  private:
     // virtual spezialization of cast(const boost::shared_ptr<void> &value)
     virtual double                            cast_double              (const boost::shared_ptr<void> &value)=0;
     virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value)=0;
@@ -340,8 +330,6 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::string                       cast_string              (const boost::shared_ptr<void> &value)=0;
     // spezialization of cast(const boost::shared_ptr<void> &value)
     CodeString          cast_CodeString  (const boost::shared_ptr<void> &value);
-    casadi::SXFunction* cast_SXFunction_p(const boost::shared_ptr<void> &value);
-    casadi::SX*         cast_SX_p        (const boost::shared_ptr<void> &value);
     int                 cast_int         (const boost::shared_ptr<void> &value);
 
     // spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
@@ -365,14 +353,16 @@ class Eval : virtual public fmatvec::Atom {
 };
 
 template<typename T>
+boost::shared_ptr<void> Eval::createSwig() {
+  return createSwigByTypeName(SwigType<T>::name);
+}
+
+template<typename T>
 T Eval::cast(const boost::shared_ptr<void> &value) {
-  // do not allow T == DOMElement* here ...
-  BOOST_STATIC_ASSERT_MSG((boost::is_same<T, xercesc::DOMElement*>::type), 
-    "Calling Eval::cast<DOMElement*>(const boost::shared_ptr<void>&) is not allowed "
-    "use Eval::cast<DOMElement*>(const boost::shared_ptr<void>&, DOMDocument*)"
-  );
-  // ... but treat all other type as swig types ...
-  return castToSwig(value);
+  // treat all types T as a swig type
+  if(getSwigType(value)!=SwigType<T>::name)
+    throw DOMEvalException("This variable is not of SWIG type "+SwigType<T>::name+".");
+  return static_cast<T>(getSwigThis(value));
 }
 // ... but prevere these specializations
 template<> std::string Eval::cast<std::string>(const boost::shared_ptr<void> &value);
@@ -381,17 +371,8 @@ template<> double Eval::cast<double>(const boost::shared_ptr<void> &value);
 template<> int Eval::cast<int>(const boost::shared_ptr<void> &value);
 template<> std::vector<double> Eval::cast<std::vector<double> >(const boost::shared_ptr<void> &value);
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const boost::shared_ptr<void> &value);
-template<> casadi::SX* Eval::cast<casadi::SX*>(const boost::shared_ptr<void> &value);
-template<> casadi::SXFunction* Eval::cast<casadi::SXFunction*>(const boost::shared_ptr<void> &value);
 
-template<typename T>
-T Eval::cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) {
-  // only allow T == DOMElement* here ...
-  BOOST_STATIC_ASSERT_MSG(!(boost::is_same<T, xercesc::DOMElement*>::type), 
-    "Calling Eval::cast<T>(const boost::shared_ptr<void>&, DOMDocument*) is only allowed for T=DOMElement*"
-  );
-}
-// ... but use these spezializations
+// no template definition, only this spezialization
 template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc);
 
 // spezializations for create
