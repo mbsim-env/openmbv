@@ -36,22 +36,28 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la
+lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la
 
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -I.. -I. $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la libmbxmlutils-octave.la $(CASADI_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_la_SOURCES = eval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = eval.h preprocess.h
 
-# octave part of the utility library
-libmbxmlutils_octave_ladir = $(includedir)/mbxmlutils
-noinst_LTLIBRARIES = libmbxmlutils-octave.la
-libmbxmlutils_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_octave_la_LIBADD = $(MKOCTFILE_LIBS)
-libmbxmlutils_octave_la_SOURCES = octeval.cc
-libmbxmlutils_octave_la_HEADERS = octeval.h
+# octave evaluator
+libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
+libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
+libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
+libmbxmlutils_eval_octave_la_HEADERS = octeval.h
+
+# xmlflat dummy evaluator
+libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
+libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la
+libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
+libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp

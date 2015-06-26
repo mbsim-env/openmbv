@@ -14,6 +14,18 @@
 #  define unordered_map map
 #endif
 
+#define XMLUTILS_EVAL_CONCAT1(X, Y) X##Y
+#define XMLUTILS_EVAL_CONCAT(X, Y) XMLUTILS_EVAL_CONCAT1(X, Y)
+#define XMLUTILS_EVAL_APPENDLINE(X) XMLUTILS_EVAL_CONCAT(X, __LINE__)
+
+/** Use this macro to register a new evaluator */
+#define XMLUTILS_EVAL_REGISTER(T) \
+  namespace { \
+    struct Reg { \
+      Reg() { Eval::registerEvaluator<T>(); } \
+    } XMLUTILS_EVAL_APPENDLINE(regDummy); \
+  }
+
 namespace XERCES_CPP_NAMESPACE {
   class DOMElement;
   class DOMAttr;
@@ -126,7 +138,7 @@ class Eval : virtual public fmatvec::Atom {
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
-    void addParamSet(const xercesc::DOMElement *e);
+    void addParamSet(xercesc::DOMElement *e);
 
     //! Add dir to the evauator search path.
     //! A relative path in dir is expanded to an absolute path using the current directory.
@@ -134,7 +146,7 @@ class Eval : virtual public fmatvec::Atom {
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
-    boost::shared_ptr<void> eval(const xercesc::DOMElement *e);
+    boost::shared_ptr<void> eval(xercesc::DOMElement *e);
 
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
@@ -341,7 +353,7 @@ class Eval : virtual public fmatvec::Atom {
     virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v)=0;
     virtual boost::shared_ptr<void> create_string              (const std::string& v)=0;
 
-    boost::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
+    boost::shared_ptr<void> handleUnit(xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
 
     static std::map<std::string, std::string> units;
 

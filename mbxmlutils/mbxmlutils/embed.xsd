@@ -24,4 +24,6 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="evaluator" type="xs:token"/>
+
 </xs:schema>

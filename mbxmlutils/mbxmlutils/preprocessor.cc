@@ -72,9 +72,6 @@ int main(int argc, char *argv[]) {
 
     // loop over all files
     while(arg.size()>0) {
-      // initialize the parameter stack (clear ALL caches)
-      shared_ptr<Eval> eval=Eval::createEvaluator("octave", &dependencies);
-
       path paramxml(*arg.begin()); arg.erase(arg.begin());
       path mainxml(*arg.begin()); arg.erase(arg.begin());
       path nslocation(*arg.begin()); arg.erase(arg.begin());
@@ -87,12 +84,6 @@ int main(int argc, char *argv[]) {
         dependencies.push_back(paramxml);
       }
 
-      // generate parameter string
-      if(paramxmldoc.get()) {
-        cout<<"Generate parameter set from "<<paramxml<<endl;
-        eval->addParamSet(paramxmldoc->getDocumentElement());
-      }
-
       // load grammar
       cout<<"Load XML grammar for main file (cached if loaded multiple times)."<<endl;
       parser->loadGrammar(nslocation);
@@ -101,10 +92,32 @@ int main(int argc, char *argv[]) {
       cout<<"Read and validate "<<mainxml<<endl;
       shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
       dependencies.push_back(mainxml);
+      DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
+
+      // create a clean evaluator (get the evaluator name first form the dom)
+      string evalName="octave";
+      DOMElement *evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+      if(evaluator)
+        evalName=X()%E(evaluator)->getFirstTextChild()->getData();
+      shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
+
+      // generate parameter string
+      if(paramxmldoc.get()) {
+        cout<<"Generate parameter set from "<<paramxml<<endl;
+        eval->addParamSet(paramxmldoc->getDocumentElement());
+      }
 
       // embed/validate/unit/eval files
-      DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
       Preprocess::preprocess(parser, *eval, dependencies, mainxmlele);
+
+      // adapt the evaluator in the dom
+      if(evaluator)
+        E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
+      else {
+        evaluator=D(mainxmldoc)->createElement(PV%"evaluator");
+        evaluator->appendChild(mainxmldoc->createTextNode(X()%"xmlflat"));
+        mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
+      }
 
       // save result file
       path mainxmlpp=".pp."+mainxml.filename().string();

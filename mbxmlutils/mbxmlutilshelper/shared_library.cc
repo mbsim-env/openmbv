@@ -21,7 +21,7 @@ SharedLibrary::SharedLibrary(const SharedLibrary& src) : file(src.file), writeTi
 
 void SharedLibrary::init() {
 #ifndef _WIN32
-  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL);
 #else
   string fileWinSep=file;
   replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator

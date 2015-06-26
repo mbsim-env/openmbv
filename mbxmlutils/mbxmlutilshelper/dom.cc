@@ -242,6 +242,11 @@ int DOMElementWrapper<DOMElementType>::getLineNumber() const {
 template int DOMElementWrapper<const DOMElement>::getLineNumber() const; // explicit instantiate const variant
 
 template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::removeAttribute(const FQN &name) {
+  me->removeAttributeNS(X()%name.first, X()%name.second);
+}
+
+template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getEmbedCountNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedCountNr");
   if(pi)

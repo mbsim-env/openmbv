@@ -116,8 +116,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
         // no such XPath in param -> output this parameter set to the caller
         if(ret.second) {
-          shared_ptr<Eval> plainEval=Eval::createEvaluator("octave");
-          for(const DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
+          shared_ptr<Eval> plainEval=Eval::createEvaluator(eval.getName());
+          for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
             shared_ptr<void> parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {

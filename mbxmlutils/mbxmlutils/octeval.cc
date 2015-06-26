@@ -77,14 +77,7 @@ namespace {
 
 namespace MBXMLUtils {
 
-namespace {
-
-  // register this evaluator in the object factory if Eval
-  struct Reg {
-    Reg() { Eval::registerEvaluator<OctEval>(); }
-  } regDummy;
-
-}
+XMLUTILS_EVAL_REGISTER(OctEval)
 
 inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
   return boost::static_pointer_cast<octave_value>(value);

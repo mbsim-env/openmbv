@@ -8,12 +8,23 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/math/special_functions/round.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
+#include "mbxmlutilshelper/shared_library.h"
 
 using namespace std;
 using namespace casadi;
 using namespace boost;
 using namespace xercesc;
 namespace bfs=boost::filesystem;
+
+namespace {
+#ifndef _WIN32
+  const bfs::path LIBBIN("lib");
+  const string LIBEXT=".so.0";
+#else
+  const bfs::path LIBBIN("bin");
+  const string LIBEXT="-0.dll";
+#endif
+}
 
 namespace MBXMLUtils {
 
@@ -56,13 +67,26 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
       }
     initialized=true;
   }
+  pathStack.push(string());
 };
 
 boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
+  // search if a evaluator named evalName already exits and return a new instance of it, if found
   map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >::iterator it=getEvaluators().find(evalName);
-  if(it==getEvaluators().end())
-    throw runtime_error("No evaluator named "+evalName+" registered.");
-  return it->second(dependencies_);
+  if(it!=getEvaluators().end())
+    return it->second(dependencies_);
+
+  // load the evaluator plugin named evalName
+  msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
+  static set<SharedLibrary> evalPlugin;
+  static const bfs::path installDir(getInstallPath());
+  evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+LIBEXT)).string()));
+
+  // search again the evaluator named evalName and return a new instance of it or throw a error message
+  it=getEvaluators().find(evalName);
+  if(it!=getEvaluators().end())
+    return it->second(dependencies_);
+  throw runtime_error("No evaluator named '"+evalName+"' registered.");
 }
 
 Eval::~Eval() {
@@ -144,8 +168,8 @@ void Eval::addParam(const string &paramName, const shared_ptr<void>& value) {
   currentParam[paramName]=value;
 }
 
-void Eval::addParamSet(const DOMElement *e) {
-  for(const DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
+void Eval::addParamSet(DOMElement *e) {
+  for(DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
       try { addPath(E(ee)->convertPath(cast<string>(ret)), ee); } MBXMLUTILS_RETHROW(e)
@@ -157,8 +181,8 @@ void Eval::addParamSet(const DOMElement *e) {
   }
 }
 
-shared_ptr<void> Eval::eval(const DOMElement *e) {
-  const DOMElement *ec;
+shared_ptr<void> Eval::eval(DOMElement *e) {
+  DOMElement *ec;
 
   // check if we are evaluating a symbolic function element
   bool function=false;
@@ -341,7 +365,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(ec) {
       // convert
       vector<shared_ptr<void> > angles(3);
-      const DOMElement *ele;
+      DOMElement *ele;
   
       ele=ec->getFirstElementChild();
       angles[0]=handleUnit(ec, eval(ele));
@@ -371,7 +395,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     shared_ptr<void> ret;
     vector<shared_ptr<void> > args(1);
     args[0]=fileName;
-    try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec)
+    try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec) //MFMF octave function called
+    handleUnit(e, ret);
     return ret;
   }
   
@@ -454,15 +479,19 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   }
 }
 
-shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr<void> &ret) {
+shared_ptr<void> Eval::handleUnit(xercesc::DOMElement *e, const shared_ptr<void> &ret) {
   string eqn;
   string unit=E(e)->getAttribute("unit");
-  if(!unit.empty())
+  if(!unit.empty()) {
     eqn=units[unit];
+    E(e)->removeAttribute("unit");
+  }
   else {
     string convertUnit=E(e)->getAttribute("convertUnit");
-    if(!convertUnit.empty())
+    if(!convertUnit.empty()) {
       eqn=convertUnit;
+      E(e)->removeAttribute("convertUnit");
+    }
     else
       return ret;
   }

@@ -168,6 +168,8 @@ class DOMElementWrapper {
     void setAttribute(const FQN &name, const std::string &value);
     //! check if this element has a attibute named name.
     bool hasAttribute(const FQN &name) const;
+    //! remove from this element the attibute named name.
+    void removeAttribute(const FQN &name);
     //! Workaround: convert default attributes to normal attributes (must be used before importNode to also import default attributes)
     void workaroundDefaultAttributesOnImportNode();
     //! Treat this object as a pointer (like DOMElement*)
@@ -270,6 +272,9 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     if(ex.getLocationStack().size()==0) \
       ex.setContext(e); \
     throw; \
+  } \
+  catch(const std::exception &ex) { \
+    throw DOMEvalException(ex.what(), e); \
   }
 
 //! Exception during evaluation of the DOM tree including a location stack
