@@ -93,37 +93,37 @@ Eval::~Eval() {
 }
 
 template<>
-string Eval::cast<string>(const shared_ptr<void> &value) {
+string Eval::cast<string>(const shared_ptr<void> &value) const {
   return cast_string(value);
 }
 
 template<>
-CodeString Eval::cast<CodeString>(const shared_ptr<void> &value) {
+CodeString Eval::cast<CodeString>(const shared_ptr<void> &value) const {
   return cast_CodeString(value);
 }
 
 template<>
-double Eval::cast<double>(const shared_ptr<void> &value) {
+double Eval::cast<double>(const shared_ptr<void> &value) const {
   return cast_double(value);
 }
 
 template<>
-int Eval::cast<int>(const shared_ptr<void> &value) {
+int Eval::cast<int>(const shared_ptr<void> &value) const {
   return cast_int(value);
 }
 
 template<>
-vector<double> Eval::cast<vector<double> >(const shared_ptr<void> &value) {
+vector<double> Eval::cast<vector<double> >(const shared_ptr<void> &value) const {
   return cast_vector_double(value);
 }
 
 template<>
-vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<void> &value) {
+vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<void> &value) const {
   return cast_vector_vector_double(value);
 }
 
 template<>
-DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, DOMDocument *doc) {
+DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, DOMDocument *doc) const {
   return cast_DOMElement_p(value, doc);
 }
 
@@ -145,22 +145,22 @@ void Eval::popPath() {
 }
 
 template<>
-shared_ptr<void> Eval::create<double>(const double& v) {
+shared_ptr<void> Eval::create<double>(const double& v) const {
   return create_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<vector<double> >(const vector<double>& v) {
+shared_ptr<void> Eval::create<vector<double> >(const vector<double>& v) const {
   return create_vector_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<vector<vector<double> > >(const vector<vector<double> >& v) {
+shared_ptr<void> Eval::create<vector<vector<double> > >(const vector<vector<double> >& v) const {
   return create_vector_vector_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<string>(const string& v) {
+shared_ptr<void> Eval::create<string>(const string& v) const {
   return create_string(v);
 }
 
@@ -168,7 +168,7 @@ void Eval::addParam(const string &paramName, const shared_ptr<void>& value) {
   currentParam[paramName]=value;
 }
 
-void Eval::addParamSet(DOMElement *e) {
+void Eval::addParamSet(const DOMElement *e) {
   for(DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"searchPath") {
       shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
@@ -181,8 +181,8 @@ void Eval::addParamSet(DOMElement *e) {
   }
 }
 
-shared_ptr<void> Eval::eval(DOMElement *e) {
-  DOMElement *ec;
+shared_ptr<void> Eval::eval(const DOMElement *e) {
+  const DOMElement *ec;
 
   // check if we are evaluating a symbolic function element
   bool function=false;
@@ -313,7 +313,7 @@ shared_ptr<void> Eval::eval(DOMElement *e) {
       function)
     ) {
     shared_ptr<void> ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
-    if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
+     if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
       throw DOMEvalException("Value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(ret, VectorType))
       throw DOMEvalException("Value is not of type vector", e);
@@ -368,11 +368,11 @@ shared_ptr<void> Eval::eval(DOMElement *e) {
       DOMElement *ele;
   
       ele=ec->getFirstElementChild();
-      angles[0]=handleUnit(ec, eval(ele), false);
+      angles[0]=handleUnit(ec, eval(ele));
       ele=ele->getNextElementSibling();
-      angles[1]=handleUnit(ec, eval(ele), false);
+      angles[1]=handleUnit(ec, eval(ele));
       ele=ele->getNextElementSibling();
-      angles[2]=handleUnit(ec, eval(ele), true);
+      angles[2]=handleUnit(ec, eval(ele));
       shared_ptr<void> ret;
       try { ret=callFunction(rotFuncName[i], angles); } MBXMLUTILS_RETHROW(ec)
       return ret;
@@ -479,21 +479,15 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   }
 }
 
-shared_ptr<void> Eval::handleUnit(xercesc::DOMElement *e, const shared_ptr<void> &ret, bool removeUnitAttr) {
+shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr<void> &ret) {
   string eqn;
   string unit=E(e)->getAttribute("unit");
-  if(!unit.empty()) {
+  if(!unit.empty())
     eqn=units[unit];
-    if(removeUnitAttr)
-      E(e)->removeAttribute("unit");
-  }
   else {
     string convertUnit=E(e)->getAttribute("convertUnit");
-    if(!convertUnit.empty()) {
+    if(!convertUnit.empty())
       eqn=convertUnit;
-      if(removeUnitAttr)
-        E(e)->removeAttribute("convertUnit");
-    }
     else
       return ret;
   }
@@ -506,7 +500,7 @@ shared_ptr<void> Eval::handleUnit(xercesc::DOMElement *e, const shared_ptr<void>
   return stringToValue(eqn, e);
 }
 
-string Eval::partialStringToString(const string &str, const DOMElement *e) {
+string Eval::partialStringToString(const string &str, const DOMElement *e) const {
   string s=str;
   size_t i;
   while((i=s.find('{'))!=string::npos) {
@@ -544,20 +538,20 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) {
   return s;
 }
 
-shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) {
+shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) const {
   if(fullEval)
     return fullStringToValue(str, e);
   else
     return create(partialStringToString(str, e));
 }
 
-DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) {
+DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) const {
   if(valueIsOfType(value, SXFunctionType))
     return convertCasADiToXML(*cast<SXFunction*>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
 }
 
-CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
+CodeString Eval::cast_CodeString(const shared_ptr<void> &value) const {
   ostringstream ret;
   ret.precision(numeric_limits<double>::digits10+1);
   if(valueIsOfType(value, ScalarType)) {
@@ -595,7 +589,7 @@ CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
     throw DOMEvalException("Cannot cast this value to a evaluator code string.");
 }
 
-int Eval::cast_int(const shared_ptr<void> &value) {
+int Eval::cast_int(const shared_ptr<void> &value) const {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
 
   double d=cast<double>(value);

@@ -47,9 +47,6 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-    // a global oct evaluator just to prevent multiple init/deinit calles
-    shared_ptr<Eval> globalEvalDummy=Eval::createEvaluator("octave");
-
     // the XML DOM parser
     shared_ptr<DOMParser> parser=DOMParser::create(true);
 

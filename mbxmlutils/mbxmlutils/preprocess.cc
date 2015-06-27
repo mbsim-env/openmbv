@@ -122,6 +122,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {
               parValue=plainEval->eval(p);
+              E(e)->removeAttribute("unit");
+              E(e)->removeAttribute("convertUnit");
             }
             catch(DOMEvalException &ex) {
               continue;
@@ -223,6 +225,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
          E(e)->isDerivedFrom(PV%"fullEval") ||
          isCasADi) {
         shared_ptr<void> value=eval.eval(e);
+        E(e)->removeAttribute("unit");
+        E(e)->removeAttribute("convertUnit");
         if(e->getFirstElementChild())
           e->removeChild(e->getFirstElementChild())->release();
         else if(E(e)->getFirstTextChild())

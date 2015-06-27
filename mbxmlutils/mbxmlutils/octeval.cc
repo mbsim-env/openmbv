@@ -89,19 +89,19 @@ inline boost::shared_ptr<void> C(const octave_value &value) {
 
 map<string, octave_function*> OctEval::functionValue;
 
-string OctEval::cast_string(const shared_ptr<void> &value) {
+string OctEval::cast_string(const shared_ptr<void> &value) const {
   if(valueIsOfType(value, StringType))
     return C(value)->string_value();
   throw DOMEvalException("Cannot cast this value to string.");
 }
 
-double OctEval::cast_double(const shared_ptr<void> &value) {
+double OctEval::cast_double(const shared_ptr<void> &value) const {
   if(valueIsOfType(value, ScalarType))
     return C(value)->double_value();
   throw DOMEvalException("Cannot cast this value to double.");
 }
 
-vector<double> OctEval::cast_vector_double(const shared_ptr<void> &value) {
+vector<double> OctEval::cast_vector_double(const shared_ptr<void> &value) const {
   if(valueIsOfType(value, ScalarType))
     return vector<double>(1, cast<double>(value));
   else if(valueIsOfType(value, VectorType)) {
@@ -114,7 +114,7 @@ vector<double> OctEval::cast_vector_double(const shared_ptr<void> &value) {
   throw DOMEvalException("Cannot cast this value to vector<double>.");
 }
 
-vector<vector<double> > OctEval::cast_vector_vector_double(const shared_ptr<void> &value) {
+vector<vector<double> > OctEval::cast_vector_vector_double(const shared_ptr<void> &value) const {
   if(valueIsOfType(value, ScalarType))
     return vector<vector<double> >(1, vector<double>(1, cast<double>(value)));
   if(valueIsOfType(value, VectorType)) {
@@ -135,18 +135,18 @@ vector<vector<double> > OctEval::cast_vector_vector_double(const shared_ptr<void
   throw DOMEvalException("Cannot cast this value to vector<vector<double> >.");
 }
 
-shared_ptr<void> OctEval::create_double(const double& v) {
+shared_ptr<void> OctEval::create_double(const double& v) const {
   return make_shared<octave_value>(v);
 }
 
-shared_ptr<void> OctEval::create_vector_double(const std::vector<double>& v) {
+shared_ptr<void> OctEval::create_vector_double(const std::vector<double>& v) const {
   Matrix m(v.size(), 1);
   for(int i=0; i<v.size(); ++i)
     m(i)=v[i];
   return make_shared<octave_value>(m);
 }
 
-shared_ptr<void> OctEval::create_vector_vector_double(const std::vector<std::vector<double> >& v) {
+shared_ptr<void> OctEval::create_vector_vector_double(const std::vector<std::vector<double> >& v) const {
   Matrix m(v.size(), v[0].size());
   for(int r=0; r<v.size(); ++r)
     for(int c=0; c<v[r].size(); ++c)
@@ -154,11 +154,11 @@ shared_ptr<void> OctEval::create_vector_vector_double(const std::vector<std::vec
   return make_shared<octave_value>(m);
 }
 
-shared_ptr<void> OctEval::create_string(const string& v) {
+shared_ptr<void> OctEval::create_string(const string& v) const {
   return make_shared<octave_value>(v);
 }
 
-shared_ptr<void> OctEval::createSwigByTypeName(const string &name) {
+shared_ptr<void> OctEval::createSwigByTypeName(const string &name) const {
   list<octave_value_list> idx;
   idx.push_back(octave_value_list(name));
   idx.push_back(octave_value_list());
@@ -294,7 +294,7 @@ void OctEval::addPath(const bfs::path &dir, const DOMElement *e) {
       dependencies->push_back(it->path());
 }
 
-shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement *e) {
+shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement *e) const {
   // check some common string to avoid time consiming evaluation
   // check true and false
   if(str=="true") return make_shared<octave_value>(1);
@@ -374,7 +374,7 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   return C(ret);
 }
 
-bool OctEval::valueIsOfType(const shared_ptr<void> &value, OctEval::ValueType type) {
+bool OctEval::valueIsOfType(const shared_ptr<void> &value, OctEval::ValueType type) const {
   shared_ptr<octave_value> v=C(value);
   switch(type) {
     case ScalarType:
@@ -425,7 +425,7 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 }
 
 // cast octave value to swig object ptr or swig object copy
-void* OctEval::getSwigThis(const shared_ptr<void> &value) {
+void* OctEval::getSwigThis(const shared_ptr<void> &value) const {
   static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
   // get the casadi pointer: octave returns a 64bit integer which represents the pointer
   shared_ptr<octave_value> v=C(value);
@@ -435,7 +435,7 @@ void* OctEval::getSwigThis(const shared_ptr<void> &value) {
   return reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
 }
 
-string OctEval::getSwigType(const shared_ptr<void> &value) {
+string OctEval::getSwigType(const shared_ptr<void> &value) const {
   shared_ptr<octave_value> v=C(value);
   if(v->class_name()!="swig_ref")
     throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
@@ -444,7 +444,7 @@ string OctEval::getSwigType(const shared_ptr<void> &value) {
   return fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();
 }
 
-map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {
+map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   static map<bfs::path, pair<bfs::path, bool> > files;
   if(!files.empty())
     return files;
@@ -499,7 +499,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() {
   return files;
 }
 
-shared_ptr<void> OctEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) {
+shared_ptr<void> OctEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
   pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(NULL)));
   if(f.second)
     f.first->second=symbol_table::find_function(name).function_value(); // get ones a pointer performance reasons
