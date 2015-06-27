@@ -368,11 +368,11 @@ shared_ptr<void> Eval::eval(DOMElement *e) {
       DOMElement *ele;
   
       ele=ec->getFirstElementChild();
-      angles[0]=handleUnit(ec, eval(ele));
+      angles[0]=handleUnit(ec, eval(ele), false);
       ele=ele->getNextElementSibling();
-      angles[1]=handleUnit(ec, eval(ele));
+      angles[1]=handleUnit(ec, eval(ele), false);
       ele=ele->getNextElementSibling();
-      angles[2]=handleUnit(ec, eval(ele));
+      angles[2]=handleUnit(ec, eval(ele), true);
       shared_ptr<void> ret;
       try { ret=callFunction(rotFuncName[i], angles); } MBXMLUTILS_RETHROW(ec)
       return ret;
@@ -395,7 +395,7 @@ shared_ptr<void> Eval::eval(DOMElement *e) {
     shared_ptr<void> ret;
     vector<shared_ptr<void> > args(1);
     args[0]=fileName;
-    try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec) //MFMF octave function called
+    try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec)
     handleUnit(e, ret);
     return ret;
   }
@@ -479,18 +479,20 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   }
 }
 
-shared_ptr<void> Eval::handleUnit(xercesc::DOMElement *e, const shared_ptr<void> &ret) {
+shared_ptr<void> Eval::handleUnit(xercesc::DOMElement *e, const shared_ptr<void> &ret, bool removeUnitAttr) {
   string eqn;
   string unit=E(e)->getAttribute("unit");
   if(!unit.empty()) {
     eqn=units[unit];
-    E(e)->removeAttribute("unit");
+    if(removeUnitAttr)
+      E(e)->removeAttribute("unit");
   }
   else {
     string convertUnit=E(e)->getAttribute("convertUnit");
     if(!convertUnit.empty()) {
       eqn=convertUnit;
-      E(e)->removeAttribute("convertUnit");
+      if(removeUnitAttr)
+        E(e)->removeAttribute("convertUnit");
     }
     else
       return ret;
@@ -556,33 +558,39 @@ DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *
 }
 
 CodeString Eval::cast_CodeString(const shared_ptr<void> &value) {
-  if(valueIsOfType(value, ScalarType))
-    return lexical_cast<string>(cast<double>(value));
+  ostringstream ret;
+  ret.precision(numeric_limits<double>::digits10+1);
+  if(valueIsOfType(value, ScalarType)) {
+    ret<<cast<double>(value);
+    return ret.str();
+  }
   if(valueIsOfType(value, VectorType)) {
     vector<double> v=cast<vector<double> >(value);
-    string ret("[");
+    ret<<("[");
     for(int i=0; i<v.size(); ++i) {
-      ret+=lexical_cast<string>(v[i]);
-      if(i!=v.size()-1) ret+="; ";
+      ret<<v[i];
+      if(i!=v.size()-1) ret<<"; ";
     }
-    ret+="]";
-    return ret;
+    ret<<"]";
+    return ret.str();
   }
   else if(valueIsOfType(value, MatrixType)) {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    string ret("[");
+    ret<<("[");
     for(int r=0; r<m.size(); ++r) {
       for(int c=0; c<m[r].size(); ++c) {
-        ret+=lexical_cast<string>(m[r][c]);
-        if(c!=m[r].size()-1) ret+=", ";
+        ret<<m[r][c];
+        if(c!=m[r].size()-1) ret<<",";
       }
-      if(r!=m.size()-1) ret+="; ";
+      if(r!=m.size()-1) ret<<"; ";
     }
-    ret+="]";
-    return ret;
+    ret<<"]";
+    return ret.str();
   }
-  else if(valueIsOfType(value, StringType))
-    return "'"+cast<string>(value)+"'";
+  else if(valueIsOfType(value, StringType)) {
+    ret<<"'"<<cast<string>(value)<<"'";
+    return ret.str();
+  }
   else
     throw DOMEvalException("Cannot cast this value to a evaluator code string.");
 }

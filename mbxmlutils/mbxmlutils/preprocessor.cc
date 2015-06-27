@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
 
       // create a clean evaluator (get the evaluator name first form the dom)
-      string evalName="octave";
+      string evalName="octave"; // default evaluator
       DOMElement *evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
       if(evaluator)
         evalName=X()%E(evaluator)->getFirstTextChild()->getData();

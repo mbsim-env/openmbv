@@ -313,12 +313,27 @@ class Eval : virtual public fmatvec::Atom {
     template<typename T>
     boost::shared_ptr<void> createSwig();
 
+    //! create a SWIG object of name typeName.
     virtual boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName)=0;
 
+    /*! Return the value of a call to name using the arguments args.
+     * The following functions must be implemented by the evaluator:
+     *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given it rad.
+     *   - rotateAboutY(beta):  returns a 3x3 rotation matrix about the y-axis by angle beta which is given it rad.
+     *   - rotateAboutZ(gamma): returns a 3x3 rotation matrix about the z-axis by angle gamma which is given it rad.
+     *   - cardan(alpha, beta, gamma): returns a 3x3 rotation matrix of a cardan rotation about the angles alpha,
+     *     beta and gamma which are given it rad.
+     *   - euler(PHI, theta, phi): returns a 3x3 rotation matrix of a euler rotation about the angles PHI,
+     *     theta and phi which are given it rad.
+     *   - load(filename): returns a NxM matrix of the data stored in the file filename. filename may be a absolute
+     *     relative path. A relative path is interprete relative to the location of the XML file with the load
+     *     statement. (The abstract Eval class guarantees the the current path is at the XML file if load is called)
+     */
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args)=0;
 
     static boost::shared_ptr<void> casadiValue;
 
+    //! evaluate the string str using the current parameters and return the result.
     virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL)=0;
 
     //! evaluate str partially and return result as an std::string
@@ -353,7 +368,7 @@ class Eval : virtual public fmatvec::Atom {
     virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v)=0;
     virtual boost::shared_ptr<void> create_string              (const std::string& v)=0;
 
-    boost::shared_ptr<void> handleUnit(xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
+    boost::shared_ptr<void> handleUnit(xercesc::DOMElement *e, const boost::shared_ptr<void> &ret, bool removeUnitAttr=true);
 
     static std::map<std::string, std::string> units;
 
