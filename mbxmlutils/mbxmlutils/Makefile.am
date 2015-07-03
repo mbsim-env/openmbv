@@ -36,7 +36,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la
+lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
 
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
@@ -58,6 +58,13 @@ libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(CASADI_CFLAG
 libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
+
+# python part of the utility library
+libmbxmlutils_eval_python_ladir = $(includedir)/mbxmlutils
+libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
+libmbxmlutils_eval_python_la_SOURCES = pyeval.cc
+libmbxmlutils_eval_python_la_HEADERS = pyeval.h
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp

@@ -167,6 +167,14 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
     
+    # check for python
+    PYTHON_MODULE=python-3.3
+    PKG_CHECK_MODULES([PYTHON], [$PYTHON_MODULE])
+    NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir $PYTHON_MODULE)/python$($PKG_CONFIG --modversion $PYTHON_MODULE)/site-packages/numpy/core/include"
+    if test ! -d $NUMPY_INCDIR; then
+      AC_MSG_ERROR([Numpy header not found in directory $NUMPY_INCDIR])
+      AC_SUBST([NUMPY_INCDIR])
+    fi
 ])
 
 AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
