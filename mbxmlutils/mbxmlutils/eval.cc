@@ -5,6 +5,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
+#include <mbxmlutilshelper/utils.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/special_functions/round.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
@@ -28,20 +29,14 @@ namespace {
 
 namespace MBXMLUtils {
 
-bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=NULL;
-
 NewParamLevel::NewParamLevel(Eval &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
-  if(newLevel) {
-    oe.pushParams();
-    oe.pushPath();
-  }
+  if(newLevel)
+    oe.pushContext();
 }
 
 NewParamLevel::~NewParamLevel() {
-  if(newLevel) {
-    oe.popParams();
-    oe.popPath();
-  }
+  if(newLevel)
+    oe.popContext();
 }
 
 template<> string SwigType<SX        *>::name("SX"        );
@@ -67,7 +62,6 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
       }
     initialized=true;
   }
-  pathStack.push(string());
 };
 
 boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
@@ -127,21 +121,16 @@ DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, DOMDocument *
   return cast_DOMElement_p(value, doc);
 }
 
-void Eval::pushParams() {
+void Eval::pushContext() {
   paramStack.push(currentParam);
+  importStack.push(currentImport);
 }
 
-void Eval::popParams() {
+void Eval::popContext() {
   currentParam=paramStack.top();
   paramStack.pop();
-}
-
-void Eval::pushPath() {
-  pathStack.push(pathStack.top());
-}
-
-void Eval::popPath() {
-  pathStack.pop();
+  currentImport=importStack.top();
+  importStack.pop();
 }
 
 template<>
@@ -170,14 +159,14 @@ void Eval::addParam(const string &paramName, const shared_ptr<void>& value) {
 
 void Eval::addParamSet(const DOMElement *e) {
   for(DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
-    if(E(ee)->getTagName()==PV%"searchPath") {
-      shared_ptr<void> ret=eval(E(ee)->getAttributeNode("href"), ee);
-      try { addPath(E(ee)->convertPath(cast<string>(ret)), ee); } MBXMLUTILS_RETHROW(e)
+    if(E(ee)->getTagName()==PV%"import")
+      addImport(X()%E(ee)->getFirstTextChild()->getData(), ee);
+    else if(E(ee)->getTagName()==PV%"searchPath") { // MISSING: this is a deprecated feature
+      Deprecated::registerMessage("Replace <searchPath href=\"...\"/> with <import>...</import>, but take note that ... is evaluated fully not partial.", e);
+      addImport(E(ee)->getAttribute("href"), ee, true);
     }
-    else {
-      shared_ptr<void> ret=eval(ee);
-      addParam(E(ee)->getAttribute("name"), ret);
-    }
+    else
+      addParam(E(ee)->getAttribute("name"), eval(ee));
   }
 }
 

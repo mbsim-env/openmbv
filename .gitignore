@@ -12,6 +12,7 @@ mbxmlutils/install-sh
 mbxmlutils/ltmain.sh
 mbxmlutils/mbxmlutils/Makefile.in
 mbxmlutils/mbxmlutils/octave/Makefile.in
+mbxmlutils/mbxmlutils/python/Makefile.in
 mbxmlutils/mbxmlutilshelper/Makefile.in
 mbxmlutils/missing
 mbxmlutils/xmldoc/Makefile.in

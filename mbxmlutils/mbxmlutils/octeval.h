@@ -36,9 +36,11 @@ class OctEval : public Eval {
     static std::string getNameStatic() { return "octave"; }
     std::string getName() const { return getNameStatic(); }
 
-    //! Add dir to octave search path
-    //! A relative path in dir is expanded to an absolute path using the current directory.
-    void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
+    //! Add octave search path to the current evaluator context.
+    //! \p code must evaluate to a string representing a directory/path.
+    //! A relative path is expanded to an absolute path using the path of e as current directory.
+    //! The absolute path is then added using "addpath" to the octave search path.
+    void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
 
     //! get the type of value
     bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type) const;
@@ -83,9 +85,6 @@ class OctEval : public Eval {
     virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v) const;
     virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v) const;
     virtual boost::shared_ptr<void> create_string              (const std::string& v) const;
-
-  private:
-    static std::map<std::string, octave_function*> functionValue;
 };
 
 } // end namespace MBXMLUtils

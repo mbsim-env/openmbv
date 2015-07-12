@@ -28,8 +28,8 @@ XMLFlatEval::~XMLFlatEval() {
 
 // virtual functions
 
-void XMLFlatEval::addPath(const path &dir, const DOMElement *e) {
-  throw runtime_error("addPath not possible.");
+void XMLFlatEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
+  throw runtime_error("addImport not possible.");
 }
 
 bool XMLFlatEval::valueIsOfType(const shared_ptr<void> &value, ValueType type) const {

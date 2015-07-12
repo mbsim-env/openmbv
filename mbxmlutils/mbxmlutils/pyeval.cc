@@ -2,15 +2,20 @@
 
 // python includes
 #include <Python.h> // due to some bugs in python 3.2 we need to include this first
+#include <cStringIO.h>
 #define PY_ARRAY_UNIQUE_SYMBOL mbxmlutils_pyeval_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+#include "swigpyrun.h"
 
 // normal includes
 #include "pyeval.h"
 
 // other includes
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <mbxmlutilshelper/getinstallpath.h>
+#include "pyeval-config.h"
 
 using namespace std;
 using namespace boost;
@@ -19,78 +24,47 @@ using namespace xercesc;
 
 namespace {
 
-// forward declaration
-void throwPyExcIfOccurred();
+// throw a c++ runtime_error exception with the content of a python exception if occurred
+void throwPyExcIfOccurred() {
+  // do nothing if no pyhton error occured
+  if(!PyErr_Occurred())
+    return;
+  // redirect stderr
+  PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
+  if(!savedstderr) throw runtime_error("Internal error: no sys.stderr available.");
+  Py_INCREF(savedstderr);
+  PyObject *buf=PycStringIO->NewOutput(1024); // initial buffer size is 1024 but is increased (reallocated) if too low
+  if(!buf) throw runtime_error("Internal error: cannot create new cStringIO output");
+  PySys_SetObject(const_cast<char*>("stderr"), buf);
+  // print to redirected stderr
+  PyErr_Print();
+  // unredirect stderr
+  PySys_SetObject(const_cast<char*>("stderr"), savedstderr);
+  Py_XDECREF(savedstderr);
+  // get redirected output as string
+  PyObject *pybufstr=PycStringIO->cgetvalue(buf);
+  if(!pybufstr) throw runtime_error("Internal error: cannot get string from cStringIO output");
+  Py_XDECREF(buf);
+  char *cstr=PyString_AsString(pybufstr);
+  if(!cstr) throw runtime_error("Internal error: cannot get c-string from cStringIO output string");
+  string str=cstr;
+  Py_XDECREF(pybufstr);
+  throw runtime_error(str);
+}
 
 // python object deleter/deref helper function
 void pydecref(PyObject *p) {
   Py_XDECREF(p);
 }
 
-// a PyObject smart pointer
-typedef shared_ptr<PyObject> PyO;
-
 // a PyObject smart pointer creator
-PyO mkpyo(PyObject *p=NULL, bool borrowedReference=false, bool simpleThrow=false) {
-  if(simpleThrow && PyErr_Occurred())
-    throw runtime_error("Internal error: During exception handling of a python exception another exception occured.");
+PyO mkpyo(PyObject *p, bool borrowedReference=false) {
   throwPyExcIfOccurred();
   if(!p)
-    throw runtime_error("No python object provided.");
+    throw runtime_error("Internal error: Expected python object but got NULL pointer and not python exception is set.");
   if(borrowedReference)
     Py_INCREF(p);
   return PyO(p, &pydecref);
-}
-
-// throw a c++ runtime_error exception with the content of a python exception if occurred
-void throwPyExcIfOccurred() {
-  if(!PyErr_Occurred())
-    return;
-  // fetch the exception first
-  PyObject *type_, *value_, *traceback_;
-  PyErr_Fetch(&type_, &value_, &traceback_);
-  PyO type=mkpyo(type_, false, true);
-  PyO value=mkpyo(value_, false, true);
-  PyO traceback=mkpyo(traceback_, false, true);
-  // now print the exception to a stream
-  stringstream str;
-  // get traceback if avaialble
-  if(traceback) {
-    static PyObject* stringIO=NULL;
-    if(!stringIO) {
-#if PY_MAJOR_VERSION < 3
-      PyO io=mkpyo(PyImport_ImportModule("StringIO"), false, true);
-#else
-      PyO io=mkpyo(PyImport_ImportModule("io"), false, true);
-#endif
-      stringIO=PyObject_GetAttrString(io.get(), "StringIO");
-      throwPyExcIfOccurred();
-    }
-    PyO file=mkpyo(PyObject_CallObject(stringIO, NULL), false, true);
-    PyTraceBack_Print(traceback.get(), file.get());
-    PyO getvalue=mkpyo(PyObject_GetAttrString(file.get(), "getvalue"), false, true);
-    PyO cont=mkpyo(PyObject_CallObject(getvalue.get(), NULL), false, true);
-    str<<PyBytes_AsString(PyUnicode_AsUTF8String(cont.get()));
-  }
-  else
-    str<<"Python exception:\n";
-  // get exception message
-  str<<reinterpret_cast<PyTypeObject*>(type.get())->tp_name<<": ";
-  if(PyUnicode_Check(value.get()))
-    str<<PyBytes_AsString(PyUnicode_AsUTF8String(value.get()))<<"\n";
-  if(PyBytes_Check(value.get()))
-    str<<PyBytes_AsString(value.get())<<"\n";
-  else if(PyCallable_Check(type.get())) {
-//MFMF    PyO excObj=mkpyo(PyObject_CallObject(type.get(), value.get()), false, true);
-//MFMF    PyO valueStr=mkpyo(PyObject_Str(excObj.get()), false, true);
-//MFMF    str<<PyBytes_AsString(PyUnicode_AsUTF8String(valueStr.get()))<<"\n";
-    str<<"MFMFxxxxxxxxxxxx";
-  }
-  else
-    str<<"Internal error: should not happen\n";
-  // throw as c++ runtime_error exception
-  PyErr_Clear();
-  throw runtime_error(str.str());
 }
 
 inline PyO C(const shared_ptr<void> &value) {
@@ -106,6 +80,8 @@ string cast_string(const shared_ptr<void> &value, bool checkOnly);
 namespace MBXMLUtils {
 
 bool PyEval::initialized=false;
+PyO PyEval::mbxmlutils;
+PyO PyEval::numpy;
 
 XMLUTILS_EVAL_REGISTER(PyEval)
 
@@ -114,57 +90,110 @@ PyEval::PyEval(vector<path> *dependencies_) {
   if(initialized)
     return;
 
-  Py_SetProgramName(const_cast<wchar_t*>(L"mbxmlutilspp"));
+  Py_SetProgramName(const_cast<char*>("mbxmlutilspp"));
   Py_Initialize();
-  const wchar_t *argv[]={L""};
-  PySys_SetArgvEx(1, const_cast<wchar_t**>(argv), 0);
+  const char *argv[]={""};
+  PySys_SetArgvEx(1, const_cast<char**>(argv), 0);
+  throwPyExcIfOccurred();
   _import_array();
   throwPyExcIfOccurred();
   initialized=true;
+
+  PycString_IMPORT;
+  throwPyExcIfOccurred();
+
+  PyO path=mkpyo(PySys_GetObject(const_cast<char*>("path")), true);
+  PyO mbxmlutilspath=mkpyo(PyString_FromString((getInstallPath()/"share"/"mbxmlutils"/"python").string().c_str()));
+  PyList_Append(path.get(), mbxmlutilspath.get());
+  throwPyExcIfOccurred();
+  PyO casadipath=mkpyo(PyString_FromString(CASADI_PREFIX "/python2.7/site-packages/casadi"));
+  PyList_Append(path.get(), casadipath.get());
+  throwPyExcIfOccurred();
+
+  mbxmlutils=mkpyo(PyImport_ImportModule("mbxmlutils"));
+  numpy=mkpyo(PyImport_ImportModule("numpy"));
+  casadiValue=mkpyo(PyImport_ImportModule("casadi"));
+
+  currentImport=mkpyo(PyDict_New());
 }
 
 PyEval::~PyEval() {
   // Py_Finalize(); // we never deinit python it since numpy cannot be reinitialized
 }
 
-void PyEval::addPath(const path &dir, const DOMElement *e) {
-  throw DOMEvalException("mfmf addPath", e);
+void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
+  if(deprecated)
+    throw DOMEvalException("The deprecated <searchPath .../> element is not supported.", e);
+
+  // restore current dir on exit and change current dir
+  PreserveCurrentDir preserveDir;
+  if(e) {
+    path chdir=E(e)->getOriginalFilename().parent_path();
+    if(!chdir.empty())
+      current_path(chdir);
+  }
+
+  // python globals (fill with builtins)
+  PyO globals=mkpyo(PyDict_New());
+  PyDict_SetItemString(globals.get(), "__builtins__", PyEval_GetBuiltins());
+  // python globals (fill with current parameters)
+  for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+    PyDict_SetItemString(globals.get(), i->first.c_str(), C(i->second).get());
+
+  // evaluate as statement
+  PyO locals=mkpyo(PyDict_New());
+  mkpyo(PyRun_String(code.c_str(), Py_file_input, globals.get(), locals.get()));
+
+  // get all locals and add to currentImport
+  PyDict_Merge(C(currentImport).get(), locals.get(), true);
 }
 
 bool PyEval::valueIsOfType(const shared_ptr<void> &value, ValueType type) const {
   PyO v=C(value);
   switch(type) {
-    case ScalarType: return PyFloat_Check(v.get());
+    case ScalarType: return PyFloat_Check(v.get()) || PyLong_Check(v.get()) || PyInt_Check(v.get()) || PyBool_Check(v.get());
     case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
     case MatrixType: try { ::cast_vector_vector_double(value, true); return true; } catch(...) { return false; }
     case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
-    case SXFunctionType: return false;//MFMF
+    case SXFunctionType: return (v->ob_type && v->ob_type->tp_name==string("SXFunction") ? true : false);
   }
   throw DOMEvalException("Internal error: Unknwon ValueType.");
 }
 
 map<path, pair<path, bool> >& PyEval::requiredFiles() const {
-  //MFMF
   static map<path, pair<path, bool> > files;
   return files;
 }
 
 shared_ptr<void> PyEval::createSwigByTypeName(const string &typeName) const {
-  throw runtime_error("mfmf createSwigByTypeName");
+  return mkpyo(PyObject_CallObject(PyDict_GetItemString(PyModule_GetDict(C(casadiValue).get()), typeName.c_str()), NULL));
 }
 
 shared_ptr<void> PyEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
-  throw runtime_error("mfmf callFunction");
+  static map<string, PyO> functionValue;
+  pair<map<string, PyO>::iterator, bool> f=functionValue.insert(make_pair(name, PyO(static_cast<PyObject*>(NULL), &pydecref)));
+  if(f.second)
+    f.first->second=mkpyo(PyDict_GetItemString(PyModule_GetDict(mbxmlutils.get()), name.c_str()));
+  PyO pyargs=mkpyo(PyTuple_New(args.size()));
+  int idx=0;
+  for(vector<shared_ptr<void> >::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
+    Py_INCREF(C(*it).get()); // PyTuple_SetItem steals a reference of the argument
+    PyTuple_SetItem(pyargs.get(), idx, C(*it).get());
+  }
+  return mkpyo(PyObject_CallObject(f.first->second.get(), pyargs.get()));
 }
 
 shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
+  string strtrim=str;
+  trim(strtrim);
+
   // check some common string to avoid time consiming evaluation
   // check true and false
-  if(str=="True") return mkpyo(PyBool_FromLong(1));
-  if(str=="False") return mkpyo(PyBool_FromLong(0));
-  // check for floating point values
-  try { return mkpyo(PyFloat_FromDouble(lexical_cast<double>(str))); }
-  catch(const boost::bad_lexical_cast &) {}
+  if(strtrim=="True") return mkpyo(PyBool_FromLong(1));
+  if(strtrim=="False") return mkpyo(PyBool_FromLong(0));
+  // check for integer and floating point values
+  try { return mkpyo(PyLong_FromLong(lexical_cast<int>(strtrim))); } catch(const boost::bad_lexical_cast &) {}
+  try { return mkpyo(PyFloat_FromDouble(lexical_cast<double>(strtrim))); } catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using python now
 
   // restore current dir on exit and change current dir
@@ -174,46 +203,31 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
     if(!chdir.empty())
       current_path(chdir);
   }
-  //MFMF
-  {
-    PyO globals=mkpyo(PyDict_New());
-    PyDict_SetItemString(globals.get(), "__builtins__", PyEval_GetBuiltins());
-    PyO locals=mkpyo(PyDict_New());
-    mkpyo(PyRun_String("a=5;b=9;import os; from os import path; from os import *", Py_file_input, globals.get(), locals.get()));
-    PyObject *key;
-    Py_ssize_t pos=0;
-    while(PyDict_Next(globals.get(), &pos, &key, NULL))
-      cerr<<"MFMFg "<<PyBytes_AsString(PyUnicode_AsUTF8String(key))<<endl;
-    pos=0;
-    while(PyDict_Next(locals.get(), &pos, &key, NULL))
-      cerr<<"MFMFl "<<PyBytes_AsString(PyUnicode_AsUTF8String(key))<<endl;
-    exit(0);
-  }
-  //MFMF
 
-  // pyhton globals (fill with builtins
+  // python globals (fill with builtins)
   PyO globals=mkpyo(PyDict_New());
   PyDict_SetItemString(globals.get(), "__builtins__", PyEval_GetBuiltins());
-
-  // pyhton locals (fill with current parameters)
-  PyO locals=mkpyo(PyDict_New());
+  // python globals (fill with imports)
+  PyDict_Merge(globals.get(), C(currentImport).get(), true);
+  // python globals (fill with current parameters)
   for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    PyDict_SetItemString(locals.get(), i->first.c_str(), C(i->second).get());
+    PyDict_SetItemString(globals.get(), i->first.c_str(), C(i->second).get());
 
   PyO ret;
+  PyO locals=mkpyo(PyDict_New());
+  PyCompilerFlags flags;
+  flags.cf_flags=CO_FUTURE_DIVISION;
   try {
     // evaluate as expression and save result in ret
-    ret=mkpyo(PyRun_String(str.c_str(), Py_eval_input, globals.get(), locals.get()));
+    ret=mkpyo(PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags));
   }
   catch(const runtime_error&) { // on failure ...
-    PyErr_Clear();
     try {
       // ... evaluate as statement
-      mkpyo(PyRun_String(str.c_str(), Py_file_input, globals.get(), locals.get()));
+      mkpyo(PyRun_StringFlags(strtrim.c_str(), Py_file_input, globals.get(), locals.get(), &flags));
     }
     catch(const runtime_error& ex) { // on failure -> report error
-      PyErr_Clear();
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression: "+str, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+strtrim, e);
     }
     try {
       // get 'ret' variable from statement
@@ -221,25 +235,34 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
     }
     catch(const runtime_error&) {
       // 'ret' variable not found or invalid expression
-      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression: "+str, e);
+      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+strtrim, e);
     }
+  }
+  // convert a list or list of lists to a numpy array
+  if(PyList_Check(ret.get())) {
+    static PyO asarray=mkpyo(PyObject_GetAttrString(numpy.get(), "asarray"));
+    PyO args=mkpyo(PyTuple_New(1));
+    Py_INCREF(ret.get()); // PyTuple_SetItem steals a reference of the argument
+    PyTuple_SetItem(args.get(), 0, ret.get());
+    return mkpyo(PyObject_CallObject(asarray.get(), args.get()));
   }
   // return result
   return ret;
 }
 
 void* PyEval::getSwigThis(const shared_ptr<void> &value) const {
-  throw runtime_error("mfmf getSwigThis");
+  return SWIG_Python_GetSwigThis(C(value).get())->ptr;
 }
 
 string PyEval::getSwigType(const shared_ptr<void> &value) const {
-  throw runtime_error("mfmf getSwigType");
+  return C(value)->ob_type->tp_name;
 }
 
 double PyEval::cast_double(const shared_ptr<void> &value) const {
-  double ret=PyFloat_AsDouble(C(value).get());
-  throwPyExcIfOccurred();
-  return ret;
+  PyObject *v=C(value).get();
+  if(!PyFloat_Check(v) && !PyLong_Check(v) && !PyInt_Check(v))
+    throw runtime_error("Cannot cast this value to double.");
+  return PyFloat_AsDouble(v);
 }
 
 vector<double> PyEval::cast_vector_double(const shared_ptr<void> &value) const {
@@ -255,6 +278,7 @@ string PyEval::cast_string(const shared_ptr<void> &value) const {
 }
 
 shared_ptr<void> PyEval::create_double(const double& v) const {
+  try { return mkpyo(PyLong_FromLong(lexical_cast<int>(v))); } catch(const boost::bad_lexical_cast &) {}
   return mkpyo(PyFloat_FromDouble(v));
 }
 
@@ -278,41 +302,53 @@ shared_ptr<void> PyEval::create_vector_vector_double(const vector<vector<double>
 }
 
 shared_ptr<void> PyEval::create_string(const string& v) const {
-  return mkpyo(PyUnicode_FromString(v.c_str()));
+  return mkpyo(PyString_FromString(v.c_str()));
 }
 
 }
 
 namespace {
 
-vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly) {
-  PyO v=C(value);
-  if(PyList_Check(v.get())) {
-    size_t size=PyList_Size(v.get());
-    vector<double> ret(size);
-    for(size_t i=0; i<size; ++i) {
-      ret[i]=PyFloat_AsDouble(PyList_GetItem(v.get(), i));
-      throwPyExcIfOccurred();
-    }
-    return ret;
+void checkNumPyDoubleType(int type) {
+  if(type!=NPY_SHORT    && type!=NPY_USHORT    &&
+     type!=NPY_INT      && type!=NPY_UINT      &&
+     type!=NPY_LONG     && type!=NPY_ULONG     &&
+     type!=NPY_LONGLONG && type!=NPY_ULONGLONG &&
+     type!=NPY_FLOAT    && type!=NPY_DOUBLE    && type!=NPY_LONGDOUBLE)
+    throw runtime_error("Value is not of type double.");
+}
+
+double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1) {
+  switch(type) {
+    case NPY_SHORT:      return *static_cast<npy_short*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_USHORT:     return *static_cast<npy_ushort*>    (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_INT:        return *static_cast<npy_int*>       (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_UINT:       return *static_cast<npy_uint*>      (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_LONG:       return *static_cast<npy_long*>      (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_ULONG:      return *static_cast<npy_ulong*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_LONGLONG:   return *static_cast<npy_longlong*>  (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_ULONGLONG:  return *static_cast<npy_ulonglong*> (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_FLOAT:      return *static_cast<npy_float*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_DOUBLE:     return *static_cast<npy_double*>    (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_LONGDOUBLE: return *static_cast<npy_longdouble*>(c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
   }
-  if(PyArray_Check(v.get())) {
-    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
+  throw runtime_error("Value is not of type double (wrong element type).");
+}
+
+vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly) {
+  PyObject *v=C(value).get();
+  if(PyArray_Check(v)) {
+    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v);
     if(PyArray_NDIM(a)!=1)
       throw runtime_error("Value is not of type vector (wrong dimension).");
     int type=PyArray_TYPE(a);
-    if(type!=NPY_DOUBLE && type!=NPY_INT)
-      throw runtime_error("Value is not of type vector (wrong element type).");
+    checkNumPyDoubleType(type);
     if(checkOnly)
       return vector<double>();
     npy_intp *dims=PyArray_SHAPE(a);
     vector<double> ret(dims[0]);
-    for(size_t i=0; i<dims[0]; ++i) {
-      if(type==NPY_DOUBLE)
-        ret[i]=*static_cast<double*>(PyArray_GETPTR1(a, i));
-      if(type==NPY_INT)
-        ret[i]=*static_cast<int*>(PyArray_GETPTR1(a, i));
-    }
+    for(size_t i=0; i<dims[0]; ++i)
+      ret[i]=arrayGetDouble(a, type, i);
     return ret;
   }
   throw runtime_error("Value is not of type vector (wrong type).");
@@ -320,45 +356,30 @@ vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly)
 
 vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value, bool checkOnly) {
   PyO v=C(value);
-  if(PyList_Check(v.get())) {
-    size_t row=PyList_Size(v.get());
-    size_t col=PyList_Size(PyList_GetItem(v.get(), 0));
-    throwPyExcIfOccurred();
-    vector<vector<double> > ret(row, vector<double>(col));
-    for(size_t r=0; r<row; ++r)
-      for(size_t c=0; c<col; ++c) {
-        ret[r][c]=PyFloat_AsDouble(PyList_GetItem(PyList_GetItem(v.get(), r), c));
-        throwPyExcIfOccurred();
-      }
-    return ret;
-  }
   if(PyArray_Check(v.get())) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=2)
       throw runtime_error("Value is not of type matrix (wrong dimension).");
     int type=PyArray_TYPE(a);
-    if(type!=NPY_DOUBLE && type!=NPY_INT)
-      throw runtime_error("Value is not of type matrix (wrong element type).");
+    checkNumPyDoubleType(type);
     if(checkOnly)
       return vector<vector<double> >();
     npy_intp *dims=PyArray_SHAPE(a);
     vector<vector<double> > ret(dims[0], vector<double>(dims[1]));
     for(size_t r=0; r<dims[0]; ++r)
-      for(size_t c=0; c<dims[1]; ++c) {
-        if(type==NPY_DOUBLE)
-          ret[r][c]=*static_cast<double*>(PyArray_GETPTR2(a, r, c));
-        if(type==NPY_INT)
-          ret[r][c]=*static_cast<int*>(PyArray_GETPTR2(a, r, c));
-      }
+      for(size_t c=0; c<dims[1]; ++c)
+        ret[r][c]=arrayGetDouble(a, type, r, c);
     return ret;
   }
   throw runtime_error("Value is not of type matrix (wrong type).");
 }
 
 string cast_string(const shared_ptr<void> &value, bool checkOnly) {
-  string ret=PyBytes_AsString(PyUnicode_AsUTF8String(C(value).get()));
-  throwPyExcIfOccurred();
-  return ret;
+  PyObject *v=C(value).get();
+  string ret;
+  if(!PyString_Check(v))
+    throw runtime_error("Cannot cast this value to string.");
+  return PyString_AsString(v);
 }
 
 }

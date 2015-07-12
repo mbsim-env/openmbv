@@ -73,6 +73,38 @@ namespace {
 #else
   bfs::path LIBDIR="lib";
 #endif
+
+  bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=NULL;
+
+  // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
+  template<int T>
+  class Block {
+    public:
+      Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
+        if(deactivateBlock) return;
+        if(disableCount==0)
+          orgcxxx=str.rdbuf(buf);
+        disableCount++;
+      }
+      ~Block() {
+        if(deactivateBlock) return;
+        disableCount--;
+        if(disableCount==0)
+          str.rdbuf(orgcxxx);
+      }
+    private:
+      std::ostream &str;
+      static std::streambuf *orgcxxx;
+      static int disableCount;
+  };
+  template<int T> std::streambuf *Block<T>::orgcxxx;
+  template<int T> int Block<T>::disableCount=0;
+  #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
+  #define MBXMLUTILS_EVAL_CONCAT(X, Y) MBXMLUTILS_EVAL_CONCAT1(X, Y)
+  #define BLOCK_STDOUT Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstdout_, __LINE__)(std::cout)
+  #define BLOCK_STDERR Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstderr_, __LINE__)(std::cerr)
+  #define REDIR_STDOUT(buf) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(std::cout, buf)
+  #define REDIR_STDERR(buf) Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(std::cerr, buf)
 }
 
 namespace MBXMLUtils {
@@ -86,8 +118,6 @@ inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
 inline boost::shared_ptr<void> C(const octave_value &value) {
   return boost::make_shared<octave_value>(value);
 }
-
-map<string, octave_function*> OctEval::functionValue;
 
 string OctEval::cast_string(const shared_ptr<void> &value) const {
   if(valueIsOfType(value, StringType))
@@ -213,7 +243,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
       // (first get octave octfiledir without octave_prefix)
       bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
       { // print no warning, path may not exist
-        BLOCK_STDERR(blockstderr);
+        BLOCK_STDERR;
         feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
       }
 
@@ -237,7 +267,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
 
       // load casadi
       {
-        BLOCK_STDERR(blockstderr);
+        BLOCK_STDERR;
         casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
         if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
       }
@@ -247,7 +277,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
       throw;
     }
   }
-  pathStack.push(initialPath);
+  currentImport=make_shared<string>(initialPath);
 };
 
 OctEval::~OctEval() {
@@ -268,30 +298,45 @@ void OctEval::deinitOctave() {
   }
 }
 
-void OctEval::addPath(const bfs::path &dir, const DOMElement *e) {
-  static octave_function *addpath=symbol_table::find_function("addpath").function_value(); // get ones a pointer for performance reasons
-  static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
-  // set octave path to top of stack of not already done
-  string curPath;
-  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
-  if(curPath!=pathStack.top())
-  {
-    // set path
-    try { fevalThrow(path, octave_value_list(octave_value(pathStack.top())), 0,
-      "Unable to set the octave search path "+pathStack.top()); } MBXMLUTILS_RETHROW(e)
-  }
-  // add dir to octave path
-  try { fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
-    "Unable to add octave search path "+absolute(dir).string()); } MBXMLUTILS_RETHROW(e)
-  // get new path and store it in top of stack
-  try { pathStack.top()=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
+void OctEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
+  try {
+    bfs::path dir;
+    // evaluate code to and string (directory to add using addpath)
+    if(!deprecated)
+      dir=cast<string>(fullStringToValue(code, e));
+    else
+      dir=partialStringToString(code, e); // MISSING: this is a deprecated feature
+    // convert to an absolute path using e
+    dir=E(e)->convertPath(dir);
 
-  if(!dependencies)
-    return;
-  // add m-files in dir to dependencies
-  for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
-    if(it->path().extension()==".m")
-      dependencies->push_back(it->path());
+    // some special handing for the octave addpath is required since addpath is very time consuming
+    // in octave. Hence we try to change the path as less as possible. See also fullStringToValue.
+
+    static octave_function *addpath=symbol_table::find_function("addpath").function_value(); // get ones a pointer for performance reasons
+    static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
+    // set octave path to top of stack of not already done
+    string curPath;
+    curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+    string &currentPath=*static_pointer_cast<string>(currentImport);
+    if(curPath!=currentPath)
+    {
+      // set path
+      fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
+        "Unable to set the octave search path "+currentPath);
+    }
+    // add dir to octave path
+    fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
+      "Unable to add octave search path "+absolute(dir).string());
+    // get new path and store it in top of stack
+    currentPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+
+    if(!dependencies)
+      return;
+    // add m-files in dir to dependencies
+    for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
+      if(it->path().extension()==".m")
+        dependencies->push_back(it->path());
+  } MBXMLUTILS_RETHROW(e)
 }
 
 shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement *e) const {
@@ -326,18 +371,19 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
   string curPath;
   try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW(e)
-  if(curPath!=pathStack.top())
+  string &currentPath=*static_pointer_cast<string>(currentImport);
+  if(curPath!=currentPath)
   {
     // set path
-    try { fevalThrow(path, octave_value_list(octave_value(pathStack.top())), 0,
-      "Unable to set the octave search path "+pathStack.top()); } MBXMLUTILS_RETHROW(e)
+    try { fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
+      "Unable to set the octave search path "+currentPath); } MBXMLUTILS_RETHROW(e)
   }
 
   ostringstream err;
   try{
     int dummy;
-    BLOCK_STDOUT(blockstdout);
-    REDIR_STDERR(redirstderr, err.rdbuf());
+    BLOCK_STDOUT;
+    REDIR_STDERR(err.rdbuf());
     eval_string(str, true, dummy, 0); // eval as statement list
   }
   catch(const std::exception &ex) { // should not happend
@@ -414,7 +460,7 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
   ostringstream err;
   octave_value_list ret;
   {
-    REDIR_STDERR(redirstderr, err.rdbuf());
+    REDIR_STDERR(err.rdbuf());
     ret=feval(func, arg, n);
   }
   if(error_state!=0) {
@@ -500,6 +546,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
 }
 
 shared_ptr<void> OctEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
+  static map<string, octave_function*> functionValue;
   pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(NULL)));
   if(f.second)
     f.first->second=symbol_table::find_function(name).function_value(); // get ones a pointer performance reasons

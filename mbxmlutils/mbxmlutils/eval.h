@@ -40,8 +40,6 @@ class CodeString : public std::string {
     CodeString(const std::string &str) : std::string(str) {}
 };
 
-extern bool deactivateBlock;
-
 // Store the current directory in the ctor an restore in the dtor
 class PreserveCurrentDir {
   public:
@@ -54,34 +52,6 @@ class PreserveCurrentDir {
   private:
     boost::filesystem::path dir;
 };
-
-// A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
-template<int T>
-class Block {
-  public:
-    Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
-      if(deactivateBlock) return;
-      if(disableCount==0)
-        orgcxxx=str.rdbuf(buf);
-      disableCount++;
-    }
-    ~Block() {
-      if(deactivateBlock) return;
-      disableCount--;
-      if(disableCount==0)
-        str.rdbuf(orgcxxx);
-    }
-  private:
-    std::ostream &str;
-    static std::streambuf *orgcxxx;
-    static int disableCount;
-};
-template<int T> std::streambuf *Block<T>::orgcxxx;
-template<int T> int Block<T>::disableCount=0;
-#define BLOCK_STDOUT(name) Block<1> name(std::cout)
-#define BLOCK_STDERR(name) Block<2> name(std::cerr)
-#define REDIR_STDOUT(name, buf) Block<1> name(std::cout, buf)
-#define REDIR_STDERR(name, buf) Block<2> name(std::cerr, buf)
 
 class Eval;
 
@@ -140,9 +110,9 @@ class Eval : virtual public fmatvec::Atom {
     //! Parameters may depend on parameters already added.
     void addParamSet(const xercesc::DOMElement *e);
 
-    //! Add dir to the evauator search path.
-    //! A relative path in dir is expanded to an absolute path using the current directory.
-    virtual void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e)=0;//MFMF this is not portable for different evaluators
+    //! Import evaluator statements. This routine highly depends on the evaluator.
+    //! See the spezialized evaluators documentation for details.
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false)=0;// MISSING: fullEval is just to support a deprected feature
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
@@ -289,17 +259,11 @@ class Eval : virtual public fmatvec::Atom {
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
 
   protected:
-    //! Push the current parameters to a internal stack.
-    void pushParams();
+    //! Push the current context to a internal stack.
+    void pushContext();
 
-    //! Overwrite the current parameter with the top level set from the internal stack.
-    void popParams();
-
-    //! Push the current path to a internal stack.
-    void pushPath();
-
-    //! Overwrite the current path with the top level path from the internal stack.
-    void popPath();
+    //! Overwrite the current context with the top level context from the internal stack.
+    void popContext();
 
     std::vector<boost::filesystem::path> *dependencies;
 
@@ -307,8 +271,11 @@ class Eval : virtual public fmatvec::Atom {
     std::unordered_map<std::string, boost::shared_ptr<void> > currentParam;
     // stack of parameters
     std::stack<std::unordered_map<std::string, boost::shared_ptr<void> > > paramStack;
-    // stack of path
-    std::stack<std::string> pathStack;
+
+    // current imports
+    boost::shared_ptr<void> currentImport;
+    // stack of imports
+    std::stack<boost::shared_ptr<void> > importStack;
 
     template<typename T>
     boost::shared_ptr<void> createSwig() const;

@@ -8,11 +8,12 @@
   <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="searchPath">
+        <xs:element name="searchPath"><!-- deprecated, use import -->
           <xs:complexType>
             <xs:attribute name="href" type="filenamePartialEval"/>
           </xs:complexType>
         </xs:element>
+        <xs:element name="import" type="stringFullEval"/>
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>

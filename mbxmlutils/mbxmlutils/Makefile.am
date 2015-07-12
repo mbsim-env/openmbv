@@ -1,4 +1,4 @@
-SUBDIRS = octave
+SUBDIRS = octave python
 
 if MBXMLUTILS_MINGW
   runlibdir = $(bindir)
@@ -59,18 +59,23 @@ libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
+if COND_PYTHON
 # python part of the utility library
 libmbxmlutils_eval_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_python_la_HEADERS = pyeval.h
+libmbxmlutils_eval_python_la_HEADERS = pyeval.h swigpyrun.h
+pyeval.cc: swigpyrun.h
+swigpyrun.h:
+	$(swig) -python -external-runtime swigpyrun.h
+endif
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(MKOCTFILE_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+mbxmlutilspp_CPPFLAGS = -I. -I.. -I$(top_srcdir) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 
 
 

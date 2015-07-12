@@ -3,6 +3,11 @@
 
 #include "eval.h"
 
+namespace {
+  // a PyObject smart pointer
+  typedef boost::shared_ptr<PyObject> PyO;
+}
+
 namespace MBXMLUtils {
 
 //! A evaluator based on python.
@@ -17,7 +22,7 @@ class PyEval : public Eval {
     ~PyEval();
     static std::string getNameStatic() { return "python"; }
     virtual std::string getName() const { return getNameStatic(); }
-    virtual void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
     virtual bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type) const;
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
   protected:
@@ -37,6 +42,8 @@ class PyEval : public Eval {
     virtual boost::shared_ptr<void>          create_string              (const std::string& v) const;
 
     static bool initialized;
+    static PyO mbxmlutils;
+    static PyO numpy;
 };
 
 }

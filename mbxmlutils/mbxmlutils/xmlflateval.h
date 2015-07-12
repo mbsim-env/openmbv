@@ -17,7 +17,7 @@ class XMLFlatEval : public Eval {
     ~XMLFlatEval();
     static std::string getNameStatic() { return "xmlflat"; }
     virtual std::string getName() const { return getNameStatic(); }
-    virtual void addPath(const boost::filesystem::path &dir, const xercesc::DOMElement *e);
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
     virtual bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type) const;
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
   protected:

@@ -64,6 +64,8 @@ AC_SUBST([LIBDL])
 
 dnl Check for casadi 
 PKG_CHECK_MODULES(CASADI, [casadi])
+CASADI_PREFIX="$($PKG_CONFIG --variable=prefix casadi)"
+AC_SUBST([CASADI_PREFIX])
 
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
@@ -168,12 +170,16 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
     
     # check for python
-    PYTHON_MODULE=python-3.3
-    PKG_CHECK_MODULES([PYTHON], [$PYTHON_MODULE])
-    NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir $PYTHON_MODULE)/python$($PKG_CONFIG --modversion $PYTHON_MODULE)/site-packages/numpy/core/include"
-    if test ! -d $NUMPY_INCDIR; then
-      AC_MSG_ERROR([Numpy header not found in directory $NUMPY_INCDIR])
-      AC_SUBST([NUMPY_INCDIR])
+    AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator])
+    AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
+    if test "x$enable_python" == "xyes"; then
+      PYTHON_MODULE=python-2.7
+      PKG_CHECK_MODULES([PYTHON], [$PYTHON_MODULE])
+      NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir $PYTHON_MODULE)/python$($PKG_CONFIG --modversion $PYTHON_MODULE)/site-packages/numpy/core/include"
+      if test ! -d $NUMPY_INCDIR; then
+        AC_MSG_ERROR([Numpy header not found in directory $NUMPY_INCDIR])
+        AC_SUBST([NUMPY_INCDIR])
+      fi
     fi
 ])
 
@@ -203,7 +209,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([NOTONLY_MBXMLUTILSHELPER], [test  "x$enable_only_mbxmlutilshelper" != "xyes"])
 AM_CONDITIONAL([MBXMLUTILS_MINGW], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilsbase.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile doc/Makefile doc/Doxyfile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilsbase.pc mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/Doxyfile mbxmlutils/pyeval-config.h])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT
