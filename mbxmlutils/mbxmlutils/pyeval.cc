@@ -2,7 +2,6 @@
 
 // python includes
 #include <Python.h> // due to some bugs in python 3.2 we need to include this first
-#include <cStringIO.h>
 #define PY_ARRAY_UNIQUE_SYMBOL mbxmlutils_pyeval_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
@@ -33,8 +32,14 @@ void throwPyExcIfOccurred() {
   PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
   if(!savedstderr) throw runtime_error("Internal error: no sys.stderr available.");
   Py_INCREF(savedstderr);
-  PyObject *buf=PycStringIO->NewOutput(1024); // initial buffer size is 1024 but is increased (reallocated) if too low
-  if(!buf) throw runtime_error("Internal error: cannot create new cStringIO output");
+  static PyObject *bytesIO=NULL;
+  if(!bytesIO) {
+    PyObject *io=PyImport_ImportModule("io");
+    bytesIO=PyObject_GetAttrString(io, "BytesIO");
+    Py_XDECREF(io);
+  }
+  PyObject *buf=PyObject_CallObject(bytesIO, NULL);
+  if(!buf) throw runtime_error("Internal error: cannot create new io.BytesIO instance");
   PySys_SetObject(const_cast<char*>("stderr"), buf);
   // print to redirected stderr
   PyErr_Print();
@@ -42,11 +47,13 @@ void throwPyExcIfOccurred() {
   PySys_SetObject(const_cast<char*>("stderr"), savedstderr);
   Py_XDECREF(savedstderr);
   // get redirected output as string
-  PyObject *pybufstr=PycStringIO->cgetvalue(buf);
-  if(!pybufstr) throw runtime_error("Internal error: cannot get string from cStringIO output");
+  PyObject *getvalue=PyObject_GetAttrString(buf, "getvalue");
+  PyObject *pybufstr=PyObject_CallObject(getvalue, NULL);
+  Py_XDECREF(getvalue);
+  if(!pybufstr) throw runtime_error("Internal error: cannot get string from io.BytesIO output");
   Py_XDECREF(buf);
   char *cstr=PyString_AsString(pybufstr);
-  if(!cstr) throw runtime_error("Internal error: cannot get c-string from cStringIO output string");
+  if(!cstr) throw runtime_error("Internal error: cannot get c-string from io.BytesIO output string");
   string str=cstr;
   Py_XDECREF(pybufstr);
   throw runtime_error(str);
@@ -99,7 +106,6 @@ PyEval::PyEval(vector<path> *dependencies_) {
   throwPyExcIfOccurred();
   initialized=true;
 
-  PycString_IMPORT;
   throwPyExcIfOccurred();
 
   PyO path=mkpyo(PySys_GetObject(const_cast<char*>("path")), true);
