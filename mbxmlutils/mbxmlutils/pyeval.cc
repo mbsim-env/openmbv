@@ -12,6 +12,8 @@
 // other includes
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include "pyeval-config.h"
 
@@ -180,10 +182,28 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   catch(const runtime_error&) { // on failure ...
     try {
       // ... evaluate as statement
+
+      // fix python indentation
+      vector<string> lines;
+      split(lines, str, is_any_of("\n"));
+      size_t indent=string::npos;
+      for(vector<string>::iterator it=lines.begin(); it!=lines.end(); ++it) {
+        size_t pos=it->find_first_not_of(' '); // get first none space character
+        if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
+        if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
+        // now we have a line with a python statement
+        if(indent==string::npos) indent=pos; // at the first python statement line use this as the indent for this an all other lines
+        if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
+          throw DOMEvalException("Unxpected indentation: "+str, e); // ... if not its an indentation error
+        *it=it->substr(indent); // remove the first indent spaces from the line
+      }
+      strtrim=join(lines, "\n");
+
+      // evaluate as statement
       cpy(PyRun_StringFlags(strtrim.c_str(), Py_file_input, globals.get(), locals.get(), &flags));
     }
     catch(const runtime_error& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+strtrim, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\nX"+str, e);
     }
     try {
       // get 'ret' variable from statement
@@ -191,7 +211,7 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
     }
     catch(const runtime_error&) {
       // 'ret' variable not found or invalid expression
-      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+strtrim, e);
+      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\nX"+str, e);
     }
   }
   // convert a list or list of lists to a numpy array
