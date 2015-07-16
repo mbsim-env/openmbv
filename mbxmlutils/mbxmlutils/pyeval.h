@@ -2,11 +2,7 @@
 #define _MBXMLUTILS_PYEVAL_H_
 
 #include "eval.h"
-
-namespace {
-  // a PyObject smart pointer
-  typedef boost::shared_ptr<PyObject> PyO;
-}
+#include "py2py3cppwrapper.h"
 
 namespace MBXMLUtils {
 

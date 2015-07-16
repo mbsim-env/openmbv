@@ -65,7 +65,7 @@ libmbxmlutils_eval_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_python_la_HEADERS = pyeval.h swigpyrun.h
+libmbxmlutils_eval_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrapper.h
 pyeval.cc: swigpyrun.h
 swigpyrun.h:
 	$(swig) -python -external-runtime swigpyrun.h
