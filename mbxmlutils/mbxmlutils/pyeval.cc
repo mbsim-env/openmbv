@@ -21,6 +21,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::filesystem;
 using namespace xercesc;
+using namespace PythonCpp;
 
 namespace {
 
@@ -47,17 +48,7 @@ PyEval::PyEval(vector<path> *dependencies_) {
   if(initialized)
     return;
 
-#if PY_MAJOR_VERSION < 3
-  Py_SetProgramName(const_cast<char*>("mbxmlutilspp"));
-  Py_Initialize();
-  const char *argv[]={""};
-  PySys_SetArgvEx(1, const_cast<char**>(argv), 0);
-#else
-  Py_SetProgramName(const_cast<wchar_t*>(L"mbxmlutilspp"));
-  Py_Initialize();
-  const wchar_t *argv[]={L""};
-  PySys_SetArgvEx(1, const_cast<wchar_t**>(argv), 0);
-#endif
+  initializePython("mbxmlutilspp");
   cpy(_import_array());
   initialized=true;
 
@@ -172,38 +163,41 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
     cpy(PyDict_SetItemString(globals.get(), i->first.c_str(), C(i->second).get()));
 
   PyO ret;
-  PyO locals=cpy(PyDict_New());
   PyCompilerFlags flags;
-  flags.cf_flags=CO_FUTURE_DIVISION;
+  flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
   try {
-    // evaluate as expression and save result in ret
+    // evaluate as expression (using the trimmed str) and save result in ret
+    PyO locals=cpy(PyDict_New());
     ret=cpy(PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags));
   }
   catch(const runtime_error&) { // on failure ...
+    PyO locals=cpy(PyDict_New());
     try {
       // ... evaluate as statement
 
       // fix python indentation
       vector<string> lines;
-      split(lines, str, is_any_of("\n"));
+      split(lines, str, is_any_of("\n")); // split to a vector of lines
       size_t indent=string::npos;
-      for(vector<string>::iterator it=lines.begin(); it!=lines.end(); ++it) {
+      size_t lineNr=0;
+      for(vector<string>::iterator it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
         size_t pos=it->find_first_not_of(' '); // get first none space character
         if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
         if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
         // now we have a line with a python statement
-        if(indent==string::npos) indent=pos; // at the first python statement line use this as the indent for this an all other lines
+        if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
         if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
-          throw DOMEvalException("Unxpected indentation: "+str, e); // ... if not its an indentation error
+          // ... if not its an indentation error
+          throw DOMEvalException("Unexpected indentation at line "+lexical_cast<string>(lineNr)+": "+str, e);
         *it=it->substr(indent); // remove the first indent spaces from the line
       }
-      strtrim=join(lines, "\n");
+      strtrim=join(lines, "\n"); // join the lines to a single string
 
       // evaluate as statement
       cpy(PyRun_StringFlags(strtrim.c_str(), Py_file_input, globals.get(), locals.get(), &flags));
     }
     catch(const runtime_error& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\nX"+str, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+str, e);
     }
     try {
       // get 'ret' variable from statement

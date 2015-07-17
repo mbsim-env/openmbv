@@ -38,8 +38,8 @@ class PyEval : public Eval {
     virtual boost::shared_ptr<void>          create_string              (const std::string& v) const;
 
     static bool initialized;
-    static PyO mbxmlutils;
-    static PyO numpy;
+    static PythonCpp::PyO mbxmlutils;
+    static PythonCpp::PyO numpy;
 };
 
 }

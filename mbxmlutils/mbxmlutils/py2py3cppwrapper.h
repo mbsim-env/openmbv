@@ -7,6 +7,29 @@
 #include <memory>
 #include <sstream>
 #include <boost/shared_ptr.hpp>
+#include <boost/locale/encoding_utf.hpp>
+
+namespace {
+  void throwPythonException(const std::string &file, int line, const std::string &func);
+}
+
+namespace PythonCpp {
+
+// initialize python giving main as program name to python
+void initializePython(const std::string &main) {
+#if PY_MAJOR_VERSION < 3
+  Py_SetProgramName(const_cast<char*>(main.c_str()));
+  Py_Initialize();
+  const char *argv[]={"abc.py"};
+  PySys_SetArgvEx(1, const_cast<char**>(argv), 0);
+#else
+  wstring wmain=locale::conv::utf_to_utf<wchar_t>(main);
+  Py_SetProgramName(const_cast<wchar_t*>(wmain.c_str()));
+  Py_Initialize();
+  const wchar_t *argv[]={L"abc.py"};
+  PySys_SetArgvEx(1, const_cast<wchar_t**>(argv), 0);
+#endif
+}
 
 // wrap some python 3 function to also work in python 2 (the wrappers have suffix _Py2Py2
 // and are later defined without the suffix as a macro)
@@ -68,10 +91,45 @@ inline std::string PyUnicode_AsUTF8_Py2Py3(PyObject *o) {
 #define PyUnicode_Check PyUnicode_Check_Py2Py3
 #define PyUnicode_AsUTF8 PyUnicode_AsUTF8_Py2Py3
 
+// we use this for python object for c++ reference counting
+typedef boost::shared_ptr<PyObject> PyO;
 
+// helper struct to map the return type of the cpy(...) function
+// default: map to the same type
+template<typename T>
+struct TypeMap {
+  typedef T type;
+};
+// specialization: map PyObject to PyO
+template<> struct TypeMap<PyObject*> { typedef PyO type; };
+
+// call a python function with c++ exception handling
+// default: just return the argument (pass through) but throw if a python exception has occured
+template<typename T>
+inline typename TypeMap<T>::type cpy(T o, bool borrowedReference=false) {
+  if(PyErr_Occurred())
+    throwPythonException("", 0, "func");
+  return o;
+}
+// specialization: for a PyObject* as argument return a c++ reference counted PyO but throw if a
+// python exception has occured. Also handle borrowed python objects by incrementing the python ref count.
+template<>
+inline typename TypeMap<PyObject*>::type cpy(PyObject* o, bool borrowedReference) {
+  if(PyErr_Occurred())
+    throwPythonException("", 0, "func");
+  if(!o)
+    throw std::runtime_error("Internal error: Expected python object but got NULL pointer and not python exception is set.");
+  if(borrowedReference)
+    Py_INCREF(o);
+  return PyO(o, &Py_DecRef);
+}
+
+}
+
+namespace {
 
 // throw a c++ runtime_error exception with the content of a python exception
-static void throwPythonException(const std::string &file, int line, const std::string &func) {
+void throwPythonException(const std::string &file, int line, const std::string &func) {
   // fetch the error
   PyObject *type, *value, *traceback;
   PyErr_Fetch(&type, &value, &traceback);
@@ -128,37 +186,6 @@ static void throwPythonException(const std::string &file, int line, const std::s
   throw std::runtime_error(msg.str());
 }
 
-// we use this for python object for c++ reference counting
-typedef boost::shared_ptr<PyObject> PyO;
-
-// helper struct to map the return type of the cpy(...) function
-// default: map to the same type
-template<typename T>
-struct PythonTypeMap {
-  typedef T type;
-};
-// specialization: map PyObject to PyO
-template<> struct PythonTypeMap<PyObject*> { typedef PyO type; };
-
-// call a python function with c++ exception handling
-// default: just return the argument (pass through) but throw if a python exception has occured
-template<typename T>
-inline typename PythonTypeMap<T>::type cpy(T o, bool borrowedReference=false) {
-  if(PyErr_Occurred())
-    throwPythonException("", 0, "func");
-  return o;
-}
-// specialization: for a PyObject* as argument return a c++ reference counted PyO but throw if a
-// python exception has occured. Also handle borrowed python objects by incrementing the python ref count.
-template<>
-inline typename PythonTypeMap<PyObject*>::type cpy(PyObject* o, bool borrowedReference) {
-  if(PyErr_Occurred())
-    throwPythonException("", 0, "func");
-  if(!o)
-    throw std::runtime_error("Internal error: Expected python object but got NULL pointer and not python exception is set.");
-  if(borrowedReference)
-    Py_INCREF(o);
-  return PyO(o, &Py_DecRef);
 }
 
 #endif
