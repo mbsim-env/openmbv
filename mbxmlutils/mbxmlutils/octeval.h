@@ -48,6 +48,8 @@ class OctEval : public Eval {
     //! return a list of all required files of octave (excluding dependent files of libraries)
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
 
+    virtual bool useOneBasedIndexes() { return true; }
+
   protected:
 
     //! This function deinitialized octave. It is used in the dtor and before exceptions in the ctor are thrown

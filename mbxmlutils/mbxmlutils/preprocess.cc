@@ -149,7 +149,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
-        eval.addParam(counterName, eval.create(static_cast<double>(i)));
+        eval.addParam(counterName, eval.create(static_cast<double>(i-(eval.useOneBasedIndexes()?0:1))));
         if(localParamEle) {
           eval.msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;

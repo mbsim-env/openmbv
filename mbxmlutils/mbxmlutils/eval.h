@@ -258,6 +258,9 @@ class Eval : virtual public fmatvec::Atom {
     //! return a list of all required files of the evaluator (excluding dependent files of libraries)
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
 
+    //! Return true if the evaluator used one based indexes or false if zero based indexes are used.
+    virtual bool useOneBasedIndexes()=0;
+
   protected:
     //! Push the current context to a internal stack.
     void pushContext();

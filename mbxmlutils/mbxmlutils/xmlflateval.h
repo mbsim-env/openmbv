@@ -20,6 +20,7 @@ class XMLFlatEval : public Eval {
     virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
     virtual bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type) const;
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
+    virtual bool useOneBasedIndexes() { return true; }
   protected:
     virtual boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const;
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args) const;
