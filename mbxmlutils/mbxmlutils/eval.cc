@@ -74,7 +74,13 @@ boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs
   msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
   static set<SharedLibrary> evalPlugin;
   static const bfs::path installDir(getInstallPath());
-  evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+LIBEXT)).string()));
+  try {
+    evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+LIBEXT)).string()));
+  }
+  catch(const runtime_error &ex) {
+    throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"
+                        "System error message: "+ex.what());
+  }
 
   // search again the evaluator named evalName and return a new instance of it or throw a error message
   it=getEvaluators().find(evalName);

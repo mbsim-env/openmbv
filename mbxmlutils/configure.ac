@@ -170,7 +170,7 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
     
     # check for python
-    AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator])
+    AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalutor is ALPHA hence it must be enabled explicitly.])
     AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
     if test "x$enable_python" == "xyes"; then
       PYTHON_MODULE=python-2.7
