@@ -43,7 +43,7 @@ PyO PyEval::numpy;
 
 XMLUTILS_EVAL_REGISTER(PyEval)
 
-PyEval::PyEval(vector<path> *dependencies_) {
+PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   // we initialize python only ones and never deinit it since numpy cannot be reinitialized
   if(initialized)
     return;

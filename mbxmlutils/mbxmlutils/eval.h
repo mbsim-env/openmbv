@@ -86,7 +86,7 @@ class Eval : virtual public fmatvec::Atom {
 
   protected:
     //! Constructor.
-    Eval(std::vector<boost::filesystem::path> *dependencies_=NULL);
+    Eval(std::vector<boost::filesystem::path> *dependencies_);
   public:
     //! Destructor.
     ~Eval();
