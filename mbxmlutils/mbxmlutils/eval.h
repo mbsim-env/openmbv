@@ -288,16 +288,16 @@ class Eval : virtual public fmatvec::Atom {
 
     /*! Return the value of a call to name using the arguments args.
      * The following functions must be implemented by the evaluator:
-     *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given it rad.
-     *   - rotateAboutY(beta):  returns a 3x3 rotation matrix about the y-axis by angle beta which is given it rad.
-     *   - rotateAboutZ(gamma): returns a 3x3 rotation matrix about the z-axis by angle gamma which is given it rad.
+     *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given in rad.
+     *   - rotateAboutY(beta):  returns a 3x3 rotation matrix about the y-axis by angle beta which is given in rad.
+     *   - rotateAboutZ(gamma): returns a 3x3 rotation matrix about the z-axis by angle gamma which is given in rad.
      *   - cardan(alpha, beta, gamma): returns a 3x3 rotation matrix of a cardan rotation about the angles alpha,
-     *     beta and gamma which are given it rad.
+     *     beta and gamma which are given in rad.
      *   - euler(PHI, theta, phi): returns a 3x3 rotation matrix of a euler rotation about the angles PHI,
-     *     theta and phi which are given it rad.
+     *     theta and phi which are given in rad.
      *   - load(filename): returns a NxM matrix of the data stored in the file filename. filename may be a absolute
-     *     relative path. A relative path is interprete relative to the location of the XML file with the load
-     *     statement. (The abstract Eval class guarantees the the current path is at the XML file if load is called)
+     *     or relative path. A relative path is interprete relative to the location of the XML file with the load
+     *     statement. (The abstract Eval class guarantees that the current path is at the XML file if load is called)
      */
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args) const=0;
 
@@ -318,6 +318,8 @@ class Eval : virtual public fmatvec::Atom {
     virtual void* getSwigThis(const boost::shared_ptr<void> &value) const=0;
     //! get the SWIG type (class name) of this value.
     virtual std::string getSwigType(const boost::shared_ptr<void> &value) const=0;
+
+    void addStaticDependencies(const xercesc::DOMElement *e) const;
 
   private:
     // virtual spezialization of cast(const boost::shared_ptr<void> &value)

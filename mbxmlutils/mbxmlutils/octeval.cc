@@ -12,6 +12,7 @@
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
+#include "mbxmlutils/eval_static.h"
 #include <casadi/core/matrix/matrix.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
@@ -384,7 +385,9 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
     int dummy;
     BLOCK_STDOUT;
     REDIR_STDERR(err.rdbuf());
+    mbxmlutilsStaticDependencies.clear();
     eval_string(str, true, dummy, 0); // eval as statement list
+    addStaticDependencies(e);
   }
   catch(const std::exception &ex) { // should not happend
     error_state=0;

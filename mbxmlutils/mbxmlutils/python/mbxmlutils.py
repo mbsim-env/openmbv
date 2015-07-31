@@ -1,6 +1,19 @@
 from math import sin, cos
 from numpy import array, zeros, append
 
+
+
+def registerPath(path):
+  # load the libmbxmlutils-eval-python.so.0 ones
+  if registerPath.dll==None:
+    import ctypes
+    registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python.so.0")
+  # call the mbxmlutilsPyEvalRegisterPath function in this lib
+  ret=registerPath.dll.mbxmlutilsPyEvalRegisterPath(path)
+registerPath.dll=None
+
+
+
 def load(filename):
   import csv
   with open(filename, 'r') as fileObj:

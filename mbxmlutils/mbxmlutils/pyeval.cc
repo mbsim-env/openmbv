@@ -15,6 +15,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
+#include "mbxmlutils/eval_static.h"
 #include "pyeval-config.h"
 
 using namespace std;
@@ -168,7 +169,9 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   try {
     // evaluate as expression (using the trimmed str) and save result in ret
     PyO locals=cpy(PyDict_New());
+    mbxmlutilsStaticDependencies.clear();
     ret=cpy(PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags));
+    addStaticDependencies(e);
   }
   catch(const runtime_error&) { // on failure ...
     PyO locals=cpy(PyDict_New());
@@ -194,7 +197,9 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
       strtrim=join(lines, "\n"); // join the lines to a single string
 
       // evaluate as statement
+      mbxmlutilsStaticDependencies.clear();
       cpy(PyRun_StringFlags(strtrim.c_str(), Py_file_input, globals.get(), locals.get(), &flags));
+      addStaticDependencies(e);
     }
     catch(const runtime_error& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+str, e);
@@ -347,6 +352,12 @@ string cast_string(const shared_ptr<void> &value, bool checkOnly) {
 }
 
 
+}
+
+// called from mbxmlutils.registerPath and adds path to the dependencies of this evaluator
+extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
+  mbxmlutilsStaticDependencies.push_back(path);
+  return 0;
 }
 
 namespace MBXMLUtils {

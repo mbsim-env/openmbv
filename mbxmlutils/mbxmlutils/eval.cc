@@ -1,5 +1,6 @@
 #include <config.h>
 #include "mbxmlutils/eval.h"
+#include "mbxmlutils/eval_static.h"
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
@@ -26,6 +27,8 @@ namespace {
   const string LIBEXT="-0.dll";
 #endif
 }
+
+vector<string> mbxmlutilsStaticDependencies;
 
 namespace MBXMLUtils {
 
@@ -593,6 +596,15 @@ int Eval::cast_int(const shared_ptr<void> &value) const {
   if(delta>eps*i && delta>eps)
     throw DOMEvalException("Canot cast this value to int.");
   return i;
+}
+
+void Eval::addStaticDependencies(const DOMElement *e) const {
+  if(!dependencies)
+    return;
+  for(vector<string>::iterator it=mbxmlutilsStaticDependencies.begin(); it!=mbxmlutilsStaticDependencies.end(); ++it) {
+    bfs::path path=E(e)->convertPath(*it);
+    dependencies->push_back(path);
+  }
 }
 
 } // end namespace MBXMLUtils

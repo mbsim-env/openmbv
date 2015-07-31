@@ -36,7 +36,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
+lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la registerPath.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
 
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
@@ -51,6 +51,11 @@ libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) 
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
+# octave registerPath
+registerPath_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS)
+registerPath_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
+registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
+registerPath_la_SOURCES = registerPath.cc
 
 # xmlflat dummy evaluator
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
