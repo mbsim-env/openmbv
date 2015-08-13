@@ -91,7 +91,7 @@ AC_ARG_WITH(qwt_inc_prefix,
   [QWT_CFLAGS="-I$withval"],
   [QWT_CFLAGS="-I$prefix/include"])
 AC_ARG_WITH(qwt_lib_name,
-  [  --with-qwt-lib-lib=name  QWt library name -l<name> (defaults to qwt)],
+  [  --with-qwt-lib-name=name  QWt library name -l<name> (defaults to qwt)],
   [QWT_LIBNAME="$withval"],
   [QWT_LIBNAME="qwt"])
 AC_ARG_WITH(qwt_lib_prefix,
