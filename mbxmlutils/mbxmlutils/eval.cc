@@ -55,7 +55,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
     // get units
     msg(Info)<<"Build unit list for measurements."<<endl;
     bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-    boost::shared_ptr<DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
+    boost::shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
       for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
@@ -126,7 +126,7 @@ vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<vo
 }
 
 template<>
-DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, DOMDocument *doc) const {
+DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, xercesc::DOMDocument *doc) const {
   return cast_DOMElement_p(value, doc);
 }
 
@@ -543,7 +543,7 @@ shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, boo
     return create(partialStringToString(str, e));
 }
 
-DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, DOMDocument *doc) const {
+DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, xercesc::DOMDocument *doc) const {
   if(valueIsOfType(value, SXFunctionType))
     return convertCasADiToXML(*cast<SXFunction*>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
