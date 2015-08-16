@@ -95,6 +95,11 @@ boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs
 Eval::~Eval() {
 }
 
+map<string, function<shared_ptr<Eval>(vector<filesystem::path>*)> >& Eval::getEvaluators() {
+  static map<string, function<shared_ptr<Eval>(vector<filesystem::path>*)> > evaluators;
+  return evaluators;
+};
+
 template<>
 string Eval::cast<string>(const shared_ptr<void> &value) const {
   return cast_string(value);

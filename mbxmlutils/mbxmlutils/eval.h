@@ -344,10 +344,7 @@ class Eval : virtual public fmatvec::Atom {
 
     static std::map<std::string, std::string> units;
 
-    static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators() {
-      static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> > evaluators;
-      return evaluators;
-    };
+    static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators();
 
 };
 
