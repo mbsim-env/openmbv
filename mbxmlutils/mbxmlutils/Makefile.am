@@ -49,6 +49,7 @@ libmbxmlutils_la_HEADERS = eval.h preprocess.h
 libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
+libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
 # octave registerPath
@@ -61,6 +62,7 @@ registerPath_la_SOURCES = registerPath.cc
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la
+libmbxmlutils_eval_xmlflat_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
@@ -69,6 +71,7 @@ if COND_PYTHON
 libmbxmlutils_eval_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
+libmbxmlutils_eval_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_python_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrapper.h
 pyeval.cc: swigpyrun.h

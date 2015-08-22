@@ -21,10 +21,10 @@ namespace bfs=boost::filesystem;
 namespace {
 #ifndef _WIN32
   const bfs::path LIBBIN("lib");
-  const string LIBEXT=".so.0";
+  const string SHEXT=".so";
 #else
   const bfs::path LIBBIN("bin");
-  const string LIBEXT="-0.dll";
+  const string SHEXT=".dll";
 #endif
 }
 
@@ -78,7 +78,7 @@ boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs
   static set<SharedLibrary> evalPlugin;
   static const bfs::path installDir(getInstallPath());
   try {
-    evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+LIBEXT)).string()));
+    evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT)).string()));
   }
   catch(const runtime_error &ex) {
     throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"

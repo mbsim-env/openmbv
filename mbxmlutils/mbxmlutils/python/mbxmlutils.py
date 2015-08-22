@@ -4,10 +4,10 @@ from numpy import array, zeros, append
 
 
 def registerPath(path):
-  # load the libmbxmlutils-eval-python.so.0 ones
+  # load the libmbxmlutils-eval-python.so ones
   if registerPath.dll==None:
     import ctypes
-    registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python.so.0")
+    registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python.so")
   # call the mbxmlutilsPyEvalRegisterPath function in this lib
   ret=registerPath.dll.mbxmlutilsPyEvalRegisterPath(path)
 registerPath.dll=None
