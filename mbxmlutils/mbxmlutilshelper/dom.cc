@@ -35,9 +35,9 @@ namespace {
 
   //TODO not working on Windows
   //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  //TODO // std::locale::global(boost::locale::generator().generate("UTF8"));
-  //TODO // boost::filesystem::path::imbue(std::locale());
-  //TODO const path::codecvt_type *utf8Facet(&use_facet<path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  //TODO // std::locale::global(locale::generator().generate("UTF8"));
+  //TODO // filesystem::path::imbue(std::locale());
+  //TODO const path::codecvt_type *utf8Facet(&use_facet<path::codecvt_type>(locale::generator().generate("UTF8")));
   #define CODECVT
 
   // START: ugly hack to call a protected/private method from outside
@@ -414,11 +414,11 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
   if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
     // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber());
+    return X()%loc.getURI()+":"+lexical_cast<string>(loc.getLineNumber());
   else
     // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+boost::lexical_cast<string>(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber())+"</a>";
+    return "<a href=\""+X()%loc.getURI()+"?line="+lexical_cast<string>(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+lexical_cast<string>(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
@@ -575,7 +575,7 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
     path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
     if(dependencies)
       dependencies->push_back(incFile);
-    boost::shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile, dependencies);
+    shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile, dependencies);
     E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();

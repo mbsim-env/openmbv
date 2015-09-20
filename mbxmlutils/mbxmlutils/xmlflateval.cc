@@ -19,7 +19,7 @@ namespace MBXMLUtils {
 XMLUTILS_EVAL_REGISTER(XMLFlatEval)
 
 // ctor
-XMLFlatEval::XMLFlatEval(std::vector<boost::filesystem::path> *dependencies_) : Eval(dependencies_) {
+XMLFlatEval::XMLFlatEval(std::vector<filesystem::path> *dependencies_) : Eval(dependencies_) {
 }
 
 // dtor

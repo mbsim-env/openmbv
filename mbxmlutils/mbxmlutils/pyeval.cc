@@ -33,6 +33,7 @@ inline PyO C(const shared_ptr<void> &value) {
 vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly);
 vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value, bool checkOnly);
 string cast_string(const shared_ptr<void> &value, bool checkOnly);
+double arrayScalarGetDouble(PyObject *o);
 
 }
 
@@ -50,20 +51,20 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
     return;
 
   initializePython("mbxmlutilspp");
-  cpy(_import_array());
+  CALLPY(_import_array);
   initialized=true;
 
-  PyO path=cpy(PySys_GetObject(const_cast<char*>("path")), true);
-  PyO mbxmlutilspath=cpy(PyUnicode_FromString((getInstallPath()/"share"/"mbxmlutils"/"python").string().c_str()));
-  cpy(PyList_Append(path.get(), mbxmlutilspath.get()));
-  PyO casadipath=cpy(PyUnicode_FromString(CASADI_PREFIX "/python2.7/site-packages/casadi"));
-  cpy(PyList_Append(path.get(), casadipath.get()));
+  PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
+  PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
+  CALLPY(PyList_Append, path, mbxmlutilspath);
+  PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX "/python2.7/site-packages/casadi");
+  CALLPY(PyList_Append, path, casadipath);
 
-  mbxmlutils=cpy(PyImport_ImportModule("mbxmlutils"));
-  numpy=cpy(PyImport_ImportModule("numpy"));
-  casadiValue=cpy(PyImport_ImportModule("casadi"));
+  mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
+  numpy=CALLPY(PyImport_ImportModule, "numpy");
+  casadiValue=CALLPY(PyImport_ImportModule, "casadi");
 
-  currentImport=cpy(PyDict_New());
+  currentImport=CALLPY(PyDict_New);
 }
 
 PyEval::~PyEval() {
@@ -83,28 +84,28 @@ void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated)
   }
 
   // python globals (fill with builtins)
-  PyO globals=cpy(PyDict_New());
-  cpy(PyDict_SetItemString(globals.get(), "__builtins__", cpy(PyEval_GetBuiltins(), true).get()));
+  PyO globals=CALLPY(PyDict_New);
+  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with current parameters)
-  for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    cpy(PyDict_SetItemString(globals.get(), i->first.c_str(), C(i->second).get()));
+  for(unordered_map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // evaluate as statement
-  PyO locals=cpy(PyDict_New());
-  cpy(PyRun_String(code.c_str(), Py_file_input, globals.get(), locals.get()));
+  PyO locals=CALLPY(PyDict_New);
+  CALLPY(PyRun_String, code, Py_file_input, globals, locals);
 
   // get all locals and add to currentImport
-  cpy(PyDict_Merge(C(currentImport).get(), locals.get(), true));
+  CALLPY(PyDict_Merge, C(currentImport), locals, true);
 }
 
 bool PyEval::valueIsOfType(const shared_ptr<void> &value, ValueType type) const {
-  PyObject *v=C(value).get();
+  PyO v=C(value);
   switch(type) {
-    case ScalarType: return PyFloat_Check(v) || PyLong_Check(v) || PyBool_Check(v);
+    case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
     case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
     case MatrixType: try { ::cast_vector_vector_double(value, true); return true; } catch(...) { return false; }
     case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
-    case SXFunctionType: return (v->ob_type && v->ob_type->tp_name==string("SXFunction") ? true : false);
+    case SXFunctionType: return (v.get()->ob_type && v.get()->ob_type->tp_name==string("SXFunction") ? true : false);
   }
   throw DOMEvalException("Internal error: Unknwon ValueType.");
 }
@@ -115,22 +116,21 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 }
 
 shared_ptr<void> PyEval::createSwigByTypeName(const string &typeName) const {
-  return cpy(PyObject_CallObject(cpy(PyDict_GetItemString(cpy(PyModule_GetDict(C(casadiValue).get()), true).get(), typeName.c_str()), true).get(), NULL));
+  return CALLPY(PyObject_CallObject, CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, C(casadiValue)), typeName), PyO());
 }
 
 shared_ptr<void> PyEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
   static map<string, PyO> functionValue;
-  pair<map<string, PyO>::iterator, bool> f=functionValue.insert(make_pair(name, PyO(static_cast<PyObject*>(NULL))));
+  pair<map<string, PyO>::iterator, bool> f=functionValue.insert(make_pair(name, PyO()));
   if(f.second)
-    f.first->second=cpy(PyDict_GetItemString(cpy(PyModule_GetDict(mbxmlutils.get()), true).get(), name.c_str()), true);
-  PyO pyargs=cpy(PyTuple_New(args.size()));
+    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, mbxmlutils), name);
+  PyO pyargs=CALLPY(PyTuple_New, args.size());
   int idx=0;
   for(vector<shared_ptr<void> >::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
-    PyObject *v=C(*it).get();
-    cpy(PyTuple_SetItem(pyargs.get(), idx, v));
-    Py_INCREF(v); // PyTuple_SetItem steals a reference of the argument
+    PyO v=C(*it);
+    CALLPY(PyTuple_SetItem, pyargs, idx, v); PyIncRef(v); // PyTuple_SetItem steals a reference of v
   }
-  return cpy(PyObject_CallObject(f.first->second.get(), pyargs.get()));
+  return CALLPY(PyObject_CallObject, f.first->second, pyargs);
 }
 
 shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
@@ -139,11 +139,11 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
 
   // check some common string to avoid time consiming evaluation
   // check true and false
-  if(strtrim=="True") return cpy(PyBool_FromLong(1));
-  if(strtrim=="False") return cpy(PyBool_FromLong(0));
+  if(strtrim=="True") return CALLPY(PyBool_FromLong, 1);
+  if(strtrim=="False") return CALLPY(PyBool_FromLong, 0);
   // check for integer and floating point values
-  try { return cpy(PyLong_FromLong(lexical_cast<int>(strtrim))); } catch(const boost::bad_lexical_cast &) {}
-  try { return cpy(PyFloat_FromDouble(lexical_cast<double>(strtrim))); } catch(const boost::bad_lexical_cast &) {}
+  try { return CALLPY(PyLong_FromLong, lexical_cast<int>(strtrim)); } catch(const bad_lexical_cast &) {}
+  try { return CALLPY(PyFloat_FromDouble, lexical_cast<double>(strtrim)); } catch(const bad_lexical_cast &) {}
   // no common string detected -> evaluate using python now
 
   // restore current dir on exit and change current dir
@@ -155,26 +155,26 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   }
 
   // python globals (fill with builtins)
-  PyO globals=cpy(PyDict_New());
-  cpy(PyDict_SetItemString(globals.get(), "__builtins__", cpy(PyEval_GetBuiltins(), true).get()));
+  PyO globals=CALLPY(PyDict_New);
+  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with imports)
-  cpy(PyDict_Merge(globals.get(), C(currentImport).get(), true));
+  CALLPY(PyDict_Merge, globals, C(currentImport), true);
   // python globals (fill with current parameters)
-  for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
-    cpy(PyDict_SetItemString(globals.get(), i->first.c_str(), C(i->second).get()));
+  for(unordered_map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   PyO ret;
   PyCompilerFlags flags;
   flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
   try {
     // evaluate as expression (using the trimmed str) and save result in ret
-    PyO locals=cpy(PyDict_New());
+    PyO locals=CALLPY(PyDict_New);
     mbxmlutilsStaticDependencies.clear();
-    ret=cpy(PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags));
+    ret=CALLPY(PyRun_StringFlags, strtrim, Py_eval_input, globals, locals, &flags);
     addStaticDependencies(e);
   }
-  catch(const runtime_error&) { // on failure ...
-    PyO locals=cpy(PyDict_New());
+  catch(const std::exception&) { // on failure ...
+    PyO locals=CALLPY(PyDict_New);
     try {
       // ... evaluate as statement
 
@@ -198,28 +198,27 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
-      cpy(PyRun_StringFlags(strtrim.c_str(), Py_file_input, globals.get(), locals.get(), &flags));
+      CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globals, locals, &flags);
       addStaticDependencies(e);
     }
-    catch(const runtime_error& ex) { // on failure -> report error
+    catch(const std::exception& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+str, e);
     }
     try {
       // get 'ret' variable from statement
-      ret=cpy(PyDict_GetItemString(locals.get(), "ret"), true);
+      ret=CALLPYB(PyDict_GetItemString, locals, "ret");
     }
-    catch(const runtime_error&) {
+    catch(const std::exception&) {
       // 'ret' variable not found or invalid expression
       throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\nX"+str, e);
     }
   }
   // convert a list or list of lists to a numpy array
-  if(PyList_Check(ret.get())) {
-    static PyO asarray=cpy(PyObject_GetAttrString(numpy.get(), "asarray"));
-    PyO args=cpy(PyTuple_New(1));
-    cpy(PyTuple_SetItem(args.get(), 0, ret.get()));
-    Py_INCREF(ret.get()); // PyTuple_SetItem steals a reference of the argument
-    return cpy(PyObject_CallObject(asarray.get(), args.get()));
+  if(CALLPY(PyList_Check, ret)) {
+    static PyO asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
+    PyO args=CALLPY(PyTuple_New, 1);
+    CALLPY(PyTuple_SetItem, args, 0, ret); PyIncRef(ret); // PyTuple_SetItem steals a reference of ret
+    return CALLPY(PyObject_CallObject, asarray, args);
   }
   // return result
   return ret;
@@ -230,11 +229,13 @@ string PyEval::getSwigType(const shared_ptr<void> &value) const {
 }
 
 double PyEval::cast_double(const shared_ptr<void> &value) const {
-  PyObject *v=C(value).get();
-  if(PyFloat_Check(v))
-    return cpy(PyFloat_AsDouble(v));
-  if(PyLong_Check(v))
-    return cpy(PyLong_AsLong(v));
+  PyO v=C(value);
+  if(CALLPY(PyFloat_Check, v))
+    return CALLPY(PyFloat_AsDouble, v);
+  if(CALLPY(PyLong_Check, v))
+    return CALLPY(PyLong_AsLong, v);
+  if(PyArray_CheckScalar(v.get()))
+    return arrayScalarGetDouble(v.get());
   throw runtime_error("Cannot cast this value to double.");
 }
 
@@ -251,15 +252,15 @@ string PyEval::cast_string(const shared_ptr<void> &value) const {
 }
 
 shared_ptr<void> PyEval::create_double(const double& v) const {
-  try { return cpy(PyLong_FromLong(lexical_cast<int>(v))); } catch(const boost::bad_lexical_cast &) {}
-  return cpy(PyFloat_FromDouble(v));
+  try { return CALLPY(PyLong_FromLong, lexical_cast<int>(v)); } catch(const bad_lexical_cast &) {}
+  return CALLPY(PyFloat_FromDouble, v);
 }
 
 shared_ptr<void> PyEval::create_vector_double(const vector<double>& v) const {
   npy_intp dims[1];
   dims[0]=v.size();
-  PyO ret=cpy(PyArray_SimpleNew(1, dims, NPY_DOUBLE));
-  copy(v.begin(), v.end(), static_cast<double*>(PyArray_GETPTR1(reinterpret_cast<PyArrayObject*>(ret.get()), 0)));
+  PyO ret(PyArray_SimpleNew(1, dims, NPY_DOUBLE), &Py_DecRef);
+  copy(v.begin(), v.end(), static_cast<npy_double*>(PyArray_GETPTR1(reinterpret_cast<PyArrayObject*>(ret.get()), 0)));
   return ret;
 }
 
@@ -267,15 +268,15 @@ shared_ptr<void> PyEval::create_vector_vector_double(const vector<vector<double>
   npy_intp dims[2];
   dims[0]=v.size();
   dims[1]=v[0].size();
-  PyO ret=cpy(PyArray_SimpleNew(2, dims, NPY_DOUBLE));
+  PyO ret(PyArray_SimpleNew(2, dims, NPY_DOUBLE), &Py_DecRef);
   int r=0;
   for(vector<vector<double> >::const_iterator it=v.begin(); it!=v.end(); ++it, ++r)
-    copy(it->begin(), it->end(), static_cast<double*>(PyArray_GETPTR2(reinterpret_cast<PyArrayObject*>(ret.get()), r, 0)));
+    copy(it->begin(), it->end(), static_cast<npy_double*>(PyArray_GETPTR2(reinterpret_cast<PyArrayObject*>(ret.get()), r, 0)));
   return ret;
 }
 
 shared_ptr<void> PyEval::create_string(const string& v) const {
-  return cpy(PyUnicode_FromString(v.c_str()));
+  return CALLPY(PyUnicode_FromString, v);
 }
 
 }
@@ -308,10 +309,32 @@ double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1) {
   throw runtime_error("Value is not of type double (wrong element type).");
 }
 
+double arrayScalarGetDouble(PyObject *o) {
+  double ret;
+  PyArray_Descr *descr=PyArray_DescrFromScalar(o);
+  if(     descr->typeobj==&PyBoolArrType_Type)        { npy_bool        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyByteArrType_Type)        { npy_byte        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyShortArrType_Type)       { npy_short       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyIntArrType_Type)         { npy_int         v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyLongArrType_Type)        { npy_long        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyLongLongArrType_Type)    { npy_longlong    v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyUByteArrType_Type)       { npy_ubyte       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyUShortArrType_Type)      { npy_ushort      v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyUIntArrType_Type)        { npy_uint        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyULongArrType_Type)       { npy_ulong       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyULongLongArrType_Type)   { npy_ulonglong   v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyFloatArrType_Type)       { npy_float       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyDoubleArrType_Type)      { npy_double      v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyLongDoubleArrType_Type)  { npy_longdouble  v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else { Py_DECREF(descr); throw runtime_error("Internal error: unknown type."); }
+  Py_DECREF(descr);
+  return ret;
+}
+
 vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly) {
-  PyObject *v=C(value).get();
-  if(PyArray_Check(v)) {
-    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v);
+  PyO v=C(value);
+  if(PyArray_Check(v.get())) {
+    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=1)
       throw runtime_error("Value is not of type vector (wrong dimension).");
     int type=PyArray_TYPE(a);
@@ -328,9 +351,9 @@ vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly)
 }
 
 vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value, bool checkOnly) {
-  PyObject *v=C(value).get();
-  if(PyArray_Check(v)) {
-    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v);
+  PyO v=C(value);
+  if(PyArray_Check(v.get())) {
+    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=2)
       throw runtime_error("Value is not of type matrix (wrong dimension).");
     int type=PyArray_TYPE(a);
@@ -348,7 +371,7 @@ vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value,
 }
 
 string cast_string(const shared_ptr<void> &value, bool checkOnly) {
-  return cpy(PyUnicode_AsUTF8(C(value).get()));
+  return CALLPY(PyUnicode_AsUTF8, C(value));
 }
 
 

@@ -55,7 +55,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
     // get units
     msg(Info)<<"Build unit list for measurements."<<endl;
     bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-    boost::shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
+    shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
       for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
@@ -67,7 +67,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   }
 };
 
-boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
+shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
   // search if a evaluator named evalName already exits and return a new instance of it, if found
   map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >::iterator it=getEvaluators().find(evalName);
   if(it!=getEvaluators().end())
@@ -80,7 +80,7 @@ boost::shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs
   try {
     evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT)).string()));
   }
-  catch(const runtime_error &ex) {
+  catch(const std::exception &ex) {
     throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"
                         "System error message: "+ex.what());
   }
@@ -221,8 +221,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
       if(!E(e)->hasAttribute(base+"Nr"))
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+      int nr=lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
+      int dim=lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       shared_ptr<void> casadiSX=createSwig<SX*>();
       SX *arg;
@@ -460,17 +460,17 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
       ret=create(s);
     }
     else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
-      try { ret=create(boost::lexical_cast<double>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
+      try { ret=create(lexical_cast<double>(s)); }
+      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
       try { ret=create(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
+      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
-      try { ret=create<double>(boost::lexical_cast<int>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+      try { ret=create<double>(lexical_cast<int>(s)); }
+      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
-      try { ret=create<double>(boost::lexical_cast<bool>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
+      try { ret=create<double>(lexical_cast<bool>(s)); }
+      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
     else
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
@@ -596,7 +596,7 @@ int Eval::cast_int(const shared_ptr<void> &value) const {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
 
   double d=cast<double>(value);
-  int i=boost::math::lround(d);
+  int i=math::lround(d);
   double delta=fabs(d-i);
   if(delta>eps*i && delta>eps)
     throw DOMEvalException("Canot cast this value to int.");

@@ -63,9 +63,9 @@ namespace bfs=boost::filesystem;
 namespace {
   //TODO not working on Windows
   //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  //TODO // std::locale::global(boost::locale::generator().generate("UTF8"));
-  //TODO // boost::filesystem::path::imbue(std::locale());
-  //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(boost::locale::generator().generate("UTF8")));
+  //TODO // std::locale::global(locale::generator().generate("UTF8"));
+  //TODO // filesystem::path::imbue(std::locale());
+  //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(locale::generator().generate("UTF8")));
   #define CODECVT
 
   // some platform dependent values
@@ -112,12 +112,12 @@ namespace MBXMLUtils {
 
 XMLUTILS_EVAL_REGISTER(OctEval)
 
-inline boost::shared_ptr<octave_value> C(const boost::shared_ptr<void> &value) {
-  return boost::static_pointer_cast<octave_value>(value);
+inline shared_ptr<octave_value> C(const shared_ptr<void> &value) {
+  return static_pointer_cast<octave_value>(value);
 }
 
-inline boost::shared_ptr<void> C(const octave_value &value) {
-  return boost::make_shared<octave_value>(value);
+inline shared_ptr<void> C(const octave_value &value) {
+  return make_shared<octave_value>(value);
 }
 
 string OctEval::cast_string(const shared_ptr<void> &value) const {
@@ -346,8 +346,8 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   if(str=="true") return make_shared<octave_value>(1);
   if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
-  try { return make_shared<octave_value>(boost::lexical_cast<double>(str)); }
-  catch(const boost::bad_lexical_cast &) {}
+  try { return make_shared<octave_value>(lexical_cast<double>(str)); }
+  catch(const bad_lexical_cast &) {}
   // no common string detected -> evaluate using octave now
 
   // restore current dir on exit and change current dir
@@ -361,7 +361,7 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   // clear octave variables
   symbol_table::clear_variables();
   // restore current parameters
-  for(map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(unordered_map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     #if defined OCTAVE_API_VERSION_NUMBER // check for octave < 3.8: octave < 3.8 defines this macro
       symbol_table::varref(i->first)=*C(i->second);
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
