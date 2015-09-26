@@ -46,7 +46,7 @@ void initializePython(const std::string &main, const std::vector<std::string> &a
   Py_SetProgramName(const_cast<char*>(main.c_str()));
   Py_Initialize();
   std::vector<char*> argv(args.size());
-  for(int i=0; i<args.size(); ++i)
+  for(size_t i=0; i<args.size(); ++i)
     argv[i]=const_cast<char*>(args[i].c_str());
   PySys_SetArgvEx(args.size(), &argv[0], 0);
 #else
@@ -55,7 +55,7 @@ void initializePython(const std::string &main, const std::vector<std::string> &a
   std::vector<wchar_t*> argv(args.size());
   std::vector<std::wstring> argsw;
   argsw.reserve(args.size());
-  for(int i=0; i<args.size(); ++i) {
+  for(size_t i=0; i<args.size(); ++i) {
     argsw.push_back(boost::locale::conv::utf_to_utf<wchar_t>(args[i]));
     argv[i]=const_cast<wchar_t*>(argsw[i].c_str());
   }
@@ -121,30 +121,40 @@ inline std::string PyUnicode_AsUTF8_Py2Py3(PyObject *o) {
 
 #undef PyLong_Check
 #undef PyUnicode_Check
-#define PyLong_Check PyLong_Check_Py2Py3
-#define PyLong_AsLong PyLong_AsLong_Py2Py3
-#define PyUnicode_Check PyUnicode_Check_Py2Py3
-#define PyUnicode_AsUTF8 PyUnicode_AsUTF8_Py2Py3
+#define PyLong_Check PythonCpp::PyLong_Check_Py2Py3
+#define PyLong_AsLong PythonCpp::PyLong_AsLong_Py2Py3
+#define PyUnicode_Check PythonCpp::PyUnicode_Check_Py2Py3
+#define PyUnicode_AsUTF8 PythonCpp::PyUnicode_AsUTF8_Py2Py3
 
 // make PyRun_String a function
 inline PyObject* PyRun_String_func(const char *str, int start, PyObject *globals, PyObject *locals) { return PyRun_String(str, start, globals, locals); }
 #undef PyRun_String
-#define PyRun_String PyRun_String_func
+#define PyRun_String PythonCpp::PyRun_String_func
 
 // make PyFloat_Check a function
 inline int PyFloat_Check_func(PyObject *p) { return PyFloat_Check(p); }
 #undef PyFloat_Check
-#define PyFloat_Check PyFloat_Check_func
+#define PyFloat_Check PythonCpp::PyFloat_Check_func
+
+// make PyFloat_AS_DOUBLE a function
+inline int PyFloat_AS_DOUBLE_func(PyObject *p) { return PyFloat_AS_DOUBLE(p); }
+#undef PyFloat_AS_DOUBLE
+#define PyFloat_AS_DOUBLE PythonCpp::PyFloat_AS_DOUBLE_func
 
 // make PyBool_Check a function
 inline int PyBool_Check_func(PyObject *p) { return PyBool_Check(p); }
 #undef PyBool_Check
-#define PyBool_Check PyBool_Check_func
+#define PyBool_Check PythonCpp::PyBool_Check_func
 
 // make PyList_Check a function
 inline int PyList_Check_func(PyObject *p) { return PyList_Check(p); }
 #undef PyList_Check
-#define PyList_Check PyList_Check_func
+#define PyList_Check PythonCpp::PyList_Check_func
+
+// make PyObject_TypeCheck a function
+inline int PyObject_TypeCheck_func(PyObject *p, PyTypeObject *type) { return PyObject_TypeCheck(p, type); }
+#undef PyObject_TypeCheck
+#define PyObject_TypeCheck PythonCpp::PyObject_TypeCheck_func
 
 // we use this for python object for c++ reference counting
 typedef boost::shared_ptr<PyObject> PyO;
@@ -161,13 +171,19 @@ class PythonException : public std::exception {
     PyO getType() { return type; }
     PyO getValue() { return value; }
     PyO getTraceback() { return traceback; }
-    const char* what() const throw() { return msg.c_str(); }
+    const char* what() const throw();
   private:
     std::string file;
     int line;
     PyO type, value, traceback;
-    std::string msg;
+    mutable std::string msg;
 };
+
+// check for a python exception and throw a PythonException if one exists
+void checkPythonError() {
+  if(PyErr_Occurred())
+    throw PythonException("", 0);
+}
 
 // helper struct to map the return type of the callPy function
 // default: map to the same type
@@ -269,13 +285,13 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // Use this macro to call a python function returning a new reference to a python object or any other return type.
 // Note, if the python function steals a reference of any of this arguments you have to call PyIncRef on
 // each such arguments after the call.
-#define CALLPY(...) callPy(__FILE__, __LINE__, __VA_ARGS__)
+#define CALLPY(...) PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__)
 
 // Macro to call PyIncRef(callPy(...))
 // Use this macro to call a python function returning a borrowed reference to a python object.
 // Note, if the python function steals a reference of any of this arguments you have to call PyIncRef on
 // each such arguments after the call.
-#define CALLPYB(...) PyIncRef(callPy(__FILE__, __LINE__, __VA_ARGS__))
+#define CALLPYB(...) PythonCpp::PyIncRef(PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__))
 
 // increment the reference count of a python object.
 // This function MUST be called after a reference is stolen by a python call.
@@ -297,6 +313,12 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
   type=PyO(type_, &Py_DecRef);
   value=PyO(value_, &Py_DecRef);
   traceback=PyO(traceback_, &Py_DecRef);
+}
+
+const char* PythonException::what() const throw() {
+  if(!msg.empty())
+    return msg.c_str();
+
   // redirect stderr
   PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
   if(!savedstderr)
@@ -356,6 +378,7 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
     strstr<<" at "<<file<<":"<<line;
   strstr<<":"<<std::endl<<str;;
   msg=strstr.str();
+  return msg.c_str();
 }
 
 }
