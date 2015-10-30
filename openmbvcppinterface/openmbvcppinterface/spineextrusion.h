@@ -91,7 +91,8 @@ namespace OpenMBV {
       std::vector<double> getInitialRotation() { return initialRotation; }
 
       /** Append a data vector to the h5 datsset */
-      void append(const std::vector<double>& row) { 
+      template<typename T>
+      void append(const T& row) { 
         if(data==0) throw std::runtime_error("can not append data to an environment object"); 
         data->append(row);
       }

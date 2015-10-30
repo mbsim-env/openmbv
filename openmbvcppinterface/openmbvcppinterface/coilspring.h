@@ -56,12 +56,14 @@ namespace OpenMBV {
       /** Retrun the class name */
       std::string getClassName() { return "CoilSpring"; }
       
-      void append(const std::vector<double>& row) {
+      template<typename T>
+      void append(const T& row) {
         if(data==0) throw std::runtime_error("can not append data to an environement object");
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
-          std::vector<double> tmprow(row);
+          std::vector<double> tmprow(8);
+          std::copy(&row[0], &row[8], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
         }

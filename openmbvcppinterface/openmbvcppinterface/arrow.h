@@ -73,12 +73,14 @@ namespace OpenMBV {
       bool getPath() { return pathStr=="true"?true:false; }
       
       /** Append the data \p row to the end of the dataset */
-      void append(const std::vector<double>& row) {
+      template<typename T>
+      void append(const T& row) {
         if(data==0) throw std::runtime_error("can not append data to an environment object");
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
-          std::vector<double> tmprow(row);
+          std::vector<double> tmprow(8);
+          std::copy(&row[0], &row[8], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
         }

@@ -48,7 +48,8 @@ namespace OpenMBV {
       std::string getClassName() { return "Path"; }
 
       /** Append a data vector the to hf dataset */
-      void append(const std::vector<double>& row) {
+      template<typename T>
+      void append(const T& row) {
         if(data==0) throw std::runtime_error("can not append data to an environment object");
         if(row.size()!=4) throw std::runtime_error("the dimension does not match");
         data->append(row);
