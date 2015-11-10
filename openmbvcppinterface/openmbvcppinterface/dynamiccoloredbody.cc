@@ -21,6 +21,7 @@
 #include "openmbvcppinterface/dynamiccoloredbody.h"
 #include <fstream>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -31,7 +32,7 @@ namespace OpenMBV {
 DynamicColoredBody::DynamicColoredBody() : Body(),
   minimalColorValue(0),
   maximalColorValue(1),
-  dynamicColor(NAN),
+  dynamicColor(numeric_limits<double>::quiet_NaN()),
   diffuseColor(vector<double>(3)),
   transparency(0) {
   vector<double> hsv(3);

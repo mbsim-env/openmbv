@@ -27,7 +27,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-DynamicColoredBody::DynamicColoredBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(nan("")) {
+DynamicColoredBody::DynamicColoredBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(std::numeric_limits<double>::quiet_NaN()) {
   dcb=boost::static_pointer_cast<OpenMBV::DynamicColoredBody>(obj);
   // read XML
   minimalColorValue=dcb->getMinimalColorValue();

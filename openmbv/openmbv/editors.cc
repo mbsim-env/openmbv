@@ -281,7 +281,7 @@ void FloatEditor::valueChangedSlot(double newValue) {
     if(spinBox->specialValueText()=="" || newValue!=spinBox->minimum())
       ombvSetter(newValue*factor); // set OpenMBV
     else
-      ombvSetter(nan("")); // set OpenMBV
+      ombvSetter(numeric_limits<double>::quiet_NaN()); // set OpenMBV
   }
   replaceObject();
 }

@@ -34,6 +34,9 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
+// we use none signaling (quiet) NaN values for double in OpenMBV -> Throw compile error if these do not exist.
+BOOST_STATIC_ASSERT_MSG(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
+
 set<Object*> Object::objects;
 
 Object::Object(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
