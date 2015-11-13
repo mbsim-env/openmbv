@@ -55,7 +55,7 @@ Frustum::Frustum(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
   if(height==0) {
     SoShapeHints *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
-    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
+    sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
   }
   // coordinates
   SoCoordinate3 *coord=new SoCoordinate3;

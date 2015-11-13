@@ -167,6 +167,10 @@ Extrusion::Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   SoNormal *n=new SoNormal;
   soSepRigidBody->addChild(n);
   n->vector.set1Value(0, 0, 0, -1);
+  // vertex ordering
+  SoShapeHints *sh=new SoShapeHints;
+  soSepRigidBody->addChild(sh);
+  sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
   // base
   soSepRigidBody->addChild(soTess);
   soTess->unref();
@@ -179,6 +183,10 @@ Extrusion::Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     n=new SoNormal;
     soSepRigidBody->addChild(n);
     n->vector.set1Value(0, 0, 0, 1);
+    // vertex ordering
+    SoShapeHints *sh=new SoShapeHints;
+    soSepRigidBody->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
     // top
     soSepRigidBody->addChild(soTess);
   }

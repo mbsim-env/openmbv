@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include "openmbvcppinterface/rotation.h"
 #include <QMenu>
 
@@ -64,6 +65,10 @@ Rotation::Rotation(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     SoNormal *n1=new SoNormal;
     soSepRigidBody->addChild(n1);
     n1->vector.set1Value(0, sin(rot->getStartAngle()), 0, -cos(rot->getStartAngle()));
+    // vertex ordering
+    SoShapeHints *sh=new SoShapeHints;
+    soSepRigidBody->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
     // face
     csf1=new IndexedTesselationFace;
     soSepRigidBody->addChild(csf1);
@@ -73,6 +78,10 @@ Rotation::Rotation(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     SoNormal *n2=new SoNormal;
     soSepRigidBody->addChild(n2);
     n2->vector.set1Value(0, -sin(rot->getEndAngle()), 0, cos(rot->getEndAngle()));
+    // vertex ordering
+    sh=new SoShapeHints;
+    soSepRigidBody->addChild(sh);
+    sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
     // face
     csf2=new IndexedTesselationFace;
     soSepRigidBody->addChild(csf2);
