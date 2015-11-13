@@ -48,7 +48,7 @@ Frustum::Frustum(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
   double innerBaseRadius=f->getInnerBaseRadius();
   double innerTopRadius=f->getInnerTopRadius();
 
-  const int N=20;
+  const int N=30;
 
   // create so
   // two side render if height==0

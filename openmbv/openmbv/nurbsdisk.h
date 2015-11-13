@@ -28,7 +28,6 @@
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/nodes/SoIndexedNurbsSurface.h>
-#include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoSeparator.h>
