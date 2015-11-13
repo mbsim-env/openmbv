@@ -1540,7 +1540,9 @@ void MainWindow::exportCurrentAsPNG() {
   msg(Info)<<str.toStdString()<<endl;
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
+  glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
+  glViewer->font->size.setValue(glViewer->font->size.getValue()/dialog.getScale());
   str="Done";
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;
@@ -1574,6 +1576,7 @@ void MainWindow::exportSequenceAsPNG() {
   int lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
+  glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
@@ -1581,6 +1584,7 @@ void MainWindow::exportSequenceAsPNG() {
     frame->setValue(frame_);
     exportAsPNG(width, height, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
+  glViewer->font->size.setValue(glViewer->font->size.getValue()/dialog.getScale());
   QString str("Done");
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;

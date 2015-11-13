@@ -28,7 +28,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   int row=-1;
   setWindowTitle("Export current frame as PNG");
   setLayout(&dialogLO);
-  scaleL.setText("Scale factor:");
+  scaleL.setText("Resolution factor:");
   row++;
   dialogLO.addWidget(&scaleL, row, 0);
   scale.setRange(0.01, 100);

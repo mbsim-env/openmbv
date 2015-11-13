@@ -30,6 +30,7 @@
 #include <GL/gl.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/fields/SoMFColor.h>
+#include <Inventor/nodes/SoFont.h>
 
 namespace OpenMBVGUI {
 
@@ -48,6 +49,7 @@ class SoQtMyViewer : public SoQtExaminerViewer {
     SoSeparator *fgSep, *bgSep;
     SoTranslation *timeTrans, *ombvTrans, *ombvLogoTrans;
     SoScale *ombvLogoScale;
+    SoFont *font;
 
     friend class MainWindow;
 };

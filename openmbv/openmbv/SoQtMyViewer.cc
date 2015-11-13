@@ -79,6 +79,10 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   // foreground
   fgSep=new SoSeparator;
   fgSep->ref();
+  // font size
+  font=new SoFont;
+  fgSep->addChild(font);
+  font->size.setValue(10);
   // time (top left)
   timeTrans=new SoTranslation;
   fgSep->addChild(timeTrans);
@@ -164,9 +168,10 @@ void SoQtMyViewer::actualRedraw(void) {
   glClear(GL_DEPTH_BUFFER_BIT);
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
-  timeTrans->translation.setValue(-1+2.0/x*3,1-2.0/y*15,0);
-  ombvTrans->translation.setValue(0,-1+2.0/y*15 -1+2.0/y*3,0);
-  ombvLogoTrans->translation.setValue(+1-2.0/x*3 +1-2.0/x*3, 0,0);
+  float ypos=font->size.getValue()+3;
+  timeTrans->translation.setValue(-1+2.0/x*3, 1-2.0/y*ypos, 0);
+  ombvTrans->translation.setValue(0, -1+2.0/y*ypos -1+2.0/y*3, 0);
+  ombvLogoTrans->translation.setValue(+1-2.0/x*3 +1-2.0/x*3, 0, 0);
   ombvLogoScale->scaleFactor.setValue(x>y?(float)y/x:1,y>x?(float)x/y:1,1);
   getGLRenderAction()->apply(fgSep);
 
