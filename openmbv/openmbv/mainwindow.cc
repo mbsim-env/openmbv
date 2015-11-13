@@ -49,9 +49,7 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
-#ifdef HAVE_INVENTOR_NODES_SODEPTHBUFFER_H
-#  include <Inventor/nodes/SoDepthBuffer.h>
-#endif
+#include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
@@ -1479,7 +1477,6 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
   // root separator for export
   SoSeparator *root=new SoSeparator;
   root->ref();
-#ifdef HAVE_INVENTOR_NODES_SODEPTHBUFFER_H
   // add background
   if(!transparent) {
     // do not write to depth buffer
@@ -1493,15 +1490,12 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     root->addChild(db2);
     db2->write.setValue(true);
   }
-#endif
   // add scene
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
-#ifdef HAVE_INVENTOR_NODES_SODEPTHBUFFER_H
   // do not test depth buffer
   SoDepthBuffer *db=new SoDepthBuffer;
   root->addChild(db);
   db->function.setValue(SoDepthBufferElement::ALWAYS);
-#endif
   // set correct translation
   glViewer->timeTrans->translation.setValue(-1+2.0/width*3,1-2.0/height*15,0);
   glViewer->ombvTrans->translation.setValue(0,-1+2.0/height*15 -1+2.0/height*3,0);
@@ -1520,43 +1514,19 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     return;
   }
 
-  if(transparent) {
-    unsigned char *buf=new unsigned char[width*height*4];
-    for(int y=0; y<height; y++)
-      for(int x=0; x<width; x++) {
-        int i=(y*width+x)*4;
-        unsigned char r=myRenderer.getBuffer()[i+0];
-        unsigned char g=myRenderer.getBuffer()[i+1];
-        unsigned char b=myRenderer.getBuffer()[i+2];
-        unsigned char a=myRenderer.getBuffer()[i+3];
-        int o=((height-y-1)*width+x)*4;
-        buf[o+0]=b;
-        buf[o+1]=g;
-        buf[o+2]=r;
-        buf[o+3]=a;
-      }
-    QImage image(buf, width, height, QImage::Format_ARGB32);
-    image.save(fileName.c_str(), "png");
-    delete[]buf;
-  }
-  else {
-    unsigned char *buf=new unsigned char[width*height*4];
-    for(int y=0; y<height; y++)
-      for(int x=0; x<width; x++) {
-        int i=(y*width+x)*3;
-        unsigned char r=myRenderer.getBuffer()[i+0];
-        unsigned char g=myRenderer.getBuffer()[i+1];
-        unsigned char b=myRenderer.getBuffer()[i+2];
-        int o=((height-y-1)*width+x)*4;
-        buf[o+0]=b;
-        buf[o+1]=g;
-        buf[o+2]=r;
-        buf[o+3]=255;
-      }
-    QImage image(buf, width, height, QImage::Format_ARGB32);
-    image.save(fileName.c_str(), "png");
-    delete[]buf;
-  }
+  unsigned char *buf=new unsigned char[width*height*4];
+  for(int y=0; y<height; y++)
+    for(int x=0; x<width; x++) {
+      int i=(y*width+x)* (transparent?4:3);
+      int o=((height-y-1)*width+x)*4;
+      buf[o+0]=myRenderer.getBuffer()[i+2]; // blue
+      buf[o+1]=myRenderer.getBuffer()[i+1]; // green
+      buf[o+2]=myRenderer.getBuffer()[i+0]; // red
+      buf[o+3]=(transparent?myRenderer.getBuffer()[i+3]:255); // alpha
+    }
+  QImage image(buf, width, height, QImage::Format_ARGB32);
+  image.save(fileName.c_str(), "png");
+  delete[]buf;
   root->unref();
 }
 
