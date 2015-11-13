@@ -868,7 +868,8 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   boost::shared_ptr<OpenMBV::Group> rootGroup=OpenMBV::ObjectFactory::create<OpenMBV::Group>();
   rootGroup->setFileName(fileName);
   rootGroup->read(true, !env);
-  rootGroup->getHDF5File()->refreshAfterWriterFlush();
+  if(rootGroup->getHDF5File())
+    rootGroup->getHDF5File()->refreshAfterWriterFlush();
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
   Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
