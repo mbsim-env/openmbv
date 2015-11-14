@@ -51,12 +51,10 @@ class Group : public Object {
   public:
     Group(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
-  protected slots:
     void newObjectSlot();
     void saveFileSlot();
     void reloadFileSlotIfNewer();
     void reloadFileSlot();
-  public slots:
     DLL_PUBLIC void unloadFileSlot();
 };
 

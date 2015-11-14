@@ -86,6 +86,15 @@ class PropertyDialog : public QDialog {
     std::vector<Editor*> editor;
   protected slots:
     void openDialogSlot();
+    void deleteObjectSlot(); // MISSING: can be removed with Qt5 using a functor in Object
+    void setBoundingBox(bool); // MISSING: can be removed with Qt5 using a functor in Object
+    void newRigidBodySlot(); // MISSING: can be removed with Qt5 using a functor in CompoundRigidBody
+    void newObjectSlot(); // MISSING: can be removed with Qt5 using a functor in Group
+    void saveFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
+    void unloadFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
+    void reloadFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
+    void moveCameraWithSlot_RigidBody(); // MISSING: can be removed with Qt5 using a functor in RigidBody
+    void moveCameraWithSlot_Nurbsdisk(); // MISSING: can be removed with Qt5 using a functor in NurbsDisk
 };
 
 

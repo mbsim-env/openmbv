@@ -31,13 +31,12 @@ class CompoundRigidBody : public RigidBody {
   public:
     CompoundRigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
+    void newRigidBodySlot();
   protected:
     virtual double update();
     void createProperties();
   private:
     boost::shared_ptr<OpenMBV::CompoundRigidBody> crb;
-  protected slots:
-    void newRigidBodySlot();
 };
 
 }

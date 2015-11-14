@@ -136,7 +136,7 @@ void Object::createProperties() {
   //GUI editors
   QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", properties);
   deleteObject->setObjectName("Group::deleteObject");
-  connect(deleteObject,SIGNAL(triggered()),this,SLOT(deleteObjectSlot()));
+  connect(deleteObject,SIGNAL(triggered()),properties,SLOT(deleteObjectSlot()));
   properties->addContextAction(deleteObject);
 
   if(!clone) {
@@ -147,7 +147,7 @@ void Object::createProperties() {
     boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::boundingBox", false);
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
     properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
-    connect(boundingBoxEditor, SIGNAL(stateChanged(bool)), this, SLOT(setBoundingBox(bool)));
+    connect(boundingBoxEditor, SIGNAL(stateChanged(bool)), properties, SLOT(setBoundingBox(bool)));
   }
 }
 

@@ -13,6 +13,8 @@
 #include <cfloat>
 #include <mainwindow.h>
 #include <objectfactory.h>
+#include <compoundrigidbody.h>
+#include <nurbsdisk.h>
 #include <Inventor/nodes/SoSurroundScale.h>
 #include <Inventor/fields/SoSFFloat.h>
 #include <Inventor/fields/SoMFFloat.h>
@@ -24,10 +26,6 @@ using namespace std;
 using namespace boost;
 
 namespace OpenMBVGUI {
-
-
-
-
 
 PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObject_) {
   // main layout
@@ -71,6 +69,34 @@ PropertyDialog::~PropertyDialog() {
 
 void PropertyDialog::openDialogSlot() {
   show();
+}
+
+void PropertyDialog::deleteObjectSlot() { // MISSING: can be removed with Qt5 using a functor in Object
+  static_cast<Object*>(parentObject)->deleteObjectSlot();
+}
+void PropertyDialog::setBoundingBox(bool b) { // MISSING: can be removed with Qt5 using a functor in Object
+  static_cast<Object*>(parentObject)->setBoundingBox(b);
+}
+void PropertyDialog::newRigidBodySlot() { // MISSING: can be removed with Qt5 using a functor in CompoundRigidBody
+  static_cast<CompoundRigidBody*>(parentObject)->newRigidBodySlot();
+}
+void PropertyDialog::newObjectSlot() { // MISSING: can be removed with Qt5 using a functor in Group
+  static_cast<Group*>(parentObject)->newObjectSlot();
+}
+void PropertyDialog::saveFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
+  static_cast<Group*>(parentObject)->saveFileSlot();
+}
+void PropertyDialog::unloadFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
+  static_cast<Group*>(parentObject)->unloadFileSlot();
+}
+void PropertyDialog::reloadFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
+  static_cast<Group*>(parentObject)->reloadFileSlot();
+}
+void PropertyDialog::moveCameraWithSlot_RigidBody() { // MISSING: can be removed with Qt5 using a functor in RigidBody
+  static_cast<RigidBody*>(parentObject)->moveCameraWithSlot();
+}
+void PropertyDialog::moveCameraWithSlot_Nurbsdisk() { // MISSING: can be removed with Qt5 using a functor in NurbsDisk
+  static_cast<NurbsDisk*>(parentObject)->moveCameraWithSlot();
 }
 
 void PropertyDialog::setParentObject(QObject *parentObject_) {

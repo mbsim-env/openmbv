@@ -78,7 +78,6 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
     PropertyDialog *getProperties();
-  protected slots:
     void deleteObjectSlot();
     void setBoundingBox(bool value);
 };
