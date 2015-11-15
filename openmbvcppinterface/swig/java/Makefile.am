@@ -14,14 +14,15 @@ libopenmbvjavaloadJNI_la_SOURCES = openmbvjavaloadjni.c
 libopenmbvjavaloadJNI_la_LDFLAGS = -module -shrext .jni -avoid-version $(MAYBE_MINGW_CFLAGS) # use jni as so/dll extension for the java native binary file
 libopenmbvjavaloadJNI_la_CPPFLAGS = $(JAVA_JNICFLAGS)
 
-CLEANFILES=OpenMBV_swig_java.cc openmbv.jar
+CLEANFILES=OpenMBV_swig_java.cc openmbv.jar OpenMBV_swig_java.d
 clean-local: clean-local-javasource
 .PHONY: clean-local-javasource
 clean-local-javasource:
 	rm -rf de
 OpenMBV_swig_java.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
 	$(MKDIR_P) de/berlios/openmbv/OpenMBV
-	$(swig) -java -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
+	$(swig) -java -MD -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
+-include OpenMBV_swig_java.d
 
 de/berlios/openmbv/OpenMBV/Object.class: OpenMBV_swig_java.cc
 	@JAVAC@ de/berlios/openmbv/OpenMBV/*.java

@@ -8,9 +8,10 @@ AUTOMAKE_OPTIONS = nostdinc
 swigdir = $(bindir)
 swig_LTLIBRARIES = OpenMBV.la
 
-CLEANFILES=OpenMBV_swig_octave.cc
-OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
-	$(swig) -octave -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_octave.cc; exit 1)
+CLEANFILES=OpenMBV_swig_octave.cc OpenMBV_swig_octave.d
+OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i
+	$(swig) -octave -MD -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_octave.cc; exit 1)
+-include OpenMBV_swig_octave.d
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
 OpenMBV_la_LDFLAGS = -module -shrext .oct -avoid-version
