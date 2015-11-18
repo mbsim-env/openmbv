@@ -117,8 +117,19 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   SoTexture2 *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
   QIcon icon=Utils::QIconCached(":/openmbv.svg");
-  QImage image=icon.pixmap(100,100).toImage();
-  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
+  const int s=100;
+  QImage image=icon.pixmap(s,s).toImage();
+  // reorder image data
+  vector<unsigned char> imageData(s*s*4);
+  for(int y=0; y<s; ++y)
+    for(int x=0; x<s; ++x) {
+      imageData[s*4*x+4*y+0]=image.bits()[s*4*x+4*y+2];
+      imageData[s*4*x+4*y+1]=image.bits()[s*4*x+4*y+1];
+      imageData[s*4*x+4*y+2]=image.bits()[s*4*x+4*y+0];
+      imageData[s*4*x+4*y+3]=image.bits()[s*4*x+4*y+3];
+    }
+  // set inventor image
+  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, imageData.data());
   ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
   ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
   SoCoordinate3 *ombvCoords=new SoCoordinate3;
