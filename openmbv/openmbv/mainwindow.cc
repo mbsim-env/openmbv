@@ -57,6 +57,7 @@
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/annex/HardCopy/SoVectorizePSAction.h>
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -272,11 +273,12 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
   fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, SLOT(newFileDialog()));
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
-  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
   addAction(act); // must work also if menu bar is invisible
-  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export as iv (current frame)...", this, SLOT(exportCurrentAsIV()));
+  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as IV...", this, SLOT(exportCurrentAsIV()));
+  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, SLOT(exportCurrentAsPS()));
   fileMenu->addSeparator();
   fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, SLOT(loadWindowState()));
   act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
@@ -1478,6 +1480,8 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
   // root separator for export
   SoSeparator *root=new SoSeparator;
   root->ref();
+  SbColor fgColorTopSaved=*fgColorTop->getValues(0);
+  SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
   // add background
   if(!transparent) {
     // do not write to depth buffer
@@ -1491,15 +1495,17 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     root->addChild(db2);
     db2->write.setValue(true);
   }
+  // set text color to black
+  else {
+    fgColorTop->set1Value(0, 0,0,0);
+    fgColorBottom->set1Value(0, 0,0,0);
+  }
   // add scene
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
   // do not test depth buffer
   SoDepthBuffer *db=new SoDepthBuffer;
   root->addChild(db);
   db->function.setValue(SoDepthBufferElement::ALWAYS);
-  // set correct translation
-  glViewer->timeTrans->translation.setValue(-1+2.0/width*3,1-2.0/height*15,0);
-  glViewer->ombvTrans->translation.setValue(0,-1+2.0/height*15 -1+2.0/height*3,0);
   // add foreground
   root->addChild(glViewer->fgSep);
   // update/redraw glViewer: this is required to update e.g. the clipping planes before offscreen rendering
@@ -1513,6 +1519,12 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     QMessageBox::warning(this, "PNG export warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
     root->unref();
     return;
+  }
+
+  // set set text color
+  if(transparent) {
+    fgColorTop->set1Value(0, fgColorTopSaved);
+    fgColorBottom->set1Value(0, fgColorBottomSaved);
   }
 
   unsigned char *buf=new unsigned char[width*height*4];
@@ -1703,7 +1715,7 @@ void MainWindow::saveWindowState() {
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;
 
-  QString filename=QFileDialog::getSaveFileName(0, "Save window state", ".", "*.ombv.wst");
+  QString filename=QFileDialog::getSaveFileName(0, "Save window state", "openmbv.ombv.wst", "*.ombv.wst");
   if(filename.isNull()) return;
   if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
     filename=filename+".ombv.wst";
@@ -1749,7 +1761,7 @@ void MainWindow::loadCamera(string filename) {
 }
 
 void MainWindow::saveCamera() {
-  QString filename=QFileDialog::getSaveFileName(0, "Save camera", ".", "*.camera.iv");
+  QString filename=QFileDialog::getSaveFileName(0, "Save camera", "openmbv.camera.iv", "*.camera.iv");
   if(filename.isNull()) return;
   if(!filename.endsWith(".camera.iv",Qt::CaseInsensitive))
     filename=filename+".camera.iv";
@@ -1760,7 +1772,7 @@ void MainWindow::saveCamera() {
 }
 
 void MainWindow::exportCurrentAsIV() {
-  QString filename=QFileDialog::getSaveFileName(0, "Save current frame as iv", ".", "*.iv");
+  QString filename=QFileDialog::getSaveFileName(0, "Save current frame as iv", "openmbv.iv", "*.iv");
   if(filename.isNull()) return;
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
@@ -1768,6 +1780,38 @@ void MainWindow::exportCurrentAsIV() {
   output.openFile(filename.toStdString().c_str());
   SoWriteAction wa(&output);
   wa.apply(sceneRoot);
+}
+
+void MainWindow::exportCurrentAsPS() {
+  QString filename=QFileDialog::getSaveFileName(0, "Save current frame as PS", "openmbv.ps", "*.ps");
+  if(filename.isNull()) return;
+  if(!filename.endsWith(".ps",Qt::CaseInsensitive))
+    filename=filename+".ps";
+  // set text color to black
+  SbColor fgColorTopSaved=*fgColorTop->getValues(0);
+  SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
+  fgColorTop->set1Value(0, 0,0,0);
+  fgColorBottom->set1Value(0, 0,0,0);
+  // export in vector format
+  SoVectorizePSAction ps;
+  SoVectorOutput *out=ps.getOutput();
+  out->openFile(filename.toStdString().c_str());
+  short width, height;
+  glViewer->getSceneManager()->getViewportRegion().getWindowSize().getValue(width, height);
+  ps.beginPage(SbVec2f(0, 0), SbVec2f(width, height));
+  ps.calibrate(glViewer->getViewportRegion());
+  // root separator for export
+  SoSeparator *root=new SoSeparator;
+  root->ref();
+  root->addChild(glViewer->getSceneManager()->getSceneGraph());
+  root->addChild(glViewer->fgSep);
+  ps.apply(root);
+  ps.endPage();
+  out->closeFile();
+  root->unref();
+  // reset text color
+  fgColorTop->set1Value(0, fgColorTopSaved);
+  fgColorBottom->set1Value(0, fgColorBottomSaved);
 }
 
 void MainWindow::toggleMenuBarSlot() {

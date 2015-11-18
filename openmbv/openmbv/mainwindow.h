@@ -172,6 +172,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
+    void exportCurrentAsPS();
     void helpHomeXML();
     void helpHomeGUI();
     void stopSCSlot();
