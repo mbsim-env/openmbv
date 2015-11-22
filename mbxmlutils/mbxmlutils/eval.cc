@@ -32,14 +32,14 @@ vector<string> mbxmlutilsStaticDependencies;
 
 namespace MBXMLUtils {
 
-NewParamLevel::NewParamLevel(Eval &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
+NewParamLevel::NewParamLevel(const shared_ptr<Eval> &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
   if(newLevel)
-    oe.pushContext();
+    oe->pushContext();
 }
 
 NewParamLevel::~NewParamLevel() {
   if(newLevel)
-    oe.popContext();
+    oe->popContext();
 }
 
 template<> string SwigType<SX        *>::name("SX"        );
@@ -202,7 +202,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   }
 
   // for functions add the function arguments as parameters
-  NewParamLevel newParamLevel(*this, function);
+  NewParamLevel newParamLevel(shared_from_this(), function);
   vector<SX> inputs;
   if(function) {
     addParam("casadi", casadiValue);
@@ -498,7 +498,7 @@ shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr
   if(eqn=="value")
     return ret;
   // all other conversion must be processed using the evaluator
-  NewParamLevel newParamLevel(*this, true);
+  NewParamLevel newParamLevel(shared_from_this(), true);
   addParam("value", ret);
   return stringToValue(eqn, e);
 }

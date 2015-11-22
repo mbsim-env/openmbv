@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
       }
 
       // embed/validate/unit/eval files
-      Preprocess::preprocess(parser, *eval, dependencies, mainxmlele);
+      Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
 
       // adapt the evaluator in the dom
       if(evaluator)

@@ -15,7 +15,7 @@ using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<path> &dependencies, DOMElement *&e,
+void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
                             shared_ptr<XPathParamSet> param, const string &parentXPath,
                             shared_ptr<PositionMap> position) {
   try {
@@ -36,13 +36,13 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       // get file name if href attribute exist
       path file;
       if(E(e)->hasAttribute("href")) {
-        shared_ptr<void> ret=eval.eval(E(e)->getAttributeNode("href"), e);
+        shared_ptr<void> ret=eval->eval(E(e)->getAttributeNode("href"), e);
         string subst;
         try {
-          if(eval.valueIsOfType(ret, Eval::ScalarType))
-            subst=lexical_cast<string>(eval.cast<double>(ret));
-          else if(eval.valueIsOfType(ret, Eval::StringType))
-            subst=eval.cast<string>(ret);
+          if(eval->valueIsOfType(ret, Eval::ScalarType))
+            subst=lexical_cast<string>(eval->cast<double>(ret));
+          else if(eval->valueIsOfType(ret, Eval::StringType))
+            subst=eval->cast<string>(ret);
           else
             throw runtime_error("Attribute evaluations can only be of type scalar or string.");
         } MBXMLUTILS_RETHROW(e)
@@ -53,17 +53,17 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       // evaluate count using parameters
       long count=1;
       if(E(e)->hasAttribute("count"))
-        try { count=eval.cast<int>(eval.eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
+        try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"), e)); } MBXMLUTILS_RETHROW(e)
     
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName"))
-        try { counterName=eval.cast<string>(eval.eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
+        try { counterName=eval->cast<string>(eval->eval(E(e)->getAttributeNode("counterName"), e)); } MBXMLUTILS_RETHROW(e)
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
-        eval.msg(Info)<<"Read and validate "<<file<<endl;
+        eval->msg(Info)<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies);
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
@@ -96,14 +96,14 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
-        shared_ptr<void> ret=eval.eval(E(e)->getAttributeNode("parameterHref"), e);
+        shared_ptr<void> ret=eval->eval(E(e)->getAttributeNode("parameterHref"), e);
         string subst;
-        try { subst=eval.cast<string>(ret); } MBXMLUTILS_RETHROW(e)
+        try { subst=eval->cast<string>(ret); } MBXMLUTILS_RETHROW(e)
         path paramFile=E(e)->convertPath(subst);
         // add local parameter file to dependencies
         dependencies.push_back(paramFile);
         // validate and local parameter file
-        eval.msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
+        eval->msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
         localparamxmldoc=parser->parse(paramFile, &dependencies);
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
@@ -116,7 +116,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
         // no such XPath in param -> output this parameter set to the caller
         if(ret.second) {
-          shared_ptr<Eval> plainEval=Eval::createEvaluator(eval.getName());
+          shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
             shared_ptr<void> parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
@@ -139,7 +139,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
               if(E(p)->getAttribute("name")==it->first) {
                 // if found overwrite this parameter
                 p->removeChild(E(p)->getFirstTextChild())->release();
-                p->appendChild(p->getOwnerDocument()->createTextNode(X()%eval.cast<CodeString>(it->second)));
+                p->appendChild(p->getOwnerDocument()->createTextNode(X()%eval->cast<CodeString>(it->second)));
               }
             }
           }
@@ -149,19 +149,19 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
       // delete embed element and insert count time the new element
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
-        eval.addParam(counterName, eval.create(static_cast<double>(i-(eval.useOneBasedIndexes()?0:1))));
+        eval->addParam(counterName, eval->create(static_cast<double>(i-(eval->useOneBasedIndexes()?0:1))));
         if(localParamEle) {
-          eval.msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
+          eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
-          eval.addParamSet(localParamEle.get());
+          eval->addParamSet(localParamEle.get());
         }
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(E(e)->hasAttribute("onlyif"))
-          try { onlyif=(eval.cast<double>(eval.eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
+          try { onlyif=(eval->cast<double>(eval->eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
         if(onlyif) {
-          eval.msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+          eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           DOMNode *p=e->getParentNode();
           if(i==1) {
             DOMElement *ereplaced=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
@@ -179,7 +179,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
           preprocess(parser, eval, dependencies, e);
         }
         else
-          eval.msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+          eval->msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       return;
     }
@@ -205,13 +205,13 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         // skip attributes which are not evaluated
         if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
           continue;
-        shared_ptr<void> value=eval.eval(a, e);
+        shared_ptr<void> value=eval->eval(a, e);
         string s;
         try {
-          if(eval.valueIsOfType(value, Eval::ScalarType))
-            s=lexical_cast<string>(eval.cast<double>(value));
-          else if(eval.valueIsOfType(value, Eval::StringType))
-            s=eval.cast<string>(value);
+          if(eval->valueIsOfType(value, Eval::ScalarType))
+            s=lexical_cast<string>(eval->cast<double>(value));
+          else if(eval->valueIsOfType(value, Eval::StringType))
+            s=eval->cast<string>(value);
           else
             throw runtime_error("Attribute evaluations can only be of type scalar or string.");
         } MBXMLUTILS_RETHROW(e)
@@ -224,7 +224,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
          E(e)->isDerivedFrom(PV%"matrix") ||
          E(e)->isDerivedFrom(PV%"fullEval") ||
          isCasADi) {
-        shared_ptr<void> value=eval.eval(e);
+        shared_ptr<void> value=eval->eval(e);
         E(e)->removeAttribute("unit");
         E(e)->removeAttribute("convertUnit");
         if(e->getFirstElementChild())
@@ -234,10 +234,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, Eval &eval, vector<pat
         DOMNode *node;
         DOMDocument *doc=e->getOwnerDocument();
         try {
-          if(eval.valueIsOfType(value, Eval::SXFunctionType))
-            node=eval.cast<DOMElement*>(value, doc);
+          if(eval->valueIsOfType(value, Eval::SXFunctionType))
+            node=eval->cast<DOMElement*>(value, doc);
           else
-            node=doc->createTextNode(X()%eval.cast<CodeString>(value));
+            node=doc->createTextNode(X()%eval->cast<CodeString>(value));
         } MBXMLUTILS_RETHROW(e)
         e->appendChild(node);
       }

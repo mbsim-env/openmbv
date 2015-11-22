@@ -4,6 +4,7 @@
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <casadi/core/function/sx_function.hpp>
@@ -56,21 +57,24 @@ class PreserveCurrentDir {
 class Eval;
 
 //! Create a new parameter level for a evaluator which is automatically resetted if the scope of this object is left.
-class NewParamLevel {
+class NewParamLevel : public boost::noncopyable {
   public:
     //! Create a new parameter level in the evaluator oe_
-    NewParamLevel(Eval &oe_, bool newLevel_=true);
+    NewParamLevel(const boost::shared_ptr<Eval> &oe_, bool newLevel_=true);
     //! Reset to the previous parameter level
     ~NewParamLevel();
   protected:
-    Eval &oe;
+    static void* operator new(std::size_t); // no heap allocation allowed
+    static void* operator new[](std::size_t); // no heap allocation allowed
+
+    boost::shared_ptr<Eval> oe;
     bool newLevel;
 };
 
 template<class T> struct SwigType { static std::string name; };
 
 /*! Expression evaluator and converter. */
-class Eval : virtual public fmatvec::Atom {
+class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopyable, virtual public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 

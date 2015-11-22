@@ -17,7 +17,7 @@ class Preprocess : virtual public fmatvec::Atom {
     typedef std::vector<std::pair<std::string, boost::shared_ptr<void> > > ParamSet;
     typedef std::unordered_map<std::string, ParamSet> XPathParamSet;
     static void preprocess(boost::shared_ptr<MBXMLUtils::DOMParser> parser, // in: parser used to parse XML documents
-                           Eval &eval, // in: evaluator used for evaluation
+                           const boost::shared_ptr<Eval> &eval, // in: evaluator used for evaluation
                            std::vector<boost::filesystem::path> &dependencies, // out: list of dependent files
                            xercesc::DOMElement *&e, // in: element to process; out: e changes only if e is itself a Embed element
                            // out: XPath map of top level parameter sets. Note: the XPath position is always interpreted
