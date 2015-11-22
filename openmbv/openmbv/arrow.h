@@ -40,12 +40,13 @@ class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
     boost::shared_ptr<OpenMBV::Arrow> arrow;
-    SoSwitch *soPathSwitch;
+    SoSwitch *soPathSwitch, *soArrowSwitch;
     SoCoordinate3 *pathCoord, *lineCoord;
     SoLineSet *pathLine;
     SoTranslation *toPoint, *bTrans;
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;
+    bool pathNewLine;
     virtual double update();
     SoScale *scale1, *scale2;
     double headLength;

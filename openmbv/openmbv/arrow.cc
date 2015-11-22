@@ -60,49 +60,56 @@ Arrow::Arrow(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   col->rgb.setValue(0, 1, 0);
   pathSep->addChild(col);
   pathCoord=new SoCoordinate3;
+  pathCoord->point.setNum(0);
   pathSep->addChild(pathCoord);
   pathLine=new SoLineSet;
+  pathLine->numVertices.setNum(0);
   pathSep->addChild(pathLine);
   soPathSwitch->whichChild.setValue(arrow->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   pathMaxFrameRead=-1;
+  pathNewLine=true;
 
+  // separator for the arrow
+  soArrowSwitch=new SoSwitch;
+  soSep->addChild(soArrowSwitch);
+  soArrowSwitch->whichChild.setValue(SO_SWITCH_ALL);
 
   if(arrow->getType()==OpenMBV::Arrow::line) {
     // Line
  
     // line width
     SoDrawStyle *drawStyle=new SoDrawStyle;
-    soSep->addChild(drawStyle);
+    soArrowSwitch->addChild(drawStyle);
     drawStyle->lineWidth.setValue(2);
     // line
     lineCoord=new SoCoordinate3;
-    soSep->addChild(lineCoord);
+    soArrowSwitch->addChild(lineCoord);
     SoLineSet *ls=new SoLineSet;
-    soSep->addChild(ls);
+    soArrowSwitch->addChild(ls);
     ls->numVertices.set1Value(0, 2);
   }
   else {
     // Arrow
     // translate to To-Point
     toPoint=new SoTranslation;
-    soSep->addChild(toPoint);
+    soArrowSwitch->addChild(toPoint);
     // rotation to dx,dy,dz
     rotation1=new SoRotation;
-    soSep->addChild(rotation1);
+    soArrowSwitch->addChild(rotation1);
     rotation2=new SoRotation;
-    soSep->addChild(rotation2);
+    soArrowSwitch->addChild(rotation2);
     // arrow separator
     SoSeparator *arrowSep=new SoSeparator;
-    soSep->addChild(arrowSep);
+    soArrowSwitch->addChild(arrowSep);
     // add arrow twice for type==bothHeads with half length: mirrored by x-z-plane and moved
     if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       SoScale *bScale=new SoScale;
-      soSep->addChild(bScale);
+      soArrowSwitch->addChild(bScale);
       // scale y by -1 to get the mirrored arrow and scale x by -1 to get the same vertex ordering without changing the geometry
       bScale->scaleFactor.setValue(-1,-1,1);
       bTrans=new SoTranslation;
-      soSep->addChild(bTrans);
-      soSep->addChild(arrowSep);
+      soArrowSwitch->addChild(bTrans);
+      soArrowSwitch->addChild(arrowSep);
     }
     // full scale (l<2*headLength)
     scale1=new SoScale;
@@ -271,29 +278,28 @@ double Arrow::update() {
   if(arrow->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
       vector<double> localData=arrow->getRow(i);
-      if(length<1e-10)
-        if(i-1<0)
-          pathCoord->point.set1Value(i, 0, 0, 0); // dont known what coord to write; using 0
-        else
-          pathCoord->point.set1Value(i, *pathCoord->point.getValues(i-1));
-      else
-        pathCoord->point.set1Value(i, localData[1], localData[2], localData[3]);
+      if(localData[4]*localData[4]+localData[5]*localData[5]+localData[6]*localData[6]<1e-10) {
+        pathNewLine=true;
+        continue;
+      }
+      if(pathNewLine)
+        pathLine->numVertices.set1Value(pathLine->numVertices.getNum(), 0);
+      pathLine->numVertices.set1Value(pathLine->numVertices.getNum()-1, pathLine->numVertices[pathLine->numVertices.getNum()-1]+1);
+      pathCoord->point.set1Value(pathCoord->point.getNum(), localData[1], localData[2], localData[3]);
+      pathNewLine=false;
     }
-    pathMaxFrameRead=frame;
-    pathLine->numVertices.setValue(1+frame);
+    pathMaxFrameRead=max(pathMaxFrameRead, frame);
   }
 
   // if length is 0 do not draw
-  if(object->getEnable()) {
-    if(length<1e-10) {
-      soSwitch->whichChild.setValue(SO_SWITCH_NONE);
-      soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
-      return data[0];
-    }
-    else {
-      soSwitch->whichChild.setValue(SO_SWITCH_ALL);
-      if(object->getBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    }
+  if(length<1e-10) {
+    soArrowSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    return data[0];
+  }
+  else {
+    soArrowSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    if(object->getBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
   }
 
   // if type==line: draw update line and exit
