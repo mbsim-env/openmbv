@@ -70,7 +70,7 @@ test -d "$QTLIBDIR" || QTLIBDIR=$(pkg-config --variable libdir QtCore)
 test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
 
 dnl Coin
-PKG_CHECK_MODULES(COIN, Coin)
+PKG_CHECK_MODULES(COIN, Coin >= 3)
 dnl MBXMLUtilsBase
 PKG_CHECK_MODULES(MBXMLUTILSBASE, mbxmlutilsbase)
 
@@ -83,29 +83,29 @@ PKG_CHECK_MODULES(SOQT, SoQt)
 dnl HDF5Serie
 PKG_CHECK_MODULES(HDF5SERIE, hdf5serie)
 
-dnl qwt >= 5
+dnl qwt >= 6
 AC_ARG_WITH(qwt_inc_prefix,
-  [  --with-qwt-inc-prefix=PFX  Prefix where qwt headers are installed],
+  [  --with-qwt-inc-prefix=PFX  Prefix where qwt6 headers are installed],
   [QWT_CFLAGS="-I$withval"],
   [QWT_CFLAGS="-I$prefix/include"])
 AC_ARG_WITH(qwt_lib_name,
-  [  --with-qwt-lib-name=name  QWt library name -l<name> (defaults to qwt)],
+  [  --with-qwt-lib-name=name  Qwt6 library name -l<name> (defaults to qwt)],
   [QWT_LIBNAME="$withval"],
   [QWT_LIBNAME="qwt"])
 AC_ARG_WITH(qwt_lib_prefix,
-  [  --with-qwt-lib-prefix=PFX  Prefix where qwt library is installed],
+  [  --with-qwt-lib-prefix=PFX  Prefix where qwt6 library is installed],
   [QWT_LIBS="-L$withval -l$QWT_LIBNAME"],
   [QWT_LIBS="-L$prefix/lib -l$QWT_LIBNAME"])
 OLDCPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
 OLDLIBS=$LIBS; LIBS="$LIBS $QWT_LIBS $QT_LIBS"
-AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes],
-  [AC_MSG_WARN([Can not find qwt >= 5! Some functionality will not work!]); QWT=no])
+AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes], [AC_MSG_WARN([Can not find qwt_wheel.h! Some functionality will not work!]); QWT=no])
 if test "_$QWT" == "_yes"; then
+AC_CHECK_HEADERS([qwt_system_clock.h], [], [AC_MSG_ERROR([Can not find qwt_system_clock.h! Maybe a qwt5 header is used!])])
 AC_TRY_LINK(
-  [#include <qwt_plot_grid.h>],
-  [new QwtPlotGrid;],
+  [#include <qwt_system_clock.h>],
+  [new QwtSystemClock;],
   [],
-  [AC_MSG_ERROR([Can not link with qwt >= 5!])])
+  [AC_MSG_ERROR([Can not link with qwt >= 6!])])
 fi
 CPPFLAGS=$OLDCPPFLAGS
 LIBS=$OLDLIBS

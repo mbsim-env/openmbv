@@ -75,6 +75,9 @@ AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
 if test "_$swig" != "_no"; then
   SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
   AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+  if test $(echo $SWIGVERSION | sed -re "s/^([[0-9]]+)\..*/\1/") -lt 3; then
+    AC_MSG_ERROR([SWIG >= 3 needed])
+  fi
 else
   AC_MSG_ERROR([SWIG not found])
 fi

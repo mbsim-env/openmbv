@@ -472,15 +472,17 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   speedWheel->setWheelWidth(10);
   speedWheel->setTotalAngle(360*15);
   connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChangedD(double)));
+  connect(speedWheel, SIGNAL(wheelPressed()), this, SLOT(speedWheelPressed()));
+  connect(speedWheel, SIGNAL(wheelReleased()), this, SLOT(speedWheelReleased()));
 #else
   speedWheel=new QSlider(this);
   speedWheel->setMaximumSize(15, 35);
   connect(speedWheel, SIGNAL(sliderMoved(int)), this, SLOT(speedWheelChanged(int)));
+  connect(speedWheel, SIGNAL(sliderPressed()), this, SLOT(speedWheelPressed()));
+  connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
 #endif
   speedWheel->setRange(-20000, 20000);
   speedWheel->setOrientation(Qt::Vertical);
-  connect(speedWheel, SIGNAL(sliderPressed()), this, SLOT(speedWheelPressed()));
-  connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
   animationTB->addWidget(speedWG);
   connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), SIGNAL(activated()), this, SLOT(speedUpSlot()));

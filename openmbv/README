@@ -1,7 +1,7 @@
 Installation
 ====================
 
-This project provides the visualization of mechanical systems. It needs mbxmlutils, hdf5serie, SoQt, Coin, QWT5. After the installation proceed with the following steps.
+This project provides the visualization of mechanical systems. It needs mbxmlutils, hdf5serie, SoQt, Coin, QWT6. After the installation proceed with the following steps.
 
 
 1. Checkout from git

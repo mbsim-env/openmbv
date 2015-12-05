@@ -146,6 +146,13 @@
 %include <openmbvcppinterface/grid.h>
 %include <openmbvcppinterface/path.h>
 
+%extend OpenMBV::SpineExtrusion { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::NurbsDisk      { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::Arrow          { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::RigidBody      { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::CoilSpring     { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::Path           { %template(append) append<std::vector<double> >; };
+
 %include <openmbvcppinterface/objectfactory.h>
 %template(create_Group) OpenMBV::ObjectFactory::create<OpenMBV::Group>;
 %template(create_CompoundRigidBody) OpenMBV::ObjectFactory::create<OpenMBV::CompoundRigidBody>;
