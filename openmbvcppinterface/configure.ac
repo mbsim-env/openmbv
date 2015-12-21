@@ -145,12 +145,7 @@ AC_ARG_WITH([javac], [  --with-javac=PATH  The java bytecode compiler.], [javac=
 AC_ARG_WITH([javajnicflags],[  --with-javajnicflags=FLAGS  c-Compile flags for java JNI (e.g -I...)], [javajnicflags="$withval"],[javajnicflags=""])
 AC_PATH_PROG([java], [java], [no],[${javapath:-$PATH}])
 if test "_$javac" == "_no"; then
-  AC_PATH_PROG([javac],[gcj],[no],[$PATH])
-  if test "_$javac" != "_no"; then
-    javac="$javac -C" # append -C = create bytecode
-  else
-    AC_PATH_PROG([javac],[javac],[no],[$PATH]) # try javac
-  fi
+  AC_PATH_PROG([javac],[javac],[no],[$PATH])
 fi
 AC_SUBST([JAVA], [$java])
 AC_SUBST([JAVAC], [$javac])
