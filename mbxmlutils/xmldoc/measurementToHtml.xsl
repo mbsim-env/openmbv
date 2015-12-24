@@ -86,7 +86,7 @@
         <tr><td><span class="_element">&lt;element&gt;</span></td><td>A XML element of name 'element'</td></tr>
         <tr><td><span class="_attributeNoMargin">attrName</span></td><td>A XML attribute of name 'attrName'</td></tr>
         <tr><td><span class="label label-warning">namespace</span></td><td>A XML namespace of name 'namespace'</td></tr>
-        <tr><td><span class="label label-primary">type</span></td><td>A XML element or attribute type of name 'type'</td></tr>
+        <tr><td><span class="label label-info">type</span></td><td>A XML element or attribute type of name 'type'</td></tr>
       </tbody>
     </table>
 
@@ -113,7 +113,7 @@
     </h2>
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
-      The type name of a scalar of measure length is <span class="label label-primary _type">pv:lengthScalar</span> and so on.
+      The type name of a scalar of measure length is <span class="label label-info _type">pv:lengthScalar</span> and so on.
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a scalar type must be a <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:</p>
     <pre>&lt;myScalarElement unit="mm"&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
@@ -130,7 +130,7 @@
     </h2>
     <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
-      The type name of a vector of measure length is <span class="label label-primary _type">pv:lengthVector</span> and so on.
+      The type name of a vector of measure length is <span class="label label-info _type">pv:lengthVector</span> and so on.
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
@@ -157,7 +157,7 @@
     </h2>
     <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
-      The type name of a matrix of measure length is <span class="label label-primary _type">pv:lengthMatrix</span> and so on.
+      The type name of a matrix of measure length is <span class="label label-info _type">pv:lengthMatrix</span> and so on.
       Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>

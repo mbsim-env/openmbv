@@ -1,0 +1,6 @@
+PROJECT_BRIEF          = "OpenMBV C++ Interface"
+INPUT                  = @top_srcdir@/openmbvcppinterface
+PROJECT_NAME           = @PACKAGE@
+PROJECT_NUMBER         = @VERSION@
+
+@INCLUDE = @prefix@/share/fmatvec/doxy_template/doxyfile_common

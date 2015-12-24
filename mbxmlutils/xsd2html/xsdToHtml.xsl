@@ -123,7 +123,7 @@
           <ul class="_content">
             <xsl:for-each select="/xs:schema/xs:simpleType">
               <xsl:sort select="@name"/>
-              <li><a class="glyphicon glyphicon-unchecked _linkpointer"/><a class="label label-primary _type" id="{@name}-content" href="#{@name}"><xsl:value-of select="@name"/></a></li>
+              <li><a class="glyphicon glyphicon-unchecked _linkpointer"/><a class="label label-info _type" id="{@name}-content" href="#{@name}"><xsl:value-of select="@name"/></a></li>
             </xsl:for-each>
           </ul>
         </xsl:if>
@@ -142,21 +142,21 @@
         <tr><td><span class="_element">&lt;element&gt;</span></td><td>A XML element of name 'element'</td></tr>
         <tr><td><span class="_attributeNoMargin">attrName</span></td><td>A XML attribute of name 'attrName'</td></tr>
         <tr><td><span class="label label-warning">namespace</span></td><td>A XML namespace of name 'namespace'</td></tr>
-        <tr><td><span class="label label-primary">type</span></td><td>A XML element or attribute type of name 'type'</td></tr>
+        <tr><td><span class="label label-info">type</span></td><td>A XML element or attribute type of name 'type'</td></tr>
         <tr><td><span class="badge progress-bar-success">required</span></td><td>A required XML attribute</td></tr>
         <tr><td><span class="badge">0-2</span></td><td>A occurance of XML elements or attributes</td></tr>
       </tbody>
     </table>
     <h2>2.2 <a id="aelement" href="#aelement-content">An element</a></h2>
-    <p><span class="_element">&lt;ElementName&gt;</span><xsl:text> </xsl:text><span class="badge">0-2</span><xsl:text> </xsl:text><span class="label label-primary _type">elementType</span>
-    <br/><span class="_attribute">attrName1</span><xsl:text> </xsl:text><span class="badge progress-bar-success">required</span><xsl:text> </xsl:text><span class="label label-primary _type">typeOfTheAttribute</span>
-    <br/><span class="_attribute">attrName2</span><xsl:text> </xsl:text><span class="badge">optional</span><xsl:text> </xsl:text><span class="label label-primary _type">typeOfTheAttribute</span></p>
+    <p><span class="_element">&lt;ElementName&gt;</span><xsl:text> </xsl:text><span class="badge">0-2</span><xsl:text> </xsl:text><span class="label label-info _type">elementType</span>
+    <br/><span class="_attribute">attrName1</span><xsl:text> </xsl:text><span class="badge progress-bar-success">required</span><xsl:text> </xsl:text><span class="label label-info _type">typeOfTheAttribute</span>
+    <br/><span class="_attribute">attrName2</span><xsl:text> </xsl:text><span class="badge">optional</span><xsl:text> </xsl:text><span class="label label-info _type">typeOfTheAttribute</span></p>
     <p class="_elementdocuall">
       Documentation of the element.
     </p>
-    <p>The upper nomenclature defines a XML element named <span class="_element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="label label-primary _type">elementType</span>.<br/>
+    <p>The upper nomenclature defines a XML element named <span class="_element">ElementName</span> with (if given) a minimal occurance of 0 and a maximal occurance of 2. The element is of type <span class="label label-info _type">elementType</span>.<br/>
     A occurance of <span class="badge">optional</span> means <span class="badge">0-1</span>.<br/>
-    The element has two attributes named <span class="_attributeNoMargin">attrName1</span> and <span class="_attributeNoMargin">attrName2</span> of type <span class="label label-primary _type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
+    The element has two attributes named <span class="_attributeNoMargin">attrName1</span> and <span class="_attributeNoMargin">attrName2</span> of type <span class="label label-info _type">typeOfTheAttribute</span>. A attribute can be optional or required.</p>
     <h2>2.3 <a id="achoice" href="#achoice-content">A choice of element</a></h2>
     <ul class="_elementchoice">
       <li><span class="badge _badgechoice">1-2</span></li>
@@ -380,7 +380,7 @@
     <xsl:if test="not(@abstract) or @abstract='false'">
 
       <div class="btn-group btn-group-sm">
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
           Show example <span class="caret"></span>
         </button>
         <pre class="dropdown-menu" role="menu">
@@ -406,7 +406,7 @@
 
   <!-- simple type -->
   <xsl:template mode="SIMPLETYPE" match="/xs:schema/xs:simpleType">
-    <a class="label label-primary _type" id="{@name}" href="#{@name}-content"><xsl:value-of select="@name"/></a>
+    <a class="label label-info _type" id="{@name}" href="#{@name}-content"><xsl:value-of select="@name"/></a>
     <!-- simpleType documentation -->
     <xsl:apply-templates mode="CLASSANNOTATION" select="xs:annotation/xs:documentation"/>
     <hr class="_hr"/>
@@ -422,7 +422,7 @@
       <xsl:if test="@use!='required'">
         <span class="badge">optional</span><xsl:text> </xsl:text>
       </xsl:if>
-      <a class="label label-primary _type">
+      <a class="label label-info _type">
         <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
         <xsl:value-of select="@type"/></a>
       <br/>
@@ -556,7 +556,7 @@
       <!-- occurence -->
       <xsl:apply-templates mode="OCCURANCE" select="."/><xsl:text> </xsl:text>
       <!-- type -->
-      <xsl:if test="@type"><a class="label label-primary _type">
+      <xsl:if test="@type"><a class="label label-info _type">
         <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
         <xsl:value-of select="@type"/></a> </xsl:if>
       <!-- element attributes -->
@@ -584,7 +584,7 @@
     <xsl:if test="@use!='required'">
       <span class="badge"> optional</span><xsl:text> </xsl:text>
     </xsl:if>
-    <a class="label label-primary _type">
+    <a class="label label-info _type">
       <xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@type"/></xsl:attribute>
       <xsl:value-of select="@type"/></a><xsl:text> </xsl:text>
   </xsl:template>
@@ -598,7 +598,7 @@
       <!-- occurence -->
       <xsl:apply-templates mode="OCCURANCE" select="."/><xsl:text> </xsl:text>
       <!-- type -->
-      <span class="label label-primary _type">xs:any</span><xsl:text> </xsl:text>
+      <span class="label label-info _type">xs:any</span><xsl:text> </xsl:text>
       <!-- documentation -->
       <div class="_elementdocuall">
         Any element of the namespace <span class="label label-warning"><xsl:value-of select="@namespace"/></span>
