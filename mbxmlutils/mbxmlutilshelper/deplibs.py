@@ -98,7 +98,7 @@ def relDir(filename):
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
   if re.search('ELF [0-9]+-bit LSB *executable', content)!=None or re.search('ELF [0-9]+-bit LSB *shared object', content)!=None:
     return "lib" # Linux
-  elif re.search('PE[0-9]+ executable', content)!=None:
+  elif re.search('PE[0-9]+.*executable.*MS Windows', content)!=None:
     return "bin" # Windows
   else:
     raise RuntimeError(filename+' unknwon executable format')

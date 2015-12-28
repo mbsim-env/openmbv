@@ -1,3 +1,13 @@
+#include <octave/config.h>
+// octave/oct.h redefines the following macros, so we just delete these before
+#undef PACKAGE
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_URL
+#undef PACKAGE_VERSION
+#undef VERSION
 #include <octave/oct.h>
 #include "mbxmlutils/eval_static.h"
 

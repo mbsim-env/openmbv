@@ -6,7 +6,7 @@ endif
 swig_LTLIBRARIES = libopenmbvjava.la libopenmbvjavaloadJNI.la
 libopenmbvjava_la_SOURCES = OpenMBV_swig_java.cc
 libopenmbvjava_la_LDFLAGS = -module -shrext .jni -avoid-version $(MAYBE_MINGW_CFLAGS) # use jni as so/dll extension for the java native binary file
-libopenmbvjava_la_CPPFLAGS = $(JAVA_JNICFLAGS) $(HDF5SERIE_CFLAGS) -Wno-error=strict-aliasing -Wno-strict-aliasing -I$(top_srcdir)
+libopenmbvjava_la_CPPFLAGS = $(JAVA_JNICFLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -Wno-error=strict-aliasing -Wno-strict-aliasing -I$(top_srcdir)
 libopenmbvjava_la_LIBADD = ../../openmbvcppinterface/libopenmbvcppinterface.la
 EXTRA_libopenmbvjava_la_DEPENDENCIES = openmbv.jar
 

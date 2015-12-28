@@ -87,6 +87,9 @@ AC_ARG_ENABLE([only_mbxmlutilshelper],
 	    AS_HELP_STRING([--enable-only-mbxmlutilshelper], [Enable only 'helper'-part of the mbxml-utils.]))
 
 AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
+    if test "$cross_compiling" == "yes"; then
+      AC_SUBST([XC_EXEC_PREFIX],[wine])
+    fi
 
     dnl Check for xslt
     AC_ARG_WITH([xalan],
@@ -101,22 +104,22 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
       [  --with-mkoctfile=PATHTOMKOCTFILE  The 'mkoctfile' program.],
       [mkoctfile="$withval"],[mkoctfile="no"])
     # get mkoctfile program
-    if test "$mkoctfile" == "no"; then
+    if test "_$mkoctfile" == "_no"; then
       AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
     fi
-    test $mkoctfile = "no" && AC_MSG_ERROR([mkoctfile not found])
+    test "_$mkoctfile" = "_no" && AC_MSG_ERROR([mkoctfile not found])
     # get mkoctfile compiler flags
-    MKOCTFILE_CFLAGS="$(echo $($mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
+    MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
     MKOCTFILE_LIBS="$(echo \
-      $(unset RLD_FLAG; $mkoctfile -p RLD_FLAG | dos2unix) \
-      $(unset LFLAGS; $mkoctfile -p LFLAGS | dos2unix) \
-      $(unset LIBOCTINTERP; $mkoctfile -p LIBOCTINTERP | dos2unix) \
-      $(unset LIBOCTAVE; $mkoctfile -p LIBOCTAVE | dos2unix) \
-      $(unset LIBCRUFT; $mkoctfile -p LIBCRUFT | dos2unix) \
-      $(unset FFTW_LIBS; $mkoctfile -p FFTW_LIBS | dos2unix) \
-      $(unset BLAS_LIBS; $mkoctfile -p BLAS_LIBS | dos2unix) \
-      $(unset FLIBS; $mkoctfile -p FLIBS | dos2unix) \
-      $(unset LIBS; $mkoctfile -p LIBS | dos2unix) \
+      $(unset RLD_FLAG; $XC_EXEC_PREFIX $mkoctfile -p RLD_FLAG | dos2unix) \
+      $(unset LFLAGS; $XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) \
+      $(unset LIBOCTINTERP; $XC_EXEC_PREFIX $mkoctfile -p LIBOCTINTERP | dos2unix) \
+      $(unset LIBOCTAVE; $XC_EXEC_PREFIX $mkoctfile -p LIBOCTAVE | dos2unix) \
+      $(unset LIBCRUFT; $XC_EXEC_PREFIX $mkoctfile -p LIBCRUFT | dos2unix) \
+      $(unset FFTW_LIBS; $XC_EXEC_PREFIX $mkoctfile -p FFTW_LIBS | dos2unix) \
+      $(unset BLAS_LIBS; $XC_EXEC_PREFIX $mkoctfile -p BLAS_LIBS | dos2unix) \
+      $(unset FLIBS; $XC_EXEC_PREFIX $mkoctfile -p FLIBS | dos2unix) \
+      $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
       | sed -re 's|\\|/|g')"
 
     if test "$cross_compiling" == "yes"; then

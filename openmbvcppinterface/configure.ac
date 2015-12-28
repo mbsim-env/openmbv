@@ -85,15 +85,18 @@ if test "_$mkoctfile" == "_"; then
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
-  OCTAVEVERSION=$(mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
+  if test "$cross_compiling" == "yes"; then
+    AC_SUBST([XC_EXEC_PREFIX],[wine])
+  fi
+  OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
   AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
   if test $(version_less $SWIGVERSION 3.0.5) -eq 1; then
     AC_MSG_ERROR([octave interface requires SWIG in version >= 3.0.5.
                   Install correct SWIG versions or disable octave by --with-mkoctfile=no.])
   fi
   AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
-  OCTAVE_LIBS="$(echo $($mkoctfile -p LFLAGS | $DOS2UNIX) $($mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-  OCTAVE_FLAGS="$(echo $($mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+  OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+  OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
   if test "$cross_compiling" == "yes"; then
     # convert OCTAVE_FLAGS to unix path if cross compiling
     RERUN=0

@@ -26,7 +26,7 @@ dist_swigref_DATA = \
 # validate measurement.xml
 .measurement.xml.isvalid: $(srcdir)/measurement.xml $(srcdir)/measurement.xsd
 	rm -f .measurement.xml.isvalid
-	../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $(srcdir)/measurement.xsd $(srcdir)/measurement.xml && touch .measurement.xml.isvalid
+	$(XC_EXEC_PREFIX) ../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $(srcdir)/measurement.xsd $(srcdir)/measurement.xml && touch .measurement.xml.isvalid
 
 
 
@@ -47,13 +47,13 @@ libmbxmlutils_la_HEADERS = eval.h preprocess.h
 
 # octave evaluator
 libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
 # octave registerPath
-registerPath_la_CPPFLAGS = -I$(top_srcdir) -I. $(MKOCTFILE_CFLAGS)
+registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS)
 registerPath_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
 registerPath_la_SOURCES = registerPath.cc
@@ -110,7 +110,7 @@ CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octav
 # generate deplib files for octave oct-files and casaid.oct
 install-exec-local:
 	set -e; \
-	OCTLIBDIR=$$($(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
+	OCTLIBDIR=$$($(XC_EXEC_PREFIX) $(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
         test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
 	mkdir -p $(runlibdir); \
 	for i in $$OCTLIBDIR/oct/*/*.oct; do \
