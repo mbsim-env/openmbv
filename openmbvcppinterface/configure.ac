@@ -77,6 +77,10 @@ else
 fi
 AC_SUBST([native_prefix])
 
+if test "$cross_compiling" == "yes"; then
+  AC_SUBST([XC_EXEC_PREFIX],[wine])
+fi
+
 dnl Check for octave
 AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 'no' to disable the octave interface).],
   [mkoctfile="$withval"],[mkoctfile=""])
@@ -85,9 +89,6 @@ if test "_$mkoctfile" == "_"; then
 fi
 AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
-  if test "$cross_compiling" == "yes"; then
-    AC_SUBST([XC_EXEC_PREFIX],[wine])
-  fi
   OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
   AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
   if test $(version_less $SWIGVERSION 3.0.5) -eq 1; then
@@ -172,6 +173,7 @@ test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpa
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
   openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile swig/octave/octavetest.m swig/python/pythontest.py swig/java/matlabtest.m])
+AC_CONFIG_FILES([openmbvcppinterface/check/testprog.sh], [chmod +x openmbvcppinterface/check/testprog.sh])
 AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
 AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
 AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
