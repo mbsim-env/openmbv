@@ -236,7 +236,7 @@
       <a href="http://validator.w3.org/check?uri=referer">
         <img src="http://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
       </a>
-      Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
+      Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils<xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>
     </body></html>
   </xsl:template>

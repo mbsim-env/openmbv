@@ -435,7 +435,7 @@ const char* DOMEvalException::what() const throw() {
   return whatStr.c_str();
 }
 
-const string LocationInfoFilter::lineNumberKey("http://openmbv.berlios.de/MBXMLUtils/lineNumber");
+const string LocationInfoFilter::lineNumberKey("http://www.mbsim-env.de/dom/MBXMLUtils/lineNumber");
 
 // START: call protected AbstractDOMParser::getScanner from outside, see above
 struct GETSCANNER { typedef XMLScanner*(AbstractDOMParser::*type)() const; };
@@ -516,7 +516,7 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
           // however this code part is reached often (maybe a xerces bug). Hence do nothing here.
 }
 
-const string DOMParser::domParserKey("http://openmbv.berlios.de/MBXMLUtils/domParser");
+const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
 DOMParserUserDataHandler DOMParser::userDataHandler;
 
 shared_ptr<DOMParser> DOMParser::create(bool validate_) {

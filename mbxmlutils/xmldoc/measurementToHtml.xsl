@@ -303,7 +303,7 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
       <a href="http://validator.w3.org/check?uri=referer">
         <img src="http://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
       </a>
-      Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by <a href="http://openmbv.berlios.de">MBXMLUtils</a><xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
+      Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by MBXMLUtils<xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>
     </body></html>
   </xsl:template>

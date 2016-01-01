@@ -309,6 +309,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   
   // a element with a single text child (including unit conversion)
   if(!e->getFirstElementChild() &&
+     E(e)->getFirstTextChild() &&
      (E(e)->isDerivedFrom(PV%"scalar") ||
       E(e)->isDerivedFrom(PV%"vector") ||
       E(e)->isDerivedFrom(PV%"matrix") ||
