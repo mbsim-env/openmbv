@@ -1,3 +1,3 @@
 #!/bin/sh
 
-@PYTHON_BIN@ pythontest.py
+@XC_EXEC_PREFIX@ @PYTHON_BIN@ pythontest.py
