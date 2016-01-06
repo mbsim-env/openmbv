@@ -62,7 +62,7 @@ def getDependencies(filename):
       if match!=None:
         raise RuntimeError('Library '+match.expand("\\1")+' not found')
       match=re.search("^.*\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match!=None:
+      if match!=None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
         res.add(match.expand("\\1"))
     return res
   elif re.search('PE[0-9]+ executable', content)!=None:
@@ -76,9 +76,11 @@ def getDependencies(filename):
       return res
   raise RuntimeError(filename+' unknown executable format')
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None) the cache is very importend for this function!!!
 def getDoNotAdd():
-  notAdd=set()
+  if getDoNotAdd.retCache!=None:
+    return getDoNotAdd.retCache
+  getDoNotAdd.retCache=set()
   system=[
     ("equery", ["-C", "files"], ["glibc", "mesa",       "fontconfig",]), # portage
     ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "fontconfig",]), # rpm
@@ -88,10 +90,11 @@ def getDoNotAdd():
       if distutils.spawn.find_executable(s[0]):
         try:
           for line in subprocess.check_output([s[0]]+s[1]+[p], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
-            notAdd.add(line)
+            getDoNotAdd.retCache.add(os.path.realpath(line))
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
-  return notAdd
+  return getDoNotAdd.retCache
+getDoNotAdd.retCache=None
 
 @lru_cache(maxsize=None)
 def relDir(filename):
@@ -120,11 +123,8 @@ def depLibs(filename):
           walkDependencies(d, deps)
     walkDependencies(filename, ret)
     # remove the library itself
-    ret.remove(filename)
+    ret.discard(filename)
   
-  for n in getDoNotAdd():
-    if n in ret:
-      ret.remove(n)
   return ret
 
 

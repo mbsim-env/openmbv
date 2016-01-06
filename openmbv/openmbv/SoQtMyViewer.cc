@@ -117,28 +117,30 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   SoTexture2 *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
   QIcon icon=Utils::QIconCached(":/openmbv.svg");
-  const int s=100;
-  QImage image=icon.pixmap(s,s).toImage();
+  QImage image=icon.pixmap(100, 100).toImage();
+  int w=image.width();
+  int h=image.height();
   // reorder image data
-  vector<unsigned char> imageData(s*s*4);
-  for(int y=0; y<s; ++y)
-    for(int x=0; x<s; ++x) {
-      imageData[s*4*x+4*y+0]=image.bits()[s*4*x+4*y+2];
-      imageData[s*4*x+4*y+1]=image.bits()[s*4*x+4*y+1];
-      imageData[s*4*x+4*y+2]=image.bits()[s*4*x+4*y+0];
-      imageData[s*4*x+4*y+3]=image.bits()[s*4*x+4*y+3];
+  vector<unsigned char> imageData(w*h*4);
+  for(int y=0; y<h; ++y)
+    for(int x=0; x<w; ++x) {
+      QRgb pix=image.pixel(x, y);
+      imageData[h*4*x+4*y+0]=qRed(pix);
+      imageData[h*4*x+4*y+1]=qGreen(pix);
+      imageData[h*4*x+4*y+2]=qBlue(pix);
+      imageData[h*4*x+4*y+3]=qAlpha(pix);
     }
   // set inventor image
-  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, imageData.data());
+  ombvLogoTex->image.setValue(SbVec2s(w, h), 4, imageData.data());
   ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
   ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
   SoCoordinate3 *ombvCoords=new SoCoordinate3;
   logoSep->addChild(ombvCoords);
   double size=0.15; // the logo filles maximal "size" of the screen
   ombvCoords->point.set1Value(0, 0, 0, 0);
-  ombvCoords->point.set1Value(1, 0, size, 0);
+  ombvCoords->point.set1Value(1, -size, 0, 0);
   ombvCoords->point.set1Value(2, -size, size, 0);
-  ombvCoords->point.set1Value(3, -size, 0, 0);
+  ombvCoords->point.set1Value(3, 0, size, 0);
   SoTextureCoordinate2 *tc=new SoTextureCoordinate2;
   logoSep->addChild(tc);
   tc->point.set1Value(0, 1, 1);
