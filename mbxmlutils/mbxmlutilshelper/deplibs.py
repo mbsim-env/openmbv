@@ -32,6 +32,8 @@ def getWindowsEnvPath(name):
       cmd=["winepath", "-u"]
       cmd.extend(value.split(';'))
       vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
+      if name=="PATH" and "WINEPATH" in os.environ:
+        vwin=os.environ["WINEPATH"].split(";")+vwin
       getWindowsEnvPath.res[name]=';'.join(vwin)
       return getWindowsEnvPath.res[name]
     raise RuntimeError('Unknown platform')
@@ -65,12 +67,14 @@ def getDependencies(filename):
       if match!=None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
         res.add(match.expand("\\1"))
     return res
-  elif re.search('PE[0-9]+ executable', content)!=None:
+  elif re.search('PE32\+? executable', content)!=None:
     try:
       for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
         match=re.search("^\s*DLL Name:\s(.+)$", line)
         if match!=None:
-          res.add(searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename)))
+          absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename))
+          if not os.path.realpath(absfile) in getDoNotAdd():
+            res.add(absfile)
       return res
     except subprocess.CalledProcessError:
       return res
@@ -80,10 +84,13 @@ def getDependencies(filename):
 def getDoNotAdd():
   if getDoNotAdd.retCache!=None:
     return getDoNotAdd.retCache
+
   getDoNotAdd.retCache=set()
+
+  # for linux
   system=[
-    ("equery", ["-C", "files"], ["glibc", "mesa",       "fontconfig",]), # portage
-    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "fontconfig",]), # rpm
+    ("equery", ["-C", "files"], ["glibc", "mesa",]), # portage
+    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "mesa-libEGL",]), # rpm
   ]
   for s in system:
     for p in s[2]:
@@ -93,6 +100,10 @@ def getDoNotAdd():
             getDoNotAdd.retCache.add(os.path.realpath(line))
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
+
+  # for windows
+  getDoNotAdd.retCache.update(glob.glob("/home/mbsim/.wine/drive_c/windows/system32/*"))
+
   return getDoNotAdd.retCache
 getDoNotAdd.retCache=None
 
@@ -101,7 +112,7 @@ def relDir(filename):
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
   if re.search('ELF [0-9]+-bit LSB *executable', content)!=None or re.search('ELF [0-9]+-bit LSB *shared object', content)!=None:
     return "lib" # Linux
-  elif re.search('PE[0-9]+.*executable.*MS Windows', content)!=None:
+  elif re.search('PE32\+? executable', content)!=None:
     return "bin" # Windows
   else:
     raise RuntimeError(filename+' unknwon executable format')
@@ -113,7 +124,7 @@ def depLibs(filename):
   if re.search('ELF [0-9]+-bit LSB executable', content)!=None or re.search('ELF [0-9]+-bit LSB shared object', content)!=None:
     # on Linux search none recursively using ldd
     ret=getDependencies(filename)
-  elif re.search('PE[0-9]+ executable', content)!=None:
+  elif re.search('PE32\+? executable', content)!=None:
     # on Windows search recursively using objdump
     def walkDependencies(filename, deps):
       if filename not in deps:
