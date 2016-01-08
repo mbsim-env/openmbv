@@ -1,5 +1,7 @@
 import sys
-sys.path.append(r"@native_prefix@/bin") # This path must point to your MBSim installation 'bin' directory
+import os
+
+sys.path.append(os.environ['OPENMBVCPPINTERFACE_PREFIX']+"/bin") # This path must point to your MBSim-Env installation 'bin' directory
 
 import OpenMBV
 

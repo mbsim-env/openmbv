@@ -172,7 +172,7 @@ LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile
-  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile swig/octave/octavetest.m swig/python/pythontest.py swig/java/matlabtest.m])
+  openmbvcppinterface/check/Makefile doc/Doxyfile schema/Makefile swig/Makefile swig/octave/Makefile swig/python/Makefile swig/java/Makefile])
 AC_CONFIG_FILES([openmbvcppinterface/check/testprog.sh], [chmod +x openmbvcppinterface/check/testprog.sh])
 AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh])
 AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])

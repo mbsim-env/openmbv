@@ -1,4 +1,4 @@
-javaaddpath('@native_prefix@/bin/openmbv.jar'); % This must point to your openmbv.jar file in your MBSim installation path
+javaaddpath([getenv('OPENMBVCPPINTERFACE_PREFIX') 'bin/openmbv.jar']); % This must point to your openmbv.jar file in your MBSim installation path
 
 group=de.berlios.openmbv.OpenMBV.Group();
 group.setName('MBS');

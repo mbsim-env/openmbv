@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  QCoreApplication::setLibraryPaths(QStringList()); // do not load plugins from buildin defaults
   QApplication app(argc, argv);
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);

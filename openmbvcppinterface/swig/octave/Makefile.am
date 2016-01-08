@@ -23,4 +23,4 @@ OpenMBV_la_LIBADD = $(OCTAVE_LIBS) ../../openmbvcppinterface/libopenmbvcppinterf
 TESTS = octavetest.sh
 
 exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
-example_DATA = octavetest.m
+example_DATA = $(srcdir)/octavetest.m

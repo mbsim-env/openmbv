@@ -1,11 +1,11 @@
-addpath('@native_prefix@/bin'); % This path must point to your MBSim installation 'bin' directory
+addpath([getenv('OPENMBVCPPINTERFACE_PREFIX') '/bin']); % This path must point to your MBSim-Env installation 'bin' directory
 OpenMBV;
 global OpenMBV;
 % If you get an error message that openmbv.oct can not be loaded add the above path on Windows
 % to the PATH and on Linux to the LD_LIBRARY_PATH environment variable before starting octave.
 % Or execute the following code before using OpenMBV in a octave session.
 % savedDir=pwd;
-% cd('@native_prefix@/bin');
+% cd([prefix '/bin']);
 % OpenMBV;
 % cd(savedDir);
 
