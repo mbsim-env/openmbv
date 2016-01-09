@@ -101,8 +101,9 @@ def getDoNotAdd():
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
 
-  # for windows
-  getDoNotAdd.retCache.update(glob.glob("/home/mbsim/.wine/drive_c/windows/system32/*"))
+  # for windows do not add the Windows system dlls (= fake dlls on wine)
+  getDoNotAdd.retCache.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
+  getDoNotAdd.retCache.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
 
   return getDoNotAdd.retCache
 getDoNotAdd.retCache=None
