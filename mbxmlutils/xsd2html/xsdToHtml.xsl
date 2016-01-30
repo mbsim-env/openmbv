@@ -29,7 +29,8 @@
     <head>
       <title><xsl:value-of select="$PROJECT"/> - XML Documentation</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+      <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"/>
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
         table._figure { }
@@ -60,8 +61,7 @@
         ul._content { padding-left:3ex; list-style-type:none; }
         caption._caption { caption-side:bottom; }
       </style>
-      <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"> </script>
-      <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"> </script>
+      <script type="text/javascript" src="https://cdn.datatables.net/s/bs-3.3.5/jq-2.1.4,dt-1.10.10/datatables.min.js"> </script>
       <script type="text/javascript">
         <![CDATA[
         $(document).ready(function() {
@@ -234,7 +234,7 @@
 
     <p class="text-right small">
       <a href="http://validator.w3.org/check?uri=referer">
-        <img src="http://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
+        <img src="https://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
       </a>
       Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils<xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>

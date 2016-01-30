@@ -23,7 +23,8 @@
     <head>
       <title>Physical Variable - XML Documentation</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+      <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"/>
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
         ul._content { padding-left:3ex; list-style-type:none; }
@@ -301,7 +302,7 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
     <hr/>
     <p class="text-right small">
       <a href="http://validator.w3.org/check?uri=referer">
-        <img src="http://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
+        <img src="https://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
       </a>
       Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by MBXMLUtils<xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
     </p>
