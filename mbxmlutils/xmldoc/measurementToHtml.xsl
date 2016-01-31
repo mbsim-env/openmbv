@@ -299,13 +299,11 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
-    <hr/>
-    <p class="text-right small">
-      <a href="http://validator.w3.org/check?uri=referer">
-        <img src="https://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"/>
-      </a>
-      Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by MBXMLUtils<xsl:text> </xsl:text><xsl:value-of select="$MBXMLUTILSVERSION"/>
-    </p>
+    <hr>
+    <span class="pull-left small"><a href="http://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
+    <a href="http://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
+    <a href="http://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
+    Generated on <xsl:value-of select="$DATETIME"/> for MBXMLUtils by MBXMLUtils <a href="http://validator.w3.org/check?uri=referer"><img src="https://www.w3.org/Icons/valid-html401-blue.png" alt="Valid HTML"></a></span>
     </body></html>
   </xsl:template>
 
