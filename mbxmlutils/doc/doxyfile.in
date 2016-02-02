@@ -2,5 +2,7 @@ PROJECT_BRIEF          = "Multi-Body XML Utils"
 INPUT                  = @top_srcdir@/mbxmlutils
 PROJECT_NAME           = @PACKAGE@
 PROJECT_NUMBER         = @VERSION@
+GENERATE_TAGFILE       = html/mbxmlutils.tag
+TAGFILES               = @prefix@/share/doc/fmatvec/fmatvec.tag=../fmatvec
 
 @INCLUDE = @prefix@/share/fmatvec/doxy_template/doxyfile_common

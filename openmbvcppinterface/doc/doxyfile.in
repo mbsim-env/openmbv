@@ -2,5 +2,9 @@ PROJECT_BRIEF          = "OpenMBV C++ Interface"
 INPUT                  = @top_srcdir@/openmbvcppinterface
 PROJECT_NAME           = @PACKAGE@
 PROJECT_NUMBER         = @VERSION@
+GENERATE_TAGFILE       = html/openmbvcppinterface.tag
+TAGFILES               = @prefix@/share/doc/hdf5serie/hdf5serie.tag=../hdf5serie \
+                         @prefix@/share/doc/mbxmlutils/mbxmlutils.tag=../mbxmlutils \
+                         @prefix@/share/doc/fmatvec/fmatvec.tag=../fmatvec
 
 @INCLUDE = @prefix@/share/fmatvec/doxy_template/doxyfile_common
