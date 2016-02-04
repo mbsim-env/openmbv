@@ -47,16 +47,6 @@ AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 AC_CHECK_HEADERS([unordered_map])
 
-dnl GET VERSION from svn
-SVNVERSION1=$(svnversion -n . https://openmbv.googlecode.com/svn/trunk/openmbv)
-SVNVERSION2=$(svnversion -n . http://openmbv.googlecode.com/svn/trunk/openmbv)
-if test ${#SVNVERSION1} -lt ${#SVNVERSION2}; then
-  SVNVERSION=$SVNVERSION1
-else
-  SVNVERSION=$SVNVERSION2
-fi
-AC_DEFINE_UNQUOTED([SVNVERSION],["$SVNVERSION"],[The svn version/revision])
-
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
 dnl get moc, uic and rcc

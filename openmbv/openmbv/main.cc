@@ -53,8 +53,6 @@ int main(int argc, char *argv[])
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
     cout<<"OpenMBV - Open Multi Body Viewer"<<endl
         <<""<<endl
-        <<"Version "SVNVERSION<<endl
-        <<""<<endl
         <<"Copyright (C) 2009 Markus Friedrich <friedrich.at.gc@googlemail.com"<<endl
         <<"This is free software; see the source for copying conditions. There is NO"<<endl
         <<"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."<<endl

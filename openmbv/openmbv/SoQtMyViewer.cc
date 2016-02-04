@@ -102,7 +102,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   ombvSep->addChild(soFgColorBottom);
   soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
   ombvSep->addChild(text2);
-  text2->string.setValue("OpenMBV [http://code.google.com/p/openmbv]");
+  text2->string.setValue("OpenMBV [http://www.mbsim-env.de/]");
   // ombvLogo (bottom right)
   SoSeparator *logoSep=new SoSeparator;
   fgSep->addChild(logoSep);
