@@ -7,10 +7,12 @@ else
 endif
 
 # distribute and install
-schemadir = @datadir@/@PACKAGE@/schema/http___openmbv_berlios_de_MBXMLUtils_physicalvariable
+mbxmlutilsschemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils
+casadischemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils_CasADi
 xmldir = @datadir@/@PACKAGE@/xml
 swigrefdir = $(runlibdir)/@swig_ref
-dist_schema_DATA = physicalvariable.xsd embed.xsd parameter.xsd casadi.xsd
+dist_mbxmlutilsschema_DATA = physicalvariable.xsd embed.xsd parameter.xsd
+dist_casadischema_DATA = casadi.xsd
 dist_xml_DATA = measurement.xml
 dist_swigref_DATA = \
   @swig_ref/abs.m @swig_ref/acosh.m @swig_ref/acos.m @swig_ref/asinh.m @swig_ref/asin.m @swig_ref/atan2.m \

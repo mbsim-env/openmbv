@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:mm="http://openmbv.berlios.de/MBXMLUtils/measurement"
+  xmlns:mm="http://www.mbsim-env.de/MBXMLUtils/measurement"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xsl:output method="xml" version="1.0" indent="yes"/>
@@ -16,16 +16,17 @@
       DO NOT EDIT!!!
     </xsl:comment>
 
-    <xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+    <xs:schema targetNamespace="http://www.mbsim-env.de/MBXMLUtils"
       elementFormDefault="qualified"
       attributeFormDefault="unqualified"
-      xmlns="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"
+      xmlns="http://www.mbsim-env.de/MBXMLUtils"
       xmlns:xml="http://www.w3.org/XML/1998/namespace"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
       <xs:include schemaLocation="parameter.xsd"/>
       <xs:include schemaLocation="embed.xsd"/>
-      <xs:import namespace="http://openmbv.berlios.de/MBXMLUtils/CasADi" schemaLocation="casadi.xsd"/>
+      <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils/CasADi"
+                 schemaLocation="../http___www_mbsim-env_de_MBXMLUtils_CasADi/casadi.xsd"/>
 
       <!-- base type for a XML text element which is fully converted by the evaluator. -->
       <xs:simpleType name="fullEval">
@@ -334,7 +335,7 @@
           </xs:documentation>
         </xs:annotation>
         <xs:choice>
-          <xs:element ref="casadi:SXFunction" xmlns:casadi="http://openmbv.berlios.de/MBXMLUtils/CasADi"/>
+          <xs:element ref="casadi:SXFunction" xmlns:casadi="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
           <xs:group ref="xmlScalarGroup"/>
           <xs:group ref="xmlVectorGroup"/>
           <xs:group ref="xmlMatrixGroup"/>

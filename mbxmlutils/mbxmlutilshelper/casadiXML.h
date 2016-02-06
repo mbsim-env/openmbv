@@ -12,7 +12,7 @@
 
 namespace casadi {
 
-const MBXMLUtils::NamespaceURI CASADI("http://openmbv.berlios.de/MBXMLUtils/CasADi");
+const MBXMLUtils::NamespaceURI CASADI("http://www.mbsim-env.de/MBXMLUtils/CasADi");
 
 inline xercesc::DOMElement *convertCasADiToXML(const SXElement &s, std::map<SXNode*, int> &nodes, xercesc::DOMDocument *doc) {
   // add the node of s to the list of all nodes (creates a integer id for newly added nodes)

@@ -1,2 +1,2 @@
-schemadir = @MBXMLUTILSSCHEMA@/http___openmbv_berlios_de_OpenMBV
+schemadir = @MBXMLUTILSSCHEMA@/http___www_mbsim-env_de_OpenMBV
 dist_schema_DATA = openmbv.xsd

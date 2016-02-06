@@ -1,6 +1,6 @@
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:mm="http://openmbv.berlios.de/MBXMLUtils/measurement"
+  xmlns:mm="http://www.mbsim-env.de/MBXMLUtils/measurement"
   version="1.0">
 
   <xsl:param name="DATETIME"/>
@@ -114,7 +114,7 @@
     <p>A scalar type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
       The type name of a scalar of measure length is <span class="label label-info _type">pv:lengthScalar</span> and so on.
-      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
+      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span>.</p>
     <p>The content of a scalar type must be a <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:</p>
     <pre>&lt;myScalarElement unit="mm"&gt;4*sin(a)+b&lt;/myScalarElement&gt;</pre>
     <pre>&lt;myScalarElement&gt;[a,2]*[3;b]&lt;/myScalarElement&gt;</pre>
@@ -131,7 +131,7 @@
     <p>A vector type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
       The type name of a vector of measure length is <span class="label label-info _type">pv:lengthVector</span> and so on.
-      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
+      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span>.</p>
     <p>The content of a vector type can be one of the following:</p>
     <ul>
       <li>A <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
@@ -141,7 +141,7 @@
        <pre>&lt;myMatrixElement&gt;ret=load('mydata.dat')&lt;/myMatrixElement&gt;</pre>
       </li>
       <li>A XML representation of a vector: The following shows a example of such a XML representation.<pre>
-&lt;myVectorElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myVectorElement xmlns:pv="http://www.mbsim-env.de/MBXMLUtils"&gt;
   &lt;pv:ele&gt;6.5&lt;/pv:ele&gt;
   &lt;pv:ele&gt;1.5&lt;/pv:ele&gt;
   &lt;pv:ele&gt;7.3&lt;/pv:ele&gt;
@@ -158,7 +158,7 @@
     <p>A matrix type can be of any unit defined in <a href="#measurements">measurements</a>. The unit is given by a optional
       attribute of name <span class="_attributeNoMargin">unit</span>.
       The type name of a matrix of measure length is <span class="label label-info _type">pv:lengthMatrix</span> and so on.
-      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span>.</p>
+      Where <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span>.</p>
     <p>The content of a matrix type can be one of the following:</p>
     <ul>
       <li>A <a href="#evaluator">Expression Evaluator</a>. The following examples are valid, if there exist a scalar paremter <code>a</code> and <code>b</code> in the <a href="#parameters">parameter file</a>:
@@ -168,7 +168,7 @@
        <pre>&lt;myMatrixElement&gt;ret=load('mydata.dat')&lt;/myMatrixElement&gt;</pre>
       </li>
       <li>A XML representation of a matrix: The following shows a example of such a XML representation.<pre>
-&lt;myMatrixElement xmlns:pv="http://openmbv.berlios.de/MBXMLUtils/physicalvariable"&gt;
+&lt;myMatrixElement xmlns:pv="http://www.mbsim-env.de/MBXMLUtils"&gt;
   &lt;pv:row&gt;
     &lt;pv:ele&gt;6.5&lt;/pv:ele&gt;
     &lt;pv:ele&gt;1.5&lt;/pv:ele&gt;
@@ -184,12 +184,12 @@
 
     <h1><a id="parameters" href="#parameters-content">5 Parameters</a></h1>
     <p>A example for a parameter file is given below:</p>
-<pre>&lt;parameter xmlns="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
+<pre>&lt;Parameter xmlns="http://www.mbsim-env.de/MBXMLUtils"&gt;
   &lt;scalarParameter name="N"&gt;9&lt;/scalarParameter&gt;
   &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/scalarParameter&gt;
   &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
-&lt;/parameter&gt;
+&lt;/Parameter&gt;
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
 
@@ -268,26 +268,24 @@ ret=myfunc(m1/2);
 </dl>
 
     <h1><a id="embed" href="#embed-content">7 Embeding</a></h1>
-    <p>Using the <span class="_element">&lt;pv:embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://openmbv.berlios.de/MBXMLUtils/physicalvariable</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
-<pre>&lt;pv:embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
+    <p>Using the <span class="_element">&lt;pv:Embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
+<pre>&lt;pv:Embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
 <p>or</p>
-<pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+<pre>&lt;pv:Embed count="2+a" counterName="n" onlyif="n!=2"&gt;
   &lt;any_element_with_childs/&gt;
-&lt;/pv:embed&gt;
+&lt;/pv:Embed&gt;
 </pre>
-<p>This will substitute the <span class="_element">&lt;pv:embed&gt;</span> element in the current context <code>2+a</code> times with the element defined in the file <code>file.xml</code> or with <span class="_element">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global <a href="#parameters">parameters</a> and to a parameter named <code>n</code> which counts from <code>1</code> to <code>2+a</code> for each insert element. The new element is only insert if the octave expression defined by the attribute <span class="_attributeNoMargin">onlyif</span> evaluates to <code>1</code> (<code>true</code>). If the attribute <span class="_attributeNoMargin">onlyif</span> is not given it is allways <code>1</code> (<code>true</code>).<br/>
+<p>This will substitute the <span class="_element">&lt;pv:Embed&gt;</span> element in the current context <code>2+a</code> times with the element defined in the file <code>file.xml</code> or with <span class="_element">&lt;any_element_with_childs&gt;</span>. The insert elements have access to the global <a href="#parameters">parameters</a> and to a parameter named <code>n</code> which counts from <code>1</code> to <code>2+a</code> for each insert element. The new element is only insert if the octave expression defined by the attribute <span class="_attributeNoMargin">onlyif</span> evaluates to <code>1</code> (<code>true</code>). If the attribute <span class="_attributeNoMargin">onlyif</span> is not given it is allways <code>1</code> (<code>true</code>).<br/>
 The attributes <span class="_attribure">count</span> and <span class="_attribure">counterName</span> must be given both or none of them. If none are given, then <code>count</code> is <code>1</code> and <span class="_attributeNoMargin">counterName</span> is not used.</p>
 
-<p>The first child element of <span class="_element">&lt;pv:embed&gt;</span> can be the element <span class="_element">&lt;pv:localParameter&gt;</span> which has one child element <a class="_element" href="#parameters">&lt;p:parameter&gt;</a> OR a attribute named <span class="_attributeNoMargin">href</span>. In this case the global parameters are expanded by the parameters given by the element <span class="_element">&lt;p:parameter&gt;</span> or in the file given by <code>href</code>. If a parameter already exist then the parameter is overwritten.</p>
-<pre>&lt;pv:embed count="2+a" counterName="n" onlyif="n!=2"&gt;
-  &lt;pv:localParameter&gt;
-    &lt;p:parameter xmlns:p="http://openmbv.berlios.de/MBXMLUtils/parameter"&gt;
-      &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
-      &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
-    &lt;/p:parameter&gt;
-  &lt;/pv:localParameter&gt;
+<p>The first child element of <span class="_element">&lt;pv:Embed&gt;</span> can be the element <span class="_element">&lt;pv:localParameter&gt;</span> which has one child element <a class="_element" href="#parameters">&lt;p:parameter&gt;</a> OR a attribute named <span class="_attributeNoMargin">href</span>. In this case the global parameters are expanded by the parameters given by the element <span class="_element">&lt;p:parameter&gt;</span> or in the file given by <code>href</code>. If a parameter already exist then the parameter is overwritten.</p>
+<pre>&lt;pv:Embed count="2+a" counterName="n" onlyif="n!=2"&gt;
+  &lt;p:Parameter xmlns:p="http://www.mbsim-env.de/MBXMLUtils"&gt;
+    &lt;p:scalarParameter name="h1"&gt;0.5&lt;/p:scalarParameter&gt;
+    &lt;p:scalarParameter name="h2"&gt;h1&lt;/p:scalarParameter&gt;
+  &lt;/p:Parameter&gt;
   &lt;any_element_with_childs/&gt;
-&lt;/pv:embed&gt;
+&lt;/pv:Embed&gt;
 </pre>
 
     <h1><a id="measurements" href="#measurements-content">8 Measurements</a></h1>

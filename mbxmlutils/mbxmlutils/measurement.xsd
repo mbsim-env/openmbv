@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="http://openmbv.berlios.de/MBXMLUtils/measurement"
+<xs:schema targetNamespace="http://www.mbsim-env.de/MBXMLUtils/measurement"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  xmlns="http://openmbv.berlios.de/MBXMLUtils/measurement"
+  xmlns="http://www.mbsim-env.de/MBXMLUtils/measurement"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:element name="measurement">

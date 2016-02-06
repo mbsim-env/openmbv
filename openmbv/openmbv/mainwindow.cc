@@ -919,7 +919,7 @@ void MainWindow::newFileDialog() {
   basename.remove(0, basename.lastIndexOf('/')+1);
   ofstream file(filename.toStdString().c_str());
   file<<"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"<<endl
-      <<"<Group name=\""<<basename.toStdString()<<"\" xmlns=\"http://openmbv.berlios.de/OpenMBV\"/>"<<endl;
+      <<"<Group name=\""<<basename.toStdString()<<"\" xmlns=\"http://www.mbsim-env.de/OpenMBV\"/>"<<endl;
   openFile(filename.toStdString());
 }
 
@@ -985,7 +985,7 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
     else if(type=="XML") {
       helpDialog->setWindowTitle("OpenMBV - XML Help");
       connect(home, SIGNAL(clicked()), this, SLOT(helpHomeXML()));
-      helpViewer->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.html").c_str()));
+      helpViewer->load(QUrl((Utils::getXMLDocPath()+"/http___www_mbsim-env_de_OpenMBV/index.html").c_str()));
       helpViewerXML=helpViewer;
     }
   }
@@ -1014,7 +1014,7 @@ void MainWindow::helpHomeGUI() {
 }
 
 void MainWindow::helpHomeXML() {
-  helpViewerXML->load(QUrl((Utils::getXMLDocPath()+"/http___openmbv_berlios_de_OpenMBV/index.html").c_str()));
+  helpViewerXML->load(QUrl((Utils::getXMLDocPath()+"/http___www_mbsim-env_de_OpenMBV/index.html").c_str()));
 }
 
 void MainWindow::aboutOpenMBV() {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<measurement xmlns="http://openmbv.berlios.de/MBXMLUtils/measurement">
+<measurement xmlns="http://www.mbsim-env.de/MBXMLUtils/measurement">
   <!-- NOTE: All below unit translations must be valid expressions for ALL evaluators.
              So, use only simple expressions and no constands like pi, ... -->
   <measure name="nounit" SIunit="-">
