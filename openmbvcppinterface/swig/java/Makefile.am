@@ -20,14 +20,14 @@ clean-local: clean-local-javasource
 clean-local-javasource:
 	rm -rf de
 OpenMBV_swig_java.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
-	$(MKDIR_P) de/berlios/openmbv/OpenMBV
-	$(swig) -java -MD -package de.berlios.openmbv.OpenMBV -outdir de/berlios/openmbv/OpenMBV -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
+	$(MKDIR_P) de/mbsim_env/openmbv
+	$(swig) -java -MD -package de.mbsim_env.openmbv -outdir de/mbsim_env/openmbv -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
 -include OpenMBV_swig_java.d
 
-de/berlios/openmbv/OpenMBV/Object.class: OpenMBV_swig_java.cc
-	@JAVAC@ de/berlios/openmbv/OpenMBV/*.java
-openmbv.jar: de/berlios/openmbv/OpenMBV/Object.class
-	jar cf openmbv.jar de/berlios/openmbv/OpenMBV/*.class
+de/mbsim_env/openmbv/Object.class: OpenMBV_swig_java.cc
+	@JAVAC@ de/mbsim_env/openmbv/*.java
+openmbv.jar: de/mbsim_env/openmbv/Object.class
+	jar cf openmbv.jar de/mbsim_env/openmbv/*.class
 
 install-exec-hook: openmbv.jar
 	$(MKDIR_P) $(swigdir)

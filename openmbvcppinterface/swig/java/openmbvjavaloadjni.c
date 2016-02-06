@@ -7,8 +7,9 @@
   char oldDllDirectory[STRSIZE];
 #endif
 
-/* save current dll search path set the it to binDir */
-JNIEXPORT void JNICALL Java_de_berlios_openmbv_OpenMBV_OpenMBVJNI_storeAndSetDLLSearchDirectory(JNIEnv *jenv, jclass jcls, jstring jbinDir) {
+/* save current dll search path set the it to binDir
+ * Note: an _ in a package name must be converted to _1 in a c-file. */
+JNIEXPORT void JNICALL Java_de_mbsim_1env_openmbv_OpenMBVJNI_storeAndSetDLLSearchDirectory(JNIEnv *jenv, jclass jcls, jstring jbinDir) {
 #if _WIN32
   /* get binDir as c string */
   const char *binDir=(*jenv)->GetStringUTFChars(jenv, jbinDir, 0);
@@ -21,8 +22,9 @@ JNIEXPORT void JNICALL Java_de_berlios_openmbv_OpenMBV_OpenMBVJNI_storeAndSetDLL
 #endif
 }
 
-/* restore old dll search path */
-JNIEXPORT void JNICALL Java_de_berlios_openmbv_OpenMBV_OpenMBVJNI_restoreDLLSearchDirectory(JNIEnv *jenv, jclass jcls) {
+/* restore old dll search path
+ * Note: an _ in a package name must be converted to _1 in a c-file. */
+JNIEXPORT void JNICALL Java_de_mbsim_1env_openmbv_OpenMBVJNI_restoreDLLSearchDirectory(JNIEnv *jenv, jclass jcls) {
 #if _WIN32
   SetDllDirectory(oldDllDirectory);
 #endif

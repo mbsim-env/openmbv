@@ -1,6 +1,6 @@
 // You have to add /your/MBSim/install/path/bin/openmbv.jar to your classpath when compiling or running this program.
 
-import de.berlios.openmbv.OpenMBV.*;
+import de.mbsim_env.openmbv.*;
 
 public class javatest {
 
