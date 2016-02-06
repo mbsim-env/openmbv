@@ -21,7 +21,7 @@
 </xsl:text>
     <html lang="en">
     <head>
-      <title>Physical Variable - XML Documentation</title>
+      <title>MBXMLUtils - XML Documentation</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
       <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"/>
@@ -43,7 +43,7 @@
     </head>
     <body style="margin:1em">
     <div class="page-header">
-      <h1>Physical Variable - XML Documentation</h1>
+      <h1>MBXMLUtils - XML Documentation</h1>
     </div>
     <div class="h2">Contents</div>
     <ul class="_content">
