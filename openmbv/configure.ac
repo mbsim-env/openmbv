@@ -57,7 +57,7 @@ AC_SUBST([MOC])
 AC_SUBST([UIC])
 AC_SUBST([RCC])
 test -d "$QTLIBDIR" || QTLIBDIR=$(pkg-config --variable libdir QtCore)
-test -d "$QTPREFIX" || QTPREFIX=$(pkg-config --variable prefix QtCore)
+AC_SUBST([QTLIBDIR])
 
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin >= 3)

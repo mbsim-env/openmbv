@@ -14,7 +14,7 @@
    height="16px"
    id="svg2383"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.48.5 r10040"
    sodipodi:docname="savefile.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.1">
@@ -218,16 +218,6 @@
          offset="1"
          style="stop-color:#00ff00;stop-opacity:1;" />
     </linearGradient>
-    <linearGradient
-       y2="10.594059"
-       x2="10.073187"
-       y1="1.8460122"
-       x1="10.081431"
-       gradientTransform="matrix(0.66360468,0,0,0.66360467,1.4586558,-0.6017069)"
-       gradientUnits="userSpaceOnUse"
-       id="linearGradient2867"
-       xlink:href="#linearGradient3670"
-       inkscape:collect="always" />
     <inkscape:perspective
        id="perspective3090"
        inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
@@ -244,16 +234,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="22.197802"
-     inkscape:cx="-2.4000944"
+     inkscape:cx="-2.3099954"
      inkscape:cy="6.2749335"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:grid-bbox="true"
      inkscape:document-units="px"
-     inkscape:window-width="1346"
-     inkscape:window-height="917"
-     inkscape:window-x="106"
-     inkscape:window-y="45"
+     inkscape:window-width="1280"
+     inkscape:window-height="800"
+     inkscape:window-x="-112"
+     inkscape:window-y="17"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata2388">
@@ -272,7 +262,7 @@
      inkscape:groupmode="layer">
     <text
        xml:space="preserve"
-       style="font-size:7.96325731px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient2867);fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+       style="font-size:7.96325731000000037px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#0000ff;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
        x="0.023692288"
        y="6.4285617"
        id="text4745-7"
@@ -280,7 +270,7 @@
        transform="scale(0.83741803,1.1941467)"><tspan
          sodipodi:role="line"
          id="tspan4763-2"
-         style="font-size:7.96325731px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:url(#linearGradient2867);fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
+         style="font-size:7.96325731000000037px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#0000ff;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold"
          x="0.023692288"
          y="6.4285617">XML</tspan></text>
     <g

@@ -203,5 +203,9 @@ dist_icon_DATA = openmbv.svg \
 docdir = @datadir@/openmbv/doc
 dist_doc_DATA = guihelp.html
 
+# plugins
+pluginsiconenginesdir = @bindir@/iconengines
+pluginsiconengines_DATA = @QTLIBDIR@/plugins/iconengines/*qsvgicon.*
+
 # some dependencies for openmbv.qrc.cc
-openmbv.qrc.cc: openmbv.qrc
+openmbv.qrc.cc: openmbv.qrc openmbv.svg

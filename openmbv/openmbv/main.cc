@@ -19,13 +19,7 @@
 
 #include "config.h"
 #include <QtGui/QApplication>
-#include <QtPlugin>
 #include "mainwindow.h"
-#include <list>
-#include <string>
-#include <algorithm>
-#include <locale.h>
-#include <QThreadPool>
 
 #ifdef WIN32
 #  define putenv _putenv
