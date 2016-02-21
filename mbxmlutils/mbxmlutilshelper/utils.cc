@@ -73,7 +73,7 @@ namespace MBXMLUtils {
         int nr=0;
         do {
           if(unw_get_proc_name(&cp, name, 102400, &offp)<0) break;
-          stack.push_back((nr==0?"at ":"by ")+demangleSymbolName(name));
+          stack.push_back((nr==0?"at ":"by ")+boost::core::demangle(name));
           nr++;
         }
         while(unw_step(&cp)>0 && string(name)!="main");
@@ -86,21 +86,6 @@ namespace MBXMLUtils {
 #endif
     }
     getInstance().allMessages.insert(stack);
-  }
-
-  std::string demangleSymbolName(std::string name) {
-#if defined HAVE_CXXABI_H
-    std::string ret=name;
-    int status=1;
-    char *demangledName=NULL;
-    demangledName=abi::__cxa_demangle(name.c_str(), NULL, NULL, &status);
-    if(status==0)
-      ret=demangledName;
-    free(demangledName);
-    return ret;
-#else
-    return name;
-#endif
   }
 
 }

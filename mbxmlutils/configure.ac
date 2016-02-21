@@ -35,7 +35,6 @@ AC_CHECK_HEADERS([unordered_map unordered_set])
 #AC_CHECK_LIB($UNWIND_LIB_CPU, main, [UNWIND_LIB="-l$UNWIND_LIB_CPU -lunwind"], [UNWIND_LIB=""])
 #AC_SUBST([UNWIND_LIB], [$UNWIND_LIB])
 #AC_DEFINE_UNQUOTED([HAVE_LIBUNWIND], [$(test "_$UNWIND_LIB" != "_" && echo 1 || echo 0)], [libunwind is available])
-#AC_CHECK_HEADERS([cxxabi.h])
 #END: TEMPORARILY DISABLED: seem to break exception handling and produces valgrind errors
 
 dnl Include path for Boost

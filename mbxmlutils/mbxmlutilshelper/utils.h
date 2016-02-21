@@ -39,8 +39,6 @@ class Deprecated : virtual public fmatvec::Atom {
     std::set<std::vector<std::string> > allMessages;
 };
 
-std::string demangleSymbolName(std::string name);
-
 }
 
 #endif
