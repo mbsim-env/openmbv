@@ -38,7 +38,9 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la casadi_oct.la libmbxmlutils-eval-octave.la registerPath.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
+lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
+module_LTLIBRARIES = casadi_oct.la registerPath.la
+moduledir = $(runlibdir)
 
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
@@ -110,7 +112,7 @@ CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octav
 
 
 # generate deplib files for octave oct-files and casaid.oct
-install-exec-local:
+install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	OCTLIBDIR=$$($(XC_EXEC_PREFIX) $(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
         test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
@@ -132,7 +134,7 @@ install-exec-local:
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	if test $(runlibdir)/casadi_oct.oct -nt $(runlibdir)/casadi_oct.oct.deplibs; then \
+	if test $(runlibdir)/casadi_oct.oct -nt $(runlibdir)/casadi_oct.oct.deplibs -o ! -e $(runlibdir)/casadi_oct.oct; then \
 	  echo "Create dependency file for $(runlibdir)/casadi_oct.oct"; \
 	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_oct.oct > \
 	    $(runlibdir)/casadi_oct.oct.deplibs.tmp; \
