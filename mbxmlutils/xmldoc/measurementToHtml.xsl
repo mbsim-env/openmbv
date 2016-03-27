@@ -41,7 +41,7 @@
         *._element { font-family:monospace; font-weight:bold; }
       </style>
     </head>
-    <body style="margin:1em">
+    <body style="margin:0.5em">
     <div class="page-header">
       <h1>MBXMLUtils - XML Documentation</h1>
     </div>

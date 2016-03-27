@@ -77,7 +77,7 @@
         ]]>
       </script>
     </head>
-    <body style="margin:1em">
+    <body style="margin:0.5em">
     <div class="page-header">
       <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning"><xsl:value-of select="/xs:schema/@targetNamespace"/></span></p>
@@ -215,6 +215,7 @@
       <p>This element is defined by the XML Schema (Project) with the namespace
         <span class="label label-warning"><xsl:value-of select="../namespace::*[name()=substring-before(current(),':')]"/></span>, which is
         included by this XML Schema (Project). See the documentation of the included XML Schema (Project) for this element.</p>
+      <hr class="_hr"/>
       <xsl:apply-templates mode="WALKCLASS" select="/xs:schema/xs:element[@substitutionGroup=current()]">
         <xsl:with-param name="LEVEL" select="1"/>
         <xsl:with-param name="LEVELNR" select="'3'"/>
