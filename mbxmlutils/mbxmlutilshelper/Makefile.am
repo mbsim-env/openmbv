@@ -5,7 +5,7 @@ libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LIBADD = $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(LIBDL)
 libmbxmlutilshelper_la_SOURCES = dom.cc getinstallpath.cc utils.cc
-libmbxmlutilshelper_la_HEADERS = dom.h getinstallpath.h utils.h casadiXML.h
+libmbxmlutilshelper_la_HEADERS = dom.h getinstallpath.h utils.h casadiXML.h shared_library.h last_write_time.h
 libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
 
 w3cschemadir = @SCHEMADIR@/http___www_w3_org
