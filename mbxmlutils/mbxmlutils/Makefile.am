@@ -2,8 +2,10 @@ SUBDIRS = octave python
 
 if MBXMLUTILS_MINGW
   runlibdir = $(bindir)
+  shext = .dll
 else
   runlibdir = $(libdir)
+  shext = .so
 endif
 
 # distribute and install
@@ -111,7 +113,7 @@ CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octav
 
 
 
-# generate deplib files for octave oct-files and casaid.oct
+# generate deplib files for octave oct-files, casadi_oct, mbxmlutils-eval-octave and registerPath
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	OCTLIBDIR=$$($(XC_EXEC_PREFIX) $(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
@@ -134,9 +136,11 @@ install-exec-local: install-moduleLTLIBRARIES
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	if test $(runlibdir)/casadi_oct.oct -nt $(runlibdir)/casadi_oct.oct.deplibs -o ! -e $(runlibdir)/casadi_oct.oct; then \
-	  echo "Create dependency file for $(runlibdir)/casadi_oct.oct"; \
-	  python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/casadi_oct.oct > \
-	    $(runlibdir)/casadi_oct.oct.deplibs.tmp; \
-	  mv -f $(runlibdir)/casadi_oct.oct.deplibs.tmp $(runlibdir)/casadi_oct.oct.deplibs; \
-	fi
+	for F in $(runlibdir)/casadi_oct.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct; do \
+	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
+	    echo "Create dependency file for $$F"; \
+	    python $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \
+	      $$F.deplibs.tmp; \
+	    mv -f $$F.deplibs.tmp $$F.deplibs; \
+	  fi; \
+	done

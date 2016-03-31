@@ -64,8 +64,6 @@ AC_SUBST([QT_PLUGINS])
 
 dnl Coin
 PKG_CHECK_MODULES(COIN, Coin >= 3)
-dnl MBXMLUtilsBase
-PKG_CHECK_MODULES(MBXMLUTILSBASE, mbxmlutilsbase)
 
 dnl OpenMBVCppInterface
 PKG_CHECK_MODULES(OPENMBVCPPINTERFACE, openmbvcppinterface)

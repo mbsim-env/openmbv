@@ -32,30 +32,86 @@
 
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "last_write_time.h"
+#include <boost/lexical_cast.hpp>
 #ifdef _WIN32
 #  include <windows.h>
+#else
+#  include <dlfcn.h>
 #endif
 
 namespace MBXMLUtils {
 
 class SharedLibrary {
   public:
-    SharedLibrary(const std::string &file_);
-    SharedLibrary(const SharedLibrary& src);
-    ~SharedLibrary();
-    void* getAddress(const std::string &symbolName);
+    inline SharedLibrary(const std::string &file_);
+    inline SharedLibrary(const SharedLibrary& src);
+    inline ~SharedLibrary();
+    template<typename T>
+    inline T getSymbol(const std::string &symbolName);
     const std::string file;
     const boost::posix_time::ptime writeTime;
-    bool operator<(const SharedLibrary& b) const { return file<b.file; }
+    inline bool operator<(const SharedLibrary& b) const { return file<b.file; }
   private:
-    std::string getLastError();
-    void init();
+    inline std::string getLastError();
+    inline void init();
 #ifndef _WIN32
     void* handle;
 #else
     HMODULE handle;
 #endif
 };
+
+template<typename T>
+T SharedLibrary::getSymbol(const std::string &symbolName) {
+#ifndef _WIN32
+  void *addr=dlsym(handle, symbolName.c_str());
+#else
+  void *addr=reinterpret_cast<void*>(GetProcAddress(handle, symbolName.c_str()));
+#endif
+  if(!addr)
+    throw std::runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
+                             file+"': "+getLastError());
+  return reinterpret_cast<T>(addr);
+}
+
+SharedLibrary::SharedLibrary(const std::string &file_) : file(file_),
+  writeTime(boost::myfilesystem::last_write_time(file)) {
+  init();
+}
+
+SharedLibrary::SharedLibrary(const SharedLibrary& src) : file(src.file), writeTime(src.writeTime) {
+  init();
+}
+
+void SharedLibrary::init() {
+#ifndef _WIN32
+  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL);
+#else
+  std::string fileWinSep=file;
+  replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
+  handle=LoadLibraryEx(fileWinSep.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+#endif
+  if(!handle)
+    throw std::runtime_error("Unable to load the library '"+file+"': "+getLastError());
+}
+
+SharedLibrary::~SharedLibrary() {
+#ifndef _WIN32
+  dlclose(handle);
+#else
+  FreeLibrary(handle);
+#endif
+}
+
+std::string SharedLibrary::getLastError() {
+#ifndef _WIN32
+  const char *err=dlerror();
+  return err?err:"";
+#else
+  return boost::lexical_cast<std::string>(GetLastError());
+#endif
+}
 
 }
 

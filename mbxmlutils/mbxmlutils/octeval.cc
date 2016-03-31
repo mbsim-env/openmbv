@@ -507,7 +507,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   cout<<"Generate file list for MBXMLUtils m-files."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
     srcIt!=bfs::directory_iterator(); ++srcIt)
-    files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", 0);
+    files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
 
   // get octave prefix
   bfs::path octave_prefix(getInstallPath()); // use octave in install path
@@ -540,9 +540,9 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   // installed (and are found their due to Linux rpath or Windows alternate search order flag).
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR); srcIt!=bfs::directory_iterator(); ++srcIt) {
     if(srcIt->path().extension()==".oct")
-      files[srcIt->path()]=make_pair(LIBDIR, false);
-    if(srcIt->path().filename()=="PKG_ADD")
       files[srcIt->path()]=make_pair(LIBDIR, true);
+    if(srcIt->path().filename()=="PKG_ADD")
+      files[srcIt->path()]=make_pair(LIBDIR, false);
   }
 
   return files;
