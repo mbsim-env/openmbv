@@ -119,6 +119,9 @@ AC_ARG_WITH(windres,
 AC_SUBST([WINDRES])
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=attributes"
+if test "_$host_os" != "_mingw32"; then
+  CPPFLAGS="$CPPFLAGS -fPIC"
+fi
 LDFLAGS="-no-undefined -Wl,--no-undefined $LDFLAGS"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 

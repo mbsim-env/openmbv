@@ -11,6 +11,9 @@ AC_LANG([C++])
 
 dnl force strict standard conformance
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-long-long"
+if test "_$host_os" != "_mingw32"; then
+  CPPFLAGS="$CPPFLAGS -fPIC"
+fi
 CFLAGS="$CFLAGS -std=iso9899:1990"
 
 AC_SUBST([DEFINES])

@@ -44,8 +44,8 @@ namespace MBXMLUtils {
 
 class SharedLibrary {
   public:
-    inline SharedLibrary(const std::string &file_, bool deepBind=false);
-    inline SharedLibrary(const SharedLibrary& src, bool deepBind=false);
+    inline SharedLibrary(const std::string &file_);
+    inline SharedLibrary(const SharedLibrary& src);
     inline ~SharedLibrary();
     template<typename T>
     inline T getSymbol(const std::string &symbolName);
@@ -54,7 +54,7 @@ class SharedLibrary {
     inline bool operator<(const SharedLibrary& b) const { return file<b.file; }
   private:
     inline std::string getLastError();
-    inline void init(bool deepBind);
+    inline void init();
 #ifndef _WIN32
     void* handle;
 #else
@@ -75,21 +75,18 @@ T SharedLibrary::getSymbol(const std::string &symbolName) {
   return reinterpret_cast<T>(addr);
 }
 
-SharedLibrary::SharedLibrary(const std::string &file_, bool deepBind) : file(file_),
+SharedLibrary::SharedLibrary(const std::string &file_) : file(file_),
   writeTime(boost::myfilesystem::last_write_time(file)) {
-  init(deepBind);
+  init();
 }
 
-SharedLibrary::SharedLibrary(const SharedLibrary& src, bool deepBind) : file(src.file), writeTime(src.writeTime) {
-  init(deepBind);
+SharedLibrary::SharedLibrary(const SharedLibrary& src) : file(src.file), writeTime(src.writeTime) {
+  init();
 }
 
-void SharedLibrary::init(bool deepBind) {
+void SharedLibrary::init() {
 #ifndef _WIN32
-  int flags=RTLD_NOW | RTLD_LOCAL;
-  if(deepBind)
-    flags |= RTLD_DEEPBIND;
-  handle=dlopen(file.c_str(), flags);
+  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 #else
   std::string fileWinSep=file;
   replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
