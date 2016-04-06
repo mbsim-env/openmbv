@@ -39,36 +39,77 @@ double arrayScalarGetDouble(PyObject *o);
 
 namespace MBXMLUtils {
 
-bool PyEval::initialized=false;
 PyO PyEval::mbxmlutils;
 PyO PyEval::numpy;
 
 XMLUTILS_EVAL_REGISTER(PyEval)
 
+// Helper class to init/deinit Python on library load/unload (unload=program end)
+class PyInit {
+  public:
+    PyInit();
+    ~PyInit();
+    PyO& getMBXMLUtils() { return mbxmlutils; }
+    PyO& getNumPy() { return numpy; }
+    PyO& getCasadiValue() { return casadiValue; }
+  private:
+    PyO mbxmlutils;
+    PyO numpy;
+    PyO casadiValue;
+};
+
+PyInit::PyInit() {
+  try {
+    initializePython("mbxmlutilspp");
+    CALLPY(_import_array);
+
+    PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
+    PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
+    CALLPY(PyList_Append, path, mbxmlutilspath);
+    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX "/python2.7/site-packages/casadi");
+    CALLPY(PyList_Append, path, casadipath);
+
+    mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
+    numpy=CALLPY(PyImport_ImportModule, "numpy");
+    casadiValue=CALLPY(PyImport_ImportModule, "casadi");
+  }
+  // print error to cerr since this excluding may not be catched since its run pre-main
+  catch(const std::exception& ex) {
+    cerr<<"Exception: "<<ex.what()<<endl;
+    throw;
+  }
+  catch(...) {
+    cerr<<"Exception: Unknown exception."<<endl;
+    throw;
+  }
+}
+
+PyInit::~PyInit() {
+  try {
+    Py_Finalize();
+  }
+  // print error to cerr since this excluding may not be catched since its run pre-main
+  catch(const std::exception& ex) {
+    cerr<<"Exception: "<<ex.what()<<endl;
+    throw;
+  }
+  catch(...) {
+    cerr<<"Exception: Unknown exception."<<endl;
+    throw;
+  }
+}
+
+PyInit pyInit; // init Python on library load and deinit on library unload = program end
+
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  // we initialize python only ones and never deinit it since numpy cannot be reinitialized
-  if(initialized)
-    return;
-
-  initializePython("mbxmlutilspp");
-  CALLPY(_import_array);
-  initialized=true;
-
-  PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
-  PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
-  CALLPY(PyList_Append, path, mbxmlutilspath);
-  PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX "/python2.7/site-packages/casadi");
-  CALLPY(PyList_Append, path, casadipath);
-
-  mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
-  numpy=CALLPY(PyImport_ImportModule, "numpy");
-  casadiValue=CALLPY(PyImport_ImportModule, "casadi");
+  mbxmlutils=pyInit.getMBXMLUtils();
+  numpy=pyInit.getNumPy();
+  casadiValue=pyInit.getCasadiValue();
 
   currentImport=CALLPY(PyDict_New);
 }
 
 PyEval::~PyEval() {
-  // Py_Finalize(); // we never deinit python it since numpy cannot be reinitialized
 }
 
 void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated) {

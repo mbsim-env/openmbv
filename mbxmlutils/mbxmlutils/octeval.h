@@ -52,10 +52,6 @@ class OctEval : public Eval {
 
   protected:
 
-    //! This function deinitialized octave. It is used in the dtor and before exceptions in the ctor are thrown
-    // (in the later case the dtor is not called but octave must be uninitialized before exit)
-    void deinitOctave();
-
     //! evaluate str fully and return result as an octave variable
     virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
 
@@ -70,8 +66,6 @@ class OctEval : public Eval {
     // initial path
     static std::string initialPath;
     static std::string pathSep;
-
-    static int initCount;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());

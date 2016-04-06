@@ -112,6 +112,113 @@ namespace MBXMLUtils {
 
 XMLUTILS_EVAL_REGISTER(OctEval)
 
+// Helper class to init/deinit octave on library load/unload (unload=program end)
+class OctInit {
+  public:
+    OctInit();
+    ~OctInit();
+    shared_ptr<octave_value>& getCasadiValue() { return casadiValue; }
+  private:
+    shared_ptr<octave_value> casadiValue;
+};
+
+OctInit::OctInit() {
+  try {
+    // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
+    bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
+    if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
+      octave_prefix=getenv("OCTAVE_HOME");
+    else if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+      // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
+      octave_prefix=MBXMLUtils::getInstallPath();
+      // the string for putenv must have program life time
+      static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
+      putenv((char*)OCTAVE_HOME.c_str());
+    }
+
+    // initialize octave
+    static vector<char*> octave_argv;
+    octave_argv.resize(6);
+    octave_argv[0]=const_cast<char*>("embedded");
+    octave_argv[1]=const_cast<char*>("--no-history");
+    octave_argv[2]=const_cast<char*>("--no-init-file");
+    octave_argv[3]=const_cast<char*>("--no-line-editing");
+    octave_argv[4]=const_cast<char*>("--no-window-system");
+    octave_argv[5]=const_cast<char*>("--silent");
+    octave_main(6, &octave_argv[0], 1);
+  
+    // set some global octave config
+    octave_value_list warnArg;
+    warnArg.append("error");
+    warnArg.append("Octave:divide-by-zero");
+    feval("warning", warnArg);
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
+
+    // remove the default oct serach path ...
+    // (first get octave octfiledir without octave_prefix)
+    bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
+    { // print no warning, path may not exist
+      BLOCK_STDERR;
+      feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
+    }
+
+    // ... and add .../[bin|lib] to octave search path (their we push all oct files)
+    string dir=(MBXMLUtils::getInstallPath()/"lib").string(CODECVT);
+    feval("addpath", octave_value_list(octave_value(dir)));
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
+
+    // ... and add .../bin to octave search path (their we push all oct files)
+    dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
+    feval("addpath", octave_value_list(octave_value(dir)));
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
+
+    // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
+    dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
+    feval("addpath", octave_value_list(octave_value(dir)));
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
+
+    // load casadi
+    {
+      BLOCK_STDERR;
+      casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
+      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
+    }
+  }
+  // print error to cerr since this excluding may not be catched since its run pre-main
+  catch(const std::exception& ex) {
+    cerr<<"Exception: "<<ex.what()<<endl;
+    throw;
+  }
+  catch(...) {
+    cerr<<"Exception: Unknown exception."<<endl;
+    throw;
+  }
+}
+
+OctInit::~OctInit() {
+  try {
+    casadiValue.reset();
+    //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
+    int dummy;
+    eval_string("1+1;", true, dummy, 0); // eval as statement list
+
+    // cleanup ocatve, but do NOT call ::exit
+    octave_exit=NULL; // do not call ::exit
+    clean_up_and_exit(0);
+  }
+  // print error to cerr since this excluding may not be catched since its run pre-main
+  catch(const std::exception& ex) {
+    cerr<<"Exception: "<<ex.what()<<endl;
+    throw;
+  }
+  catch(...) {
+    cerr<<"Exception: Unknown exception."<<endl;
+    throw;
+  }
+}
+
+OctInit octInit; // init octave on library load and deinit on library unload = program end
+
 inline shared_ptr<octave_value> C(const shared_ptr<void> &value) {
   return static_pointer_cast<octave_value>(value);
 }
@@ -196,107 +303,26 @@ shared_ptr<void> OctEval::createSwigByTypeName(const string &name) const {
   return C(C(casadiValue)->subsref(".(", idx));
 }
 
-int OctEval::initCount=0;
 string OctEval::initialPath;
 string OctEval::pathSep;
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
-  initCount++;
-  if(initCount==1) {
-    try {
-      // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
-      bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
-      if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
-        octave_prefix=getenv("OCTAVE_HOME");
-      else if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
-        // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
-        octave_prefix=MBXMLUtils::getInstallPath();
-        // the string for putenv must have program life time
-        static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
-        putenv((char*)OCTAVE_HOME.c_str());
-      }
-
-      // initialize octave
-      static vector<char*> octave_argv;
-      octave_argv.resize(6);
-      octave_argv[0]=const_cast<char*>("embedded");
-      octave_argv[1]=const_cast<char*>("--no-history");
-      octave_argv[2]=const_cast<char*>("--no-init-file");
-      octave_argv[3]=const_cast<char*>("--no-line-editing");
-      octave_argv[4]=const_cast<char*>("--no-window-system");
-      octave_argv[5]=const_cast<char*>("--silent");
-      octave_main(6, &octave_argv[0], 1);
-  
-      // set some global octave config
-      octave_value_list warnArg;
-      warnArg.append("error");
-      warnArg.append("Octave:divide-by-zero");
-      feval("warning", warnArg);
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
-
-      if(pathSep.empty()) {
-        octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
-          "Internal error: Unable to get the path seperator")(0);
-        pathSep=ret.string_value();
-      }
-
-      // remove the default oct serach path ...
-      // (first get octave octfiledir without octave_prefix)
-      bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
-      { // print no warning, path may not exist
-        BLOCK_STDERR;
-        feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
-      }
-
-      // ... and add .../[bin|lib] to octave search path (their we push all oct files)
-      string dir=(MBXMLUtils::getInstallPath()/"lib").string(CODECVT);
-      feval("addpath", octave_value_list(octave_value(dir)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-      // ... and add .../bin to octave search path (their we push all oct files)
-      dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
-      feval("addpath", octave_value_list(octave_value(dir)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-      // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
-      dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
-      feval("addpath", octave_value_list(octave_value(dir)));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-      // save initial octave search path
-      initialPath=feval("path", octave_value_list(), 1)(0).string_value();
-
-      // load casadi
-      {
-        BLOCK_STDERR;
-        casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
-        if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
-      }
-    }
-    catch(...) {
-      deinitOctave();
-      throw;
-    }
+  if(pathSep.empty()) {
+    octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
+      "Internal error: Unable to get the path seperator")(0);
+    pathSep=ret.string_value();
   }
+
+  // save initial octave search path
+  if(initialPath.empty())
+    initialPath=feval("path", octave_value_list(), 1)(0).string_value();
+
+  casadiValue=octInit.getCasadiValue();
+
   currentImport=make_shared<string>(initialPath);
 };
 
 OctEval::~OctEval() {
-  deinitOctave();
-}
-
-void OctEval::deinitOctave() {
-  initCount--;
-  if(initCount==0) {
-    casadiValue.reset();
-    //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
-    int dummy;
-    eval_string("1+1;", true, dummy, 0); // eval as statement list
-
-    // cleanup ocatve, but do NOT call ::exit
-    octave_exit=NULL; // do not call ::exit
-    clean_up_and_exit(0);
-  }
 }
 
 void OctEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
