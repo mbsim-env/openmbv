@@ -75,10 +75,9 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
 
   // load the evaluator plugin named evalName
   msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
-  static set<SharedLibrary> evalPlugin;
   static const bfs::path installDir(getInstallPath());
   try {
-    evalPlugin.insert(SharedLibrary((installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT)).string()));
+    SharedLibrary::load(canonical(installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT)).string());
   }
   catch(const std::exception &ex) {
     throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"

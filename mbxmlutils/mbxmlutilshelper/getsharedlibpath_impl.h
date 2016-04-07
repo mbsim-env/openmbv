@@ -31,6 +31,7 @@
 #  error "MBXMLUTILS_SHAREDLIBNAME must be defined before including this implementation file."
 #endif
 
+#include <boost/preprocessor/cat.hpp>
 #ifdef _WIN32
 #  include <windows.h>
 #else

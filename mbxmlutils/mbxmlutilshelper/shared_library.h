@@ -31,80 +31,18 @@
 #define _MBXMLUTILS_SHAREDLIBRARY_H_
 
 #include <string>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include "last_write_time.h"
-#include <boost/lexical_cast.hpp>
+#include <map>
+#include <stdexcept>
 #ifdef _WIN32
 #  include <windows.h>
+#  include <boost/lexical_cast.hpp>
 #else
 #  include <dlfcn.h>
 #endif
 
-namespace MBXMLUtils {
+namespace {
 
-class SharedLibrary {
-  public:
-    inline SharedLibrary(const std::string &file_);
-    inline SharedLibrary(const SharedLibrary& src);
-    inline ~SharedLibrary();
-    template<typename T>
-    inline T getSymbol(const std::string &symbolName);
-    const std::string file;
-    const boost::posix_time::ptime writeTime;
-    inline bool operator<(const SharedLibrary& b) const { return file<b.file; }
-  private:
-    inline std::string getLastError();
-    inline void init();
-#ifndef _WIN32
-    void* handle;
-#else
-    HMODULE handle;
-#endif
-};
-
-template<typename T>
-T SharedLibrary::getSymbol(const std::string &symbolName) {
-#ifndef _WIN32
-  void *addr=dlsym(handle, symbolName.c_str());
-#else
-  void *addr=reinterpret_cast<void*>(GetProcAddress(handle, symbolName.c_str()));
-#endif
-  if(!addr)
-    throw std::runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
-                             file+"': "+getLastError());
-  return reinterpret_cast<T>(addr);
-}
-
-SharedLibrary::SharedLibrary(const std::string &file_) : file(file_),
-  writeTime(boost::myfilesystem::last_write_time(file)) {
-  init();
-}
-
-SharedLibrary::SharedLibrary(const SharedLibrary& src) : file(src.file), writeTime(src.writeTime) {
-  init();
-}
-
-void SharedLibrary::init() {
-#ifndef _WIN32
-  handle=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
-#else
-  std::string fileWinSep=file;
-  replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
-  handle=LoadLibraryEx(fileWinSep.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-#endif
-  if(!handle)
-    throw std::runtime_error("Unable to load the library '"+file+"': "+getLastError());
-}
-
-SharedLibrary::~SharedLibrary() {
-#ifndef _WIN32
-  dlclose(handle);
-#else
-  FreeLibrary(handle);
-#endif
-}
-
-std::string SharedLibrary::getLastError() {
+inline std::string getLastError() {
 #ifndef _WIN32
   const char *err=dlerror();
   return err?err:"";
@@ -113,6 +51,54 @@ std::string SharedLibrary::getLastError() {
 #endif
 }
 
+}
+
+namespace MBXMLUtils {
+namespace SharedLibrary {
+
+#ifndef _WIN32
+  typedef void* Handle;
+#else
+  typedef HMODULE Handle;
+#endif
+
+// Load the libary file, if not already loaded.
+// Unloads the library only at program exit!!!
+// file should be a canonical path.
+Handle load(const std::string &file) {
+  static std::map<std::string, Handle> library;
+  std::pair<std::map<std::string, Handle>::iterator, bool> res=library.insert(std::pair<std::string, Handle>(file, NULL));
+  if(res.second) {
+#ifndef _WIN32
+    res.first->second=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND | RTLD_NODELETE);
+#else
+    std::string fileWinSep=file;
+    replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
+    res.first->second=LoadLibraryEx(fileWinSep.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+#endif
+    if(!res.first->second)
+      throw std::runtime_error("Unable to load the library '"+file+"': "+getLastError());
+  }
+  return res.first->second;
+}
+
+// Load the libary file, if not already loaded and return the symbol symbolName.
+// Unloads the library only at program exit!!!
+template<typename T> 
+inline T getSymbol(const std::string &file, const std::string &symbolName) {
+  Handle h=load(file);
+#ifndef _WIN32
+  void *addr=dlsym(h, symbolName.c_str());
+#else
+  void *addr=reinterpret_cast<void*>(GetProcAddress(h, symbolName.c_str()));
+#endif
+  if(!addr)
+    throw std::runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
+                             file+"': "+getLastError());
+  return reinterpret_cast<T>(addr);
+}
+
+}
 }
 
 #endif
