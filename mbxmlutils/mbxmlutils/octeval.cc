@@ -145,7 +145,10 @@ OctInit::OctInit() {
     octave_argv[3]=const_cast<char*>("--no-line-editing");
     octave_argv[4]=const_cast<char*>("--no-window-system");
     octave_argv[5]=const_cast<char*>("--silent");
-    octave_main(6, &octave_argv[0], 1);
+    {                                                                  
+      BLOCK_STDERR;                                                    
+      octave_main(6, &octave_argv[0], 1);                              
+    }    
   
     // set some global octave config
     octave_value_list warnArg;
@@ -565,6 +568,8 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   // octave oct-files are copied to $FMU/resources/local/$LIBDIR since their are also all dependent libraries
   // installed (and are found their due to Linux rpath or Windows alternate search order flag).
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR); srcIt!=bfs::directory_iterator(); ++srcIt) {
+    if(srcIt->path().filename()=="OpenMBV.oct") // skip OpenMBV.oct
+      continue;
     if(srcIt->path().extension()==".oct")
       files[srcIt->path()]=make_pair(LIBDIR, true);
     if(srcIt->path().filename()=="PKG_ADD")
