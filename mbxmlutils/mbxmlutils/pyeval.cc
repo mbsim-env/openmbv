@@ -73,13 +73,13 @@ PyInit::PyInit() {
     numpy=CALLPY(PyImport_ImportModule, "numpy");
     casadiValue=CALLPY(PyImport_ImportModule, "casadi");
   }
-  // print error to cerr since this excluding may not be catched since its run pre-main
+  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception: "<<ex.what()<<endl;
+    cerr<<"Exception during Python initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Exception: Unknown exception."<<endl;
+    cerr<<"Unknown exception during Python initialization."<<endl;
     throw;
   }
 }
@@ -88,13 +88,13 @@ PyInit::~PyInit() {
   try {
     Py_Finalize();
   }
-  // print error to cerr since this excluding may not be catched since its run pre-main
+  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception: "<<ex.what()<<endl;
+    cerr<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Exception: Unknown exception."<<endl;
+    cerr<<"Unknown exception during Python deinitialization."<<endl;
     throw;
   }
 }

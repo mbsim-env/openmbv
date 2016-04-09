@@ -124,6 +124,8 @@ class OctInit {
 
 OctInit::OctInit() {
   try {
+    BLOCK_STDERR; // to avoid some warnings during octave initialization
+
     // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
     bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
@@ -145,10 +147,7 @@ OctInit::OctInit() {
     octave_argv[3]=const_cast<char*>("--no-line-editing");
     octave_argv[4]=const_cast<char*>("--no-window-system");
     octave_argv[5]=const_cast<char*>("--silent");
-    {                                                                  
-      BLOCK_STDERR;                                                    
-      octave_main(6, &octave_argv[0], 1);                              
-    }    
+    octave_main(6, &octave_argv[0], 1);                              
   
     // set some global octave config
     octave_value_list warnArg;
@@ -160,18 +159,11 @@ OctInit::OctInit() {
     // remove the default oct serach path ...
     // (first get octave octfiledir without octave_prefix)
     bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
-    { // print no warning, path may not exist
-      BLOCK_STDERR;
-      feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
-    }
+    feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
+    // no error checking here, path may not exist
 
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
-    string dir=(MBXMLUtils::getInstallPath()/"lib").string(CODECVT);
-    feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-    // ... and add .../bin to octave search path (their we push all oct files)
-    dir=(MBXMLUtils::getInstallPath()/"bin").string(CODECVT);
+    string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
@@ -181,41 +173,40 @@ OctInit::OctInit() {
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
     // load casadi
-    {
-      BLOCK_STDERR;
-      casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
-      if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
-    }
+    casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
   }
-  // print error to cerr since this excluding may not be catched since its run pre-main
+  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception: "<<ex.what()<<endl;
+    cerr<<"Exception during octave initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Exception: Unknown exception."<<endl;
+    cerr<<"Unknown exception during octave initialization."<<endl;
     throw;
   }
 }
 
 OctInit::~OctInit() {
   try {
+    BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
+
     casadiValue.reset();
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
     eval_string("1+1;", true, dummy, 0); // eval as statement list
 
-    // cleanup ocatve, but do NOT call ::exit
-    octave_exit=NULL; // do not call ::exit
+    // cleanup ocatve, but do NOT call ::exit, we are already exicting the program
+    octave_exit=NULL;
     clean_up_and_exit(0);
   }
-  // print error to cerr since this excluding may not be catched since its run pre-main
+  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception: "<<ex.what()<<endl;
+    cerr<<"Exception during octave deinitialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Exception: Unknown exception."<<endl;
+    cerr<<"Unknown exception during octave deinitialization."<<endl;
     throw;
   }
 }
