@@ -305,7 +305,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      */
     virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args) const=0;
 
-    static boost::shared_ptr<void> casadiValue;
+    boost::shared_ptr<void> casadiValue;
 
     //! evaluate the string str using the current parameters and return the result.
     virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;

@@ -39,9 +39,6 @@ double arrayScalarGetDouble(PyObject *o);
 
 namespace MBXMLUtils {
 
-PyO PyEval::mbxmlutils;
-PyO PyEval::numpy;
-
 XMLUTILS_EVAL_REGISTER(PyEval)
 
 // Helper class to init/deinit Python on library load/unload (unload=program end)
@@ -49,13 +46,10 @@ class PyInit {
   public:
     PyInit();
     ~PyInit();
-    PyO& getMBXMLUtils() { return mbxmlutils; }
-    PyO& getNumPy() { return numpy; }
-    PyO& getCasadiValue() { return casadiValue; }
-  private:
     PyO mbxmlutils;
-    PyO numpy;
     PyO casadiValue;
+    map<string, PyO> functionValue;
+    PyO asarray;
 };
 
 PyInit::PyInit() {
@@ -70,8 +64,11 @@ PyInit::PyInit() {
     CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
-    numpy=CALLPY(PyImport_ImportModule, "numpy");
+
     casadiValue=CALLPY(PyImport_ImportModule, "casadi");
+
+    PyO numpy=CALLPY(PyImport_ImportModule, "numpy");
+    asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
@@ -86,6 +83,12 @@ PyInit::PyInit() {
 
 PyInit::~PyInit() {
   try {
+    // clear all Python object before deinit
+    asarray.reset();
+    functionValue.clear();
+    casadiValue.reset();
+    mbxmlutils.reset();
+    // deinit pyhton
     Py_Finalize();
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
@@ -102,10 +105,7 @@ PyInit::~PyInit() {
 PyInit pyInit; // init Python on library load and deinit on library unload = program end
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  mbxmlutils=pyInit.getMBXMLUtils();
-  numpy=pyInit.getNumPy();
-  casadiValue=pyInit.getCasadiValue();
-
+  casadiValue=pyInit.casadiValue;
   currentImport=CALLPY(PyDict_New);
 }
 
@@ -161,10 +161,9 @@ shared_ptr<void> PyEval::createSwigByTypeName(const string &typeName) const {
 }
 
 shared_ptr<void> PyEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
-  static map<string, PyO> functionValue;
-  pair<map<string, PyO>::iterator, bool> f=functionValue.insert(make_pair(name, PyO()));
+  pair<map<string, PyO>::iterator, bool> f=pyInit.functionValue.insert(make_pair(name, PyO()));
   if(f.second)
-    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, mbxmlutils), name);
+    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit.mbxmlutils), name);
   PyO pyargs=CALLPY(PyTuple_New, args.size());
   int idx=0;
   for(vector<shared_ptr<void> >::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
@@ -256,10 +255,9 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   }
   // convert a list or list of lists to a numpy array
   if(CALLPY(PyList_Check, ret)) {
-    static PyO asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
     PyO args=CALLPY(PyTuple_New, 1);
     CALLPY(PyTuple_SetItem, args, 0, ret); PyIncRef(ret); // PyTuple_SetItem steals a reference of ret
-    return CALLPY(PyObject_CallObject, asarray, args);
+    return CALLPY(PyObject_CallObject, pyInit.asarray, args);
   }
   // return result
   return ret;

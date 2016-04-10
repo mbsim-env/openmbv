@@ -63,10 +63,6 @@ class OctEval : public Eval {
 
     boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const;
 
-    // initial path
-    static std::string initialPath;
-    static std::string pathSep;
-
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
 

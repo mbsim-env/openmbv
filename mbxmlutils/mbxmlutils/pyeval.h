@@ -37,9 +37,6 @@ class PyEval : public Eval {
     virtual boost::shared_ptr<void>          create_vector_double       (const std::vector<double>& v) const;
     virtual boost::shared_ptr<void>          create_vector_vector_double(const std::vector<std::vector<double> >& v) const;
     virtual boost::shared_ptr<void>          create_string              (const std::string& v) const;
-
-    static PythonCpp::PyO mbxmlutils;
-    static PythonCpp::PyO numpy;
 };
 
 }

@@ -117,9 +117,8 @@ class OctInit {
   public:
     OctInit();
     ~OctInit();
-    shared_ptr<octave_value>& getCasadiValue() { return casadiValue; }
-  private:
     shared_ptr<octave_value> casadiValue;
+    string initialPath;
 };
 
 OctInit::OctInit() {
@@ -175,6 +174,10 @@ OctInit::OctInit() {
     // load casadi
     casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
+
+    // save initial octave search path
+    initialPath=feval("path", octave_value_list(), 1)(0).string_value();
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
@@ -191,6 +194,7 @@ OctInit::~OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
 
+    // clear all octave variables before deinit
     casadiValue.reset();
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
@@ -297,23 +301,9 @@ shared_ptr<void> OctEval::createSwigByTypeName(const string &name) const {
   return C(C(casadiValue)->subsref(".(", idx));
 }
 
-string OctEval::initialPath;
-string OctEval::pathSep;
-
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
-  if(pathSep.empty()) {
-    octave_value ret=fevalThrow(symbol_table::find_function("pathsep").function_value(), octave_value_list(), 1,
-      "Internal error: Unable to get the path seperator")(0);
-    pathSep=ret.string_value();
-  }
-
-  // save initial octave search path
-  if(initialPath.empty())
-    initialPath=feval("path", octave_value_list(), 1)(0).string_value();
-
-  casadiValue=octInit.getCasadiValue();
-
-  currentImport=make_shared<string>(initialPath);
+  casadiValue=octInit.casadiValue;
+  currentImport=make_shared<string>(octInit.initialPath);
 };
 
 OctEval::~OctEval() {

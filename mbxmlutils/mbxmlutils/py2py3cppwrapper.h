@@ -323,21 +323,19 @@ const char* PythonException::what() const throw() {
   PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
   if(!savedstderr)
     throw std::runtime_error("Internal error: no sys.stderr available.");
-  static PyObject *fileIO=NULL;
-  if(!fileIO) {
-    PyObject *io=PyImport_ImportModule("io");
-    if(!io)
-      throw std::runtime_error("Internal error: cannot load io module.");
+  PyObject *io=PyImport_ImportModule("io");
+  if(!io)
+    throw std::runtime_error("Internal error: cannot load io module.");
 #if PY_MAJOR_VERSION < 3
-    fileIO=PyObject_GetAttrString(io, "BytesIO"); // sys.stderr is a file is bytes mode
+  PyObject *fileIO=PyObject_GetAttrString(io, "BytesIO"); // sys.stderr is a file is bytes mode
 #else
-    fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
+  PyObject *fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
 #endif
-    if(!fileIO)
-      throw std::runtime_error("Internal error: cannot get in memory file class.");
-    Py_DECREF(io);
-  }
+  if(!fileIO)
+    throw std::runtime_error("Internal error: cannot get in memory file class.");
+  Py_DECREF(io);
   PyObject *buf=PyObject_CallObject(fileIO, NULL);
+  Py_DECREF(fileIO);
   if(!buf)
     throw std::runtime_error("Internal error: cannot create new in memory file instance");
   if(PySys_SetObject(const_cast<char*>("stderr"), buf)!=0)

@@ -45,8 +45,6 @@ NewParamLevel::~NewParamLevel() {
 template<> string SwigType<SX        *>::name("SX"        );
 template<> string SwigType<SXFunction*>::name("SXFunction");
 
-shared_ptr<void> Eval::casadiValue;
-
 map<string, string> Eval::units;
 
 Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
