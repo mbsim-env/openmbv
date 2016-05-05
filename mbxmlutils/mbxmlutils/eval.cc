@@ -123,6 +123,11 @@ vector<double> Eval::cast<vector<double> >(const shared_ptr<void> &value) const 
 }
 
 template<>
+SX Eval::cast<SX>(const shared_ptr<void> &value) const {
+  return cast_SX(value);
+}
+
+template<>
 vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<void> &value) const {
   return cast_vector_vector_double(value);
 }
@@ -253,7 +258,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
         SX Mele;
-        try { Mele=*cast<SX*>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
+        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M.elem(i,0)=Mele.elem(0,0);
       }
@@ -289,7 +294,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
           SX Mele;
-          try { Mele=*cast<SX*>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
+          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M.elem(i,0)=Mele.elem(0,0);
         }
@@ -335,7 +340,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     else {
       shared_ptr<void> func=createSwig<SXFunction*>();
       try {
-        SXFunction f(inputs, *cast<SX*>(ret));
+        SXFunction f(inputs, cast<SX>(ret));
         cast<SXFunction*>(func)->assignNode(f.get());
       } MBXMLUTILS_RETHROW(e)
       return func;
@@ -599,6 +604,27 @@ int Eval::cast_int(const shared_ptr<void> &value) const {
   if(delta>eps*i && delta>eps)
     throw DOMEvalException("Canot cast this value to int.");
   return i;
+}
+
+SX Eval::cast_SX(const shared_ptr<void> &value) const {
+  // try to cast to SX*. If this works return just a copy of it
+  try {
+    return *cast<SX*>(value);
+  }
+  catch(const DOMEvalException &ex) {}
+  // try to cast to vector<vector<double> >. If this works convert it to SX
+  try {
+    vector<vector<double> > m=cast<vector<vector<double> > >(value);
+    SX M;
+    M.resize(m.size(), m[0].size());
+    for(int r=0; r<m.size(); ++r)
+      for(int c=0; c<m[r].size(); ++c)
+        M.elem(r,c)=m[r][c];
+    return M;
+  }
+  catch(const DOMEvalException &ex) {}
+  // if this also fails -> error
+  throw DOMEvalException("Cannot cast this value to SX");
 }
 
 void Eval::addStaticDependencies(const DOMElement *e) const {

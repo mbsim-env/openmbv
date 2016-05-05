@@ -131,13 +131,13 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
      * following table. If a combination is not allowed a exception is thrown.
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the object
-     * \p value being passed as argument.
+     * \p value being passed as argument. This pointer is a reference to the value \p value in the interpreter.
      * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
      * return types this function must be called with only one argument cast(const boost::shared_ptr<void> &value);
      * <table>
      *   <tr>
      *     <th></th>
-     *     <th colspan="6"><tt>value</tt> is of Type ...</th>
+     *     <th colspan="7"><tt>value</tt> is of Type ...</th>
      *   </tr>
      *   <tr>
      *     <th>Template Type <tt>T</tt> equals ...</th>
@@ -145,6 +145,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <th>real vector</th>
      *     <th>real matrix</th>
      *     <th>string</th>
+     *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
      *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
@@ -155,6 +156,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -164,6 +166,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -173,6 +176,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td>X</td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -182,6 +186,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td>X</td>
      *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -191,6 +196,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td>X</td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -200,6 +206,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td>returns e.g. <code>[3;7]</code></td>
      *     <!--matrix-->     <td>returns e.g. <code>[1,3;5,4]</code></td>
      *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -209,7 +216,28 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td>X</td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>casadi::SX</tt></th>
+     *     <!--scalar-->     <td>X</td>
+     *     <!--vector-->     <td>X</td>
+     *     <!--matrix-->     <td>X</td>
+     *     <!--string-->     <td></td>
+     *     <!--SX-->         <td>X</td>
+     *     <!--SXFunction--> <td></td>
+     *     <!--XYZ-->        <td></td>
+     *   </tr>
+     *   <tr>
+     *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
+     *     <!--scalar-->     <td></td>
+     *     <!--vector-->     <td></td>
+     *     <!--matrix-->     <td></td>
+     *     <!--string-->     <td></td>
+     *     <!--SX-->         <td>X</td>
+     *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -218,6 +246,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
@@ -227,13 +256,14 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
+     *     <!--SX-->         <td></td>
      *     <!--SXFunction--> <td></td>
      *     <!--XYZ-->        <td>*</td>
      *   </tr>
      * </table>
      * For arbitary evaluator values of type SWIG wrapper object (see * in table) a instantiation of
      * <code>template<> string SwigType<XYZ*>::name("<swig_type_name_of_XYZ>");</code>
-     * is required. Eval instantiates this for casadi::SX and casadi::SXFunction.
+     * is required.
      */
     template<typename T>
     T cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
@@ -334,6 +364,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     // spezialization of cast(const boost::shared_ptr<void> &value)
     CodeString          cast_CodeString  (const boost::shared_ptr<void> &value) const;
     int                 cast_int         (const boost::shared_ptr<void> &value) const;
+    casadi::SX          cast_SX          (const boost::shared_ptr<void> &value) const;
 
     // spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
     xercesc::DOMElement* cast_DOMElement_p(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
@@ -371,6 +402,7 @@ template<> double Eval::cast<double>(const boost::shared_ptr<void> &value) const
 template<> int Eval::cast<int>(const boost::shared_ptr<void> &value) const;
 template<> std::vector<double> Eval::cast<std::vector<double> >(const boost::shared_ptr<void> &value) const;
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const boost::shared_ptr<void> &value) const;
+template<> casadi::SX Eval::cast<casadi::SX>(const boost::shared_ptr<void> &value) const;
 
 // no template definition, only this spezialization
 template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
