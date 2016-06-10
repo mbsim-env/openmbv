@@ -35,6 +35,7 @@
 #include "ivbody.h"
 #include "mainwindow.h"
 #include "nurbsdisk.h"
+#include "indexedfaceset.h"
 #include "path.h"
 #include "sphere.h"
 #include "spineextrusion.h"
@@ -73,6 +74,8 @@ Object *ObjectFactory::create(const boost::shared_ptr<OpenMBV::Object> &obj, QTr
     return new InvisibleBody(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="NurbsDisk")
     return new NurbsDisk(obj, parentItem, soParent, ind);
+  else if(obj->getClassName()=="IndexedFaceSet")
+    return new IndexedFaceSet(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Path")
     return new Path(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Sphere")

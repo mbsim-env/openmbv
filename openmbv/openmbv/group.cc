@@ -31,6 +31,7 @@
 #include "openmbvcppinterface/arrow.h"
 #include "openmbvcppinterface/coilspring.h"
 #include "openmbvcppinterface/nurbsdisk.h"
+#include "openmbvcppinterface/indexedfaceset.h"
 #include "openmbvcppinterface/compoundrigidbody.h"
 #include "openmbvcppinterface/cube.h"
 #include "openmbvcppinterface/cuboid.h"
@@ -129,6 +130,7 @@ void Group::newObjectSlot() {
     (Utils::FactoryElement(Utils::QIconCached("arrow.svg"),             "Arrow",             Utils::factory<OpenMBV::Arrow>()))
     (Utils::FactoryElement(Utils::QIconCached("coilspring.svg"),        "CoilSpring",        Utils::factory<OpenMBV::CoilSpring>()))
     (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "NurbsDisk",         Utils::factory<OpenMBV::NurbsDisk>()))
+    (Utils::FactoryElement(Utils::QIconCached("indexedfaceset.svg"),    "IndexedFaceSet",    Utils::factory<OpenMBV::IndexedFaceSet>()))
     (Utils::FactoryElement(Utils::QIconCached("compoundrigidbody.svg"), "CompoundRigidBody", Utils::factory<OpenMBV::CompoundRigidBody>()))
     (Utils::FactoryElement(Utils::QIconCached("cube.svg"),              "Cube",              Utils::factory<OpenMBV::Cube>()))
     (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),            "Cuboid",            Utils::factory<OpenMBV::Cuboid>()))

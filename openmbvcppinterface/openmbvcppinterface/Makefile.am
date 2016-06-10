@@ -30,7 +30,8 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   ivbody.cc \
   cuboid.cc \
   spineextrusion.cc \
-  nurbsdisk.cc
+  nurbsdisk.cc \
+  indexedfaceset.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
@@ -56,4 +57,5 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   ivbody.h \
   cuboid.h \
   spineextrusion.h \
-  nurbsdisk.h
+  nurbsdisk.h \
+  indexedfaceset.h

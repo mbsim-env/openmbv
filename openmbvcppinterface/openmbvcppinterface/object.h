@@ -113,6 +113,7 @@ namespace OpenMBV {
       static double getDouble(xercesc::DOMElement *e);
       static std::vector<double> getVec(xercesc::DOMElement *e, unsigned int rows=0);
       static std::vector<std::vector<double> > getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);
+      static std::vector<int> getIntVec(xercesc::DOMElement *e, unsigned int rows=0);
 
       static std::string numtostr(int i) { std::ostringstream oss; oss << i; return oss.str(); }
       static std::string numtostr(double d) { std::ostringstream oss; oss << d; return oss.str(); } 
@@ -129,6 +130,7 @@ namespace OpenMBV {
       static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def);
       static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const std::vector<double> &value);
       static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const std::vector<std::vector<double> > &value);
+      static void addElementText(xercesc::DOMElement *parent, const MBXMLUtils::FQN &name, const std::vector<int> &value);
 
       template <class T>
       static void addAttribute(xercesc::DOMNode *node, std::string name, T value) {
@@ -148,6 +150,8 @@ namespace OpenMBV {
     protected:
       static std::vector<double> toVector(std::string str);
       static std::vector<std::vector<double> > toMatrix(std::string str);
+      static std::vector<int> toIntVector(std::string str);
+      static std::vector<std::vector<int> > toIntMatrix(std::string str);
   };
 
 }
