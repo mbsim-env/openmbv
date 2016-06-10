@@ -149,14 +149,17 @@ AC_SUBST([PYTHON_SHEXT], [$pythonshext])
 dnl Check for java
 AC_ARG_WITH([javapath],  [  --with-javapath=PATH   The path to the java program.],  [javapath="$withval"],[javapath=""])
 AC_ARG_WITH([javac], [  --with-javac=PATH  The java bytecode compiler.], [javac="$withval"],[javac="no"])
-AC_ARG_WITH([javajnicflags],[  --with-javajnicflags=FLAGS  c-Compile flags for java JNI (e.g -I...)], [javajnicflags="$withval"],[javajnicflags=""])
+AC_ARG_WITH([javajniosdir],[  --with-javajniosdir=DIR  Directory where the OS specific jni header (jni_md.h) is located. 
+If not given the linux subdir of jni.h is used.], [javajniosdir="$withval"],[javajniosdir=""])
 AC_PATH_PROG([java], [java], [no],[${javapath:-$PATH}])
 if test "_$javac" == "_no"; then
   AC_PATH_PROG([javac],[javac],[no],[$PATH])
 fi
 AC_SUBST([JAVA], [$java])
 AC_SUBST([JAVAC], [$javac])
-AC_SUBST([JAVA_JNICFLAGS], [$javajnicflags])
+javajnidir=$(dirname $(readlink -e $javac))/../include
+javajniosdir="${javajniosdir:-$javajnidir/linux}"
+AC_SUBST([JAVA_JNICFLAGS], ["-I$javajnidir -I$javajniosdir"])
 AM_CONDITIONAL([COND_JAVA], [test "_$java" != "_no" -a "_$javac" != "_no"])
 
 dnl Check for doxygen
