@@ -14,20 +14,20 @@ class Preprocess : virtual public fmatvec::Atom {
   protected:
     typedef std::map<FQN, int> PositionMap;
   public:
-    typedef std::vector<std::pair<std::string, boost::shared_ptr<void> > > ParamSet;
+    typedef std::vector<std::pair<std::string, std::shared_ptr<void> > > ParamSet;
     typedef std::unordered_map<std::string, ParamSet> XPathParamSet;
-    static void preprocess(boost::shared_ptr<MBXMLUtils::DOMParser> parser, // in: parser used to parse XML documents
-                           const boost::shared_ptr<Eval> &eval, // in: evaluator used for evaluation
+    static void preprocess(std::shared_ptr<MBXMLUtils::DOMParser> parser, // in: parser used to parse XML documents
+                           const std::shared_ptr<Eval> &eval, // in: evaluator used for evaluation
                            std::vector<boost::filesystem::path> &dependencies, // out: list of dependent files
                            xercesc::DOMElement *&e, // in: element to process; out: e changes only if e is itself a Embed element
                            // out: XPath map of top level parameter sets. Note: the XPath position is always interpreted
                            //      with a Embed count of 1!
-                           boost::shared_ptr<XPathParamSet> param=boost::shared_ptr<XPathParamSet>(),
+                           std::shared_ptr<XPathParamSet> param=std::shared_ptr<XPathParamSet>(),
 
                            // internal: XPath expression of parent element
                            const std::string &parentXPath="",
                            // internal: XPath position count of the element e
-                           boost::shared_ptr<PositionMap> position=boost::make_shared<PositionMap>()
+                           std::shared_ptr<PositionMap> position=std::make_shared<PositionMap>()
                           );
 };
 

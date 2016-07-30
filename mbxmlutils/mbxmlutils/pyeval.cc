@@ -19,7 +19,6 @@
 #include "pyeval-config.h"
 
 using namespace std;
-using namespace boost;
 using namespace boost::filesystem;
 using namespace xercesc;
 using namespace PythonCpp;
@@ -175,15 +174,15 @@ shared_ptr<void> PyEval::callFunction(const string &name, const vector<shared_pt
 
 shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
   string strtrim=str;
-  trim(strtrim);
+  boost::trim(strtrim);
 
   // check some common string to avoid time consiming evaluation
   // check true and false
   if(strtrim=="True") return CALLPY(PyBool_FromLong, 1);
   if(strtrim=="False") return CALLPY(PyBool_FromLong, 0);
   // check for integer and floating point values
-  try { return CALLPY(PyLong_FromLong, lexical_cast<int>(strtrim)); } catch(const bad_lexical_cast &) {}
-  try { return CALLPY(PyFloat_FromDouble, lexical_cast<double>(strtrim)); } catch(const bad_lexical_cast &) {}
+  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(strtrim)); } catch(const boost::bad_lexical_cast &) {}
+  try { return CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(strtrim)); } catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using python now
 
   // restore current dir on exit and change current dir
@@ -220,7 +219,7 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
 
       // fix python indentation
       vector<string> lines;
-      split(lines, str, is_any_of("\n")); // split to a vector of lines
+      boost::split(lines, str, boost::is_any_of("\n")); // split to a vector of lines
       size_t indent=string::npos;
       size_t lineNr=0;
       for(vector<string>::iterator it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
@@ -231,10 +230,10 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
         if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
         if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
           // ... if not its an indentation error
-          throw DOMEvalException("Unexpected indentation at line "+lexical_cast<string>(lineNr)+": "+str, e);
+          throw DOMEvalException("Unexpected indentation at line "+boost::lexical_cast<string>(lineNr)+": "+str, e);
         *it=it->substr(indent); // remove the first indent spaces from the line
       }
-      strtrim=join(lines, "\n"); // join the lines to a single string
+      strtrim=boost::join(lines, "\n"); // join the lines to a single string
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
@@ -291,7 +290,7 @@ string PyEval::cast_string(const shared_ptr<void> &value) const {
 }
 
 shared_ptr<void> PyEval::create_double(const double& v) const {
-  try { return CALLPY(PyLong_FromLong, lexical_cast<int>(v)); } catch(const bad_lexical_cast &) {}
+  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(v)); } catch(const boost::bad_lexical_cast &) {}
   return CALLPY(PyFloat_FromDouble, v);
 }
 

@@ -8,12 +8,7 @@
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <casadi/core/function/sx_function.hpp>
-#ifdef HAVE_UNORDERED_MAP
-#  include <unordered_map>
-#else
-#  include <map>
-#  define unordered_map map
-#endif
+#include <unordered_map>
 
 #define XMLUTILS_EVAL_CONCAT1(X, Y) X##Y
 #define XMLUTILS_EVAL_CONCAT(X, Y) XMLUTILS_EVAL_CONCAT1(X, Y)
@@ -60,21 +55,21 @@ class Eval;
 class NewParamLevel : public boost::noncopyable {
   public:
     //! Create a new parameter level in the evaluator oe_
-    NewParamLevel(const boost::shared_ptr<Eval> &oe_, bool newLevel_=true);
+    NewParamLevel(const std::shared_ptr<Eval> &oe_, bool newLevel_=true);
     //! Reset to the previous parameter level
     ~NewParamLevel();
   protected:
     static void* operator new(std::size_t); // no heap allocation allowed
     static void* operator new[](std::size_t); // no heap allocation allowed
 
-    boost::shared_ptr<Eval> oe;
+    std::shared_ptr<Eval> oe;
     bool newLevel;
 };
 
 template<class T> struct SwigType { static std::string name; };
 
 /*! Expression evaluator and converter. */
-class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopyable, virtual public fmatvec::Atom {
+class Eval : public std::enable_shared_from_this<Eval>, public boost::noncopyable, virtual public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 
@@ -96,7 +91,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     ~Eval();
 
     //! Create a evaluator.
-    static boost::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);
+    static std::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);
 
     // Register a new evaluator.
     template<class E>
@@ -108,7 +103,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     virtual std::string getName() const=0;
 
     //! Add a value to the current parameters.
-    void addParam(const std::string &paramName, const boost::shared_ptr<void>& value);
+    void addParam(const std::string &paramName, const std::shared_ptr<void>& value);
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
@@ -120,12 +115,12 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
-    boost::shared_ptr<void> eval(const xercesc::DOMElement *e);
+    std::shared_ptr<void> eval(const xercesc::DOMElement *e);
 
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    boost::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
+    std::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -133,7 +128,7 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the object
      * \p value being passed as argument. This pointer is a reference to the value \p value in the interpreter.
      * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
-     * return types this function must be called with only one argument cast(const boost::shared_ptr<void> &value);
+     * return types this function must be called with only one argument cast(const std::shared_ptr<void> &value);
      * <table>
      *   <tr>
      *     <th></th>
@@ -266,11 +261,11 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      * is required.
      */
     template<typename T>
-    T cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+    T cast(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
 
-    //! see cast(const boost::shared_ptr<void> &value, shared_ptr<DOMDocument> &doc)
+    //! see cast(const std::shared_ptr<void> &value, shared_ptr<DOMDocument> &doc)
     template<typename T>
-    T cast(const boost::shared_ptr<void> &value) const;
+    T cast(const std::shared_ptr<void> &value) const;
 
     //! check whether value is of type type.
     //! Note that true is only returned if the value is really of type type. If value can be casted
@@ -278,16 +273,16 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     //! Note that their are evaluators (e.g. octave) which cannot distinguish between e.g. a scalar,
     //! a vector of size 1 or a matrix of size 1x1. Hence, these evaluators will return true for ScalarType
     //! in all these three cases and analog for VectorType.
-    virtual bool valueIsOfType(const boost::shared_ptr<void> &value, ValueType type) const=0;
+    virtual bool valueIsOfType(const std::shared_ptr<void> &value, ValueType type) const=0;
 
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
-    boost::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
+    std::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
 
     //! create a value of the given type
     template<class T>
-    boost::shared_ptr<void> create(const T& v) const;
+    std::shared_ptr<void> create(const T& v) const;
 
     //! return a list of all required files of the evaluator (excluding dependent files of libraries)
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
@@ -305,20 +300,20 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
     std::vector<boost::filesystem::path> *dependencies;
 
     // map of the current parameters
-    std::unordered_map<std::string, boost::shared_ptr<void> > currentParam;
+    std::unordered_map<std::string, std::shared_ptr<void> > currentParam;
     // stack of parameters
-    std::stack<std::unordered_map<std::string, boost::shared_ptr<void> > > paramStack;
+    std::stack<std::unordered_map<std::string, std::shared_ptr<void> > > paramStack;
 
     // current imports
-    boost::shared_ptr<void> currentImport;
+    std::shared_ptr<void> currentImport;
     // stack of imports
-    std::stack<boost::shared_ptr<void> > importStack;
+    std::stack<std::shared_ptr<void> > importStack;
 
     template<typename T>
-    boost::shared_ptr<void> createSwig() const;
+    std::shared_ptr<void> createSwig() const;
 
     //! create a SWIG object of name typeName.
-    virtual boost::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const=0;
+    virtual std::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const=0;
 
     /*! Return the value of a call to name using the arguments args.
      * The following functions must be implemented by the evaluator:
@@ -333,85 +328,85 @@ class Eval : public boost::enable_shared_from_this<Eval>, public boost::noncopya
      *     or relative path. A relative path is interprete relative to the location of the XML file with the load
      *     statement. (The abstract Eval class guarantees that the current path is at the XML file if load is called)
      */
-    virtual boost::shared_ptr<void> callFunction(const std::string &name, const std::vector<boost::shared_ptr<void> >& args) const=0;
+    virtual std::shared_ptr<void> callFunction(const std::string &name, const std::vector<std::shared_ptr<void> >& args) const=0;
 
-    boost::shared_ptr<void> casadiValue;
+    std::shared_ptr<void> casadiValue;
 
     //! evaluate the string str using the current parameters and return the result.
-    virtual boost::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;
+    virtual std::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;
 
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e) const;
 
     template<class E>
-    static boost::shared_ptr<Eval> newEvaluator(std::vector<boost::filesystem::path>* dependencies_) {
-      return boost::shared_ptr<E>(new E(dependencies_));
+    static std::shared_ptr<Eval> newEvaluator(std::vector<boost::filesystem::path>* dependencies_) {
+      return std::shared_ptr<E>(new E(dependencies_));
     }
 
     //! get the SWIG pointer of this value.
-    virtual void* getSwigThis(const boost::shared_ptr<void> &value) const=0;
+    virtual void* getSwigThis(const std::shared_ptr<void> &value) const=0;
     //! get the SWIG type (class name) of this value.
-    virtual std::string getSwigType(const boost::shared_ptr<void> &value) const=0;
+    virtual std::string getSwigType(const std::shared_ptr<void> &value) const=0;
 
     void addStaticDependencies(const xercesc::DOMElement *e) const;
 
   private:
-    // virtual spezialization of cast(const boost::shared_ptr<void> &value)
-    virtual double                            cast_double              (const boost::shared_ptr<void> &value) const=0;
-    virtual std::vector<double>               cast_vector_double       (const boost::shared_ptr<void> &value) const=0;
-    virtual std::vector<std::vector<double> > cast_vector_vector_double(const boost::shared_ptr<void> &value) const=0;
-    virtual std::string                       cast_string              (const boost::shared_ptr<void> &value) const=0;
-    // spezialization of cast(const boost::shared_ptr<void> &value)
-    CodeString          cast_CodeString  (const boost::shared_ptr<void> &value) const;
-    int                 cast_int         (const boost::shared_ptr<void> &value) const;
-    casadi::SX          cast_SX          (const boost::shared_ptr<void> &value) const;
+    // virtual spezialization of cast(const std::shared_ptr<void> &value)
+    virtual double                            cast_double              (const std::shared_ptr<void> &value) const=0;
+    virtual std::vector<double>               cast_vector_double       (const std::shared_ptr<void> &value) const=0;
+    virtual std::vector<std::vector<double> > cast_vector_vector_double(const std::shared_ptr<void> &value) const=0;
+    virtual std::string                       cast_string              (const std::shared_ptr<void> &value) const=0;
+    // spezialization of cast(const std::shared_ptr<void> &value)
+    CodeString          cast_CodeString  (const std::shared_ptr<void> &value) const;
+    int                 cast_int         (const std::shared_ptr<void> &value) const;
+    casadi::SX          cast_SX          (const std::shared_ptr<void> &value) const;
 
-    // spezialization of cast(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc)
-    xercesc::DOMElement* cast_DOMElement_p(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+    // spezialization of cast(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc)
+    xercesc::DOMElement* cast_DOMElement_p(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
 
     // virtual spezialization of create(...)
-    virtual boost::shared_ptr<void> create_double              (const double& v) const=0;
-    virtual boost::shared_ptr<void> create_vector_double       (const std::vector<double>& v) const=0;
-    virtual boost::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
-    virtual boost::shared_ptr<void> create_string              (const std::string& v) const=0;
+    virtual std::shared_ptr<void> create_double              (const double& v) const=0;
+    virtual std::shared_ptr<void> create_vector_double       (const std::vector<double>& v) const=0;
+    virtual std::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
+    virtual std::shared_ptr<void> create_string              (const std::string& v) const=0;
 
-    boost::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const boost::shared_ptr<void> &ret);
+    std::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const std::shared_ptr<void> &ret);
 
     static std::map<std::string, std::string> units;
 
-    static std::map<std::string, boost::function<boost::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators();
+    static std::map<std::string, std::function<std::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators();
 
 };
 
 template<typename T>
-boost::shared_ptr<void> Eval::createSwig() const {
+std::shared_ptr<void> Eval::createSwig() const {
   return createSwigByTypeName(SwigType<T>::name);
 }
 
 template<typename T>
-T Eval::cast(const boost::shared_ptr<void> &value) const {
+T Eval::cast(const std::shared_ptr<void> &value) const {
   // treat all types T as a swig type
   if(getSwigType(value)!=SwigType<T>::name)
     throw DOMEvalException("This variable is not of SWIG type "+SwigType<T>::name+".");
   return static_cast<T>(getSwigThis(value));
 }
 // ... but prevere these specializations
-template<> std::string Eval::cast<std::string>(const boost::shared_ptr<void> &value) const;
-template<> CodeString Eval::cast<CodeString>(const boost::shared_ptr<void> &value) const;
-template<> double Eval::cast<double>(const boost::shared_ptr<void> &value) const;
-template<> int Eval::cast<int>(const boost::shared_ptr<void> &value) const;
-template<> std::vector<double> Eval::cast<std::vector<double> >(const boost::shared_ptr<void> &value) const;
-template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const boost::shared_ptr<void> &value) const;
-template<> casadi::SX Eval::cast<casadi::SX>(const boost::shared_ptr<void> &value) const;
+template<> std::string Eval::cast<std::string>(const std::shared_ptr<void> &value) const;
+template<> CodeString Eval::cast<CodeString>(const std::shared_ptr<void> &value) const;
+template<> double Eval::cast<double>(const std::shared_ptr<void> &value) const;
+template<> int Eval::cast<int>(const std::shared_ptr<void> &value) const;
+template<> std::vector<double> Eval::cast<std::vector<double> >(const std::shared_ptr<void> &value) const;
+template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const std::shared_ptr<void> &value) const;
+template<> casadi::SX Eval::cast<casadi::SX>(const std::shared_ptr<void> &value) const;
 
 // no template definition, only this spezialization
-template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const boost::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
 
 // spezializations for create
-template<> boost::shared_ptr<void> Eval::create<double>                            (const double& v) const;
-template<> boost::shared_ptr<void> Eval::create<std::vector<double> >              (const std::vector<double>& v) const;
-template<> boost::shared_ptr<void> Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v) const;
-template<> boost::shared_ptr<void> Eval::create<std::string>                       (const std::string& v) const;
+template<> std::shared_ptr<void> Eval::create<double>                            (const double& v) const;
+template<> std::shared_ptr<void> Eval::create<std::vector<double> >              (const std::vector<double>& v) const;
+template<> std::shared_ptr<void> Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v) const;
+template<> std::shared_ptr<void> Eval::create<std::string>                       (const std::string& v) const;
 
 } // end namespace MBXMLUtils
 

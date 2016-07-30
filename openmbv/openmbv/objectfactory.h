@@ -27,7 +27,7 @@ namespace OpenMBVGUI {
 
 class ObjectFactory : virtual public fmatvec::Atom {
   public:
-    static Object *create(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);
+    static Object *create(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind);
 };
 
 }

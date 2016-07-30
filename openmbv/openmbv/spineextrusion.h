@@ -42,7 +42,7 @@ class SpineExtrusion : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    SpineExtrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 
     /** info string in spine extrusion pop-up menu */
     virtual QString getInfo();
@@ -66,7 +66,7 @@ class SpineExtrusion : public DynamicColoredBody {
     /** additional twist because of collinear spine points */
     double additionalTwist;
 
-    boost::shared_ptr<OpenMBV::SpineExtrusion> spineExtrusion;
+    std::shared_ptr<OpenMBV::SpineExtrusion> spineExtrusion;
     void createProperties();
 };
 

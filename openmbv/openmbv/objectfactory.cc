@@ -45,7 +45,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Object *ObjectFactory::create(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
+Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
   if(obj->getClassName()=="Group")
     return new Group(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Arrow")

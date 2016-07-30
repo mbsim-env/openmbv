@@ -32,12 +32,11 @@
 #include <cfloat>
 
 using namespace std;
-using namespace boost;
 
 namespace OpenMBVGUI {
 
-Extrusion::Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  e=boost::static_pointer_cast<OpenMBV::Extrusion>(obj);
+Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  e=std::static_pointer_cast<OpenMBV::Extrusion>(obj);
   iconFile="extrusion.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

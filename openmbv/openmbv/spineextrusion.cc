@@ -25,7 +25,6 @@
 #include <cfloat>
 
 using namespace std;
-using namespace boost;
 
 namespace OpenMBVGUI {
 
@@ -89,8 +88,8 @@ static SbVec3f calculate_z_axis(const SbVec3f * spine, const int i, const int nu
   return tmp;
 }
 
-SpineExtrusion::SpineExtrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0), collinear(true), additionalTwist(0.) {
-  spineExtrusion=boost::static_pointer_cast<OpenMBV::SpineExtrusion>(obj);
+SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0), collinear(true), additionalTwist(0.) {
+  spineExtrusion=std::static_pointer_cast<OpenMBV::SpineExtrusion>(obj);
   //h5 dataset
   numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
   int rows=spineExtrusion->getRows();

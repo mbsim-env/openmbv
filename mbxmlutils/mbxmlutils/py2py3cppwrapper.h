@@ -35,7 +35,7 @@
 #include <stdexcept>
 #include <memory>
 #include <sstream>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/locale/encoding_utf.hpp>
 
 namespace PythonCpp {
@@ -157,7 +157,7 @@ inline int PyObject_TypeCheck_func(PyObject *p, PyTypeObject *type) { return PyO
 #define PyObject_TypeCheck PythonCpp::PyObject_TypeCheck_func
 
 // we use this for python object for c++ reference counting
-typedef boost::shared_ptr<PyObject> PyO;
+typedef std::shared_ptr<PyObject> PyO;
 
 // A Python error exception object.
 // Stores the file and line number of the C++ file where the error occured.

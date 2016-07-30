@@ -42,10 +42,10 @@ class DynamicColoredBody : public Body {
     void setColor(double col);
     void setHueColor(double h);
     double getColor() { return color; }
-    boost::shared_ptr<OpenMBV::DynamicColoredBody> dcb;
+    std::shared_ptr<OpenMBV::DynamicColoredBody> dcb;
     void createProperties();
   public:
-    DynamicColoredBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo();
 };
 

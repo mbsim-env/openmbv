@@ -41,7 +41,7 @@ Object::~Object() {
 }
 
 string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  boost::shared_ptr<Group> p=parent.lock();
+  std::shared_ptr<Group> p=parent.lock();
   if(p)
     return p->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   else
@@ -202,16 +202,16 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   return e;
 }
 
-boost::shared_ptr<Group> Object::getSeparateGroup() {
+std::shared_ptr<Group> Object::getSeparateGroup() {
   return parent.lock()->getSeparateGroup();
 }
 
-boost::shared_ptr<Group> Object::getTopLevelGroup() {
+std::shared_ptr<Group> Object::getTopLevelGroup() {
   return parent.lock()->getTopLevelGroup();
 }
 
 void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def) {
-  if(!(value==def || (isnan(def) && isnan(value))))
+  if(!(value==def || (std::isnan(def) && std::isnan(value))))
     addElementText(parent, name, value);
 }
 

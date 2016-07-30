@@ -29,8 +29,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Path::Path(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
-  path=boost::static_pointer_cast<OpenMBV::Path>(obj);
+Path::Path(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
+  path=std::static_pointer_cast<OpenMBV::Path>(obj);
   iconFile="path.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

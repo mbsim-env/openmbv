@@ -35,8 +35,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Frustum::Frustum(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  f=boost::static_pointer_cast<OpenMBV::Frustum>(obj);
+Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  f=std::static_pointer_cast<OpenMBV::Frustum>(obj);
   iconFile="frustum.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

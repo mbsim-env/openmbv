@@ -4,7 +4,6 @@
 #include "dom.h"
 
 using namespace std;
-using namespace boost;
 using namespace boost::filesystem;
 using namespace MBXMLUtils;
 

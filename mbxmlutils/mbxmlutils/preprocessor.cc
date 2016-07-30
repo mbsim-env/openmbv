@@ -7,7 +7,6 @@
 using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
-using namespace boost;
 using namespace boost::filesystem;
 
 path SCHEMADIR;

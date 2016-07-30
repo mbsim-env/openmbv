@@ -31,8 +31,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-IndexedFaceSet::IndexedFaceSet(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  faceset=boost::static_pointer_cast<OpenMBV::IndexedFaceSet>(obj);
+IndexedFaceSet::IndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  faceset=std::static_pointer_cast<OpenMBV::IndexedFaceSet>(obj);
   iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

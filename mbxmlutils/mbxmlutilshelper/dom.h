@@ -7,8 +7,7 @@
 #include <set>
 #include <map>
 #include <sstream>
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+#include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/type_traits/conditional.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -50,7 +49,7 @@ class X {
       if(str.empty())
         return &xercesc::chNull;
       const XMLCh *unicode=xercesc::TranscodeFromStr(reinterpret_cast<const XMLByte*>(str.c_str()), str.length(), "UTF8").adopt();
-      store.push_back(boost::shared_ptr<const XMLCh>(unicode, &releaseXMLCh));
+      store.push_back(std::shared_ptr<const XMLCh>(unicode, &releaseXMLCh));
       return unicode;
     }
     const XMLCh *operator()(const std::string &str) { return operator%(str); }
@@ -62,7 +61,7 @@ class X {
     std::string operator()(const XMLCh *unicode) { return operator%(unicode); }
     static void releaseXMLCh(const XMLCh *s) { xercesc::XMLPlatformUtils::fgMemoryManager->deallocate(const_cast<XMLCh*>(s)); }
   private:
-    std::vector<boost::shared_ptr<const XMLCh> > store;
+    std::vector<std::shared_ptr<const XMLCh> > store;
 };
 
 //! Print DOM error messages
@@ -186,7 +185,7 @@ template<typename DOMElementType>
 DOMElementWrapper<DOMElementType> E(DOMElementType *me) { return DOMElementWrapper<DOMElementType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMElementWrapper.
 template<typename DOMElementType>
-DOMElementWrapper<DOMElementType> E(boost::shared_ptr<DOMElementType> me) { return DOMElementWrapper<DOMElementType>(me.get()); }
+DOMElementWrapper<DOMElementType> E(std::shared_ptr<DOMElementType> me) { return DOMElementWrapper<DOMElementType>(me.get()); }
 
 //! Helper class for extending DOMAttr (use the function A(...)).
 template<typename DOMAttrType>
@@ -210,7 +209,7 @@ template<typename DOMAttrType>
 DOMAttrWrapper<DOMAttrType> A(DOMAttrType *me) { return DOMAttrWrapper<DOMAttrType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMAttrWrapper.
 template<typename DOMAttrType>
-DOMAttrWrapper<DOMAttrType> A(boost::shared_ptr<DOMAttrType> me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
+DOMAttrWrapper<DOMAttrType> A(std::shared_ptr<DOMAttrType> me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
 
 //! Helper class for extending DOMDocument (use the function D(...)).
 template<typename DOMDocumentType>
@@ -236,7 +235,7 @@ template<typename DOMDocumentType>
 DOMDocumentWrapper<DOMDocumentType> D(DOMDocumentType *me) { return DOMDocumentWrapper<DOMDocumentType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMDocumentWrapper.
 template<typename DOMDocumentType>
-DOMDocumentWrapper<DOMDocumentType> D(boost::shared_ptr<DOMDocumentType> me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
+DOMDocumentWrapper<DOMDocumentType> D(std::shared_ptr<DOMDocumentType> me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
 
 //! Helper class for DOMEvalException.
 //! Extension of DOMLocator with a embed count
@@ -339,11 +338,11 @@ class DOMParser {
   template<typename> friend class DOMDocumentWrapper;
   public:
     //! Create DOM parser
-    static boost::shared_ptr<DOMParser> create(bool validate);
+    static std::shared_ptr<DOMParser> create(bool validate);
     //! Load XML Schema grammar file
     void loadGrammar(const boost::filesystem::path &schemaFilename);
     //! Parse a XML document
-    boost::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
+    std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
                                                   std::vector<boost::filesystem::path> *dependencies=NULL);
     //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
@@ -354,15 +353,15 @@ class DOMParser {
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
-    boost::shared_ptr<xercesc::DOMDocument> createDocument();
+    std::shared_ptr<xercesc::DOMDocument> createDocument();
   private:
     static const std::string domParserKey;
 
     xercesc::DOMImplementation *domImpl;
     DOMParser(bool validate_);
-    boost::shared_ptr<xercesc::DOMLSParser> parser;
+    std::shared_ptr<xercesc::DOMLSParser> parser;
     bool validate;
-    boost::weak_ptr<DOMParser> me;
+    std::weak_ptr<DOMParser> me;
     std::map<FQN, xercesc::XSTypeDefinition*> typeMap;
     DOMErrorPrinter errorHandler;
     LocationInfoFilter locationFilter;

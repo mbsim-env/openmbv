@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class Frustum : public RigidBody {
   Q_OBJECT
   public:
-    Frustum(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    boost::shared_ptr<OpenMBV::Frustum> f;
+    std::shared_ptr<OpenMBV::Frustum> f;
     void createProperties();
 };
 

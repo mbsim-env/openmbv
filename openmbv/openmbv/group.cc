@@ -52,8 +52,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-Group::Group(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
-  grp=boost::static_pointer_cast<OpenMBV::Group>(obj);
+Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
+  grp=std::static_pointer_cast<OpenMBV::Group>(obj);
   iconFile="group.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -68,16 +68,16 @@ Group::Group(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     setFlags(flags() & ~Qt::ItemIsEditable);
   }
   // read XML
-  vector<boost::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
+  vector<std::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
-    if(child[i]->getClassName()=="Group" && (boost::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
+    if(child[i]->getClassName()=="Group" && (std::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
     ObjectFactory::create(child[i], this, soSep, -1);
   }
 
   // timer for reloading file automatically
   reloadTimer=NULL;
   // if reloading is enabled and this Group is a toplevel file create timer
-  boost::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
+  std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
   if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString().c_str());
     h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString().c_str());
@@ -151,7 +151,7 @@ void Group::newObjectSlot() {
   for(unsigned int j=0; j<grp->getObjects().size(); j++)
     existingNames.push_back(grp->getObjects()[j]->getName());
 
-  boost::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
+  std::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
   if(!obj) return;
 
   grp->addObject(obj);

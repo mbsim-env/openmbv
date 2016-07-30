@@ -39,7 +39,7 @@ BOOST_STATIC_ASSERT_MSG(numeric_limits<double>::has_quiet_NaN, "This platform do
 
 set<Object*> Object::objects;
 
-Object::Object(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
+Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
                properties(NULL), clone(NULL) {
   object=obj;
   objects.insert(this);

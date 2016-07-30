@@ -57,7 +57,6 @@
 
 using namespace std;
 using namespace xercesc;
-using namespace boost;
 namespace bfs=boost::filesystem;
 
 namespace {
@@ -356,8 +355,8 @@ shared_ptr<void> OctEval::fullStringToValue(const string &str, const DOMElement 
   if(str=="true") return make_shared<octave_value>(1);
   if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
-  try { return make_shared<octave_value>(lexical_cast<double>(str)); }
-  catch(const bad_lexical_cast &) {}
+  try { return make_shared<octave_value>(boost::lexical_cast<double>(str)); }
+  catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using octave now
 
   // restore current dir on exit and change current dir

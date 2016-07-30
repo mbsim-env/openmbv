@@ -23,7 +23,6 @@
 #include <Inventor/fields/SoSFRotation.h>
 
 using namespace std;
-using namespace boost;
 
 namespace OpenMBVGUI {
 

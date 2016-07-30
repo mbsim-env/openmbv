@@ -16,7 +16,6 @@
 
 using namespace OpenMBV;
 using namespace std;
-using namespace boost;
 
 void walkHierarchy(const shared_ptr<Group> &grp);
 

@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class Extrusion : public RigidBody {
   Q_OBJECT
   public:
-    Extrusion(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    boost::shared_ptr<OpenMBV::Extrusion> e;
+    std::shared_ptr<OpenMBV::Extrusion> e;
     void createProperties();
 };
 

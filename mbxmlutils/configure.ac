@@ -9,6 +9,9 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_LANG([C++])
 
+# enable C++11
+CXXFLAGS="$CXXFLAGS -std=c++11"
+
 dnl By autoscan
 AC_CHECK_FUNCS([dup2])
 AC_CHECK_FUNCS([getcwd])
@@ -22,8 +25,6 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 AC_CANONICAL_SYSTEM
-
-AC_CHECK_HEADERS([unordered_map unordered_set])
 
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],

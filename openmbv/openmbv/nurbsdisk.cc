@@ -31,8 +31,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-NurbsDisk::NurbsDisk(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
-  nurbsDisk=boost::static_pointer_cast<OpenMBV::NurbsDisk>(obj);
+NurbsDisk::NurbsDisk(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
+  nurbsDisk=std::static_pointer_cast<OpenMBV::NurbsDisk>(obj);
   //h5 dataset
   int rows=nurbsDisk->getRows();
   double dt;

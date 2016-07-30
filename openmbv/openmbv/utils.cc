@@ -20,12 +20,7 @@
 #include <config.h>
 #include "utils.h"
 #include <Inventor/nodes/SoLineSet.h>
-#ifdef HAVE_UNORDERED_MAP
-#  include <unordered_map>
-#else
-#  include <map>
-#  define unordered_map map
-#endif
+#include <unordered_map>
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include <iostream>
@@ -229,7 +224,7 @@ void Utils::tessEndCB(void) {
   }
 }
 
-boost::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryElement> &factory, const vector<string> &existingNames, const string &title) {
+std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryElement> &factory, const vector<string> &existingNames, const string &title) {
   bool exist;
   int i=0;
   string name;
@@ -272,7 +267,7 @@ boost::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<Factor
 
   bool unique;
   do {
-    if(dialog.exec()!=QDialog::Accepted) return boost::shared_ptr<OpenMBV::Object>();
+    if(dialog.exec()!=QDialog::Accepted) return std::shared_ptr<OpenMBV::Object>();
     unique=true;
     for(unsigned int j=0; j<existingNames.size(); j++)
       if(existingNames[j]==lineEdit->text().toStdString()) {
@@ -282,7 +277,7 @@ boost::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<Factor
       }
   } while(!unique);
 
-  boost::shared_ptr<OpenMBV::Object> obj=factory[cb->currentIndex()].get<2>()();
+  std::shared_ptr<OpenMBV::Object> obj=factory[cb->currentIndex()].get<2>()();
   obj->setName(lineEdit->text().toStdString());
   return obj;
 }

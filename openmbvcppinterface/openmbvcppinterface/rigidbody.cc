@@ -106,18 +106,18 @@ void RigidBody::initializeUsingXML(DOMElement *element) {
   setScaleFactor(getDouble(e));
 }
 
-boost::shared_ptr<Group> RigidBody::getSeparateGroup() {
-  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+std::shared_ptr<Group> RigidBody::getSeparateGroup() {
+  std::shared_ptr<CompoundRigidBody> c=compound.lock();
   return c?c->parent.lock()->getSeparateGroup():parent.lock()->getSeparateGroup();
 }
 
-boost::shared_ptr<Group> RigidBody::getTopLevelGroup() {
-  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+std::shared_ptr<Group> RigidBody::getTopLevelGroup() {
+  std::shared_ptr<CompoundRigidBody> c=compound.lock();
   return c?c->parent.lock()->getTopLevelGroup():parent.lock()->getTopLevelGroup();
 }
 
 string RigidBody::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  boost::shared_ptr<CompoundRigidBody> c=compound.lock();
+  std::shared_ptr<CompoundRigidBody> c=compound.lock();
   if(c)
     return c->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   else

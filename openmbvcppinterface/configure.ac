@@ -9,6 +9,9 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
 
+# enable C++11
+CXXFLAGS="$CXXFLAGS -std=c++11"
+
 dnl force strict standard conformance
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-long-long"
 if test "_$host_os" != "_mingw32"; then

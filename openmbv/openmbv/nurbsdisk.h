@@ -55,7 +55,7 @@ class NurbsDisk : public DynamicColoredBody {
   Q_OBJECT
   public:
     /** constructor */
-    NurbsDisk(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    NurbsDisk(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 
     ~NurbsDisk();
 
@@ -109,7 +109,7 @@ class NurbsDisk : public DynamicColoredBody {
     /** update method invoked at each time step */
     virtual double update();
 
-    boost::shared_ptr<OpenMBV::NurbsDisk> nurbsDisk;
+    std::shared_ptr<OpenMBV::NurbsDisk> nurbsDisk;
     void createProperties();
 
     public slots:

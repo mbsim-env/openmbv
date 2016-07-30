@@ -44,12 +44,12 @@ class Group : public Object {
   friend class Object;
   protected:
     virtual void update() {}
-    boost::shared_ptr<OpenMBV::Group> grp;
+    std::shared_ptr<OpenMBV::Group> grp;
     QTimer *reloadTimer;
     boost::posix_time::ptime xmlLastModified, h5LastModified;
     void createProperties();
   public:
-    Group(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual QString getInfo();
     void newObjectSlot();
     void saveFileSlot();

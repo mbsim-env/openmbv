@@ -28,7 +28,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-InvisibleBody::InvisibleBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+InvisibleBody::InvisibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   iconFile="invisiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

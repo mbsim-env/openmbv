@@ -33,7 +33,6 @@
 #endif
 
 using namespace std;
-using namespace boost;
 using namespace MBXMLUtils;
 using namespace xercesc;
 
@@ -59,7 +58,7 @@ void Group::addObject(shared_ptr<Object> newObject) {
 }
 
 string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
-  boost::shared_ptr<Group> p=parent.lock();
+  std::shared_ptr<Group> p=parent.lock();
   if(p) {
     if(separateFile && stopAtSeparateFile)
       return fileName;
@@ -101,7 +100,7 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
 }
 
 void Group::createHDF5File() {
-  boost::shared_ptr<Group> p=parent.lock();
+  std::shared_ptr<Group> p=parent.lock();
   if(!separateFile) {
     hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
     for(unsigned int i=0; i<object.size(); i++)
@@ -115,7 +114,7 @@ void Group::createHDF5File() {
     // create new h5 file and write to in till now
     // use the directory of the topLevelFile and the above fullName
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
-    hdf5File=boost::make_shared<H5::File>(fileName.substr(0,fileName.length()-4)+".h5", H5::File::write);
+    hdf5File=std::make_shared<H5::File>(fileName.substr(0,fileName.length()-4)+".h5", H5::File::write);
     hdf5Group=hdf5File.get();
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->createHDF5File();
@@ -124,10 +123,10 @@ void Group::createHDF5File() {
 
 void Group::openHDF5File() {
   hdf5Group=NULL;
-  boost::shared_ptr<Group> p=parent.lock();
+  std::shared_ptr<Group> p=parent.lock();
   if(!p) {
     try {
-      hdf5File=boost::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-4)+".h5", H5::File::read);
+      hdf5File=std::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-4)+".h5", H5::File::read);
       hdf5Group=hdf5File.get();
     }
     catch(...) {
@@ -161,7 +160,7 @@ void Group::writeXML() {
 
 void Group::writeH5() {
   string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
-  hdf5File=boost::make_shared<H5::File>(h5FileName, H5::File::write);
+  hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
   hdf5Group=hdf5File.get();
   for(unsigned int i=0; i<object.size(); i++)
     object[i]->createHDF5File();

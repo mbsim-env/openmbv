@@ -28,8 +28,8 @@
 
 namespace OpenMBVGUI {
 
-Frame::Frame(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  f=boost::static_pointer_cast<OpenMBV::Frame>(obj);
+Frame::Frame(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  f=std::static_pointer_cast<OpenMBV::Frame>(obj);
   iconFile="frame.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

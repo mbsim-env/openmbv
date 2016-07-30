@@ -5,8 +5,8 @@
 %include "std_string.i"
 %include "exception.i"
 
-// boost::shared_ptr
-%include "boost_shared_ptr.i"
+// std::shared_ptr
+%include "std_shared_ptr.i"
 %shared_ptr(fmatvec::Atom)
 %shared_ptr(OpenMBV::Object)
 %shared_ptr(OpenMBV::Group)

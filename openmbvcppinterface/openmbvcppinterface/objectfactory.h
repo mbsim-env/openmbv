@@ -53,7 +53,7 @@ class ObjectFactory {
      * Throws if the created object is not of type ContainerType.
      * This function returns a new object dependent on the registration of the created object. */
     template<class ContainerType>
-    static boost::shared_ptr<ContainerType> create(const xercesc::DOMElement *element) {
+    static std::shared_ptr<ContainerType> create(const xercesc::DOMElement *element) {
 #ifdef HAVE_BOOST_TYPE_TRAITS_HPP
       // just check if ContainerType is derived from Object if not throw a compile error if boost is avaliable
       // if boost is not avaliable a runtime error will occure later. (so it does not care if boost is not available)
@@ -61,14 +61,14 @@ class ObjectFactory {
         "In OpenMBV::ObjectFactory::create<ContainerType>(...) ContainerType must be derived from Object.");
 #endif
       // return NULL if no input is supplied
-      if(element==NULL) return boost::shared_ptr<ContainerType>();
+      if(element==NULL) return std::shared_ptr<ContainerType>();
       // loop over all all registred types corresponding to element->ValueStr()
       std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(MBXMLUtils::E(element)->getTagName());
       for(MapIt it=range.first; it!=range.second; it++) {
         // allocate a new object using the allocate function pointer
-        boost::shared_ptr<Object> ele=it->second();
+        std::shared_ptr<Object> ele=it->second();
         // try to cast ele up to ContainerType
-        boost::shared_ptr<ContainerType> ret=boost::dynamic_pointer_cast<ContainerType>(ele);
+        std::shared_ptr<ContainerType> ret=std::dynamic_pointer_cast<ContainerType>(ele);
         // if possible, return it
         if(ret)
           return ret;
@@ -80,20 +80,20 @@ class ObjectFactory {
 
     /** Create an empty object of type CreateType. */
     template<class CreateType>
-    static boost::shared_ptr<CreateType> create() {
-      return boost::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
+    static std::shared_ptr<CreateType> create() {
+      return std::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
     }
 
     /** Return a copy of t. */
     template<class CreateType>
-    static boost::shared_ptr<CreateType> create(const boost::shared_ptr<CreateType> &t) {
-      return boost::shared_ptr<CreateType>(new CreateType(*t.get()), &deleter<CreateType>);
+    static std::shared_ptr<CreateType> create(const std::shared_ptr<CreateType> &t) {
+      return std::shared_ptr<CreateType>(new CreateType(*t.get()), &deleter<CreateType>);
     }
 
   private:
 
     // a pointer to a function allocating an object
-    typedef boost::shared_ptr<Object> (*allocateFkt)();
+    typedef std::shared_ptr<Object> (*allocateFkt)();
 
     // convinence typedefs
     typedef std::multimap<MBXMLUtils::FQN, allocateFkt> Map;
@@ -113,8 +113,8 @@ class ObjectFactory {
 
     // a wrapper to allocate an object of type CreateType: used by create(xercesc::DOMElement *)
     template<class CreateType>
-    static boost::shared_ptr<Object> allocate() {
-      return boost::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
+    static std::shared_ptr<Object> allocate() {
+      return std::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
     }
 
     // a wrapper to deallocate an object of type T: all dtors are protected but ObjectFactory is a friend of all classes

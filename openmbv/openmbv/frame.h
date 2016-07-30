@@ -31,9 +31,9 @@ namespace OpenMBVGUI {
 class Frame : public RigidBody {
   Q_OBJECT
   public:
-    Frame(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Frame(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    boost::shared_ptr<OpenMBV::Frame> f;
+    std::shared_ptr<OpenMBV::Frame> f;
     void createProperties();
 };
 

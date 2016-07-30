@@ -61,9 +61,9 @@ namespace OpenMBV {
 
       /** Set the 2D contour (cross-section) of the extrusion.
        * The contour (polygon) points must be in clockwise order. */
-      void setContour(const boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > &contour_) { contour = contour_; }
+      void setContour(const std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > &contour_) { contour = contour_; }
 
-      boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > getContour() { return contour; }
+      std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > getContour() { return contour; }
 
       /** Set the scale factor of the body. */
       void setScaleFactor(const double scale) {
@@ -113,7 +113,7 @@ namespace OpenMBV {
       int numberOfSpinePoints;
 
       /** Vector of local x-y points. */
-      boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > contour;
+      std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > contour;
 
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
       H5::VectorSerie<double>* data;

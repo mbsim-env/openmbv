@@ -25,7 +25,6 @@
 
 using namespace std;
 using namespace xercesc;
-using namespace boost;
 using namespace boost::filesystem;
 
 namespace MBXMLUtils {
@@ -236,7 +235,7 @@ template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getLineNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("LineNr");
   if(pi)
-    return lexical_cast<int>((X()%pi->getData()));
+    return boost::lexical_cast<int>((X()%pi->getData()));
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getLineNumber() const; // explicit instantiate const variant
@@ -250,7 +249,7 @@ template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getEmbedCountNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedCountNr");
   if(pi)
-    return lexical_cast<int>((X()%pi->getData()));
+    return boost::lexical_cast<int>((X()%pi->getData()));
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getEmbedCountNumber() const; // explicit instantiate const variant
@@ -267,7 +266,7 @@ template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("OriginalElementLineNr");
   if(pi)
-    return lexical_cast<int>((X()%pi->getData()));
+    return boost::lexical_cast<int>((X()%pi->getData()));
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getOriginalElementLineNumber() const; // explicit instantiate const variant
@@ -357,7 +356,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   parser->errorHandler.resetCounter();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&DOMDocument::release, _1));
   if(parser->errorHandler.getNumErrors()>0)
-    throw runtime_error(str(format("Validation failed: %1% Errors, %2% Warnings, see above.")%
+    throw runtime_error(str(boost::format("Validation failed: %1% Errors, %2% Warnings, see above.")%
       parser->errorHandler.getNumErrors()%parser->errorHandler.getNumWarnings()));
 
   // replace old document element with new one
@@ -414,11 +413,11 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
   if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
     // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+lexical_cast<string>(loc.getLineNumber());
+    return X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber());
   else
     // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+lexical_cast<string>(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+lexical_cast<string>(loc.getLineNumber())+"</a>";
+    return "<a href=\""+X()%loc.getURI()+"?line="+boost::lexical_cast<string>(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
@@ -565,7 +564,7 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
   errorHandler.resetCounter();
   parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
   if(errorHandler.getNumErrors()>0)
-    throw runtime_error(str(format("Loading XML schema failed: %1% Errors, %2% Warnings, see above.")%
+    throw runtime_error(str(boost::format("Loading XML schema failed: %1% Errors, %2% Warnings, see above.")%
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
 }
 
@@ -610,7 +609,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   errorHandler.resetCounter();
   shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&DOMDocument::release, _1));
   if(errorHandler.getNumErrors()>0)
-    throw runtime_error(str(format("Validation failed: %1% Errors, %2% Warnings, see above.")%
+    throw runtime_error(str(boost::format("Validation failed: %1% Errors, %2% Warnings, see above.")%
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
   // set file name
   DOMElement *root=doc->getDocumentElement();

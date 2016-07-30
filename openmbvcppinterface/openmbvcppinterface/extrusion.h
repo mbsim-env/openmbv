@@ -40,7 +40,7 @@ namespace OpenMBV {
     protected:
       WindingRule windingRule;
       double height;
-      std::vector<boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > > contour;
+      std::vector<std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > > contour;
       Extrusion();
       ~Extrusion();
     public:
@@ -75,11 +75,11 @@ namespace OpenMBV {
       /** Add a new contour to the extrusion.
        * See setWindingRule of details about how they are combined.
        */
-      void addContour(const boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > &contour_) {
+      void addContour(const std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > &contour_) {
         contour.push_back(contour_);
       }
 
-      std::vector<boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > >& getContours() {
+      std::vector<std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > >& getContours() {
         return contour;
       }
 

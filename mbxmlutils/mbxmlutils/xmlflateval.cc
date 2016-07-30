@@ -4,7 +4,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
-using namespace boost;
 using namespace boost::filesystem;
 using namespace std;
 using namespace xercesc;
@@ -19,7 +18,7 @@ namespace MBXMLUtils {
 XMLUTILS_EVAL_REGISTER(XMLFlatEval)
 
 // ctor
-XMLFlatEval::XMLFlatEval(std::vector<filesystem::path> *dependencies_) : Eval(dependencies_) {
+XMLFlatEval::XMLFlatEval(std::vector<path> *dependencies_) : Eval(dependencies_) {
 }
 
 // dtor
@@ -70,20 +69,20 @@ string XMLFlatEval::getSwigType(const shared_ptr<void> &value) const {
 
 double XMLFlatEval::cast_double(const shared_ptr<void> &value) const {
   string *v=static_cast<string*>(value.get());
-  return lexical_cast<double>(*v);
+  return boost::lexical_cast<double>(*v);
 }
 
 vector<double> XMLFlatEval::cast_vector_double(const shared_ptr<void> &value) const {
   string valueStr=*static_cast<string*>(value.get());
-  algorithm::trim(valueStr);
+  boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [ ] if not already done
   if(valueStr[valueStr.size()-1]!=']')
     throw runtime_error("Cannot cast to vector.");
   // add some spaces
-  algorithm::replace_all(valueStr, "[", "[ ");
-  algorithm::replace_all(valueStr, "]", " ]");
-  algorithm::replace_all(valueStr, ";", " ; ");
-  algorithm::replace_all(valueStr, "\n", " ; ");
+  boost::algorithm::replace_all(valueStr, "[", "[ ");
+  boost::algorithm::replace_all(valueStr, "]", " ]");
+  boost::algorithm::replace_all(valueStr, ";", " ; ");
+  boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
   string s;
   str>>s; // first token [
@@ -95,23 +94,23 @@ vector<double> XMLFlatEval::cast_vector_double(const shared_ptr<void> &value) co
     else if(s=="]") // on ] exit
       break;
     else // else push double to vector
-      v.push_back(lexical_cast<double>(s));
+      v.push_back(boost::lexical_cast<double>(s));
   }
   return v;
 }
 
 vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const shared_ptr<void> &value) const {
   string valueStr=*static_cast<string*>(value.get());
-  algorithm::trim(valueStr);
+  boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [] if not already done
   if(valueStr[valueStr.size()-1]!=']')
     throw runtime_error("Cannot cast to matrix.");
   // add some spaces
-  algorithm::replace_all(valueStr, "[", "[ ");
-  algorithm::replace_all(valueStr, "]", " ]");
-  algorithm::replace_all(valueStr, ",", " , ");
-  algorithm::replace_all(valueStr, ";", " ; ");
-  algorithm::replace_all(valueStr, "\n", " ; ");
+  boost::algorithm::replace_all(valueStr, "[", "[ ");
+  boost::algorithm::replace_all(valueStr, "]", " ]");
+  boost::algorithm::replace_all(valueStr, ",", " , ");
+  boost::algorithm::replace_all(valueStr, ";", " ; ");
+  boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
   string s;
   str>>s; // first token
@@ -126,27 +125,27 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const shared_ptr<
     else if(s=="]") // on ] exit
       break;
     else // else push double to vector
-      (--m.end())->push_back(lexical_cast<double>(s));
+      (--m.end())->push_back(boost::lexical_cast<double>(s));
   }
   return m;
 }
 
 string XMLFlatEval::cast_string(const shared_ptr<void> &value) const {
   string valueStr=*static_cast<string*>(value.get());
-  algorithm::trim(valueStr);
+  boost::algorithm::trim(valueStr);
   if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
 }
 
 shared_ptr<void> XMLFlatEval::create_double(const double& v) const {
-  return make_shared<string>(lexical_cast<string>(v));
+  return make_shared<string>(boost::lexical_cast<string>(v));
 }
 
 shared_ptr<void> XMLFlatEval::create_vector_double(const vector<double>& v) const {
   string str("[");
   for(int i=0; i<v.size(); ++i) {
-    str+=lexical_cast<string>(v[i]);
+    str+=boost::lexical_cast<string>(v[i]);
     if(i!=v.size()-1) str+=";";
   }
   str+="]";
@@ -157,7 +156,7 @@ shared_ptr<void> XMLFlatEval::create_vector_vector_double(const vector<vector<do
   string str("[");
   for(int r=0; r<v.size(); ++r) {
     for(int c=0; c<v[r].size(); ++c) {
-      str+=lexical_cast<string>(v[r][c]);
+      str+=boost::lexical_cast<string>(v[r][c]);
       if(c!=v[r].size()-1) str+=",";
     }
     if(r!=v.size()-1) str+=";";

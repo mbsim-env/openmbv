@@ -53,7 +53,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
   friend class MainWindow;
   friend class RigidBody;
   protected:
-    boost::shared_ptr<OpenMBV::Object> object;
+    std::shared_ptr<OpenMBV::Object> object;
     SoSwitch *soSwitch;
     SoSeparator *soSep;
     bool drawThisPath;
@@ -71,10 +71,10 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     BoolEditor *boundingBoxEditor;
     virtual void createProperties();
   public:
-    Object(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     virtual ~Object();
     std::string &getIconFile() { return iconFile; }
-    boost::shared_ptr<OpenMBV::Object> getObject() { return object; }
+    std::shared_ptr<OpenMBV::Object> getObject() { return object; }
     virtual QString getInfo();
     static void nodeSensorCB(void *data, SoSensor*);
     PropertyDialog *getProperties();

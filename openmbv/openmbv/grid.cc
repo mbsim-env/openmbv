@@ -29,8 +29,8 @@
 
 namespace OpenMBVGUI {
 
-Grid::Grid(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  g=boost::static_pointer_cast<OpenMBV::Grid>(obj);
+Grid::Grid(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  g=std::static_pointer_cast<OpenMBV::Grid>(obj);
   iconFile="grid.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class IndexedFaceSet : public RigidBody {
   Q_OBJECT
   public:
-    IndexedFaceSet(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    IndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    boost::shared_ptr<OpenMBV::IndexedFaceSet> faceset;
+    std::shared_ptr<OpenMBV::IndexedFaceSet> faceset;
     void createProperties();
 };
 

@@ -93,13 +93,13 @@ class Utils : virtual public fmatvec::Atom {
     static GLUtesselator *tess;
 
 
-    typedef boost::tuple<QIcon, std::string, boost::function<boost::shared_ptr<OpenMBV::Object>()> > FactoryElement;
-    static boost::shared_ptr<OpenMBV::Object> createObjectEditor(const std::vector<FactoryElement> &factory,
+    typedef boost::tuple<QIcon, std::string, boost::function<std::shared_ptr<OpenMBV::Object>()> > FactoryElement;
+    static std::shared_ptr<OpenMBV::Object> createObjectEditor(const std::vector<FactoryElement> &factory,
                                                                  const std::vector<std::string> &existingNames,
                                                                  const std::string &title);
     template<class T>
-    static boost::function<boost::shared_ptr<OpenMBV::Object>()> factory() {
-      return static_cast<boost::shared_ptr<T>(*)()>(&OpenMBV::ObjectFactory::create<T>);
+    static boost::function<std::shared_ptr<OpenMBV::Object>()> factory() {
+      return static_cast<std::shared_ptr<T>(*)()>(&OpenMBV::ObjectFactory::create<T>);
     }
 
 

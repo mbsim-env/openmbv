@@ -40,8 +40,8 @@ namespace OpenMBV {
       ~PolygonPoint() {}
       static void deleter(PolygonPoint *pp) { delete pp; }
     public:
-      static boost::shared_ptr<PolygonPoint> create(double x_, double y_, int b_) {
-        return boost::shared_ptr<PolygonPoint>(new PolygonPoint(x_, y_, b_), &deleter);
+      static std::shared_ptr<PolygonPoint> create(double x_, double y_, int b_) {
+        return std::shared_ptr<PolygonPoint>(new PolygonPoint(x_, y_, b_), &deleter);
       };
 
       /* GETTER / SETTER */
@@ -53,9 +53,9 @@ namespace OpenMBV {
       /* CONVENIENCE */
       /** write vector of polygon points to XML file */
       static void serializePolygonPointContour(xercesc::DOMElement *parent,
-        const boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > &cont);
+        const std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > &cont);
 
-      static boost::shared_ptr<std::vector<boost::shared_ptr<PolygonPoint> > > initializeUsingXML(xercesc::DOMElement *element);
+      static std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > initializeUsingXML(xercesc::DOMElement *element);
 
     private:
       double x, y;

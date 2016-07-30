@@ -32,9 +32,9 @@ namespace OpenMBVGUI {
 class Rotation : public RigidBody {
   Q_OBJECT
   public:
-    Rotation(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    boost::shared_ptr<OpenMBV::Rotation> rot;
+    std::shared_ptr<OpenMBV::Rotation> rot;
     void createProperties();
 };
 

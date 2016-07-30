@@ -60,7 +60,7 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
 }
 
 void Body::createHDF5File() {
-  boost::shared_ptr<Group> p=parent.lock();
+  std::shared_ptr<Group> p=parent.lock();
   if(!hdf5LinkBody)
     hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
   else
@@ -70,7 +70,7 @@ void Body::createHDF5File() {
 void Body::openHDF5File() {
   hdf5Group=NULL;
   try {
-    boost::shared_ptr<Group> p=parent.lock();
+    std::shared_ptr<Group> p=parent.lock();
     hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
   }
   catch(...) {
@@ -78,7 +78,7 @@ void Body::openHDF5File() {
   }
 }
 
-std::string Body::getRelPathTo(const boost::shared_ptr<Body> &destBody) {
+std::string Body::getRelPathTo(const std::shared_ptr<Body> &destBody) {
   // create relative path to destination
   string dest=destBody->getFullName();
   string src=getFullName();

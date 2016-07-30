@@ -129,7 +129,7 @@ class BoolEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, bool (OMBVClass::*getter)(), void (OMBVClass::*setter)(bool));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, bool (OMBVClass::*getter)(), void (OMBVClass::*setter)(bool));
 
     /* return this boolean Editor as an checkable action */
     QAction *getAction() { return action; }
@@ -179,7 +179,7 @@ class FloatEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double));
 
   protected slots:
     void valueChangedSlot(double);
@@ -208,23 +208,23 @@ class FloatMatrixEditor : public Editor {
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface.
      * Vector version. */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(const std::vector<double>&));
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface.
      * Matrix version. */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<std::vector<double> > (OMBVClass::*getter)(),
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<std::vector<double> > (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(const std::vector<std::vector<double> >&));
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface.
-     * boost::shared:ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > version. */
+     * boost::shared:ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > version. */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
-      boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
-      void (OMBVClass::*setter)(const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_,
+      std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
+      void (OMBVClass::*setter)(const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &));
 
   protected slots:
     void addRowSlot(); // calls valueChanged (also see addRow)
@@ -242,8 +242,8 @@ class FloatMatrixEditor : public Editor {
     boost::function<void (const std::vector<double>&)> ombvSetterVector;
     boost::function<std::vector<std::vector<double> > ()> ombvGetterMatrix;
     boost::function<void (const std::vector<std::vector<double> >&)> ombvSetterMatrix;
-    boost::function<boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > ()> ombvGetterPolygonPoint;
-    boost::function<void (const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &)> ombvSetterPolygonPoint;
+    boost::function<std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > ()> ombvGetterPolygonPoint;
+    boost::function<void (const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &)> ombvSetterPolygonPoint;
 };
 
 
@@ -264,11 +264,11 @@ class IntEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int));
  
     /*! unsigned int version of setOpenMBVParameter */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int));
 
   protected slots:
     void valueChangedSlot(int);
@@ -294,7 +294,7 @@ class StringEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string));
 
   protected slots:
     void valueChangedSlot(const QString&);
@@ -321,7 +321,7 @@ class ComboBoxEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass, class OMBVEnum>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, OMBVEnum (OMBVClass::*getter)(), void (OMBVClass::*setter)(OMBVEnum));
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, OMBVEnum (OMBVClass::*getter)(), void (OMBVClass::*setter)(OMBVEnum));
 
     /* return this ComboBox Editor as an ActionGroup */
     QActionGroup *getActionGroup() { return actionGroup; }
@@ -370,7 +370,7 @@ class Vec3fEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(double x, double y, double z));
 
   protected slots:
@@ -395,7 +395,7 @@ class ColorEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(double h, double s, double v));
 
   protected slots:
@@ -438,7 +438,7 @@ class TransRotEditor : public Editor {
     /*! OpenMBVCppInterface syncronization.
      * Use *Getter and *Setter of ombv_ to sync this Editor with OpenMBVCppInterface */
     template<class OMBVClass>
-    void setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*transGetter)(), 
+    void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*transGetter)(), 
                                                void (OMBVClass::*transSetter)(double x, double y, double z),
                                                std::vector<double> (OMBVClass::*rotGetter)(),
                                                void (OMBVClass::*rotSetter)(double x, double y, double z),
@@ -489,7 +489,7 @@ class NotAvailableEditor : public Editor {
 
 
 template<class OMBVClass>
-void BoolEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, bool (OMBVClass::*getter)(), void (OMBVClass::*setter)(bool)) {
+void BoolEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, bool (OMBVClass::*getter)(), void (OMBVClass::*setter)(bool)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   checkbox->blockSignals(true);
@@ -505,7 +505,7 @@ void BoolEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, bool (
 
 
 template<class OMBVClass>
-void FloatEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double)) {
+void FloatEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   spinBox->blockSignals(true);
@@ -521,7 +521,7 @@ void FloatEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, doubl
 
 
 template<class OMBVClass>
-void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
+void FloatMatrixEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                               void (OMBVClass::*setter)(const std::vector<double>&)) {
   // set functions
   ombvGetterVector=boost::bind(getter, ombv_);
@@ -554,7 +554,7 @@ void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
 }
 
 template<class OMBVClass>
-void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<std::vector<double> > (OMBVClass::*getter)(),
+void FloatMatrixEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<std::vector<double> > (OMBVClass::*getter)(),
                                                               void (OMBVClass::*setter)(const std::vector<std::vector<double> >&)) {
   // set functions
   ombvGetterMatrix=boost::bind(getter, ombv_);
@@ -579,9 +579,9 @@ void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
 
 
 template<class OMBVClass>
-void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
-  boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
-  void (OMBVClass::*setter)(const boost::shared_ptr<std::vector<boost::shared_ptr<OpenMBV::PolygonPoint> > > &)) {
+void FloatMatrixEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_,
+  std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
+  void (OMBVClass::*setter)(const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &)) {
   // set functions
   ombvGetterPolygonPoint=boost::bind(getter, ombv_);
   ombvSetterPolygonPoint=boost::bind(setter, ombv_, _1);
@@ -620,7 +620,7 @@ void FloatMatrixEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_,
 
 
 template<class OMBVClass>
-void IntEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int)) {
+void IntEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, int (OMBVClass::*getter)(), void (OMBVClass::*setter)(int)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   spinBox->blockSignals(true);
@@ -629,7 +629,7 @@ void IntEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, int (OM
 }
 
 template<class OMBVClass>
-void IntEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int)) {
+void IntEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int)) {
   setOpenMBVParameter(ombv_, reinterpret_cast<int (OMBVClass::*)()>(getter), reinterpret_cast<void (OMBVClass::*)(int)>(setter));
 }
 
@@ -638,7 +638,7 @@ void IntEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, unsigne
 
 
 template<class OMBVClass>
-void StringEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string)) {
+void StringEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1);
   lineEdit->blockSignals(true);
@@ -651,7 +651,7 @@ void StringEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std:
 
 
 template<class OMBVClass, class OMBVEnum>
-void ComboBoxEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, OMBVEnum (OMBVClass::*getter)(), void (OMBVClass::*setter)(OMBVEnum)) {
+void ComboBoxEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, OMBVEnum (OMBVClass::*getter)(), void (OMBVClass::*setter)(OMBVEnum)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(reinterpret_cast<void (OMBVClass::*)(int)>(setter), ombv_, _1); // for the setter we have to cast the first argument from OMBVEnum to int
   comboBox->blockSignals(true);
@@ -668,7 +668,7 @@ void ComboBoxEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, OM
 
 
 template<class OMBVClass>
-void Vec3fEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double x, double y, double z)) {
+void Vec3fEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double x, double y, double z)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1, _2, _3);
   std::vector<double> vec=ombvGetter();
@@ -682,7 +682,7 @@ void Vec3fEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::
 
 
 template<class OMBVClass>
-void ColorEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double h, double s, double v)) {
+void ColorEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(), void (OMBVClass::*setter)(double h, double s, double v)) {
   ombvGetter=boost::bind(getter, ombv_);
   ombvSetter=boost::bind(setter, ombv_, _1, _2, _3);
   std::vector<double> vec=ombvGetter();
@@ -698,7 +698,7 @@ void ColorEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::
 
 
 template<class OMBVClass>
-void TransRotEditor::setOpenMBVParameter(boost::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*transGetter)(),
+void TransRotEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*transGetter)(),
                                                            void (OMBVClass::*transSetter)(double x, double y, double z),
                                                            std::vector<double> (OMBVClass::*rotGetter)(),
                                                            void (OMBVClass::*rotSetter)(double x, double y, double z),

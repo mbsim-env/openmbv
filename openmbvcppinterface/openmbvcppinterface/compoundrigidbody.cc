@@ -54,7 +54,7 @@ void CompoundRigidBody::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   e=e->getNextElementSibling();
   while (e) {
-    boost::shared_ptr<RigidBody> rb = ObjectFactory::create<RigidBody>(e);
+    std::shared_ptr<RigidBody> rb = ObjectFactory::create<RigidBody>(e);
     rb->initializeUsingXML(e);
     addRigidBody(rb);
     e=e->getNextElementSibling();

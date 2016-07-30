@@ -28,12 +28,11 @@
 #include <QMenu>
 
 using namespace std;
-using namespace boost;
 
 namespace OpenMBVGUI {
 
-Rotation::Rotation(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  rot=boost::static_pointer_cast<OpenMBV::Rotation>(obj);
+Rotation::Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  rot=std::static_pointer_cast<OpenMBV::Rotation>(obj);
   iconFile="rotation.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 

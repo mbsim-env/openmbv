@@ -28,7 +28,7 @@ namespace OpenMBVGUI {
 class InvisibleBody : public RigidBody {
   Q_OBJECT
   public:
-    InvisibleBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    InvisibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 };
 
 }

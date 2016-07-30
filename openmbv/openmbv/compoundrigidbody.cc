@@ -43,8 +43,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-CompoundRigidBody::CompoundRigidBody(const boost::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  crb=boost::static_pointer_cast<OpenMBV::CompoundRigidBody>(obj);
+CompoundRigidBody::CompoundRigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  crb=std::static_pointer_cast<OpenMBV::CompoundRigidBody>(obj);
   iconFile="compoundrigidbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
@@ -52,7 +52,7 @@ CompoundRigidBody::CompoundRigidBody(const boost::shared_ptr<OpenMBV::Object> &o
   setExpanded(crb->getExpand());
 
   // read XML
-  vector<boost::shared_ptr<OpenMBV::RigidBody> > rb=crb->getRigidBodies();
+  vector<std::shared_ptr<OpenMBV::RigidBody> > rb=crb->getRigidBodies();
   for(size_t i=0; i<rb.size(); i++)
     ObjectFactory::create(rb[i], this, soSep, -1);
 }
@@ -94,10 +94,10 @@ void CompoundRigidBody::newRigidBodySlot() {
   for(unsigned int j=0; j<crb->getRigidBodies().size(); j++)
     existingNames.push_back(crb->getRigidBodies()[j]->getName());
 
-  boost::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new RigidBody");
+  std::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new RigidBody");
   if(!obj) return;
 
-  crb->addRigidBody(boost::static_pointer_cast<OpenMBV::RigidBody>(obj));
+  crb->addRigidBody(std::static_pointer_cast<OpenMBV::RigidBody>(obj));
   ObjectFactory::create(obj, this, soSep, -1);
 
   // apply object filter

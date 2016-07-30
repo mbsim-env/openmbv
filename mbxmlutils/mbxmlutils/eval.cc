@@ -14,7 +14,6 @@
 
 using namespace std;
 using namespace casadi;
-using namespace boost;
 using namespace xercesc;
 namespace bfs=boost::filesystem;
 
@@ -92,8 +91,8 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
 Eval::~Eval() {
 }
 
-map<string, function<shared_ptr<Eval>(vector<filesystem::path>*)> >& Eval::getEvaluators() {
-  static map<string, function<shared_ptr<Eval>(vector<filesystem::path>*)> > evaluators;
+map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >& Eval::getEvaluators() {
+  static map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> > evaluators;
   return evaluators;
 };
 
@@ -223,8 +222,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
       if(!E(e)->hasAttribute(base+"Nr"))
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      int nr=lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      int dim=lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+      int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
+      int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       shared_ptr<void> casadiSX=createSwig<SX*>();
       SX *arg;
@@ -463,17 +462,17 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
       ret=create(s);
     }
     else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
-      try { ret=create(lexical_cast<double>(s)); }
-      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
+      try { ret=create(boost::lexical_cast<double>(s)); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
       try { ret=create(s); }
-      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
-      try { ret=create<double>(lexical_cast<int>(s)); }
-      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+      try { ret=create<double>(boost::lexical_cast<int>(s)); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
     else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
-      try { ret=create<double>(lexical_cast<bool>(s)); }
-      catch(const bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
+      try { ret=create<double>(boost::lexical_cast<bool>(s)); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
     else
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
@@ -533,7 +532,7 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
     string subst;
     try {
       if(valueIsOfType(ret, ScalarType))
-        subst=lexical_cast<string>(cast<double>(ret));
+        subst=boost::lexical_cast<string>(cast<double>(ret));
       else if(valueIsOfType(ret, StringType))
         subst=cast<string>(ret);
       else
@@ -599,7 +598,7 @@ int Eval::cast_int(const shared_ptr<void> &value) const {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
 
   double d=cast<double>(value);
-  int i=math::lround(d);
+  int i=lround(d);
   double delta=fabs(d-i);
   if(delta>eps*i && delta>eps)
     throw DOMEvalException("Canot cast this value to int.");

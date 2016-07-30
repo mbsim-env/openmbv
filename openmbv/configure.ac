@@ -9,6 +9,9 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
 
+# enable C++11
+CXXFLAGS="$CXXFLAGS -std=c++11"
+
 dnl By autoscan
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr])
@@ -44,8 +47,6 @@ if test "_$host_os" = "_mingw32"; then
   WIN32=yes
 fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
-
-AC_CHECK_HEADERS([unordered_map])
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])

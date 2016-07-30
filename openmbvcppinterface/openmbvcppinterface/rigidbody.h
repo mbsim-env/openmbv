@@ -77,7 +77,7 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
       H5::VectorSerie<double>* data;
-      boost::weak_ptr<CompoundRigidBody> compound;
+      std::weak_ptr<CompoundRigidBody> compound;
 
       RigidBody();
       ~RigidBody();
@@ -173,8 +173,8 @@ namespace OpenMBV {
 
       virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
 
-      boost::shared_ptr<Group> getSeparateGroup();
-      boost::shared_ptr<Group> getTopLevelGroup();
+      std::shared_ptr<Group> getSeparateGroup();
+      std::shared_ptr<Group> getTopLevelGroup();
   };
 
 }
