@@ -35,7 +35,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 // we use none signaling (quiet) NaN values for double in OpenMBV -> Throw compile error if these do not exist.
-BOOST_STATIC_ASSERT_MSG(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
+static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
 
 set<Object*> Object::objects;
 

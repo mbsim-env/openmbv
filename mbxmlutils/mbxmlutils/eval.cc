@@ -7,8 +7,6 @@
 #include <xercesc/dom/DOMDocument.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <mbxmlutilshelper/utils.h>
-#include <boost/lexical_cast.hpp>
-#include <boost/math/special_functions/round.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
 #include "mbxmlutilshelper/shared_library.h"
 
@@ -532,7 +530,12 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
     string subst;
     try {
       if(valueIsOfType(ret, ScalarType))
-        subst=boost::lexical_cast<string>(cast<double>(ret));
+        try {
+          subst=to_string(cast<int>(ret));
+        }
+        catch(const DOMEvalException&) {
+          subst=to_string(cast<double>(ret));
+        }
       else if(valueIsOfType(ret, StringType))
         subst=cast<string>(ret);
       else

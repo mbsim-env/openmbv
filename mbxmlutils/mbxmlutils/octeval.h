@@ -2,9 +2,7 @@
 #define _MBXMLUTILS_OCTEVAL_H_
 
 #include "eval.h"
-#include <boost/scoped_ptr.hpp>
 #include <memory>
-#include <boost/make_shared.hpp>
 
 class octave_value;
 class octave_value_list;

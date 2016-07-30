@@ -77,18 +77,18 @@ QString CompoundRigidBody::getInfo() {
 }
 
 void CompoundRigidBody::newRigidBodySlot() {
-  static vector<Utils::FactoryElement> factory=boost::assign::list_of
-    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),          "Cube",          Utils::factory<OpenMBV::Cube>()))
-    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),        "Cuboid",        Utils::factory<OpenMBV::Cuboid>()))
-    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),     "Extrusion",     Utils::factory<OpenMBV::Extrusion>()))
-    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),         "Frame",         Utils::factory<OpenMBV::Frame>()))
-    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),       "Frustum",       Utils::factory<OpenMBV::Frustum>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "Grid",          Utils::factory<OpenMBV::Grid>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "InvisibleBody", Utils::factory<OpenMBV::InvisibleBody>()))
-    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),        "IvBody",        Utils::factory<OpenMBV::IvBody>()))
-    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),      "Rotation",      Utils::factory<OpenMBV::Rotation>()))
-    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),        "Sphere",        Utils::factory<OpenMBV::Sphere>()))
-  .to_container(factory);  
+  static vector<Utils::FactoryElement> factory={
+    {Utils::FactoryElement(Utils::QIconCached("cube.svg"),          "Cube",          Utils::factory<OpenMBV::Cube>())},
+    {Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),        "Cuboid",        Utils::factory<OpenMBV::Cuboid>())},
+    {Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),     "Extrusion",     Utils::factory<OpenMBV::Extrusion>())},
+    {Utils::FactoryElement(Utils::QIconCached("frame.svg"),         "Frame",         Utils::factory<OpenMBV::Frame>())},
+    {Utils::FactoryElement(Utils::QIconCached("frustum.svg"),       "Frustum",       Utils::factory<OpenMBV::Frustum>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "Grid",          Utils::factory<OpenMBV::Grid>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"), "InvisibleBody", Utils::factory<OpenMBV::InvisibleBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),        "IvBody",        Utils::factory<OpenMBV::IvBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("rotation.svg"),      "Rotation",      Utils::factory<OpenMBV::Rotation>())},
+    {Utils::FactoryElement(Utils::QIconCached("sphere.svg"),        "Sphere",        Utils::factory<OpenMBV::Sphere>())}
+  };
 
   vector<string> existingNames;
   for(unsigned int j=0; j<crb->getRigidBodies().size(); j++)

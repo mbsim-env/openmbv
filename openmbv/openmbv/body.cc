@@ -159,11 +159,11 @@ void Body::createProperties() {
     shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
     properties->addPropertyAction(shilouetteEdgeEditor->getAction());
 
-    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style",
-      boost::assign::tuple_list_of(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled")
-                                  (OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines")
-                                  (OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
-    );
+    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style", {
+      make_tuple(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled"),
+      make_tuple(OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines"),
+      make_tuple(OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
+    });
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
 

@@ -217,22 +217,22 @@ void Arrow::createProperties() {
     headLengthEditor->setRange(0, DBL_MAX);
     headLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getHeadLength, &OpenMBV::Arrow::setHeadLength);
 
-    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
-      boost::assign::tuple_list_of(OpenMBV::Arrow::line,            "Line",              QIcon(), "Arrow::type::line")
-                                  (OpenMBV::Arrow::fromHead,        "From head",         QIcon(), "Arrow::type::fromHead")
-                                  (OpenMBV::Arrow::toHead,          "To head",           QIcon(), "Arrow::type::toHead")
-                                  (OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon(), "Arrow::type::bothHeads")
-                                  (OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon(), "Arrow::type::fromDoubleHead")
-                                  (OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon(), "Arrow::type::toDoubleHead")
-                                  (OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon(), "Arrow::type::bothDoubleHeads")
-    );
+    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type", {
+      make_tuple(OpenMBV::Arrow::line,            "Line",              QIcon(), "Arrow::type::line"),
+      make_tuple(OpenMBV::Arrow::fromHead,        "From head",         QIcon(), "Arrow::type::fromHead"),
+      make_tuple(OpenMBV::Arrow::toHead,          "To head",           QIcon(), "Arrow::type::toHead"),
+      make_tuple(OpenMBV::Arrow::bothHeads,       "Both heads",        QIcon(), "Arrow::type::bothHeads"),
+      make_tuple(OpenMBV::Arrow::fromDoubleHead,  "From double head",  QIcon(), "Arrow::type::fromDoubleHead"),
+      make_tuple(OpenMBV::Arrow::toDoubleHead,    "To double head",    QIcon(), "Arrow::type::toDoubleHead"),
+      make_tuple(OpenMBV::Arrow::bothDoubleHeads, "Both double heads", QIcon(), "Arrow::type::bothDoubleHeads")
+    });
     typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
 
-    ComboBoxEditor *referencePointEditor=new ComboBoxEditor(properties, QIcon(), "Reference Point",
-      boost::assign::tuple_list_of(OpenMBV::Arrow::toPoint,   "To point",   QIcon(), "Arrow::referencePoint::toPoint")
-                                  (OpenMBV::Arrow::fromPoint, "From point", QIcon(), "Arrow::referencePoint::fromPoint")
-                                  (OpenMBV::Arrow::midPoint,  "Mid point",  QIcon(), "Arrow::referencePoint::midPoint")
-    );
+    ComboBoxEditor *referencePointEditor=new ComboBoxEditor(properties, QIcon(), "Reference Point", {
+      make_tuple(OpenMBV::Arrow::toPoint,   "To point",   QIcon(), "Arrow::referencePoint::toPoint"),
+      make_tuple(OpenMBV::Arrow::fromPoint, "From point", QIcon(), "Arrow::referencePoint::fromPoint"),
+      make_tuple(OpenMBV::Arrow::midPoint,  "Mid point",  QIcon(), "Arrow::referencePoint::midPoint")
+    });
     referencePointEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getReferencePoint, &OpenMBV::Arrow::setReferencePoint);
 
     FloatEditor *scaleLengthEditor=new FloatEditor(properties, QIcon(), "Scale length");

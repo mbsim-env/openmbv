@@ -36,7 +36,7 @@
 #include <memory>
 #include <sstream>
 #include <memory>
-#include <boost/locale/encoding_utf.hpp>
+#include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet
 
 namespace PythonCpp {
 

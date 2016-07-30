@@ -35,7 +35,6 @@
 #include <stdexcept>
 #ifdef _WIN32
 #  include <windows.h>
-#  include <boost/lexical_cast.hpp>
 #else
 #  include <dlfcn.h>
 #endif
@@ -47,7 +46,7 @@ inline std::string getLastError() {
   const char *err=dlerror();
   return err?err:"";
 #else
-  return boost::lexical_cast<std::string>(GetLastError());
+  return to_string(GetLastError());
 #endif
 }
 

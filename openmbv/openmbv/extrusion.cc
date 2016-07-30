@@ -198,13 +198,13 @@ void Extrusion::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    ComboBoxEditor *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule",
-      boost::assign::tuple_list_of(OpenMBV::Extrusion::odd,        "Odd",             QIcon(), "Extrusion::windingRule::odd")
-                                  (OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon(), "Extrusion::windingRule::nonzero")
-                                  (OpenMBV::Extrusion::positive,   "Positive",        QIcon(), "Extrusion::windingRule::positive")
-                                  (OpenMBV::Extrusion::negative,   "Negative",        QIcon(), "Extrusion::windingRule::negative")
-                                  (OpenMBV::Extrusion::absGEqTwo,  "Abs. value >= 2", QIcon(), "Extrusion::windingRule::absgt2")
-    );
+    ComboBoxEditor *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule", {
+      make_tuple(OpenMBV::Extrusion::odd,        "Odd",             QIcon(), "Extrusion::windingRule::odd"),
+      make_tuple(OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon(), "Extrusion::windingRule::nonzero"),
+      make_tuple(OpenMBV::Extrusion::positive,   "Positive",        QIcon(), "Extrusion::windingRule::positive"),
+      make_tuple(OpenMBV::Extrusion::negative,   "Negative",        QIcon(), "Extrusion::windingRule::negative"),
+      make_tuple(OpenMBV::Extrusion::absGEqTwo,  "Abs. value >= 2", QIcon(), "Extrusion::windingRule::absgt2")
+    });
     windingRuleEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getWindingRule, &OpenMBV::Extrusion::setWindingRule);
 
     FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");

@@ -74,6 +74,7 @@
 #include "utils.h"
 
 using namespace std;
+using namespace std::placeholders;
 
 namespace OpenMBVGUI {
 
@@ -823,7 +824,7 @@ void MainWindow::highlightObject(string curID) {
   Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
   // enable all curID bbox
   if(!curID.empty())
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), boost::bind(&enableBBoxOfID, _1, curID));
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), std::bind(&enableBBoxOfID, _1, curID));
 }
 
 MainWindow::~MainWindow() {
@@ -936,7 +937,7 @@ void MainWindow::execPropertyMenu() {
   // if action is not NULL and the action has a object name trigger also the actions with
   // the same name of all other selected objects
   if(currentAct && currentAct->objectName()!="")
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), boost::bind(&toggleAction, _1, currentAct), true);
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), std::bind(&toggleAction, _1, currentAct), true);
 }
 
 void MainWindow::objectListClicked() {

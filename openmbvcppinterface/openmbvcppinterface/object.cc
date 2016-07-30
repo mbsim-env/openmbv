@@ -32,7 +32,7 @@ using namespace xercesc;
 namespace OpenMBV {
 
 // we use none signaling (quiet) NaN values for double in OpenMBVC++Interface -> Throw compile error if these do not exist.
-BOOST_STATIC_ASSERT_MSG(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
+static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
 
 Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), hdf5Group(0) {
 }

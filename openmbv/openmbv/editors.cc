@@ -23,6 +23,7 @@
 #include <Inventor/fields/SoSFRotation.h>
 
 using namespace std;
+using namespace std::placeholders;
 
 namespace OpenMBVGUI {
 
@@ -223,7 +224,7 @@ void Editor::replaceObject() {
   // save selection and current item and clear selection under obj
   queue<bool> selected;
   queue<bool> current;
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, boost::bind(&getSelAndCur, _1, boost::ref(selected), boost::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, std::bind(&getSelAndCur, _1, std::ref(selected), std::ref(current)));
 
   // re-add this object using the same OpenMBVCppInterface::Object
   QTreeWidgetItem *treeWidgetParent=obj->QTreeWidgetItem::parent();
@@ -250,7 +251,7 @@ void Editor::replaceObject() {
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
   // restore selection and current item
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, boost::bind(&setSelAndCur, _1, boost::ref(selected), boost::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, std::bind(&setSelAndCur, _1, std::ref(selected), std::ref(current)));
   objectList->scrollToItem(objectList->currentItem());
 }
 
@@ -485,12 +486,12 @@ void StringEditor::valueChangedSlot(const QString &text) {
 
 
 ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const string &name,
-  const std::vector<boost::tuple<int, string, QIcon, string> > &list) : Editor(parent_, icon, name) {
+  const std::vector<std::tuple<int, string, QIcon, string> > &list) : Editor(parent_, icon, name) {
 
   // add the label and a comboBox for the value
   comboBox=new QComboBox;
   for(size_t i=0; i<list.size(); i++)
-    comboBox->addItem(list[i].get<2>(), list[i].get<1>().c_str(), QVariant(list[i].get<0>()));
+    comboBox->addItem(get<2>(list[i]), get<1>(list[i]).c_str(), QVariant(get<0>(list[i])));
   connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, comboBox);
 
@@ -499,8 +500,8 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   sep1->setSeparator(name.c_str());
   actionGroup->addAction(sep1);
   for(size_t i=0; i<list.size(); i++) {
-    QAction *action=new QAction(list[i].get<2>(), list[i].get<1>().c_str(), actionGroup);
-    action->setObjectName(list[i].get<3>().c_str());
+    QAction *action=new QAction(get<2>(list[i]), get<1>(list[i]).c_str(), actionGroup);
+    action->setObjectName(get<3>(list[i]).c_str());
     action->setData(QVariant(static_cast<int>(i)));
     action->setCheckable(true);
     actionGroup->addAction(action);

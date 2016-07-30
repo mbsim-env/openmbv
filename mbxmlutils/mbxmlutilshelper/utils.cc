@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include "utils.h"
 #include "dom.h"
-#include <boost/functional/hash.hpp>
+#include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
 
 using namespace std;
 using namespace MBXMLUtils;

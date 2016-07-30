@@ -4,10 +4,10 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-#include <boost/lexical_cast.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
 
 using namespace std;
+using namespace std::placeholders;
 using namespace MBXMLUtils;
 using namespace xercesc;
 using namespace boost::filesystem;
@@ -39,7 +39,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         string subst;
         try {
           if(eval->valueIsOfType(ret, Eval::ScalarType))
-            subst=boost::lexical_cast<string>(eval->cast<double>(ret));
+            try {
+              subst=to_string(eval->cast<int>(ret));
+            }
+            catch(const DOMEvalException&) {
+              subst=to_string(eval->cast<double>(ret));
+            }
           else if(eval->valueIsOfType(ret, Eval::StringType))
             subst=eval->cast<string>(ret);
           else
@@ -76,7 +81,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
 
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
       int pos=++(*position)[E(enew)->getTagName()];
-      thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+boost::lexical_cast<string>(pos)+"]";
+      thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+to_string(pos)+"]";
     
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
@@ -189,7 +194,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
 
       // set the XPath of this (none Embed) element to the name of the element itself (including the proper position)
       int pos=++(*position)[E(e)->getTagName()];
-      thisXPath="{"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+"["+boost::lexical_cast<string>(pos)+"]";
+      thisXPath="{"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+"["+to_string(pos)+"]";
 
       // evaluate attributes
       DOMNamedNodeMap *attr=e->getAttributes();
@@ -208,7 +213,12 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         string s;
         try {
           if(eval->valueIsOfType(value, Eval::ScalarType))
-            s=boost::lexical_cast<string>(eval->cast<double>(value));
+            try {
+              s=to_string(eval->cast<int>(value));
+            }
+            catch(const DOMEvalException&) {
+              s=to_string(eval->cast<double>(value));
+            }
           else if(eval->valueIsOfType(value, Eval::StringType))
             s=eval->cast<string>(value);
           else

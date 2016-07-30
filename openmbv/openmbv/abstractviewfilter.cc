@@ -31,7 +31,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, const QString &typePrefix_,
-                                       boost::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
+                                       std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
   QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(indexToQObject_),
   enableRole(enableRole_) {
 

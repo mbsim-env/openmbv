@@ -26,7 +26,6 @@
 #include <string>
 #include "utils.h"
 #include <QtGui/QMessageBox>
-#include <boost/functional/factory.hpp>
 #include "openmbvcppinterface/objectfactory.h"
 #include "openmbvcppinterface/arrow.h"
 #include "openmbvcppinterface/coilspring.h"
@@ -126,26 +125,26 @@ QString Group::getInfo() {
 }
 
 void Group::newObjectSlot() {
-  static vector<Utils::FactoryElement> factory=boost::assign::list_of
-    (Utils::FactoryElement(Utils::QIconCached("arrow.svg"),             "Arrow",             Utils::factory<OpenMBV::Arrow>()))
-    (Utils::FactoryElement(Utils::QIconCached("coilspring.svg"),        "CoilSpring",        Utils::factory<OpenMBV::CoilSpring>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "NurbsDisk",         Utils::factory<OpenMBV::NurbsDisk>()))
-    (Utils::FactoryElement(Utils::QIconCached("indexedfaceset.svg"),    "IndexedFaceSet",    Utils::factory<OpenMBV::IndexedFaceSet>()))
-    (Utils::FactoryElement(Utils::QIconCached("compoundrigidbody.svg"), "CompoundRigidBody", Utils::factory<OpenMBV::CompoundRigidBody>()))
-    (Utils::FactoryElement(Utils::QIconCached("cube.svg"),              "Cube",              Utils::factory<OpenMBV::Cube>()))
-    (Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),            "Cuboid",            Utils::factory<OpenMBV::Cuboid>()))
-    (Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),         "Extrusion",         Utils::factory<OpenMBV::Extrusion>()))
-    (Utils::FactoryElement(Utils::QIconCached("frame.svg"),             "Frame",             Utils::factory<OpenMBV::Frame>()))
-    (Utils::FactoryElement(Utils::QIconCached("frustum.svg"),           "Frustum",           Utils::factory<OpenMBV::Frustum>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "Grid",              Utils::factory<OpenMBV::Grid>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "InvisibleBody",     Utils::factory<OpenMBV::InvisibleBody>()))
-    (Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),            "IvBody",            Utils::factory<OpenMBV::IvBody>()))
-    (Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          Utils::factory<OpenMBV::Rotation>()))
-    (Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            Utils::factory<OpenMBV::Sphere>()))
-    (Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>()))
-    (Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>()))
-    (Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>()))
-  .to_container(factory);  
+  static vector<Utils::FactoryElement> factory={
+    {Utils::FactoryElement(Utils::QIconCached("arrow.svg"),             "Arrow",             Utils::factory<OpenMBV::Arrow>())},
+    {Utils::FactoryElement(Utils::QIconCached("coilspring.svg"),        "CoilSpring",        Utils::factory<OpenMBV::CoilSpring>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "NurbsDisk",         Utils::factory<OpenMBV::NurbsDisk>())},
+    {Utils::FactoryElement(Utils::QIconCached("indexedfaceset.svg"),    "IndexedFaceSet",    Utils::factory<OpenMBV::IndexedFaceSet>())},
+    {Utils::FactoryElement(Utils::QIconCached("compoundrigidbody.svg"), "CompoundRigidBody", Utils::factory<OpenMBV::CompoundRigidBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("cube.svg"),              "Cube",              Utils::factory<OpenMBV::Cube>())},
+    {Utils::FactoryElement(Utils::QIconCached("cuboid.svg"),            "Cuboid",            Utils::factory<OpenMBV::Cuboid>())},
+    {Utils::FactoryElement(Utils::QIconCached("extrusion.svg"),         "Extrusion",         Utils::factory<OpenMBV::Extrusion>())},
+    {Utils::FactoryElement(Utils::QIconCached("frame.svg"),             "Frame",             Utils::factory<OpenMBV::Frame>())},
+    {Utils::FactoryElement(Utils::QIconCached("frustum.svg"),           "Frustum",           Utils::factory<OpenMBV::Frustum>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "Grid",              Utils::factory<OpenMBV::Grid>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "InvisibleBody",     Utils::factory<OpenMBV::InvisibleBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),            "IvBody",            Utils::factory<OpenMBV::IvBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          Utils::factory<OpenMBV::Rotation>())},
+    {Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            Utils::factory<OpenMBV::Sphere>())},
+    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>())},
+    {Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>())},
+    {Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>())}
+  };
 
   vector<string> existingNames;
   for(unsigned int j=0; j<grp->getObjects().size(); j++)

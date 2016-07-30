@@ -23,7 +23,6 @@
 #include <openmbvcppinterface/object.h>
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMBV {
 

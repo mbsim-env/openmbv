@@ -8,7 +8,7 @@
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
-
+#include <boost/lexical_cast.hpp>
 
 namespace casadi {
 
@@ -133,7 +133,7 @@ inline SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXN
   // creata an SXElement dependent on the type
   SXElement sxelement;
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"BinarySX") {
-    int op = atoi(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    int op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElement dep0=createCasADiSXFromXML(ee, nodes);
     ee=ee->getNextElementSibling();
@@ -141,7 +141,7 @@ inline SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXN
     sxelement=SXElement::binary(op, dep0, dep1);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"UnarySX") {
-    int op = atoi(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    int op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElement dep=createCasADiSXFromXML(ee, nodes);
     sxelement=SXElement::unary(op, dep);
@@ -175,7 +175,7 @@ inline SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXN
     sxelement=casadi_limits<SXElement>::nan;
   // reference elements must be handled specially: return the referenced node instead of creating a new one
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"reference") {
-    int refid = atoi(MBXMLUtils::E(e)->getAttribute("refid").c_str());
+    int refid = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("refid").c_str());
     sxelement=SXElement::create(nodes[refid]);
     return sxelement;
   }
@@ -183,7 +183,7 @@ inline SXElement createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXN
     throw std::runtime_error("Unknown XML element named "+MBXMLUtils::X()%e->getTagName()+" in createCasADiSXFromXML");
 
   // insert a newly created SXElement (node) to the list of all nodes
-  int id = atoi(MBXMLUtils::E(e)->getAttribute("id").c_str());
+  int id = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("id").c_str());
   nodes.insert(std::make_pair(id, sxelement.get()));
   return sxelement;
 }

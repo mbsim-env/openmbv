@@ -9,8 +9,6 @@
 #include <sstream>
 #include <memory>
 #include <boost/filesystem.hpp>
-#include <boost/type_traits/conditional.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/dom/DOMErrorHandler.hpp>
 #include <xercesc/dom/DOMElement.hpp>
@@ -172,7 +170,7 @@ class DOMElementWrapper {
     //! Workaround: convert default attributes to normal attributes (must be used before importNode to also import default attributes)
     void workaroundDefaultAttributesOnImportNode();
     //! Treat this object as a pointer (like DOMElement*)
-    typename boost::conditional<boost::is_same<DOMElementType, const xercesc::DOMElement>::value,
+    typename std::conditional<std::is_same<DOMElementType, const xercesc::DOMElement>::value,
       const DOMElementWrapper*, DOMElementWrapper*>::type operator->() {
       return this;
     }
@@ -197,7 +195,7 @@ class DOMAttrWrapper {
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &base) const;
     //! Treat this object as a pointer (like DOMAttr*)
-    typename boost::conditional<boost::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
+    typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
       const DOMAttrWrapper*, DOMAttrWrapper*>::type operator->() {
       return this;
     }
@@ -223,7 +221,7 @@ class DOMDocumentWrapper {
     //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
     //! Treat this object as a pointer (like DOMDocument*)
-    typename boost::conditional<boost::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
+    typename std::conditional<std::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
       const DOMDocumentWrapper*, DOMDocumentWrapper*>::type operator->() {
       return this;
     }

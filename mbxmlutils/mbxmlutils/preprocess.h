@@ -2,8 +2,6 @@
 #define _MBXMLUTILS_PREPROCESS_H_
 
 #include <fmatvec/atom.h>
-#include <boost/locale.hpp>
-#include <boost/bind.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutils/eval.h>
 

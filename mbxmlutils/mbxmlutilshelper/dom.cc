@@ -1,9 +1,6 @@
 #include <config.h>
 #include "dom.h"
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/format.hpp>
-#include <boost/locale.hpp>
 #include <boost/lexical_cast.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
@@ -24,6 +21,7 @@
 #include <xercesc/internal/XMLScanner.hpp>
 
 using namespace std;
+using namespace std::placeholders;
 using namespace xercesc;
 using namespace boost::filesystem;
 
@@ -413,11 +411,11 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
   if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
     // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber());
+    return X()%loc.getURI()+":"+to_string(loc.getLineNumber());
   else
     // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+boost::lexical_cast<string>(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+boost::lexical_cast<string>(loc.getLineNumber())+"</a>";
+    return "<a href=\""+X()%loc.getURI()+"?line="+to_string(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+to_string(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {

@@ -39,6 +39,7 @@
 #    define _GNU_SOURCE // dladdr requires _GNU_SOURCE to be defined
 #  endif
 #  include <dlfcn.h>
+#  include <unistd.h>
 #endif
 
 namespace {

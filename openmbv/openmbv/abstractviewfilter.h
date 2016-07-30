@@ -22,7 +22,7 @@
 
 #include <QtGui/QWidget>
 #include <QtGui/QAbstractItemView>
-#include <boost/function.hpp>
+#include <functional>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
 // Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
@@ -52,7 +52,7 @@ class AbstractViewFilter : public QWidget {
      * The boolean view-model flag enableRole_ is honored when coloring is done be the filter:
      * If this flag is true normal coloring is done if false "disabled" coloring is done. */
     DLL_PUBLIC AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="",
-                       boost::function<QObject*(const QModelIndex&)> indexToQObject_=boost::function<QObject*(const QModelIndex&)>(),
+                       std::function<QObject*(const QModelIndex&)> indexToQObject_=std::function<QObject*(const QModelIndex&)>(),
                        int enableRole_=Qt::UserRole);
 
     //! Set the filter programatically.
@@ -79,7 +79,7 @@ class AbstractViewFilter : public QWidget {
     int nameCol;
     int typeCol;
     QString typePrefix;
-    boost::function<QObject*(const QModelIndex&)> indexToQObject;
+    std::function<QObject*(const QModelIndex&)> indexToQObject;
     int enableRole;
 
     struct Match {

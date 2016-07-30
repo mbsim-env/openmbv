@@ -27,7 +27,6 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#include <boost/static_assert.hpp>
 #ifdef HAVE_BOOST_FILE_LOCK
 #  include <boost/interprocess/sync/file_lock.hpp>
 #endif

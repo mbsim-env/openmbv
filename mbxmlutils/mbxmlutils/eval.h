@@ -3,8 +3,6 @@
 
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
-#include <boost/function.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <casadi/core/function/sx_function.hpp>
@@ -52,12 +50,17 @@ class PreserveCurrentDir {
 class Eval;
 
 //! Create a new parameter level for a evaluator which is automatically resetted if the scope of this object is left.
-class NewParamLevel : public boost::noncopyable {
+class NewParamLevel {
   public:
     //! Create a new parameter level in the evaluator oe_
     NewParamLevel(const std::shared_ptr<Eval> &oe_, bool newLevel_=true);
     //! Reset to the previous parameter level
     ~NewParamLevel();
+    
+    NewParamLevel(const NewParamLevel& other) = delete; // copy constructor
+    NewParamLevel(NewParamLevel&& other) = delete; // move constructor
+    NewParamLevel& operator=(const NewParamLevel& other) = delete; // copy assignment
+    NewParamLevel& operator=(NewParamLevel&& other) = delete; // move assignment
   protected:
     static void* operator new(std::size_t); // no heap allocation allowed
     static void* operator new[](std::size_t); // no heap allocation allowed
@@ -69,7 +72,7 @@ class NewParamLevel : public boost::noncopyable {
 template<class T> struct SwigType { static std::string name; };
 
 /*! Expression evaluator and converter. */
-class Eval : public std::enable_shared_from_this<Eval>, public boost::noncopyable, virtual public fmatvec::Atom {
+class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::Atom {
   public:
     friend class NewParamLevel;
 
@@ -89,6 +92,11 @@ class Eval : public std::enable_shared_from_this<Eval>, public boost::noncopyabl
   public:
     //! Destructor.
     ~Eval();
+
+    Eval(const Eval& other) = delete; // copy constructor
+    Eval(Eval&& other) = delete; // move constructor
+    Eval& operator=(const Eval& other) = delete; // copy assignment
+    Eval& operator=(Eval&& other) = delete; // move assignment
 
     //! Create a evaluator.
     static std::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);

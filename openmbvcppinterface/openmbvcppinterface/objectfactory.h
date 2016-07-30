@@ -25,10 +25,6 @@
 #include <typeinfo>
 #include <mbxmlutilshelper/dom.h>
 #include <xercesc/dom/DOMElement.hpp>
-#ifdef HAVE_BOOST_TYPE_TRAITS_HPP
-# include <boost/static_assert.hpp>
-# include <boost/type_traits.hpp>
-#endif
 
 namespace OpenMBV {
 
@@ -54,12 +50,9 @@ class ObjectFactory {
      * This function returns a new object dependent on the registration of the created object. */
     template<class ContainerType>
     static std::shared_ptr<ContainerType> create(const xercesc::DOMElement *element) {
-#ifdef HAVE_BOOST_TYPE_TRAITS_HPP
-      // just check if ContainerType is derived from Object if not throw a compile error if boost is avaliable
-      // if boost is not avaliable a runtime error will occure later. (so it does not care if boost is not available)
-      BOOST_STATIC_ASSERT_MSG((boost::is_convertible<ContainerType*, Object*>::value),
+      // just check if ContainerType is derived from Object if not throw a compile error
+      static_assert(std::is_convertible<ContainerType*, Object*>::value,
         "In OpenMBV::ObjectFactory::create<ContainerType>(...) ContainerType must be derived from Object.");
-#endif
       // return NULL if no input is supplied
       if(element==NULL) return std::shared_ptr<ContainerType>();
       // loop over all all registred types corresponding to element->ValueStr()

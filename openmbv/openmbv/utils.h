@@ -34,9 +34,6 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <GL/glu.h>
-#include <boost/functional/factory.hpp>
-#include <boost/function.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <openmbvcppinterface/object.h>
 #include <QtGui/QTreeWidgetItem>
 
@@ -82,7 +79,7 @@ class Utils : virtual public fmatvec::Atom {
     static SbVec3f rotation2Cardan(const SbRotation& r);
 
     template<class T>
-    static void visitTreeWidgetItems(QTreeWidgetItem *root, boost::function<void (T)> func, bool onlySelected=false);
+    static void visitTreeWidgetItems(QTreeWidgetItem *root, std::function<void (T)> func, bool onlySelected=false);
 
     static std::string getIconPath();
     static std::string getXMLDocPath();
@@ -93,12 +90,12 @@ class Utils : virtual public fmatvec::Atom {
     static GLUtesselator *tess;
 
 
-    typedef boost::tuple<QIcon, std::string, boost::function<std::shared_ptr<OpenMBV::Object>()> > FactoryElement;
+    typedef std::tuple<QIcon, std::string, std::function<std::shared_ptr<OpenMBV::Object>()> > FactoryElement;
     static std::shared_ptr<OpenMBV::Object> createObjectEditor(const std::vector<FactoryElement> &factory,
                                                                  const std::vector<std::string> &existingNames,
                                                                  const std::string &title);
     template<class T>
-    static boost::function<std::shared_ptr<OpenMBV::Object>()> factory() {
+    static std::function<std::shared_ptr<OpenMBV::Object>()> factory() {
       return static_cast<std::shared_ptr<T>(*)()>(&OpenMBV::ObjectFactory::create<T>);
     }
 
@@ -119,7 +116,7 @@ class Utils : virtual public fmatvec::Atom {
 };
 
 template<class T>
-void Utils::visitTreeWidgetItems(QTreeWidgetItem *root, boost::function<void (T)> func, bool onlySelected) {
+void Utils::visitTreeWidgetItems(QTreeWidgetItem *root, std::function<void (T)> func, bool onlySelected) {
   for(int i=0; i<root->childCount(); i++)
     visitTreeWidgetItems(root->child(i), func, onlySelected);
   if((!onlySelected || root->isSelected()) && dynamic_cast<T>(root))

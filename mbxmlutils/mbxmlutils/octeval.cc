@@ -6,14 +6,13 @@
 #include <../mbxmlutils/../config.h>
 
 // normal includes
-#include <boost/math/special_functions/round.hpp>
-#include <boost/lexical_cast.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
 #include "mbxmlutils/eval_static.h"
 #include <casadi/core/matrix/matrix.hpp>
+#include <boost/lexical_cast.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
 // about redefintions of preprocessor defines

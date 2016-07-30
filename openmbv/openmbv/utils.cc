@@ -250,7 +250,7 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
   QComboBox *cb=new QComboBox();
   layout->addWidget(cb, 0, 1);
   for(unsigned int i=0; i<factory.size(); i++)
-    cb->addItem(factory[i].get<0>(), factory[i].get<1>().c_str());
+    cb->addItem(get<0>(factory[i]), get<1>(factory[i]).c_str());
 
   layout->addWidget(new QLabel("Name:"), 1, 0);
   QLineEdit *lineEdit=new QLineEdit();
@@ -277,7 +277,7 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
       }
   } while(!unique);
 
-  std::shared_ptr<OpenMBV::Object> obj=factory[cb->currentIndex()].get<2>()();
+  std::shared_ptr<OpenMBV::Object> obj=get<2>(factory[cb->currentIndex()])();
   obj->setName(lineEdit->text().toStdString());
   return obj;
 }

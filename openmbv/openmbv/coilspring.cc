@@ -158,11 +158,11 @@ void CoilSpring::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type",
-      boost::assign::tuple_list_of(OpenMBV::CoilSpring::tube,       "Tube",        QIcon(), "CoilSpring::type::tube")
-                                  (OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon(), "CoilSpring::type::scaledTube")
-                                  (OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon(), "CoilSpring::type::polyline")
-    );
+    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type", {
+      make_tuple(OpenMBV::CoilSpring::tube,       "Tube",        QIcon(), "CoilSpring::type::tube"),
+      make_tuple(OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon(), "CoilSpring::type::scaledTube"),
+      make_tuple(OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon(), "CoilSpring::type::polyline")
+    });
     typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
     properties->addPropertyActionGroup(typeEditor->getActionGroup());
 
