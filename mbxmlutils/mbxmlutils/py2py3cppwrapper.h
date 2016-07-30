@@ -223,59 +223,9 @@ inline const char* convertArg(const std::string &o) {
 
 // Call Python function func with arguments args.
 // Use the macro CALLPY or CALLPYB, see below.
-/* when we used c++11 replace all the following code with this c++11 code:
 template<typename PyRet, typename... PyArgs, typename... CallArgs>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs...), CallArgs... args) {
-  PyRet ret=func(convertArg(args1)...);
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-*/
-// 0 arg
-template<typename PyRet>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)()) {
-  PyRet ret=func();
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-// 1 arg
-template<typename PyRet, typename PyArgs1, typename CallArgs1>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs1), CallArgs1 args1) {
-  PyRet ret=func(convertArg(args1));
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-// 2 arg
-template<typename PyRet, typename PyArgs1, typename PyArgs2, typename CallArgs1, typename CallArgs2>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs1, PyArgs2), CallArgs1 args1, CallArgs2 args2) {
-  PyRet ret=func(convertArg(args1), convertArg(args2));
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-// 3 arg
-template<typename PyRet, typename PyArgs1, typename PyArgs2, typename PyArgs3, typename CallArgs1, typename CallArgs2, typename CallArgs3>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs1, PyArgs2, PyArgs3), CallArgs1 args1, CallArgs2 args2, CallArgs3 args3) {
-  PyRet ret=func(convertArg(args1), convertArg(args2), convertArg(args3));
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-// 4 arg
-template<typename PyRet, typename PyArgs1, typename PyArgs2, typename PyArgs3, typename PyArgs4, typename CallArgs1, typename CallArgs2, typename CallArgs3, typename CallArgs4>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs1, PyArgs2, PyArgs3, PyArgs4), CallArgs1 args1, CallArgs2 args2, CallArgs3 args3, CallArgs4 args4) {
-  PyRet ret=func(convertArg(args1), convertArg(args2), convertArg(args3), convertArg(args4));
-  if(PyErr_Occurred())
-    throw PythonException(file, line);
-  return MapRetType<PyRet>::convert(ret);
-}
-// 5 arg
-template<typename PyRet, typename PyArgs1, typename PyArgs2, typename PyArgs3, typename PyArgs4, typename PyArgs5, typename CallArgs1, typename CallArgs2, typename CallArgs3, typename CallArgs4, typename CallArgs5>
-inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs1, PyArgs2, PyArgs3, PyArgs4, PyArgs5), CallArgs1 args1, CallArgs2 args2, CallArgs3 args3, CallArgs4 args4, CallArgs5 args5) {
-  PyRet ret=func(convertArg(args1), convertArg(args2), convertArg(args3), convertArg(args4), convertArg(args5));
+inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs...), CallArgs&&... args) {
+  PyRet ret=func(convertArg(std::forward<CallArgs>(args))...);
   if(PyErr_Occurred())
     throw PythonException(file, line);
   return MapRetType<PyRet>::convert(ret);
