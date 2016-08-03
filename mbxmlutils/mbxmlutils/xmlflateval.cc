@@ -31,7 +31,7 @@ void XMLFlatEval::addImport(const string &code, const DOMElement *e, bool deprec
   throw runtime_error("addImport not possible.");
 }
 
-bool XMLFlatEval::valueIsOfType(const shared_ptr<void> &value, ValueType type) const {
+bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
   switch(type) {
     case ScalarType: try { cast<double>(value); return true; } catch(...) { return false; };
     case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };
@@ -47,33 +47,33 @@ map<path, pair<path, bool> >& XMLFlatEval::requiredFiles() const {
   return ret;
 }
 
-shared_ptr<void> XMLFlatEval::createSwigByTypeName(const string &typeName) const {
+Eval::Value XMLFlatEval::createSwigByTypeName(const string &typeName) const {
   throw runtime_error("createSwig<T> not possible.");
 }
 
-shared_ptr<void> XMLFlatEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
+Eval::Value XMLFlatEval::callFunction(const string &name, const vector<Value>& args) const {
   throw runtime_error("callFunction not possible.");
 }
 
-shared_ptr<void> XMLFlatEval::fullStringToValue(const string &str, const DOMElement *e) const {
+Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *e) const {
   return make_shared<string>(str);
 }
 
-void* XMLFlatEval::getSwigThis(const shared_ptr<void> &value) const {
+void* XMLFlatEval::getSwigThis(const Value &value) const {
   throw runtime_error("getSwigThis not possible.");
 }
 
-string XMLFlatEval::getSwigType(const shared_ptr<void> &value) const {
+string XMLFlatEval::getSwigType(const Value &value) const {
   throw runtime_error("getSwigThis not possible.");
 }
 
-double XMLFlatEval::cast_double(const shared_ptr<void> &value) const {
-  string *v=static_cast<string*>(value.get());
+double XMLFlatEval::cast_double(const Value &value) const {
+  string *v=static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
   return boost::lexical_cast<double>(*v);
 }
 
-vector<double> XMLFlatEval::cast_vector_double(const shared_ptr<void> &value) const {
-  string valueStr=*static_cast<string*>(value.get());
+vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
+  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [ ] if not already done
   if(valueStr[valueStr.size()-1]!=']')
@@ -99,8 +99,8 @@ vector<double> XMLFlatEval::cast_vector_double(const shared_ptr<void> &value) co
   return v;
 }
 
-vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const shared_ptr<void> &value) const {
-  string valueStr=*static_cast<string*>(value.get());
+vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &value) const {
+  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [] if not already done
   if(valueStr[valueStr.size()-1]!=']')
@@ -130,19 +130,19 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const shared_ptr<
   return m;
 }
 
-string XMLFlatEval::cast_string(const shared_ptr<void> &value) const {
-  string valueStr=*static_cast<string*>(value.get());
+string XMLFlatEval::cast_string(const Value &value) const {
+  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
 }
 
-shared_ptr<void> XMLFlatEval::create_double(const double& v) const {
+Eval::Value XMLFlatEval::create_double(const double& v) const {
   return make_shared<string>(to_string(v));
 }
 
-shared_ptr<void> XMLFlatEval::create_vector_double(const vector<double>& v) const {
+Eval::Value XMLFlatEval::create_vector_double(const vector<double>& v) const {
   string str("[");
   for(int i=0; i<v.size(); ++i) {
     str+=to_string(v[i]);
@@ -152,7 +152,7 @@ shared_ptr<void> XMLFlatEval::create_vector_double(const vector<double>& v) cons
   return make_shared<string>(str);
 }
 
-shared_ptr<void> XMLFlatEval::create_vector_vector_double(const vector<vector<double> >& v) const {
+Eval::Value XMLFlatEval::create_vector_vector_double(const vector<vector<double> >& v) const {
   string str("[");
   for(int r=0; r<v.size(); ++r) {
     for(int c=0; c<v[r].size(); ++c) {
@@ -165,7 +165,7 @@ shared_ptr<void> XMLFlatEval::create_vector_vector_double(const vector<vector<do
   return make_shared<string>(str);
 }
 
-shared_ptr<void> XMLFlatEval::create_string(const string& v) const {
+Eval::Value XMLFlatEval::create_string(const string& v) const {
   return make_shared<string>("'"+v+"'");
 }
 

@@ -12,9 +12,9 @@ namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
 
-std::shared_ptr<octave_value> C(const std::shared_ptr<void> &value);
+std::shared_ptr<octave_value> C(const Eval::Value &value);
 
-std::shared_ptr<void> C(const octave_value &value);
+Eval::Value C(const octave_value &value);
 
 class OctEval;
 
@@ -41,7 +41,7 @@ class OctEval : public Eval {
     void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
 
     //! get the type of value
-    bool valueIsOfType(const std::shared_ptr<void> &value, ValueType type) const;
+    bool valueIsOfType(const Value &value, ValueType type) const;
 
     //! return a list of all required files of octave (excluding dependent files of libraries)
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
@@ -51,30 +51,30 @@ class OctEval : public Eval {
   protected:
 
     //! evaluate str fully and return result as an octave variable
-    virtual std::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
+    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
 
     //! get the SWIG pointer of this value.
-    void* getSwigThis(const std::shared_ptr<void> &value) const;
+    void* getSwigThis(const Value &value) const;
 
     //! get the SWIG class name of this value.
-    std::string getSwigType(const std::shared_ptr<void> &value) const;
+    std::string getSwigType(const Value &value) const;
 
-    std::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const;
+    Value createSwigByTypeName(const std::string &typeName) const;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
 
-    virtual std::shared_ptr<void> callFunction(const std::string &name, const std::vector<std::shared_ptr<void> >& args) const;
+    virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const;
 
-    virtual double                            cast_double              (const std::shared_ptr<void> &value) const;
-    virtual std::vector<double>               cast_vector_double       (const std::shared_ptr<void> &value) const;
-    virtual std::vector<std::vector<double> > cast_vector_vector_double(const std::shared_ptr<void> &value) const;
-    virtual std::string                       cast_string              (const std::shared_ptr<void> &value) const;
+    virtual double                            cast_double              (const Value &value) const;
+    virtual std::vector<double>               cast_vector_double       (const Value &value) const;
+    virtual std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const;
+    virtual std::string                       cast_string              (const Value &value) const;
 
-    virtual std::shared_ptr<void> create_double              (const double& v) const;
-    virtual std::shared_ptr<void> create_vector_double       (const std::vector<double>& v) const;
-    virtual std::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v) const;
-    virtual std::shared_ptr<void> create_string              (const std::string& v) const;
+    virtual Value create_double              (const double& v) const;
+    virtual Value create_vector_double       (const std::vector<double>& v) const;
+    virtual Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const;
+    virtual Value create_string              (const std::string& v) const;
 };
 
 } // end namespace MBXMLUtils

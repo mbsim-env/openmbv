@@ -4,15 +4,10 @@
 // include casadi headers
 %{
   #include <casadi/core/sx/sx_element.hpp>
-  #include <casadi/core/matrix/matrix.hpp>
-  #include <casadi/core/function/sx_function.hpp>
 %}
 
 // import std stirng and pair support
-%include "std_string.i"
-%include "std_vector.i"
 %include "exception.i"
-
 
 // handle exceptions
 %exception {
@@ -176,30 +171,17 @@
 %rename(__str__) casadi::PrintableObject<casadi::Matrix<double           > >::getDescription;
 
 // forward declaration for swig
-#define SWIG_OUTPUT(arg) OUTPUT
-#define SWIG_INPUT(arg) INPUT
 namespace casadi {
   typedef casadi::Matrix<casadi::SXElement> SX;
   enum SparsityType;
   class Sparsity;
   class Slice;
-  class GenericType;
-  class MX;
-  class CodeGenerator;
-  typedef GenericType::Dictionary Dictionary;
-  typedef std::vector<Matrix<SXElement> > SXVector;
-  typedef std::vector<std::vector<Matrix<SXElement> > > SXVectorVector;
-  typedef std::vector<MX> MXVector;
-  typedef std::vector<std::vector<MX> > MXVectorVector;
-  enum opt_type;
-  template<typename T> class IOSchemeVector;
 }
 
 // include headers to wrap (including template instantations)
 %include <casadi/core/printable_object.hpp>
 %template(PrintableObject_Matrix_SXElement) casadi::PrintableObject<casadi::Matrix<casadi::SXElement> >;
 %template(PrintableObject_Matrix_double) casadi::PrintableObject<casadi::Matrix<double> >;
-%template(PrintableObject_SharedObject) casadi::PrintableObject<casadi::SharedObject>;
 
 %include <casadi/core/matrix/sparsity_interface.hpp>
 %template(SparsityInterface_Matrix_SXElement) casadi::SparsityInterface<casadi::Matrix<casadi::SXElement> >;
@@ -216,17 +198,3 @@ namespace casadi {
 %include <casadi/core/matrix/matrix.hpp>
 %template(SX) casadi::Matrix<casadi::SXElement>;
 %template(DMatrix) casadi::Matrix<double>;
-%extend casadi::Matrix<casadi::SXElement> {
-  %template(SX) Matrix<double>;
-};
-
-%include <casadi/core/function/io_interface.hpp>
-%template(IOInterface_Function) casadi::IOInterface<casadi::Function>;
-
-%include <casadi/core/shared_object.hpp>
-
-%include <casadi/core/options_functionality.hpp>
-
-%include <casadi/core/function/function.hpp>
-
-%include <casadi/core/function/sx_function.hpp>

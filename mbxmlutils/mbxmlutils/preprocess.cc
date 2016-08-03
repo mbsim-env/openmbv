@@ -35,7 +35,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       // get file name if href attribute exist
       path file;
       if(E(e)->hasAttribute("href")) {
-        shared_ptr<void> ret=eval->eval(E(e)->getAttributeNode("href"), e);
+        Eval::Value ret=eval->eval(E(e)->getAttributeNode("href"), e);
         string subst;
         try {
           if(eval->valueIsOfType(ret, Eval::ScalarType))
@@ -100,7 +100,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
-        shared_ptr<void> ret=eval->eval(E(e)->getAttributeNode("parameterHref"), e);
+        Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"), e);
         string subst;
         try { subst=eval->cast<string>(ret); } MBXMLUTILS_RETHROW(e)
         path paramFile=E(e)->convertPath(subst);
@@ -122,7 +122,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         if(ret.second) {
           shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
-            shared_ptr<void> parValue;
+            Eval::Value parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {
               parValue=plainEval->eval(p);
@@ -209,7 +209,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         // skip attributes which are not evaluated
         if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
           continue;
-        shared_ptr<void> value=eval->eval(a, e);
+        Eval::Value value=eval->eval(a, e);
         string s;
         try {
           if(eval->valueIsOfType(value, Eval::ScalarType))
@@ -233,7 +233,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
          E(e)->isDerivedFrom(PV%"matrix") ||
          E(e)->isDerivedFrom(PV%"fullEval") ||
          isCasADi) {
-        shared_ptr<void> value=eval->eval(e);
+        Eval::Value value=eval->eval(e);
         E(e)->removeAttribute("unit");
         E(e)->removeAttribute("convertUnit");
         if(e->getFirstElementChild())

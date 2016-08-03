@@ -40,7 +40,6 @@ NewParamLevel::~NewParamLevel() {
 }
 
 template<> string SwigType<SX        *>::name("SX"        );
-template<> string SwigType<SXFunction*>::name("SXFunction");
 
 map<string, string> Eval::units;
 
@@ -95,43 +94,48 @@ map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >& Eval::getEvaluator
 };
 
 template<>
-string Eval::cast<string>(const shared_ptr<void> &value) const {
+string Eval::cast<string>(const Value &value) const {
   return cast_string(value);
 }
 
 template<>
-CodeString Eval::cast<CodeString>(const shared_ptr<void> &value) const {
+CodeString Eval::cast<CodeString>(const Value &value) const {
   return cast_CodeString(value);
 }
 
 template<>
-double Eval::cast<double>(const shared_ptr<void> &value) const {
+double Eval::cast<double>(const Value &value) const {
   return cast_double(value);
 }
 
 template<>
-int Eval::cast<int>(const shared_ptr<void> &value) const {
+int Eval::cast<int>(const Value &value) const {
   return cast_int(value);
 }
 
 template<>
-vector<double> Eval::cast<vector<double> >(const shared_ptr<void> &value) const {
+vector<double> Eval::cast<vector<double> >(const Value &value) const {
   return cast_vector_double(value);
 }
 
 template<>
-SX Eval::cast<SX>(const shared_ptr<void> &value) const {
+SX Eval::cast<SX>(const Value &value) const {
   return cast_SX(value);
 }
 
 template<>
-vector<vector<double> > Eval::cast<vector<vector<double> > >(const shared_ptr<void> &value) const {
+vector<vector<double> > Eval::cast<vector<vector<double> > >(const Value &value) const {
   return cast_vector_vector_double(value);
 }
 
 template<>
-DOMElement* Eval::cast<DOMElement*>(const shared_ptr<void> &value, xercesc::DOMDocument *doc) const {
+DOMElement* Eval::cast<DOMElement*>(const Value &value, xercesc::DOMDocument *doc) const {
   return cast_DOMElement_p(value, doc);
+}
+
+template<>
+SXFunction Eval::cast<SXFunction>(const Value &value) const {
+  return boost::get<SXFunction>(value);
 }
 
 void Eval::pushContext() {
@@ -147,26 +151,26 @@ void Eval::popContext() {
 }
 
 template<>
-shared_ptr<void> Eval::create<double>(const double& v) const {
+Eval::Value Eval::create<double>(const double& v) const {
   return create_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<vector<double> >(const vector<double>& v) const {
+Eval::Value Eval::create<vector<double> >(const vector<double>& v) const {
   return create_vector_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<vector<vector<double> > >(const vector<vector<double> >& v) const {
+Eval::Value Eval::create<vector<vector<double> > >(const vector<vector<double> >& v) const {
   return create_vector_vector_double(v);
 }
 
 template<>
-shared_ptr<void> Eval::create<string>(const string& v) const {
+Eval::Value Eval::create<string>(const string& v) const {
   return create_string(v);
 }
 
-void Eval::addParam(const string &paramName, const shared_ptr<void>& value) {
+void Eval::addParam(const string &paramName, const Value& value) {
   currentParam[paramName]=value;
 }
 
@@ -183,7 +187,7 @@ void Eval::addParamSet(const DOMElement *e) {
   }
 }
 
-shared_ptr<void> Eval::eval(const DOMElement *e) {
+Eval::Value Eval::eval(const DOMElement *e) {
   const DOMElement *ec;
 
   // check if we are evaluating a symbolic function element
@@ -223,7 +227,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
       int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
-      shared_ptr<void> casadiSX=createSwig<SX*>();
+      Value casadiSX=createSwig<SX*>();
       SX *arg;
       try { arg=cast<SX*>(casadiSX); } MBXMLUTILS_RETHROW(e)
       *arg=SX::sym(X()%a->getValue(), dim, 1);
@@ -261,12 +265,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       }
     if(!function)
       return handleUnit(e, create(m));
-    else {
-      shared_ptr<void> func=createSwig<SXFunction*>();
-      SXFunction f(inputs, M);
-      try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
-      return func;
-    }
+    else
+      return SXFunction(inputs, M);
   }
   
   // a XML matrix
@@ -298,12 +298,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     }
     if(!function)
       return handleUnit(e, create(m));
-    else {
-      shared_ptr<void> func=createSwig<SXFunction*>();
-      SXFunction f(inputs, M);
-      try { cast<SXFunction*>(func)->assignNode(f.get()); } MBXMLUTILS_RETHROW(e)
-      return func;
-    }
+    else
+      return SXFunction(inputs, M);
   }
   
   // a element with a single text child (including unit conversion)
@@ -315,7 +311,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       E(e)->isDerivedFrom(PV%"fullEval") ||
       function)
     ) {
-    shared_ptr<void> ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
+    Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
      if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
       throw DOMEvalException("Value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(ret, VectorType))
@@ -334,14 +330,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   
     if(!function)
       return ret;
-    else {
-      shared_ptr<void> func=createSwig<SXFunction*>();
-      try {
-        SXFunction f(inputs, cast<SX>(ret));
-        cast<SXFunction*>(func)->assignNode(f.get());
-      } MBXMLUTILS_RETHROW(e)
-      return func;
-    }
+    else
+      return SXFunction(inputs, cast<SX>(ret));
   }
   
   // rotation about x,y,z
@@ -349,10 +339,10 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     ec=E(e)->getFirstElementChildNamed(PV%(string("about")+ch));
     if(ec) {
       // convert
-      shared_ptr<void> angle=eval(ec);
-      vector<shared_ptr<void> > args(1);
+      Value angle=eval(ec);
+      vector<Value> args(1);
       args[0]=angle;
-      shared_ptr<void> ret;
+      Value ret;
       try { ret=callFunction(string("rotateAbout")+ch, args); } MBXMLUTILS_RETHROW(ec)
       return ret;
     }
@@ -367,7 +357,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     ec=E(e)->getFirstElementChildNamed(PV%rotFuncName[i]);
     if(ec) {
       // convert
-      vector<shared_ptr<void> > angles(3);
+      vector<Value> angles(3);
       DOMElement *ele;
   
       ele=ec->getFirstElementChild();
@@ -376,7 +366,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
       angles[1]=handleUnit(ec, eval(ele));
       ele=ele->getNextElementSibling();
       angles[2]=handleUnit(ec, eval(ele));
-      shared_ptr<void> ret;
+      Value ret;
       try { ret=callFunction(rotFuncName[i], angles); } MBXMLUTILS_RETHROW(ec)
       return ret;
     }
@@ -385,7 +375,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   // from file
   ec=E(e)->getFirstElementChildNamed(PV%"fromFile");
   if(ec) {
-    shared_ptr<void> fileName=stringToValue(E(ec)->getAttribute("href"), ec, false);
+    Value fileName=stringToValue(E(ec)->getAttribute("href"), ec, false);
     if(dependencies)
       dependencies->push_back(E(e)->convertPath(cast<string>(fileName)));
 
@@ -395,8 +385,8 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
     if(!chdir.empty())
       bfs::current_path(chdir);
 
-    shared_ptr<void> ret;
-    vector<shared_ptr<void> > args(1);
+    Value ret;
+    vector<Value> args(1);
     args[0]=fileName;
     try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec)
     handleUnit(e, ret);
@@ -407,7 +397,7 @@ shared_ptr<void> Eval::eval(const DOMElement *e) {
   throw DOMEvalException("Dont know how to evaluate this element", e);
 }
 
-shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe) {
+Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe) {
   bool fullEval;
   if(A(a)->isDerivedFrom(PV%"fullEval"))
     fullEval=true;
@@ -418,7 +408,7 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
 
   // evaluate attribute fully
   if(fullEval) {
-    shared_ptr<void> ret=stringToValue(X()%a->getValue(), pe);
+    Value ret=stringToValue(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"floatFullEval")) {
       if(!valueIsOfType(ret, ScalarType))
         throw DOMEvalException("Value is not of type scalar float", pe, a);
@@ -447,7 +437,7 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   }
   // evaluate attribute partially
   else {
-    shared_ptr<void> ret;
+    Value ret;
     string s=partialStringToString(X()%a->getValue(), pe);
     if(A(a)->isDerivedFrom(PV%"varnamePartialEval")) { // also symbolicFunctionArgNameType
       if(s.length()<1)
@@ -482,7 +472,7 @@ shared_ptr<void> Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement
   }
 }
 
-shared_ptr<void> Eval::handleUnit(const xercesc::DOMElement *e, const shared_ptr<void> &ret) {
+Eval::Value Eval::handleUnit(const xercesc::DOMElement *e, const Value &ret) {
   string eqn;
   string unit=E(e)->getAttribute("unit");
   if(!unit.empty())
@@ -526,7 +516,7 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
       evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
     }
     
-    shared_ptr<void> ret=fullStringToValue(evalStr, e);
+    Value ret=fullStringToValue(evalStr, e);
     string subst;
     try {
       if(valueIsOfType(ret, ScalarType))
@@ -546,20 +536,20 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
   return s;
 }
 
-shared_ptr<void> Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) const {
+Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) const {
   if(fullEval)
     return fullStringToValue(str, e);
   else
     return create(partialStringToString(str, e));
 }
 
-DOMElement* Eval::cast_DOMElement_p(const shared_ptr<void> &value, xercesc::DOMDocument *doc) const {
+DOMElement* Eval::cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const {
   if(valueIsOfType(value, SXFunctionType))
-    return convertCasADiToXML(*cast<SXFunction*>(value), doc);
+    return convertCasADiToXML(cast<SXFunction>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
 }
 
-CodeString Eval::cast_CodeString(const shared_ptr<void> &value) const {
+CodeString Eval::cast_CodeString(const Value &value) const {
   ostringstream ret;
   ret.precision(numeric_limits<double>::digits10+1);
   if(valueIsOfType(value, ScalarType)) {
@@ -597,7 +587,7 @@ CodeString Eval::cast_CodeString(const shared_ptr<void> &value) const {
     throw DOMEvalException("Cannot cast this value to a evaluator code string.");
 }
 
-int Eval::cast_int(const shared_ptr<void> &value) const {
+int Eval::cast_int(const Value &value) const {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
 
   double d=cast<double>(value);
@@ -608,7 +598,7 @@ int Eval::cast_int(const shared_ptr<void> &value) const {
   return i;
 }
 
-SX Eval::cast_SX(const shared_ptr<void> &value) const {
+SX Eval::cast_SX(const Value &value) const {
   // try to cast to SX*. If this works return just a copy of it
   try {
     return *cast<SX*>(value);

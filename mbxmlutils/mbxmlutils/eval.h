@@ -3,6 +3,7 @@
 
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
+#include <boost/variant.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <casadi/core/function/sx_function.hpp>
@@ -86,6 +87,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
       SXFunctionType
     };
 
+    //! Typedef for a shared value
+    typedef boost::variant<std::shared_ptr<void>, casadi::SXFunction> Value;
+
   protected:
     //! Constructor.
     Eval(std::vector<boost::filesystem::path> *dependencies_);
@@ -111,7 +115,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual std::string getName() const=0;
 
     //! Add a value to the current parameters.
-    void addParam(const std::string &paramName, const std::shared_ptr<void>& value);
+    void addParam(const std::string &paramName, const Value& value);
     //! Add all parameters from XML element e.
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
@@ -123,12 +127,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
-    std::shared_ptr<void> eval(const xercesc::DOMElement *e);
+    Value eval(const xercesc::DOMElement *e);
 
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    std::shared_ptr<void> eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
+    Value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -136,7 +140,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the object
      * \p value being passed as argument. This pointer is a reference to the value \p value in the interpreter.
      * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
-     * return types this function must be called with only one argument cast(const std::shared_ptr<void> &value);
+     * return types this function must be called with only one argument cast(const Value &value);
      * <table>
      *   <tr>
      *     <th></th>
@@ -149,7 +153,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <th>real matrix</th>
      *     <th>string</th>
      *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
-     *     <th><i>SWIG</i> <tt>casadi::SXFunction</tt></th>
+     *     <th><tt>casadi::SXFunction</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
@@ -244,7 +248,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SXFunction*</tt></th>
+     *     <!--CAST TO-->    <th><tt>casadi::SXFunction</tt></th>
      *     <!--scalar-->     <td></td>
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
@@ -269,11 +273,11 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      * is required.
      */
     template<typename T>
-    T cast(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+    T cast(const Value &value, xercesc::DOMDocument *doc) const;
 
-    //! see cast(const std::shared_ptr<void> &value, shared_ptr<DOMDocument> &doc)
+    //! see cast(const Value &value, shared_ptr<DOMDocument> &doc)
     template<typename T>
-    T cast(const std::shared_ptr<void> &value) const;
+    T cast(const Value &value) const;
 
     //! check whether value is of type type.
     //! Note that true is only returned if the value is really of type type. If value can be casted
@@ -281,16 +285,16 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! Note that their are evaluators (e.g. octave) which cannot distinguish between e.g. a scalar,
     //! a vector of size 1 or a matrix of size 1x1. Hence, these evaluators will return true for ScalarType
     //! in all these three cases and analog for VectorType.
-    virtual bool valueIsOfType(const std::shared_ptr<void> &value, ValueType type) const=0;
+    virtual bool valueIsOfType(const Value &value, ValueType type) const=0;
 
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
-    std::shared_ptr<void> stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
+    Value stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
 
     //! create a value of the given type
     template<class T>
-    std::shared_ptr<void> create(const T& v) const;
+    Value create(const T& v) const;
 
     //! return a list of all required files of the evaluator (excluding dependent files of libraries)
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
@@ -308,9 +312,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     std::vector<boost::filesystem::path> *dependencies;
 
     // map of the current parameters
-    std::unordered_map<std::string, std::shared_ptr<void> > currentParam;
+    std::unordered_map<std::string, Value> currentParam;
     // stack of parameters
-    std::stack<std::unordered_map<std::string, std::shared_ptr<void> > > paramStack;
+    std::stack<std::unordered_map<std::string, Value> > paramStack;
 
     // current imports
     std::shared_ptr<void> currentImport;
@@ -318,10 +322,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     std::stack<std::shared_ptr<void> > importStack;
 
     template<typename T>
-    std::shared_ptr<void> createSwig() const;
+    Value createSwig() const;
 
     //! create a SWIG object of name typeName.
-    virtual std::shared_ptr<void> createSwigByTypeName(const std::string &typeName) const=0;
+    virtual Value createSwigByTypeName(const std::string &typeName) const=0;
 
     /*! Return the value of a call to name using the arguments args.
      * The following functions must be implemented by the evaluator:
@@ -336,12 +340,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     or relative path. A relative path is interprete relative to the location of the XML file with the load
      *     statement. (The abstract Eval class guarantees that the current path is at the XML file if load is called)
      */
-    virtual std::shared_ptr<void> callFunction(const std::string &name, const std::vector<std::shared_ptr<void> >& args) const=0;
+    virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
-    std::shared_ptr<void> casadiValue;
+    Value casadiValue;
 
     //! evaluate the string str using the current parameters and return the result.
-    virtual std::shared_ptr<void> fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;
+    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;
 
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e) const;
@@ -352,33 +356,33 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     }
 
     //! get the SWIG pointer of this value.
-    virtual void* getSwigThis(const std::shared_ptr<void> &value) const=0;
+    virtual void* getSwigThis(const Value &value) const=0;
     //! get the SWIG type (class name) of this value.
-    virtual std::string getSwigType(const std::shared_ptr<void> &value) const=0;
+    virtual std::string getSwigType(const Value &value) const=0;
 
     void addStaticDependencies(const xercesc::DOMElement *e) const;
 
   private:
-    // virtual spezialization of cast(const std::shared_ptr<void> &value)
-    virtual double                            cast_double              (const std::shared_ptr<void> &value) const=0;
-    virtual std::vector<double>               cast_vector_double       (const std::shared_ptr<void> &value) const=0;
-    virtual std::vector<std::vector<double> > cast_vector_vector_double(const std::shared_ptr<void> &value) const=0;
-    virtual std::string                       cast_string              (const std::shared_ptr<void> &value) const=0;
-    // spezialization of cast(const std::shared_ptr<void> &value)
-    CodeString          cast_CodeString  (const std::shared_ptr<void> &value) const;
-    int                 cast_int         (const std::shared_ptr<void> &value) const;
-    casadi::SX          cast_SX          (const std::shared_ptr<void> &value) const;
+    // virtual spezialization of cast(const Value &value)
+    virtual double                            cast_double              (const Value &value) const=0;
+    virtual std::vector<double>               cast_vector_double       (const Value &value) const=0;
+    virtual std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const=0;
+    virtual std::string                       cast_string              (const Value &value) const=0;
+    // spezialization of cast(const Value &value)
+    CodeString          cast_CodeString  (const Value &value) const;
+    int                 cast_int         (const Value &value) const;
+    casadi::SX          cast_SX          (const Value &value) const;
 
-    // spezialization of cast(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc)
-    xercesc::DOMElement* cast_DOMElement_p(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+    // spezialization of cast(const Value &value, xercesc::DOMDocument *doc)
+    xercesc::DOMElement* cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const;
 
     // virtual spezialization of create(...)
-    virtual std::shared_ptr<void> create_double              (const double& v) const=0;
-    virtual std::shared_ptr<void> create_vector_double       (const std::vector<double>& v) const=0;
-    virtual std::shared_ptr<void> create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
-    virtual std::shared_ptr<void> create_string              (const std::string& v) const=0;
+    virtual Value create_double              (const double& v) const=0;
+    virtual Value create_vector_double       (const std::vector<double>& v) const=0;
+    virtual Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
+    virtual Value create_string              (const std::string& v) const=0;
 
-    std::shared_ptr<void> handleUnit(const xercesc::DOMElement *e, const std::shared_ptr<void> &ret);
+    Value handleUnit(const xercesc::DOMElement *e, const Value &ret);
 
     static std::map<std::string, std::string> units;
 
@@ -387,34 +391,35 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 };
 
 template<typename T>
-std::shared_ptr<void> Eval::createSwig() const {
+Eval::Value Eval::createSwig() const {
   return createSwigByTypeName(SwigType<T>::name);
 }
 
 template<typename T>
-T Eval::cast(const std::shared_ptr<void> &value) const {
+T Eval::cast(const Value &value) const {
   // treat all types T as a swig type
   if(getSwigType(value)!=SwigType<T>::name)
     throw DOMEvalException("This variable is not of SWIG type "+SwigType<T>::name+".");
   return static_cast<T>(getSwigThis(value));
 }
 // ... but prevere these specializations
-template<> std::string Eval::cast<std::string>(const std::shared_ptr<void> &value) const;
-template<> CodeString Eval::cast<CodeString>(const std::shared_ptr<void> &value) const;
-template<> double Eval::cast<double>(const std::shared_ptr<void> &value) const;
-template<> int Eval::cast<int>(const std::shared_ptr<void> &value) const;
-template<> std::vector<double> Eval::cast<std::vector<double> >(const std::shared_ptr<void> &value) const;
-template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const std::shared_ptr<void> &value) const;
-template<> casadi::SX Eval::cast<casadi::SX>(const std::shared_ptr<void> &value) const;
+template<> std::string Eval::cast<std::string>(const Value &value) const;
+template<> CodeString Eval::cast<CodeString>(const Value &value) const;
+template<> double Eval::cast<double>(const Value &value) const;
+template<> int Eval::cast<int>(const Value &value) const;
+template<> std::vector<double> Eval::cast<std::vector<double> >(const Value &value) const;
+template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const Value &value) const;
+template<> casadi::SX Eval::cast<casadi::SX>(const Value &value) const;
+template<> casadi::SXFunction Eval::cast<casadi::SXFunction>(const Value &value) const;
 
 // no template definition, only this spezialization
-template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const std::shared_ptr<void> &value, xercesc::DOMDocument *doc) const;
+template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const Value &value, xercesc::DOMDocument *doc) const;
 
 // spezializations for create
-template<> std::shared_ptr<void> Eval::create<double>                            (const double& v) const;
-template<> std::shared_ptr<void> Eval::create<std::vector<double> >              (const std::vector<double>& v) const;
-template<> std::shared_ptr<void> Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v) const;
-template<> std::shared_ptr<void> Eval::create<std::string>                       (const std::string& v) const;
+template<> Eval::Value Eval::create<double>                            (const double& v) const;
+template<> Eval::Value Eval::create<std::vector<double> >              (const std::vector<double>& v) const;
+template<> Eval::Value Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v) const;
+template<> Eval::Value Eval::create<std::string>                       (const std::string& v) const;
 
 } // end namespace MBXMLUtils
 

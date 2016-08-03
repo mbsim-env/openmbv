@@ -25,13 +25,13 @@ using namespace PythonCpp;
 
 namespace {
 
-inline PyO C(const shared_ptr<void> &value) {
-  return static_pointer_cast<PyObject>(value);
+inline PyO C(const MBXMLUtils::Eval::Value &value) {
+  return static_pointer_cast<PyObject>(boost::get<shared_ptr<void> >(value));
 }
 
-vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly);
-vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value, bool checkOnly);
-string cast_string(const shared_ptr<void> &value, bool checkOnly);
+vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly);
+vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly);
+string cast_string(const MBXMLUtils::Eval::Value &value, bool checkOnly);
 double arrayScalarGetDouble(PyObject *o);
 
 }
@@ -127,7 +127,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated)
   PyO globals=CALLPY(PyDict_New);
   CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with current parameters)
-  for(unordered_map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // evaluate as statement
@@ -138,14 +138,16 @@ void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated)
   CALLPY(PyDict_Merge, C(currentImport), locals, true);
 }
 
-bool PyEval::valueIsOfType(const shared_ptr<void> &value, ValueType type) const {
+bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
+  if(type==SXFunctionType && boost::get<casadi::SXFunction>(&value))
+    return true;
   PyO v=C(value);
   switch(type) {
     case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
     case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
     case MatrixType: try { ::cast_vector_vector_double(value, true); return true; } catch(...) { return false; }
     case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
-    case SXFunctionType: return (v.get()->ob_type && v.get()->ob_type->tp_name==string("SXFunction") ? true : false);
+    case SXFunctionType: return false;
   }
   throw DOMEvalException("Internal error: Unknwon ValueType.");
 }
@@ -155,24 +157,24 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   return files;
 }
 
-shared_ptr<void> PyEval::createSwigByTypeName(const string &typeName) const {
+Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {
   return CALLPY(PyObject_CallObject, CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, C(casadiValue)), typeName), PyO());
 }
 
-shared_ptr<void> PyEval::callFunction(const string &name, const vector<shared_ptr<void> >& args) const {
+Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
   pair<map<string, PyO>::iterator, bool> f=pyInit.functionValue.insert(make_pair(name, PyO()));
   if(f.second)
     f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit.mbxmlutils), name);
   PyO pyargs=CALLPY(PyTuple_New, args.size());
   int idx=0;
-  for(vector<shared_ptr<void> >::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
+  for(vector<Value>::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
     PyO v=C(*it);
     CALLPY(PyTuple_SetItem, pyargs, idx, v); PyIncRef(v); // PyTuple_SetItem steals a reference of v
   }
   return CALLPY(PyObject_CallObject, f.first->second, pyargs);
 }
 
-shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
+Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
   string strtrim=str;
   boost::trim(strtrim);
 
@@ -199,7 +201,7 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   // python globals (fill with imports)
   CALLPY(PyDict_Merge, globals, C(currentImport), true);
   // python globals (fill with current parameters)
-  for(unordered_map<string, shared_ptr<void> >::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   PyO ret;
@@ -262,11 +264,11 @@ shared_ptr<void> PyEval::fullStringToValue(const string &str, const DOMElement *
   return ret;
 }
 
-string PyEval::getSwigType(const shared_ptr<void> &value) const {
+string PyEval::getSwigType(const Value &value) const {
   return C(value)->ob_type->tp_name;
 }
 
-double PyEval::cast_double(const shared_ptr<void> &value) const {
+double PyEval::cast_double(const Value &value) const {
   PyO v=C(value);
   if(CALLPY(PyFloat_Check, v))
     return CALLPY(PyFloat_AsDouble, v);
@@ -277,24 +279,24 @@ double PyEval::cast_double(const shared_ptr<void> &value) const {
   throw runtime_error("Cannot cast this value to double.");
 }
 
-vector<double> PyEval::cast_vector_double(const shared_ptr<void> &value) const {
+vector<double> PyEval::cast_vector_double(const Value &value) const {
   return ::cast_vector_double(value, false);
 }
 
-vector<vector<double> >PyEval::cast_vector_vector_double(const shared_ptr<void> &value) const {
+vector<vector<double> >PyEval::cast_vector_vector_double(const Value &value) const {
   return ::cast_vector_vector_double(value, false);
 }
 
-string PyEval::cast_string(const shared_ptr<void> &value) const {
+string PyEval::cast_string(const Value &value) const {
   return ::cast_string(value, false);
 }
 
-shared_ptr<void> PyEval::create_double(const double& v) const {
+Eval::Value PyEval::create_double(const double& v) const {
   try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(v)); } catch(const boost::bad_lexical_cast &) {}
   return CALLPY(PyFloat_FromDouble, v);
 }
 
-shared_ptr<void> PyEval::create_vector_double(const vector<double>& v) const {
+Eval::Value PyEval::create_vector_double(const vector<double>& v) const {
   npy_intp dims[1];
   dims[0]=v.size();
   PyO ret(PyArray_SimpleNew(1, dims, NPY_DOUBLE), &Py_DecRef);
@@ -302,7 +304,7 @@ shared_ptr<void> PyEval::create_vector_double(const vector<double>& v) const {
   return ret;
 }
 
-shared_ptr<void> PyEval::create_vector_vector_double(const vector<vector<double> >& v) const {
+Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v) const {
   npy_intp dims[2];
   dims[0]=v.size();
   dims[1]=v[0].size();
@@ -313,7 +315,7 @@ shared_ptr<void> PyEval::create_vector_vector_double(const vector<vector<double>
   return ret;
 }
 
-shared_ptr<void> PyEval::create_string(const string& v) const {
+Eval::Value PyEval::create_string(const string& v) const {
   return CALLPY(PyUnicode_FromString, v);
 }
 
@@ -369,7 +371,7 @@ double arrayScalarGetDouble(PyObject *o) {
   return ret;
 }
 
-vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly) {
+vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
   PyO v=C(value);
   if(PyArray_Check(v.get())) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
@@ -388,7 +390,7 @@ vector<double> cast_vector_double(const shared_ptr<void> &value, bool checkOnly)
   throw runtime_error("Value is not of type vector (wrong type).");
 }
 
-vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value, bool checkOnly) {
+vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
   PyO v=C(value);
   if(PyArray_Check(v.get())) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
@@ -408,7 +410,7 @@ vector<vector<double> > cast_vector_vector_double(const shared_ptr<void> &value,
   throw runtime_error("Value is not of type matrix (wrong type).");
 }
 
-string cast_string(const shared_ptr<void> &value, bool checkOnly) {
+string cast_string(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
   return CALLPY(PyUnicode_AsUTF8, C(value));
 }
 
@@ -428,7 +430,7 @@ namespace MBXMLUtils {
 
 #include "swigpyrun.h"
 
-void* PyEval::getSwigThis(const shared_ptr<void> &value) const {
+void* PyEval::getSwigThis(const Value &value) const {
   return SWIG_Python_GetSwigThis(C(value).get())->ptr;
 }
 

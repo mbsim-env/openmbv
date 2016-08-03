@@ -12,7 +12,7 @@ class Preprocess : virtual public fmatvec::Atom {
   protected:
     typedef std::map<FQN, int> PositionMap;
   public:
-    typedef std::vector<std::pair<std::string, std::shared_ptr<void> > > ParamSet;
+    typedef std::vector<std::pair<std::string, Eval::Value> > ParamSet;
     typedef std::unordered_map<std::string, ParamSet> XPathParamSet;
     static void preprocess(std::shared_ptr<MBXMLUtils::DOMParser> parser, // in: parser used to parse XML documents
                            const std::shared_ptr<Eval> &eval, // in: evaluator used for evaluation
