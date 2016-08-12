@@ -59,7 +59,7 @@ PyInit::PyInit() {
     PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
     PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
     CALLPY(PyList_Append, path, mbxmlutilspath);
-    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX "/python2.7/site-packages/casadi");
+    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages/casadi");
     CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
@@ -139,7 +139,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated)
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
-  if(type==SXFunctionType && boost::get<casadi::SXFunction>(&value))
+  if(type==FunctionType && boost::get<Function>(&value))
     return true;
   PyO v=C(value);
   switch(type) {
@@ -147,7 +147,7 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
     case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
     case MatrixType: try { ::cast_vector_vector_double(value, true); return true; } catch(...) { return false; }
     case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
-    case SXFunctionType: return false;
+    case FunctionType: return false;
   }
   throw DOMEvalException("Internal error: Unknwon ValueType.");
 }

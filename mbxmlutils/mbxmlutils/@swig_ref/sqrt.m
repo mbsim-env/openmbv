@@ -1,3 +1,4 @@
 function r=sqrt(a)
-  r=a.zz_sqrt();
+  global swigGlobalModuleVar_casadi_oct;
+  r=swigGlobalModuleVar_casadi_oct.SX_unary(swigGlobalModuleVar_casadi_oct.OP_SQRT, a);
 end

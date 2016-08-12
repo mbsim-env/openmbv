@@ -6,7 +6,7 @@
 #include <boost/variant.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
-#include <casadi/core/function/sx_function.hpp>
+#include <casadi/casadi.hpp>
 #include <unordered_map>
 
 #define XMLUTILS_EVAL_CONCAT1(X, Y) X##Y
@@ -84,11 +84,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
       VectorType,
       MatrixType,
       StringType,
-      SXFunctionType
+      FunctionType
     };
 
     //! Typedef for a shared value
-    typedef boost::variant<std::shared_ptr<void>, casadi::SXFunction> Value;
+    typedef std::pair<std::vector<casadi::SX>, std::vector<casadi::SX>> Function;
+    typedef boost::variant<std::shared_ptr<void>, Function> Value;
 
   protected:
     //! Constructor.
@@ -153,7 +154,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <th>real matrix</th>
      *     <th>string</th>
      *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
-     *     <th><tt>casadi::SXFunction</tt></th>
+     *     <th><tt>Function</tt></th>
      *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
@@ -164,7 +165,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -174,7 +175,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -184,7 +185,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -194,7 +195,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -204,7 +205,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td>X</td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -214,7 +215,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td>returns e.g. <code>[1,3;5,4]</code></td>
      *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -224,7 +225,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td>X</td>
+     *     <!--Function-->   <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -234,7 +235,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td>X</td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -244,17 +245,17 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td>X</td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SXFunction</tt></th>
+     *     <!--CAST TO-->    <th><tt>Function</tt></th>
      *     <!--scalar-->     <td></td>
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td>X</td>
+     *     <!--Function-->   <td>X</td>
      *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
@@ -264,7 +265,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
      *     <!--SX-->         <td></td>
-     *     <!--SXFunction--> <td></td>
+     *     <!--Function-->   <td></td>
      *     <!--XYZ-->        <td>*</td>
      *   </tr>
      * </table>
@@ -410,7 +411,7 @@ template<> int Eval::cast<int>(const Value &value) const;
 template<> std::vector<double> Eval::cast<std::vector<double> >(const Value &value) const;
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const Value &value) const;
 template<> casadi::SX Eval::cast<casadi::SX>(const Value &value) const;
-template<> casadi::SXFunction Eval::cast<casadi::SXFunction>(const Value &value) const;
+template<> Eval::Function Eval::cast<Eval::Function>(const Value &value) const;
 
 // no template definition, only this spezialization
 template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const Value &value, xercesc::DOMDocument *doc) const;

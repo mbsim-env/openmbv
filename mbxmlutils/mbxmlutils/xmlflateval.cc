@@ -37,7 +37,7 @@ bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
     case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };
     case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };
     case StringType: try { cast<string>(value); return true; } catch(...) { return false; };
-    case SXFunctionType: return false;
+    case FunctionType: return false;
   }
   return false;
 }

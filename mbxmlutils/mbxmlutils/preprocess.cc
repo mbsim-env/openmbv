@@ -187,8 +187,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       }
       return;
     }
-    else if(E(e)->getTagName()==casadi::CASADI%"SXFunction")
-      return; // skip processing of SXFunction elements
+    else if(E(e)->getTagName()==casadi::CASADI%"Function")
+      return; // skip processing of Function elements
     else {
       bool isCasADi=false;
 
@@ -243,7 +243,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         DOMNode *node;
         DOMDocument *doc=e->getOwnerDocument();
         try {
-          if(eval->valueIsOfType(value, Eval::SXFunctionType))
+          if(eval->valueIsOfType(value, Eval::FunctionType))
             node=eval->cast<DOMElement*>(value, doc);
           else
             node=doc->createTextNode(X()%eval->cast<CodeString>(value));

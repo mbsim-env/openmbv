@@ -39,7 +39,7 @@ NewParamLevel::~NewParamLevel() {
     oe->popContext();
 }
 
-template<> string SwigType<SX        *>::name("SX"        );
+template<> string SwigType<SX*>::name("SX");
 
 map<string, string> Eval::units;
 
@@ -134,8 +134,8 @@ DOMElement* Eval::cast<DOMElement*>(const Value &value, xercesc::DOMDocument *do
 }
 
 template<>
-SXFunction Eval::cast<SXFunction>(const Value &value) const {
-  return boost::get<SXFunction>(value);
+Eval::Function Eval::cast<Eval::Function>(const Value &value) const {
+  return boost::get<Eval::Function>(value);
 }
 
 void Eval::pushContext() {
@@ -237,7 +237,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     }
     // check if one argument was not set. If so error
     for(int i=0; i<inputs.size(); i++)
-      if(inputs[i].sparsity().isEmpty()) // a empty object is a error (see above), since not all arg?name args were defined
+      if(inputs[i].size1()==0 || inputs[i].size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
         throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
   }
   
@@ -261,12 +261,12 @@ Eval::Value Eval::eval(const DOMElement *e) {
         SX Mele;
         try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-        M.elem(i,0)=Mele.elem(0,0);
+        M(i,0)=Mele(0,0);
       }
     if(!function)
       return handleUnit(e, create(m));
     else
-      return SXFunction(inputs, M);
+      return Function{inputs, {M}};
   }
   
   // a XML matrix
@@ -293,13 +293,13 @@ Eval::Value Eval::eval(const DOMElement *e) {
           SX Mele;
           try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-          M.elem(i,0)=Mele.elem(0,0);
+          M(i,0)=Mele(0,0);
         }
     }
     if(!function)
       return handleUnit(e, create(m));
     else
-      return SXFunction(inputs, M);
+      return Function{inputs, {M}};
   }
   
   // a element with a single text child (including unit conversion)
@@ -331,7 +331,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return ret;
     else
-      return SXFunction(inputs, cast<SX>(ret));
+      return Function{inputs, {cast<SX>(ret)}};
   }
   
   // rotation about x,y,z
@@ -544,8 +544,8 @@ Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool ful
 }
 
 DOMElement* Eval::cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const {
-  if(valueIsOfType(value, SXFunctionType))
-    return convertCasADiToXML(cast<SXFunction>(value), doc);
+  if(valueIsOfType(value, FunctionType))
+    return convertCasADiToXML(cast<Function>(value), doc);
   throw DOMEvalException("Cannot cast this value to DOMElement*.");
 }
 
@@ -611,7 +611,7 @@ SX Eval::cast_SX(const Value &value) const {
     M.resize(m.size(), m[0].size());
     for(int r=0; r<m.size(); ++r)
       for(int c=0; c<m[r].size(); ++c)
-        M.elem(r,c)=m[r][c];
+        M(r,c)=m[r][c];
     return M;
   }
   catch(const DOMEvalException &ex) {}

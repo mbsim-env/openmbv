@@ -53,8 +53,8 @@ AC_SUBST([LIBDL])
 
 dnl Check for casadi 
 PKG_CHECK_MODULES(CASADI, [casadi])
-CASADI_PREFIX="$($PKG_CONFIG --variable=prefix casadi)"
-AC_SUBST([CASADI_PREFIX])
+CASADI_PREFIX_DIR="$($PKG_CONFIG --variable=prefix casadi)"
+AC_SUBST([CASADI_PREFIX_DIR])
 
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],

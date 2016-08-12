@@ -317,14 +317,14 @@
         </xs:complexContent>
       </xs:complexType>
 
-      <!-- the MBXMLUtils XML representation of a casadi SXFunction.
+      <!-- the MBXMLUtils XML representation of a casadi Function.
            This may be replaced later by MathML or OpenMath if casadi supports it -->
       <xs:group name="symbolicFunctionXMLElement">
         <xs:annotation>
           <xs:documentation>
             A symbolic function definition which is evaluated at runtime using dynamic input parameters
             provided by the runtime. The representation of the symbolic function must either be given by
-            the MBXMLUtils notation for CasADi::SXFunction or by an expression (using the SWIG
+            the MBXMLUtils notation for CasADi::Function or by an expression (using the SWIG
             interface of CasADi). Using a expression you have full access to other scalar,
             vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
             must be defined which set the name of this input parameter for the access in the expression.
@@ -335,7 +335,7 @@
           </xs:documentation>
         </xs:annotation>
         <xs:choice>
-          <xs:element ref="casadi:SXFunction" xmlns:casadi="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
+          <xs:element ref="casadi:Function" xmlns:casadi="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
           <xs:group ref="xmlScalarGroup"/>
           <xs:group ref="xmlVectorGroup"/>
           <xs:group ref="xmlMatrixGroup"/>

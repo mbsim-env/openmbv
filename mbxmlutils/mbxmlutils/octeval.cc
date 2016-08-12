@@ -11,7 +11,6 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
 #include "mbxmlutils/eval_static.h"
-#include <casadi/core/matrix/matrix.hpp>
 #include <boost/lexical_cast.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
@@ -432,7 +431,7 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
 }
 
 bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
-  if(type==SXFunctionType && boost::get<casadi::SXFunction>(&value))
+  if(type==FunctionType && boost::get<Eval::Function>(&value))
     return true;
   shared_ptr<octave_value> v=C(value);
   switch(type) {
@@ -458,7 +457,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
       if(v->is_string()) return true;
       return false;
 
-    case SXFunctionType:
+    case FunctionType:
       return false;
   }
   return false;

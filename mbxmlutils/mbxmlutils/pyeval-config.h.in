@@ -1,6 +1,6 @@
 #ifndef _PYEVAL_CONFIG_H_
 #define _PYEVAL_CONFIG_H_
 
-#define CASADI_PREFIX "@CASADI_PREFIX@"
+#define CASADI_PREFIX_DIR "@CASADI_PREFIX_DIR@"
 
 #endif
