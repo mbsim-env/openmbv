@@ -59,7 +59,7 @@ PyInit::PyInit() {
     PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
     PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
     CALLPY(PyList_Append, path, mbxmlutilspath);
-    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages/casadi");
+    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages");
     CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
