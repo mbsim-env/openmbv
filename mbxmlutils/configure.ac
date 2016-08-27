@@ -52,7 +52,7 @@ fi
 AC_SUBST([LIBDL])
 
 dnl Check for casadi 
-PKG_CHECK_MODULES(CASADI, [casadi])
+PKG_CHECK_MODULES(CASADI, [casadi >= 3.0.0])
 CASADI_PREFIX_DIR="$($PKG_CONFIG --variable=prefix casadi)"
 AC_SUBST([CASADI_PREFIX_DIR])
 
