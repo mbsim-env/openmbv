@@ -124,6 +124,7 @@
 // generate interfaces for these files
 %include <fmatvec/atom.h>
 %include <openmbvcppinterface/polygonpoint.h>
+%ignore OPENMBV; // cannot be wrapped by swig (due to a swig bug!?) but this variable is not needed at all
 %include <openmbvcppinterface/object.h>
 %include <openmbvcppinterface/group.h>
 %include <openmbvcppinterface/body.h>

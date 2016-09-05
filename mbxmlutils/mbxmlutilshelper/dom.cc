@@ -76,6 +76,9 @@ namespace {
   }
 }
 
+const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
+const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
+
 bool DOMErrorPrinter::handleError(const DOMError& e)
 {
   string type;
