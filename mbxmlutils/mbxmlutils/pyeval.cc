@@ -183,8 +183,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   if(strtrim=="True") return CALLPY(PyBool_FromLong, 1);
   if(strtrim=="False") return CALLPY(PyBool_FromLong, 0);
   // check for integer and floating point values
-  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(strtrim)); } catch(const boost::bad_lexical_cast &) {}
-  try { return CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(strtrim)); } catch(const boost::bad_lexical_cast &) {}
+  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(boost::algorithm::trim_copy(strtrim))); }
+  catch(const boost::bad_lexical_cast &) {}
+  try { return CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(boost::algorithm::trim_copy(strtrim))); }
+  catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using python now
 
   // restore current dir on exit and change current dir

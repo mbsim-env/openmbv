@@ -12,6 +12,7 @@
 #include "mbxmlutils/octeval.h"
 #include "mbxmlutils/eval_static.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
 // about redefintions of preprocessor defines
@@ -353,7 +354,7 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   if(str=="true") return make_shared<octave_value>(1);
   if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
-  try { return make_shared<octave_value>(boost::lexical_cast<double>(str)); }
+  try { return make_shared<octave_value>(boost::lexical_cast<double>(boost::algorithm::trim_copy(str))); }
   catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using octave now
 

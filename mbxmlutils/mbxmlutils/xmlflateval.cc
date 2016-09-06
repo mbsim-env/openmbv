@@ -69,7 +69,7 @@ string XMLFlatEval::getSwigType(const Value &value) const {
 
 double XMLFlatEval::cast_double(const Value &value) const {
   string *v=static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
-  return boost::lexical_cast<double>(*v);
+  return boost::lexical_cast<double>(boost::algorithm::trim_copy(*v));
 }
 
 vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
