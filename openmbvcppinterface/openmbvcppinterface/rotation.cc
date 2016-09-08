@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/rotation.h>
 #include <iostream>
 #include <fstream>
+#include <boost/math/constants/constants.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -32,7 +33,7 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBV%"Rotation")
 
 Rotation::Rotation() : RigidBody(),
   startAngle(0),
-  endAngle(2*M_PI) {
+  endAngle(2*boost::math::double_constants::pi) {
 }
 
 Rotation::~Rotation() {
@@ -41,7 +42,7 @@ Rotation::~Rotation() {
 DOMElement* Rotation::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   addElementText(e, OPENMBV%"startAngle", startAngle, 0);
-  addElementText(e, OPENMBV%"endAngle", endAngle, 2*M_PI);
+  addElementText(e, OPENMBV%"endAngle", endAngle, 2*boost::math::double_constants::pi);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   return 0;
 }

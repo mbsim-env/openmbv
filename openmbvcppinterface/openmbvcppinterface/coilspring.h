@@ -22,7 +22,6 @@
 
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
-#include <cmath>
 #include <stdexcept>
 
 namespace OpenMBV {

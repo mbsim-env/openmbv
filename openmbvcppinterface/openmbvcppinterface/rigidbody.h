@@ -24,7 +24,6 @@
 #include <vector>
 #include <assert.h>
 #include <hdf5serie/vectorserie.h>
-#include <cmath>
 #include <stdexcept>
 
 namespace OpenMBV {

@@ -33,6 +33,7 @@
 #include <string>
 #include <map>
 #include <stdexcept>
+#include <algorithm>
 #ifdef _WIN32
 #  include <windows.h>
 #else
@@ -46,7 +47,7 @@ inline std::string getLastError() {
   const char *err=dlerror();
   return err?err:"";
 #else
-  return to_string(GetLastError());
+  return std::to_string(GetLastError());
 #endif
 }
 
@@ -72,7 +73,7 @@ Handle load(const std::string &file) {
     res.first->second=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND | RTLD_NODELETE);
 #else
     std::string fileWinSep=file;
-    replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
+    std::replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
     res.first->second=LoadLibraryEx(fileWinSep.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #endif
     if(!res.first->second)
