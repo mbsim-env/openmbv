@@ -101,9 +101,9 @@ class NamespaceURI {
 };
 
 //! Declaration of the XML xinclude prefix/URI.
-extern const NamespaceURI XINCLUDE;
+const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
-extern const NamespaceURI PV;
+const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
 
 //! Helper class for extending DOMElement (use the function E(...)).
 template<typename DOMElementType>
