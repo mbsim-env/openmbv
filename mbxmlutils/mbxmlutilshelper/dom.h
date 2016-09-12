@@ -4,20 +4,17 @@
 #include <fmatvec/atom.h>
 #include <string>
 #include <vector>
-#include <set>
 #include <map>
-#include <sstream>
-#include <memory>
+#include <set>
 #include <boost/filesystem.hpp>
-#include <xercesc/util/XMLString.hpp>
 #include <xercesc/dom/DOMErrorHandler.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMLSParser.hpp>
 #include <xercesc/dom/DOMLocator.hpp>
 #include <xercesc/dom/DOMUserDataHandler.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/TransService.hpp>
+#include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 
 namespace XERCES_CPP_NAMESPACE {
@@ -327,18 +324,25 @@ class DOMParserUserDataHandler : public xercesc::DOMUserDataHandler {
     void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst);
 };
 
+class EntityResolver : public xercesc::XMLEntityResolver {
+  public:
+    void setParser(DOMParser *parser_) { parser=parser_; }
+    xercesc::InputSource* resolveEntity(xercesc::XMLResourceIdentifier *resourceIdentifier) override;
+  private:
+    DOMParser *parser;
+};
+
 //! A XML DOM parser.
 class DOMParser {
   friend bool isDerivedFrom(const xercesc::DOMNode *me, const FQN &baseTypeName);
   friend class TypeDerivativeHandler;
   friend class LocationInfoFilter;
   friend class DOMParserUserDataHandler;
+  friend class EntityResolver;
   template<typename> friend class DOMDocumentWrapper;
   public:
     //! Create DOM parser
-    static std::shared_ptr<DOMParser> create(bool validate);
-    //! Load XML Schema grammar file
-    void loadGrammar(const boost::filesystem::path &schemaFilename);
+    static std::shared_ptr<DOMParser> create(const std::set<boost::filesystem::path> &schemas={});
     //! Parse a XML document
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
                                                   std::vector<boost::filesystem::path> *dependencies=NULL);
@@ -355,16 +359,22 @@ class DOMParser {
   private:
     static const std::string domParserKey;
 
+    // Load XML Schema grammar file: is actually loaded (the main XML Schema file of a XML file must be loaded direclty)
+    void loadGrammar(const boost::filesystem::path &schemaFilename);
+    // Register XML Schema grammar file: is loaded on demand if needed by another XML Schema
+    void registerGrammar(const std::shared_ptr<DOMParser> &nonValParser, const boost::filesystem::path &schemaFilename);
+
     xercesc::DOMImplementation *domImpl;
-    DOMParser(bool validate_);
+    DOMParser(const std::set<boost::filesystem::path> &schemas);
     std::shared_ptr<xercesc::DOMLSParser> parser;
-    bool validate;
     std::weak_ptr<DOMParser> me;
     std::map<FQN, xercesc::XSTypeDefinition*> typeMap;
     DOMErrorPrinter errorHandler;
     LocationInfoFilter locationFilter;
     TypeDerivativeHandler typeDerHandler;
+    EntityResolver entityResolver;
     static DOMParserUserDataHandler userDataHandler;
+    std::map<std::string, boost::filesystem::path> registeredGrammar;
 
     void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=NULL);
 };

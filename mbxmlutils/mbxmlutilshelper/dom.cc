@@ -10,11 +10,12 @@
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/parsers/AbstractDOMParser.hpp>
 #include <xercesc/framework/psvi/PSVIElement.hpp>
 #include <xercesc/framework/psvi/PSVIAttributeList.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
 #include "getinstallpath.h"
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
@@ -516,13 +517,41 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
 DOMParserUserDataHandler DOMParser::userDataHandler;
 
-shared_ptr<DOMParser> DOMParser::create(bool validate_) {
-  shared_ptr<DOMParser> ret(new DOMParser(validate_));
+shared_ptr<DOMParser> DOMParser::create(const set<path> &schemas) {
+  shared_ptr<DOMParser> ret(new DOMParser(schemas));
   ret->me=ret;
   return ret;
 }
 
-DOMParser::DOMParser(bool validate_) : validate(validate_) {
+InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdentifier) {
+  // handle only schema import
+  if(resourceIdentifier->getResourceIdentifierType()!=XMLResourceIdentifier::SchemaImport)
+    return nullptr;
+  // handle schema import -> map namespace to local file
+  string ns=X()%resourceIdentifier->getNameSpace();
+  path file;
+  path SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+  // handle namespaces known by MBXMLUtils
+  if(ns==XINCLUDE.getNamespaceURI())
+    file=SCHEMADIR/"http___www_w3_org/XInclude.xsd";
+  else if(ns=="http://www.mbsim-env.de/MBXMLUtils/CasADi")
+    file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils_CasADi/casadi.xsd";
+  else if(ns==PV.getNamespaceURI())
+    file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils/physicalvariable.xsd";
+  // handle namespaces registered to the parser
+  else {
+    // search for a registered namespace
+    auto it=parser->registeredGrammar.find(ns);
+    // not found -> return nullptr
+    if(it==parser->registeredGrammar.end())
+      return nullptr;
+    // return registered schema file
+    file=it->second;
+  }
+  return new LocalFileInputSource(X()%file.string());
+}
+
+DOMParser::DOMParser(const set<path> &schemas) {
   // get DOM implementation and create parser
   domImpl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
@@ -542,28 +571,37 @@ DOMParser::DOMParser(bool validate_) : validate(validate_) {
   config->setParameter(XMLUni::fgXercesDoXInclude, false);
   //config->setParameter(XMLUni::fgDOMCDATASections, false); // is not implemented by xercesc handle it by DOMParser
   // configure validating parser
-  if(validate) {
+  if(!schemas.empty()) {
     config->setParameter(XMLUni::fgXercesScannerName, XMLUni::fgSGXMLScanner);
     config->setParameter(XMLUni::fgDOMValidate, true);
     config->setParameter(XMLUni::fgXercesSchema, true);
     config->setParameter(XMLUni::fgXercesUseCachedGrammarInParse, true);
     config->setParameter(XMLUni::fgXercesDOMHasPSVIInfo, true);
+    entityResolver.setParser(this);
+    config->setParameter(XMLUni::fgXercesEntityResolver, &entityResolver);
     typeDerHandler.setParser(this);
     abstractParser->setPSVIHandler(&typeDerHandler);
-    loadGrammar(getInstallPath()/"share"/"mbxmlutils"/"schema"/"http___www_w3_org"/"XInclude.xsd");
+    shared_ptr<DOMParser> nonValParser=create();
+    for(auto &schema: schemas)
+      registerGrammar(nonValParser, schema);
+    for(auto &schema: schemas)
+      loadGrammar(schema);
   }
 }
 
 void DOMParser::loadGrammar(const path &schemaFilename) {
-  // callable only for validating parsers
-  if(!validate)
-    throw runtime_error("Loading a XML schema in a none validating parser is not possible.");
   // load grammar
   errorHandler.resetCounter();
   parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
   if(errorHandler.getNumErrors()>0)
     throw runtime_error(str(boost::format("Loading XML schema failed: %1% Errors, %2% Warnings, see above.")%
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
+}
+
+void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const path &schemaFilename) {
+  shared_ptr<DOMDocument> doc=nonValParser->parse(schemaFilename);//mfmf use sax parser since we just need to parse one attribute of the root element
+  string ns=E(doc->getDocumentElement())->getAttribute("targetNamespace");
+  registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
 void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies) {

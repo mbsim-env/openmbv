@@ -49,7 +49,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
     // get units
     msg(Info)<<"Build unit list for measurements."<<endl;
     bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
-    shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create(false)->parse(XMLDIR/"measurement.xml", dependencies);
+    shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create()->parse(XMLDIR/"measurement.xml", dependencies);
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
       for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {

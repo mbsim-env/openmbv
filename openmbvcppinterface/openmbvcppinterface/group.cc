@@ -87,7 +87,7 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
     // create new xml file and write to it till now
     // use the directory of the topLevelFile and the above fullName
-    shared_ptr<DOMParser> parser=DOMParser::create(false);
+    shared_ptr<DOMParser> parser=DOMParser::create();
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
       DOMElement *e=Object::writeXMLFile(xmlFile.get());
       addAttribute(e, "expand", expandStr, "true");
@@ -148,7 +148,7 @@ void Group::openHDF5File() {
 void Group::writeXML() {
   separateFile=true;
   // write .ombv.xml file
-    shared_ptr<DOMParser> parser=DOMParser::create(false);
+    shared_ptr<DOMParser> parser=DOMParser::create();
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
     DOMElement *parent=Object::writeXMLFile(xmlFile.get());
     addAttribute(parent, "expand", expandStr, "true");
@@ -197,7 +197,7 @@ void Group::initializeUsingXML(DOMElement *element) {
 
 void Group::readXML() {
   // read XML
-  shared_ptr<DOMParser> parser=DOMParser::create(false);
+  shared_ptr<DOMParser> parser=DOMParser::create();
   shared_ptr<DOMDocument> doc=parser->parse(fileName);  
 
   // read XML using OpenMBVCppInterface

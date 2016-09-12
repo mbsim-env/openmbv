@@ -29,8 +29,6 @@ int main(int argc, char *argv[]) {
       cout<<"Usage:"<<endl
           <<"mbxmlutilspp [--dependencies <dep-file-name>]"<<endl
           <<"              <param-file> [dir/]<main-file> <namespace-location-of-main-file>"<<endl
-          <<"             [<param-file> [dir/]<main-file> <namespace-location-of-main-file>]"<<endl
-          <<"             ..."<<endl
           <<""<<endl
           <<"  --dependencies    Write a newline separated list of dependent files including"<<endl
           <<"                    <param-file> and <main-file> to <dep-file-name>"<<endl
@@ -46,9 +44,6 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-    // the XML DOM parser
-    shared_ptr<DOMParser> parser=DOMParser::create(true);
-
     list<string>::iterator i, i2;
 
     // dependency file
@@ -62,66 +57,60 @@ int main(int argc, char *argv[]) {
 
     SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
 
-    // load global schema grammar
-    cout<<"Load XML grammar for parameters."<<endl;
-    parser->loadGrammar(SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"physicalvariable.xsd");
+    path paramxml(*arg.begin()); arg.erase(arg.begin());
+    path mainxml(*arg.begin()); arg.erase(arg.begin());
+    path nslocation(*arg.begin()); arg.erase(arg.begin());
 
-    // loop over all files
-    while(arg.size()>0) {
-      path paramxml(*arg.begin()); arg.erase(arg.begin());
-      path mainxml(*arg.begin()); arg.erase(arg.begin());
-      path nslocation(*arg.begin()); arg.erase(arg.begin());
+    // the XML DOM parser
+    cout<<"Create validating XML parser."<<endl;
+    shared_ptr<DOMParser> parser=DOMParser::create({SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"physicalvariable.xsd",
+                                                    nslocation});
 
-      // validate parameter file and get DOM
-      shared_ptr<xercesc::DOMDocument> paramxmldoc;
-      if(paramxml!="none") {
-        cout<<"Read and validate "<<paramxml<<endl;
-        paramxmldoc=parser->parse(paramxml, &dependencies);
-        dependencies.push_back(paramxml);
-      }
-
-      // load grammar
-      cout<<"Load XML grammar for main file (cached if loaded multiple times)."<<endl;
-      parser->loadGrammar(nslocation);
-
-      // validate main file and get DOM
-      cout<<"Read and validate "<<mainxml<<endl;
-      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
-      dependencies.push_back(mainxml);
-      DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
-
-      // create a clean evaluator (get the evaluator name first form the dom)
-      string evalName="octave"; // default evaluator
-      DOMElement *evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
-      if(evaluator)
-        evalName=X()%E(evaluator)->getFirstTextChild()->getData();
-      shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
-
-      // generate parameter string
-      if(paramxmldoc.get()) {
-        cout<<"Generate parameter set from "<<paramxml<<endl;
-        eval->addParamSet(paramxmldoc->getDocumentElement());
-      }
-
-      // embed/validate/unit/eval files
-      Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
-
-      // adapt the evaluator in the dom
-      if(evaluator)
-        E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
-      else {
-        evaluator=D(mainxmldoc)->createElement(PV%"evaluator");
-        evaluator->appendChild(mainxmldoc->createTextNode(X()%"xmlflat"));
-        mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
-      }
-
-      // save result file
-      path mainxmlpp=".pp."+mainxml.filename().string();
-      cout<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
-      DOMParser::serialize(mainxmldoc.get(), mainxmlpp, false);
-      cout<<"Validate preprocessed file"<<endl;
-      parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
+    // validate parameter file and get DOM
+    shared_ptr<xercesc::DOMDocument> paramxmldoc;
+    if(paramxml!="none") {
+      cout<<"Read and validate "<<paramxml<<endl;
+      paramxmldoc=parser->parse(paramxml, &dependencies);
+      dependencies.push_back(paramxml);
     }
+
+    // validate main file and get DOM
+    cout<<"Read and validate "<<mainxml<<endl;
+    shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
+    dependencies.push_back(mainxml);
+    DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
+
+    // create a clean evaluator (get the evaluator name first form the dom)
+    string evalName="octave"; // default evaluator
+    DOMElement *evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+    if(evaluator)
+      evalName=X()%E(evaluator)->getFirstTextChild()->getData();
+    shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
+
+    // generate parameter string
+    if(paramxmldoc.get()) {
+      cout<<"Generate parameter set from "<<paramxml<<endl;
+      eval->addParamSet(paramxmldoc->getDocumentElement());
+    }
+
+    // embed/validate/unit/eval files
+    Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
+
+    // adapt the evaluator in the dom
+    if(evaluator)
+      E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
+    else {
+      evaluator=D(mainxmldoc)->createElement(PV%"evaluator");
+      evaluator->appendChild(mainxmldoc->createTextNode(X()%"xmlflat"));
+      mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
+    }
+
+    // save result file
+    path mainxmlpp=".pp."+mainxml.filename().string();
+    cout<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
+    DOMParser::serialize(mainxmldoc.get(), mainxmlpp, false);
+    cout<<"Validate preprocessed file"<<endl;
+    parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
 
     // output dependencies?
     if(!depFileName.empty()) {

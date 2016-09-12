@@ -9,9 +9,9 @@ using namespace MBXMLUtils;
 
 int main(int argc, char *argv[]) {
   path schema=argv[1];
-  shared_ptr<DOMParser> parser=DOMParser::create(true);
+  shared_ptr<DOMParser> parser;
   try {
-    parser->loadGrammar(schema);
+    parser=DOMParser::create({schema});
   }
   catch(const std::exception &ex) {
     cerr<<"Exception:"<<endl
