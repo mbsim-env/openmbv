@@ -1,6 +1,7 @@
 #include <config.h>
 #include <iostream>
 #include <boost/filesystem/path.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include "dom.h"
 
 using namespace std;
@@ -8,19 +9,26 @@ using namespace boost::filesystem;
 using namespace MBXMLUtils;
 
 int main(int argc, char *argv[]) {
-  path schema=argv[1];
+  set<path> schemas;
+  for(int i=1; i<argc; ++i)
+    if(boost::algorithm::ends_with(argv[i], ".xsd"))
+      schemas.insert(argv[i]);
+
   shared_ptr<DOMParser> parser;
   try {
-    parser=DOMParser::create({schema});
+    parser=DOMParser::create(schemas);
   }
   catch(const std::exception &ex) {
-    cerr<<"Exception:"<<endl
+    cerr<<"Exception while loading schemas:"<<endl
          <<ex.what()<<endl;
     return 1;
   }
 
   int error=0;
-  for(int i=2; i<argc; ++i) {
+  for(int i=1; i<argc; ++i) {
+    if(boost::algorithm::ends_with(argv[i], ".xsd"))
+      continue;
+
     path xml=argv[i];
     try {
       parser->parse(xml);
