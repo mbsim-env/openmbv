@@ -4,7 +4,6 @@
   version="1.0">
 
   <xsl:param name="DATETIME"/>
-  <xsl:param name="MBXMLUTILSVERSION"/>
 
   <!-- output method -->
   <xsl:output method="html" encoding="UTF-8"/>

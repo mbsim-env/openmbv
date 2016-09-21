@@ -1,14 +1,16 @@
 #! /bin/sh
 
-if [ $# -ne 5 -a $# -ne 6 ]; then
+if [ $# -lt 5 ]; then
   echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
   echo "                           <ProjectName> <DocygenPrefix>"
+  echo "                           [<AddInXsdFile> ...]"
   echo "  InXsdFile: Input xsd file which should be converted to html"
   echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
   echo "                   corrospondending documentation"
   echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
   echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
   echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
+  echo "  AddInXsdFile: Additional input xsd files (only used for generating example code"
   exit
 fi
 
@@ -17,6 +19,8 @@ DOXYGENDOCDIR=$2 #"/home/markus/project/MBSim/openmbv/doc_/xml"
 FIGUREDIR=$3
 PROJECT=$4 #"OpenMBV"
 DOXYGENCLASSPREFIX=$5 #"OpenMBV::"
+shift 5
+ADDFILES="$@"
 
 
 if [ ! -e $FILE ]; then
@@ -64,6 +68,11 @@ fi
 
 
 HTMLDIR=$(sed -rne '/ targetNamespace *=/s|^.*targetNamespace *= *"([^"]+)".*$|\1|p' $BASENAME.doxygen.xsd | sed -re 's|\.|_|g;s|:|_|g;s|/|_|g')
+echo "<root>" > addinput.xml
+for F in $ADDFILES; do
+  echo "<a>$F</a>" >> addinput.xml
+done
+echo "</root>" >> addinput.xml
 echo "Generate HTML documentation"
 echo "  In file: $BASENAME.doxygen.xsd"
 echo "  XSL file: @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl"
@@ -73,7 +82,7 @@ mkdir $HTMLDIR
 @XALAN@ -o $HTMLDIR/index.html \
   -p PROJECT "'$PROJECT'" \
   -p DATETIME "'$(date "+%a %b %d %Y %H:%M:%S")'" \
-  -p MBXMLUTILSVERSION "'@VERSION@'" \
+  -p PWD "'$PWD'" \
   $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl || exit 1
 echo "DONE"
 echo "Remove all namespace declaration from the html output using sed (maybe a bug in Xalan)"

@@ -25,8 +25,7 @@
 
       <xs:include schemaLocation="parameter.xsd"/>
       <xs:include schemaLocation="embed.xsd"/>
-      <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils/CasADi"
-                 schemaLocation="../http___www_mbsim-env_de_MBXMLUtils_CasADi/casadi.xsd"/>
+      <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
 
       <!-- base type for a XML text element which is fully converted by the evaluator. -->
       <xs:simpleType name="fullEval">
