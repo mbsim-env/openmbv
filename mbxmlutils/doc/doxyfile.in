@@ -1,5 +1,5 @@
 PROJECT_BRIEF          = "Multi-Body XML Utils"
-INPUT                  = @top_srcdir@/mbxmlutils
+INPUT                  = @top_srcdir@/mbxmlutils @top_srcdir@/mbxmlutilshelper
 PROJECT_NAME           = @PACKAGE@
 PROJECT_NUMBER         = @VERSION@
 GENERATE_TAGFILE       = html/mbxmlutils.tag
