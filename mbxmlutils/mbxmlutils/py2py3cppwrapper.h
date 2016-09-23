@@ -32,6 +32,7 @@
 
 #include <Python.h>
 #include <string>
+#include <vector>
 #include <stdexcept>
 #include <memory>
 #include <sstream>
