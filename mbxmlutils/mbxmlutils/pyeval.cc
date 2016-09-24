@@ -53,7 +53,7 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
-    initializePython("mbxmlutilspp");
+    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string());
     CALLPY(_import_array);
 
     PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
@@ -87,8 +87,6 @@ PyInit::~PyInit() {
     functionValue.clear();
     casadiValue.reset();
     mbxmlutils.reset();
-    // deinit pyhton
-    Py_Finalize();
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {

@@ -42,25 +42,14 @@
 namespace PythonCpp {
 
 // initialize python giving main as program name to python
-void initializePython(const std::string &main, const std::vector<std::string> &args=std::vector<std::string>()) {
+void initializePython(const std::string &main) {
+  static const std::string mainStatic=main;
 #if PY_MAJOR_VERSION < 3
-  Py_SetProgramName(const_cast<char*>(main.c_str()));
+  Py_SetProgramName(const_cast<char*>(mainStatic.c_str()));
   Py_InitializeEx(0);
-  std::vector<char*> argv(args.size());
-  for(size_t i=0; i<args.size(); ++i)
-    argv[i]=const_cast<char*>(args[i].c_str());
-  PySys_SetArgvEx(args.size(), &argv[0], 0);
 #else
-  Py_SetProgramName(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(main).c_str()));
+  Py_SetProgramName(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(mainStatic).c_str()));
   Py_InitializeEx(0);
-  std::vector<wchar_t*> argv(args.size());
-  std::vector<std::wstring> argsw;
-  argsw.reserve(args.size());
-  for(size_t i=0; i<args.size(); ++i) {
-    argsw.push_back(boost::locale::conv::utf_to_utf<wchar_t>(args[i]));
-    argv[i]=const_cast<wchar_t*>(argsw[i].c_str());
-  }
-  PySys_SetArgvEx(args.size(), &argv[0], 0);
 #endif
 }
 
