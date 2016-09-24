@@ -165,12 +165,13 @@ AS_IF([test "x$enable_only_mbxmlutilshelper" != "xyes"], [
     AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
     
     # check for python
+    AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
+      [pythonversion="$withval"],[pythonversion="2.7"])
     AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalutor is ALPHA hence it must be enabled explicitly.])
     AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
     if test "x$enable_python" == "xyes"; then
-      PYTHON_MODULE=python-2.7
-      PKG_CHECK_MODULES([PYTHON], [$PYTHON_MODULE])
-      NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir $PYTHON_MODULE)/python$($PKG_CONFIG --modversion $PYTHON_MODULE)/site-packages/numpy/core/include"
+      PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
+      NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir python-$pythonversion)/python$($PKG_CONFIG --modversion python-$pythonversion)/site-packages/numpy/core/include"
       if test ! -d $NUMPY_INCDIR; then
         AC_MSG_ERROR([Numpy header not found in directory $NUMPY_INCDIR])
         AC_SUBST([NUMPY_INCDIR])

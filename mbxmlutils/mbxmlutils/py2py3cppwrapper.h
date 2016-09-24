@@ -325,7 +325,7 @@ const char* PythonException::what() const throw() {
   strstr<<"Python exception";
   if(!file.empty())
     strstr<<" at "<<file<<":"<<line;
-  strstr<<":"<<std::endl<<str;;
+  strstr<<":"<<std::endl<<str;
   msg=strstr.str();
   return msg.c_str();
 }
