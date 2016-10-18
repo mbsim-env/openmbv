@@ -46,11 +46,10 @@ void initializePython(const std::string &main) {
   static const std::string mainStatic=main;
 #if PY_MAJOR_VERSION < 3
   Py_SetProgramName(const_cast<char*>(mainStatic.c_str()));
-  Py_InitializeEx(0);
 #else
   Py_SetProgramName(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(mainStatic).c_str()));
-  Py_InitializeEx(0);
 #endif
+  Py_InitializeEx(0);
 }
 
 // wrap some python 3 function to also work in python 2 (the wrappers have suffix _Py2Py2
@@ -147,7 +146,34 @@ inline int PyObject_TypeCheck_func(PyObject *p, PyTypeObject *type) { return PyO
 #define PyObject_TypeCheck PythonCpp::PyObject_TypeCheck_func
 
 // we use this for python object for c++ reference counting
-typedef std::shared_ptr<PyObject> PyO;
+class PyO {
+  public:
+    constexpr PyO() : p(nullptr) {}
+    explicit PyO(PyObject *src, bool srcIsBorrowedRef=false) : p(src) { if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
+    PyO(const PyO &r) : p(r.p) { Py_XINCREF(p); }
+    PyO(PyO &&r) : p(r.p) { r.p=nullptr; }
+    ~PyO() { Py_XDECREF(p); }
+    PyO& operator=(const PyO &r) { Py_XDECREF(p); p=r.p; Py_XINCREF(p); return *this; }
+    PyO& operator=(PyO &&r) { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
+    void reset() { Py_XDECREF(p); p=nullptr; }
+    void reset(PyObject *src, bool srcIsBorrowedRef=false) { Py_XDECREF(p); p=src; if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
+    void swap(PyO &r) { PyObject *temp=p; p=r.p; r.p=temp; }
+    PyObject* get(bool incRef=false) const { if(incRef) Py_XINCREF(p); return p; } // use incRef=true if the caller steals a reference of the returned PyObject
+    long use_count() const { return p ? Py_REFCNT(p) : 0; }
+    bool unique() const { return use_count()==0; }
+    PyObject* operator->() const { return p; }
+    PyO& incRef() { Py_XINCREF(p); return *this; } // use if the caller steals a reference of the returned PyObject
+    operator bool() const { return p!=nullptr; }
+  protected:
+    PyObject *p;
+};
+
+inline bool operator==(const PyO& l, const PyO& r) { return l.get()==r.get(); }
+inline bool operator!=(const PyO& l, const PyO& r) { return l.get()!=r.get(); }
+inline bool operator< (const PyO& l, const PyO& r) { return l.get()< r.get(); }
+inline bool operator> (const PyO& l, const PyO& r) { return l.get()> r.get(); }
+inline bool operator<=(const PyO& l, const PyO& r) { return l.get()<=r.get(); }
+inline bool operator>=(const PyO& l, const PyO& r) { return l.get()>=r.get(); }
 
 // A Python error exception object.
 // Stores the file and line number of the C++ file where the error occured.
@@ -190,7 +216,7 @@ template<> struct MapRetType<PyObject*> {
   inline static PyO convert(PyObject *r) {
     if(!r)
       throw std::runtime_error("Internal error: Expected python object but got NULL pointer and not python exception is set.");
-    return PyO(r, &Py_DecRef);
+    return PyO(r);
   }
 };
 
@@ -202,7 +228,7 @@ inline Arg convertArg(const Arg &arg) {
 }
 // specialization:: map PyO to PyObject*
 inline PyObject* convertArg(const PyO &o) {
-  if(o && Py_REFCNT(o.get())<=0)
+  if(o && o.use_count()<=0)
     throw std::runtime_error("Internal error: access object with reference count <= 0. Check the source code.");
   return o.get();
 }
@@ -223,24 +249,15 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 
 // Macro to call callPy(...)
 // Use this macro to call a python function returning a new reference to a python object or any other return type.
-// Note, if the python function steals a reference of any of this arguments you have to call PyIncRef on
-// each such arguments after the call.
+// Note, if the python function steals a reference of any of this arguments you have to call arg.incRef() on
+// each such arguments.
 #define CALLPY(...) PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__)
 
-// Macro to call PyIncRef(callPy(...))
+// Macro to call callPy(...).incRef()
 // Use this macro to call a python function returning a borrowed reference to a python object.
-// Note, if the python function steals a reference of any of this arguments you have to call PyIncRef on
-// each such arguments after the call.
-#define CALLPYB(...) PythonCpp::PyIncRef(PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__))
-
-// increment the reference count of a python object.
-// This function MUST be called after a reference is stolen by a python call.
-inline const PyO& PyIncRef(const PyO &o) {
-  if(Py_REFCNT(o.get())<=0)
-    throw std::runtime_error("Internal error: Access object with reference count <= 0. Check the source code.");
-  Py_XINCREF(o.get());
-  return o;
-}
+// Note, if the python function steals a reference of any of this arguments you have to call arg.incRef() on
+// each such arguments.
+#define CALLPYB(...) PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__).incRef()
 
 // c++ PythonException exception with the content of a python exception
 PythonException::PythonException(const char *file_, int line_) : file(file_), line(line_) {
@@ -250,9 +267,9 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
   // fetch error objects and save objects
   PyObject *type_, *value_, *traceback_;
   PyErr_Fetch(&type_, &value_, &traceback_);
-  type=PyO(type_, &Py_DecRef);
-  value=PyO(value_, &Py_DecRef);
-  traceback=PyO(traceback_, &Py_DecRef);
+  type=PyO(type_);
+  value=PyO(value_);
+  traceback=PyO(traceback_);
 }
 
 const char* PythonException::what() const throw() {

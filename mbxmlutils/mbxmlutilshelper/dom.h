@@ -206,6 +206,8 @@ DOMAttrWrapper<DOMAttrType> A(DOMAttrType *me) { return DOMAttrWrapper<DOMAttrTy
 template<typename DOMAttrType>
 DOMAttrWrapper<DOMAttrType> A(std::shared_ptr<DOMAttrType> me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
 
+class DOMParser;
+
 //! Helper class for extending DOMDocument (use the function D(...)).
 template<typename DOMDocumentType>
 class DOMDocumentWrapper {
@@ -217,6 +219,8 @@ class DOMDocumentWrapper {
     //! create element with the given FQN
     //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
+    //! Get full qualified tag name
+    std::shared_ptr<DOMParser> getParser() const;
     //! Treat this object as a pointer (like DOMDocument*)
     typename std::conditional<std::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
       const DOMDocumentWrapper*, DOMDocumentWrapper*>::type operator->() {
@@ -296,8 +300,6 @@ class DOMEvalException : public std::exception {
     std::string attrName;
     mutable std::string whatStr;
 };
-
-class DOMParser;
 
 class LocationInfoFilter : public xercesc::DOMLSParserFilter {
   public:

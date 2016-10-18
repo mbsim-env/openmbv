@@ -26,7 +26,11 @@ using namespace PythonCpp;
 namespace {
 
 inline PyO C(const MBXMLUtils::Eval::Value &value) {
-  return static_pointer_cast<PyObject>(boost::get<shared_ptr<void> >(value));
+  return *static_pointer_cast<PyO>(boost::get<shared_ptr<void> >(value));
+}
+
+inline MBXMLUtils::Eval::Value C(const PyO &value) {
+  return make_shared<PyO>(value);
 }
 
 vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly);
@@ -56,17 +60,17 @@ PyInit::PyInit() {
     initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string());
     CALLPY(_import_array);
 
-    PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
-    PyO mbxmlutilspath=CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string());
+    PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
+    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
-    PyO casadipath=CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages");
+    PyO casadipath(CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages"));
     CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
 
     casadiValue=CALLPY(PyImport_ImportModule, "casadi");
 
-    PyO numpy=CALLPY(PyImport_ImportModule, "numpy");
+    PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
     asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
@@ -102,8 +106,8 @@ PyInit::~PyInit() {
 PyInit pyInit; // init Python on library load and deinit on library unload = program end
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  casadiValue=pyInit.casadiValue;
-  currentImport=CALLPY(PyDict_New);
+  casadiValue=C(pyInit.casadiValue);
+  currentImport=make_shared<PyO>(CALLPY(PyDict_New));
 }
 
 PyEval::~PyEval() {
@@ -122,24 +126,24 @@ void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated)
   }
 
   // python globals (fill with builtins)
-  PyO globals=CALLPY(PyDict_New);
+  PyO globals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with current parameters)
   for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // evaluate as statement
-  PyO locals=CALLPY(PyDict_New);
+  PyO locals(CALLPY(PyDict_New));
   CALLPY(PyRun_String, code, Py_file_input, globals, locals);
 
   // get all locals and add to currentImport
-  CALLPY(PyDict_Merge, C(currentImport), locals, true);
+  CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), locals, true);
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   if(type==FunctionType && boost::get<Function>(&value))
     return true;
-  PyO v=C(value);
+  PyO v(C(value));
   switch(type) {
     case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
     case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
@@ -156,20 +160,20 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 }
 
 Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {
-  return CALLPY(PyObject_CallObject, CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, C(casadiValue)), typeName), PyO());
+  return C(CALLPY(PyObject_CallObject, CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, C(casadiValue)), typeName), PyO()));
 }
 
 Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
   pair<map<string, PyO>::iterator, bool> f=pyInit.functionValue.insert(make_pair(name, PyO()));
   if(f.second)
     f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit.mbxmlutils), name);
-  PyO pyargs=CALLPY(PyTuple_New, args.size());
+  PyO pyargs(CALLPY(PyTuple_New, args.size()));
   int idx=0;
   for(vector<Value>::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
-    PyO v=C(*it);
-    CALLPY(PyTuple_SetItem, pyargs, idx, v); PyIncRef(v); // PyTuple_SetItem steals a reference of v
+    PyO v(C(*it));
+    CALLPY(PyTuple_SetItem, pyargs, idx, v.incRef()); // PyTuple_SetItem steals a reference of v
   }
-  return CALLPY(PyObject_CallObject, f.first->second, pyargs);
+  return C(CALLPY(PyObject_CallObject, f.first->second, pyargs));
 }
 
 Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
@@ -178,12 +182,12 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
 
   // check some common string to avoid time consiming evaluation
   // check true and false
-  if(strtrim=="True") return CALLPY(PyBool_FromLong, 1);
-  if(strtrim=="False") return CALLPY(PyBool_FromLong, 0);
+  if(strtrim=="True") return C(CALLPY(PyBool_FromLong, 1));
+  if(strtrim=="False") return C(CALLPY(PyBool_FromLong, 0));
   // check for integer and floating point values
-  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(boost::algorithm::trim_copy(strtrim))); }
+  try { return C(CALLPY(PyLong_FromLong, boost::lexical_cast<int>(boost::algorithm::trim_copy(strtrim)))); }
   catch(const boost::bad_lexical_cast &) {}
-  try { return CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(boost::algorithm::trim_copy(strtrim))); }
+  try { return C(CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(boost::algorithm::trim_copy(strtrim)))); }
   catch(const boost::bad_lexical_cast &) {}
   // no common string detected -> evaluate using python now
 
@@ -196,10 +200,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   }
 
   // python globals (fill with builtins)
-  PyO globals=CALLPY(PyDict_New);
+  PyO globals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with imports)
-  CALLPY(PyDict_Merge, globals, C(currentImport), true);
+  CALLPY(PyDict_Merge, globals, *static_pointer_cast<PyO>(currentImport), true);
   // python globals (fill with current parameters)
   for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
@@ -209,13 +213,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
   try {
     // evaluate as expression (using the trimmed str) and save result in ret
-    PyO locals=CALLPY(PyDict_New);
+    PyO locals(CALLPY(PyDict_New));
     mbxmlutilsStaticDependencies.clear();
     ret=CALLPY(PyRun_StringFlags, strtrim, Py_eval_input, globals, locals, &flags);
     addStaticDependencies(e);
   }
   catch(const std::exception&) { // on failure ...
-    PyO locals=CALLPY(PyDict_New);
+    PyO locals(CALLPY(PyDict_New));
     try {
       // ... evaluate as statement
 
@@ -256,12 +260,12 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   }
   // convert a list or list of lists to a numpy array
   if(CALLPY(PyList_Check, ret)) {
-    PyO args=CALLPY(PyTuple_New, 1);
-    CALLPY(PyTuple_SetItem, args, 0, ret); PyIncRef(ret); // PyTuple_SetItem steals a reference of ret
-    return CALLPY(PyObject_CallObject, pyInit.asarray, args);
+    PyO args(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
+    return C(CALLPY(PyObject_CallObject, pyInit.asarray, args));
   }
   // return result
-  return ret;
+  return C(ret);
 }
 
 string PyEval::getSwigType(const Value &value) const {
@@ -269,7 +273,7 @@ string PyEval::getSwigType(const Value &value) const {
 }
 
 double PyEval::cast_double(const Value &value) const {
-  PyO v=C(value);
+  PyO v(C(value));
   if(CALLPY(PyFloat_Check, v))
     return CALLPY(PyFloat_AsDouble, v);
   if(CALLPY(PyLong_Check, v))
@@ -292,31 +296,31 @@ string PyEval::cast_string(const Value &value) const {
 }
 
 Eval::Value PyEval::create_double(const double& v) const {
-  try { return CALLPY(PyLong_FromLong, boost::lexical_cast<int>(v)); } catch(const boost::bad_lexical_cast &) {}
-  return CALLPY(PyFloat_FromDouble, v);
+  try { return C(CALLPY(PyLong_FromLong, boost::lexical_cast<int>(v))); } catch(const boost::bad_lexical_cast &) {}
+  return C(CALLPY(PyFloat_FromDouble, v));
 }
 
 Eval::Value PyEval::create_vector_double(const vector<double>& v) const {
   npy_intp dims[1];
   dims[0]=v.size();
-  PyO ret(PyArray_SimpleNew(1, dims, NPY_DOUBLE), &Py_DecRef);
+  PyO ret(PyArray_SimpleNew(1, dims, NPY_DOUBLE));
   copy(v.begin(), v.end(), static_cast<npy_double*>(PyArray_GETPTR1(reinterpret_cast<PyArrayObject*>(ret.get()), 0)));
-  return ret;
+  return C(ret);
 }
 
 Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v) const {
   npy_intp dims[2];
   dims[0]=v.size();
   dims[1]=v[0].size();
-  PyO ret(PyArray_SimpleNew(2, dims, NPY_DOUBLE), &Py_DecRef);
+  PyO ret(PyArray_SimpleNew(2, dims, NPY_DOUBLE));
   int r=0;
   for(vector<vector<double> >::const_iterator it=v.begin(); it!=v.end(); ++it, ++r)
     copy(it->begin(), it->end(), static_cast<npy_double*>(PyArray_GETPTR2(reinterpret_cast<PyArrayObject*>(ret.get()), r, 0)));
-  return ret;
+  return C(ret);
 }
 
 Eval::Value PyEval::create_string(const string& v) const {
-  return CALLPY(PyUnicode_FromString, v);
+  return C(CALLPY(PyUnicode_FromString, v));
 }
 
 }
@@ -372,7 +376,7 @@ double arrayScalarGetDouble(PyObject *o) {
 }
 
 vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
-  PyO v=C(value);
+  PyO v(C(value));
   if(PyArray_Check(v.get())) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=1)
@@ -391,7 +395,7 @@ vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool che
 }
 
 vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
-  PyO v=C(value);
+  PyO v(C(value));
   if(PyArray_Check(v.get())) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=2)

@@ -372,6 +372,12 @@ xercesc::DOMElement* DOMDocumentWrapper<DOMDocumentType>::createElement(const FQ
     return me->createElementNS(X()%name.first, X()%name.second);
 }
 
+template<typename DOMDocumentType>
+shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
+  return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
+}
+template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMDocumentWrapper<DOMDocument>;
 
