@@ -44,17 +44,6 @@ AC_ARG_WITH([boost-system-lib],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
 
-# return 1 if the version number provided by the 1st argument is less the one by the 2nd argument
-version_less() {
-  if test "_$1" = "_$2"; then
-    echo 0
-  elif echo -e "$1\n$2" | sort -V | head -n 1 | grep "$1" > /dev/null; then
-    echo 1
-  else
-    echo 0
-  fi
-}
-
 AM_CONDITIONAL([COND_CROSSCOMPILE], [test "$cross_compiling" == "yes"])
 
 dnl Check for SWIG
@@ -65,6 +54,10 @@ AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
 if test "_$swig" != "_no"; then
   SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
   AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+  SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
+  if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+9]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+10]]; then
+    AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
+  fi
 fi
 dnl Check for octave
 DOS2UNIX="cat"
@@ -94,10 +87,6 @@ AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
 if test "_$mkoctfile" != "_no"; then
   OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
   AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
-  if test $(version_less $SWIGVERSION 3.0.5) -eq 1; then
-    AC_MSG_ERROR([octave interface requires SWIG in version >= 3.0.5.
-                  Install correct SWIG versions or disable octave by --with-mkoctfile=no.])
-  fi
   AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
   OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
   OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
