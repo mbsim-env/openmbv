@@ -58,6 +58,7 @@
       </xs:simpleType>
 
 
+
       <!-- base type for a attribute which is partially converted by the evaluator.
            Only the content between { and } ist converted by the evaluator
            Inside { ... } the character { and } must be quoted qith \ -->
@@ -100,9 +101,26 @@
         <xs:restriction base="varnamePartialEval"/>
       </xs:simpleType>
 
+
+
       <!-- the attribute type for vector argument dimension -->
       <xs:simpleType name="symbolicFunctionArgDimType">
         <xs:restriction base="integerFullEval"/>
+      </xs:simpleType>
+
+
+
+      <!-- script which is evaluated by the corresponding mbsim module.
+           The preprocessor adds just a processing instruction element name "ScriptParameter" as child. The
+           content of the processing instruction are all parametersin xmlflateval format, e.g:
+           <?ScriptParameter scalar:parname1=6.456
+                             vector:parname2=[3;7.57;4]
+                             matrix:parname3=[4,6;5.56,3;7.8]
+                             string:parname2='test' ?>
+           This can be used by the corresponding mbsim module to enable parametrized scripts.
+      -->
+      <xs:simpleType name="script">
+        <xs:restriction base="xs:string"/>
       </xs:simpleType>
 
       <!-- add unit types -->

@@ -388,6 +388,30 @@ Eval::Value Eval::eval(const DOMElement *e) {
     handleUnit(e, ret);
     return ret;
   }
+
+  // a element of type PV%"script": return a string containing a special coded form
+  // of all current parameters
+  if(!e->getFirstElementChild() &&
+     E(e)->getFirstTextChild() &&
+     E(e)->isDerivedFrom(PV%"script")) {
+    // convert all currentParam to string
+    string ret;
+    for(auto &p: currentParam) {
+      string type;
+      if(valueIsOfType(p.second, FunctionType)) // skip functions
+        continue;
+      else if(valueIsOfType(p.second, ScalarType))
+        type="scalar";
+      else if(valueIsOfType(p.second, VectorType))
+        type="vector";
+      else if(valueIsOfType(p.second, MatrixType))
+        type="matrix";
+      else if(valueIsOfType(p.second, StringType))
+        type="string";
+      ret+=type+":"+p.first+"="+cast<CodeString>(p.second)+"\n";
+    }
+    return create(ret);
+  }
   
   // unknown element: throw
   throw DOMEvalException("Dont know how to evaluate this element", e);

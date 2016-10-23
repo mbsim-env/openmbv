@@ -4,6 +4,7 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
 
 using namespace std;
@@ -249,6 +250,16 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
             node=doc->createTextNode(X()%eval->cast<CodeString>(value));
         } MBXMLUTILS_RETHROW(e)
         e->appendChild(node);
+      }
+
+      // handle elements of type PV%"script"
+      if(E(e)->isDerivedFrom(PV%"script")) {
+        // eval element: for PV%"script" a string containing all parameters in xmlflateval notation is returned.
+        Eval::Value value=eval->eval(e);
+        // add processing instruction <?ScriptParameter ...?>
+        DOMProcessingInstruction *scriptPar=e->getOwnerDocument()->createProcessingInstruction(X()%"ScriptParameter",
+          X()%eval->cast<string>(value));
+        e->insertBefore(scriptPar, e->getFirstChild());
       }
     }
     
