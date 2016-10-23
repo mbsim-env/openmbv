@@ -38,7 +38,7 @@ class OctEval : public Eval {
     //! \p code must evaluate to a string representing a directory/path.
     //! A relative path is expanded to an absolute path using the path of e as current directory.
     //! The absolute path is then added using "addpath" to the octave search path.
-    void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
+    void addImport(const std::string &code, const xercesc::DOMElement *e);
 
     //! get the type of value
     bool valueIsOfType(const Value &value, ValueType type) const;

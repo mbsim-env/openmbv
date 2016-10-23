@@ -307,14 +307,11 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
 OctEval::~OctEval() {
 }
 
-void OctEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
+void OctEval::addImport(const string &code, const DOMElement *e) {
   try {
     bfs::path dir;
     // evaluate code to and string (directory to add using addpath)
-    if(!deprecated)
-      dir=cast<string>(fullStringToValue(code, e));
-    else
-      dir=partialStringToString(code, e); // MISSING: this is a deprecated feature
+    dir=cast<string>(fullStringToValue(code, e));
     // convert to an absolute path using e
     dir=E(e)->convertPath(dir);
 

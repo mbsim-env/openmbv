@@ -124,7 +124,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     //! Import evaluator statements. This routine highly depends on the evaluator.
     //! See the spezialized evaluators documentation for details.
-    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false)=0;// MISSING: fullEval is just to support a deprected feature
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e)=0;
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.

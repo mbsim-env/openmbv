@@ -27,7 +27,7 @@ XMLFlatEval::~XMLFlatEval() {
 
 // virtual functions
 
-void XMLFlatEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
+void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
   throw runtime_error("addImport not possible.");
 }
 

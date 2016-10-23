@@ -113,10 +113,7 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
 PyEval::~PyEval() {
 }
 
-void PyEval::addImport(const string &code, const DOMElement *e, bool deprecated) {
-  if(deprecated)
-    throw DOMEvalException("The deprecated <searchPath .../> element is not supported.", e);
-
+void PyEval::addImport(const string &code, const DOMElement *e) {
   // restore current dir on exit and change current dir
   PreserveCurrentDir preserveDir;
   if(e) {

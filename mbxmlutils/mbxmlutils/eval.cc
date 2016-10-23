@@ -178,10 +178,6 @@ void Eval::addParamSet(const DOMElement *e) {
   for(DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"import")
       addImport(X()%E(ee)->getFirstTextChild()->getData(), ee);
-    else if(E(ee)->getTagName()==PV%"searchPath") { // MISSING: this is a deprecated feature
-      Deprecated::message(msg(Warn), "Replace <searchPath href=\"...\"/> with <import>...</import>, but take note that ... is evaluated fully not partial.", e);
-      addImport(E(ee)->getAttribute("href"), ee, true);
-    }
     else
       addParam(E(ee)->getAttribute("name"), eval(ee));
   }

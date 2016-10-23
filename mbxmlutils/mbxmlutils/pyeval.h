@@ -18,7 +18,7 @@ class PyEval : public Eval {
     ~PyEval();
     static std::string getNameStatic() { return "python"; }
     virtual std::string getName() const { return getNameStatic(); }
-    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, bool deprecated=false);
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e);
     virtual bool valueIsOfType(const Value &value, ValueType type) const;
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
     virtual bool useOneBasedIndexes() { return false; }
