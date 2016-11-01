@@ -45,7 +45,13 @@ namespace OpenMBV {
   class Group;
 
   /** Abstract base class */
-  class Object : virtual public fmatvec::Atom {
+  class Object
+#ifndef SWIG
+    // with swig we do not need any access to fmatvec::Atom members. To avoid problems with other projects
+    // deriving from fmatvec::Atomm we skip this completely from swig processing.
+    : virtual public fmatvec::Atom
+#endif
+  {
     friend class Group;
     protected:
       std::string name;

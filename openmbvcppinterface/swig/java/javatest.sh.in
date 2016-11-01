@@ -2,4 +2,11 @@
 
 test -d temp_testdir || mkdir temp_testdir
 cp javatest.class temp_testdir
+
+if test openmbv.jar -nt @prefix@/bin/openmbv.jar; then
+  echo "The java test can only run if 'make install' was run before, but this is not the case!"
+  echo "Please run 'make install' before running 'make check'."
+  exit 1
+fi
+
 @JAVA@ -classpath temp_testdir:@prefix@/bin/openmbv.jar javatest

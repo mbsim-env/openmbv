@@ -1,4 +1,4 @@
 #!/bin/sh
 
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
-@XC_EXEC_PREFIX@ @OCTAVE@ octavetest.m
+@XC_EXEC_PREFIX@ @OCTAVE@ @abs_srcdir@/octavetest.m

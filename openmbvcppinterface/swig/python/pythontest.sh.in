@@ -1,4 +1,4 @@
 #!/bin/sh
 
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
-@XC_EXEC_PREFIX@ @PYTHON_BIN@ pythontest.py
+@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/pythontest.py
