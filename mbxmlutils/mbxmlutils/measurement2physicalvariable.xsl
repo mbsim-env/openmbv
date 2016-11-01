@@ -118,10 +118,12 @@
                              matrix:parname3=[4,6;5.56,3;7.8]
                              string:parname2='test' ?>
            This can be used by the corresponding mbsim module to enable parametrized scripts.
+           The attribute 'objName' defines the variables name under which the object is available (this
+           is not used by the preprocessor). It defaults to 'this'.
       -->
-      <xs:simpleType name="script">
-        <xs:restriction base="xs:string"/>
-      </xs:simpleType>
+      <xs:complexType name="script" mixed="true">
+        <xs:attribute name="objName" type="varnamePartialEval" default="this"/>
+      </xs:complexType>
 
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
