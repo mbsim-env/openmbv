@@ -349,4 +349,16 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="IndexedDynamicFaceSet" substitutionGroup="RigidBody" type="IndexedDynamicFaceSetType"/>
+  <xs:complexType name="IndexedDynamicFaceSetType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfVertexPositions" type="pv:nounitScalar"/>
+          <xs:element name="indices" type="pv:nounitVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>
