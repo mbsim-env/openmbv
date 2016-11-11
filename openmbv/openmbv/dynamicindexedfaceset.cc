@@ -18,12 +18,12 @@
 */
 
 #include "config.h"
-#include "indexeddynamicfaceset.h"
+#include "dynamicindexedfaceset.h"
 #include "utils.h"
 #include "mainwindow.h"
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoComplexity.h>
-#include "openmbvcppinterface/indexeddynamicfaceset.h"
+#include "openmbvcppinterface/dynamicindexedfaceset.h"
 #include <QMenu>
 #include <vector>
 #include <cfloat>
@@ -32,17 +32,10 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-IndexedDynamicFaceSet::IndexedDynamicFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
-  faceset=std::static_pointer_cast<OpenMBV::IndexedDynamicFaceSet>(obj);
+DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
+  faceset=std::static_pointer_cast<OpenMBV::DynamicIndexedFaceSet>(obj);
   iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
-
-  //vector<vector<double> > vp = faceset->getVertexPositions();
-  //float pts[vp.size()][3];
-  //for(unsigned int i=0; i<vp.size(); i++) {
-  //  for(unsigned int j=0; j<3; j++)
-  //    pts[i][j] = vp[i][j];
-  //}
 
   vector<int> indices = faceset->getIndices();
   int idx[indices.size()];
@@ -51,7 +44,6 @@ IndexedDynamicFaceSet::IndexedDynamicFaceSet(const std::shared_ptr<OpenMBV::Obje
 
   points = new SoCoordinate3;
   SoIndexedFaceSet *surface = new SoIndexedFaceSet;
-//  points->point.setValues(0, vp.size(), pts);
   surface->coordIndex.setValues(0, indices.size(), idx);
   soSep->addChild(points);
   soSep->addChild(surface);
@@ -60,11 +52,11 @@ IndexedDynamicFaceSet::IndexedDynamicFaceSet(const std::shared_ptr<OpenMBV::Obje
   soSep->addChild(soOutLineSwitch);
 }
 
-void IndexedDynamicFaceSet::createProperties() {
+void DynamicIndexedFaceSet::createProperties() {
   DynamicColoredBody::createProperties();
 }
 
-double IndexedDynamicFaceSet::update() {
+double DynamicIndexedFaceSet::update() {
   int frame = MainWindow::getInstance()->getFrame()->getValue();
   std::vector<double> data = faceset->getRow(frame);
 

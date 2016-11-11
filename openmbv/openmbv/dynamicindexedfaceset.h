@@ -17,24 +17,24 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_INDEXEDDYNAMICFACESET_H_
-#define _OPENMBVGUI_INDEXEDDYNAMICFACESET_H_
+#ifndef _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
+#define _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
 
 #include "dynamiccoloredbody.h"
 #include <string>
 
 namespace OpenMBV {
-  class IndexedDynamicFaceSet;
+  class DynamicIndexedFaceSet;
 }
 
 namespace OpenMBVGUI {
 
-class IndexedDynamicFaceSet : public DynamicColoredBody {
+class DynamicIndexedFaceSet : public DynamicColoredBody {
   Q_OBJECT
   public:
-    IndexedDynamicFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    std::shared_ptr<OpenMBV::IndexedDynamicFaceSet> faceset;
+    std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
     int numvp;
     SoCoordinate3 *points;
     virtual double update();

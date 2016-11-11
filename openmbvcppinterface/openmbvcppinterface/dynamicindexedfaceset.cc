@@ -18,7 +18,7 @@
 */
 
 #include "config.h"
-#include <openmbvcppinterface/indexeddynamicfaceset.h>
+#include <openmbvcppinterface/dynamicindexedfaceset.h>
 #include <iostream>
 #include <fstream>
 
@@ -28,19 +28,19 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IndexedDynamicFaceSet, OPENMBV%"IndexedDynamicFaceSet")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedFaceSet, OPENMBV%"DynamicIndexedFaceSet")
 
-IndexedDynamicFaceSet::IndexedDynamicFaceSet() : DynamicColoredBody(), numvp(0) {
+DynamicIndexedFaceSet::DynamicIndexedFaceSet() : DynamicColoredBody(), numvp(0) {
 }
 
-DOMElement* IndexedDynamicFaceSet::writeXMLFile(DOMNode *parent) {
+DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   addElementText(e, OPENMBV%"numberOfVertexPositions", numvp);
   addElementText(e, OPENMBV%"indices", indices);
   return 0;
 }
 
-void IndexedDynamicFaceSet::createHDF5File() {
+void DynamicIndexedFaceSet::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+3*numvp);
@@ -55,7 +55,7 @@ void IndexedDynamicFaceSet::createHDF5File() {
   }
 }
 
-void IndexedDynamicFaceSet::openHDF5File() {
+void DynamicIndexedFaceSet::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   if(!hdf5LinkBody) {
@@ -69,7 +69,7 @@ void IndexedDynamicFaceSet::openHDF5File() {
   }
 }
 
-void IndexedDynamicFaceSet::initializeUsingXML(DOMElement *element) {
+void DynamicIndexedFaceSet::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   DOMElement *e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfVertexPositions");
   setNumberOfVertexPositions(getInt(e));

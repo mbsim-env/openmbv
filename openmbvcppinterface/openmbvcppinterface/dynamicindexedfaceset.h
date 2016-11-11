@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_INDEXEDDYNAMICFACESET_H
-#define _OPENMBV_INDEXEDDYNAMICFACESET_H
+#ifndef _OPENMBV_DYNAMICINDEXEDFACESET_H
+#define _OPENMBV_DYNAMICINDEXEDFACESET_H
 
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <openmbvcppinterface/polygonpoint.h>
@@ -28,21 +28,21 @@
 namespace OpenMBV {
 
   /** A nurbs surface */
-  class IndexedDynamicFaceSet : public DynamicColoredBody {
+  class DynamicIndexedFaceSet : public DynamicColoredBody {
     friend class ObjectFactory;
     protected:
       std::vector<int> indices;
       int numvp;
       H5::VectorSerie<double>* data;
-      IndexedDynamicFaceSet();
-      ~IndexedDynamicFaceSet() {}
+      DynamicIndexedFaceSet();
+      ~DynamicIndexedFaceSet() {}
       xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
       /** Write H5 file for time-dependent data. */
       void createHDF5File();
       void openHDF5File();
     public:
       /** Retrun the class name */
-      std::string getClassName() { return "IndexedDynamicFaceSet"; }
+      std::string getClassName() { return "DynamicIndexedFaceSet"; }
 
       /** Get control points
        */

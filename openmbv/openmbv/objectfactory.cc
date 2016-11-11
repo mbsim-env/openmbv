@@ -36,7 +36,7 @@
 #include "mainwindow.h"
 #include "nurbsdisk.h"
 #include "indexedfaceset.h"
-#include "indexeddynamicfaceset.h"
+#include "dynamicindexedfaceset.h"
 #include "path.h"
 #include "sphere.h"
 #include "spineextrusion.h"
@@ -78,7 +78,7 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
   else if(obj->getClassName()=="IndexedFaceSet")
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="IndexedDynamicFaceSet")
-    return new IndexedDynamicFaceSet(obj, parentItem, soParent, ind);
+    return new DynamicIndexedFaceSet(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Path")
     return new Path(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Sphere")
