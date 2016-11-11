@@ -77,7 +77,7 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new NurbsDisk(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="IndexedFaceSet")
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="IndexedDynamicFaceSet")
+  else if(obj->getClassName()=="DynamicIndexedFaceSet")
     return new DynamicIndexedFaceSet(obj, parentItem, soParent, ind);
   else if(obj->getClassName()=="Path")
     return new Path(obj, parentItem, soParent, ind);
