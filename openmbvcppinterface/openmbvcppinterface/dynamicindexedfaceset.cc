@@ -43,13 +43,14 @@ DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
 void DynamicIndexedFaceSet::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+3*numvp);
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numvp);
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numvp;i++) {
       columns.push_back("x"+numtostr(i));
       columns.push_back("y"+numtostr(i));
       columns.push_back("z"+numtostr(i));
+      columns.push_back("color"+numtostr(i));
     }
     data->setColumnLabel(columns);
   }
