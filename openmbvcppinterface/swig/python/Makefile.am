@@ -4,7 +4,7 @@ swig_LTLIBRARIES = _OpenMBV.la
 
 CLEANFILES=OpenMBV_swig_pyhton.cc OpenMBV.py OpenMBV_swig_pyhton.d
 OpenMBV_swig_pyhton.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
-	$(swig) -python -MD -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_pyhton.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_pyhton.cc; exit 1)
+	$(swig) -python -MP -MD -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_pyhton.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_pyhton.cc; exit 1)
 -include OpenMBV_swig_pyhton.d
 OpenMBV.py: OpenMBV_swig_pyhton.cc
 	test ! -f $@ && (rm -f OpenMBV_swig_pyhton.cc && $(MAKE) $(AM_MAKEFLAGS) OpenMBV_swig_pyhton.cc) || :

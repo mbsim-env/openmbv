@@ -20,8 +20,9 @@ clean-local: clean-local-javasource
 clean-local-javasource:
 	rm -rf de
 OpenMBV_swig_java.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
+	rm -rf de/mbsim_env/openmbv
 	$(MKDIR_P) de/mbsim_env/openmbv
-	$(swig) -java -MD -package de.mbsim_env.openmbv -outdir de/mbsim_env/openmbv -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
+	$(swig) -java -MP -MD -package de.mbsim_env.openmbv -outdir de/mbsim_env/openmbv -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i || (rm -f OpenMBV_swig_java.cc; exit 1)
 -include OpenMBV_swig_java.d
 
 de/mbsim_env/openmbv/Object.class: OpenMBV_swig_java.cc
