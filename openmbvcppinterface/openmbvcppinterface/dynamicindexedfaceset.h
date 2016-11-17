@@ -20,17 +20,19 @@
 #ifndef _OPENMBV_DYNAMICINDEXEDFACESET_H
 #define _OPENMBV_DYNAMICINDEXEDFACESET_H
 
-#include <openmbvcppinterface/dynamiccoloredbody.h>
-#include <openmbvcppinterface/polygonpoint.h>
+#include <openmbvcppinterface/body.h>
 #include <vector>
 #include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {
 
   /** A nurbs surface */
-  class DynamicIndexedFaceSet : public DynamicColoredBody {
+  class DynamicIndexedFaceSet : public Body {
     friend class ObjectFactory;
     protected:
+      double minimalColorValue, maximalColorValue;
+      std::vector<double> diffuseColor;
+      double transparency;
       std::vector<int> indices;
       int numvp;
       H5::VectorSerie<double>* data;
@@ -48,6 +50,50 @@ namespace OpenMBV {
        */
       double getNumberOfVertexPositions() const { return numvp; }
       const std::vector<int>& getIndices() { return indices; }
+
+      /** Set the minimal color value.
+       * The color value of the body in linearly mapped between minimalColorValue
+       * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).
+       */
+      void setMinimalColorValue(double min) {
+        minimalColorValue=min;
+      }
+
+      double getMinimalColorValue() { return minimalColorValue; }
+
+      /** Set the maximal color value.
+       * See also minimalColorValue
+       */
+      void setMaximalColorValue(double max) {
+        maximalColorValue=max;
+      }
+
+      double getMaximalColorValue() { return maximalColorValue; }
+
+      /** If the hue is less then 0 (default = -1) then the dynamic color from the
+       * append routine is used as hue value.
+       */
+      void setDiffuseColor(const std::vector<double> &hsv) {
+        if(hsv.size()!=3) throw std::runtime_error("the dimension does not match");
+        diffuseColor=hsv;
+      }
+
+      void setDiffuseColor(double h, double s, double v) {
+        std::vector<double> hsv;
+        hsv.push_back(h);
+        hsv.push_back(s);
+        hsv.push_back(v);
+        diffuseColor=hsv;
+      }
+
+      std::vector<double> getDiffuseColor() { return diffuseColor; }
+
+      /** Set the transparency of the body. */
+      void setTransparency(double t) {
+        transparency=t;
+      }
+
+      double getTransparency() { return transparency; }
 
       /** Set control points
        */

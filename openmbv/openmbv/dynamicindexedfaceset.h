@@ -20,8 +20,10 @@
 #ifndef _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
 #define _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
 
-#include "dynamiccoloredbody.h"
+#include "body.h"
 #include <string>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoBaseColor.h>
 
 namespace OpenMBV {
   class DynamicIndexedFaceSet;
@@ -29,16 +31,18 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
-class DynamicIndexedFaceSet : public DynamicColoredBody {
+class DynamicIndexedFaceSet : public Body {
   Q_OBJECT
   public:
     DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
+    double minimalColorValue, maximalColorValue;
     std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
     int numvp;
     std::vector<int> idx;
     SoCoordinate3 *points;
     SoMaterial *myMaterials;
+    SoBaseColor *baseColor;
     virtual double update();
     void createProperties();
 };

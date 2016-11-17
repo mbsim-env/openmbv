@@ -32,10 +32,13 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
+DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
   faceset=std::static_pointer_cast<OpenMBV::DynamicIndexedFaceSet>(obj);
   iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
+
+  minimalColorValue=faceset->getMinimalColorValue();
+  maximalColorValue=faceset->getMaximalColorValue();
 
   points = new SoCoordinate3;
   SoIndexedFaceSet *surface = new SoIndexedFaceSet;
@@ -44,8 +47,16 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Obje
   SoMaterialBinding *myMaterialBinding = new SoMaterialBinding;
   myMaterialBinding->value = SoMaterialBinding::PER_VERTEX_INDEXED;
   myMaterials = new SoMaterial;
+  std::vector<double> diffuseColor=faceset->getDiffuseColor();
+  myMaterials->diffuseColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
+  myMaterials->specularColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, 0.7*diffuseColor[1], diffuseColor[2]);
+  myMaterials->transparency.setValue(faceset->getTransparency());
+  myMaterials->shininess.setValue(0.9);
   soSep->addChild(myMaterials);
   soSep->addChild(myMaterialBinding);
+//  baseColor=new SoBaseColor;
+//  soSep->addChild(baseColor);
+//  baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
   soSep->addChild(points);
   soSep->addChild(surface);
 
@@ -54,7 +65,24 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Obje
 }
 
 void DynamicIndexedFaceSet::createProperties() {
-  DynamicColoredBody::createProperties();
+  Body::createProperties();
+
+  // GUI
+  if(!clone) {
+    FloatEditor *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
+    minimalColorValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getMinimalColorValue, &OpenMBV::DynamicIndexedFaceSet::setMinimalColorValue);
+
+    FloatEditor *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
+    maximalColorValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getMaximalColorValue, &OpenMBV::DynamicIndexedFaceSet::setMaximalColorValue);
+
+    ColorEditor *diffuseColorValue=new ColorEditor(properties, QIcon(), "Diffuse color", true);
+    diffuseColorValue->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getDiffuseColor, &OpenMBV::DynamicIndexedFaceSet::setDiffuseColor);
+
+    FloatEditor *transparencyValueEditor=new FloatEditor(properties, QIcon(), "Transparency value");
+    transparencyValueEditor->setRange(0, 1);
+    transparencyValueEditor->setStep(0.1);
+    transparencyValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getTransparency, &OpenMBV::DynamicIndexedFaceSet::setTransparency);
+  }
 }
 
 double DynamicIndexedFaceSet::update() {
@@ -62,28 +90,32 @@ double DynamicIndexedFaceSet::update() {
   std::vector<double> data = faceset->getRow(frame);
 
   myMaterials->diffuseColor.setNum(faceset->getNumberOfVertexPositions());
+  myMaterials->specularColor.setNum(faceset->getNumberOfVertexPositions());
   SbColor *colorData = myMaterials->diffuseColor.startEditing();
-  float h, s, v;
-  double hue;
-  mat->diffuseColor[0].getHSVValue(h, s, v);
+  SbColor *specData = myMaterials->specularColor.startEditing();
+  float h, s, v, ss, vs;
+  double col;
+  myMaterials->diffuseColor[0].getHSVValue(h, s, v);
+  myMaterials->specularColor[0].getHSVValue(h, ss, vs);
   double m=1/(maximalColorValue-minimalColorValue);
-  for (int i=0; i<faceset->getNumberOfVertexPositions(); i++) {
-    hue =  data[i*4+4];
-    hue = m*(hue-minimalColorValue);
-    if(hue<0) hue=0;
-    if(hue>1) hue=1;
-    colorData[i].setHSVValue((1-hue)*2/3, s, v);
-  }
-  myMaterials->diffuseColor.finishEditing();
-  myMaterials->diffuseColor.setDefault(FALSE);
 
   points->point.setNum(faceset->getNumberOfVertexPositions());
   SbVec3f *pointData = points->point.startEditing();
   for (int i=0; i<faceset->getNumberOfVertexPositions(); i++) {
+    col =  data[i*4+4];
+    col = m*(col-minimalColorValue);
+    if(col<0) col=0;
+    if(col>1) col=1;
+    colorData[i].setHSVValue((1-col)*2/3, s, v);
+    specData[i].setHSVValue((1-col)*2/3, 0.7*ss, vs);
     pointData[i][0] = data[i*4+1];
     pointData[i][1] = data[i*4+2];
     pointData[i][2] = data[i*4+3];
   }
+  myMaterials->diffuseColor.finishEditing();
+  myMaterials->diffuseColor.setDefault(FALSE);
+  myMaterials->specularColor.finishEditing();
+  myMaterials->specularColor.setDefault(FALSE);
   points->point.finishEditing();
   points->point.setDefault(FALSE);
   return data[0]; //return time
