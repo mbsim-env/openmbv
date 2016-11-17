@@ -54,9 +54,6 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Obje
   myMaterials->shininess.setValue(0.9);
   soSep->addChild(myMaterials);
   soSep->addChild(myMaterialBinding);
-//  baseColor=new SoBaseColor;
-//  soSep->addChild(baseColor);
-//  baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
   soSep->addChild(points);
   soSep->addChild(surface);
 
@@ -93,21 +90,20 @@ double DynamicIndexedFaceSet::update() {
   myMaterials->specularColor.setNum(faceset->getNumberOfVertexPositions());
   SbColor *colorData = myMaterials->diffuseColor.startEditing();
   SbColor *specData = myMaterials->specularColor.startEditing();
-  float h, s, v, ss, vs;
-  double col;
+  float h, s, v;
   myMaterials->diffuseColor[0].getHSVValue(h, s, v);
-  myMaterials->specularColor[0].getHSVValue(h, ss, vs);
   double m=1/(maximalColorValue-minimalColorValue);
 
   points->point.setNum(faceset->getNumberOfVertexPositions());
   SbVec3f *pointData = points->point.startEditing();
   for (int i=0; i<faceset->getNumberOfVertexPositions(); i++) {
-    col =  data[i*4+4];
+    double col =  data[i*4+4];
     col = m*(col-minimalColorValue);
     if(col<0) col=0;
     if(col>1) col=1;
-    colorData[i].setHSVValue((1-col)*2/3, s, v);
-    specData[i].setHSVValue((1-col)*2/3, 0.7*ss, vs);
+    double hue = (1-col)*2/3;
+    colorData[i].setHSVValue(hue, s, v);
+    specData[i].setHSVValue(hue, 0.7*s, v);
     pointData[i][0] = data[i*4+1];
     pointData[i][1] = data[i*4+2];
     pointData[i][2] = data[i*4+3];

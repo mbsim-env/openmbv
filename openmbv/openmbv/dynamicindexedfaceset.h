@@ -23,7 +23,6 @@
 #include "body.h"
 #include <string>
 #include <Inventor/nodes/SoMaterial.h>
-#include <Inventor/nodes/SoBaseColor.h>
 
 namespace OpenMBV {
   class DynamicIndexedFaceSet;
@@ -42,7 +41,6 @@ class DynamicIndexedFaceSet : public Body {
     std::vector<int> idx;
     SoCoordinate3 *points;
     SoMaterial *myMaterials;
-    SoBaseColor *baseColor;
     virtual double update();
     void createProperties();
 };
