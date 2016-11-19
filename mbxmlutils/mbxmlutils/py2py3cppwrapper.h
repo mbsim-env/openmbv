@@ -160,7 +160,6 @@ class PyO {
     void swap(PyO &r) { PyObject *temp=p; p=r.p; r.p=temp; }
     PyObject* get(bool incRef=false) const { if(incRef) Py_XINCREF(p); return p; } // use incRef=true if the caller steals a reference of the returned PyObject
     long use_count() const { return p ? Py_REFCNT(p) : 0; }
-    bool unique() const { return use_count()==0; }
     PyObject* operator->() const { return p; }
     PyO& incRef() { Py_XINCREF(p); return *this; } // use if the caller steals a reference of the returned PyObject
     operator bool() const { return p!=nullptr; }
@@ -215,7 +214,9 @@ template<> struct MapRetType<PyObject*> {
   typedef PyO type;
   inline static PyO convert(PyObject *r) {
     if(!r)
-      throw std::runtime_error("Internal error: Expected python object but got NULL pointer and not python exception is set.");
+      throw std::runtime_error("Internal error: Expected python object but got NULL pointer and no python exception is set.");
+    if(Py_REFCNT(r)<=0)
+      throw std::runtime_error("Internal error: Expected python object but a python object with 0 refcount and no python exception is set.");
     return PyO(r);
   }
 };

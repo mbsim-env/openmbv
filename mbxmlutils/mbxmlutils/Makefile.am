@@ -99,7 +99,8 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 # one. Since -I.. is added as a default include path by automake we must prevent this.
 AUTOMAKE_OPTIONS = nostdinc
 casadi_oct_swig_octave.cc: $(srcdir)/casadi_oct.i
-	$(swig) -octave -MP -MD -Werror -c++ -o casadi_oct_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi_oct.i || (rm -f casadi_oct_swig_octave.cc; exit 1)
+	rm -f casadi_oct_swig_octave.cc
+	$(swig) -octave -MP -MD -Werror -c++ -o casadi_oct_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi_oct.i
 -include casadi_oct_swig_octave.d
 
 casadi_oct_la_SOURCES = casadi_oct_swig_octave.cc
