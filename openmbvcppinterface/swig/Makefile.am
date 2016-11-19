@@ -1,7 +1,3 @@
-if COND_MKOCTFILE
-  MAYBE_OCTAVE_DIR = octave
-endif
-
 if COND_PYTHON
   MAYBE_PYTHON_DIR = python
 endif
@@ -10,7 +6,7 @@ if COND_JAVA
   MAYBE_JAVA_DIR = java
 endif
 
-SUBDIRS = $(MAYBE_OCTAVE_DIR) $(MAYBE_PYTHON_DIR) $(MAYBE_JAVA_DIR)
+SUBDIRS = octave $(MAYBE_PYTHON_DIR) $(MAYBE_JAVA_DIR)
 
 swigdir = $(datadir)/openmbvcppinterface
 swig_DATA = OpenMBV.i OpenMBV_include.i

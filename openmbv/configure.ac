@@ -90,20 +90,17 @@ AC_ARG_WITH(qwt_lib_prefix,
   [QWT_LIBS="-L$prefix/lib -l$QWT_LIBNAME"])
 OLDCPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
 OLDLIBS=$LIBS; LIBS="$LIBS $QWT_LIBS $QT_LIBS"
-AC_CHECK_HEADERS([qwt_wheel.h], [QWT=yes], [AC_MSG_WARN([Can not find qwt_wheel.h! Some functionality will not work!]); QWT=no])
-if test "_$QWT" == "_yes"; then
+AC_CHECK_HEADERS([qwt_wheel.h], [], [AC_MSG_ERROR([Can not find qwt_wheel.h!])])
 AC_CHECK_HEADERS([qwt_system_clock.h], [], [AC_MSG_ERROR([Can not find qwt_system_clock.h! Maybe a qwt5 header is used!])])
 AC_TRY_LINK(
   [#include <qwt_system_clock.h>],
   [new QwtSystemClock;],
   [],
   [AC_MSG_ERROR([Can not link with qwt >= 6!])])
-fi
 CPPFLAGS=$OLDCPPFLAGS
 LIBS=$OLDLIBS
 AC_SUBST([QWT_CFLAGS])
 AC_SUBST([QWT_LIBS])
-AM_CONDITIONAL([COND_QWT], [test "_$QWT" = "_yes"])
 
 dnl XML
 AC_SUBST([MBXMLUTILSSCHEMADIR],[$(pkg-config mbxmlutils --variable SCHEMADIR)])

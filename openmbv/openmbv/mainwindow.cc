@@ -468,20 +468,12 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   QLabel *speedL=new QLabel("Speed:", this);
   speedLO->addWidget(speedL, 0, 0);
   speedLO->addWidget(speedSB, 1, 0);
-#ifdef HAVE_QWT_WHEEL_H
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(10);
   speedWheel->setTotalAngle(360*15);
   connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChangedD(double)));
   connect(speedWheel, SIGNAL(wheelPressed()), this, SLOT(speedWheelPressed()));
   connect(speedWheel, SIGNAL(wheelReleased()), this, SLOT(speedWheelReleased()));
-#else
-  speedWheel=new QSlider(this);
-  speedWheel->setMaximumSize(15, 35);
-  connect(speedWheel, SIGNAL(sliderMoved(int)), this, SLOT(speedWheelChanged(int)));
-  connect(speedWheel, SIGNAL(sliderPressed()), this, SLOT(speedWheelPressed()));
-  connect(speedWheel, SIGNAL(sliderReleased()), this, SLOT(speedWheelReleased()));
-#endif
   speedWheel->setRange(-20000, 20000);
   speedWheel->setOrientation(Qt::Vertical);
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
@@ -1052,9 +1044,7 @@ void MainWindow::aboutOpenMBV() {
       "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
       "  <li>'xerces-c - A validating XML parser' by Apache from <tt>http://xerces.apache.org/xerces-c</tt> (Licence: Apache)</li>"
       "  <li>'boost - C++ Libraries' by Boost from <tt>http://www.boost.org</tt> (Licence: Boost Software License)</li>"
-#ifdef HAVE_QWT_WHEEL_H
       "  <li>'Qwt - Qt Widgets for Technical Applications' by Uwe Rathmann from <tt>http://qwt.sourceforge.net</tt> (Licence: Qwt/LGPL)</li>"
-#endif
       "  <li>...</li>"
       "</ul>"
       "<p>A special thanks to all authors of this projects.</p>"

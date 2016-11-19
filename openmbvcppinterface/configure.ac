@@ -28,7 +28,7 @@ PKG_CHECK_MODULES(FMATVEC, fmatvec)
 
 PKG_CHECK_MODULES(MBXMLUTILSHELPER, mbxmlutilshelper)
 
-AM_CONDITIONAL([COND_MINGW], [test "_$host_os" = "_mingw32"])
+AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
@@ -50,14 +50,14 @@ dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
   [swigpath="$withval"],[swigpath=""])
 AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
-AM_CONDITIONAL([COND_SWIG], [test "_$swig" != "_no"])
-if test "_$swig" != "_no"; then
-  SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
-  AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
-  SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-  if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+9]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+10]]; then
-    AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
-  fi
+if test "_$swig" == "_no"; then
+  AC_MSG_ERROR([No swig found!])
+fi
+SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
+AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
+if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+9]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+10]]; then
+  AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
 fi
 dnl Check for octave
 DOS2UNIX="cat"
@@ -83,39 +83,39 @@ AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 
 if test "_$mkoctfile" == "_"; then
   AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
 fi
-AM_CONDITIONAL([COND_MKOCTFILE], [test "_$mkoctfile" != "_no"])
-if test "_$mkoctfile" != "_no"; then
-  OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
-  AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
-  AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
-  OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-  OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-  if test "$cross_compiling" == "yes"; then
-    # convert OCTAVE_FLAGS to unix path if cross compiling
-    RERUN=0
-    while test $RERUN -eq 0; do
-      WINPATH=$(echo $OCTAVE_FLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-      UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
-      OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
-      echo $OCTAVE_FLAGS | grep "\-I" &> /dev/null
-      RERUN=$?
-    done
-    OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|-X|-I|g")
-
-    # convert OCTAVE_LIBS to unix path if cross compiling
-    RERUN=0
-    while test $RERUN -eq 0; do
-      WINPATH=$(echo $OCTAVE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-      UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
-      OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
-      echo $OCTAVE_LIBS | grep "\-L" &> /dev/null
-      RERUN=$?
-    done
-    OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|-X|-L|g")
-  fi
-  AC_SUBST([OCTAVE_FLAGS])
-  AC_SUBST([OCTAVE_LIBS])
+if test "_$mkoctfile" == "_no"; then
+  AC_MSG_ERROR([mkoctfile not found!])
 fi
+OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
+AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
+AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
+OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+if test "$cross_compiling" == "yes"; then
+  # convert OCTAVE_FLAGS to unix path if cross compiling
+  RERUN=0
+  while test $RERUN -eq 0; do
+    WINPATH=$(echo $OCTAVE_FLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+    echo $OCTAVE_FLAGS | grep "\-I" &> /dev/null
+    RERUN=$?
+  done
+  OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|-X|-I|g")
+
+  # convert OCTAVE_LIBS to unix path if cross compiling
+  RERUN=0
+  while test $RERUN -eq 0; do
+    WINPATH=$(echo $OCTAVE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
+    echo $OCTAVE_LIBS | grep "\-L" &> /dev/null
+    RERUN=$?
+  done
+  OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|-X|-L|g")
+fi
+AC_SUBST([OCTAVE_FLAGS])
+AC_SUBST([OCTAVE_LIBS])
 
 dnl Check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
@@ -161,7 +161,6 @@ if test $doxygen = "no" ; then
 fi
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
-AM_CONDITIONAL([COND_XML], [test "_$MBXMLUTILSSCHEMA" != "_"])
 
 LDFLAGS="$LDFLAGS -no-undefined -Wl,--no-undefined"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"

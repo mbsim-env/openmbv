@@ -1,13 +1,5 @@
-if COND_XML
-  MAYBE_SCHEMA = schema
-endif
-
-if COND_SWIG
-  MAYBE_SWIG = swig
-endif
-
-SUBDIRS = openmbvcppinterface $(MAYBE_SCHEMA) $(MAYBE_SWIG)
-DIST_SUBDIRS = openmbvcppinterface $(MAYBE_SCHEMA) doc
+SUBDIRS = openmbvcppinterface schema swig
+DIST_SUBDIRS = openmbvcppinterface schema doc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openmbvcppinterface.pc

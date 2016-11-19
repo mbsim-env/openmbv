@@ -1,6 +1,6 @@
 # Note: we install the resulting java file in $prefix/bin since this is the only place where Windows searches dependent libraries
 swigdir = $(bindir)
-if COND_MINGW
+if COND_WIN32
   MAYBE_MINGW_CFLAGS = -Wl,--kill-at
 endif
 swig_LTLIBRARIES = libopenmbvjava.la libopenmbvjavaloadJNI.la

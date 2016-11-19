@@ -46,11 +46,7 @@
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
 #include <QDropEvent>
-#ifdef HAVE_QWT_WHEEL_H
-#  include <qwt_wheel.h>
-#else
-#  include <QtGui/QSlider>
-#endif
+#include <qwt_wheel.h>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
 // Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
@@ -110,11 +106,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSFUInt32 *frame;
     QLabel *fps;
     QTime *fpsTime;
-#ifdef HAVE_QWT_WHEEL_H
     QwtWheel *speedWheel;
-#else
-    QSlider *speedWheel;
-#endif
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
     std::shared_ptr<OpenMBV::Body> openMBVBodyForLastFrame;

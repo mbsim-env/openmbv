@@ -1,6 +1,6 @@
 SUBDIRS = octave python
 
-if MBXMLUTILS_MINGW
+if COND_WIN32
   runlibdir = $(bindir)
   shext = .dll
 else
