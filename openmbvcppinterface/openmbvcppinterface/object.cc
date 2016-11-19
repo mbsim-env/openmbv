@@ -123,6 +123,19 @@ vector<vector<int> > Object::toIntMatrix(string str) {
   return ret;
 }
 
+int Object::getInt(DOMElement *e) {
+  string name = X()%E(e)->getFirstTextChild()->getData();
+  vector<vector<int> > m=toIntMatrix(name);
+  if(m.size()==1 && m[0].size()==1)
+    return m[0][0];
+  else {
+    ostringstream str;
+    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
+         "where a scalar was requested for element "<<X()%e->getTagName();
+    throw MBXMLUtils::DOMEvalException(str.str(), e);
+  }
+}
+
 double Object::getDouble(DOMElement *e) {
   string name = X()%E(e)->getFirstTextChild()->getData();
   vector<vector<double> > m=toMatrix(name);

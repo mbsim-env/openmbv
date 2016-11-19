@@ -21,7 +21,6 @@
 #define _OPENMBV_INDEXEDFACESET_H
 
 #include <openmbvcppinterface/rigidbody.h>
-#include <openmbvcppinterface/polygonpoint.h>
 #include <vector>
 
 namespace OpenMBV {

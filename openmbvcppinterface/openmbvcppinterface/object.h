@@ -116,6 +116,7 @@ namespace OpenMBV {
       void setSelected(bool selected_) { selected=selected_; }
 
       // FROM NOW ONLY CONVENIENCE FUNCTIONS FOLLOW !!!
+      static int getInt(xercesc::DOMElement *e);
       static double getDouble(xercesc::DOMElement *e);
       static std::vector<double> getVec(xercesc::DOMElement *e, unsigned int rows=0);
       static std::vector<std::vector<double> > getMat(xercesc::DOMElement *e, unsigned int rows=0, unsigned int cols=0);

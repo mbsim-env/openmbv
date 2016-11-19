@@ -37,26 +37,22 @@ IndexedFaceSet::IndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   setIcon(0, Utils::QIconCached(iconFile));
 
   vector<vector<double> > vp = faceset->getVertexPositions();
-  vector<int> indices = faceset->getIndices();
 
-   float pts[vp.size()][3];
-   for(unsigned int i=0; i<vp.size(); i++) {
-     for(unsigned int j=0; j<3; j++)
-       pts[i][j] = vp[i][j];
-   }
-   int idx[indices.size()];
-   for(unsigned int i=0; i<indices.size(); i++)
-     idx[i] = indices[i];
+  float pts[vp.size()][3];
+  for(unsigned int i=0; i<vp.size(); i++) {
+    for(unsigned int j=0; j<3; j++)
+      pts[i][j] = vp[i][j];
+  }
 
-   SoCoordinate3 *points = new SoCoordinate3;
-   SoIndexedFaceSet *surface = new SoIndexedFaceSet;
-   points->point.setValues(0, vp.size(), pts);
-   surface->coordIndex.setValues(0, indices.size(), idx);
-   soSepRigidBody->addChild(points);
-   soSepRigidBody->addChild(surface);
+  SoCoordinate3 *points = new SoCoordinate3;
+  SoIndexedFaceSet *surface = new SoIndexedFaceSet;
+  points->point.setValues(0, vp.size(), pts);
+  surface->coordIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
+  soSepRigidBody->addChild(points);
+  soSepRigidBody->addChild(surface);
 
-   // outline
-   soSepRigidBody->addChild(soOutLineSwitch);
+  // outline
+  soSepRigidBody->addChild(soOutLineSwitch);
 }
 
 void IndexedFaceSet::createProperties() {

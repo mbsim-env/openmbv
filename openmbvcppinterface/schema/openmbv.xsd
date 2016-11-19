@@ -347,4 +347,18 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="DynamicIndexedFaceSet" substitutionGroup="Body" type="DynamicIndexedFaceSetType"/>
+  <xs:complexType name="DynamicIndexedFaceSetType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="numberOfVertexPositions" type="pv:nounitScalar"/>
+          <xs:element name="indices" type="pv:nounitVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>
