@@ -144,7 +144,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
               if(E(p)->getAttribute("name")==it->first) {
                 // if found overwrite this parameter
                 p->removeChild(E(p)->getFirstTextChild())->release();
-                p->appendChild(p->getOwnerDocument()->createTextNode(X()%eval->cast<CodeString>(it->second)));
+                Eval::setValue(p, it->second);
               }
             }
           }

@@ -504,20 +504,23 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
 
 void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
   void *data, const DOMNode *src, DOMNode *dst) {
-  if(X()%key!=DOMParser::domParserKey)
-    throw runtime_error("Internal error: unknown user data key");
-  if(operation==NODE_DELETED) {
-    delete static_cast<shared_ptr<DOMParser>*>(data);
-    return;
+  if(X()%key==DOMParser::domParserKey) {
+    if(operation==NODE_DELETED) {
+      delete static_cast<shared_ptr<DOMParser>*>(data);
+      return;
+    }
+    // handle xerces bugs!?
+    if((operation==NODE_IMPORTED && src->getNodeType()==DOMNode::TEXT_NODE && dst->getNodeType()==DOMNode::TEXT_NODE) ||
+       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ATTRIBUTE_NODE && dst->getNodeType()==DOMNode::ATTRIBUTE_NODE) ||
+       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE && dst->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE) ||
+       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ELEMENT_NODE && dst->getNodeType()==DOMNode::ELEMENT_NODE) ||
+       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::COMMENT_NODE && dst->getNodeType()==DOMNode::COMMENT_NODE))
+      return;
   }
-  if(src->getNodeType()==DOMNode::DOCUMENT_NODE && operation==NODE_CLONED) { // src->getNodeType()!=DOCUMENT_NODE should not happen see below (maybe a xerces bug)
-    // copy user data (deeply) (this incremnets the ref count on the parser)
-    shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(data);
-    dst->setUserData(X()%DOMParser::domParserKey, new shared_ptr<DOMParser>(parser), &DOMParser::userDataHandler);
-    return;
-  }
-  return; // we should throw here a 'throw runtime_error("Internal error: unknown operation in user data handler");'
-          // however this code part is reached often (maybe a xerces bug). Hence do nothing here.
+  throw runtime_error("Internal error: Unknown user data handling: op="+to_string(operation)+", key="+X()%key+
+                      ", src="+to_string(src!=nullptr)+", dst="+to_string(dst!=nullptr)+
+                      (src ? ", srcType="+to_string(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+to_string(dst->getNodeType()) : ""));
 }
 
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");

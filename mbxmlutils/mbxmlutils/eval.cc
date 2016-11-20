@@ -23,6 +23,35 @@ namespace {
   const bfs::path LIBBIN("bin");
   const string SHEXT=".dll";
 #endif
+
+class ValueUserDataHandler : public xercesc::DOMUserDataHandler {
+  public:
+    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst);
+};
+
+static ValueUserDataHandler valueUserDataHandler;
+static const string evalValueKey("http://www.mbsim-env.de/dom/MBXMLUtils/evalValue");
+
+void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
+  void *data, const DOMNode *src, DOMNode *dst) {
+  if(MBXMLUtils::X()%key==evalValueKey) {
+    if(operation==NODE_DELETED) {
+      delete static_cast<MBXMLUtils::Eval::Value*>(data);
+      return;
+    }
+    if((operation==NODE_CLONED || operation==NODE_IMPORTED) &&
+       src->getNodeType()==DOMNode::ELEMENT_NODE && dst->getNodeType()==DOMNode::ELEMENT_NODE) {
+      dst->setUserData(MBXMLUtils::X()%evalValueKey,
+        new MBXMLUtils::Eval::Value(*static_cast<MBXMLUtils::Eval::Value*>(data)), &valueUserDataHandler);
+      return;
+    }
+  }
+  throw runtime_error("Internal error: Unknown user data handling: op="+to_string(operation)+", key="+MBXMLUtils::X()%key+
+                      ", src="+to_string(src!=nullptr)+", dst="+to_string(dst!=nullptr)+
+                      (src ? ", srcType="+to_string(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+to_string(dst->getNodeType()) : ""));
+}
+
 }
 
 vector<string> mbxmlutilsStaticDependencies;
@@ -184,6 +213,10 @@ void Eval::addParamSet(const DOMElement *e) {
 }
 
 Eval::Value Eval::eval(const DOMElement *e) {
+  void *ud=e->getUserData(X()%evalValueKey);
+  if(ud)
+    return *static_cast<Value*>(ud);
+
   const DOMElement *ec;
 
   // check if we are evaluating a symbolic function element
@@ -646,6 +679,10 @@ void Eval::addStaticDependencies(const DOMElement *e) const {
     bfs::path path=E(e)->convertPath(*it);
     dependencies->push_back(path);
   }
+}
+
+void Eval::setValue(DOMElement *e, const Value &v) {
+  e->setUserData(X()%evalValueKey, new Value(v), &valueUserDataHandler);
 }
 
 } // end namespace MBXMLUtils

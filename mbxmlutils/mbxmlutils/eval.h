@@ -303,6 +303,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! Return true if the evaluator used one based indexes or false if zero based indexes are used.
     virtual bool useOneBasedIndexes()=0;
 
+    //! Set value on DOMElement (is used by Eval::cast)
+    static void setValue(xercesc::DOMElement *e, const Value &v);
+
   protected:
     //! Push the current context to a internal stack.
     void pushContext();
