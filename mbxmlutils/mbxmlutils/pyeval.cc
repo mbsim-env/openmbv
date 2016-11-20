@@ -114,14 +114,6 @@ PyEval::~PyEval() {
 }
 
 void PyEval::addImport(const string &code, const DOMElement *e) {
-  // restore current dir on exit and change current dir
-  PreserveCurrentDir preserveDir;
-  if(e) {
-    path chdir=E(e)->getOriginalFilename().parent_path();
-    if(!chdir.empty())
-      current_path(chdir);
-  }
-
   // python globals (fill with builtins)
   PyO globals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
@@ -129,16 +121,54 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
   for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
-  // evaluate as statement
-  PyCompilerFlags flags;
-  flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
+  // get current python sys.path
+  auto getSysPath=[](){
+    set<string> sysPath;
+    PyO path=CALLPYB(PySys_GetObject, const_cast<char*>("path"));
+    int size=CALLPY(PyList_Size, path);
+    for(int i=0; i<size; ++i) {
+      PyO str(CALLPYB(PyList_GetItem, path, i));
+      sysPath.insert(CALLPY(PyUnicode_AsUTF8, str));
+    }
+    return sysPath;
+  };
+  set<string> oldPath;
+  if(dependencies)
+    oldPath=getSysPath();
+
+  // evaluate as statement with current path set
   PyO locals(CALLPY(PyDict_New));
-  mbxmlutilsStaticDependencies.clear();
-  CALLPY(PyRun_StringFlags, code, Py_file_input, globals, locals, &flags);
-  addStaticDependencies(e);
+  {
+    // restore current dir on exit and change current dir
+    PreserveCurrentDir preserveDir;
+    path chdir=E(e)->getOriginalFilename().parent_path();
+    if(!chdir.empty())
+      current_path(chdir);
+
+    PyCompilerFlags flags;
+    flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
+    mbxmlutilsStaticDependencies.clear();
+    CALLPY(PyRun_StringFlags, code, Py_file_input, globals, locals, &flags);
+    addStaticDependencies(e);
+  }
 
   // get all locals and add to currentImport
   CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), locals, true);
+
+  if(dependencies) {
+    // get current python sys.path
+    set<string> newPath=getSysPath();
+    // add py-files in added sys.path to dependencies
+    for(auto &np: newPath) {
+      // skip path already existing in oldPath
+      if(oldPath.find(np)!=oldPath.end())
+        continue;
+      path dir=E(e)->convertPath(np);
+      for(directory_iterator it=directory_iterator(dir); it!=directory_iterator(); it++)
+        if(it->path().extension()==".py")
+          dependencies->push_back(it->path());
+    }
+  }
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
@@ -158,6 +188,7 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
 map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   static map<path, pair<path, bool> > files;
   return files;
+  //MFMF
 }
 
 Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {
