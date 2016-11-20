@@ -130,8 +130,12 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // evaluate as statement
+  PyCompilerFlags flags;
+  flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
   PyO locals(CALLPY(PyDict_New));
-  CALLPY(PyRun_String, code, Py_file_input, globals, locals);
+  mbxmlutilsStaticDependencies.clear();
+  CALLPY(PyRun_StringFlags, code, Py_file_input, globals, locals, &flags);
+  addStaticDependencies(e);
 
   // get all locals and add to currentImport
   CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), locals, true);
