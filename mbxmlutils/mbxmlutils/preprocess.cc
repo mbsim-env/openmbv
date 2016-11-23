@@ -152,6 +152,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       }
 
       // delete embed element and insert count time the new element
+      DOMElement *embed=e;
+      DOMNode *p=e->getParentNode();
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
         eval->addParam(counterName, eval->create(static_cast<double>(i-(eval->useOneBasedIndexes()?0:1))));
@@ -167,14 +169,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
           try { onlyif=(eval->cast<double>(eval->eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
         if(onlyif) {
           eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
-          DOMNode *p=e->getParentNode();
-          if(i==1) {
-            DOMElement *ereplaced=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
-            p->removeChild(e);
-            e=ereplaced;
-          }
-          else
-            e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
+          e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
     
           // include a processing instruction with the count number
           E(e)->setEmbedCountNumber(i);
@@ -186,6 +181,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         else
           eval->msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
+      // remove embed element
+      p->removeChild(embed)->release();
       return;
     }
     else if(E(e)->getTagName()==casadi::CASADI%"Function")
