@@ -165,11 +165,11 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
 
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
-        if(E(e)->hasAttribute("onlyif"))
-          try { onlyif=(eval->cast<double>(eval->eval(E(e)->getAttributeNode("onlyif"), e))==1); } MBXMLUTILS_RETHROW(e)
+        if(E(embed)->hasAttribute("onlyif"))
+          try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif"), embed))==1); } MBXMLUTILS_RETHROW(embed)
         if(onlyif) {
           eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
-          e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), e->getNextSibling()));
+          e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), embed));
     
           // include a processing instruction with the count number
           E(e)->setEmbedCountNumber(i);
@@ -183,6 +183,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       }
       // remove embed element
       p->removeChild(embed)->release();
+      if(embed==e) // no new element added, just the Embed was removed
+        e=nullptr;
       return;
     }
     else if(E(e)->getTagName()==casadi::CASADI%"Function")
@@ -264,9 +266,9 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
     DOMElement *c=e->getFirstElementChild();
     while(c) {
       // pass param and the new parent XPath to preprocess
+      DOMElement *n=c->getNextElementSibling();
       preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath);
-      if(c==NULL) break;
-      c=c->getNextElementSibling();
+      c=n;
     }
   } MBXMLUTILS_RETHROW(e);
 }
