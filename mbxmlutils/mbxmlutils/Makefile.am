@@ -40,7 +40,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la
+lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-global-python.la
 module_LTLIBRARIES = casadi_oct.la registerPath.la
 moduledir = $(runlibdir)
 
@@ -74,12 +74,12 @@ libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
 if COND_PYTHON
 # python part of the utility library
-libmbxmlutils_eval_python_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_eval_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
-libmbxmlutils_eval_python_la_LDFLAGS = -avoid-version
-libmbxmlutils_eval_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrapper.h
+libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
+libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(NUMPY_INCDIR) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
+libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
+libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
+libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrapper.h
 pyeval.cc: swigpyrun.h
 swigpyrun.h:
 	$(swig) -python -external-runtime swigpyrun.h

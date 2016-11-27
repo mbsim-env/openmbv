@@ -2,7 +2,6 @@
 
 // python includes
 #include <Python.h> // due to some bugs in python 3.2 we need to include this first
-#define PY_ARRAY_UNIQUE_SYMBOL mbxmlutils_pyeval_ARRAY_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
@@ -103,10 +102,29 @@ PyInit::~PyInit() {
   }
 }
 
-PyInit pyInit; // init Python on library load and deinit on library unload = program end
+// we cannot call the ctor of PyInit here as a global variable!
+// Some python modules do not link against libpython but rely on the fact the libpyhton is already
+// loaded into the global symbol space. Hence, this library must be loaded using RTDL_GLOBAL and
+// the initialization cannot be done in global ctor code, nor in using the _init function of ld nor
+// using the GNU __attribute__((constructor)) because this does not work! But calling a init function
+// after the so is fully loaded does work. Hence, we define the MBXMLUtils_SharedLibrary_init function
+// here which is executed by SharedLibrary::load after the lib is loaded.
+// On Windows this is not required, but does not hurt.
+std::unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
+
+extern "C"
+int MBXMLUtils_SharedLibrary_init() {
+  try {
+    pyInit.reset(new PyInit);
+  }
+  catch(...) {
+    return 1;
+  }
+  return 0;
+}
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  casadiValue=C(pyInit.casadiValue);
+  casadiValue=C(pyInit->casadiValue);
   currentImport=make_shared<PyO>(CALLPY(PyDict_New));
 }
 
@@ -196,9 +214,9 @@ Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {
 }
 
 Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
-  pair<map<string, PyO>::iterator, bool> f=pyInit.functionValue.insert(make_pair(name, PyO()));
+  pair<map<string, PyO>::iterator, bool> f=pyInit->functionValue.insert(make_pair(name, PyO()));
   if(f.second)
-    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit.mbxmlutils), name);
+    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit->mbxmlutils), name);
   PyO pyargs(CALLPY(PyTuple_New, args.size()));
   int idx=0;
   for(vector<Value>::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
@@ -294,7 +312,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   if(CALLPY(PyList_Check, ret)) {
     PyO args(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
-    return C(CALLPY(PyObject_CallObject, pyInit.asarray, args));
+    return C(CALLPY(PyObject_CallObject, pyInit->asarray, args));
   }
   // return result
   return C(ret);

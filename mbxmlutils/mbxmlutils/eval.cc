@@ -99,8 +99,19 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
   // load the evaluator plugin named evalName
   msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
   static const bfs::path installDir(getInstallPath());
+
+  // check if a library named libmbxmlutils-eval-global-<evalName>.<ext> exists.
+  // If it exists we load this library with the RTLD_GLOBAL flag (on Linux).
+  // If it not exists we load a library named libmbxmlutils-eval-<evalName>.<ext> with the RTLD_LOCAL flag (on Linux).
+  bfs::path libName=installDir/LIBBIN/("libmbxmlutils-eval-global-"+evalName+SHEXT);
+  bool loadWithGlobalFlag=true;
+  if(!bfs::exists(libName)) {
+    libName=installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT);
+    loadWithGlobalFlag=false;
+  }
+
   try {
-    SharedLibrary::load(canonical(installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT)).string());
+    SharedLibrary::load(canonical(libName).string(), loadWithGlobalFlag);
   }
   catch(const std::exception &ex) {
     throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"

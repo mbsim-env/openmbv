@@ -62,15 +62,20 @@ namespace SharedLibrary {
   typedef HMODULE Handle;
 #endif
 
+  typedef int (*InitFuncType)();
+
+  template<typename T> 
+  inline T getSymbol(const std::string &file, const std::string &symbolName, bool throwOnError=true);
+
 // Load the libary file, if not already loaded.
 // Unloads the library only at program exit!!!
 // file should be a canonical path.
-Handle load(const std::string &file) {
+Handle load(const std::string &file, bool global=false) {
   static std::map<std::string, Handle> library;
   std::pair<std::map<std::string, Handle>::iterator, bool> res=library.insert(std::pair<std::string, Handle>(file, NULL));
   if(res.second) {
 #ifndef _WIN32
-    res.first->second=dlopen(file.c_str(), RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND | RTLD_NODELETE);
+    res.first->second=dlopen(file.c_str(), RTLD_NOW | (global ? RTLD_GLOBAL : RTLD_LOCAL) | RTLD_DEEPBIND | RTLD_NODELETE);
 #else
     std::string fileWinSep=file;
     std::replace(fileWinSep.begin(), fileWinSep.end(), '/', '\\'); // LoadLibraryEx can not handle '/' as path separator
@@ -78,6 +83,15 @@ Handle load(const std::string &file) {
 #endif
     if(!res.first->second)
       throw std::runtime_error("Unable to load the library '"+file+"': "+getLastError());
+
+    // call the init function if it exists
+    InitFuncType initFunc=getSymbol<InitFuncType>(file, "MBXMLUtils_SharedLibrary_init", false);
+    if(initFunc) {
+      int ret=initFunc();
+      if(ret)
+        throw std::runtime_error("Unable to initialize the library '"+file+"'.\n"
+          "The function 'MBXMLUtils_SharedLibrary_init' returned with error code "+std::to_string(ret)+".");
+    }
   }
   return res.first->second;
 }
@@ -85,16 +99,20 @@ Handle load(const std::string &file) {
 // Load the libary file, if not already loaded and return the symbol symbolName.
 // Unloads the library only at program exit!!!
 template<typename T> 
-inline T getSymbol(const std::string &file, const std::string &symbolName) {
+inline T getSymbol(const std::string &file, const std::string &symbolName, bool throwOnError) {
   Handle h=load(file);
 #ifndef _WIN32
   void *addr=dlsym(h, symbolName.c_str());
 #else
   void *addr=reinterpret_cast<void*>(GetProcAddress(h, symbolName.c_str()));
 #endif
-  if(!addr)
-    throw std::runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
-                             file+"': "+getLastError());
+  if(!addr) {
+    if(throwOnError)
+      throw std::runtime_error("Unable to load the symbol '"+symbolName+"' from library '"+
+                               file+"': "+getLastError());
+    else
+      return nullptr;
+  }
   return reinterpret_cast<T>(addr);
 }
 
