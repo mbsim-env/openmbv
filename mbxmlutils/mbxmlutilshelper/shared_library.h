@@ -113,7 +113,7 @@ inline T getSymbol(const std::string &file, const std::string &symbolName, bool 
     else
       return nullptr;
   }
-  return reinterpret_cast<T>(addr);
+  return reinterpret_cast<T>(reinterpret_cast<size_t>(addr));
 }
 
 }
