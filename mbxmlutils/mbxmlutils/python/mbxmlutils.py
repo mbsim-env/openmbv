@@ -4,7 +4,7 @@ from numpy import array, zeros, append
 
 
 def registerPath(path):
-  # load the libmbxmlutils-eval-python.so ones
+  # load the libmbxmlutils-eval-global-python.so ones
   if registerPath.dll==None:
     import ctypes
     import sys

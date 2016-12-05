@@ -158,6 +158,10 @@ AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 
+if test "$cross_compiling" == "yes"; then
+  XC_EXEC_PREFIX=wine
+fi
+
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
   [pythonversion="$withval"],[pythonversion="2.7"])
@@ -165,11 +169,19 @@ AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalu
 AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
 if test "x$enable_python" == "xyes"; then
   PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
-  NUMPY_INCDIR="$($PKG_CONFIG --variable=libdir python-$pythonversion)/python$($PKG_CONFIG --modversion python-$pythonversion)/site-packages/numpy/core/include"
-  if test ! -d $NUMPY_INCDIR; then
-    AC_MSG_ERROR([Numpy header not found in directory $NUMPY_INCDIR])
-    AC_SUBST([NUMPY_INCDIR])
+  PYTHON_LIBDIR="$($PKG_CONFIG --variable=libdir python-$pythonversion)"
+  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_SUBDIR"], [Python library dir])
+  AC_SUBST([PYTHON_LIBDIR])
+  if test ! -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
+    AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include])
   fi
+  if test "_$PYTHON_BIN" == "_"; then
+    PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
+  fi
+  PYTHON_SUBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])')
+  AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
+  AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
+  AC_SUBST([PYTHON_VERSION],[$pythonversion])
 fi
 
 AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])

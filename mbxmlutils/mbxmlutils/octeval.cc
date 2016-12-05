@@ -516,10 +516,6 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   bfs::path octave_prefix(getInstallPath()); // use octave in install path
   if(!exists(octave_prefix/"share"/"octave")) // if not found use octave in system path
     octave_prefix=OCTAVE_PREFIX;
-  // get octave libdir without octave_prefix
-  bfs::path octave_libdir(string(OCTAVE_LIBDIR).substr(string(OCTAVE_PREFIX).length()+1));
-  // get octave octfiledir without octave_prefix
-  bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
   // get octave fcnfiledir without octave_prefix
   bfs::path octave_fcnfiledir(string(OCTAVE_FCNFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
 

@@ -56,13 +56,16 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
-    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string());
+    path home;
+    if(exists(getInstallPath()/PYTHON_SUBDIR))
+      home=getInstallPath();
+    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string(), home.string());
     CALLPY(_import_array);
 
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
     PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
-    PyO casadipath(CALLPY(PyUnicode_FromString, CASADI_PREFIX_DIR "/python2.7/site-packages"));
+    PyO casadipath(CALLPY(PyUnicode_FromString, string(CASADI_PREFIX_DIR)+"/python"+PYTHON_VERSION+"/site-packages"));
     CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
@@ -203,10 +206,60 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   throw DOMEvalException("Internal error: Unknwon ValueType.");
 }
 
+path relative(const path& abs, const path& relTo) {
+  size_t dist=distance(relTo.begin(), relTo.end());
+  path::iterator dstIt=abs.begin();
+  for(int i=0; i<dist; ++i) ++dstIt;
+  path ret;
+  for(; dstIt!=abs.end(); ++dstIt)
+    ret/=*dstIt;
+  return ret;
+}
+
+path replace_extension(path p, const path& newExt=path()) {
+  return p.replace_extension(newExt);
+}
+
 map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   static map<path, pair<path, bool> > files;
+  if(!files.empty())
+    return files;
+
+  path PYTHONDST(PYTHON_SUBDIR);
+
+  cout<<"Generate file list for the Python casadi files."<<endl;
+  path casadiDir=path(CASADI_PREFIX_DIR)/("python" PYTHON_VERSION)/"site-packages"/"casadi";
+  if(exists(getInstallPath()/PYTHONDST/"site-packages"/"casadi"))
+    casadiDir=getInstallPath()/PYTHONDST/"site-packages"/"casadi";
+  for(auto srcIt=recursive_directory_iterator(casadiDir); srcIt!=recursive_directory_iterator(); ++srcIt) {
+    if(is_directory(*srcIt)) // skip directories
+      continue;
+    files[*srcIt]=make_pair(PYTHONDST/"site-packages"/"casadi"/relative(*srcIt, casadiDir).parent_path(), false);
+  }
+
+  cout<<"Generate file list for MBXMLUtils py-files."<<endl;
+  for(auto srcIt=directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {
+    if(is_directory(*srcIt)) // skip directories
+      continue;
+    files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python", false);
+  }
+
+  cout<<"Generate file list for Python files."<<endl;
+  path PYTHONSRC(PYTHON_LIBDIR "/python" PYTHON_VERSION);
+  if(exists(getInstallPath()/PYTHON_SUBDIR))
+    PYTHONSRC=getInstallPath()/PYTHON_SUBDIR;
+  for(auto srcIt=recursive_directory_iterator(PYTHONSRC); srcIt!=recursive_directory_iterator(); ++srcIt) {
+    if(is_directory(*srcIt)) // skip directories
+      continue;
+    path subDir=relative(*srcIt, PYTHONSRC).parent_path();
+    if(*subDir.begin()=="site-packages" && *(++subDir.begin())!="numpy") // skip site-packages dir but not site-packages/numpy
+      continue;
+    if(*subDir.begin()=="test") // skip test dir
+      continue;
+    files[*srcIt]=make_pair(PYTHONDST/subDir, false);
+  }
+
   return files;
-  //MFMF
 }
 
 Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {

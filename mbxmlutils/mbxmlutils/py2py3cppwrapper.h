@@ -42,12 +42,16 @@
 namespace PythonCpp {
 
 // initialize python giving main as program name to python
-void initializePython(const std::string &main) {
+void initializePython(const std::string &main, const std::string &home="") {
   static const std::string mainStatic=main;
 #if PY_MAJOR_VERSION < 3
   Py_SetProgramName(const_cast<char*>(mainStatic.c_str()));
+  if(!home.empty())
+    Py_SetPythonHome(const_cast<char*>(home.c_str()));
 #else
   Py_SetProgramName(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(mainStatic).c_str()));
+  if(!home.empty())
+    Py_SetPythonHome(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(home).c_str()));
 #endif
   Py_InitializeEx(0);
 }
