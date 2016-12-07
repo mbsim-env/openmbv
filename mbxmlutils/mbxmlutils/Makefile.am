@@ -1,5 +1,3 @@
-SUBDIRS = octave python
-
 if COND_WIN32
   runlibdir = $(bindir)
   shext = .dll
@@ -7,6 +5,14 @@ else
   runlibdir = $(libdir)
   shext = .so
 endif
+
+if COND_PYTHON
+  PYTHON = python
+  LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA = libmbxmlutils-eval-global-python.la
+  RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO = $(runlibdir)/libmbxmlutils-eval-global-python$(shext)
+endif
+
+SUBDIRS = octave $(PYTHON)
 
 # distribute and install
 mbxmlutilsschemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils
@@ -40,7 +46,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-global-python.la
+lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la $(LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA)
 module_LTLIBRARIES = casadi_oct.la registerPath.la
 moduledir = $(runlibdir)
 
@@ -72,7 +78,6 @@ libmbxmlutils_eval_xmlflat_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
-if COND_PYTHON
 # python part of the utility library
 libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/python$(PYTHON_VERSION)/site-packages/numpy/core/include $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
@@ -83,7 +88,6 @@ libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrap
 pyeval.cc: swigpyrun.h
 swigpyrun.h:
 	$(swig) -python -external-runtime swigpyrun.h
-endif
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
@@ -137,7 +141,7 @@ install-exec-local: install-moduleLTLIBRARIES
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	for F in $(runlibdir)/casadi_oct.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/libmbxmlutils-eval-global-python$(shext); do \
+	for F in $(runlibdir)/casadi_oct.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
 	    python $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \
