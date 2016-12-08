@@ -84,8 +84,7 @@ libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON
 libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h swigpyrun.h py2py3cppwrapper.h
-pyeval.cc: swigpyrun.h
+libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h py2py3cppwrapper.h
 swigpyrun.h:
 	$(swig) -python -external-runtime swigpyrun.h
 
@@ -114,7 +113,7 @@ casadi_oct_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octave.cc casadi_oct_swig_octave.d
+CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octave.cc casadi_oct_swig_octave.d swigpyrun.h
 
 
 
