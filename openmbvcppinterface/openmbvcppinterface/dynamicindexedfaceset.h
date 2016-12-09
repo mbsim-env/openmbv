@@ -33,7 +33,7 @@ namespace OpenMBV {
       double minimalColorValue, maximalColorValue;
       std::vector<double> diffuseColor;
       double transparency;
-      std::vector<int> indices;
+      std::vector<Index> indices;
       int numvp;
       H5::VectorSerie<double>* data;
       DynamicIndexedFaceSet();
@@ -48,8 +48,8 @@ namespace OpenMBV {
 
       /** Get control points
        */
-      double getNumberOfVertexPositions() const { return numvp; }
-      const std::vector<int>& getIndices() { return indices; }
+      int getNumberOfVertexPositions() const { return numvp; }
+      const std::vector<Index>& getIndices() { return indices; }
 
       /** Set the minimal color value.
        * The color value of the body in linearly mapped between minimalColorValue
@@ -97,8 +97,8 @@ namespace OpenMBV {
 
       /** Set control points
        */
-      void setNumberOfVertexPositions(double num) { numvp = num; }
-      void setIndices(const std::vector<int> &indices_) { indices = indices_; }
+      void setNumberOfVertexPositions(int num) { numvp = num; }
+      void setIndices(const std::vector<Index> &indices_) { indices = indices_; }
 
       /** Append a data vector to the h5 datsset */
       template<typename T>

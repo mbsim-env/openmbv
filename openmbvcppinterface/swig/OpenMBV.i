@@ -30,6 +30,8 @@
 %shared_ptr(OpenMBV::Cuboid)
 %shared_ptr(OpenMBV::Grid)
 %shared_ptr(OpenMBV::Path)
+%shared_ptr(OpenMBV::IndexedFaceSet)
+%shared_ptr(OpenMBV::DynamicIndexedFaceSet)
 
 // handle exceptions
 %exception {
@@ -50,6 +52,7 @@
 #ifdef SWIGPYTHON
   // for python std::vector<double> wrapping work well out of the box
   %template(VectorDouble) std::vector<double>;
+  %template(VectorInt) std::vector<int>;
 #endif
 
 #ifdef SWIGOCTAVE
@@ -73,6 +76,56 @@
       rv.fill($1[i], i, i);
     $result=rv;
   }
+  // handle vector<int>
+  %typemap(typecheck, precedence=200) std::vector<int>, const std::vector<int>& {
+    $1=(*$input).is_matrix_type();
+  }
+  %typemap(in) std::vector<int>, const std::vector<int>& {
+    Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
+    int size=m.length();
+    static std::vector<int> localVec;
+    localVec.resize(size);
+    for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
+      localVec[i]=m.elem(i);
+    $1=&localVec;
+  }
+  %typemap(out) std::vector<int> {
+    size_t n=$1.size();
+    RowVector rv(n);
+    for(int i=0; i<n; i++)
+      rv.fill($1[i], i, i);
+    $result=rv;
+  }
+  // handle vector<Index>
+  %typemap(typecheck, precedence=200) std::vector<OpenMBV::Index>, const std::vector<OpenMBV::Index>& {
+    $1=(*$input).is_matrix_type();
+  }
+  %typemap(in) std::vector<OpenMBV::Index>, const std::vector<OpenMBV::Index>& {
+    Matrix m=$input.matrix_value();
+    int size=m.length();
+    static std::vector<int> localVec;
+    localVec.resize(size);
+    for(int i=0; i<size; i++)
+      localVec[i]=m.elem(i)-1;
+    $1=&localVec;
+  }
+  %typemap(out) std::vector<OpenMBV::Index> {
+    size_t n=$1.size();
+    RowVector rv(n);
+    for(int i=0; i<n; i++)
+      rv.fill($1[i]+1, i, i);
+    $result=rv;
+  }
+  // handle Index
+  %typemap(typecheck, precedence=200) OpenMBV::Index, const OpenMBV::Index& {
+    $1=(*$input).is_scalar_type();
+  }
+  %typemap(in) OpenMBV::Index, const OpenMBV::Index& {
+    $1=static_cast<int>($input.scalar_value())-1;
+  }
+  %typemap(out) OpenMBV::Index {
+    $result=$1+1;
+  }
 #endif
 
 #ifdef SWIGJAVA
@@ -92,6 +145,23 @@
   %typemap(out) std::vector<double> {
     $result=jenv->NewDoubleArray($1.size());
     jenv->SetDoubleArrayRegion($result, 0, $1.size(), &$1[0]);
+  }
+  // on java we map std::vector<int> to int[] (this can than be mapped implcitly to a Matlab vector)
+  %typemap(jni) std::vector<int>, const std::vector<int>& "jintArray"
+  %typemap(jtype) std::vector<int>, const std::vector<int>& "int[]"
+  %typemap(jstype) std::vector<int>, const std::vector<int>& "int[]"
+  %typemap(javain) std::vector<int>, const std::vector<int>& "$javainput"
+  %typemap(javaout) std::vector<int>, const std::vector<int>& { return $jnicall; }
+  %typemap(in) std::vector<int>, const std::vector<int>& "
+    size_t size=jenv->GetArrayLength($arg);
+    static std::vector<int> vec;
+    vec.resize(size);
+    jenv->GetIntArrayRegion($arg, 0, size, &vec[0]);//MISSING: try to avoid copying all elements to vec
+    $1=&vec;
+  "
+  %typemap(out) std::vector<int> {
+    $result=jenv->NewIntArray($1.size());
+    jenv->SetIntArrayRegion($result, 0, $1.size(), &$1[0]);
   }
 #endif
 
@@ -121,6 +191,8 @@
 
 
 
+%ignore OpenMBV::Object::addElementText;
+
 // generate interfaces for these files
 %include <openmbvcppinterface/polygonpoint.h>
 %include <openmbvcppinterface/object.h>
@@ -144,13 +216,16 @@
 %include <openmbvcppinterface/cuboid.h>
 %include <openmbvcppinterface/grid.h>
 %include <openmbvcppinterface/path.h>
+%include <openmbvcppinterface/indexedfaceset.h>
+%include <openmbvcppinterface/dynamicindexedfaceset.h>
 
-%extend OpenMBV::SpineExtrusion { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::NurbsDisk      { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::Arrow          { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::RigidBody      { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::CoilSpring     { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::Path           { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::NurbsDisk             { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::Arrow                 { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::RigidBody             { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::CoilSpring            { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::Path                  { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::DynamicIndexedFaceSet { %template(append) append<std::vector<double> >; };
 
 %include <openmbvcppinterface/objectfactory.h>
 %template(create_Group) OpenMBV::ObjectFactory::create<OpenMBV::Group>;
@@ -170,6 +245,8 @@
 %template(create_Cuboid) OpenMBV::ObjectFactory::create<OpenMBV::Cuboid>;
 %template(create_Grid) OpenMBV::ObjectFactory::create<OpenMBV::Grid>;
 %template(create_Path) OpenMBV::ObjectFactory::create<OpenMBV::Path>;
+%template(create_IndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::IndexedFaceSet>;
+%template(create_DynamicIndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedFaceSet>;
 
 
 // include these headers to the wraper c++ source code (required to compile)

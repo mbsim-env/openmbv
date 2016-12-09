@@ -36,7 +36,11 @@ IndexedFaceSet::IndexedFaceSet() : RigidBody() {
 DOMElement* IndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   addElementText(e, OPENMBV%"vertexPositions", vp);
-  addElementText(e, OPENMBV%"indices", indices);
+
+  vector<int> indices1based(indices.size());
+  transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
+  addElementText(e, OPENMBV%"indices", indices1based);
+
   return 0;
 }
 
@@ -45,7 +49,9 @@ void IndexedFaceSet::initializeUsingXML(DOMElement *element) {
   DOMElement *e=E(element)->getFirstElementChildNamed(OPENMBV%"vertexPositions");
   setVertexPositions(getMat(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
-  setIndices(getIntVec(e));
+  vector<int> indices1based=getIntVec(e);
+  indices.resize(indices1based.size());
+  transform(indices1based.begin(), indices1based.end(), indices.begin(), [](int a){ return a-1; });
 }
 
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Group xmlns="http://www.mbsim-env.de/OpenMBV" name="MBS">
+
+  <Cube name="Box1" referenceFrame="true">
+    <initialTranslation>[0; 0; 0]</initialTranslation>
+    <initialRotation>[0; 0; 0]</initialRotation>
+    <scaleFactor>1</scaleFactor>
+    <length>1.234</length>
+  </Cube>
+
+  <Cuboid name="Box2" referenceFrame="true">
+    <initialTranslation>[0; 0; 0]</initialTranslation>
+    <initialRotation>[0; 0; 0]</initialRotation>
+    <scaleFactor>1</scaleFactor>
+    <length>[5.6; 9.7; 3.5]</length>
+  </Cuboid>
+
+  <IndexedFaceSet name="IFS">
+    <initialTranslation>[0; 0; 0]</initialTranslation>
+    <initialRotation>[0; 0; 0]</initialRotation>
+    <scaleFactor>1</scaleFactor>
+    <vertexPositions>]</vertexPositions>
+    <indices>[3; 7; 4; 2]</indices>
+  </IndexedFaceSet>
+
+</Group>

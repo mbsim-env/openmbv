@@ -1,4 +1,10 @@
 #!/bin/sh
+ 
+set -e
 
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
-@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/pythontest.py
+@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/pythontest.py | tee result.txt
+
+diff @abs_srcdir@/result-ref.txt result.txt
+
+diff @abs_srcdir@/../MBS_outfile-ref.ombv.xml MBS_outfile.ombv.xml

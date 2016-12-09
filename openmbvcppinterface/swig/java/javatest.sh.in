@@ -1,4 +1,6 @@
 #!/bin/sh
+ 
+set -e
 
 test -d temp_testdir || mkdir temp_testdir
 cp javatest.class temp_testdir
@@ -9,4 +11,8 @@ if test openmbv.jar -nt @prefix@/bin/openmbv.jar; then
   exit 77 # test SKIPPED
 fi
 
-@JAVA@ -classpath temp_testdir:@prefix@/bin/openmbv.jar javatest
+@JAVA@ -classpath temp_testdir:@prefix@/bin/openmbv.jar javatest | tee result.txt
+
+diff @abs_srcdir@/result-ref.txt result.txt
+
+diff @abs_srcdir@/../MBS_outfile-ref.ombv.xml MBS_outfile.ombv.xml

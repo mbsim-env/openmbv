@@ -13,6 +13,14 @@ def main():
   
   # add some objects to group in this subroutine and return a added cube
   cube=createMyGroup(group)
+
+  # add a IndexedFaceSet
+  ifs=OpenMBV.ObjectFactory.create_IndexedFaceSet()
+  ifs.setName("IFS")
+  indices=[2, 6, 3, 1]
+  print(indices)
+  ifs.setIndices(indices)
+  group.addObject(ifs)
    
   # create H5 and xml file
   group.setFileName("MBS_outfile.ombv.xml")
@@ -32,8 +40,6 @@ def createMyGroup(g):
   cube.setName("Box1")
   cube.setReferenceFrame(True)
   cube.setLength(1.234)
-  cube.setLength(1.235)
-  cube.setLength(1.236)
   
   # create a cuboid
   cuboid=OpenMBV.ObjectFactory.create_Cuboid()

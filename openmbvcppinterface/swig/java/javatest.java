@@ -12,6 +12,15 @@ public class javatest {
 
     // add some objects to group in this subroutine and return a added cube
     Cube cube=createMyGroup(group);
+
+    // add a IndexedFaceSet
+    IndexedFaceSet ifs=ObjectFactory.create_IndexedFaceSet();
+    ifs.setName("IFS");
+    int indices[]=new int[]{2, 6, 3, 1};
+    for(int i=0; i<indices.length; ++i)
+      System.out.println(indices[i]);
+    ifs.setIndices(indices);
+    group.addObject(ifs);
     
     // create H5 and xml file
     group.setFileName("MBS_outfile.ombv.xml");

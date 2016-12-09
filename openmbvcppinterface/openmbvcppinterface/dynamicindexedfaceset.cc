@@ -47,7 +47,11 @@ DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
     addElementText(e, OPENMBV%"diffuseColor", diffuseColor);
   addElementText(e, OPENMBV%"transparency", transparency, 0);
   addElementText(e, OPENMBV%"numberOfVertexPositions", numvp);
-  addElementText(e, OPENMBV%"indices", indices);
+
+  vector<int> indices1based(indices.size());
+  transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
+  addElementText(e, OPENMBV%"indices", indices1based);
+
   return 0;
 }
 
@@ -98,7 +102,9 @@ void DynamicIndexedFaceSet::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfVertexPositions");
   setNumberOfVertexPositions(getInt(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
-  setIndices(getIntVec(e));
+  vector<int> indices1based=getIntVec(e);
+  indices.resize(indices1based.size());
+  transform(indices1based.begin(), indices1based.end(), indices.begin(), [](int a){ return a-1; });
 }
 
 }

@@ -23,4 +23,6 @@
 #include <openmbvcppinterface/cuboid.h>
 #include <openmbvcppinterface/grid.h>
 #include <openmbvcppinterface/path.h>
+#include <openmbvcppinterface/indexedfaceset.h>
+#include <openmbvcppinterface/dynamicindexedfaceset.h>
 %}

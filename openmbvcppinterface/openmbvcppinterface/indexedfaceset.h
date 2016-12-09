@@ -30,7 +30,7 @@ namespace OpenMBV {
     friend class ObjectFactory;
     protected:
       std::vector<std::vector<double> > vp;
-      std::vector<int> indices;
+      std::vector<Index> indices;
       IndexedFaceSet();
       ~IndexedFaceSet() {}
     public:
@@ -40,12 +40,12 @@ namespace OpenMBV {
       /** Get control points
        */
       const std::vector<std::vector<double> >& getVertexPositions() { return vp; }
-      const std::vector<int>& getIndices() { return indices; }
+      const std::vector<Index>& getIndices() { return indices; }
 
       /** Set control points
        */
       void setVertexPositions(const std::vector<std::vector<double> > &vp_) { vp = vp_; }
-      void setIndices(const std::vector<int> &indices_) { indices = indices_; }
+      void setIndices(const std::vector<Index> &indices_) { indices = indices_; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);
