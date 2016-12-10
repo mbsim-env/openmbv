@@ -300,8 +300,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! return a list of all required files of the evaluator (excluding dependent files of libraries)
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
 
-    //! Return true if the evaluator used one based indexes or false if zero based indexes are used.
-    virtual bool useOneBasedIndexes()=0;
+    //! convert a index (scalar or vector).
+    //! if evalTo1Based == true: convert from the script language 0/1 base to 1 base.
+    //! if evalTo1Based == false: convert from 1 base to the script language 0/1 base.
+    virtual void convertIndex(Value &v, bool evalTo1Based)=0;
 
     //! Set value on DOMElement (is used by Eval::cast)
     static void setValue(xercesc::DOMElement *e, const Value &v);

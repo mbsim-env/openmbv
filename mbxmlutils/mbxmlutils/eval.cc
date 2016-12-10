@@ -349,6 +349,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
       E(e)->isDerivedFrom(PV%"vector") ||
       E(e)->isDerivedFrom(PV%"matrix") ||
       E(e)->isDerivedFrom(PV%"fullEval") ||
+      E(e)->isDerivedFrom(PV%"integerVector") ||
+      E(e)->isDerivedFrom(PV%"indexVector") ||
       function)
     ) {
     Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
@@ -360,6 +362,14 @@ Eval::Value Eval::eval(const DOMElement *e) {
       throw DOMEvalException("Value is not of type matrix", e);
     if(E(e)->isDerivedFrom(PV%"stringFullEval") && !valueIsOfType(ret, StringType)) // also filenameFullEval
       throw DOMEvalException("Value is not of type scalar string", e);
+    if(E(e)->isDerivedFrom(PV%"integerVector") && !valueIsOfType(ret, VectorType))
+      throw DOMEvalException("Value is not of type vector", e);
+    if(E(e)->isDerivedFrom(PV%"indexVector") && !valueIsOfType(ret, VectorType))
+      throw DOMEvalException("Value is not of type vector", e);
+
+    // handle 1 based index vectors
+    if(E(e)->isDerivedFrom(PV%"indexVector"))
+      convertIndex(ret, true);
 
     // add filenames to dependencies
     if(dependencies && E(e)->isDerivedFrom(PV%"filenameFullEval"))
@@ -490,6 +500,10 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe)
       if(value!=0 && value!=1)
         throw DOMEvalException("Value is not of type scalar boolean", pe, a);
     }
+    else if(A(a)->isDerivedFrom(PV%"indexFullEval")) {
+      try { cast<int>(ret); } MBXMLUTILS_RETHROW(pe);
+      convertIndex(ret, true);
+    }
     else
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 
@@ -525,6 +539,11 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe)
     else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
       try { ret=create<double>(boost::lexical_cast<bool>(s)); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
+    else if(A(a)->isDerivedFrom(PV%"indexPartialEval")) {
+      try { ret=create<double>(boost::lexical_cast<int>(s)); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+      convertIndex(ret, true);
+    }
     else
       throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
 

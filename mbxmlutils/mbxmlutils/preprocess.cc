@@ -156,7 +156,9 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       DOMNode *p=e->getParentNode();
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
-        eval->addParam(counterName, eval->create(static_cast<double>(i-(eval->useOneBasedIndexes()?0:1))));
+        Eval::Value ii=eval->create(static_cast<double>(i));
+        eval->convertIndex(ii, false);
+        eval->addParam(counterName, ii);
         if(localParamEle) {
           eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
@@ -232,6 +234,8 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
          E(e)->isDerivedFrom(PV%"vector") ||
          E(e)->isDerivedFrom(PV%"matrix") ||
          E(e)->isDerivedFrom(PV%"fullEval") ||
+         E(e)->isDerivedFrom(PV%"integerVector") ||
+         E(e)->isDerivedFrom(PV%"indexVector") ||
          isCasADi) {
         Eval::Value value=eval->eval(e);
         E(e)->removeAttribute("unit");

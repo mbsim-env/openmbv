@@ -47,6 +47,11 @@
         <xs:restriction base="fullEval"/>
       </xs:simpleType>
 
+      <!-- full evaluation which must evaluate to an index (0 or 1 based dependent on the language) -->
+      <xs:simpleType name="indexFullEval">
+        <xs:restriction base="fullEval"/>
+      </xs:simpleType>
+
       <!-- full evaluation which must evaluate to an boolean.-->
       <xs:simpleType name="booleanFullEval">
         <xs:restriction base="fullEval"/>
@@ -78,6 +83,11 @@
 
       <!-- partial evaluation which must evaluate to an integer -->
       <xs:simpleType name="integerPartialEval">
+        <xs:restriction base="partialEval"/>
+      </xs:simpleType>
+
+      <!-- partial evaluation which must evaluate to an index (0 or 1 based dependent on the language) -->
+      <xs:simpleType name="indexPartialEval">
         <xs:restriction base="partialEval"/>
       </xs:simpleType>
 
@@ -293,6 +303,40 @@
             <xs:attribute name="convertUnit" type="xs:string"/> <!-- convertUnit is handeled specially in the preprocessor -->
           </xs:extension>
         </xs:complexContent>
+      </xs:complexType>
+
+      <!-- integer vector -->
+      <xs:complexType name="integerVector" mixed="true">
+        <xs:annotation>
+          <xs:documentation>A vector value of integer.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0">
+          <xs:element name="xmlVector">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="integerFullEval"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
+      <!-- index vector -->
+      <xs:complexType name="indexVector" mixed="true">
+        <xs:annotation>
+          <xs:documentation>A vector value of indices (0 or 1 based dependent on the language)</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0">
+          <xs:element name="xmlVector">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="integerFullEval"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
       </xs:complexType>
 
       <!-- rotation matrix -->

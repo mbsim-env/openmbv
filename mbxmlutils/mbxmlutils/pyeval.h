@@ -21,7 +21,7 @@ class PyEval : public Eval {
     virtual void addImport(const std::string &code, const xercesc::DOMElement *e);
     virtual bool valueIsOfType(const Value &value, ValueType type) const;
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
-    virtual bool useOneBasedIndexes() { return false; }
+    virtual void convertIndex(Value &v, bool evalTo1Based);
   protected:
     virtual Value createSwigByTypeName(const std::string &typeName) const;
     virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const;
