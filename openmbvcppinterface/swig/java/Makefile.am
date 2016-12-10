@@ -14,7 +14,9 @@ libopenmbvjavaloadJNI_la_SOURCES = openmbvjavaloadjni.c
 libopenmbvjavaloadJNI_la_LDFLAGS = -module -shrext .jni -avoid-version $(MAYBE_MINGW_CFLAGS) # use jni as so/dll extension for the java native binary file
 libopenmbvjavaloadJNI_la_CPPFLAGS = $(JAVA_JNICFLAGS)
 
-CLEANFILES=OpenMBV_swig_java.cc openmbv.jar OpenMBV_swig_java.d javatest.class
+BUILT_SOURCES = OpenMBV_swig_java.cc
+
+CLEANFILES = OpenMBV_swig_java.cc openmbv.jar OpenMBV_swig_java.d javatest.class
 clean-local: clean-local-javasource
 .PHONY: clean-local-javasource
 clean-local-javasource:
@@ -45,7 +47,7 @@ else
   TESTS = javatest.sh
 endif
 javatest.sh: javatest.class
-javatest.class: $(srcdir)/javatest.java
+javatest.class: $(srcdir)/javatest.java OpenMBV_swig_java.cc
 	@JAVAC@ -d . $(srcdir)/javatest.java
 
 exampledir = $(prefix)/share/openmbvcppinterface/examples/swig

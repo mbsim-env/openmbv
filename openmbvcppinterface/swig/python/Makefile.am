@@ -2,7 +2,9 @@
 swigdir = $(bindir)
 swig_LTLIBRARIES = _OpenMBV.la
 
-CLEANFILES=OpenMBV_swig_python.cc OpenMBV.py OpenMBV_swig_python.d
+BUILT_SOURCES = OpenMBV_swig_python.cc
+
+CLEANFILES = OpenMBV_swig_python.cc OpenMBV.py OpenMBV_swig_python.d
 OpenMBV_swig_python.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
 	rm -f OpenMBV_swig_python.cc
 	$(swig) -python -MP -MD -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_python.cc $(srcdir)/../OpenMBV.i

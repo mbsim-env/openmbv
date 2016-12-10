@@ -85,6 +85,9 @@ libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h py2py3cppwrapper.h
+
+BUILT_SOURCES = casadi_oct_swig_octave.cc swigpyrun.h
+
 swigpyrun.h:
 	$(swig) -python -external-runtime swigpyrun.h
 
