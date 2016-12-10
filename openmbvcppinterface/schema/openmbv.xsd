@@ -320,13 +320,13 @@
       <xs:extension base="DynamicColoredBodyType">        
         <xs:sequence>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
-          <xs:element name="drawDegree" type="pv:nounitScalar"/>
+          <xs:element name="drawDegree" type="pv:integerFullEval"/>
           <xs:element name="innerRadius" type="pv:lengthScalar"/>
           <xs:element name="outerRadius" type="pv:lengthScalar"/>
-          <xs:element name="elementNumberAzimuthal" type="pv:nounitScalar"/>
-          <xs:element name="elementNumberRadial" type="pv:nounitScalar"/>
-          <xs:element name="interpolationDegreeAzimuthal" type="pv:nounitScalar"/>
-          <xs:element name="interpolationDegreeRadial" type="pv:nounitScalar"/>
+          <xs:element name="elementNumberAzimuthal" type="pv:integerFullEval"/>
+          <xs:element name="elementNumberRadial" type="pv:integerFullEval"/>
+          <xs:element name="interpolationDegreeAzimuthal" type="pv:integerFullEval"/>
+          <xs:element name="interpolationDegreeRadial" type="pv:integerFullEval"/>
           <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
           <xs:element name="knotVecRadial" type="pv:lengthVector"/>
         </xs:sequence> 
@@ -341,7 +341,7 @@
       <xs:extension base="RigidBodyType">
         <xs:sequence>
           <xs:element name="vertexPositions" type="pv:nounitMatrix"/>
-          <xs:element name="indices" type="pv:nounitVector"/>
+          <xs:element name="indices" type="pv:indexVector"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -354,8 +354,8 @@
         <xs:sequence>
           <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
-          <xs:element name="numberOfVertexPositions" type="pv:nounitScalar"/>
-          <xs:element name="indices" type="pv:nounitVector"/>
+          <xs:element name="numberOfVertexPositions" type="pv:integerFullEval"/>
+          <xs:element name="indices" type="pv:indexVector"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
