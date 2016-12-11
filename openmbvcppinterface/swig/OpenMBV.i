@@ -136,15 +136,13 @@
   %typemap(javain) std::vector<double>, const std::vector<double>& "$javainput"
   %typemap(javaout) std::vector<double> { return $jnicall; }
   %typemap(in) std::vector<double>, const std::vector<double>& "
-    size_t size=jenv->GetArrayLength($arg);
-    static std::vector<double> vec;
-    vec.resize(size);
-    jenv->GetDoubleArrayRegion($arg, 0, size, &vec[0]);//MISSING: try to avoid copying all elements to vec
-    $1=&vec;
+    std::vector<double> vec$argnum(jenv->GetArrayLength($arg));
+    $1=&vec$argnum;
+    jenv->GetDoubleArrayRegion($arg, 0, vec$argnum.size(), vec$argnum.data());
   "
   %typemap(out) std::vector<double> {
     $result=jenv->NewDoubleArray($1.size());
-    jenv->SetDoubleArrayRegion($result, 0, $1.size(), &$1[0]);
+    jenv->SetDoubleArrayRegion($result, 0, $1.size(), $1.data());
   }
   // on java we map std::vector<int> to int[] (this can than be mapped implcitly to a Matlab vector)
   %typemap(jni) std::vector<int>, const std::vector<int>& "jintArray"
@@ -153,15 +151,21 @@
   %typemap(javain) std::vector<int>, const std::vector<int>& "$javainput"
   %typemap(javaout) std::vector<int>, const std::vector<int>& { return $jnicall; }
   %typemap(in) std::vector<int>, const std::vector<int>& "
-    size_t size=jenv->GetArrayLength($arg);
-    static std::vector<int> vec;
-    vec.resize(size);
-    jenv->GetIntArrayRegion($arg, 0, size, &vec[0]);//MISSING: try to avoid copying all elements to vec
-    $1=&vec;
+    std::vector<int> vec$argnum(jenv->GetArrayLength($arg));
+    $1=&vec$argnum;
+    jint v;
+    for(size_t i=0; i<vec$argnum.size(); ++i) {
+      jenv->GetIntArrayRegion($arg, i, 1, &v);
+      vec$argnum[i]=v;
+    }
   "
   %typemap(out) std::vector<int> {
     $result=jenv->NewIntArray($1.size());
-    jenv->SetIntArrayRegion($result, 0, $1.size(), &$1[0]);
+    jint v;
+    for(size_t i=0; i<$1.size(); ++i) {
+      v=$1[i];
+      jenv->SetIntArrayRegion($result, i, 1, &v);
+    }
   }
 #endif
 
