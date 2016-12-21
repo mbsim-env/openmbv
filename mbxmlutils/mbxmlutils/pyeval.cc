@@ -245,7 +245,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   }
 
   cout<<"Generate file list for Python files."<<endl;
-  path PYTHONSRC(PYTHON_LIBDIR "/python" PYTHON_VERSION);
+  path PYTHONSRC(PYTHON_LIBDIR);
   if(exists(getInstallPath()/PYTHON_SUBDIR))
     PYTHONSRC=getInstallPath()/PYTHON_SUBDIR;
   for(auto srcIt=recursive_directory_iterator(PYTHONSRC); srcIt!=recursive_directory_iterator(); ++srcIt) {

@@ -169,15 +169,19 @@ AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalu
 AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
 if test "x$enable_python" == "xyes"; then
   PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
-  PYTHON_LIBDIR="$($PKG_CONFIG --variable=libdir python-$pythonversion)"
-  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_SUBDIR"], [Python library dir])
-  AC_SUBST([PYTHON_LIBDIR])
-  if test ! -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
-    AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include])
-  fi
   if test "_$PYTHON_BIN" == "_"; then
     PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
   fi
+  PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))')
+  if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
+    PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
+  elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
+    PYTHON_LIBDIR=$PYTHON_LIBDIR
+  else
+    AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
+  fi
+  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_SUBDIR"], [Python library dir])
+  AC_SUBST([PYTHON_LIBDIR])
   PYTHON_SUBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])')
   AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
   AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
