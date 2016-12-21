@@ -158,10 +158,6 @@ AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 
-if test "$cross_compiling" == "yes"; then
-  XC_EXEC_PREFIX=wine
-fi
-
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
   [pythonversion="$withval"],[pythonversion="2.7"])
@@ -172,7 +168,10 @@ if test "x$enable_python" == "xyes"; then
   if test "_$PYTHON_BIN" == "_"; then
     PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
   fi
-  PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))')
+  PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
+  if test "$cross_compiling" == "yes"; then
+    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
+  fi
   if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
   elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
@@ -182,7 +181,7 @@ if test "x$enable_python" == "xyes"; then
   fi
   AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_SUBDIR"], [Python library dir])
   AC_SUBST([PYTHON_LIBDIR])
-  PYTHON_SUBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])')
+  PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
   AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
   AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
   AC_SUBST([PYTHON_VERSION],[$pythonversion])
