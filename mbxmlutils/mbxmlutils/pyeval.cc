@@ -57,7 +57,7 @@ class PyInit {
 PyInit::PyInit() {
   try {
     path home;
-    if(exists(getInstallPath()/PYTHON_SUBDIR))
+    if(exists(getInstallPath()/PYTHON_SUBDIR/"site-packages"))
       home=getInstallPath();
     initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string(), home.string());
     CALLPY(_import_array);

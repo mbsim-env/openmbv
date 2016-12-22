@@ -179,7 +179,7 @@ if test "x$enable_python" == "xyes"; then
   else
     AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
   fi
-  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_SUBDIR"], [Python library dir])
+  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
   AC_SUBST([PYTHON_LIBDIR])
   PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
   AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
