@@ -188,7 +188,12 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
   static const string fileScheme="file://";
   if(uri.substr(0, fileScheme.length())!=fileScheme)
     throw runtime_error("Only local filenames are allowed.");
-  return uri.substr(fileScheme.length());
+#ifdef _WIN32
+  int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
+#else
+  int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
+#endif
+  return uri.substr(fileScheme.length() + addChars);
 }
 template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skipThis, const DOMElement *&found) const; // explicit instantiate const variant
 
