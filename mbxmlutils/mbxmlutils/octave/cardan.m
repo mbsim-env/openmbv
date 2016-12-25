@@ -5,7 +5,7 @@ function A=cardan(varargin)
     alpha=varargin{1};
     beta=varargin{2};
     gamma=varargin{3};
-  elseif nargs==1 && (size(varargin{1})==[3,1] || size(varargin{1})==[1,3])
+  elseif nargs==1
     alpha=varargin{1}(1);
     beta=varargin{1}(2);
     gamma=varargin{1}(3);

@@ -1,5 +1,5 @@
-from math import sin, cos
-from numpy import array, zeros, append
+import numpy
+import casadi
 
 
 
@@ -25,8 +25,8 @@ def load(filename):
     ret=None
     for row in reader:
       if ret is None:
-        ret=zeros((0, len(row)))
-      ret=append(ret, [list(map(float, row))], 0)
+        ret=numpy.zeros((0, len(row)))
+      ret=numpy.append(ret, [list(map(float, row))], 0)
   return ret
 
 
@@ -36,22 +36,23 @@ def cardan(*argv):
     alpha=argv[0]
     beta=argv[1]
     gamma=argv[2]
-  elif len(argv)==1 and len(argv[0])==3:
+  elif len(argv)==1 and ((type(argv[0]).__name__!="SX" and len(argv[0])==3) or \
+                         (type(argv[0]).__name__=="SX" and argv[0].shape==(3,1))):
     alpha=argv[0][0];
     beta=argv[0][1];
     gamma=argv[0][2];
   else:
     raise RuntimError('Must be called with a three scalar arguments or one vector argument of length 3.')
 
-  return array([[cos(beta)*cos(gamma),
-               -cos(beta)*sin(gamma),
-               sin(beta)],
-               [cos(alpha)*sin(gamma)+sin(alpha)*sin(beta)*cos(gamma),
-               cos(alpha)*cos(gamma)-sin(alpha)*sin(beta)*sin(gamma),
-               -sin(alpha)*cos(beta)],
-               [sin(alpha)*sin(gamma)-cos(alpha)*sin(beta)*cos(gamma),
-               cos(alpha)*sin(beta)*sin(gamma)+sin(alpha)*cos(gamma),
-               cos(alpha)*cos(beta)]])
+  return numpy.array([[casadi.cos(beta)*casadi.cos(gamma),
+                     -casadi.cos(beta)*casadi.sin(gamma),
+                     casadi.sin(beta)],
+                     [casadi.cos(alpha)*casadi.sin(gamma)+casadi.sin(alpha)*casadi.sin(beta)*casadi.cos(gamma),
+                     casadi.cos(alpha)*casadi.cos(gamma)-casadi.sin(alpha)*casadi.sin(beta)*casadi.sin(gamma),
+                     -casadi.sin(alpha)*casadi.cos(beta)],
+                     [casadi.sin(alpha)*casadi.sin(gamma)-casadi.cos(alpha)*casadi.sin(beta)*casadi.cos(gamma),
+                     casadi.cos(alpha)*casadi.sin(beta)*casadi.sin(gamma)+casadi.sin(alpha)*casadi.cos(gamma),
+                     casadi.cos(alpha)*casadi.cos(beta)]])
 
 
 
@@ -60,40 +61,66 @@ def euler(*argv):
     PHI=argv[0]
     theta=argv[1]
     phi=argv[2]
-  elif len(argv)==1 and len(argv[0])==3:
+  elif len(argv)==1 and ((type(argv[0]).__name__!="SX" and len(argv[0])==3) or \
+                         (type(argv[0]).__name__=="SX" and argv[0].shape==(3,1))):
     PHI=argv[0][0]
     theta=argv[0][1]
     phi=argv[0][2]
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
 
-  return array([[cos(phi)*cos(PHI)-sin(phi)*cos(theta)*sin(PHI),
-               -cos(phi)*cos(theta)*sin(PHI)-sin(phi)*cos(PHI),
-               sin(theta)*sin(PHI)],
-               [cos(phi)*sin(PHI)+sin(phi)*cos(theta)*cos(PHI),
-               cos(phi)*cos(theta)*cos(PHI)-sin(phi)*sin(PHI),
-               -sin(theta)*cos(PHI)],
-               [sin(phi)*sin(theta),
-               cos(phi)*sin(theta),
-               cos(theta)]])
+  return numpy.array([[casadi.cos(phi)*casadi.cos(PHI)-casadi.sin(phi)*casadi.cos(theta)*casadi.sin(PHI),
+                     -casadi.cos(phi)*casadi.cos(theta)*casadi.sin(PHI)-casadi.sin(phi)*casadi.cos(PHI),
+                     casadi.sin(theta)*casadi.sin(PHI)],
+                     [casadi.cos(phi)*casadi.sin(PHI)+casadi.sin(phi)*casadi.cos(theta)*casadi.cos(PHI),
+                     casadi.cos(phi)*casadi.cos(theta)*casadi.cos(PHI)-casadi.sin(phi)*casadi.sin(PHI),
+                     -casadi.sin(theta)*casadi.cos(PHI)],
+                     [casadi.sin(phi)*casadi.sin(theta),
+                     casadi.cos(phi)*casadi.sin(theta),
+                     casadi.cos(theta)]])
 
 
 
 def rotateAboutX(phi):
-  return array([[1,0,0],
-               [0,cos(phi),-sin(phi)],
-               [0,sin(phi),cos(phi)]])
+  return numpy.array([[1,0,0],
+                     [0,casadi.cos(phi),-casadi.sin(phi)],
+                     [0,casadi.sin(phi),casadi.cos(phi)]])
 
 
 
 def rotateAboutY(phi):
-  return array([[cos(phi),0,sin(phi)],
-               [0,1,0],
-               [-sin(phi),0,cos(phi)]])
+  return numpy.array([[casadi.cos(phi),0,casadi.sin(phi)],
+                     [0,1,0],
+                     [-casadi.sin(phi),0,casadi.cos(phi)]])
 
 
 
 def rotateAboutZ(phi):
-  return array([[cos(phi),-sin(phi),0],
-               [sin(phi),cos(phi),0],
-               [0,0,1]])
+  return numpy.array([[casadi.cos(phi),-casadi.sin(phi),0],
+                     [casadi.sin(phi),casadi.cos(phi),0],
+                     [0,0,1]])
+
+
+
+def tilde(x):
+                
+  if (type(x).__name__=="SX" and x.shape==(3,1)) or \
+     (type(x).__name__!="SX" and len(x)==3 and not hasattr(x[0], '__len__')):
+
+    return numpy.array([[    0, -x[2],  x[1]], \
+                        [ x[2],     0, -x[0]], \
+                        [-x[1],  x[0],     0]])
+
+  elif (type(x).__name__=="SX" and x.shape==(3,3)) or (len(x)==3 and len(x[0])==3):
+
+    if type(x).__name__!="SX":
+      abserr=1e-7;
+      if abs(x[0][0])>abserr or abs(x[1][1])>abserr or abs(x[2][2])>abserr or \
+         abs(x[0][1]+x[1][0])>abserr or abs(x[0][2]+x[2][0])>abserr or abs(x[1][2]+x[2][1])>abserr:
+        raise RuntimeError('Must be s skew symmetric matrix.')
+      return numpy.array([x[2][1], x[0][2], x[1][0]])
+    else:
+      return numpy.array([x[2,1], x[0,2], x[1,0]])
+
+  else:
+    raise RuntimeError('Must be called with with a 3x3 matrix or a column vector of length 3.')

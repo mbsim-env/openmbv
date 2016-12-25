@@ -1,11 +1,11 @@
-function A=euler(PHI,theta,phi)
+function A=euler(varargin)
 
   nargs=length(varargin);
   if nargs==3
     PHI=varargin{1};
     theta=varargin{2};
     phi=varargin{3};
-  elseif nargs==1 && (size(varargin{1})==[3,1] || size(varargin{1})==[1,3])
+  elseif nargs==1
     PHI=varargin{1}(1);
     theta=varargin{1}(2);
     phi=varargin{1}(3);

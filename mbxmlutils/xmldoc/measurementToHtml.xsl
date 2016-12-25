@@ -260,10 +260,6 @@ ret=myfunc(m1/2);
       <tr><td/><td><code>sin(&#x3C6;)sin(&#x3B8;)</code></td><td><code>cos(&#x3C6;)sin(&#x3B8;)</code></td><td><code>cos(&#x3B8;)</code></td><td/></tr>
     </tbody></table>
   </dd>
-  <dt><code>r=rad2deg(a)</code></dt>
-  <dd>Returns r=a*180/pi</dd>
-  <dt><code>r=deg2rad(a)</code></dt>
-  <dd>Returns r=a*pi/180</dd>
 </dl>
 
     <h1><a id="embed" href="#embed-content">7 Embeding</a></h1>
