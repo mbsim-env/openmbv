@@ -149,6 +149,11 @@ inline int PyObject_TypeCheck_func(PyObject *p, PyTypeObject *type) { return PyO
 #undef PyObject_TypeCheck
 #define PyObject_TypeCheck PythonCpp::PyObject_TypeCheck_func
 
+// make Py_InitModule a function
+inline PyObject* Py_InitModule_func(char *name, PyMethodDef *methods) { return Py_InitModule(name, methods); }
+#undef Py_InitModule
+#define Py_InitModule PythonCpp::Py_InitModule_func
+
 // we use this for python object for c++ reference counting
 class PyO {
   public:
@@ -339,6 +344,12 @@ const char* PythonException::what() const throw() {
   strstr<<":"<<std::endl<<str;
   msg=strstr.str();
   return msg.c_str();
+}
+
+// a Py_BuildValue variant working like called with CALLPY
+template<typename... Args>
+PyO Py_BuildValue_(const char *format, Args&&... args) {
+  return PyO(Py_BuildValue(format, convertArg(std::forward<Args>(args))...));
 }
 
 }
