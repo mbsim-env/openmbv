@@ -254,7 +254,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     path subDir=relative(*srcIt, PYTHONSRC).parent_path();
     if(*subDir.begin()=="site-packages" && *(++subDir.begin())!="numpy") // skip site-packages dir but not site-packages/numpy
       continue;
-    if(*subDir.begin()=="test") // skip test dir
+    if(*subDir.begin()=="config") // skip config dir
       continue;
     files[*srcIt]=make_pair(PYTHONDST/subDir, false);
   }
