@@ -335,7 +335,7 @@ class EntityResolver : public xercesc::XMLEntityResolver {
 };
 
 //! A XML DOM parser.
-class DOMParser {
+class DOMParser : public std::enable_shared_from_this<DOMParser> {
   friend bool isDerivedFrom(const xercesc::DOMNode *me, const FQN &baseTypeName);
   friend class TypeDerivativeHandler;
   friend class LocationInfoFilter;
@@ -369,7 +369,6 @@ class DOMParser {
     xercesc::DOMImplementation *domImpl;
     DOMParser(const std::set<boost::filesystem::path> &schemas);
     std::shared_ptr<xercesc::DOMLSParser> parser;
-    std::weak_ptr<DOMParser> me;
     std::map<FQN, xercesc::XSTypeDefinition*> typeMap;
     DOMErrorPrinter errorHandler;
     LocationInfoFilter locationFilter;

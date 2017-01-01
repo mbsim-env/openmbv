@@ -532,9 +532,7 @@ const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/dom
 DOMParserUserDataHandler DOMParser::userDataHandler;
 
 shared_ptr<DOMParser> DOMParser::create(const set<path> &schemas) {
-  shared_ptr<DOMParser> ret(new DOMParser(schemas));
-  ret->me=ret;
-  return ret;
+  return shared_ptr<DOMParser>(new DOMParser(schemas));
 }
 
 InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdentifier) {
@@ -671,7 +669,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   // handle CDATA nodes
   handleXIncludeAndCDATA(root, dependencies);
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(me), &userDataHandler);
+  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   // return DOM document
   return doc;
 }
@@ -717,7 +715,7 @@ void DOMParser::resetCachedGrammarPool() {
 
 shared_ptr<DOMDocument> DOMParser::createDocument() {
   shared_ptr<DOMDocument> doc(domImpl->createDocument(), bind(&DOMDocument::release, _1));
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(me), &userDataHandler);
+  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   return doc;
 }
 
