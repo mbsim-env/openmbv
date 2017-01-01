@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
   // environment variables
   // Disalbe COIN VBO per default (see --help)
-  static char COIN_VBO[strlen("COIN_VBO=0")+1];
+  static char COIN_VBO[11];
   if(getenv("COIN_VBO")==NULL) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
 
   list<string> arg;
