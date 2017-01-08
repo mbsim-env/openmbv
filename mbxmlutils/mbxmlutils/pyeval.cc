@@ -258,6 +258,11 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       continue;
     files[*srcIt]=make_pair(PYTHONDST/subDir, false);
   }
+#if _WIN32
+  // on Windows include the PYTHONSRC/../DLLs directory
+  for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
+    files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
+#endif
 
   return files;
 }
