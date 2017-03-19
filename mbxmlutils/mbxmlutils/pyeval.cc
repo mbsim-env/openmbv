@@ -234,7 +234,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   for(auto srcIt=recursive_directory_iterator(casadiDir); srcIt!=recursive_directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
-    files[*srcIt]=make_pair(PYTHONDST/"site-packages"/"casadi"/relative(*srcIt, casadiDir).parent_path(), false);
+    files[*srcIt]=make_pair(PYTHONDST/"site-packages"/"casadi"/MBXMLUtils::relative(*srcIt, casadiDir).parent_path(), false);
   }
 
   cout<<"Generate file list for MBXMLUtils py-files."<<endl;
@@ -251,7 +251,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   for(auto srcIt=recursive_directory_iterator(PYTHONSRC); srcIt!=recursive_directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
-    path subDir=relative(*srcIt, PYTHONSRC).parent_path();
+    path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
     if(*subDir.begin()=="site-packages" && *(++subDir.begin())!="numpy") // skip site-packages dir but not site-packages/numpy
       continue;
     if(*subDir.begin()=="config") // skip config dir

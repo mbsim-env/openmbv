@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
     // output dependencies?
     if(!depFileName.empty()) {
-      ofstream dependenciesFile(depFileName.string().c_str());
+      std::ofstream dependenciesFile(depFileName.string().c_str());
       for(vector<path>::iterator it=dependencies.begin(); it!=dependencies.end(); it++)
         dependenciesFile<<it->string()<<endl;
     }
