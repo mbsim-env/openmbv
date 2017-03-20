@@ -134,13 +134,13 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   const SbVec3f empty(0.0f, 0.0f, 0.0f);
 
   std::vector<double> data=spineExtrusion->getRow(0);
-  SbVec3f data_coin[numberOfSpinePoints];
+  std::vector<SbVec3f> data_coin(numberOfSpinePoints);
   for(int i=0;i<numberOfSpinePoints;i++) {
     data_coin[i] = SbVec3f(data[4*i+1],data[4*i+2],data[4*i+3]);
   }
 
   for(int i=0;i<numberOfSpinePoints;i++) {
-      SbVec3f Z = calculate_z_axis(data_coin, i, numberOfSpinePoints, false);
+      SbVec3f Z = calculate_z_axis(data_coin.data(), i, numberOfSpinePoints, false);
       if(Z!=empty)
         collinear=false;
   }
