@@ -49,21 +49,22 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   if(windingRule_==OpenMBV::Extrusion::negative) windingRule=GLU_TESS_WINDING_NEGATIVE;
   if(windingRule_==OpenMBV::Extrusion::absGEqTwo) windingRule=GLU_TESS_WINDING_ABS_GEQ_TWO;
   double height=e->getHeight();
-  if(fabs(height)<1e-13) height=0;
+  const bool hasHeight=fabs(height)>1e-13;
+  if(!hasHeight) height=0;
   std::vector<shared_ptr<std::vector<shared_ptr<OpenMBV::PolygonPoint> > > > contour=e->getContours();
 
   // create so
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
-  // two side render if height==0
-  if(height==0) {
+  // two side render if !hasHeight
+  if(!hasHeight) {
     SoShapeHints *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
   }
   SoSeparator *side=new SoSeparator;
   soSepRigidBody->addChild(side);
-  if(height!=0) {
+  if(hasHeight) {
     // side
     // shape hint
     SoShapeHints *sh=new SoShapeHints;
@@ -75,7 +76,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   // side
   for(size_t c=0; c<contour.size(); c++) {
     SoNormal *n=NULL;
-    if(height!=0) {
+    if(hasHeight) {
       n=new SoNormal;
       side->addChild(n);
     }
@@ -83,7 +84,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     side->addChild(v);
     size_t r;
     SoIndexedFaceSet *s=NULL;
-    if(height!=0) {
+    if(hasHeight) {
       s=new SoIndexedFaceSet;
       side->addChild(s);
     }
@@ -102,7 +103,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
       size_t rp; if(r>=1) rp=r-1; else rp=contour[c]->size()-1;
       v->point.set1Value(2*r+0, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), 0);
       v->point.set1Value(2*r+1, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), height);
-      if(height!=0) {
+      if(hasHeight) {
         SbVec3f n1((*contour[c])[r]->getYComponent()-(*contour[c])[rp]->getYComponent(),(*contour[c])[rp]->getXComponent()-(*contour[c])[r]->getXComponent(),0); n1.normalize();
         SbVec3f n2((*contour[c])[rn]->getYComponent()-(*contour[c])[r]->getYComponent(),(*contour[c])[r]->getXComponent()-(*contour[c])[rn]->getXComponent(),0); n2.normalize();
         if(((int)((*contour[c])[r]->getBorderValue()+0.5))!=1)
@@ -117,7 +118,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
         ol3->coordIndex.set1Value(nr++, 2*r+1);
         ol3->coordIndex.set1Value(nr++, -1);
       }
-      if(height!=0) {
+      if(hasHeight) {
         s->coordIndex.set1Value(5*r+0, 2*r+0);
         s->coordIndex.set1Value(5*r+1, 2*r+1);
         s->coordIndex.set1Value(5*r+2, 2*rn+1);
@@ -173,7 +174,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   // base
   soSepRigidBody->addChild(soTess);
   soTess->unref();
-  if(height!=0) {
+  if(hasHeight) {
     // trans
     SoTranslation *t=new SoTranslation;
     soSepRigidBody->addChild(t);

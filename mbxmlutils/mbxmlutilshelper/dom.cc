@@ -184,6 +184,8 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
     }
     e=e->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(e->getParentNode()):NULL;
   }
+  if(!me)
+    throw runtime_error("Invalid call. Null pointer dereference.");
   string uri=X()%me->getOwnerDocument()->getDocumentURI();
   static const string fileScheme="file://";
   if(uri.substr(0, fileScheme.length())!=fileScheme)
