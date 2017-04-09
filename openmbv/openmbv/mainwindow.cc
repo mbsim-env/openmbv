@@ -366,6 +366,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   act=rotateView->addAction("-10deg About Screen-Z-Axis", this, SLOT(viewRotateZmScreen()), QKeySequence("Ctrl+Shift+Z"));
+  act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   sceneViewMenu->addSeparator();
   act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
