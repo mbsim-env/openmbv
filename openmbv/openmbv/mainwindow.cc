@@ -363,6 +363,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   act=rotateView->addAction("-10deg About Screen-Y-Axis", this, SLOT(viewRotateYmScreen()), QKeySequence("Ctrl+Shift+Y"));
   addAction(act);
   act=rotateView->addAction("+10deg About Screen-Z-Axis", this, SLOT(viewRotateZpScreen()), QKeySequence("Ctrl+Z"));
+  act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   act=rotateView->addAction("-10deg About Screen-Z-Axis", this, SLOT(viewRotateZmScreen()), QKeySequence("Ctrl+Shift+Z"));
   addAction(act);
