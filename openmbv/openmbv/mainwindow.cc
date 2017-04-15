@@ -286,6 +286,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, SLOT(loadCamera()));
   act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
+  act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, SLOT(quit()));
@@ -355,6 +356,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   addAction(act);
   rotateView->addSeparator();
   act=rotateView->addAction("+10deg About Screen-X-Axis", this, SLOT(viewRotateXpScreen()), QKeySequence("Ctrl+X"));
+  act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   act=rotateView->addAction("-10deg About Screen-X-Axis", this, SLOT(viewRotateXmScreen()), QKeySequence("Ctrl+Shift+X"));
   addAction(act);
