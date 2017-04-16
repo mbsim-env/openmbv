@@ -265,7 +265,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
 // Exception wrapping for DOMEvalException.
 // Catch a exception of type DOMEvalException, set the current XML context to DOMElement e and rethrow.
 // Not not change the context if it was alread set before.
-#define MBXMLUTILS_RETHROW(e) \
+#define RETHROW_MBXMLUTILS(e) \
   catch(MBXMLUtils::DOMEvalException &ex) { \
     if(ex.getLocationStack().size()==0) \
       ex.setContext(e); \

@@ -269,7 +269,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
       Value casadiSX=createSwig<SX*>();
       SX *arg;
-      try { arg=cast<SX*>(casadiSX); } MBXMLUTILS_RETHROW(e)
+      try { arg=cast<SX*>(casadiSX); } RETHROW_MBXMLUTILS(e)
       *arg=SX::sym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), casadiSX);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
@@ -299,7 +299,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
         SX Mele;
-        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } MBXMLUTILS_RETHROW(e)
+        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } RETHROW_MBXMLUTILS(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M(i,0)=Mele(0,0);
       }
@@ -331,7 +331,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
           SX Mele;
-          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } MBXMLUTILS_RETHROW(e)
+          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } RETHROW_MBXMLUTILS(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M(i,0)=Mele(0,0);
         }
@@ -393,7 +393,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       vector<Value> args(1);
       args[0]=angle;
       Value ret;
-      try { ret=callFunction(string("rotateAbout")+ch, args); } MBXMLUTILS_RETHROW(ec)
+      try { ret=callFunction(string("rotateAbout")+ch, args); } RETHROW_MBXMLUTILS(ec)
       return ret;
     }
   }
@@ -417,7 +417,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       ele=ele->getNextElementSibling();
       angles[2]=handleUnit(ec, eval(ele));
       Value ret;
-      try { ret=callFunction(rotFuncName[i], angles); } MBXMLUTILS_RETHROW(ec)
+      try { ret=callFunction(rotFuncName[i], angles); } RETHROW_MBXMLUTILS(ec)
       return ret;
     }
   }
@@ -438,7 +438,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     Value ret;
     vector<Value> args(1);
     args[0]=fileName;
-    try { ret=callFunction("load", args); } MBXMLUTILS_RETHROW(ec)
+    try { ret=callFunction("load", args); } RETHROW_MBXMLUTILS(ec)
     handleUnit(e, ret);
     return ret;
   }
@@ -492,16 +492,16 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe)
         throw DOMEvalException("Value is not of type scalar string", pe, a);
     }
     else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
-      try { cast<int>(ret); } MBXMLUTILS_RETHROW(pe);
+      try { cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
     }
     else if(A(a)->isDerivedFrom(PV%"booleanFullEval")) {
       int value;
-      try { value=cast<int>(ret); } MBXMLUTILS_RETHROW(pe);
+      try { value=cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
       if(value!=0 && value!=1)
         throw DOMEvalException("Value is not of type scalar boolean", pe, a);
     }
     else if(A(a)->isDerivedFrom(PV%"indexFullEval")) {
-      try { cast<int>(ret); } MBXMLUTILS_RETHROW(pe);
+      try { cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
       convertIndex(ret, true);
     }
     else
@@ -613,7 +613,7 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
         subst=cast<string>(ret);
       else
         throw runtime_error("Partial evaluations can only be of type scalar or string.");
-    } MBXMLUTILS_RETHROW(e);
+    } RETHROW_MBXMLUTILS(e);
     s=s.substr(0,i)+subst+s.substr(j+1);
   }
   return s;
