@@ -1044,7 +1044,7 @@ void MainWindow::aboutOpenMBV() {
       "  <li>'Qt - A cross-platform application and UI framework' by Nokia from <tt>http://www.qtsoftware.com</tt> (License: GPL/LGPL)</li>"
       "  <li>'Coin - An OpenGL based, retained mode 3D graphics rendering library' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
       "  <li>'SoQt - A Qt GUI component toolkit library for Coin' by Kongsberg SIM from <tt>http://www.coin3d.org</tt> (License: GPL)</li>"
-      "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>http://www.mbsim-env.de/</tt> (License: LGPL)</li>"
+      "  <li>'HDF5Serie - A HDF5 Wrapper for Time Series' by Markus Friedrich from <tt>https://www.mbsim-env.de/</tt> (License: LGPL)</li>"
       "  <li>'HDF - Hierarchical Data Format' by The HDF Group from <tt>http://www.hdfgroup.org</tt> (License: NCSA-HDF)</li>"
       "  <li>'xerces-c - A validating XML parser' by Apache from <tt>http://xerces.apache.org/xerces-c</tt> (Licence: Apache)</li>"
       "  <li>'boost - C++ Libraries' by Boost from <tt>http://www.boost.org</tt> (Licence: Boost Software License)</li>"
