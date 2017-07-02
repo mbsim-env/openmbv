@@ -23,7 +23,8 @@
       <title>MBXMLUtils - XML Documentation</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
-      <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"/>
+      <link rel="shortcut icon" href="/mbsim/html/mbsimenv.ico" type="image/x-icon">
+      <link rel="icon" href="/mbsim/html/mbsimenv.ico" type="image/x-icon">
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
         ul._content { padding-left:3ex; list-style-type:none; }
