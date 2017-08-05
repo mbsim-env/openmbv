@@ -42,7 +42,6 @@
         *._hr { margin-top: 40px; margin-bottom: 40px; }
         *._attribute { font-family:monospace; font-weight:bold; margin-left:2ex; }
         *._attributeNoMargin { font-family:monospace; font-weight:bold; }
-        img._eqn { display:block; margin-bottom:1ex; margin-top:1ex; }
 
         ul._elementsofclass { list-style-type:none; padding:0; }
         ul._elementchild { list-style-type:none; padding-left:4ex; }
@@ -77,6 +76,17 @@
         });
         ]]>
       </script>
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          extensions: ["tex2jax.js", "TeX/AMSmath.js", "TeX/AMSsymbols.js"],
+          jax: ["input/TeX","output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+          },
+        });
+      </script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
     <div class="page-header">
@@ -659,14 +669,12 @@
     <xsl:copy/>
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="object[@class='eqn']">
-    <img class="_eqn" src="{concat('_',generate-id(),'.png')}">
-      <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
-    </img>
+    <!-- convert to MathJax.js notation -->
+    \[ <xsl:value-of select="."/> \]
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="object[@class='inlineeqn']">
-    <img class="_inlineeqn" src="{concat('_',generate-id(),'.png')}">
-      <xsl:attribute name="alt"><xsl:value-of select="."/></xsl:attribute>
-    </img>
+    <!-- convert to MathJax.js notation -->
+    \( <xsl:value-of select="."/> \)
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="object[@class='figure']">
     <table class="_figure">

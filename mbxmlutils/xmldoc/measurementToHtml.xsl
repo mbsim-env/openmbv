@@ -28,22 +28,27 @@
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
         ul._content { padding-left:3ex; list-style-type:none; }
-
-        table._matrix { text-align:center; border-left-style:solid; border-right-style:solid; border-color:black; border-width:2pt; }
-        table._matrix td { padding-left:1ex; padding-right:1ex; }
-        table._matrix td:first-child { padding-left:0.25ex; padding-right:0.25ex; }
-        table._matrix td:last-child { padding-left:0.25ex; padding-right:0.25ex; }
-        table._matrix tr:first-child td:first-child, table._matrix tr:first-child td:last-child { border-top-style:solid; }
-        table._matrix tr:last-child td:first-child, table._matrix tr:last-child td:last-child { border-bottom-style:solid; }
-
         *._attributeNoMargin { font-family:monospace; font-weight:bold; }
         *._type { font-family:monospace; }
         *._element { font-family:monospace; font-weight:bold; }
       </style>
+
+      <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          extensions: ["tex2jax.js", "TeX/AMSmath.js", "TeX/AMSsymbols.js"],
+          jax: ["input/TeX","output/HTML-CSS"],
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+          },
+        });
+      </script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
     <div class="page-header">
       <h1>MBXMLUtils - XML Documentation</h1>
+      <p>XML-Namespace: <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span></p>
     </div>
     <div class="h2">Contents</div>
     <ul class="_content">
@@ -221,45 +226,55 @@ ret=myfunc(m1/2);
 
 <p>The following m-functions extent the octave functionality being useful for several applications:</p>
 <dl class="dl-horizontal">
-  <dt><code>T=rotateAboutX(&#x3C6;)</code></dt>
-  <dd>Returns the transformation matrix by angle &#x3C6; around the x-axis:
-    <table class="_matrix"><tbody>
-      <tr><td/><td><code>1</code></td><td><code>0</code></td><td><code>0</code></td><td/></tr>
-      <tr><td/><td><code>0</code></td><td><code>cos(&#x3C6;)</code></td><td><code>-sin(&#x3C6;)</code></td><td/></tr>
-      <tr><td/><td><code>0</code></td><td><code>sin(&#x3C6;)</code></td><td><code>cos(&#x3C6;)</code></td><td/></tr>
-    </tbody></table>
+  <dt>\(T=\text{rotateAboutX}(\varphi)\)</dt>
+  <dd>Returns the transformation matrix by angle \(\varphi\); around the x-axis:
+    \[
+      \left[\begin{array}{ccc}
+        1 &amp; 0             &amp; 0              \\
+        0 &amp; \cos(\varphi) &amp; -\sin(\varphi) \\
+        0 &amp; \sin(\varphi) &amp; \cos(\varphi)
+      \end{array}\right]
+    \]
   </dd>
-  <dt><code>T=rotateAboutY(&#x3C6;)</code></dt>
-  <dd>Returns the transformation matrix by angle &#x3C6; around the y-axis:
-    <table class="_matrix"><tbody>
-      <tr><td/><td><code>cos(&#x3C6;)</code></td><td><code>0</code></td><td><code>sin(&#x3C6;)</code></td><td/></tr>
-      <tr><td/><td><code>0</code></td><td><code>1</code></td><td><code>0</code></td><td/></tr>
-      <tr><td/><td><code>-sin(&#x3C6;)</code></td><td><code>0</code></td><td><code>cos(&#x3C6;)</code></td><td/></tr>
-    </tbody></table>
+  <dt>\(T=\text{rotateAboutY}(\varphi)\)</dt>
+  <dd>Returns the transformation matrix by angle \(\varphi\); around the y-axis:
+    \[
+      \left[\begin{array}{ccc}
+        \cos(\varphi)  &amp; 0 &amp; \sin(\varphi) \\
+        0              &amp; 1 &amp; 0             \\
+        -\sin(\varphi) &amp; 0 &amp; \cos(\varphi)
+      \end{array}\right]
+    \]
   </dd>
-  <dt><code>T=rotateAboutZ(&#x3C6;)</code></dt>
-  <dd>Returns the transformation matrix by angle &#x3C6; around the z-axis:
-    <table class="_matrix"><tbody>
-      <tr><td/><td><code>cos(&#x3C6;)</code></td><td><code>-sin(&#x3C6;)</code></td><td><code>0</code></td><td/></tr>
-      <tr><td/><td><code>sin(&#x3C6;)</code></td><td><code>cos(&#x3C6;)</code></td><td><code>0</code></td><td/></tr>
-      <tr><td/><td><code>0</code></td><td><code>0</code></td><td><code>1</code></td><td/></tr>
-    </tbody></table>
+  <dt>\(T=\text{rotateAboutZ}(\varphi)\)</dt>
+  <dd>Returns the transformation matrix by angle \(\varphi\); around the z-axis:
+    \[
+      \left[\begin{array}{ccc}
+        \cos(\varphi) &amp; -\sin(\varphi) &amp; 0 \\
+        \sin(\varphi) &amp; \cos(\varphi)  &amp; 0 \\
+        0             &amp; 0              &amp; 1
+      \end{array}\right]
+    \]
   </dd>
-  <dt><code>T=cardan(&#x3B1;,&#x3B2;,&#x3B3;)</code></dt>
+  <dt>\(T=\text{cardan}(\alpha,\beta,\gamma)\)</dt>
   <dd>Returns the cardan transformation matrix:
-    <table class="_matrix"><tbody>
-      <tr><td/><td><code>cos(&#x3B2;)cos(&#x3B3;)</code></td><td><code>-cos(&#x3B2;)sin(&#x3B3;)</code></td><td><code>sin(&#x3B2;)</code></td><td/></tr>
-      <tr><td/><td><code>cos(&#x3B1;)sin(&#x3B3;)+sin(&#x3B1;)sin(&#x3B2;)cos(&#x3B3;)</code></td><td><code>cos(&#x3B1;)cos(&#x3B3;)-sin(&#x3B1;)sin(&#x3B2;)sin(&#x3B3;)</code></td><td><code>-sin(&#x3B1;)cos(&#x3B2;)</code></td><td/></tr>
-      <tr><td/><td><code>sin(&#x3B1;)sin(&#x3B3;)-cos(&#x3B1;)sin(&#x3B2;)cos(&#x3B3;)</code></td><td><code>cos(&#x3B1;)sin(&#x3B2;)sin(&#x3B3;)+sin(&#x3B1;)cos(&#x3B3;)</code></td><td><code>cos(&#x3B1;)cos(&#x3B2;)</code></td><td/></tr>
-    </tbody></table>
+    \[
+      \left[\begin{array}{ccc}
+        \cos(\beta)\cos(\gamma)                                      &amp; -\cos(\beta)\sin(\gamma)                                     &amp; \sin(\beta)              \\
+        \cos(\alpha)\sin(\gamma)+\sin(\alpha)\sin(\beta)\cos(\gamma) &amp; \cos(\alpha)\cos(\gamma)-\sin(\alpha)\sin(\beta)\sin(\gamma) &amp; -\sin(\alpha)\cos(\beta) \\
+        \sin(\alpha)\sin(\gamma)-\cos(\alpha)\sin(\beta)\cos(\gamma) &amp; \cos(\alpha)\sin(\beta)\sin(\gamma)+\sin(\alpha)\cos(\gamma) &amp; \cos(\alpha)\cos(\beta)
+      \end{array}\right]
+    \]
   </dd>
-  <dt><code>T=euler(&#x3A6;,&#x3B8;,&#x3C6;)</code></dt>
+  <dt>\(T=\text{euler}(\Phi,\theta,\varphi)\)</dt>
   <dd>Returns the Euler transformation matrix:
-    <table class="_matrix"><tbody>
-      <tr><td/><td><code>cos(&#x3C6;)cos(&#x3A6;)-sin(&#x3C6;)cos(&#x3B8;)sin(&#x3A6;)</code></td><td><code>-cos(&#x3C6;)cos(&#x3B8;)sin(&#x3A6;)-sin(&#x3C6;)cos(&#x3A6;)</code></td><td><code>sin(&#x3B8;)sin(&#x3A6;)</code></td><td/></tr>
-      <tr><td/><td><code>cos(&#x3C6;)sin(&#x3A6;)+sin(&#x3C6;)cos(&#x3B8;)cos(&#x3A6;)</code></td><td><code>cos(&#x3C6;)cos(&#x3B8;)cos(&#x3A6;)-sin(&#x3C6;)sin(&#x3A6;)</code></td><td><code>-sin(&#x3B8;)cos(&#x3A6;)</code></td><td/></tr>
-      <tr><td/><td><code>sin(&#x3C6;)sin(&#x3B8;)</code></td><td><code>cos(&#x3C6;)sin(&#x3B8;)</code></td><td><code>cos(&#x3B8;)</code></td><td/></tr>
-    </tbody></table>
+    \[
+      \left[\begin{array}{ccc}
+        \cos(\varphi)\cos(\Phi)-\sin(\varphi)\cos(\theta)\sin(\Phi) &amp; -\cos(\varphi)\cos(\theta)\sin(\Phi)-\sin(\varphi)\cos(\Phi) &amp; \sin(\theta)\sin(\Phi)  \\
+        \cos(\varphi)\sin(\Phi)+\sin(\varphi)\cos(\theta)\cos(\Phi) &amp; \cos(\varphi)\cos(\theta)\cos(\Phi)-\sin(\varphi)\sin(\Phi)  &amp; -\sin(\theta)\cos(\Phi) \\
+        \sin(\varphi)\sin(\theta)                                   &amp; \cos(\varphi)\sin(\theta)                                    &amp; \cos(\theta)
+      \end{array}\right]
+    \]
   </dd>
 </dl>
 
