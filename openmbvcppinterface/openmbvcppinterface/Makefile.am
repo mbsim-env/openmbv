@@ -40,8 +40,7 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   dynamiccoloredbody.h \
   group.h \
   rigidbody.h \
-  rigidbodycos.png \
-  rigidbodycos.eps \
+  rigidbodycos.svg \
   compoundrigidbody.h \
   frame.h \
   grid.h \

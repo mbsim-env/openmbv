@@ -37,8 +37,7 @@ namespace OpenMBV {
    * position and rotation with respect to L (see figure).
    * And there is a inertial fixed world coordinate system W.
    *
-   * \image html rigidbodycos.png "Coordinate Systems of Rigid Body"
-   * \image latex rigidbodycos.eps "Coordinate Systems of Rigid Body" width=8cm
+   * \image html rigidbodycos.svg "Coordinate Systems of Rigid Body"
    *
    * The fixed translation from system R to system L is given by
    * the vector initialTranslation \f$[_R x_B, _R y_B, _R z_B]^T\f$
