@@ -7,7 +7,7 @@ if [ $# -lt 5 ]; then
   echo "  InXsdFile: Input xsd file which should be converted to html"
   echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
   echo "                   corrospondending documentation"
-  echo "  FigureDir: Colon separaded directory to search for figures (*.eps, *.png)"
+  echo "  FigureDir: Colon separaded directory to search for figures (*.svg)"
   echo "  ProjectName: The name of the Project (e.g. 'OpenMBV')"
   echo "  DoxygenPrefix: Prefix of doxygen names (e.g. 'OpenMBV::')"
   echo "  AddInXsdFile: Additional input xsd files (only used for generating example code"
@@ -90,9 +90,10 @@ sed -re "s/ xmlns:[^ ]+ *= *\"[^\"]+\"//g" $HTMLDIR/index.html > $HTMLDIR/index.
 mv -f $HTMLDIR/index.html_ $HTMLDIR/index.html || exit 1
 echo "DONE"
 
-echo "Copy *.png"
+echo "Copy *.svg"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
-  ls $D/*.png >& /dev/null && cp -f $D/*.png $HTMLDIR
+  ls -1 $D/*.svg 2> /dev/null && cp -f $D/*.svg $HTMLDIR
 done
+echo "DONE"
 
 touch .$BASENAME2.done

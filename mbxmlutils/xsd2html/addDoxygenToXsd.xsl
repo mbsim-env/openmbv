@@ -163,11 +163,9 @@
   </xsl:template>
   <xsl:template mode="DOXYGENDOC" match="image[@type='html']">
     <!-- ABUSE the html "object" element to include a LaTeX image in the XML schema -->
-    <object class="figure_html" data="{@name}" title="{.}"/>
-  </xsl:template>
-  <xsl:template mode="DOXYGENDOC" match="image[@type='latex']">
-    <!-- ABUSE the html "object" element to include a LaTeX image in the XML schema -->
-    <object class="figure_latex" standby="{@width}" data="{@name}" title="{.}"/>
+    <object class="figure" data="{@name}">
+      <xsl:value-of select="."/>
+    </object>
   </xsl:template>
 
 </xsl:stylesheet>

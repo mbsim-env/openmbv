@@ -34,7 +34,7 @@
       <link rel="icon" href="/mbsim/html/mbsimenv.ico" type="image/x-icon"/>
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
       <style type="text/css">
-        table._figure { }
+        table._figure { margin-left:auto; margin-right:auto; }
         *._type { font-family:monospace; }
         *._element { font-family:monospace; font-weight:bold; }
         *._linkpointer { cursor:pointer; }
@@ -59,7 +59,7 @@
         *._classdocu { }
 
         ul._content { padding-left:3ex; list-style-type:none; }
-        caption._caption { caption-side:bottom; }
+        caption._caption { text-align:center; caption-side:bottom; }
       </style>
       <script type="text/javascript" src="https://cdn.datatables.net/s/bs-3.3.5/jq-2.1.4,dt-1.10.10/datatables.min.js"> </script>
       <script type="text/javascript">
@@ -678,17 +678,9 @@
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="object[@class='figure']">
     <table class="_figure">
-      <caption class="_caption"><xsl:value-of select="@title"/></caption>
-      <tr><td><img src="{@data}.png" alt="{@data}"></img></td></tr>
+      <caption class="_caption"><xsl:value-of select="."/></caption>
+      <tr><td><object type="image/svg+xml" data="{@data}"><xsl:value-of select="@data"/></object></td></tr>
     </table>
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="object[@class='figure_html']">
-    <table class="_figure">
-      <caption class="_caption"><xsl:value-of select="@title"/></caption>
-      <tr><td><img src="{@data}" alt="{@data}"></img></td></tr>
-    </table>
-  </xsl:template>
-  <xsl:template mode="CLONEDOC" match="object[@class='figure_latex']">
   </xsl:template>
   <xsl:template mode="CLONEDOC" match="a[@class='link']">
     <a><xsl:attribute name="href"><xsl:apply-templates mode="GENLINK" select="@href"/></xsl:attribute>
