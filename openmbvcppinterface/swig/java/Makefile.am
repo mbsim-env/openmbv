@@ -48,7 +48,7 @@ else
 endif
 javatest.sh: javatest.class
 javatest.class: $(srcdir)/javatest.java OpenMBV_swig_java.cc
-	@JAVAC@ -d . $(srcdir)/javatest.java
+	@JAVAC@ -cp . -d . $(srcdir)/javatest.java
 
 exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
 example_DATA = $(srcdir)/javatest.java javatest.class $(srcdir)/matlabtest.m
