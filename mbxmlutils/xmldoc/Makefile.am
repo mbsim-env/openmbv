@@ -8,8 +8,14 @@ http___www_mbsim-env_de_MBXMLUtils/index.html: ../mbxmlutils/measurement.xml mea
 	@XALAN@ -o $$DIR/index.html -p DATETIME "'$$(date "+%a %b %d %Y %H:%M:%S")'" $(srcdir)/../mbxmlutils/measurement.xml $(srcdir)/measurementToHtml.xsl || exit 1; \
 	sed -re "s/ xmlns:[^ ]+ *= *\"[^\"]+\"//g" $$DIR/index.html > $$DIR/index.html_ || exit 1; \
 	mv -f $$DIR/index.html_ $$DIR/index.html || exit 1
-# above line: Remove all namespace declaration from the html output using sed (maybe a bug in Xalan)
+	RET=0; \
+	$(prefix)/share/fmatvec/checkHtml/checkHtml.sh http___www_mbsim-env_de_MBXMLUtils/index.html || RET=1; \
+	$(prefix)/share/fmatvec/checkHtml/checkMathJax.sh http___www_mbsim-env_de_MBXMLUtils/index.html || RET=1; \
+	test $$RET -ne 0 && exit 1 || exit 0
 
 install-data-local:
 	mkdir -p $(docdir)
 	cp -rf http___* $(docdir)
+
+clean-local:
+	rm -f http___www_mbsim-env_de_MBXMLUtils/index.html

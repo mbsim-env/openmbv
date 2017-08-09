@@ -32,10 +32,7 @@ fi
 
 DOXYGENFUNCTIONPREFIX1="set"
 DOXYGENFUNCTIONPREFIX2="add"
-BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
-BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
-EXEEXT=@EXEEXT@
 
 rm -f .$BASENAME2.done
 
@@ -94,6 +91,13 @@ echo "Copy *.svg"
 for D in $(echo $FIGUREDIR | tr ':' ' '); do
   ls -1 $D/*.svg 2> /dev/null && cp -f $D/*.svg $HTMLDIR
 done
+echo "DONE"
+
+echo "Check HTML documentation"
+RET=0
+$prefix/share/fmatvec/checkHtml/checkHtml.sh $HTMLDIR/index.html || RET=1
+$prefix/share/fmatvec/checkHtml/checkMathJax.sh $HTMLDIR/index.html || RET=1
+test $RET -ne 0 && exit 1
 echo "DONE"
 
 touch .$BASENAME2.done
