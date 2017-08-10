@@ -32,6 +32,8 @@ fi
 
 DOXYGENFUNCTIONPREFIX1="set"
 DOXYGENFUNCTIONPREFIX2="add"
+BASENAME=$(dirname $FILE)/$(basename $FILE .xsd)
+BASENAME2=$(basename $FILE .xsd)
 prefix=@prefix@
 
 rm -f .$BASENAME2.done
