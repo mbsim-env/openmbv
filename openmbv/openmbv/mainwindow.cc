@@ -875,6 +875,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
   Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
   object->setText(0, fileName.c_str());
+  object->setToolTip(0, QFileInfo(fileName.c_str()).absoluteFilePath());
   if(!env)
     object->getIconFile()="h5file.svg";
   else

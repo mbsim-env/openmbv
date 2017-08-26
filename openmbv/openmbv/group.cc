@@ -26,6 +26,7 @@
 #include <string>
 #include "utils.h"
 #include <QtGui/QMessageBox>
+#include <QtCore/QFileInfo>
 #include "openmbvcppinterface/objectfactory.h"
 #include "openmbvcppinterface/arrow.h"
 #include "openmbvcppinterface/coilspring.h"
@@ -64,6 +65,7 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     iconFile="h5file.svg";
     setIcon(0, Utils::QIconCached(iconFile));
     setText(0, grp->getFileName().c_str());
+    setToolTip(0, QFileInfo(grp->getFileName().c_str()).absoluteFilePath());
     setFlags(flags() & ~Qt::ItemIsEditable);
   }
   // read XML
