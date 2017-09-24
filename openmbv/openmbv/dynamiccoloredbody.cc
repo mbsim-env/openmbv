@@ -86,7 +86,7 @@ void DynamicColoredBody::setHueColor(double hue) {
   mat->diffuseColor[0].getHSVValue(h, s, v);
   mat->diffuseColor.setHSVValue(hue, s, v);
   mat->specularColor[0].getHSVValue(h, s, v);
-  mat->specularColor.setHSVValue(hue, 0.7*s, v);
+  mat->specularColor.setHSVValue(hue, s, v);
 }
 
 QString DynamicColoredBody::getInfo() {
