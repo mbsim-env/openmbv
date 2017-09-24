@@ -33,6 +33,11 @@ class SoSepNoPickNoBBox : public SoSeparator {
     void getBoundingBox(SoGetBoundingBoxAction *action) {}
 };
 
+class SoSepNoPick : public SoSeparator {
+  public:
+    void rayPick(SoRayPickAction *action) {}
+};
+
 // equals SoBaseColor but the color is uses even if the override flag is set
 class SoBaseColorHeavyOverride : public SoBaseColor {
   public:

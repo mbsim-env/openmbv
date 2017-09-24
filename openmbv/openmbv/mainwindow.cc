@@ -172,7 +172,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   bc->setOverride(true);
   engDrawing->addChild(bc);
 
-  sceneRootBBox=new SoSepNoPickNoBBox;
+  sceneRootBBox=new SoSepNoPick;
   sceneRoot->addChild(sceneRootBBox);
   SoLightModel *lm=new SoLightModel;
   sceneRootBBox->addChild(lm);

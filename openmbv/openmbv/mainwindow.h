@@ -87,7 +87,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     int reloadTimeout;
     SoFieldSensor *frameSensor;
   protected:
-    SoSepNoPickNoBBox *sceneRootBBox;
+    SoSepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
     AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
@@ -232,7 +232,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     bool soQtEventCB(const SoEvent *const event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
-    SoSepNoPickNoBBox *getSceneRootBBox() { return sceneRootBBox; }
+    SoSepNoPick *getSceneRootBBox() { return sceneRootBBox; }
     QTripleSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }
     double getSpeed() { return speedSB->value(); }
