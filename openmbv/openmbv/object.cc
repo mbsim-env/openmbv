@@ -100,6 +100,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   if(clone && clone->properties) {
     properties=clone->properties;
     properties->setParentObject(this);
+    boundingBoxEditor=clone->boundingBoxEditor;
   }
 }
 
