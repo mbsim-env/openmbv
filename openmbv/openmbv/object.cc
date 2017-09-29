@@ -171,6 +171,8 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     bboxAction->apply(p);
     float x1,y1,z1,x2,y2,z2;
     bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
+    if(x1>x2 || y1>y2 || z1>z2)
+      x1=x2=y1=y2=z1=z2=0;
     object->soBBox->width.setValue((x2-x1)*1.05);
     object->soBBox->height.setValue((y2-y1)*1.05);
     object->soBBox->depth.setValue((z2-z1)*1.05);
