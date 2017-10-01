@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_PATH_H_
 
 #include "body.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <hdf5serie/vectorserie.h>

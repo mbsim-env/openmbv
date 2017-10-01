@@ -35,6 +35,7 @@
 #include "body.h"
 #include "group.h"
 #include "SoSpecial.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/engines/SoTransformVec3f.h>

@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_SOTRANSPOSEENGINE_H_
 #define _OPENMBVGUI_SOTRANSPOSEENGINE_H_
 
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/engines/SoSubEngine.h>
 #include <Inventor/fields/SoSFRotation.h>
 

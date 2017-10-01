@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_INDEXEDTESSELATIONFACE_H_
 #define _OPENMBVGUI_INDEXEDTESSELATIONFACE_H_
 
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/fields/SoMFInt32.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/fields/SoMFVec3d.h>
