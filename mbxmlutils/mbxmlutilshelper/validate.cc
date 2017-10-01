@@ -1,4 +1,6 @@
 #include <config.h>
+#include <cassert>
+#include <cfenv>
 #include <iostream>
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -9,6 +11,10 @@ using namespace boost::filesystem;
 using namespace MBXMLUtils;
 
 int main(int argc, char *argv[]) {
+#ifndef _WIN32
+  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+#endif
+
   set<path> schemas;
   for(int i=1; i<argc; ++i)
     if(boost::algorithm::ends_with(argv[i], ".xsd"))

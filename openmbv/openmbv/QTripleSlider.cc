@@ -158,11 +158,11 @@ void QTripleSlider::syncCurrentRangeToSplitterPosition() {
 
   // the new current min
   double slopeMin=static_cast<double>(totalMax-totalMin)/size;
-  int s2=static_cast<int>((slider->minimum()-totalMin)/slopeMin+0.5);
+  int s2=slopeMin ? static_cast<int>((slider->minimum()-totalMin)/slopeMin+0.5) : 0;
 
   // the new current max
   double slopeMax=static_cast<double>(totalMin-totalMax)/size;
-  int s0=static_cast<int>((slider->maximum()-totalMax)/slopeMax+0.5);
+  int s0=slopeMax ? static_cast<int>((slider->maximum()-totalMax)/slopeMax+0.5) : 0;
 
   // set new splitter positions
   QList<int> sizeArray;

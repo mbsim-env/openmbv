@@ -18,6 +18,8 @@
 */
 
 #include "config.h"
+#include <cassert>
+#include <cfenv>
 #include <QtGui/QApplication>
 #include "mainwindow.h"
 
@@ -25,6 +27,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+#ifndef _WIN32
+  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+#endif
+
   // environment variables
   // Disalbe COIN VBO per default (see --help)
   static char COIN_VBO[11];

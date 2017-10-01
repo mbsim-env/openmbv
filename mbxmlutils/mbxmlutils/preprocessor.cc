@@ -1,4 +1,6 @@
 #include "config.h"
+#include <cassert>
+#include <cfenv>
 #include "mbxmlutils/preprocess.h"
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <mbxmlutils/eval.h>
@@ -13,6 +15,10 @@ using namespace boost::filesystem;
 path SCHEMADIR;
 
 int main(int argc, char *argv[]) {
+#ifndef _WIN32
+  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+#endif
+
   try {
 
     //TODO not working on Windows

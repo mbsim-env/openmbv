@@ -1,4 +1,6 @@
 #include "config.h"
+#include <cassert>
+#include <cfenv>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cuboid.h>
 #include <openmbvcppinterface/cube.h>
@@ -20,6 +22,9 @@ using namespace std;
 void walkHierarchy(const shared_ptr<Group> &grp);
 
 int main() {
+#ifndef _WIN32
+  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+#endif
 
   cout<<"CREATE"<<endl;
   {
