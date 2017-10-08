@@ -6,6 +6,7 @@
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
+#include <boost/scope_exit.hpp>
 
 using namespace std;
 using namespace std::placeholders;
@@ -49,7 +50,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
           else if(eval->valueIsOfType(ret, Eval::StringType))
             subst=eval->cast<string>(ret);
           else
-            throw runtime_error("Attribute evaluations can only be of type scalar or string.");
+            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", e, E(e)->getAttributeNode("href"));
         } RETHROW_MBXMLUTILS(e)
         file=E(e)->convertPath(subst);
         dependencies.push_back(file);
@@ -154,6 +155,13 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       // delete embed element and insert count time the new element
       DOMElement *embed=e;
       DOMNode *p=e->getParentNode();
+      DOMElement *insertBefore=embed->getNextElementSibling();
+      p->removeChild(embed);
+      BOOST_SCOPE_EXIT(&embed) {
+        // release the embed element on scope exit
+        embed->release();
+      } BOOST_SCOPE_EXIT_END
+      int realCount=0;
       for(long i=1; i<=count; i++) {
         NewParamLevel newParamLevel(eval);
         Eval::Value ii=eval->create(static_cast<double>(i));
@@ -170,9 +178,11 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         if(E(embed)->hasAttribute("onlyif"))
           try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif"), embed))==1); } RETHROW_MBXMLUTILS(embed)
         if(onlyif) {
+          realCount++;
           eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
-          e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), embed));
-    
+          if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
+            throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);
+          e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), insertBefore));
           // include a processing instruction with the count number
           E(e)->setEmbedCountNumber(i);
       
@@ -183,9 +193,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         else
           eval->msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
-      // remove embed element
-      p->removeChild(embed)->release();
-      if(embed==e) // no new element added, just the Embed was removed
+      if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
+        throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);
+      // no new element added, just the Embed was removed
+      if(embed==e)
         e=nullptr;
       return;
     }
@@ -224,7 +235,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
           else if(eval->valueIsOfType(value, Eval::StringType))
             s=eval->cast<string>(value);
           else
-            throw runtime_error("Attribute evaluations can only be of type scalar or string.");
+            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", e, a);
         } RETHROW_MBXMLUTILS(e)
         a->setValue(X()%s);
       }
