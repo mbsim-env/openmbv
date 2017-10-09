@@ -24,6 +24,7 @@
 #include <QtGui/QTreeWidgetItem>
 #include <string>
 #include <set>
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>

@@ -23,6 +23,7 @@
 #include <fmatvec/atom.h>
 #include <QtCore/QObject>
 #include <vector>
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <QtCore/QReadWriteLock>

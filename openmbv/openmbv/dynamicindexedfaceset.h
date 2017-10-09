@@ -22,6 +22,7 @@
 
 #include "body.h"
 #include <string>
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
 
 namespace OpenMBV {

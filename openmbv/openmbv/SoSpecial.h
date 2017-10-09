@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_SOSEPNOPICKNOBBOX_H_
 #define _OPENMBVGUI_SOSEPNOPICKNOBBOX_H_
 
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/nodes/SoBaseColor.h>

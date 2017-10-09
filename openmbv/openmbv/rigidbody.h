@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_RIGIDBODY_H_
 
 #include "dynamiccoloredbody.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
