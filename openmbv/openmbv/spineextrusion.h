@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_SPINEEXTRUSION_H_
 
 #include "dynamiccoloredbody.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
 #include <hdf5serie/vectorserie.h>

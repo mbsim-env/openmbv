@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_UTILS_H_
 
 #include <QtGui/QIcon>
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/SbRotation.h>

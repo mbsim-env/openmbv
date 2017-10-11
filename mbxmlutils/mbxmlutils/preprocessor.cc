@@ -90,7 +90,13 @@ int main(int argc, char *argv[]) {
 
       // create a clean evaluator (get the evaluator name first form the dom)
       string evalName="octave"; // default evaluator
-      DOMElement *evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+      DOMElement *evaluator;
+      if(E(mainxmlele)->getTagName()==PV%"Embed")
+        // if the root element IS A Embed than the <evaluator> element is the first child of the first child of the root element
+        evaluator=E(mainxmlele->getFirstElementChild())->getFirstElementChildNamed(PV%"evaluator");
+      else
+        // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
+        evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
       if(evaluator)
         evalName=X()%E(evaluator)->getFirstTextChild()->getData();
       shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
@@ -98,7 +104,8 @@ int main(int argc, char *argv[]) {
       // embed/validate/unit/eval files
       Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
 
-      // adapt the evaluator in the dom
+      // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
+      evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
       if(evaluator)
         E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
       else {

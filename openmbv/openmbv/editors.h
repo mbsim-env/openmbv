@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_EDITORS_H_
 
 #include <fmatvec/atom.h>
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <openmbvcppinterface/polygonpoint.h>

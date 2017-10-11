@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_COILSPRING_H_
 
 #include "dynamiccoloredbody.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/nodes/SoRotation.h>

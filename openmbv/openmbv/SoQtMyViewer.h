@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_SOQTMYVIEWER_H_
 #define _OPENMBVGUI_SOQTMYVIEWER_H_
 
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <QtCore/QEvent>
 #include <GL/gl.h>

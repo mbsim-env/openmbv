@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_DYNAMICCOLOREDBODY_H_
 
 #include "body.h"
+#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include "editors.h"
