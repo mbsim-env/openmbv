@@ -394,8 +394,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     static std::map<std::string, std::function<std::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators();
 
-    void convertQName(Value &ret, const xercesc::DOMElement *e, const xercesc::DOMAttr *a);
-
 };
 
 template<typename T>

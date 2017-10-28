@@ -551,9 +551,19 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe)
     if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialEval"))
       dependencies->push_back(E(pe)->convertPath(s));
 
-    // handle qnamePartialEval and enableDisableQNamePartialEval
-    if(A(a)->isDerivedFrom(PV%"qnamePartialEval") || A(a)->isDerivedFrom(PV%"enableDisableQNamePartialEval"))
-      convertQName(ret, pe, a);
+    // handle qnamePartialEval (must be converted to [<nsuri>]<localname> syntax to avoid
+    // problems with chaning ns prefix mapping on document normalize/serialize)
+    if(A(a)->isDerivedFrom(PV%"qnamePartialEval")) {
+      string str=cast<string>(ret);
+      if(str.length()>0 && str[0]!='[') {
+        size_t c=str.find(':');
+        if(c==string::npos)
+          str="["+X()%pe->lookupNamespaceURI(nullptr)+"]"+str.substr(c+1);
+        else
+          str="["+X()%pe->lookupNamespaceURI(X()%str.substr(0,c))+"]"+str.substr(c+1);
+        ret=create(str);
+      }
+    }
 
     return ret;
   }
@@ -717,23 +727,6 @@ void Eval::addStaticDependencies(const DOMElement *e) const {
 
 void Eval::setValue(DOMElement *e, const Value &v) {
   e->setUserData(X()%evalValueKey, new Value(v), &valueUserDataHandler);
-}
-
-void Eval::convertQName(Value &ret, const DOMElement *e, const DOMAttr *a) {
-  string str=cast<string>(ret);
-  string prefix;
-  if(A(a)->isDerivedFrom(PV%"enableDisableQNamePartialEval")) {
-    if(str.empty() || (str[0]!='+' && str[0]!='-'))
-      throw DOMEvalException("Must start with '+' or '-'.", e, a);
-    prefix=str.substr(0, 1);
-    str=str.substr(1);
-  }
-  size_t c=str.find(':');
-  if(c==string::npos)
-    str="{"+X()%e->lookupNamespaceURI(nullptr)+"}"+str.substr(c+1);
-  else
-    str="{"+X()%e->lookupNamespaceURI(X()%str.substr(0,c))+"}"+str.substr(c+1);
-  ret=create(prefix+str);
 }
 
 } // end namespace MBXMLUtils

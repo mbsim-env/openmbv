@@ -111,15 +111,11 @@
         <xs:restriction base="varnamePartialEval"/>
       </xs:simpleType>
 
-      <!-- partial evaluation interpreted as a QName ("xs:name" or "name").
-           Is converted to the "{uri}localname" syntax. -->
+      <!-- partial evaluation interpreted as a QName. Valid evaluated syntax is:
+           - <nsprefix>:<localname>
+           - <localname> (the default namespace prefix is used)
+           - [<nsuri>]<localname> -->
       <xs:simpleType name="qnamePartialEval">
-        <xs:restriction base="stringPartialEval"/>
-      </xs:simpleType>
-
-      <!-- partial evaluation interpreted as a enable/disable QName ("+xs:name", "-name", ...).
-           Is converted to the "+{uri}localname" syntax. -->
-      <xs:simpleType name="enableDisableQNamePartialEval">
         <xs:restriction base="stringPartialEval"/>
       </xs:simpleType>
 

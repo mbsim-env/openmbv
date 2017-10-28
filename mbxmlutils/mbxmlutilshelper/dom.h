@@ -191,6 +191,8 @@ class DOMAttrWrapper {
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &base) const;
+    //! Get a attribute value being a QName (e.g. <nsprefix>:<localname>, <localname> or [<nsuri>]<localname>)
+    FQN getQName() const;
     //! Treat this object as a pointer (like DOMAttr*)
     typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
       const DOMAttrWrapper*, DOMAttrWrapper*>::type operator->() {

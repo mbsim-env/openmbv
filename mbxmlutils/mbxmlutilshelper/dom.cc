@@ -336,6 +336,27 @@ bool DOMAttrWrapper<DOMAttrType>::isDerivedFrom(const FQN &baseTypeName) const {
 }
 template bool DOMAttrWrapper<const DOMAttr>::isDerivedFrom(const FQN &baseTypeName) const; // explicit instantiate const variant
 
+template<typename DOMAttrType>
+FQN DOMAttrWrapper<DOMAttrType>::getQName() const {
+  string str=X()%me->getValue();
+  if(str.length()>0 && str[0]=='[') {
+    // for QName attribute values we allow the syntax [<nsuri>]<localname> and ...
+    size_t c=str.rfind(']');
+    if(c==string::npos)
+      throw runtime_error("Found starting [ but no closing ].");
+    return FQN(str.substr(1,c-1), str.substr(c+1));
+  }
+  else {
+    // ... the syntax <nsprefix>:<localname> or <localname>
+    size_t c=str.find(':');
+    if(c==string::npos)
+      return FQN(X()%me->lookupNamespaceURI(nullptr), str);
+    else
+      return FQN(X()%me->lookupNamespaceURI(X()%str.substr(0,c)), str.substr(c+1));
+  }
+}
+template FQN DOMAttrWrapper<const DOMAttr>::getQName() const; // explicit instantiate const variant
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMAttrWrapper<DOMAttr>;
 
