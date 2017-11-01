@@ -65,7 +65,12 @@ void Object::initializeUsingXML(DOMElement *element) {
 
 DOMElement *Object::writeXMLFile(DOMNode *parent) {
   DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
-  DOMElement *e=D(doc)->createElement(OPENMBV%getClassName());
+
+  // get type name of this object, without namespace since everything must be in the same namespace
+  string typeName(boost::core::demangle(typeid(*this).name()));
+  typeName=typeName.substr(typeName.rfind(':')+1);
+
+  DOMElement *e=D(doc)->createElement(OPENMBV%typeName);
   parent->insertBefore(e, NULL);
   E(e)->setAttribute("name", name);
   E(e)->setAttribute("enable", enableStr);

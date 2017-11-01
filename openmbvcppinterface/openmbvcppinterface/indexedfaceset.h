@@ -34,9 +34,6 @@ namespace OpenMBV {
       IndexedFaceSet();
       ~IndexedFaceSet() {}
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "IndexedFaceSet"; }
-
       /** Get control points
        */
       const std::vector<std::vector<double> >& getVertexPositions() { return vp; }

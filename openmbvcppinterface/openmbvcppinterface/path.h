@@ -44,9 +44,6 @@ namespace OpenMBV {
       Path();
       virtual ~Path();
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Path"; }
-
       /** Append a data vector the to hf dataset */
       template<typename T>
       void append(const T& row) {

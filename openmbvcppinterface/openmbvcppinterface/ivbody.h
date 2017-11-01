@@ -29,9 +29,6 @@ namespace OpenMBV {
   class IvBody : public RigidBody {
     friend class ObjectFactory;
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "IvBody"; }
-
       /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
 

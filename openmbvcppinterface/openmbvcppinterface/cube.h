@@ -32,10 +32,6 @@ namespace OpenMBV {
       Cube();
       ~Cube() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Cube"; }
-
       /** Set the length of the cube (x, y and z)*/
       void setLength(double length_) {
         length=length_;

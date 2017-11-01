@@ -31,10 +31,6 @@ namespace OpenMBV {
       InvisibleBody();
       ~InvisibleBody() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "InvisibleBody"; }
-
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);
 

@@ -35,9 +35,6 @@ namespace OpenMBV {
       Rotation();
       ~Rotation();
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Rotation"; }
-
       /** Set start angle of the rotation (Default: 0). */
       void setStartAngle(double angle) {
         startAngle=angle;

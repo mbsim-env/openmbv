@@ -33,10 +33,6 @@ namespace OpenMBV {
       Frame();
       ~Frame() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Frame"; }
-
       /** Set the length of the three axis, represended by lines in red, green and blue color. */
       void setSize(double size_) { size=size_; }
 

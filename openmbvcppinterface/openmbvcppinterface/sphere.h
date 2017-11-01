@@ -32,9 +32,6 @@ namespace OpenMBV {
       Sphere();
       ~Sphere() {}
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Sphere"; }
-
       /** Set the radius of the shpere */
       void setRadius(double radius_) {
         radius=radius_;

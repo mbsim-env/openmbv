@@ -44,9 +44,6 @@ namespace OpenMBV {
   class SpineExtrusion : public DynamicColoredBody {
     friend class ObjectFactory;
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "SpineExtrusion"; }
-
       /** Set the number of spine points used for extrusion along a path.
        */
       void setNumberOfSpinePoints(const int num) {

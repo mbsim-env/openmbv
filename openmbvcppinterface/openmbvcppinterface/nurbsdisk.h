@@ -40,10 +40,6 @@ namespace OpenMBV {
   class NurbsDisk : public DynamicColoredBody {
     friend class ObjectFactory;
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "NurbsDisk"; }
-
-
       /** Draw reference frame of this object in the viewer if true (the default) */
       void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
 

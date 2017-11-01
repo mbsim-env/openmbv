@@ -52,9 +52,6 @@ namespace OpenMBV {
       CoilSpring();
       virtual ~CoilSpring();
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "CoilSpring"; }
-      
       template<typename T>
       void append(const T& row) {
         if(data==0) throw std::runtime_error("can not append data to an environement object");

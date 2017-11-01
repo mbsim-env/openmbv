@@ -40,10 +40,6 @@ namespace OpenMBV {
       CompoundRigidBody();
       ~CompoundRigidBody();
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "CompoundRigidBody"; }
-
       /** Add a RigidBody to this compound */
       void addRigidBody(std::shared_ptr<RigidBody> rigidBody_) {
         if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");

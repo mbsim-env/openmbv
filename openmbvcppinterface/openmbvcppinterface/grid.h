@@ -33,10 +33,6 @@ namespace OpenMBV {
       Grid();
       ~Grid() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Grid"; }
-
       /** Set the length in x-direction*/
       void setXSize(double length_) {
         xSize=length_;

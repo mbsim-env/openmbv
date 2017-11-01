@@ -62,10 +62,6 @@ namespace OpenMBV {
       Object();
       virtual ~Object();
     public:
-
-      /** Retrun the class name */
-      virtual std::string getClassName()=0;
-
       /** Enable this object in the viewer if true (the default) */
       void setEnable(bool enable) { enableStr=(enable==true)?"true":"false"; }
 

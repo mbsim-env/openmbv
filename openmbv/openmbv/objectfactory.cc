@@ -19,6 +19,27 @@
 
 #include "config.h"
 #include "objectfactory.h"
+
+#include "openmbvcppinterface/arrow.h"
+#include "openmbvcppinterface/coilspring.h"
+#include "openmbvcppinterface/compoundrigidbody.h"
+#include "openmbvcppinterface/cube.h"
+#include "openmbvcppinterface/cuboid.h"
+#include "openmbvcppinterface/extrusion.h"
+#include "openmbvcppinterface/rotation.h"
+#include "openmbvcppinterface/frame.h"
+#include "openmbvcppinterface/grid.h"
+#include "openmbvcppinterface/frustum.h"
+#include "openmbvcppinterface/group.h"
+#include "openmbvcppinterface/invisiblebody.h"
+#include "openmbvcppinterface/ivbody.h"
+#include "openmbvcppinterface/nurbsdisk.h"
+#include "openmbvcppinterface/indexedfaceset.h"
+#include "openmbvcppinterface/dynamicindexedfaceset.h"
+#include "openmbvcppinterface/path.h"
+#include "openmbvcppinterface/sphere.h"
+#include "openmbvcppinterface/spineextrusion.h"
+
 #include "arrow.h"
 #include "coilspring.h"
 #include "compoundrigidbody.h"
@@ -47,45 +68,45 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
-  if(obj->getClassName()=="Group")
+  if(typeid(*obj)==typeid(OpenMBV::Group))
     return new Group(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Arrow")
+  else if(typeid(*obj)==typeid(OpenMBV::Arrow))
     return new Arrow(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="CoilSpring")
+  else if(typeid(*obj)==typeid(OpenMBV::CoilSpring))
     return new CoilSpring(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="CompoundRigidBody")
+  else if(typeid(*obj)==typeid(OpenMBV::CompoundRigidBody))
     return new CompoundRigidBody(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Cube")
+  else if(typeid(*obj)==typeid(OpenMBV::Cube))
     return new Cube(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Cuboid")
+  else if(typeid(*obj)==typeid(OpenMBV::Cuboid))
     return new Cuboid(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Extrusion")
+  else if(typeid(*obj)==typeid(OpenMBV::Extrusion))
     return new Extrusion(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Rotation")
+  else if(typeid(*obj)==typeid(OpenMBV::Rotation))
     return new Rotation(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Grid")
+  else if(typeid(*obj)==typeid(OpenMBV::Grid))
     return new Grid(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Frame")
+  else if(typeid(*obj)==typeid(OpenMBV::Frame))
     return new Frame(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Frustum")
+  else if(typeid(*obj)==typeid(OpenMBV::Frustum))
     return new Frustum(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="IvBody")
+  else if(typeid(*obj)==typeid(OpenMBV::IvBody))
     return new IvBody(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="InvisibleBody")
+  else if(typeid(*obj)==typeid(OpenMBV::InvisibleBody))
     return new InvisibleBody(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="NurbsDisk")
+  else if(typeid(*obj)==typeid(OpenMBV::NurbsDisk))
     return new NurbsDisk(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="IndexedFaceSet")
+  else if(typeid(*obj)==typeid(OpenMBV::IndexedFaceSet))
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="DynamicIndexedFaceSet")
+  else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedFaceSet))
     return new DynamicIndexedFaceSet(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Path")
+  else if(typeid(*obj)==typeid(OpenMBV::Path))
     return new Path(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="Sphere")
+  else if(typeid(*obj)==typeid(OpenMBV::Sphere))
     return new Sphere(obj, parentItem, soParent, ind);
-  else if(obj->getClassName()=="SpineExtrusion")
+  else if(typeid(*obj)==typeid(OpenMBV::SpineExtrusion))
     return new SpineExtrusion(obj, parentItem, soParent, ind);
-  QString str("Unknown OpenMBV::Object: %1"); str=str.arg(obj->getClassName().c_str());
+  QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;
   return 0;

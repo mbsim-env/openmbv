@@ -32,10 +32,6 @@ namespace OpenMBV {
       Frustum();
       ~Frustum() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Frustum"; }
-
       /** Set the radius of the outer side at the base (bottom) */
       void setBaseRadius(double radius) {
         baseRadius=radius;

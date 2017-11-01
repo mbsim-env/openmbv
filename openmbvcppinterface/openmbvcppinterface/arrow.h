@@ -63,9 +63,6 @@ namespace OpenMBV {
       Arrow();
       virtual ~Arrow();
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Arrow"; }
-
       /** Draw path of this object in the viewer if true (the default) */
       void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
 

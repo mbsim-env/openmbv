@@ -43,9 +43,6 @@ namespace OpenMBV {
       void createHDF5File();
       void openHDF5File();
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "DynamicIndexedFaceSet"; }
-
       /** Get control points
        */
       int getNumberOfVertexPositions() const { return numvp; }

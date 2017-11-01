@@ -71,7 +71,7 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   // read XML
   vector<std::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
   for(unsigned int i=0; i<child.size(); i++) {
-    if(child[i]->getClassName()=="Group" && (std::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
+    if(typeid(*child[i])==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
     ObjectFactory::create(child[i], this, soSep, -1);
   }
 

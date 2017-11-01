@@ -44,10 +44,6 @@ namespace OpenMBV {
       Body();
       ~Body() {}
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Body"; }
-
       /** Link this body with dest in the HDF5 file */
       void setHDF5LinkTarget(const std::shared_ptr<Body> &dest) { hdf5LinkBody=dest; }
       

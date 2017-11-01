@@ -32,9 +32,6 @@ namespace OpenMBV {
       Cuboid();
       ~Cuboid() {}
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Cuboid"; }
-
       /** Set the length of the cuboid */
       void setLength(const std::vector<double>& length_) {
         if(length_.size()!=3) throw std::runtime_error("the dimension does not match");

@@ -44,10 +44,6 @@ namespace OpenMBV {
       Extrusion();
       ~Extrusion();
     public:
-
-      /** Retrun the class name */
-      std::string getClassName() { return "Extrusion"; }
-
       /** Set the OpenGL winding rule for the tesselation of the cross section area.
        * Allowable values are "odd", "nonzero", "positive", "negative" and "absGEqTwo".
        * See the OpenGL-GLU documentation the the meaning of this values.

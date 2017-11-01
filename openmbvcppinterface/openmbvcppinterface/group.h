@@ -68,9 +68,6 @@ namespace OpenMBV {
       void readH5();
 
     public:
-      /** Retrun the class name */
-      std::string getClassName() { return "Group"; }
-
       /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
 
