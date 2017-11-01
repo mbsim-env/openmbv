@@ -37,10 +37,10 @@ Grid::Grid() : RigidBody(),
 
 DOMElement* Grid::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"xSize", xSize);
-  addElementText(e, OPENMBV%"ySize", ySize);
-  addElementText(e, OPENMBV%"nx", nx);
-  addElementText(e, OPENMBV%"ny", ny);
+  E(e)->addElementText(OPENMBV%"xSize", xSize);
+  E(e)->addElementText(OPENMBV%"ySize", ySize);
+  E(e)->addElementText(OPENMBV%"nx", nx);
+  E(e)->addElementText(OPENMBV%"ny", ny);
   return 0;
 }
 
@@ -48,9 +48,9 @@ void Grid::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"xSize");
-  setXSize(getDouble(e));
+  setXSize(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ySize");
-  setYSize(getDouble(e));
+  setYSize(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"nx");
   setXNumber((unsigned int)(boost::lexical_cast<double>((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ny");

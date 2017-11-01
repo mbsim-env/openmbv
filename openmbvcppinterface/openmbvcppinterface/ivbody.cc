@@ -35,9 +35,9 @@ IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"ivFileName", "'"+ivFileName+"'");
-  addElementText(e, OPENMBV%"creaseEdges", creaseAngle, -1);
-  addElementText(e, OPENMBV%"boundaryEdges", boundaryEdges, false);
+  E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
+  E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
+  E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
   return 0;
 }
 
@@ -48,7 +48,7 @@ void IvBody::initializeUsingXML(DOMElement *element) {
   string str = X()%E(e)->getFirstTextChild()->getData();
   setIvFileName(E(e)->convertPath(str.substr(1,str.length()-2)).string());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"creaseEdges");
-  if(e) setCreaseEdges(getDouble(e));
+  if(e) setCreaseEdges(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"boundaryEdges");
   if(e) {
     string str = X()%E(e)->getFirstTextChild()->getData();

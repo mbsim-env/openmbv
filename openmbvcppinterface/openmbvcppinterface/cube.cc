@@ -36,7 +36,7 @@ Cube::Cube() : RigidBody(),
 
 DOMElement* Cube::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"length", length);
+  E(e)->addElementText(OPENMBV%"length", length);
   return 0;
 }
 
@@ -44,7 +44,7 @@ void Cube::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"length");
-  setLength(getDouble(e));
+  setLength(E(e)->getText<double>());
 }
 
 }

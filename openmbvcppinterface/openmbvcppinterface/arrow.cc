@@ -45,10 +45,10 @@ Arrow::~Arrow() {
 
 DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
-  addAttribute(e, "path", pathStr, "false");
-  addElementText(e, OPENMBV%"diameter", diameter);
-  addElementText(e, OPENMBV%"headDiameter", headDiameter);
-  addElementText(e, OPENMBV%"headLength", headLength);
+  E(e)->setAttribute("path", pathStr);
+  E(e)->addElementText(OPENMBV%"diameter", diameter);
+  E(e)->addElementText(OPENMBV%"headDiameter", headDiameter);
+  E(e)->addElementText(OPENMBV%"headLength", headLength);
   string typeStr;
   switch(type) {
     case line:            typeStr="line";            break;
@@ -59,15 +59,15 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
     case toDoubleHead:    typeStr="toDoubleHead";    break;
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
-  addElementText(e, OPENMBV%"type", "'"+typeStr+"'");
+  E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
   string referencePointStr;
   switch(referencePoint) {
     case toPoint:   referencePointStr="toPoint";   break;
     case fromPoint: referencePointStr="fromPoint"; break;
     case midPoint:  referencePointStr="midPoint";  break;
   }
-  addElementText(e, OPENMBV%"referencePoint", "'"+referencePointStr+"'");
-  addElementText(e, OPENMBV%"scaleLength", scaleLength);
+  E(e)->addElementText(OPENMBV%"referencePoint", "'"+referencePointStr+"'");
+  E(e)->addElementText(OPENMBV%"scaleLength", scaleLength);
   return 0;
 }
 
@@ -109,11 +109,11 @@ void Arrow::initializeUsingXML(DOMElement *element) {
     setPath(true);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"diameter");
-  setDiameter(getDouble(e));
+  setDiameter(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"headDiameter");
-  setHeadDiameter(getDouble(e));
+  setHeadDiameter(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"headLength");
-  setHeadLength(getDouble(e));
+  setHeadLength(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"type");
   string name = X()%E(e)->getFirstTextChild()->getData();
   string typeStr=name.substr(1,name.length()-2);
@@ -133,7 +133,7 @@ void Arrow::initializeUsingXML(DOMElement *element) {
     if(referencePointStr=="midPoint")  setReferencePoint(midPoint);
   }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleLength");
-  setScaleLength(getDouble(e));
+  setScaleLength(E(e)->getText<double>());
 }
 
 }

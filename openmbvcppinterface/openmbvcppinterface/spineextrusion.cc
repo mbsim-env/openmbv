@@ -43,8 +43,8 @@ SpineExtrusion::~SpineExtrusion() {
 DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
-  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
-  addElementText(e, OPENMBV%"initialRotation", initialRotation);
+  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
+  E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
   return 0;
 }
 
@@ -55,10 +55,10 @@ void SpineExtrusion::createHDF5File() {
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numberOfSpinePoints;i++) {
-      columns.push_back("x"+numtostr(i));
-      columns.push_back("y"+numtostr(i));
-      columns.push_back("z"+numtostr(i));
-      columns.push_back("twist"+numtostr(i));
+      columns.push_back("x"+to_string(i));
+      columns.push_back("y"+to_string(i));
+      columns.push_back("z"+to_string(i));
+      columns.push_back("twist"+to_string(i));
     }
     data->setColumnLabel(columns);
   }
@@ -84,9 +84,9 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  setScaleFactor(getDouble(e));
+  setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
-  setInitialRotation(getVec(e,3));
+  setInitialRotation(E(e)->getText<vector<double>>(3));
 }
 
 }

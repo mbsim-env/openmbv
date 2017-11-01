@@ -42,13 +42,13 @@ RigidBody::~RigidBody() {
 
 DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
-  addAttribute(e, "localFrame", localFrameStr, "false");
-  addAttribute(e, "referenceFrame", referenceFrameStr, "false");
-  addAttribute(e, "path", pathStr, "false");
-  addAttribute(e, "dragger", draggerStr, "false");
-  addElementText(e, OPENMBV%"initialTranslation", initialTranslation);
-  addElementText(e, OPENMBV%"initialRotation", initialRotation);
-  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
+  E(e)->setAttribute("localFrame", localFrameStr);
+  E(e)->setAttribute("referenceFrame", referenceFrameStr);
+  E(e)->setAttribute("path", pathStr);
+  E(e)->setAttribute("dragger", draggerStr);
+  E(e)->addElementText(OPENMBV%"initialTranslation", initialTranslation);
+  E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
+  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   return e;
 }
 
@@ -99,11 +99,11 @@ void RigidBody::initializeUsingXML(DOMElement *element) {
     setDragger(true);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialTranslation");
-  setInitialTranslation(getVec(e,3));
+  setInitialTranslation(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
-  setInitialRotation(getVec(e,3));
+  setInitialRotation(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  setScaleFactor(getDouble(e));
+  setScaleFactor(E(e)->getText<double>());
 }
 
 std::shared_ptr<Group> RigidBody::getSeparateGroup() {

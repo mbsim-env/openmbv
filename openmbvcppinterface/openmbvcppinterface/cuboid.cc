@@ -36,7 +36,7 @@ Cuboid::Cuboid() : RigidBody(),
 
 DOMElement* Cuboid::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"length", length);
+  E(e)->addElementText(OPENMBV%"length", length);
   return 0;
 }
 
@@ -44,7 +44,7 @@ void Cuboid::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"length");
-  setLength(getVec(e,3));
+  setLength(E(e)->getText<vector<double>>(3));
 }
 
 }

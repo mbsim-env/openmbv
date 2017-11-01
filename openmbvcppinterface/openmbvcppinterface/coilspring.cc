@@ -51,12 +51,12 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
   }
-  addElementText(e, OPENMBV%"type", "'"+typeStr+"'");
-  addElementText(e, OPENMBV%"numberOfCoils", numberOfCoils);
-  addElementText(e, OPENMBV%"springRadius", springRadius);
-  addElementText(e, OPENMBV%"crossSectionRadius", crossSectionRadius);
-  addElementText(e, OPENMBV%"nominalLength", nominalLength);
-  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
+  E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
+  E(e)->addElementText(OPENMBV%"numberOfCoils", numberOfCoils);
+  E(e)->addElementText(OPENMBV%"springRadius", springRadius);
+  E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
+  E(e)->addElementText(OPENMBV%"nominalLength", nominalLength);
+  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   return 0;
 }
 
@@ -103,15 +103,15 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
     if(typeStr=="polyline") setType(polyline);
   }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfCoils");
-  setNumberOfCoils(getDouble(e));
+  setNumberOfCoils(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"springRadius");
-  setSpringRadius(getDouble(e));
+  setSpringRadius(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"crossSectionRadius");
-  if(e) setCrossSectionRadius(getDouble(e));
+  if(e) setCrossSectionRadius(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"nominalLength");
-  if(e) setNominalLength(getDouble(e));
+  if(e) setNominalLength(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  if(e) setScaleFactor(getDouble(e));
+  if(e) setScaleFactor(E(e)->getText<double>());
 }
 
 }

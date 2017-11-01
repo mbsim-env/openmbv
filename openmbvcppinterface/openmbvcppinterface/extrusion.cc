@@ -48,8 +48,8 @@ DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
     case negative: windingRuleStr="negative"; break;
     case absGEqTwo: windingRuleStr="absGEqTwo"; break;
   }
-  addElementText(e, OPENMBV%"windingRule", "'"+windingRuleStr+"'");
-  addElementText(e, OPENMBV%"height", height);
+  E(e)->addElementText(OPENMBV%"windingRule", "'"+windingRuleStr+"'");
+  E(e)->addElementText(OPENMBV%"height", height);
   for(vector<std::shared_ptr<vector<std::shared_ptr<PolygonPoint> > > >::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);
   return 0;
@@ -68,7 +68,7 @@ void Extrusion::initializeUsingXML(DOMElement *element) {
   if(wrStr=="negative") setWindingRule(negative);
   if(wrStr=="absGEqTwo") setWindingRule(absGEqTwo);
   e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
-  setHeight(getDouble(e));
+  setHeight(E(e)->getText<double>());
   e=e->getNextElementSibling();
   while(e) {
     addContour(PolygonPoint::initializeUsingXML(e));

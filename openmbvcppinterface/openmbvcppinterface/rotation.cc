@@ -41,8 +41,8 @@ Rotation::~Rotation() {
 
 DOMElement* Rotation::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"startAngle", startAngle, 0);
-  addElementText(e, OPENMBV%"endAngle", endAngle, 2*boost::math::double_constants::pi);
+  E(e)->addElementText(OPENMBV%"startAngle", startAngle);
+  E(e)->addElementText(OPENMBV%"endAngle", endAngle);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   return 0;
 }
@@ -52,9 +52,9 @@ void Rotation::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"startAngle");
-  if(e) setStartAngle(getDouble(e));
+  if(e) setStartAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"endAngle");
-  if(e) setEndAngle(getDouble(e));
+  if(e) setEndAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
 }

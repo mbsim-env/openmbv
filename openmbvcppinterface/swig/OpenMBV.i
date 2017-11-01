@@ -195,8 +195,6 @@
 
 
 
-%ignore OpenMBV::Object::addElementText;
-
 // generate interfaces for these files
 %include <openmbvcppinterface/polygonpoint.h>
 %include <openmbvcppinterface/object.h>

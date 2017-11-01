@@ -36,8 +36,8 @@ Frame::Frame() : RigidBody(),
 
 DOMElement* Frame::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"size", size);
-  addElementText(e, OPENMBV%"offset", offset);
+  E(e)->addElementText(OPENMBV%"size", size);
+  E(e)->addElementText(OPENMBV%"offset", offset);
   return 0;
 }
 
@@ -45,9 +45,9 @@ void Frame::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"size");
-  setSize(getDouble(e));
+  setSize(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"offset");
-  setOffset(getDouble(e));
+  setOffset(E(e)->getText<double>());
 }
 
 }

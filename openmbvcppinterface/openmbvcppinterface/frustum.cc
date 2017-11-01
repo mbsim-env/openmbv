@@ -40,11 +40,11 @@ Frustum::Frustum() : RigidBody(),
 
 DOMElement* Frustum::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"baseRadius", baseRadius);
-  addElementText(e, OPENMBV%"topRadius", topRadius);
-  addElementText(e, OPENMBV%"height", height);
-  addElementText(e, OPENMBV%"innerBaseRadius", innerBaseRadius);
-  addElementText(e, OPENMBV%"innerTopRadius", innerTopRadius);
+  E(e)->addElementText(OPENMBV%"baseRadius", baseRadius);
+  E(e)->addElementText(OPENMBV%"topRadius", topRadius);
+  E(e)->addElementText(OPENMBV%"height", height);
+  E(e)->addElementText(OPENMBV%"innerBaseRadius", innerBaseRadius);
+  E(e)->addElementText(OPENMBV%"innerTopRadius", innerTopRadius);
   return 0;
 }
 
@@ -52,15 +52,15 @@ void Frustum::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"baseRadius");
-  setBaseRadius(getDouble(e));
+  setBaseRadius(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"topRadius");
-  setTopRadius(getDouble(e));
+  setTopRadius(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
-  setHeight(getDouble(e));
+  setHeight(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"innerBaseRadius");
-  setInnerBaseRadius(getDouble(e));
+  setInnerBaseRadius(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"innerTopRadius");
-  setInnerTopRadius(getDouble(e));
+  setInnerTopRadius(E(e)->getText<double>());
 }
 
 }

@@ -24,6 +24,7 @@
 
 using namespace std;
 using namespace MBXMLUtils;
+using namespace xercesc;
 
 namespace OpenMBV {
 
@@ -35,9 +36,9 @@ Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
 Path::~Path() {
 }
 
-xercesc::DOMElement* Path::writeXMLFile(xercesc::DOMNode *parent) {
-  xercesc::DOMElement *e=Body::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"color", color);
+DOMElement* Path::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=Body::writeXMLFile(parent);
+  E(e)->addElementText(OPENMBV%"color", color);
   return 0;
 }
 
@@ -68,11 +69,11 @@ void Path::openHDF5File() {
   }
 }
 
-void Path::initializeUsingXML(xercesc::DOMElement *element) {
+void Path::initializeUsingXML(DOMElement *element) {
   Body::initializeUsingXML(element);
-  xercesc::DOMElement *e;
+  DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"color");
-  setColor(getVec(e,3));
+  setColor(E(e)->getText<vector<double>>(3));
 }
 
 }

@@ -52,22 +52,22 @@ NurbsDisk::~NurbsDisk() {
 
 DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"scaleFactor", scaleFactor);
-  addElementText(e, OPENMBV%"drawDegree", drawDegree);
-  addElementText(e, OPENMBV%"innerRadius", Ri);
-  addElementText(e, OPENMBV%"outerRadius", Ro);
-  addElementText(e, OPENMBV%"elementNumberAzimuthal", ElementNumberAzimuthal);
-  addElementText(e, OPENMBV%"elementNumberRadial", ElementNumberRadial);
-  addElementText(e, OPENMBV%"interpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
-  addElementText(e, OPENMBV%"interpolationDegreeRadial", InterpolationDegreeRadial);
+  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
+  E(e)->addElementText(OPENMBV%"drawDegree", drawDegree);
+  E(e)->addElementText(OPENMBV%"innerRadius", Ri);
+  E(e)->addElementText(OPENMBV%"outerRadius", Ro);
+  E(e)->addElementText(OPENMBV%"elementNumberAzimuthal", ElementNumberAzimuthal);
+  E(e)->addElementText(OPENMBV%"elementNumberRadial", ElementNumberRadial);
+  E(e)->addElementText(OPENMBV%"interpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
+  E(e)->addElementText(OPENMBV%"interpolationDegreeRadial", InterpolationDegreeRadial);
   string str="[";
-  for(int i=0;i<getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1;i++) str+=numtostr(KnotVecAzimuthal[i])+";";
-  addElementText(e, OPENMBV%"knotVecAzimuthal", str+numtostr(KnotVecAzimuthal[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
+  for(int i=0;i<getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1;i++) str+=to_string(KnotVecAzimuthal[i])+";";
+  E(e)->addElementText(OPENMBV%"knotVecAzimuthal", str+to_string(KnotVecAzimuthal[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
   str="[";
-  for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=numtostr(KnotVecRadial[i])+";";
-  addElementText(e, OPENMBV%"knotVecRadial", str+numtostr(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
+  for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=to_string(KnotVecRadial[i])+";";
+  E(e)->addElementText(OPENMBV%"knotVecRadial", str+to_string(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
 
-  addAttribute(e, "localFrame", localFrameStr, "false");
+  E(e)->setAttribute("localFrame", localFrameStr);
   return 0;
 }
 
@@ -92,14 +92,14 @@ void NurbsDisk::createHDF5File() {
 
     //coordinates of control points
     for(int i=0;i<NodeDofs;i++) {
-      columns.push_back("x"+numtostr(i));
-      columns.push_back("y"+numtostr(i));
-      columns.push_back("z"+numtostr(i));
+      columns.push_back("x"+to_string(i));
+      columns.push_back("y"+to_string(i));
+      columns.push_back("z"+to_string(i));
     }
     for(int i=0;i<getElementNumberAzimuthal()*drawDegree*2;i++) {
-      columns.push_back("x"+numtostr(i+NodeDofs));
-      columns.push_back("y"+numtostr(i+NodeDofs));
-      columns.push_back("z"+numtostr(i+NodeDofs));
+      columns.push_back("x"+to_string(i+NodeDofs));
+      columns.push_back("y"+to_string(i+NodeDofs));
+      columns.push_back("z"+to_string(i+NodeDofs));
     }
 
     data->setColumnLabel(columns);
@@ -124,25 +124,25 @@ void NurbsDisk::initializeUsingXML(DOMElement *element) {
   DynamicColoredBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  setScaleFactor(getDouble(e));
+  setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"drawDegree");
-  setDrawDegree(getDouble(e));
+  setDrawDegree(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"innerRadius");
-  Ri=getDouble(e);
+  Ri=E(e)->getText<double>();
   e=E(element)->getFirstElementChildNamed(OPENMBV%"outerRadius");
-  Ro=getDouble(e);
+  Ro=E(e)->getText<double>();
   e=E(element)->getFirstElementChildNamed(OPENMBV%"elementNumberAzimuthal");
-  setElementNumberAzimuthal(getDouble(e));
+  setElementNumberAzimuthal(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"elementNumberRadial");
-  setElementNumberRadial(getDouble(e));
+  setElementNumberRadial(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"interpolationDegreeAzimuthal");
-  setInterpolationDegreeAzimuthal(getDouble(e));
+  setInterpolationDegreeAzimuthal(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"interpolationDegreeRadial");
-  setInterpolationDegreeRadial(getDouble(e));
+  setInterpolationDegreeRadial(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"knotVecAzimuthal");
-  setKnotVecAzimuthal(getVec(e,getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()));
+  setKnotVecAzimuthal(E(e)->getText<vector<double>>(getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"knotVecRadial");
-  setKnotVecRadial(getVec(e,getElementNumberRadial()+1+getInterpolationDegreeRadial()+1));
+  setKnotVecRadial(E(e)->getText<vector<double>>(getElementNumberRadial()+1+getInterpolationDegreeRadial()+1));
 
   if(E(element)->hasAttribute("localFrame") &&
      (E(element)->getAttribute("localFrame")=="true" || E(element)->getAttribute("localFrame")=="1"))

@@ -36,7 +36,7 @@ Sphere::Sphere() : RigidBody(),
 
 DOMElement* Sphere::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"radius", radius);
+  E(e)->addElementText(OPENMBV%"radius", radius);
   return 0;
 }
 
@@ -44,7 +44,7 @@ void Sphere::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"radius");
-  setRadius(getDouble(e));
+  setRadius(E(e)->getText<double>());
 }
 
 }

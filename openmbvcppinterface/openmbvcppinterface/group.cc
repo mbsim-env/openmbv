@@ -71,7 +71,7 @@ string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
 DOMElement *Group::writeXMLFile(DOMNode *parent) {
   if(!separateFile) {
     DOMElement *e=Object::writeXMLFile(parent);
-    addAttribute(e, "expand", expandStr, "true");
+    E(e)->setAttribute("expand", expandStr);
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(e);
   }
@@ -90,7 +90,7 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
     shared_ptr<DOMParser> parser=DOMParser::create();
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
       DOMElement *e=Object::writeXMLFile(xmlFile.get());
-      addAttribute(e, "expand", expandStr, "true");
+      E(e)->setAttribute("expand", expandStr);
       for(unsigned int i=0; i<object.size(); i++)
         object[i]->writeXMLFile(e);
     DOMParser::serialize(xmlFile.get(), fileName);
@@ -151,7 +151,7 @@ void Group::writeXML() {
     shared_ptr<DOMParser> parser=DOMParser::create();
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
     DOMElement *parent=Object::writeXMLFile(xmlFile.get());
-    addAttribute(parent, "expand", expandStr, "true");
+    E(parent)->setAttribute("expand", expandStr);
     for(unsigned int i=0; i<object.size(); i++)
       object[i]->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);

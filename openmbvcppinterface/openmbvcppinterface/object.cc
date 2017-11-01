@@ -21,6 +21,7 @@
 #include "openmbvcppinterface/object.h"
 #include "openmbvcppinterface/group.h"
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
 #include <assert.h>
 #include <cmath>
 #include <limits>
@@ -62,151 +63,13 @@ void Object::initializeUsingXML(DOMElement *element) {
     setID(X()%ID->getData());
 }
 
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
-vector<double> Object::toVector(string str) {
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
-  stringstream stream(str);
-  double d;
-  vector<double> ret;
-  while(1) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
-  return ret;
-}
-
-// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
-vector<vector<double> > Object::toMatrix(string str) {
-  vector<vector<double> > ret;
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
-  bool br=false;
-  while(1) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(toVector(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
-}
-
-// convenience: convert e.g. "[3;7;7.9]" to std::vector<int>(3,7,7.9)
-vector<int> Object::toIntVector(string str) {
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
-  stringstream stream(str);
-  int d;
-  vector<int> ret;
-  while(1) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
-  return ret;
-}
-
-
-// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<int> >
-vector<vector<int> > Object::toIntMatrix(string str) {
-  vector<vector<int> > ret;
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
-  bool br=false;
-  while(1) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(toIntVector(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
-}
-
-int Object::getInt(DOMElement *e) {
-  string name = X()%E(e)->getFirstTextChild()->getData();
-  vector<vector<int> > m=toIntMatrix(name);
-  if(m.size()==1 && m[0].size()==1)
-    return m[0][0];
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
-         "where a scalar was requested for element "<<X()%e->getTagName();
-    throw MBXMLUtils::DOMEvalException(str.str(), e);
-  }
-}
-
-double Object::getDouble(DOMElement *e) {
-  string name = X()%E(e)->getFirstTextChild()->getData();
-  vector<vector<double> > m=toMatrix(name);
-  if(m.size()==1 && m[0].size()==1)
-    return m[0][0];
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
-         "where a scalar was requested for element "<<X()%e->getTagName();
-    throw MBXMLUtils::DOMEvalException(str.str(), e);
-  }
-}
-
-vector<double> Object::getVec(DOMElement *e, unsigned int rows) {
-  string name = X()%E(e)->getFirstTextChild()->getData();
-  vector<vector<double> > m=toMatrix(name);
-  if((rows==0 || m.size()==rows) && m[0].size()==1) {
-    vector<double> v;
-    for(unsigned int i=0; i<m.size(); i++)
-      v.push_back(m[i][0]);
-    return v;
-  }
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
-         "where a vector of size "<<rows<<" was requested for element "<<X()%e->getTagName();
-    throw MBXMLUtils::DOMEvalException(str.str(), e);
-  }
-  return vector<double>();
-}
-
-std::vector<std::vector<double> > Object::getMat(DOMElement *e, unsigned int rows, unsigned int cols) {
-  string name = X()%E(e)->getFirstTextChild()->getData();
-  vector<vector<double> > m=toMatrix(name);
-  if((rows==0 || m.size()==rows) && (cols==0 || m[0].size()==cols))
-    return m;
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
-         "where a matrix of size "<<rows<<"x"<<cols<<" was requested for element "<<X()%e->getTagName();
-    throw MBXMLUtils::DOMEvalException(str.str(), e);
-  }
-  return vector<vector<double> >();
-}
-
-vector<int> Object::getIntVec(DOMElement *e, unsigned int rows) {
-  string name = X()%E(e)->getFirstTextChild()->getData();
-  vector<vector<int> > m=toIntMatrix(name);
-  if((rows==0 || m.size()==rows) && m[0].size()==1) {
-    vector<int> v;
-    for(unsigned int i=0; i<m.size(); i++)
-      v.push_back(m[i][0]);
-    return v;
-  }
-  else {
-    ostringstream str;
-    str<<": Obtained matrix of size "<<m.size()<<"x"<<m[0].size()<<" ("<<name<<") "<<
-         "where a vector of size "<<rows<<" was requested for element "<<X()%e->getTagName();
-    throw MBXMLUtils::DOMEvalException(str.str(), e);
-  }
-  return vector<int>();
-}
-
-
 DOMElement *Object::writeXMLFile(DOMNode *parent) {
   DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
   DOMElement *e=D(doc)->createElement(OPENMBV%getClassName());
   parent->insertBefore(e, NULL);
-  addAttribute(e, "name", name);
-  addAttribute(e, "enable", enableStr, string("true"));
-  addAttribute(e, "boundingBox", boundingBoxStr, string("false"));
+  E(e)->setAttribute("name", name);
+  E(e)->setAttribute("enable", enableStr);
+  E(e)->setAttribute("boundingBox", boundingBoxStr);
   if(!ID.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMProcessingInstruction *id=doc->createProcessingInstruction(X()%"OPENMBV_ID", X()%ID);
@@ -221,42 +84,6 @@ std::shared_ptr<Group> Object::getSeparateGroup() {
 
 std::shared_ptr<Group> Object::getTopLevelGroup() {
   return parent.lock()->getTopLevelGroup();
-}
-
-void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, double value, double def) {
-  if(!(value==def || (std::isnan(def) && std::isnan(value))))
-    addElementText(parent, name, value);
-}
-
-void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, const vector<double> &value) {
-  std::ostringstream oss;
-  for(vector<double>::const_iterator ele=value.begin(); ele!=value.end(); ++ele)
-    oss<<(ele==value.begin()?"[":"; ")<< *ele;
-  oss<<"]";
-  xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
-  ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
-  parent->insertBefore(ele, NULL);
-}
-
-void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, const vector<vector<double> > &value) {
-  std::ostringstream oss;
-  for(vector<vector<double> >::const_iterator row=value.begin(); row!=value.end(); ++row)
-    for(vector<double>::const_iterator ele=row->begin(); ele!=row->end(); ++ele)
-      oss<<(row==value.begin() && ele==row->begin()?"[":(ele==row->begin()?"; ":", "))<< *ele;
-  oss<<"]";
-  xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
-  ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
-  parent->insertBefore(ele, NULL);
-}
-
-void Object::addElementText(DOMElement *parent, const MBXMLUtils::FQN &name, const vector<int> &value) {
-  std::ostringstream oss;
-  for(vector<int>::const_iterator ele=value.begin(); ele!=value.end(); ++ele)
-    oss<<(ele==value.begin()?"[":"; ")<< *ele;
-  oss<<"]";
-  xercesc::DOMElement *ele = MBXMLUtils::D(parent->getOwnerDocument())->createElement(name);
-  ele->insertBefore(parent->getOwnerDocument()->createTextNode(MBXMLUtils::X()%oss.str()), NULL);
-  parent->insertBefore(ele, NULL);
 }
 
 }

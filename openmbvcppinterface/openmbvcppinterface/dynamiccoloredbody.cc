@@ -46,11 +46,11 @@ DynamicColoredBody::~DynamicColoredBody() {}
 
 DOMElement* DynamicColoredBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"minimalColorValue", minimalColorValue, 0);
-  addElementText(e, OPENMBV%"maximalColorValue", maximalColorValue, 1);
+  E(e)->addElementText(OPENMBV%"minimalColorValue", minimalColorValue);
+  E(e)->addElementText(OPENMBV%"maximalColorValue", maximalColorValue);
   if(diffuseColor[0]>=0 || diffuseColor[1]!=1 || diffuseColor[2]!=1)
-    addElementText(e, OPENMBV%"diffuseColor", diffuseColor);
-  addElementText(e, OPENMBV%"transparency", transparency, 0);
+    E(e)->addElementText(OPENMBV%"diffuseColor", diffuseColor);
+  E(e)->addElementText(OPENMBV%"transparency", transparency);
   return e;
 }
 
@@ -59,16 +59,16 @@ void DynamicColoredBody::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"minimalColorValue");
   if(e)
-    setMinimalColorValue(getDouble(e));
+    setMinimalColorValue(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"maximalColorValue");
   if(e)
-    setMaximalColorValue(getDouble(e));
+    setMaximalColorValue(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"diffuseColor");
   if(e)
-    setDiffuseColor(getVec(e, 3));
+    setDiffuseColor(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"transparency");
   if(e)
-    setTransparency(getDouble(e));
+    setTransparency(E(e)->getText<double>());
 }
 
 }

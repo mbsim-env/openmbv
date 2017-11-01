@@ -13,9 +13,11 @@
 #include <xercesc/dom/DOMLSParser.hpp>
 #include <xercesc/dom/DOMLocator.hpp>
 #include <xercesc/dom/DOMUserDataHandler.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace XERCES_CPP_NAMESPACE {
   class DOMProcessingInstruction;
@@ -23,7 +25,64 @@ namespace XERCES_CPP_NAMESPACE {
   class AbstractDOMParser;
 }
 
+namespace boost {
+  template<> std::vector<double> lexical_cast(const std::string& str);
+  template<> std::vector<std::vector<double>> lexical_cast(const std::string& str);
+  template<> std::vector<int> lexical_cast(const std::string& str);
+  template<> std::vector<std::vector<int>> lexical_cast(const std::string& str);
+}
+
+namespace std {
+  std::string to_string(const std::string& value);
+
+  template<class T>
+  std::string to_string(const std::vector<T>& value) {
+    std::ostringstream oss;
+    for(auto ele=value.begin(); ele!=value.end(); ++ele)
+      oss<<(ele==value.begin()?"[":"; ")<< *ele;
+    oss<<"]";
+    return oss.str();
+  }
+
+  template<class T>
+  std::string to_string(const std::vector<std::vector<T>>& value) {
+    std::ostringstream oss;
+    for(auto row=value.begin(); row!=value.end(); ++row)
+      for(auto ele=row->begin(); ele!=row->end(); ++ele)
+        oss<<(row==value.begin() && ele==row->begin()?"[":(ele==row->begin()?"; ":", "))<< *ele;
+    oss<<"]";
+    return oss.str();
+  }
+}
+
+namespace {
+
+template<class T>
+struct CheckSize {
+  static void check(const xercesc::DOMElement *me, const T &value, int r, int c);
+};
+template<class T>
+struct CheckSize<std::vector<T>> {
+  static void check(const xercesc::DOMElement *me, const std::vector<T> &value, int r, int c);
+};
+template<class T>
+struct CheckSize<std::vector<std::vector<T>>> {
+  static void check(const xercesc::DOMElement *me, const std::vector<std::vector<T>> &value, int r, int c);
+};
+
+}
+
 namespace MBXMLUtils {
+
+// forward declaration
+template<typename DOMDocumentType>
+class DOMDocumentWrapper;
+template<typename DOMDocumentType>
+DOMDocumentWrapper<DOMDocumentType> D(DOMDocumentType *me);
+template<typename DOMElementType>
+class DOMElementWrapper;
+template<typename DOMElementType>
+DOMElementWrapper<DOMElementType> E(DOMElementType *me);
 
 //! Initialize Xerces on load and terminate it on unload of the library/program
 class InitXerces {
@@ -102,6 +161,71 @@ const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
 const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
 
+//! Helper class for DOMEvalException.
+//! Extension of DOMLocator with a embed count
+class EmbedDOMLocator : public xercesc::DOMLocator {
+  public:
+    EmbedDOMLocator(const boost::filesystem::path &file_, int row_, int embedCount_=0);
+    EmbedDOMLocator(const EmbedDOMLocator &src) {
+      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
+    }
+    EmbedDOMLocator& operator=(const EmbedDOMLocator &src) {
+      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
+      return *this;
+    }
+    XMLFileLoc getLineNumber() const { return row; }
+    XMLFileLoc getColumnNumber() const { return 0; }
+    XMLFilePos getByteOffset() const { return ~(XMLFilePos(0)); }
+    XMLFilePos getUtf16Offset() const { return ~(XMLFilePos(0)); }
+    xercesc::DOMNode *getRelatedNode() const { return NULL; }
+    const XMLCh *getURI() const { return file; }
+    std::string getEmbedCount() const;
+  private:
+    X x;
+    const XMLCh *file;
+    int row;
+    int embedCount;
+};
+
+// Exception wrapping for DOMEvalException.
+// Catch a exception of type DOMEvalException, set the current XML context to DOMElement e and rethrow.
+// Not not change the context if it was alread set before.
+#define RETHROW_MBXMLUTILS(e) \
+  catch(MBXMLUtils::DOMEvalException &ex) { \
+    if(ex.getLocationStack().size()==0) \
+      ex.setContext(e); \
+    throw; \
+  } \
+  catch(const std::exception &ex) { \
+    throw DOMEvalException(ex.what(), e); \
+  }
+
+//! Exception during evaluation of the DOM tree including a location stack
+class DOMEvalException : public std::exception {
+  public:
+    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=NULL, const xercesc::DOMAttr *a=NULL);
+    DOMEvalException(const DOMEvalException &src) : errorMsg(src.errorMsg),
+      locationStack(src.locationStack) {}
+    DOMEvalException &operator=(const DOMEvalException &src) {
+      errorMsg=src.errorMsg; locationStack=src.locationStack;
+      return *this;
+    }
+    ~DOMEvalException() throw() {}
+    static void generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack);
+    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
+                                     const std::string &attrName, std::ostream &str);
+    static std::string fileOutput(const xercesc::DOMLocator &loc);
+    void setContext(const xercesc::DOMElement *e);
+    const std::string& getMessage() const { return errorMsg; }
+    const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
+    const char* what() const throw();
+  private:
+    std::string errorMsg;
+    std::vector<EmbedDOMLocator> locationStack;
+    std::string attrName;
+    mutable std::string whatStr;
+};
+
 //! Helper class for extending DOMElement (use the function E(...)).
 template<typename DOMElementType>
 class DOMElementWrapper {
@@ -122,6 +246,26 @@ class DOMElementWrapper {
     const xercesc::DOMText *getFirstTextChild() const;
     //! Get first child text
     xercesc::DOMText *getFirstTextChild();
+    //! Get the child text as type T
+    template<class T> T getText(int r=0, int c=0) const {
+      try {
+        auto ret=boost::lexical_cast<T>(X()%E(me)->getFirstTextChild()->getData());
+        CheckSize<T>::check(me, ret, r, c);
+        return ret;
+      }
+      catch(const boost::bad_lexical_cast &ex) {
+        throw DOMEvalException(ex.what(), me);
+      }
+      catch(const std::exception &ex) {
+        throw DOMEvalException(ex.what(), me);
+      }
+    }
+
+    template<class T> void addElementText(const FQN &name, const T &value) {
+      xercesc::DOMElement *ele=D(me->getOwnerDocument())->createElement(name);
+      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%std::to_string(value)), NULL);
+      me->insertBefore(ele, NULL);
+    }
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &base) const;
@@ -159,7 +303,10 @@ class DOMElementWrapper {
     //! Get attribute node named name.
     xercesc::DOMAttr* getAttributeNode(const FQN &name);
     //! Set attribute.
-    void setAttribute(const FQN &name, const std::string &value);
+    template<class T>
+    void setAttribute(const FQN &name, const T &value) {
+      me->setAttributeNS(X()%name.first, X()%name.second, X()%std::to_string(value));
+    }
     //! check if this element has a attibute named name.
     bool hasAttribute(const FQN &name) const;
     //! remove from this element the attibute named name.
@@ -237,71 +384,6 @@ DOMDocumentWrapper<DOMDocumentType> D(DOMDocumentType *me) { return DOMDocumentW
 //! Helper function, with a very short name, for automatic type deduction for DOMDocumentWrapper.
 template<typename DOMDocumentType>
 DOMDocumentWrapper<DOMDocumentType> D(std::shared_ptr<DOMDocumentType> me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
-
-//! Helper class for DOMEvalException.
-//! Extension of DOMLocator with a embed count
-class EmbedDOMLocator : public xercesc::DOMLocator {
-  public:
-    EmbedDOMLocator(const boost::filesystem::path &file_, int row_, int embedCount_=0);
-    EmbedDOMLocator(const EmbedDOMLocator &src) {
-      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
-    }
-    EmbedDOMLocator& operator=(const EmbedDOMLocator &src) {
-      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
-      return *this;
-    }
-    XMLFileLoc getLineNumber() const { return row; }
-    XMLFileLoc getColumnNumber() const { return 0; }
-    XMLFilePos getByteOffset() const { return ~(XMLFilePos(0)); }
-    XMLFilePos getUtf16Offset() const { return ~(XMLFilePos(0)); }
-    xercesc::DOMNode *getRelatedNode() const { return NULL; }
-    const XMLCh *getURI() const { return file; }
-    std::string getEmbedCount() const;
-  private:
-    X x;
-    const XMLCh *file;
-    int row;
-    int embedCount;
-};
-
-// Exception wrapping for DOMEvalException.
-// Catch a exception of type DOMEvalException, set the current XML context to DOMElement e and rethrow.
-// Not not change the context if it was alread set before.
-#define RETHROW_MBXMLUTILS(e) \
-  catch(MBXMLUtils::DOMEvalException &ex) { \
-    if(ex.getLocationStack().size()==0) \
-      ex.setContext(e); \
-    throw; \
-  } \
-  catch(const std::exception &ex) { \
-    throw DOMEvalException(ex.what(), e); \
-  }
-
-//! Exception during evaluation of the DOM tree including a location stack
-class DOMEvalException : public std::exception {
-  public:
-    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=NULL, const xercesc::DOMAttr *a=NULL);
-    DOMEvalException(const DOMEvalException &src) : errorMsg(src.errorMsg),
-      locationStack(src.locationStack) {}
-    DOMEvalException &operator=(const DOMEvalException &src) {
-      errorMsg=src.errorMsg; locationStack=src.locationStack;
-      return *this;
-    }
-    ~DOMEvalException() throw() {}
-    static void generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack);
-    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
-                                     const std::string &attrName, std::ostream &str);
-    static std::string fileOutput(const xercesc::DOMLocator &loc);
-    void setContext(const xercesc::DOMElement *e);
-    const std::string& getMessage() const { return errorMsg; }
-    const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
-    const char* what() const throw();
-  private:
-    std::string errorMsg;
-    std::vector<EmbedDOMLocator> locationStack;
-    std::string attrName;
-    mutable std::string whatStr;
-};
 
 class LocationInfoFilter : public xercesc::DOMLSParserFilter {
   public:
@@ -381,6 +463,28 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
 
     void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=NULL);
 };
+
+}
+
+namespace {
+
+template<class T>
+void CheckSize<T>::check(const xercesc::DOMElement *me, const T &value, int r, int c) {}
+template<class T>
+void CheckSize<std::vector<T>>::check(const xercesc::DOMElement *me, const std::vector<T> &value, int r, int c) {
+  if(r!=0 && r!=static_cast<int>(value.size()))
+    throw MBXMLUtils::DOMEvalException("Expected vector of size "+std::to_string(r)+
+                           " but got vector of size "+std::to_string(value.size())+".", me);
+}
+template<class T>
+void CheckSize<std::vector<std::vector<T>>>::check(const xercesc::DOMElement *me, const std::vector<std::vector<T>> &value, int r, int c) {
+  if(r!=0 && r!=static_cast<int>(value.size()))
+    throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+std::to_string(r)+
+                           " but got matrix of row-size "+std::to_string(value.size())+".", me);
+  if(value.size()>0 && c!=0 && c!=static_cast<int>(value[0].size()))
+    throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+std::to_string(c)+
+                           " but got matrix of col-size "+std::to_string(value[0].size())+".", me);
+}
 
 }
 

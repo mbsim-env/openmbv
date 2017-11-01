@@ -41,16 +41,16 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet() : Body(), minimalColorValue(0), m
 
 DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
-  addElementText(e, OPENMBV%"minimalColorValue", minimalColorValue, 0);
-  addElementText(e, OPENMBV%"maximalColorValue", maximalColorValue, 1);
+  E(e)->addElementText(OPENMBV%"minimalColorValue", minimalColorValue);
+  E(e)->addElementText(OPENMBV%"maximalColorValue", maximalColorValue);
   if(diffuseColor[0]>=0 || diffuseColor[1]!=1 || diffuseColor[2]!=1)
-    addElementText(e, OPENMBV%"diffuseColor", diffuseColor);
-  addElementText(e, OPENMBV%"transparency", transparency, 0);
-  addElementText(e, OPENMBV%"numberOfVertexPositions", numvp);
+    E(e)->addElementText(OPENMBV%"diffuseColor", diffuseColor);
+  E(e)->addElementText(OPENMBV%"transparency", transparency);
+  E(e)->addElementText(OPENMBV%"numberOfVertexPositions", numvp);
 
   vector<int> indices1based(indices.size());
   transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
-  addElementText(e, OPENMBV%"indices", indices1based);
+  E(e)->addElementText(OPENMBV%"indices", indices1based);
 
   return 0;
 }
@@ -62,10 +62,10 @@ void DynamicIndexedFaceSet::createHDF5File() {
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numvp;i++) {
-      columns.push_back("x"+numtostr(i));
-      columns.push_back("y"+numtostr(i));
-      columns.push_back("z"+numtostr(i));
-      columns.push_back("color"+numtostr(i));
+      columns.push_back("x"+to_string(i));
+      columns.push_back("y"+to_string(i));
+      columns.push_back("z"+to_string(i));
+      columns.push_back("color"+to_string(i));
     }
     data->setColumnLabel(columns);
   }
@@ -89,20 +89,20 @@ void DynamicIndexedFaceSet::initializeUsingXML(DOMElement *element) {
   Body::initializeUsingXML(element);
   DOMElement *e=E(element)->getFirstElementChildNamed(OPENMBV%"minimalColorValue");
   if(e)
-    setMinimalColorValue(getDouble(e));
+    setMinimalColorValue(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"maximalColorValue");
   if(e)
-    setMaximalColorValue(getDouble(e));
+    setMaximalColorValue(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"diffuseColor");
   if(e)
-    setDiffuseColor(getVec(e, 3));
+    setDiffuseColor(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"transparency");
   if(e)
-    setTransparency(getDouble(e));
+    setTransparency(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfVertexPositions");
-  setNumberOfVertexPositions(getInt(e));
+  setNumberOfVertexPositions(E(e)->getText<int>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
-  vector<int> indices1based=getIntVec(e);
+  vector<int> indices1based=E(e)->getText<vector<int>>();
   indices.resize(indices1based.size());
   transform(indices1based.begin(), indices1based.end(), indices.begin(), [](int a){ return a-1; });
 }

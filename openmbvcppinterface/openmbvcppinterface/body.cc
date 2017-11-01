@@ -35,15 +35,15 @@ Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMet
 
 DOMElement* Body::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Object::writeXMLFile(parent);
-  addAttribute(e, "outLine", outLineStr, "true");
-  addAttribute(e, "shilouetteEdge", shilouetteEdgeStr, "false");
+  E(e)->setAttribute("outLine", outLineStr);
+  E(e)->setAttribute("shilouetteEdge", shilouetteEdgeStr);
   string dm;
   switch(drawMethod) {
     case filled: dm="filled"; break;
     case lines: dm="lines"; break;
     case points: dm="points"; break;
   }
-  addAttribute(e, "drawMethod", dm, "filled");
+  E(e)->setAttribute("drawMethod", dm);
   if(hdf5LinkBody) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");

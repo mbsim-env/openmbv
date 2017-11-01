@@ -26,6 +26,85 @@ using namespace std::placeholders;
 using namespace xercesc;
 using namespace boost::filesystem;
 
+namespace boost {
+
+// convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
+template<>
+vector<double> lexical_cast(const std::string& str_) {
+  string str(str_);
+  for(unsigned int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
+  stringstream stream(str);
+  double d;
+  vector<double> ret;
+  while(1) {
+    stream>>d;
+    if(stream.fail()) break;
+    ret.push_back(d);
+  }
+  return ret;
+}
+
+// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
+template<>
+vector<vector<double>> lexical_cast(const std::string& str_) {
+  string str(str_);
+  vector<vector<double> > ret;
+  for(unsigned int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  bool br=false;
+  while(1) {
+    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
+    ret.push_back(boost::lexical_cast<vector<double>>(str.substr(0,end)));
+    if(br) break;
+    str=str.substr(end+1);
+  }
+  return ret;
+}
+
+// convenience: convert e.g. "[3;7;7.9]" to std::vector<int>(3,7,7.9)
+template<>
+vector<int> lexical_cast(const std::string& str_) {
+  string str(str_);
+  for(unsigned int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
+  stringstream stream(str);
+  int d;
+  vector<int> ret;
+  while(1) {
+    stream>>d;
+    if(stream.fail()) break;
+    ret.push_back(d);
+  }
+  return ret;
+}
+
+
+// convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<int> >
+template<>
+vector<vector<int>> lexical_cast(const std::string& str_) {
+  string str(str_);
+  vector<vector<int> > ret;
+  for(unsigned int i=0; i<str.length(); i++)
+    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  bool br=false;
+  while(1) {
+    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
+    ret.push_back(boost::lexical_cast<vector<int>>(str.substr(0,end)));
+    if(br) break;
+    str=str.substr(end+1);
+  }
+  return ret;
+}
+
+}
+
+namespace std {
+
+string to_string(const string& value) { return value; }
+
+}
+
 namespace MBXMLUtils {
 
 namespace {
@@ -230,11 +309,6 @@ template const DOMAttr* DOMElementWrapper<const DOMElement>::getAttributeNode(co
 template<typename DOMElementType>
 DOMAttr* DOMElementWrapper<DOMElementType>::getAttributeNode(const FQN &name) {
   return me->getAttributeNodeNS(X()%name.first, X()%name.second);
-}
-
-template<typename DOMElementType>
-void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const string &value) {
-  me->setAttributeNS(X()%name.first, X()%name.second, X()%value);
 }
 
 template<typename DOMElementType>
