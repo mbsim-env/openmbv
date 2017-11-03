@@ -67,6 +67,8 @@
   #include <boost/core/demangle.hpp>
 #else
   #include <cxxabi.h>
+  #ifndef BOOST_CORE_DEMANGLE_REPLACEMENT
+  #define BOOST_CORE_DEMANGLE_REPLACEMENT
   namespace boost {
     namespace core {
       inline std::string demangle(const std::string &name) {
@@ -79,6 +81,7 @@
       }
     }
   }
+  #endif
 #endif
 
 using namespace std;
