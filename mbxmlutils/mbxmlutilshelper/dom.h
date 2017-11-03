@@ -298,6 +298,8 @@ class DOMElementWrapper {
     void setOriginalElementLineNumber(int lineNr);
     //! Get attribute named name.
     std::string getAttribute(const FQN &name) const;
+    //! Get attribute named name of type QName.
+    FQN getAttributeQName(const FQN &name) const;
     //! Get attribute node named name.
     const xercesc::DOMAttr* getAttributeNode(const FQN &name) const;
     //! Get attribute node named name.
@@ -307,6 +309,8 @@ class DOMElementWrapper {
     void setAttribute(const FQN &name, const T &value) {
       me->setAttributeNS(X()%name.first, X()%name.second, X()%std::to_string(value));
     }
+    //! Set attribute of type FQN.
+    void setAttribute(const FQN &name, const FQN &value);
     //! check if this element has a attibute named name.
     bool hasAttribute(const FQN &name) const;
     //! remove from this element the attibute named name.
@@ -338,8 +342,6 @@ class DOMAttrWrapper {
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &base) const;
-    //! Get a attribute value being a QName (e.g. <nsprefix>:<localname>, <localname> or [<nsuri>]<localname>)
-    FQN getQName() const;
     //! Treat this object as a pointer (like DOMAttr*)
     typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
       const DOMAttrWrapper*, DOMAttrWrapper*>::type operator->() {

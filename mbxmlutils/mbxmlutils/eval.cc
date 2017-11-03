@@ -551,20 +551,6 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe)
     if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialEval"))
       dependencies->push_back(E(pe)->convertPath(s));
 
-    // handle qnamePartialEval (must be converted to [<nsuri>]<localname> syntax to avoid
-    // problems with chaning ns prefix mapping on document normalize/serialize)
-    if(A(a)->isDerivedFrom(PV%"qnamePartialEval")) {
-      string str=cast<string>(ret);
-      if(str.length()>0 && str[0]!='[') {
-        size_t c=str.find(':');
-        if(c==string::npos)
-          str="["+X()%pe->lookupNamespaceURI(nullptr)+"]"+str.substr(c+1);
-        else
-          str="["+X()%pe->lookupNamespaceURI(X()%str.substr(0,c))+"]"+str.substr(c+1);
-        ret=create(str);
-      }
-    }
-
     return ret;
   }
 }

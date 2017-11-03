@@ -301,6 +301,17 @@ string DOMElementWrapper<DOMElementType>::getAttribute(const FQN &name) const {
 template string DOMElementWrapper<const DOMElement>::getAttribute(const FQN &name) const; // explicit instantiate const variant
 
 template<typename DOMElementType>
+FQN DOMElementWrapper<DOMElementType>::getAttributeQName(const FQN &name) const {
+  string str=E(me)->getAttribute(name);
+  size_t c=str.find(':');
+  if(c==string::npos)
+    return FQN(X()%me->lookupNamespaceURI(nullptr), str);
+  else
+    return FQN(X()%me->lookupNamespaceURI(X()%str.substr(0,c)), str.substr(c+1));
+}
+template FQN DOMElementWrapper<const DOMElement>::getAttributeQName(const FQN &name) const; // explicit instantiate const variant
+
+template<typename DOMElementType>
 const DOMAttr* DOMElementWrapper<DOMElementType>::getAttributeNode(const FQN &name) const {
   return me->getAttributeNodeNS(X()%name.first, X()%name.second);
 }
@@ -309,6 +320,13 @@ template const DOMAttr* DOMElementWrapper<const DOMElement>::getAttributeNode(co
 template<typename DOMElementType>
 DOMAttr* DOMElementWrapper<DOMElementType>::getAttributeNode(const FQN &name) {
   return me->getAttributeNodeNS(X()%name.first, X()%name.second);
+}
+
+template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN &value) {
+  const XMLCh *prefix=me->lookupPrefix(X()%value.first);
+  if(!prefix) throw DOMEvalException("Cannot find prefix for namespace "+value.first, me);
+  setAttribute(name, X()%prefix+":"+value.second);
 }
 
 template<typename DOMElementType>
@@ -409,27 +427,6 @@ bool DOMAttrWrapper<DOMAttrType>::isDerivedFrom(const FQN &baseTypeName) const {
   return MBXMLUtils::isDerivedFrom(me, baseTypeName);
 }
 template bool DOMAttrWrapper<const DOMAttr>::isDerivedFrom(const FQN &baseTypeName) const; // explicit instantiate const variant
-
-template<typename DOMAttrType>
-FQN DOMAttrWrapper<DOMAttrType>::getQName() const {
-  string str=X()%me->getValue();
-  if(str.length()>0 && str[0]=='[') {
-    // for QName attribute values we allow the syntax [<nsuri>]<localname> and ...
-    size_t c=str.rfind(']');
-    if(c==string::npos)
-      throw runtime_error("Found starting [ but no closing ].");
-    return FQN(str.substr(1,c-1), str.substr(c+1));
-  }
-  else {
-    // ... the syntax <nsprefix>:<localname> or <localname>
-    size_t c=str.find(':');
-    if(c==string::npos)
-      return FQN(X()%me->lookupNamespaceURI(nullptr), str);
-    else
-      return FQN(X()%me->lookupNamespaceURI(X()%str.substr(0,c)), str.substr(c+1));
-  }
-}
-template FQN DOMAttrWrapper<const DOMAttr>::getQName() const; // explicit instantiate const variant
 
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMAttrWrapper<DOMAttr>;
