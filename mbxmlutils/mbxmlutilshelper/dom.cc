@@ -324,9 +324,37 @@ DOMAttr* DOMElementWrapper<DOMElementType>::getAttributeNode(const FQN &name) {
 
 template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN &value) {
-  const XMLCh *prefix=me->lookupPrefix(X()%value.first);
-  if(!prefix) throw DOMEvalException("Cannot find prefix for namespace "+value.first, me);
-  setAttribute(name, X()%prefix+":"+value.second);
+  if(me->isDefaultNamespace(X()%value.first))
+    // value is the default namespace set value without a prefix
+    setAttribute(name, value.second);
+  else {
+    // value is not the default namespace set value with a prefix
+    const XMLCh *prefix=me->lookupPrefix(X()%value.first);
+    if(prefix)
+      // the namespace of value has already a prefix -> use this prefix
+      setAttribute(name, X()%prefix+":"+value.second);
+    else {
+      // the namespace of value has no prefix assignd yet -> create a new xmlns attribute with the mapping
+
+      // get a list of all used prefixed of this element
+      set<string> usedPrefix;
+      DOMNamedNodeMap *attr=me->getAttributes();
+      for(size_t i=0; i<attr->getLength(); i++) {
+        DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+        string name=X()%a->getName();
+        if(name.substr(0,6)!="xmlns:") continue;
+        usedPrefix.insert(name.substr(6));
+      }
+      // search an unused prefix
+      int unusedPrefixNr=1;
+      while(usedPrefix.find("ns"+to_string(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
+      // set the unsuded prefix
+      string unusedPrefix("ns"+to_string(unusedPrefixNr));
+      setAttribute(XMLNS%("xmlns:"+unusedPrefix), value.first);
+
+      setAttribute(name, unusedPrefix+":"+value.second);
+    }
+  }
 }
 
 template<typename DOMElementType>

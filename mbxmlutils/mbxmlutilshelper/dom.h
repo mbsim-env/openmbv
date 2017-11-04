@@ -158,6 +158,8 @@ class NamespaceURI {
 
 //! Declaration of the XML xinclude prefix/URI.
 const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
+//! Declaration of the xmlns prefix/URI.
+const NamespaceURI XMLNS("http://www.w3.org/2000/xmlns/");
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
 const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
 
