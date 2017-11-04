@@ -58,7 +58,7 @@ inline xercesc::DOMElement *convertCasADiToXML_SXElem(const SXElem &s, std::map<
   else if(s.is_constant()) {
     e=MBXMLUtils::D(doc)->createElement(CASADI%"RealtypeSX");
     std::stringstream str;
-    str.precision(18);
+    str.precision(numeric_limits<double>::digits10+1);
     str<<static_cast<double>(s);
     e->insertBefore(doc->createTextNode(MBXMLUtils::X()%str.str()), NULL);
   }
