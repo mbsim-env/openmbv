@@ -238,7 +238,22 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
           else
             throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", e, a);
         } RETHROW_MBXMLUTILS(e)
-        a->setValue(X()%s);
+
+        // attributes of type qnamePartialEval need special handling
+        if(A(a)->isDerivedFrom(PV%"qnamePartialEval")) {
+          // if defined by the [<nsuri>]<localname> syntax it must be converted to the syntax <prefix>:<localname>
+          if(s.length()>0 && s[0]=='[') {
+            size_t c=s.find(']');
+            if(c==string::npos)
+              throw DOMEvalException("QName attribute value defined by [<uri>]<localname> syntax but no ] found.", e, a);
+            E(e)->setAttribute(X()%a->getName(), FQN(s.substr(1,c-1), s.substr(c+1)));
+          }
+          else
+            a->setValue(X()%s);
+        }
+        // all attributes of type other types just set the value
+        else
+          a->setValue(X()%s);
       }
 
       // evaluate element if it must be evaluated
