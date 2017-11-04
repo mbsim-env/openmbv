@@ -20,7 +20,7 @@
 #ifndef _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
 #define _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
 
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include <string>
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
@@ -31,19 +31,17 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
-class DynamicIndexedFaceSet : public Body {
+class DynamicIndexedFaceSet : public DynamicColoredBody {
   Q_OBJECT
   public:
     DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    double minimalColorValue, maximalColorValue;
     std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
     int numvp;
     std::vector<int> idx;
     SoCoordinate3 *points;
     SoMaterial *myMaterials;
     virtual double update();
-    void createProperties();
 };
 
 }

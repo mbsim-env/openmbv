@@ -32,13 +32,10 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
+DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind) {
   faceset=std::static_pointer_cast<OpenMBV::DynamicIndexedFaceSet>(obj);
   iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
-
-  minimalColorValue=faceset->getMinimalColorValue();
-  maximalColorValue=faceset->getMaximalColorValue();
 
   points = new SoCoordinate3;
   SoIndexedFaceSet *surface = new SoIndexedFaceSet;
@@ -59,27 +56,6 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Obje
 
   // outline
   soSep->addChild(soOutLineSwitch);
-}
-
-void DynamicIndexedFaceSet::createProperties() {
-  Body::createProperties();
-
-  // GUI
-  if(!clone) {
-    FloatEditor *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
-    minimalColorValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getMinimalColorValue, &OpenMBV::DynamicIndexedFaceSet::setMinimalColorValue);
-
-    FloatEditor *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
-    maximalColorValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getMaximalColorValue, &OpenMBV::DynamicIndexedFaceSet::setMaximalColorValue);
-
-    ColorEditor *diffuseColorValue=new ColorEditor(properties, QIcon(), "Diffuse color", true);
-    diffuseColorValue->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getDiffuseColor, &OpenMBV::DynamicIndexedFaceSet::setDiffuseColor);
-
-    FloatEditor *transparencyValueEditor=new FloatEditor(properties, QIcon(), "Transparency value");
-    transparencyValueEditor->setRange(0, 1);
-    transparencyValueEditor->setStep(0.1);
-    transparencyValueEditor->setOpenMBVParameter(faceset, &OpenMBV::DynamicIndexedFaceSet::getTransparency, &OpenMBV::DynamicIndexedFaceSet::setTransparency);
-  }
 }
 
 double DynamicIndexedFaceSet::update() {
