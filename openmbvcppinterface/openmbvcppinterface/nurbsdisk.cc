@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/nurbsdisk.h>
 #include <iostream>
 #include <fstream>
+#include <mbxmlutilshelper/toString.h>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -61,11 +62,11 @@ DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"interpolationDegreeAzimuthal", InterpolationDegreeAzimuthal);
   E(e)->addElementText(OPENMBV%"interpolationDegreeRadial", InterpolationDegreeRadial);
   string str="[";
-  for(int i=0;i<getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1;i++) str+=to_string(KnotVecAzimuthal[i])+";";
-  E(e)->addElementText(OPENMBV%"knotVecAzimuthal", str+to_string(KnotVecAzimuthal[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
+  for(int i=0;i<getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1;i++) str+=toString(KnotVecAzimuthal[i])+";";
+  E(e)->addElementText(OPENMBV%"knotVecAzimuthal", str+toString(KnotVecAzimuthal[getElementNumberAzimuthal()+1+2*getInterpolationDegreeAzimuthal()-1])+"]");
   str="[";
-  for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=to_string(KnotVecRadial[i])+";";
-  E(e)->addElementText(OPENMBV%"knotVecRadial", str+to_string(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
+  for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=toString(KnotVecRadial[i])+";";
+  E(e)->addElementText(OPENMBV%"knotVecRadial", str+toString(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
 
   E(e)->setAttribute("localFrame", localFrameStr);
   return 0;
@@ -92,14 +93,14 @@ void NurbsDisk::createHDF5File() {
 
     //coordinates of control points
     for(int i=0;i<NodeDofs;i++) {
-      columns.push_back("x"+to_string(i));
-      columns.push_back("y"+to_string(i));
-      columns.push_back("z"+to_string(i));
+      columns.push_back("x"+toString(i));
+      columns.push_back("y"+toString(i));
+      columns.push_back("z"+toString(i));
     }
     for(int i=0;i<getElementNumberAzimuthal()*drawDegree*2;i++) {
-      columns.push_back("x"+to_string(i+NodeDofs));
-      columns.push_back("y"+to_string(i+NodeDofs));
-      columns.push_back("z"+to_string(i+NodeDofs));
+      columns.push_back("x"+toString(i+NodeDofs));
+      columns.push_back("y"+toString(i+NodeDofs));
+      columns.push_back("z"+toString(i+NodeDofs));
     }
 
     data->setColumnLabel(columns);

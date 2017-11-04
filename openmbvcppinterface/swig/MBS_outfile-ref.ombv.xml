@@ -1,21 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<Group xmlns="http://www.mbsim-env.de/OpenMBV" name="MBS">
+<Group xmlns="http://www.mbsim-env.de/OpenMBV" boundingBox="false" enable="true" expand="true" name="MBS">
 
-  <Cube name="Box1" referenceFrame="true">
+  <Cube boundingBox="false" dragger="false" drawMethod="filled" enable="true" localFrame="false" name="Box1" outLine="true" path="false" referenceFrame="true" shilouetteEdge="false">
+    <minimalColorValue>0</minimalColorValue>
+    <maximalColorValue>1</maximalColorValue>
+    <transparency>0</transparency>
     <initialTranslation>[0; 0; 0]</initialTranslation>
     <initialRotation>[0; 0; 0]</initialRotation>
     <scaleFactor>1</scaleFactor>
     <length>1.234</length>
   </Cube>
 
-  <Cuboid name="Box2" referenceFrame="true">
+  <Cuboid boundingBox="false" dragger="false" drawMethod="filled" enable="true" localFrame="false" name="Box2" outLine="true" path="false" referenceFrame="true" shilouetteEdge="false">
+    <minimalColorValue>0</minimalColorValue>
+    <maximalColorValue>1</maximalColorValue>
+    <transparency>0</transparency>
     <initialTranslation>[0; 0; 0]</initialTranslation>
     <initialRotation>[0; 0; 0]</initialRotation>
     <scaleFactor>1</scaleFactor>
-    <length>[5.6; 9.7; 3.5]</length>
+    <length>[5.6; 9.699999999999999; 3.5]</length>
   </Cuboid>
 
-  <IndexedFaceSet name="IFS">
+  <IndexedFaceSet boundingBox="false" dragger="false" drawMethod="filled" enable="true" localFrame="false" name="IFS" outLine="true" path="false" referenceFrame="false" shilouetteEdge="false">
+    <minimalColorValue>0</minimalColorValue>
+    <maximalColorValue>1</maximalColorValue>
+    <transparency>0</transparency>
     <initialTranslation>[0; 0; 0]</initialTranslation>
     <initialRotation>[0; 0; 0]</initialRotation>
     <scaleFactor>1</scaleFactor>

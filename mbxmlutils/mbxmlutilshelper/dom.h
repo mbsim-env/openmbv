@@ -18,6 +18,7 @@
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 #include <boost/lexical_cast.hpp>
+#include "toString.h"
 
 namespace XERCES_CPP_NAMESPACE {
   class DOMProcessingInstruction;
@@ -30,29 +31,6 @@ namespace boost {
   template<> std::vector<std::vector<double>> lexical_cast(const std::string& str);
   template<> std::vector<int> lexical_cast(const std::string& str);
   template<> std::vector<std::vector<int>> lexical_cast(const std::string& str);
-}
-
-namespace std {
-  std::string to_string(const std::string& value);
-
-  template<class T>
-  std::string to_string(const std::vector<T>& value) {
-    std::ostringstream oss;
-    for(auto ele=value.begin(); ele!=value.end(); ++ele)
-      oss<<(ele==value.begin()?"[":"; ")<< *ele;
-    oss<<"]";
-    return oss.str();
-  }
-
-  template<class T>
-  std::string to_string(const std::vector<std::vector<T>>& value) {
-    std::ostringstream oss;
-    for(auto row=value.begin(); row!=value.end(); ++row)
-      for(auto ele=row->begin(); ele!=row->end(); ++ele)
-        oss<<(row==value.begin() && ele==row->begin()?"[":(ele==row->begin()?"; ":", "))<< *ele;
-    oss<<"]";
-    return oss.str();
-  }
 }
 
 namespace {
@@ -265,7 +243,7 @@ class DOMElementWrapper {
 
     template<class T> void addElementText(const FQN &name, const T &value) {
       xercesc::DOMElement *ele=D(me->getOwnerDocument())->createElement(name);
-      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%std::to_string(value)), NULL);
+      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%MBXMLUtils::toString(value)), NULL);
       me->insertBefore(ele, NULL);
     }
     //! Check if the element is of type base
@@ -309,7 +287,7 @@ class DOMElementWrapper {
     //! Set attribute.
     template<class T>
     void setAttribute(const FQN &name, const T &value) {
-      me->setAttributeNS(X()%name.first, X()%name.second, X()%std::to_string(value));
+      me->setAttributeNS(X()%name.first, X()%name.second, X()%MBXMLUtils::toString(value));
     }
     //! Set attribute of type FQN.
     void setAttribute(const FQN &name, const FQN &value);
@@ -477,17 +455,17 @@ void CheckSize<T>::check(const xercesc::DOMElement *me, const T &value, int r, i
 template<class T>
 void CheckSize<std::vector<T>>::check(const xercesc::DOMElement *me, const std::vector<T> &value, int r, int c) {
   if(r!=0 && r!=static_cast<int>(value.size()))
-    throw MBXMLUtils::DOMEvalException("Expected vector of size "+std::to_string(r)+
-                           " but got vector of size "+std::to_string(value.size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected vector of size "+MBXMLUtils::toString(r)+
+                           " but got vector of size "+MBXMLUtils::toString(value.size())+".", me);
 }
 template<class T>
 void CheckSize<std::vector<std::vector<T>>>::check(const xercesc::DOMElement *me, const std::vector<std::vector<T>> &value, int r, int c) {
   if(r!=0 && r!=static_cast<int>(value.size()))
-    throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+std::to_string(r)+
-                           " but got matrix of row-size "+std::to_string(value.size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+MBXMLUtils::toString(r)+
+                           " but got matrix of row-size "+MBXMLUtils::toString(value.size())+".", me);
   if(value.size()>0 && c!=0 && c!=static_cast<int>(value[0].size()))
-    throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+std::to_string(c)+
-                           " but got matrix of col-size "+std::to_string(value[0].size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+MBXMLUtils::toString(c)+
+                           " but got matrix of col-size "+MBXMLUtils::toString(value[0].size())+".", me);
 }
 
 }

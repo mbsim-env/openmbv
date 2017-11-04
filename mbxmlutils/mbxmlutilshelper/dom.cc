@@ -99,12 +99,6 @@ vector<vector<int>> lexical_cast(const std::string& str_) {
 
 }
 
-namespace std {
-
-string to_string(const string& value) { return value; }
-
-}
-
 namespace MBXMLUtils {
 
 namespace {
@@ -347,9 +341,9 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       }
       // search an unused prefix
       int unusedPrefixNr=1;
-      while(usedPrefix.find("ns"+to_string(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
+      while(usedPrefix.find("ns"+toString(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
       // set the unsuded prefix
-      string unusedPrefix("ns"+to_string(unusedPrefixNr));
+      string unusedPrefix("ns"+toString(unusedPrefixNr));
       setAttribute(XMLNS%("xmlns:"+unusedPrefix), value.first);
 
       setAttribute(name, unusedPrefix+":"+value.second);
@@ -545,11 +539,11 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
   if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
     // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+to_string(loc.getLineNumber());
+    return X()%loc.getURI()+":"+toString(loc.getLineNumber());
   else
     // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+to_string(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+to_string(loc.getLineNumber())+"</a>";
+    return "<a href=\""+X()%loc.getURI()+"?line="+toString(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+toString(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
@@ -644,10 +638,10 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::COMMENT_NODE && dst->getNodeType()==DOMNode::COMMENT_NODE))
       return;
   }
-  throw runtime_error("Internal error: Unknown user data handling: op="+to_string(operation)+", key="+X()%key+
-                      ", src="+to_string(src!=nullptr)+", dst="+to_string(dst!=nullptr)+
-                      (src ? ", srcType="+to_string(src->getNodeType()) : "")+
-                      (dst ? ", dstType="+to_string(dst->getNodeType()) : ""));
+  throw runtime_error("Internal error: Unknown user data handling: op="+toString(operation)+", key="+X()%key+
+                      ", src="+toString(src!=nullptr)+", dst="+toString(dst!=nullptr)+
+                      (src ? ", srcType="+toString(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+toString(dst->getNodeType()) : ""));
 }
 
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");

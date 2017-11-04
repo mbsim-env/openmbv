@@ -6,13 +6,16 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
+#include <mbxmlutilshelper/toString.h>
 #include <mbxmlutilshelper/utils.h>
 #include "mbxmlutilshelper/casadiXML.h"
+#include "mbxmlutilshelper/toString.h"
 #include "mbxmlutilshelper/shared_library.h"
 
 using namespace std;
 using namespace casadi;
 using namespace xercesc;
+using namespace MBXMLUtils;
 namespace bfs=boost::filesystem;
 
 namespace {
@@ -46,10 +49,10 @@ void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation
       return;
     }
   }
-  throw runtime_error("Internal error: Unknown user data handling: op="+to_string(operation)+", key="+MBXMLUtils::X()%key+
-                      ", src="+to_string(src!=nullptr)+", dst="+to_string(dst!=nullptr)+
-                      (src ? ", srcType="+to_string(src->getNodeType()) : "")+
-                      (dst ? ", dstType="+to_string(dst->getNodeType()) : ""));
+  throw runtime_error("Internal error: Unknown user data handling: op="+toString(operation)+", key="+MBXMLUtils::X()%key+
+                      ", src="+toString(src!=nullptr)+", dst="+toString(dst!=nullptr)+
+                      (src ? ", srcType="+toString(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+toString(dst->getNodeType()) : ""));
 }
 
 }
@@ -604,10 +607,10 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
     try {
       if(valueIsOfType(ret, ScalarType))
         try {
-          subst=to_string(cast<int>(ret));
+          subst=toString(cast<int>(ret));
         }
         catch(const DOMEvalException&) {
-          subst=to_string(cast<double>(ret));
+          subst=toString(cast<double>(ret));
         }
       else if(valueIsOfType(ret, StringType))
         subst=cast<string>(ret);

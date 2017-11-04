@@ -55,10 +55,10 @@ void SpineExtrusion::createHDF5File() {
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numberOfSpinePoints;i++) {
-      columns.push_back("x"+to_string(i));
-      columns.push_back("y"+to_string(i));
-      columns.push_back("z"+to_string(i));
-      columns.push_back("twist"+to_string(i));
+      columns.push_back("x"+toString(i));
+      columns.push_back("y"+toString(i));
+      columns.push_back("z"+toString(i));
+      columns.push_back("twist"+toString(i));
     }
     data->setColumnLabel(columns);
   }
