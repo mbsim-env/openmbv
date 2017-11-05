@@ -85,6 +85,7 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
   boost::algorithm::replace_all(valueStr, ";", " ; ");
   boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
+  str.exceptions(std::ios::failbit | std::ios::badbit);
   string s;
   str>>s; // first token [
   vector<double> v;
@@ -97,6 +98,12 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
     else // else push double to vector
       v.push_back(boost::lexical_cast<double>(s));
   }
+
+  // check end of stream
+  str>>std::ws;
+  if(!str.eof())
+    throw std::runtime_error("Input not fully read.");
+
   return v;
 }
 
@@ -113,6 +120,7 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
   boost::algorithm::replace_all(valueStr, ";", " ; ");
   boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
+  str.exceptions(std::ios::failbit | std::ios::badbit);
   string s;
   str>>s; // first token
   vector<vector<double> > m;
@@ -128,6 +136,12 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
     else // else push double to vector
       (--m.end())->push_back(boost::lexical_cast<double>(s));
   }
+
+  // check end of stream
+  str>>std::ws;
+  if(!str.eof())
+    throw std::runtime_error("Input not fully read.");
+
   return m;
 }
 

@@ -30,11 +30,12 @@ namespace boost {
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
 template<>
-vector<double> lexical_cast(const std::string& str_) {
+vector<double> lexical_cast(const string& str_) {
   string str(str_);
   for(unsigned int i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
   stringstream stream(str);
+  stream.exceptions(std::ios::badbit);
   double d;
   vector<double> ret;
   while(1) {
@@ -42,12 +43,18 @@ vector<double> lexical_cast(const std::string& str_) {
     if(stream.fail()) break;
     ret.push_back(d);
   }
+
+  // check end of stream
+  stream>>std::ws;
+  if(!stream.eof())
+    throw std::runtime_error("Input not fully read.");
+
   return ret;
 }
 
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
 template<>
-vector<vector<double>> lexical_cast(const std::string& str_) {
+vector<vector<double>> lexical_cast(const string& str_) {
   string str(str_);
   vector<vector<double> > ret;
   for(unsigned int i=0; i<str.length(); i++)
@@ -64,11 +71,12 @@ vector<vector<double>> lexical_cast(const std::string& str_) {
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<int>(3,7,7.9)
 template<>
-vector<int> lexical_cast(const std::string& str_) {
+vector<int> lexical_cast(const string& str_) {
   string str(str_);
   for(unsigned int i=0; i<str.length(); i++)
     if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
   stringstream stream(str);
+  stream.exceptions(std::ios::badbit);
   int d;
   vector<int> ret;
   while(1) {
@@ -76,13 +84,19 @@ vector<int> lexical_cast(const std::string& str_) {
     if(stream.fail()) break;
     ret.push_back(d);
   }
+
+  // check end of stream
+  stream>>std::ws;
+  if(!stream.eof())
+    throw std::runtime_error("Input not fully read.");
+
   return ret;
 }
 
 
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<int> >
 template<>
-vector<vector<int>> lexical_cast(const std::string& str_) {
+vector<vector<int>> lexical_cast(const string& str_) {
   string str(str_);
   vector<vector<int> > ret;
   for(unsigned int i=0; i<str.length(); i++)
@@ -95,6 +109,36 @@ vector<vector<int>> lexical_cast(const std::string& str_) {
     str=str.substr(end+1);
   }
   return ret;
+}
+
+template<>
+bool lexical_cast<bool>(const string& arg)
+{
+  istringstream str(arg);
+  str.exceptions(std::ios::failbit | std::ios::badbit);
+
+  string s;
+  str>>s;
+  bool b;
+  if(s=="true")
+    b=true;
+  else if(s=="false")
+    b=false;
+  else if(s=="1")
+    b=true;
+  else if(s=="0")
+    b=false;
+  else {
+    str.str(arg);
+    str>>b;
+  }
+
+  // check end of stream
+  str>>std::ws;
+  if(!str.eof())
+    throw std::runtime_error("Input not fully read.");
+
+  return b;
 }
 
 }
@@ -168,7 +212,7 @@ EmbedDOMLocator::EmbedDOMLocator(const path &file_, int row_, int embedCount_) :
   file=x%file_.string(CODECVT);
 }
 
-std::string EmbedDOMLocator::getEmbedCount() const {
+string EmbedDOMLocator::getEmbedCount() const {
   if(embedCount>0) {
     stringstream str;
     str<<"[count="<<embedCount<<"]";
@@ -512,7 +556,7 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e,
     attrName=X()%a->getName();
 }
 
-void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack) {
+void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vector<EmbedDOMLocator> &locationStack) {
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();

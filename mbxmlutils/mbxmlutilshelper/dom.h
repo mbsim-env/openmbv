@@ -31,6 +31,7 @@ namespace boost {
   template<> std::vector<std::vector<double>> lexical_cast(const std::string& str);
   template<> std::vector<int> lexical_cast(const std::string& str);
   template<> std::vector<std::vector<int>> lexical_cast(const std::string& str);
+  template<> bool lexical_cast<bool>(const std::string& arg);
 }
 
 namespace {

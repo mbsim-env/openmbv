@@ -132,21 +132,12 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     SXElem dep=createCasADiSXFromXML(ee, nodes);
     sxelement=SXElem::unary(op, dep);
   }
-  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SymbolicSX") {
+  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SymbolicSX")
     sxelement=SXElem::sym(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
-  }
-  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"RealtypeSX") {
-    std::stringstream str(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
-    double value;
-    str>>value;
-    sxelement=value;
-  }
-  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"IntegerSX") {
-    std::stringstream str(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
-    int value;
-    str>>value;
-    sxelement=value;
-  }
+  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"RealtypeSX")
+    sxelement=boost::lexical_cast<double>(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
+  else if(MBXMLUtils::E(e)->getTagName()==CASADI%"IntegerSX")
+    sxelement=boost::lexical_cast<int>(MBXMLUtils::X()%MBXMLUtils::E(e)->getFirstTextChild()->getData());
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"ZeroSX")
     sxelement=casadi_limits<SXElem>::zero;
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"OneSX")
