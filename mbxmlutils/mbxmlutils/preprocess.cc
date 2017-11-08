@@ -267,9 +267,11 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         Eval::Value value=eval->eval(e);
         E(e)->removeAttribute("unit");
         E(e)->removeAttribute("convertUnit");
+        // if a child element exists (xml*Group or fromFileGroup) then remove it
         if(e->getFirstElementChild())
           e->removeChild(e->getFirstElementChild())->release();
-        else if(E(e)->getFirstTextChild())
+        // remove also all child text nodes
+        while(E(e)->getFirstTextChild())
           e->removeChild(E(e)->getFirstTextChild())->release();
         DOMNode *node;
         DOMDocument *doc=e->getOwnerDocument();
