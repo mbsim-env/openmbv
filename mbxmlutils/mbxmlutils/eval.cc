@@ -6,10 +6,9 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
-#include <mbxmlutilshelper/toString.h>
+#include <fmatvec/toString.h>
 #include <mbxmlutilshelper/utils.h>
 #include "mbxmlutilshelper/casadiXML.h"
-#include "mbxmlutilshelper/toString.h"
 #include "mbxmlutilshelper/shared_library.h"
 
 using namespace std;
@@ -49,10 +48,10 @@ void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation
       return;
     }
   }
-  throw runtime_error("Internal error: Unknown user data handling: op="+toString(operation)+", key="+MBXMLUtils::X()%key+
-                      ", src="+toString(src!=nullptr)+", dst="+toString(dst!=nullptr)+
-                      (src ? ", srcType="+toString(src->getNodeType()) : "")+
-                      (dst ? ", dstType="+toString(dst->getNodeType()) : ""));
+  throw runtime_error("Internal error: Unknown user data handling: op="+fmatvec::toString(operation)+", key="+MBXMLUtils::X()%key+
+                      ", src="+fmatvec::toString(src!=nullptr)+", dst="+fmatvec::toString(dst!=nullptr)+
+                      (src ? ", srcType="+fmatvec::toString(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+fmatvec::toString(dst->getNodeType()) : ""));
 }
 
 }
@@ -607,10 +606,10 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
     try {
       if(valueIsOfType(ret, ScalarType))
         try {
-          subst=toString(cast<int>(ret));
+          subst=fmatvec::toString(cast<int>(ret));
         }
         catch(const DOMEvalException&) {
-          subst=toString(cast<double>(ret));
+          subst=fmatvec::toString(cast<double>(ret));
         }
       else if(valueIsOfType(ret, StringType))
         subst=cast<string>(ret);

@@ -6,7 +6,7 @@
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include "mbxmlutilshelper/casadiXML.h"
-#include <mbxmlutilshelper/toString.h>
+#include <fmatvec/toString.h>
 #include <boost/scope_exit.hpp>
 
 using namespace std;
@@ -43,10 +43,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         try {
           if(eval->valueIsOfType(ret, Eval::ScalarType))
             try {
-              subst=toString(eval->cast<int>(ret));
+              subst=fmatvec::toString(eval->cast<int>(ret));
             }
             catch(const DOMEvalException&) {
-              subst=toString(eval->cast<double>(ret));
+              subst=fmatvec::toString(eval->cast<double>(ret));
             }
           else if(eval->valueIsOfType(ret, Eval::StringType))
             subst=eval->cast<string>(ret);
@@ -84,7 +84,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
 
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
       int pos=++(*position)[E(enew)->getTagName()];
-      thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+toString(pos)+"]";
+      thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+fmatvec::toString(pos)+"]";
     
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
@@ -208,7 +208,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
 
       // set the XPath of this (none Embed) element to the name of the element itself (including the proper position)
       int pos=++(*position)[E(e)->getTagName()];
-      thisXPath="{"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+"["+toString(pos)+"]";
+      thisXPath="{"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+"["+fmatvec::toString(pos)+"]";
 
       // evaluate attributes
       DOMNamedNodeMap *attr=e->getAttributes();
@@ -228,10 +228,10 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         try {
           if(eval->valueIsOfType(value, Eval::ScalarType))
             try {
-              s=toString(eval->cast<int>(value));
+              s=fmatvec::toString(eval->cast<int>(value));
             }
             catch(const DOMEvalException&) {
-              s=toString(eval->cast<double>(value));
+              s=fmatvec::toString(eval->cast<double>(value));
             }
           else if(eval->valueIsOfType(value, Eval::StringType))
             s=eval->cast<string>(value);

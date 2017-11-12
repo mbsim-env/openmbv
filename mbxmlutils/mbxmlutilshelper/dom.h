@@ -18,7 +18,7 @@
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 #include <boost/lexical_cast.hpp>
-#include "toString.h"
+#include <fmatvec/toString.h>
 
 namespace XERCES_CPP_NAMESPACE {
   class DOMProcessingInstruction;
@@ -244,7 +244,7 @@ class DOMElementWrapper {
 
     template<class T> void addElementText(const FQN &name, const T &value) {
       xercesc::DOMElement *ele=D(me->getOwnerDocument())->createElement(name);
-      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%MBXMLUtils::toString(value)), NULL);
+      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%fmatvec::toString(value)), NULL);
       me->insertBefore(ele, NULL);
     }
     //! Check if the element is of type base
@@ -288,7 +288,7 @@ class DOMElementWrapper {
     //! Set attribute.
     template<class T>
     void setAttribute(const FQN &name, const T &value) {
-      me->setAttributeNS(X()%name.first, X()%name.second, X()%MBXMLUtils::toString(value));
+      me->setAttributeNS(X()%name.first, X()%name.second, X()%fmatvec::toString(value));
     }
     //! Set attribute of type FQN.
     void setAttribute(const FQN &name, const FQN &value);
@@ -456,17 +456,17 @@ void CheckSize<T>::check(const xercesc::DOMElement *me, const T &value, int r, i
 template<class T>
 void CheckSize<std::vector<T>>::check(const xercesc::DOMElement *me, const std::vector<T> &value, int r, int c) {
   if(r!=0 && r!=static_cast<int>(value.size()))
-    throw MBXMLUtils::DOMEvalException("Expected vector of size "+MBXMLUtils::toString(r)+
-                           " but got vector of size "+MBXMLUtils::toString(value.size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected vector of size "+fmatvec::toString(r)+
+                           " but got vector of size "+fmatvec::toString(value.size())+".", me);
 }
 template<class T>
 void CheckSize<std::vector<std::vector<T>>>::check(const xercesc::DOMElement *me, const std::vector<std::vector<T>> &value, int r, int c) {
   if(r!=0 && r!=static_cast<int>(value.size()))
-    throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+MBXMLUtils::toString(r)+
-                           " but got matrix of row-size "+MBXMLUtils::toString(value.size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+fmatvec::toString(r)+
+                           " but got matrix of row-size "+fmatvec::toString(value.size())+".", me);
   if(value.size()>0 && c!=0 && c!=static_cast<int>(value[0].size()))
-    throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+MBXMLUtils::toString(c)+
-                           " but got matrix of col-size "+MBXMLUtils::toString(value[0].size())+".", me);
+    throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+fmatvec::toString(c)+
+                           " but got matrix of col-size "+fmatvec::toString(value[0].size())+".", me);
 }
 
 }

@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "openmbvcppinterface/polygonpoint.h"
-#include <mbxmlutilshelper/toString.h>
+#include <fmatvec/toString.h>
 
 using namespace std;
 using namespace xercesc;
@@ -32,7 +32,7 @@ void PolygonPoint::serializePolygonPointContour(DOMElement *parent,
   string str;
   str="[ ";
   for(vector<shared_ptr<PolygonPoint> >::const_iterator j=cont->begin(); j!=cont->end(); j++) {
-    str+=toString((*j)->getXComponent())+", "+toString((*j)->getYComponent())+", "+toString((*j)->getBorderValue());
+    str+=fmatvec::toString((*j)->getXComponent())+", "+fmatvec::toString((*j)->getYComponent())+", "+fmatvec::toString((*j)->getBorderValue());
     if(j+1!=cont->end()) str+=";    "; else str+=" ]";
   }
   E(parent)->addElementText(OPENMBV%"contour", str);

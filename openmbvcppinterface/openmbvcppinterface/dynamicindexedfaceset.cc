@@ -50,10 +50,10 @@ void DynamicIndexedFaceSet::createHDF5File() {
     vector<string> columns;
     columns.push_back("Time");
     for(int i=0;i<numvp;i++) {
-      columns.push_back("x"+toString(i));
-      columns.push_back("y"+toString(i));
-      columns.push_back("z"+toString(i));
-      columns.push_back("color"+toString(i));
+      columns.push_back("x"+fmatvec::toString(i));
+      columns.push_back("y"+fmatvec::toString(i));
+      columns.push_back("z"+fmatvec::toString(i));
+      columns.push_back("color"+fmatvec::toString(i));
     }
     data->setColumnLabel(columns);
   }

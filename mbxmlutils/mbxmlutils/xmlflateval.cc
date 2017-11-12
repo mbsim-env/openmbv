@@ -3,7 +3,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
-#include <mbxmlutilshelper/toString.h>
+#include <fmatvec/toString.h>
 
 using namespace boost::filesystem;
 using namespace std;
@@ -154,13 +154,13 @@ string XMLFlatEval::cast_string(const Value &value) const {
 }
 
 Eval::Value XMLFlatEval::create_double(const double& v) const {
-  return make_shared<string>(toString(v));
+  return make_shared<string>(fmatvec::toString(v));
 }
 
 Eval::Value XMLFlatEval::create_vector_double(const vector<double>& v) const {
   string str("[");
   for(int i=0; i<v.size(); ++i) {
-    str+=toString(v[i]);
+    str+=fmatvec::toString(v[i]);
     if(i!=v.size()-1) str+=";";
   }
   str+="]";
@@ -171,7 +171,7 @@ Eval::Value XMLFlatEval::create_vector_vector_double(const vector<vector<double>
   string str("[");
   for(int r=0; r<v.size(); ++r) {
     for(int c=0; c<v[r].size(); ++c) {
-      str+=toString(v[r][c]);
+      str+=fmatvec::toString(v[r][c]);
       if(c!=v[r].size()-1) str+=",";
     }
     if(r!=v.size()-1) str+=";";

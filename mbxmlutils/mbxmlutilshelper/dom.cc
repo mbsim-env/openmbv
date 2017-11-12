@@ -17,6 +17,7 @@
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include "getinstallpath.h"
+#include <fmatvec/toString.h>
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
 #include <xercesc/internal/XMLScanner.hpp>
@@ -385,9 +386,9 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       }
       // search an unused prefix
       int unusedPrefixNr=1;
-      while(usedPrefix.find("ns"+toString(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
+      while(usedPrefix.find("ns"+fmatvec::toString(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
       // set the unsuded prefix
-      string unusedPrefix("ns"+toString(unusedPrefixNr));
+      string unusedPrefix("ns"+fmatvec::toString(unusedPrefixNr));
       setAttribute(XMLNS%("xmlns:"+unusedPrefix), value.first);
 
       setAttribute(name, unusedPrefix+":"+value.second);
@@ -583,11 +584,11 @@ void DOMEvalException::locationStack2Stream(const string &indent, const vector<E
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
   if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
     // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+toString(loc.getLineNumber());
+    return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
   else
     // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+toString(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+toString(loc.getLineNumber())+"</a>";
+    return "<a href=\""+X()%loc.getURI()+"?line="+fmatvec::toString(loc.getLineNumber())+"\">"+
+      X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber())+"</a>";
 }
 
 void DOMEvalException::setContext(const DOMElement *e) {
@@ -682,10 +683,10 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::COMMENT_NODE && dst->getNodeType()==DOMNode::COMMENT_NODE))
       return;
   }
-  throw runtime_error("Internal error: Unknown user data handling: op="+toString(operation)+", key="+X()%key+
-                      ", src="+toString(src!=nullptr)+", dst="+toString(dst!=nullptr)+
-                      (src ? ", srcType="+toString(src->getNodeType()) : "")+
-                      (dst ? ", dstType="+toString(dst->getNodeType()) : ""));
+  throw runtime_error("Internal error: Unknown user data handling: op="+fmatvec::toString(operation)+", key="+X()%key+
+                      ", src="+fmatvec::toString(src!=nullptr)+", dst="+fmatvec::toString(dst!=nullptr)+
+                      (src ? ", srcType="+fmatvec::toString(src->getNodeType()) : "")+
+                      (dst ? ", dstType="+fmatvec::toString(dst->getNodeType()) : ""));
 }
 
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");

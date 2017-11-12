@@ -344,7 +344,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
         if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
         if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
           // ... if not its an indentation error
-          throw DOMEvalException("Unexpected indentation at line "+toString(lineNr)+": "+str, e);
+          throw DOMEvalException("Unexpected indentation at line "+fmatvec::toString(lineNr)+": "+str, e);
         *it=it->substr(indent); // remove the first indent spaces from the line
       }
       strtrim=boost::join(lines, "\n"); // join the lines to a single string
