@@ -70,7 +70,7 @@ namespace SharedLibrary {
 // Load the libary file, if not already loaded.
 // Unloads the library only at program exit!!!
 // file should be a canonical path.
-Handle load(const std::string &file, bool global=false) {
+inline Handle load(const std::string &file, bool global=false) {
   static std::map<std::string, Handle> library;
   std::pair<std::map<std::string, Handle>::iterator, bool> res=library.insert(std::pair<std::string, Handle>(file, NULL));
   if(res.second) {

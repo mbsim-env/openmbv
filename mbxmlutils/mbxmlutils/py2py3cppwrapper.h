@@ -42,7 +42,7 @@
 namespace PythonCpp {
 
 // initialize python giving main as program name to python
-void initializePython(const std::string &main, const std::string &home="") {
+inline void initializePython(const std::string &main, const std::string &home="") {
   static const std::string mainStatic=main;
   static const std::string homeStatic=home;
 #if PY_MAJOR_VERSION < 3
@@ -205,7 +205,7 @@ class PythonException : public std::exception {
 };
 
 // check for a python exception and throw a PythonException if one exists
-void checkPythonError() {
+inline void checkPythonError() {
   if(PyErr_Occurred())
     throw PythonException("", 0);
 }
@@ -283,7 +283,7 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
   traceback=PyO(traceback_);
 }
 
-const char* PythonException::what() const noexcept {
+const inline char* PythonException::what() const noexcept {
   if(!msg.empty())
     return msg.c_str();
 

@@ -222,14 +222,14 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
       unsigned int v2i=uniqVertex->addPoint(v2);
       unsigned int v3i=uniqVertex->addPoint(v3);
       // add edge and get edge index
-      #define addEdge(i,j) addPoint(SbVec2i32(i<j?i:j,i<j?j:i)) // smaller index first, larger index second
+      #define addEdge(i,j) addPoint(SbVec2i32((i)<(j)?(i):(j),(i)<(j)?(j):(i))) // smaller index first, larger index second
       unsigned int e1i=edge.addEdge(v1i, v2i);
       unsigned int e2i=edge.addEdge(v2i, v3i);
       unsigned int e3i=edge.addEdge(v3i, v1i);
       #undef addEdge
       // add vai,vbi,fpv[...]
       EdgeIndexFacePlaneVec *x;
-      #define expand(ei) if(ei>=preData.edgeIndFPV->size()) preData.edgeIndFPV->resize(ei+1);
+      #define expand(ei) if((ei)>=preData.edgeIndFPV->size()) preData.edgeIndFPV->resize((ei)+1);
       //expand size; get new/current element; set vai;    set vbi;    append fpv;
       expand(e1i); x=&(*preData.edgeIndFPV)[e1i];  x->vai=v1i; x->vbi=v2i; x->fpv.push_back(v13OrthoTov12(v1, v2, v3));
       expand(e2i); x=&(*preData.edgeIndFPV)[e2i];  x->vai=v2i; x->vbi=v3i; x->fpv.push_back(v13OrthoTov12(v2, v3, v1));
