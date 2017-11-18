@@ -113,7 +113,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     std::shared_ptr<OpenMBV::Body> openMBVBodyForLastFrame;
     QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
-    void help(std::string type, QDialog *helpDialog);
+    void help(const std::string& type, QDialog *helpDialog);
     static void toggleAction(Object *current, QAction *currentAct);
     void execPropertyMenu();
     static void disableBBox(Object *obj);
@@ -161,7 +161,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void speedWheelChanged(int value);
     void speedWheelPressed();
     void speedWheelReleased();
-    void exportAsPNG(short width, short height, std::string fileName, bool transparent);
+    void exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
@@ -227,7 +227,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   public:
     DLL_PUBLIC MainWindow(std::list<std::string>& arg);
     DLL_PUBLIC ~MainWindow() override;
-    DLL_PUBLIC bool openFile(std::string fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
+    DLL_PUBLIC bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     DLL_PUBLIC static MainWindow* const getInstance();
     bool soQtEventCB(const SoEvent *const event);

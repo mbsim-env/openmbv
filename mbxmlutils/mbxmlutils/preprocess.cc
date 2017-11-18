@@ -17,9 +17,9 @@ using namespace boost::filesystem;
 
 namespace MBXMLUtils {
 
-void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
-                            shared_ptr<XPathParamSet> param, const string &parentXPath,
-                            shared_ptr<PositionMap> position) {
+void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
+                            const shared_ptr<XPathParamSet>& param, const string &parentXPath,
+                            const shared_ptr<PositionMap>& position) {
   try {
     string thisXPath; // the XPath of this element (for a Embed its the target element name, for others its just the element name
     if(E(e)->getTagName()==PV%"Embed") {

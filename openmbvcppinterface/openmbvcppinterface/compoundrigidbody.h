@@ -41,7 +41,7 @@ namespace OpenMBV {
       ~CompoundRigidBody() override;
     public:
       /** Add a RigidBody to this compound */
-      void addRigidBody(std::shared_ptr<RigidBody> rigidBody_) {
+      void addRigidBody(const std::shared_ptr<RigidBody>& rigidBody_) {
         if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");
         for(auto & i : rigidBody)
           if(i->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");

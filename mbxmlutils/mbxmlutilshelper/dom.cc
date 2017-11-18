@@ -180,7 +180,7 @@ namespace {
   // END: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
 
-  path toRelativePath(path absPath, path relTo=current_path()) {
+  path toRelativePath(path absPath, const path& relTo=current_path()) {
     if(!absPath.is_absolute())
       throw runtime_error("First argument of toRelativePath must be a absolute path.");
     path::iterator curIt, absIt;

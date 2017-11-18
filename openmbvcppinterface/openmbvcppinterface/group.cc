@@ -46,7 +46,7 @@ Group::Group() : Object(), expandStr("true") {
 
 Group::~Group() = default;
 
-void Group::addObject(shared_ptr<Object> newObject) {
+void Group::addObject(const shared_ptr<Object>& newObject) {
   if(newObject->name=="") throw runtime_error("object to add must have a name");
   for(auto & i : object)
     if(i->name==newObject->name)

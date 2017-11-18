@@ -26,6 +26,7 @@
 #include <openmbvcppinterface/objectfactory.h>
 #include <hdf5serie/group.h>
 #include <mbxmlutilshelper/dom.h>
+#include <utility>
 #include <vector>
 
 namespace OpenMBV {
@@ -98,7 +99,7 @@ namespace OpenMBV {
       /** get the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
       std::string getID() const { return ID; }
       /** set the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
-      void setID(std::string ID_) { ID=ID_; }
+      void setID(std::string ID_) { ID=std::move(ID_); }
 
       /** get the selected flag (Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI) */
       bool getSelected() const { return selected; }

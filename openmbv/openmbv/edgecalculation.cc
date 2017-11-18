@@ -142,7 +142,7 @@ void EdgeCalculation::triangleCB(void *data, SoCallbackAction *action, const SoP
   SbVec3f v2=vp2->getPoint();
   SbVec3f v3=vp3->getPoint();
   // convert coordinates to frame of the action
-  SbMatrix mm=action->getModelMatrix();
+  const SbMatrix& mm=action->getModelMatrix();
   mm.multVecMatrix(v1, v1);
   mm.multVecMatrix(v2, v2);
   mm.multVecMatrix(v3, v3);

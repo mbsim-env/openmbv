@@ -109,7 +109,7 @@ IvBody::~IvBody() {
   delete edgeCalc;
 }
 
-void IvBody::calculateEdges(string fullName, double creaseEdges, bool boundaryEdges) {
+void IvBody::calculateEdges(const string& fullName, double creaseEdges, bool boundaryEdges) {
   // NOTE: It is not allowed here to use any variables of OpenMBV::IvBody since this class may aleady be
   // delete by a destructor call of a parent object of this object.
   // (OpenMBV::~Group deletes all children)

@@ -22,6 +22,7 @@
 
 #include <openmbvcppinterface/rigidbody.h>
 #include <string>
+#include <utility>
 
 namespace OpenMBV {
 
@@ -30,7 +31,7 @@ namespace OpenMBV {
     friend class ObjectFactory;
     public:
       /** The file of the iv file to read */
-      void setIvFileName(std::string ivFileName_) { ivFileName=ivFileName_; }
+      void setIvFileName(std::string ivFileName_) { ivFileName=std::move(ivFileName_); }
 
       std::string getIvFileName() { return ivFileName; }
 

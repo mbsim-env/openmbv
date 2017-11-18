@@ -847,7 +847,7 @@ MainWindow::~MainWindow() {
   SoQt::done();
 }
 
-bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
+bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
   // default parameter
   if(parentItem==nullptr) parentItem=objectList->invisibleRootItem();
   if(soParent==nullptr) soParent=sceneRoot;
@@ -957,7 +957,7 @@ void MainWindow::xmlHelp() {
   help("XML", xmlHelpDialog);
 }
 
-void MainWindow::help(std::string type, QDialog *helpDialog) {
+void MainWindow::help(const std::string& type, QDialog *helpDialog) {
   if(!helpDialog) {
     helpDialog=new QDialog(this);
     helpDialog->setWindowIcon(Utils::QIconCached("help.svg"));
@@ -1466,7 +1466,7 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-void MainWindow::exportAsPNG(short width, short height, std::string fileName, bool transparent) {
+void MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
   static SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
   myRenderer.setViewportRegion(SbViewportRegion(width, height));
   if(transparent)

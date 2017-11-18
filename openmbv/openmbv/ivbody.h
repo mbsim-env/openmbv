@@ -44,7 +44,7 @@ class IvBody : public RigidBody {
 
   private:
     EdgeCalculation *edgeCalc;
-    void calculateEdges(std::string fullName, double creaseEdges, bool boundaryEdges);
+    void calculateEdges(const std::string& fullName, double creaseEdges, bool boundaryEdges);
     class CalculateEdgesThread : public QThread {
       public:
         CalculateEdgesThread(IvBody *ivBody_) : ivBody(ivBody_) {}

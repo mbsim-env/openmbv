@@ -74,7 +74,7 @@ namespace OpenMBV {
       bool getExpand() { return expandStr=="true"?true:false; }
 
       /** Add a object to this object container */
-      void addObject(std::shared_ptr<Object> object);
+      void addObject(const std::shared_ptr<Object>& object);
 
       std::vector<std::shared_ptr<Object> >& getObjects() {
         return object;
