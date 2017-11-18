@@ -29,12 +29,12 @@ namespace OpenMBV {
     friend class ObjectFactory;
     protected:
       InvisibleBody();
-      ~InvisibleBody() {}
+      ~InvisibleBody() override = default;
     public:
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

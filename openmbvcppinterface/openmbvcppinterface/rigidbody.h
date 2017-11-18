@@ -22,7 +22,7 @@
 
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <hdf5serie/vectorserie.h>
 #include <stdexcept>
 
@@ -71,14 +71,14 @@ namespace OpenMBV {
       std::string localFrameStr, referenceFrameStr, pathStr, draggerStr;
       std::vector<double> initialTranslation;
       std::vector<double> initialRotation;
-      double scaleFactor;
-      void createHDF5File();
-      void openHDF5File();
-      H5::VectorSerie<double>* data;
+      double scaleFactor{1};
+      void createHDF5File() override;
+      void openHDF5File() override;
+      H5::VectorSerie<double>* data{nullptr};
       std::weak_ptr<CompoundRigidBody> compound;
 
       RigidBody();
-      ~RigidBody();
+      ~RigidBody() override;
     public:
       /** Draw local frame of this object in the viewer if true (the default) */
       void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
@@ -148,7 +148,7 @@ namespace OpenMBV {
       /** Append a data vector the the h5 datsset */
       template<typename T>
       void append(const T& row) {
-        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object");
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
@@ -161,15 +161,15 @@ namespace OpenMBV {
           data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
-      virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
+      std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false) override;
 
       std::shared_ptr<Group> getSeparateGroup();
       std::shared_ptr<Group> getTopLevelGroup();

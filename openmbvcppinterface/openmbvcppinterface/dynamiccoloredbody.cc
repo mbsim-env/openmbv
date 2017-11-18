@@ -30,11 +30,10 @@ using namespace xercesc;
 namespace OpenMBV {
 
 DynamicColoredBody::DynamicColoredBody() : Body(),
-  minimalColorValue(0),
-  maximalColorValue(1),
+  
   dynamicColor(numeric_limits<double>::quiet_NaN()),
-  diffuseColor(vector<double>(3)),
-  transparency(0) {
+  diffuseColor(vector<double>(3))
+  {
   vector<double> hsv(3);
   hsv[0]=-1;
   hsv[1]=1;
@@ -42,7 +41,7 @@ DynamicColoredBody::DynamicColoredBody() : Body(),
   diffuseColor=hsv;
 }
 
-DynamicColoredBody::~DynamicColoredBody() {}
+DynamicColoredBody::~DynamicColoredBody() = default;
 
 DOMElement* DynamicColoredBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);

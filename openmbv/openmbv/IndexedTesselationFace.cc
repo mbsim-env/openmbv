@@ -21,7 +21,7 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_DEFINE_ENUM_VALUE(WindingRule, ABS_GEQ_TWO);
   SO_NODE_SET_SF_ENUM_TYPE(windingRule, WindingRule);
   SO_NODE_ADD_FIELD(windingRule, (ODD));
-  SO_NODE_ADD_FIELD(coordinate, (NULL));
+  SO_NODE_ADD_FIELD(coordinate, (nullptr));
   SO_NODE_ADD_FIELD(coordIndex, (-1));
 }
 
@@ -33,15 +33,14 @@ IndexedTesselationFace::IndexedTesselationFace(int numChilderen) : SoGroup(numCh
   constructor();
 }
 
-IndexedTesselationFace::~IndexedTesselationFace() {
-}
+IndexedTesselationFace::~IndexedTesselationFace() = default;
 
 void IndexedTesselationFace::write(SoWriteAction *action) {
   // the internal added children must not be write out
 
   // save all internal children
   int nr=getNumChildren();
-  SoNode **child=new SoNode*[nr];
+  auto **child=new SoNode*[nr];
   for(int i=0; i<nr; i++) {
     child[i]=getChild(i);
     child[i]->ref();
@@ -79,7 +78,7 @@ SbBool IndexedTesselationFace::readChildren(SoInput *in) {
       contourOpen=true;
     }
     if(coordIndex[i]>=0) {
-      double *v=(double*)(coordinate[coordIndex[i]].getValue());
+      auto *v=(double*)(coordinate[coordIndex[i]].getValue());
       gluTessVertex(Utils::tess, v, v);
     }
     if(coordIndex[i]<0 || i>=coordIndex.getNum()-1) {

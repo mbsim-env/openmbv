@@ -35,7 +35,7 @@ InvisibleBody::InvisibleBody() : RigidBody() {
 
 DOMElement* InvisibleBody::writeXMLFile(DOMNode *parent) {
   RigidBody::writeXMLFile(parent);
-  return 0;
+  return nullptr;
 }
 
 void InvisibleBody::initializeUsingXML(DOMElement *element) {

@@ -54,10 +54,10 @@ class ObjectFactory {
       static_assert(std::is_convertible<ContainerType*, Object*>::value,
         "In OpenMBV::ObjectFactory::create<ContainerType>(...) ContainerType must be derived from Object.");
       // return NULL if no input is supplied
-      if(element==NULL) return std::shared_ptr<ContainerType>();
+      if(element==nullptr) return std::shared_ptr<ContainerType>();
       // loop over all all registred types corresponding to element->ValueStr()
       std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(MBXMLUtils::E(element)->getTagName());
-      for(MapIt it=range.first; it!=range.second; it++) {
+      for(auto it=range.first; it!=range.second; it++) {
         // allocate a new object using the allocate function pointer
         std::shared_ptr<Object> ele=it->second();
         // try to cast ele up to ContainerType
@@ -93,7 +93,7 @@ class ObjectFactory {
     typedef typename Map::iterator MapIt;
 
     // private ctor
-    ObjectFactory() {}
+    ObjectFactory() = default;
 
     static void registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc);
 

@@ -36,24 +36,24 @@ namespace OpenMBV {
   class Path : public Body {
     friend class ObjectFactory;
     protected:
-      void createHDF5File();
-      void openHDF5File();
+      void createHDF5File() override;
+      void openHDF5File() override;
       H5::VectorSerie<double>* data;
       std::vector<double> color;
       
       Path();
-      virtual ~Path();
+      ~Path() override;
     public:
       /** Append a data vector the to hf dataset */
       template<typename T>
       void append(const T& row) {
-        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object");
         if(row.size()!=4) throw std::runtime_error("the dimension does not match");
         data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(4); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(4); }
 
       /** Set the color of the path (HSV values from 0 to 1). */
       void setColor(const std::vector<double>& hsv) {
@@ -73,9 +73,9 @@ namespace OpenMBV {
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

@@ -48,16 +48,16 @@ namespace OpenMBV {
       bool getBoundaryEdges() { return boundaryEdges; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
     protected:
       IvBody();
-      ~IvBody() {}
+      ~IvBody() override = default;
       std::string ivFileName;
-      double creaseAngle;
-      bool boundaryEdges;
+      double creaseAngle{-1};
+      bool boundaryEdges{false};
   };
 
 }

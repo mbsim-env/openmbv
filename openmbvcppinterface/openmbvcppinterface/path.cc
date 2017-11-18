@@ -30,16 +30,15 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBV%"Path")
 
-Path::Path() : Body(), data(NULL), color(vector<double>(3,1)) {
+Path::Path() : Body(), data(nullptr), color(vector<double>(3,1)) {
 }
 
-Path::~Path() {
-}
+Path::~Path() = default;
 
 DOMElement* Path::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"color", color);
-  return 0;
+  return nullptr;
 }
 
 void Path::createHDF5File() {
@@ -47,10 +46,10 @@ void Path::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(4);
     vector<string> columns;
-    columns.push_back("Time");
-    columns.push_back("x");
-    columns.push_back("y");
-    columns.push_back("z");
+    columns.emplace_back("Time");
+    columns.emplace_back("x");
+    columns.emplace_back("y");
+    columns.emplace_back("z");
     data->setColumnLabel(columns);
   }
 }
@@ -63,7 +62,7 @@ void Path::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

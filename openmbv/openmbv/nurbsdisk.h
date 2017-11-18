@@ -58,10 +58,10 @@ class NurbsDisk : public DynamicColoredBody {
     /** constructor */
     NurbsDisk(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
 
-    ~NurbsDisk();
+    ~NurbsDisk() override;
 
     /** info string in spine extrusion pop-up menu */
-    virtual QString getInfo();
+    QString getInfo() override;
 
   protected:
     SoSwitch *soLocalFrameSwitch;
@@ -108,10 +108,10 @@ class NurbsDisk : public DynamicColoredBody {
     SoIndexedFaceSet *faceSet;
 
     /** update method invoked at each time step */
-    virtual double update();
+    double update() override;
 
     std::shared_ptr<OpenMBV::NurbsDisk> nurbsDisk;
-    void createProperties();
+    void createProperties() override;
 
     public slots:
       void moveCameraWithSlot();

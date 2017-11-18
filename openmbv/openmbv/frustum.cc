@@ -53,12 +53,12 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   // create so
   // two side render if height==0
   if(height==0) {
-    SoShapeHints *sh=new SoShapeHints;
+    auto *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
   }
   // coordinates
-  SoCoordinate3 *coord=new SoCoordinate3;
+  auto *coord=new SoCoordinate3;
   soSepRigidBody->addChild(coord);
   for(int i=0; i<N; i++) {
     double phi=2*M_PI/N*i;
@@ -70,7 +70,7 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
     }
   }
   // normals
-  SoNormal *normal=new SoNormal;
+  auto *normal=new SoNormal;
   soSepRigidBody->addChild(normal);
   normal->vector.set1Value(0, 0, 0, -1);
   normal->vector.set1Value(1, 0, 0, 1);
@@ -86,9 +86,9 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   // faces (base/top)
   if(innerBaseRadius>0 || innerTopRadius>0) {
     int nr=-1;
-    SoIndexedTriangleStripSet *baseFace=new SoIndexedTriangleStripSet;
+    auto *baseFace=new SoIndexedTriangleStripSet;
     soSepRigidBody->addChild(baseFace);
-    SoIndexedTriangleStripSet *topFace=0;
+    SoIndexedTriangleStripSet *topFace=nullptr;
     if(height!=0) {
       topFace=new SoIndexedTriangleStripSet;
       soSepRigidBody->addChild(topFace);
@@ -122,9 +122,9 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   }
   else {
     int nr=-1;
-    SoIndexedFaceSet *baseFace=new SoIndexedFaceSet;
+    auto *baseFace=new SoIndexedFaceSet;
     soSepRigidBody->addChild(baseFace);
-    SoIndexedFaceSet *topFace=0;
+    SoIndexedFaceSet *topFace=nullptr;
     if(height!=0) {
       topFace=new SoIndexedFaceSet;
       soSepRigidBody->addChild(topFace);
@@ -141,7 +141,7 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   if(height!=0) {
     // faces outer
     int nr=-1;
-    SoIndexedTriangleStripSet *outerFace=new SoIndexedTriangleStripSet;
+    auto *outerFace=new SoIndexedTriangleStripSet;
     soSepRigidBody->addChild(outerFace);
     outerFace->coordIndex.set1Value(++nr, 2*N-1);
     outerFace->normalIndex.set1Value(nr, N-1+2);
@@ -156,7 +156,7 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
     // faces inner
     if(innerBaseRadius>0 || innerTopRadius>0) {
       int nr=-1;
-      SoIndexedTriangleStripSet *innerFace=new SoIndexedTriangleStripSet;
+      auto *innerFace=new SoIndexedTriangleStripSet;
       soSepRigidBody->addChild(innerFace);
       innerFace->coordIndex.set1Value(++nr, 3*N-1);
       innerFace->normalIndex.set1Value(nr, 2*N-1+2);
@@ -176,7 +176,7 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   localFrameScale->scaleFactor.setValue(size,size,size);
   
   // outline
-  SoIndexedLineSet *outLine=new SoIndexedLineSet;
+  auto *outLine=new SoIndexedLineSet;
   int nr=-1;
   outLine->coordIndex.set1Value(++nr, N-1);
   for(int i=0; i<N; i++)

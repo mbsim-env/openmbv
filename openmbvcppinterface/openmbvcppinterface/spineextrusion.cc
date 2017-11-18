@@ -31,21 +31,18 @@ namespace OpenMBV {
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBV%"SpineExtrusion")
 
 SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
-  numberOfSpinePoints(0),
-  data(0), 
-  scaleFactor(1),
+  
   initialRotation(vector<double>(3, 0)) {
 }
 
-SpineExtrusion::~SpineExtrusion() {
-}
+SpineExtrusion::~SpineExtrusion() = default;
 
 DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
-  return 0;
+  return nullptr;
 }
 
 void SpineExtrusion::createHDF5File() {
@@ -53,7 +50,7 @@ void SpineExtrusion::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
     vector<string> columns;
-    columns.push_back("Time");
+    columns.emplace_back("Time");
     for(int i=0;i<numberOfSpinePoints;i++) {
       columns.push_back("x"+fmatvec::toString(i));
       columns.push_back("y"+fmatvec::toString(i));
@@ -72,7 +69,7 @@ void SpineExtrusion::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

@@ -3,6 +3,7 @@
 
 #include <fmatvec/atom.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include <set>
@@ -101,14 +102,14 @@ class X {
 class DOMErrorPrinter: public xercesc::DOMErrorHandler, virtual public fmatvec::Atom
 {
   public:
-    DOMErrorPrinter() : warningCount(0), errorCount(0) {}
-    bool handleError(const xercesc::DOMError&);
+    DOMErrorPrinter()  = default;
+    bool handleError(const xercesc::DOMError&) override;
     int getNumWarnings() const { return warningCount; }
     int getNumErrors() const { return errorCount; }
     void resetCounter() { warningCount=0; errorCount=0; }
   protected:
-    int warningCount;
-    int errorCount;
+    int warningCount{0};
+    int errorCount{0};
 };
 
 //! Full qualified name.
@@ -128,7 +129,7 @@ class FQN : public std::pair<std::string, std::string> {
 //! Helper class to easily construct full qualified XML names (FQN) using XML namespace prefixes.
 class NamespaceURI {
   public:
-    NamespaceURI(const std::string &nsuri_) : nsuri(nsuri_) {}
+    NamespaceURI(std::string nsuri_) : nsuri(std::move(nsuri_)) {}
     FQN operator%(const std::string &localName) const { return FQN(nsuri, localName); }
     std::string getNamespaceURI() const { return nsuri; }
   private:
@@ -154,12 +155,12 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
       file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
       return *this;
     }
-    XMLFileLoc getLineNumber() const { return row; }
-    XMLFileLoc getColumnNumber() const { return 0; }
-    XMLFilePos getByteOffset() const { return ~(XMLFilePos(0)); }
-    XMLFilePos getUtf16Offset() const { return ~(XMLFilePos(0)); }
-    xercesc::DOMNode *getRelatedNode() const { return NULL; }
-    const XMLCh *getURI() const { return file; }
+    XMLFileLoc getLineNumber() const override { return row; }
+    XMLFileLoc getColumnNumber() const override { return 0; }
+    XMLFilePos getByteOffset() const override { return ~(XMLFilePos(0)); }
+    XMLFilePos getUtf16Offset() const override { return ~(XMLFilePos(0)); }
+    xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
+    const XMLCh *getURI() const override { return file; }
     std::string getEmbedCount() const;
   private:
     X x;
@@ -184,14 +185,14 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
 //! Exception during evaluation of the DOM tree including a location stack
 class DOMEvalException : public std::exception {
   public:
-    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=NULL, const xercesc::DOMAttr *a=NULL);
+    DOMEvalException(const std::string &errorMsg_, const xercesc::DOMElement *e=nullptr, const xercesc::DOMAttr *a=nullptr);
     DOMEvalException(const DOMEvalException &src) : errorMsg(src.errorMsg),
       locationStack(src.locationStack) {}
     DOMEvalException &operator=(const DOMEvalException &src) {
       errorMsg=src.errorMsg; locationStack=src.locationStack;
       return *this;
     }
-    ~DOMEvalException() throw() {}
+    ~DOMEvalException() noexcept override = default;
     static void generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack);
     static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
                                      const std::string &attrName, std::ostream &str);
@@ -199,7 +200,7 @@ class DOMEvalException : public std::exception {
     void setContext(const xercesc::DOMElement *e);
     const std::string& getMessage() const { return errorMsg; }
     const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
-    const char* what() const throw();
+    const char* what() const noexcept override;
   private:
     std::string errorMsg;
     std::vector<EmbedDOMLocator> locationStack;
@@ -244,8 +245,8 @@ class DOMElementWrapper {
 
     template<class T> void addElementText(const FQN &name, const T &value) {
       xercesc::DOMElement *ele=D(me->getOwnerDocument())->createElement(name);
-      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%fmatvec::toString(value)), NULL);
-      me->insertBefore(ele, NULL);
+      ele->insertBefore(me->getOwnerDocument()->createTextNode(MBXMLUtils::X()%fmatvec::toString(value)), nullptr);
+      me->insertBefore(ele, nullptr);
     }
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
@@ -371,9 +372,9 @@ DOMDocumentWrapper<DOMDocumentType> D(std::shared_ptr<DOMDocumentType> me) { ret
 class LocationInfoFilter : public xercesc::DOMLSParserFilter {
   public:
     void setParser(DOMParser *parser_) { parser=parser_; }
-    xercesc::DOMLSParserFilter::FilterAction acceptNode(xercesc::DOMNode *n);
-    xercesc::DOMLSParserFilter::FilterAction startElement(xercesc::DOMElement *e);
-    xercesc::DOMNodeFilter::ShowType getWhatToShow() const;
+    xercesc::DOMLSParserFilter::FilterAction acceptNode(xercesc::DOMNode *n) override;
+    xercesc::DOMLSParserFilter::FilterAction startElement(xercesc::DOMElement *e) override;
+    xercesc::DOMNodeFilter::ShowType getWhatToShow() const override;
   private:
     DOMParser *parser;
     static const std::string lineNumberKey;
@@ -382,15 +383,15 @@ class LocationInfoFilter : public xercesc::DOMLSParserFilter {
 class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatvec::Atom {
   public:
     void setParser(DOMParser *parser_) { parser=parser_; }
-    void handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIElement *elementInfo);
-    void handleAttributesPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIAttributeList *psviAttributes);
+    void handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIElement *elementInfo) override;
+    void handleAttributesPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIAttributeList *psviAttributes) override;
   private:
     DOMParser *parser;
 };
 
 class DOMParserUserDataHandler : public xercesc::DOMUserDataHandler {
   public:
-    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst);
+    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
 };
 
 class EntityResolver : public xercesc::XMLEntityResolver {
@@ -414,7 +415,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     static std::shared_ptr<DOMParser> create(const std::set<boost::filesystem::path> &schemas={});
     //! Parse a XML document
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
-                                                  std::vector<boost::filesystem::path> *dependencies=NULL);
+                                                  std::vector<boost::filesystem::path> *dependencies=nullptr);
     //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
@@ -444,7 +445,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     static DOMParserUserDataHandler userDataHandler;
     std::map<std::string, boost::filesystem::path> registeredGrammar;
 
-    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=NULL);
+    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=nullptr);
 };
 
 }

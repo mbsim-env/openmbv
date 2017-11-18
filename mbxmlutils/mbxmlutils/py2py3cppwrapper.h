@@ -158,7 +158,7 @@ inline PyObject* Py_InitModule_func(char *name, PyMethodDef *methods) { return P
 // we use this for python object for c++ reference counting
 class PyO {
   public:
-    constexpr PyO() : p(nullptr) {}
+    constexpr PyO()  = default;
     explicit PyO(PyObject *src, bool srcIsBorrowedRef=false) : p(src) { if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     PyO(const PyO &r) : p(r.p) { Py_XINCREF(p); }
     PyO(PyO &&r) : p(r.p) { r.p=nullptr; }
@@ -174,7 +174,7 @@ class PyO {
     PyO& incRef() { Py_XINCREF(p); return *this; } // use if the caller steals a reference of the returned PyObject
     operator bool() const { return p!=nullptr; }
   protected:
-    PyObject *p;
+    PyObject *p{nullptr};
 };
 
 inline bool operator==(const PyO& l, const PyO& r) { return l.get()==r.get(); }
@@ -190,13 +190,13 @@ inline bool operator>=(const PyO& l, const PyO& r) { return l.get()>=r.get(); }
 class PythonException : public std::exception {
   public:
     PythonException(const char *file_, int line_);
-    ~PythonException() throw() {}
+    ~PythonException() noexcept override = default;
     std::string getFile() { return file; }
     int getLine() { return line; }
     PyO getType() { return type; }
     PyO getValue() { return value; }
     PyO getTraceback() { return traceback; }
-    const char* what() const throw();
+    const char* what() const noexcept override;
   private:
     std::string file;
     int line;
@@ -283,7 +283,7 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
   traceback=PyO(traceback_);
 }
 
-const char* PythonException::what() const throw() {
+const char* PythonException::what() const noexcept {
   if(!msg.empty())
     return msg.c_str();
 
@@ -302,7 +302,7 @@ const char* PythonException::what() const throw() {
   if(!fileIO)
     throw std::runtime_error("Internal error: cannot get in memory file class.");
   Py_DECREF(io);
-  PyObject *buf=PyObject_CallObject(fileIO, NULL);
+  PyObject *buf=PyObject_CallObject(fileIO, nullptr);
   Py_DECREF(fileIO);
   if(!buf)
     throw std::runtime_error("Internal error: cannot create new in memory file instance");
@@ -322,7 +322,7 @@ const char* PythonException::what() const throw() {
   PyObject *getvalue=PyObject_GetAttrString(buf, "getvalue");
   if(!getvalue)
     throw std::runtime_error("Internal error: cannot get getvalue attribute");
-  PyObject *pybufstr=PyObject_CallObject(getvalue, NULL);
+  PyObject *pybufstr=PyObject_CallObject(getvalue, nullptr);
   if(!pybufstr)
     throw std::runtime_error("Internal error: cannot get string from in memory file output");
   Py_DECREF(getvalue);

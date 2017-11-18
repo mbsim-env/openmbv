@@ -34,15 +34,14 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBV%"CompoundRigidB
 CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
 }
 
-CompoundRigidBody::~CompoundRigidBody() {
-}
+CompoundRigidBody::~CompoundRigidBody() = default;
 
 DOMElement* CompoundRigidBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->setAttribute("expand", expandStr);
-  for(unsigned int i=0; i<rigidBody.size(); i++)
-    rigidBody[i]->writeXMLFile(e);
-  return 0;
+  for(auto & i : rigidBody)
+    i->writeXMLFile(e);
+  return nullptr;
 }
 
 void CompoundRigidBody::initializeUsingXML(DOMElement *element) {

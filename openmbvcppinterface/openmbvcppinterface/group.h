@@ -39,13 +39,13 @@ namespace OpenMBV {
       std::vector<std::shared_ptr<Object> > object;
       std::string expandStr;
       std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
-      bool separateFile;
+      bool separateFile{false};
       std::shared_ptr<H5::File> hdf5File;
-      void createHDF5File();
-      void openHDF5File();
+      void createHDF5File() override;
+      void openHDF5File() override;
 
       Group();
-      virtual ~Group();
+      ~Group() override;
 
       /** Initialisze/Write the XML file.
        * Call this function for the root node of the tree to create/write/ the XML file.
@@ -90,7 +90,7 @@ namespace OpenMBV {
        * including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
 
-      std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
+      std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false) override;
       
       /** Sets the file name of the .ombv.xml file of this separateFile Group
        * including the absolute or relatvie path */
@@ -109,12 +109,12 @@ namespace OpenMBV {
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.
        */
-      void terminate();
+      void terminate() override;
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
       /** return the first Group in the tree which is an separateFile */
       std::shared_ptr<Group> getSeparateGroup() {

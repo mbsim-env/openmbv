@@ -35,7 +35,7 @@ class Rotation : public RigidBody {
     Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::Rotation> rot;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

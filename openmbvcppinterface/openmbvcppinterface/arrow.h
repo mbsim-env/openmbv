@@ -53,15 +53,18 @@ namespace OpenMBV {
       };
     protected:
       std::string pathStr;
-      void createHDF5File();
-      void openHDF5File();
-      H5::VectorSerie<double>* data;
-      double headDiameter, headLength, diameter, scaleLength;
-      Type type;
-      ReferencePoint referencePoint;
+      void createHDF5File() override;
+      void openHDF5File() override;
+      H5::VectorSerie<double>* data{nullptr};
+      double headDiameter{0.5};
+      double headLength{0.75};
+      double diameter{0.25};
+      double scaleLength{1};
+      Type type{toHead};
+      ReferencePoint referencePoint{toPoint};
 
       Arrow();
-      virtual ~Arrow();
+      ~Arrow() override;
     public:
       /** Draw path of this object in the viewer if true (the default) */
       void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
@@ -71,7 +74,7 @@ namespace OpenMBV {
       /** Append the data \p row to the end of the dataset */
       template<typename T>
       void append(const T& row) {
-        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object");
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
@@ -84,8 +87,8 @@ namespace OpenMBV {
           data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
       void setArrowHead(double diameter, double length) {
@@ -149,9 +152,9 @@ namespace OpenMBV {
       double getScaleLength() { return scaleLength; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

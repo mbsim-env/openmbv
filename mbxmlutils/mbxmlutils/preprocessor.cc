@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     // convert argv to list
     list<string> args;
     for(int i=1; i<argc; i++)
-      args.push_back(argv[i]);
+      args.emplace_back(argv[i]);
 
     // help message
     if(args.size()<2) {
@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
     // output dependencies?
     if(!depFileName.empty()) {
       std::ofstream dependenciesFile(depFileName.string().c_str());
-      for(vector<path>::iterator it=dependencies.begin(); it!=dependencies.end(); it++)
-        dependenciesFile<<it->string()<<endl;
+      for(auto & dependencie : dependencies)
+        dependenciesFile<<dependencie.string()<<endl;
     }
   }
   catch(const std::exception &ex) {

@@ -70,13 +70,13 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   }
   // read XML
   vector<std::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
-  for(unsigned int i=0; i<child.size(); i++) {
-    if(typeid(*child[i])==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(child[i]))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
-    ObjectFactory::create(child[i], this, soSep, -1);
+  for(auto & i : child) {
+    if(typeid(*i)==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(i))->getObjects().size()==0) continue; // a hack for openmbvdeleterows.sh
+    ObjectFactory::create(i, this, soSep, -1);
   }
 
   // timer for reloading file automatically
-  reloadTimer=NULL;
+  reloadTimer=nullptr;
   // if reloading is enabled and this Group is a toplevel file create timer
   std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
   if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
@@ -149,8 +149,8 @@ void Group::newObjectSlot() {
   };
 
   vector<string> existingNames;
-  for(unsigned int j=0; j<grp->getObjects().size(); j++)
-    existingNames.push_back(grp->getObjects()[j]->getName());
+  for(auto & j : grp->getObjects())
+    existingNames.push_back(j->getName());
 
   std::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new Object");
   if(!obj) return;
@@ -163,8 +163,8 @@ void Group::newObjectSlot() {
 }
 
 void Group::saveFileSlot() {
-  static QMessageBox *askSave=NULL;
-  static QCheckBox *showAgain=NULL;
+  static QMessageBox *askSave=nullptr;
+  static QCheckBox *showAgain=nullptr;
   if(!askSave) {
     askSave=new QMessageBox(QMessageBox::Question, "Save XML-File", QString(
         "Save current properties in XML-File.\n"
@@ -177,7 +177,7 @@ void Group::saveFileSlot() {
       ).arg(grp->getFileName().c_str()).arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
       QMessageBox::Cancel | QMessageBox::SaveAll);
     showAgain=new QCheckBox("Do not show this dialog again");
-    QGridLayout *layout=static_cast<QGridLayout*>(askSave->layout());
+    auto *layout=static_cast<QGridLayout*>(askSave->layout());
     layout->addWidget(showAgain, layout->rowCount(), 0, 1, layout->columnCount());
   }
   QMessageBox::StandardButton ret=QMessageBox::SaveAll;
@@ -202,7 +202,7 @@ void Group::reloadFileSlot() {
   // unload
   unloadFileSlot(); // NOTE: this calls "delete this" !!!
   // load
-  MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:NULL, ind);
+  MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:nullptr, ind);
   // set new item the current item: this selects and scroll to the new widget
   if(parent)
     MainWindow::getInstance()->objectList->setCurrentItem(parent->child(ind), 0, QItemSelectionModel::NoUpdate);

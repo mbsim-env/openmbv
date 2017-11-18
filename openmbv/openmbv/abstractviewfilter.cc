@@ -25,6 +25,7 @@
 #include <QtGui/QTreeView>
 #include <QtGui/QListView>
 #include <QtGui/QTableView>
+#include <utility>
 
 using namespace std;
 
@@ -32,10 +33,10 @@ namespace OpenMBVGUI {
 
 AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, const QString &typePrefix_,
                                        std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
-  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(indexToQObject_),
+  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(std::move(indexToQObject_)),
   enableRole(enableRole_) {
 
-  QGridLayout *layout=new QGridLayout(this);
+  auto *layout=new QGridLayout(this);
   layout->setContentsMargins(0,0,0,0);
   setLayout(layout);
   QLabel *filterL=new QLabel("Filter:");
@@ -183,7 +184,7 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
         view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
     }
     // set expanded
-    QTreeView *tree=qobject_cast<QTreeView*>(view);
+    auto *tree=qobject_cast<QTreeView*>(view);
     if(tree)
       tree->setExpanded(index, m.child);
   }

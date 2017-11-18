@@ -30,14 +30,14 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cube, OPENMBV%"Cube")
 
-Cube::Cube() : RigidBody(),
-  length(1) {
+Cube::Cube() : RigidBody()
+  {
 }
 
 DOMElement* Cube::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"length", length);
-  return 0;
+  return nullptr;
 }
 
 void Cube::initializeUsingXML(DOMElement *element) {

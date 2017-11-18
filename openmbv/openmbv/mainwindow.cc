@@ -80,13 +80,13 @@ namespace OpenMBVGUI {
 
 enum Mode { no, rotate, translate, zoom };
 
-MainWindow *MainWindow::instance=0;
+MainWindow *MainWindow::instance=nullptr;
 
 QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
 }
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(0), helpViewerXML(0), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
@@ -119,7 +119,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   // main widget
   QWidget *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
-  QGridLayout *mainLO=new QGridLayout(mainWG);
+  auto *mainLO=new QGridLayout(mainWG);
   mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
   // gl viewer
@@ -147,14 +147,14 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   sceneRoot->ref();
   sceneRoot->isActive.setValue(false);
   sceneRoot->precision.setValue(1.0);
-  SoPolygonOffset *offset=new SoPolygonOffset; // move all filled polygons in background
+  auto *offset=new SoPolygonOffset; // move all filled polygons in background
   sceneRoot->addChild(offset);
   offset->factor.setValue(0.0);
   offset->units.setValue(1000);
   complexity=new SoComplexity;
   sceneRoot->addChild(complexity);
   // enable backface culling (and one sided lightning) by default
-  SoShapeHints *sh=new SoShapeHints;
+  auto *sh=new SoShapeHints;
   sceneRoot->addChild(sh);
   sh->vertexOrdering=SoShapeHints::COUNTERCLOCKWISE;
   sh->shapeType=SoShapeHints::SOLID;
@@ -163,24 +163,24 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   engDrawing=new SoSwitch;
   sceneRoot->addChild(engDrawing);
   engDrawing->whichChild.setValue(SO_SWITCH_NONE);
-  SoLightModel *lm3=new SoLightModel;
+  auto *lm3=new SoLightModel;
   lm3->model.setValue(SoLightModel::BASE_COLOR);
   lm3->setOverride(true);
   engDrawing->addChild(lm3);
-  SoBaseColor *bc=new SoBaseColor;
+  auto *bc=new SoBaseColor;
   bc->rgb.setValue(1,1,1);
   bc->setOverride(true);
   engDrawing->addChild(bc);
 
   sceneRootBBox=new SoSepNoPick;
   sceneRoot->addChild(sceneRootBBox);
-  SoLightModel *lm=new SoLightModel;
+  auto *lm=new SoLightModel;
   sceneRootBBox->addChild(lm);
   lm->model.setValue(SoLightModel::BASE_COLOR);
-  SoBaseColor *color=new SoBaseColor;
+  auto *color=new SoBaseColor;
   sceneRootBBox->addChild(color);
   color->rgb.setValue(0,1,0);
-  SoDrawStyle *style=new SoDrawStyle;
+  auto *style=new SoDrawStyle;
   style->style.setValue(SoDrawStyle::LINES);
   style->lineWidth.setValue(2);
   sceneRootBBox->addChild(style);
@@ -188,13 +188,13 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   // Move the world system such that the camera is constant relative the the body
   // with moves with the camera; if not, don't move the world system.
   // rot
-  SoRotation *worldSysRot=new SoRotation;
+  auto *worldSysRot=new SoRotation;
   sceneRoot->addChild(worldSysRot);
   cameraOrientation=new SoTransposeEngine;
   cameraOrientation->ref();
   worldSysRot->rotation.connectFrom(&cameraOrientation->outRotation);
   // trans
-  SoTranslation *worldSysTrans=new SoTranslation;
+  auto *worldSysTrans=new SoTranslation;
   sceneRoot->addChild(worldSysTrans);
   cameraPosition=new SoTransformVec3f;
   cameraPosition->ref();
@@ -205,9 +205,9 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   worldFrameSwitch=new SoSwitch;
   sceneRoot->addChild(worldFrameSwitch);
   worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  SoSepNoPickNoBBox *worldFrameSep=new SoSepNoPickNoBBox;
+  auto *worldFrameSep=new SoSepNoPickNoBBox;
   worldFrameSwitch->addChild(worldFrameSep);
-  SoDrawStyle *drawStyle=new SoDrawStyle;
+  auto *drawStyle=new SoDrawStyle;
   worldFrameSep->addChild(drawStyle);
   drawStyle->lineWidth.setValue(2);
   drawStyle->linePattern.setValue(0xF8F8);
@@ -224,7 +224,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
   objectListDW->setObjectName("MainWindow::objectListDW");
   QWidget *objectListWG=new QWidget(this);
-  QGridLayout *objectListLO=new QGridLayout(objectListWG);
+  auto *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
@@ -254,7 +254,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
   objectInfoDW->setObjectName("MainWindow::objectInfoDW");
   QWidget *objectInfoWG=new QWidget;
-  QGridLayout *objectInfoLO=new QGridLayout;
+  auto *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
   objectInfoDW->setWidget(objectInfoWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectInfoDW);
@@ -265,7 +265,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   connect(objectList,SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),this,SLOT(setObjectInfo(QTreeWidgetItem*)));
 
   // menu bar
-  QMenuBar *mb=new QMenuBar(this);
+  auto *mb=new QMenuBar(this);
   setMenuBar(mb);
 
   QAction *act;
@@ -465,7 +465,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   speedSB->setValue(1.0);
   connect(speedSB, SIGNAL(valueChanged(double)), this, SLOT(restartPlay()));
   QWidget *speedWG=new QWidget(this);
-  QGridLayout *speedLO=new QGridLayout(speedWG);
+  auto *speedLO=new QGridLayout(speedWG);
   speedLO->setSpacing(0);
   speedLO->setContentsMargins(0,0,0,0);
   speedWG->setLayout(speedLO);
@@ -489,7 +489,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   frameSB=new QSpinBox;
   frameSB->setMinimumSize(55,0);
   QWidget *frameWG=new QWidget(this);
-  QGridLayout *frameLO=new QGridLayout(frameWG);
+  auto *frameLO=new QGridLayout(frameWG);
   frameLO->setSpacing(0);
   frameLO->setContentsMargins(0,0,0,0);
   frameWG->setLayout(frameLO);
@@ -510,7 +510,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   frameMinSB->setMinimumSize(55,0);
   frameMinSB->setRange(0, 0);
   QWidget *frameMinWG=new QWidget(this);
-  QGridLayout *frameMinLO=new QGridLayout(frameMinWG);
+  auto *frameMinLO=new QGridLayout(frameMinWG);
   frameMinLO->setSpacing(0);
   frameMinLO->setContentsMargins(0,0,0,0);
   frameMinWG->setLayout(frameMinLO);
@@ -524,7 +524,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   frameMaxSB->setMinimumSize(55,0);
   frameMaxSB->setRange(0, 0);
   QWidget *frameMaxWG=new QWidget(this);
-  QGridLayout *frameMaxLO=new QGridLayout(frameMaxWG);
+  auto *frameMaxLO=new QGridLayout(frameMaxWG);
   frameMaxLO->setSpacing(0);
   frameMaxLO->setContentsMargins(0,0,0,0);
   frameMaxWG->setLayout(frameMaxLO);
@@ -550,7 +550,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   menuBar()->addMenu(helpMenu);
 
   // status bar
-  QStatusBar *sb=new QStatusBar(this);
+  auto *sb=new QStatusBar(this);
   fps=new QLabel("FPS: -");
   fpsTime=new QTime();
   sb->addPermanentWidget(fps);
@@ -747,10 +747,10 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   }
 
   // read XML files
-  if(arg.empty()) arg.push_back("."); // if called without argument load current dir
+  if(arg.empty()) arg.emplace_back("."); // if called without argument load current dir
   QDir dir;
   QRegExp filterRE1(".+\\.ombv\\.xml");
-  QRegExp filterRE2(".+\\.ombv\\.env\\.xml");
+  QRegExp filterRE2(R"(.+\.ombv\.env\.xml)");
   dir.setFilter(QDir::Files);
   i=arg.begin();
   while(i!=arg.end()) {
@@ -849,8 +849,8 @@ MainWindow::~MainWindow() {
 
 bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
   // default parameter
-  if(parentItem==NULL) parentItem=objectList->invisibleRootItem();
-  if(soParent==NULL) soParent=sceneRoot;
+  if(parentItem==nullptr) parentItem=objectList->invisibleRootItem();
+  if(soParent==nullptr) soParent=sceneRoot;
 
   // check file type
   bool env;
@@ -891,7 +891,7 @@ bool MainWindow::openFile(std::string fileName, QTreeWidgetItem* parentItem, SoG
 }
 
 void MainWindow::openFileDialog() {
-  QStringList files=QFileDialog::getOpenFileNames(0, "Add OpenMBV Files", ".",
+  QStringList files=QFileDialog::getOpenFileNames(nullptr, "Add OpenMBV Files", ".",
     "OpenMBV files (*.ombv.xml *.ombv.env.xml);;"
     "OpenMBV animation files (*.ombv.xml);;"
     "OpenMBV environment files (*.ombv.env.xml)");
@@ -916,19 +916,19 @@ void MainWindow::newFileDialog() {
   if(filename.toUpper().endsWith(".OMBV.ENV.XML")) basename=filename.left(filename.length()-13);
   basename.remove(0, basename.lastIndexOf('/')+1);
   ofstream file(filename.toStdString().c_str());
-  file<<"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"<<endl
-      <<"<Group name=\""<<basename.toStdString()<<"\" xmlns=\"http://www.mbsim-env.de/OpenMBV\"/>"<<endl;
+  file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
+      <<"<Group name=\""<<basename.toStdString()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
   openFile(filename.toStdString());
 }
 
 void MainWindow::toggleAction(Object *current, QAction *currentAct) {
   QList<QAction*> actions=current->getProperties()->getActions();
-  for(int i=0; i<actions.size(); i++)
-    if(actions[i]->objectName()==currentAct->objectName() && currentAct!=actions[i])
-      actions[i]->trigger();
+  for(auto & action : actions)
+    if(action->objectName()==currentAct->objectName() && currentAct!=action)
+      action->trigger();
 }
 void MainWindow::execPropertyMenu() {
-  Object *object=(Object*)objectList->currentItem();
+  auto *object=(Object*)objectList->currentItem();
   QMenu* menu=object->getProperties()->getContextMenu();
   QAction *currentAct=menu->exec(QCursor::pos());
   // if action is not NULL and the action has a object name trigger also the actions with
@@ -948,12 +948,12 @@ void MainWindow::objectListClicked() {
 }
 
 void MainWindow::guiHelp() {
-  static QDialog *guiHelpDialog=0;
+  static QDialog *guiHelpDialog=nullptr;
   help("GUI", guiHelpDialog);
 }
 
 void MainWindow::xmlHelp() {
-  static QDialog *xmlHelpDialog=0;
+  static QDialog *xmlHelpDialog=nullptr;
   help("XML", xmlHelpDialog);
 }
 
@@ -961,7 +961,7 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
   if(!helpDialog) {
     helpDialog=new QDialog(this);
     helpDialog->setWindowIcon(Utils::QIconCached("help.svg"));
-    QGridLayout *layout=new QGridLayout(helpDialog);
+    auto *layout=new QGridLayout(helpDialog);
     helpDialog->setLayout(layout);
     QPushButton *home=new QPushButton("Home",helpDialog);
     layout->addWidget(home,0,0);
@@ -969,7 +969,7 @@ void MainWindow::help(std::string type, QDialog *helpDialog) {
     layout->addWidget(helpBackward,0,1);
     QPushButton *helpForward=new QPushButton("Forward",helpDialog);
     layout->addWidget(helpForward,0,2);
-    QWebView *helpViewer=new QWebView(helpDialog);
+    auto *helpViewer=new QWebView(helpDialog);
     connect(helpViewer, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished()));
     layout->addWidget(helpViewer,1,0,1,3);
     connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
@@ -1016,19 +1016,19 @@ void MainWindow::helpHomeXML() {
 }
 
 void MainWindow::aboutOpenMBV() {
-  static QDialog *about=NULL;
-  if(about==NULL) {
+  static QDialog *about=nullptr;
+  if(about==nullptr) {
     about=new QDialog(this);
     about->setWindowTitle("About OpenMBV");
     about->setMinimumSize(500, 500);
-    QGridLayout *layout=new QGridLayout;
+    auto *layout=new QGridLayout;
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 1);
     about->setLayout(layout);
     QLabel *icon=new QLabel;
     layout->addWidget(icon, 0, 0, Qt::AlignTop);
     icon->setPixmap(Utils::QIconCached(":/openmbv.svg").pixmap(64,64));
-    QTextEdit *text=new QTextEdit;
+    auto *text=new QTextEdit;
     layout->addWidget(text, 0, 1);
     text->setReadOnly(true);
     text->setHtml(
@@ -1187,15 +1187,15 @@ static void clearSoEvent(SoEvent *ev) {
   ev->setCtrlDown(false);
   ev->setAltDown(false);
   if(ev->isOfType(SoButtonEvent::getClassTypeId())) {
-    SoButtonEvent *bev=static_cast<SoButtonEvent*>(ev);
+    auto *bev=static_cast<SoButtonEvent*>(ev);
     bev->setState(SoButtonEvent::UNKNOWN);
   }
   if(ev->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-    SoMouseButtonEvent *mbev=static_cast<SoMouseButtonEvent*>(ev);
+    auto *mbev=static_cast<SoMouseButtonEvent*>(ev);
     mbev->setButton(SoMouseButtonEvent::ANY);
   }
   if(ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
-    SoKeyboardEvent *kev=static_cast<SoKeyboardEvent*>(ev);
+    auto *kev=static_cast<SoKeyboardEvent*>(ev);
     kev->setKey(SoKeyboardEvent::UNDEFINED);
   }
 }
@@ -1204,7 +1204,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
   static Mode mode=no;
 
   if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-    SoMouseButtonEvent *ev=const_cast<SoMouseButtonEvent*>(static_cast<const SoMouseButtonEvent*>(event));
+    auto *ev=const_cast<SoMouseButtonEvent*>(static_cast<const SoMouseButtonEvent*>(event));
     static QPoint buttonDownPoint;
     static QElapsedTimer timer;
     static bool doubleClick=false;
@@ -1233,7 +1233,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         SoPath *path=pickedPoints[i]->getPath();
         bool found=false;
         for(int j=path->getLength()-1; j>=0; j--) {
-          map<SoNode*,Body*>::iterator it=Body::getBodyMap().find(path->getNode(j));
+          auto it=Body::getBodyMap().find(path->getNode(j));
           if(it!=Body::getBodyMap().end()) {
             if(std::find(pickedObject.begin(), pickedObject.end(), it->second)==pickedObject.end())
               pickedObject.push_back(it->second);
@@ -1254,7 +1254,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       }
       msg(Info)<<endl;
       // mid button clicked => seed rotation center to clicked point
-      if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=0)
+      if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=nullptr)
         glViewer->seekToPoint(pickedPoints[0]->getPoint());
       // if at least one object was picked
       if(pickedObject.size()>0) {
@@ -1263,7 +1263,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         if(ev->getButton()==SoMouseButtonEvent::BUTTON1 || ev->getButton()==SoMouseButtonEvent::BUTTON2) {
           // Alt was down => show menu of all objects under the clicked point and select the clicked object of this menu
           if(ev->wasAltDown()) {
-            QMenu *menu=new QMenu(this);
+            auto *menu=new QMenu(this);
             int ind=0;
             list<Body*>::iterator it;
             for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
@@ -1272,7 +1272,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
               menu->addAction(action);
             }
             QAction *action=menu->exec(QCursor::pos());
-            if(action!=0) {
+            if(action!=nullptr) {
               ind=action->data().toInt();
               it=pickedObject.begin();
               for(int i=0; i<ind; i++, it++);
@@ -1361,7 +1361,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
     }
   }
   if(event->isOfType(SoLocation2Event::getClassTypeId())) {
-    SoLocation2Event *ev=const_cast<SoLocation2Event*>(static_cast<const SoLocation2Event*>(event));
+    auto *ev=const_cast<SoLocation2Event*>(static_cast<const SoLocation2Event*>(event));
     // if mode==zoom is active pass to SoQt with ctrl down
     if(mode==zoom) {
       clearSoEvent(ev);
@@ -1378,7 +1378,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
 }
 
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
-  MainWindow *me=(MainWindow*)data;
+  auto *me=(MainWindow*)data;
   me->setObjectInfo(me->objectList->currentItem());
   me->timeSlider->setValue(MainWindow::instance->getFrame()->getValue());
   me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
@@ -1422,7 +1422,7 @@ void MainWindow::restartPlay() {
 void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
-    int dframe=(int)(dT/deltaTime);// frame increment since play click
+    auto dframe=(int)(dT/deltaTime);// frame increment since play click
     unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
                         (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
     if(frame->getValue()!=frame_) frame->setValue(frame_); // set frame => update scene
@@ -1431,7 +1431,7 @@ void MainWindow::heavyWorkSlot() {
   else if(lastFrameAct->isChecked()) {
     // get number of rows of first none enviroment body
     if(!openMBVBodyForLastFrame) {
-      map<SoNode*,Body*>::iterator it=Body::getBodyMap().begin();
+      auto it=Body::getBodyMap().begin();
       while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==-1)
         it++;
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
@@ -1475,20 +1475,20 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     myRenderer.setComponents(SoOffscreenRenderer::RGB);
 
   // root separator for export
-  SoSeparator *root=new SoSeparator;
+  auto *root=new SoSeparator;
   root->ref();
   SbColor fgColorTopSaved=*fgColorTop->getValues(0);
   SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
   // add background
   if(!transparent) {
     // do not write to depth buffer
-    SoDepthBuffer *db1=new SoDepthBuffer;
+    auto *db1=new SoDepthBuffer;
     root->addChild(db1);
     db1->write.setValue(false);
     // render background
     root->addChild(glViewer->bgSep);
     // write to depth buffer until now
-    SoDepthBuffer *db2=new SoDepthBuffer;
+    auto *db2=new SoDepthBuffer;
     root->addChild(db2);
     db2->write.setValue(true);
   }
@@ -1500,7 +1500,7 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
   // add scene
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
   // do not test depth buffer
-  SoDepthBuffer *db=new SoDepthBuffer;
+  auto *db=new SoDepthBuffer;
   root->addChild(db);
   db->function.setValue(SoDepthBufferElement::ALWAYS);
   // add foreground
@@ -1524,7 +1524,7 @@ void MainWindow::exportAsPNG(short width, short height, std::string fileName, bo
     fgColorBottom->set1Value(0, fgColorBottomSaved);
   }
 
-  unsigned char *buf=new unsigned char[width*height*4];
+  auto *buf=new unsigned char[width*height*4];
   for(int y=0; y<height; y++)
     for(int x=0; x<width; x++) {
       int i=(y*width+x)* (transparent?4:3);
@@ -1583,7 +1583,7 @@ void MainWindow::exportSequenceAsPNG() {
     if(ret==QMessageBox::No) return;
   }
   int videoFrame=0;
-  int lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
+  auto lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
   glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
@@ -1686,7 +1686,7 @@ void MainWindow::olseLineWidthSlot() {
 
 void MainWindow::loadWindowState(string filename) {
   if(filename=="") {
-    QString fn=QFileDialog::getOpenFileName(0, "Load window state", ".", "*.ombv.wst");
+    QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombv.wst");
     if(fn.isNull()) return;
     filename=fn.toStdString();
   }
@@ -1712,7 +1712,7 @@ void MainWindow::saveWindowState() {
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;
 
-  QString filename=QFileDialog::getSaveFileName(0, "Save window state", "openmbv.ombv.wst", "*.ombv.wst");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombv.wst", "*.ombv.wst");
   if(filename.isNull()) return;
   if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
     filename=filename+".ombv.wst";
@@ -1734,7 +1734,7 @@ void MainWindow::saveWindowState() {
 
 void MainWindow::loadCamera(string filename) {
   if(filename=="") {
-    QString fn=QFileDialog::getOpenFileName(0, "Load camera", ".", "*.camera.iv");
+    QString fn=QFileDialog::getOpenFileName(nullptr, "Load camera", ".", "*.camera.iv");
     if(fn.isNull()) return;
     filename=fn.toStdString();
   }
@@ -1758,7 +1758,7 @@ void MainWindow::loadCamera(string filename) {
 }
 
 void MainWindow::saveCamera() {
-  QString filename=QFileDialog::getSaveFileName(0, "Save camera", "openmbv.camera.iv", "*.camera.iv");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save camera", "openmbv.camera.iv", "*.camera.iv");
   if(filename.isNull()) return;
   if(!filename.endsWith(".camera.iv",Qt::CaseInsensitive))
     filename=filename+".camera.iv";
@@ -1769,7 +1769,7 @@ void MainWindow::saveCamera() {
 }
 
 void MainWindow::exportCurrentAsIV() {
-  QString filename=QFileDialog::getSaveFileName(0, "Save current frame as iv", "openmbv.iv", "*.iv");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save current frame as iv", "openmbv.iv", "*.iv");
   if(filename.isNull()) return;
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
@@ -1780,7 +1780,7 @@ void MainWindow::exportCurrentAsIV() {
 }
 
 void MainWindow::exportCurrentAsPS() {
-  QString filename=QFileDialog::getSaveFileName(0, "Save current frame as PS", "openmbv.ps", "*.ps");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save current frame as PS", "openmbv.ps", "*.ps");
   if(filename.isNull()) return;
   if(!filename.endsWith(".ps",Qt::CaseInsensitive))
     filename=filename+".ps";
@@ -1798,7 +1798,7 @@ void MainWindow::exportCurrentAsPS() {
   ps.beginPage(SbVec2f(0, 0), SbVec2f(width, height));
   ps.calibrate(glViewer->getViewportRegion());
   // root separator for export
-  SoSeparator *root=new SoSeparator;
+  auto *root=new SoSeparator;
   root->ref();
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
   root->addChild(glViewer->fgSep);
@@ -1877,7 +1877,7 @@ void MainWindow::shadowRenderingSlot() {
 
 void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge) {
   for(int i=0; i<obj->childCount(); i++) {
-    QAction *act=((Object*)obj->child(i))->findChild<QAction*>("Body::outLine");
+    auto *act=((Object*)obj->child(i))->findChild<QAction*>("Body::outLine");
     if(act) act->setChecked(enableOutLine);
     act=((Object*)obj->child(i))->findChild<QAction*>("Body::shilouetteEdge");
     if(act) act->setChecked(enableShilouetteEdge);
@@ -1933,20 +1933,20 @@ void MainWindow::complexityValue() {
 
 void MainWindow::collapseItem(QTreeWidgetItem* item) {
   // a collapse/expandable item may be a Group or a CompoundRigidBody
-  Group *grp=dynamic_cast<Group*>(item);
+  auto *grp=dynamic_cast<Group*>(item);
   if(grp)
     grp->grp->setExpand(false);
-  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(item);
+  auto *crb=dynamic_cast<CompoundRigidBody*>(item);
   if(crb)
     crb->crb->setExpand(false);
 }
 
 void MainWindow::expandItem(QTreeWidgetItem* item) {
   // a collapse/expandable item may be a Group or a CompoundRigidBody
-  Group *grp=dynamic_cast<Group*>(item);
+  auto *grp=dynamic_cast<Group*>(item);
   if(grp)
     grp->grp->setExpand(true);
-  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(item);
+  auto *crb=dynamic_cast<CompoundRigidBody*>(item);
   if(crb)
     crb->crb->setExpand(true);
 }
@@ -1965,8 +1965,8 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
 
 void MainWindow::selectionChanged() {
   QList<QTreeWidgetItem*> list=objectList->selectedItems();
-  for(int i=0; i<list.size(); i++)
-    static_cast<Object*>(list[i])->object->setSelected(list[i]->isSelected());
+  for(auto & i : list)
+    static_cast<Object*>(i)->object->setSelected(i->isSelected());
 }
 
 

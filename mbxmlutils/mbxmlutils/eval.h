@@ -54,7 +54,7 @@ class Eval;
 class NewParamLevel {
   public:
     //! Create a new parameter level in the evaluator oe_
-    NewParamLevel(const std::shared_ptr<Eval> &oe_, bool newLevel_=true);
+    NewParamLevel(std::shared_ptr<Eval> oe_, bool newLevel_=true);
     //! Reset to the previous parameter level
     ~NewParamLevel();
     
@@ -96,7 +96,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     Eval(std::vector<boost::filesystem::path> *dependencies_);
   public:
     //! Destructor.
-    ~Eval();
+    ~Eval() override;
 
     Eval(const Eval& other) = delete; // copy constructor
     Eval(Eval&& other) = delete; // move constructor
@@ -104,7 +104,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     Eval& operator=(Eval&& other) = delete; // move assignment
 
     //! Create a evaluator.
-    static std::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=NULL);
+    static std::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=nullptr);
 
     // Register a new evaluator.
     template<class E>
@@ -133,7 +133,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    Value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=NULL);
+    Value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=nullptr);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -291,7 +291,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
-    Value stringToValue(const std::string &str, const xercesc::DOMElement *e=NULL, bool fullEval=true) const;
+    Value stringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr, bool fullEval=true) const;
 
     //! create a value of the given type
     template<class T>
@@ -351,7 +351,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     Value casadiValue;
 
     //! evaluate the string str using the current parameters and return the result.
-    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const=0;
+    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const=0;
 
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e) const;

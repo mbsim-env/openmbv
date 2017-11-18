@@ -48,15 +48,15 @@ class Arrow : public DynamicColoredBody {
     SoRotation *rotation1, *rotation2;
     int pathMaxFrameRead;
     bool pathNewLine;
-    virtual double update();
+    double update() override;
     SoScale *scale1, *scale2;
     double headLength;
     std::vector<double> data;
     double length, scaleLength;
-    void createProperties();
+    void createProperties() override;
   public:
     Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QString getInfo();
+    QString getInfo() override;
 };
 
 }

@@ -29,7 +29,7 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), drawMethod(filled),
+Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), 
   hdf5LinkStr("") {
 }
 
@@ -47,13 +47,13 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
   if(hdf5LinkBody) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
-    e->insertBefore(ee, NULL);
+    e->insertBefore(ee, nullptr);
     E(ee)->setAttribute("ref", getRelPathTo(hdf5LinkBody));
   }
   else if(hdf5LinkStr!="") {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
-    e->insertBefore(ee, NULL);
+    e->insertBefore(ee, nullptr);
     E(ee)->setAttribute("ref", hdf5LinkStr);
   }
   return e;
@@ -68,7 +68,7 @@ void Body::createHDF5File() {
 }
 
 void Body::openHDF5File() {
-  hdf5Group=NULL;
+  hdf5Group=nullptr;
   try {
     std::shared_ptr<Group> p=parent.lock();
     hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);

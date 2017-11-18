@@ -33,13 +33,13 @@ namespace boost {
 template<>
 vector<double> lexical_cast(const string& str_) {
   string str(str_);
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
+  for(char & i : str)
+    if(i=='[' || i==']' || i==';') i=' ';
   stringstream stream(str);
   stream.exceptions(std::ios::badbit);
   double d;
   vector<double> ret;
-  while(1) {
+  while(true) {
     stream>>d;
     if(stream.fail()) break;
     ret.push_back(d);
@@ -58,10 +58,10 @@ template<>
 vector<vector<double>> lexical_cast(const string& str_) {
   string str(str_);
   vector<vector<double> > ret;
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  for(char & i : str)
+    if(i=='[' || i==']' || i==',') i=' ';
   bool br=false;
-  while(1) {
+  while(true) {
     int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
     ret.push_back(boost::lexical_cast<vector<double>>(str.substr(0,end)));
     if(br) break;
@@ -74,13 +74,13 @@ vector<vector<double>> lexical_cast(const string& str_) {
 template<>
 vector<int> lexical_cast(const string& str_) {
   string str(str_);
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==';') str[i]=' ';
+  for(char & i : str)
+    if(i=='[' || i==']' || i==';') i=' ';
   stringstream stream(str);
   stream.exceptions(std::ios::badbit);
   int d;
   vector<int> ret;
-  while(1) {
+  while(true) {
     stream>>d;
     if(stream.fail()) break;
     ret.push_back(d);
@@ -100,10 +100,10 @@ template<>
 vector<vector<int>> lexical_cast(const string& str_) {
   string str(str_);
   vector<vector<int> > ret;
-  for(unsigned int i=0; i<str.length(); i++)
-    if(str[i]=='[' || str[i]==']' || str[i]==',') str[i]=' ';
+  for(char & i : str)
+    if(i=='[' || i==']' || i==',') i=' ';
   bool br=false;
-  while(1) {
+  while(true) {
     int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
     ret.push_back(boost::lexical_cast<vector<int>>(str.substr(0,end)));
     if(br) break;
@@ -222,15 +222,15 @@ string EmbedDOMLocator::getEmbedCount() const {
   return "";
 }
 
-template<> const DOMElement *DOMElementWrapper<      DOMElement>::dummyArg=NULL;
-template<> const DOMElement *DOMElementWrapper<const DOMElement>::dummyArg=NULL;
+template<> const DOMElement *DOMElementWrapper<      DOMElement>::dummyArg=nullptr;
+template<> const DOMElement *DOMElementWrapper<const DOMElement>::dummyArg=nullptr;
 
 template<typename DOMElementType>
 const DOMElement *DOMElementWrapper<DOMElementType>::getFirstElementChildNamed(const FQN &name) const {
   for(DOMElement *ret=me->getFirstElementChild(); ret; ret=ret->getNextElementSibling())
     if(E(ret)->getTagName()==name)
       return ret;
-  return NULL;
+  return nullptr;
 };
 template const DOMElement *DOMElementWrapper<const DOMElement>::getFirstElementChildNamed(const FQN &name) const; // explicit instantiate const variant
 
@@ -239,7 +239,7 @@ DOMElement *DOMElementWrapper<DOMElementType>::getFirstElementChildNamed(const F
   for(DOMElement *ret=me->getFirstElementChild(); ret; ret=ret->getNextElementSibling())
     if(E(ret)->getTagName()==name)
       return ret;
-  return NULL;
+  return nullptr;
 };
 
 template<typename DOMElementType>
@@ -250,7 +250,7 @@ const DOMProcessingInstruction *DOMElementWrapper<DOMElementType>::getFirstProce
     if(X()%static_cast<DOMProcessingInstruction*>(ret)->getTarget()==target)
       return static_cast<DOMProcessingInstruction*>(ret);
   }
-  return NULL;
+  return nullptr;
 }
 template const DOMProcessingInstruction *DOMElementWrapper<const DOMElement>::getFirstProcessingInstructionChildNamed(const string &target) const; // explicit instantiate const variant
 
@@ -262,7 +262,7 @@ DOMProcessingInstruction *DOMElementWrapper<DOMElementType>::getFirstProcessingI
     if(X()%static_cast<DOMProcessingInstruction*>(ret)->getTarget()==target)
       return static_cast<DOMProcessingInstruction*>(ret);
   }
-  return NULL;
+  return nullptr;
 }
 
 template<typename DOMElementType>
@@ -270,7 +270,7 @@ const DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() const {
   for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling())
     if(ret->getNodeType()==DOMNode::TEXT_NODE)
       return static_cast<DOMText*>(ret);
-  return NULL;
+  return nullptr;
 }
 template const DOMText *DOMElementWrapper<const DOMElement>::getFirstTextChild() const; // explicit instantiate const variant
 
@@ -279,18 +279,18 @@ DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() {
   for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling())
     if(ret->getNodeType()==DOMNode::TEXT_NODE)
       return static_cast<DOMText*>(ret);
-  return NULL;
+  return nullptr;
 }
 
 template<typename DOMElementType>
 path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const DOMElement *&found) const {
-  found=NULL;
+  found=nullptr;
   const DOMElement *e;
   if(skipThis) {
     if(me->getParentNode() && me->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE)
       e=static_cast<DOMElement*>(me->getParentNode());
     else
-      e=NULL;
+      e=nullptr;
   }
   else
     e=me;
@@ -300,7 +300,7 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
         found=e;
       return X()%E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")->getData();
     }
-    e=e->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(e->getParentNode()):NULL;
+    e=e->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(e->getParentNode()):nullptr;
   }
   if(!me)
     throw runtime_error("Invalid call. Null pointer dereference.");
@@ -379,7 +379,7 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       set<string> usedPrefix;
       DOMNamedNodeMap *attr=me->getAttributes();
       for(size_t i=0; i<attr->getLength(); i++) {
-        DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+        auto *a=static_cast<DOMAttr*>(attr->item(i));
         string name=X()%a->getName();
         if(name.substr(0,6)!="xmlns:") continue;
         usedPrefix.insert(name.substr(6));
@@ -449,12 +449,12 @@ void DOMElementWrapper<DOMElementType>::workaroundDefaultAttributesOnImportNode(
   // rest all default attributes to the default value exlicitly: this removed the default "flag"
   DOMNamedNodeMap *attr=me->getAttributes();
   for(int i=0; i<attr->getLength(); i++) {
-    DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+    auto *a=static_cast<DOMAttr*>(attr->item(i));
     if(!a->getSpecified())
       a->setValue(X()%(X()%a->getValue()));
   }
   // loop over all child elements recursively
-  for(DOMElement *c=me->getFirstElementChild(); c!=0; c=c->getNextElementSibling())
+  for(DOMElement *c=me->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling())
     E(c)->workaroundDefaultAttributesOnImportNode();
 }
 
@@ -474,7 +474,7 @@ bool isDerivedFrom(const DOMNode *me, const FQN &baseTypeName) {
     type=static_cast<const DOMAttr*>(me)->getSchemaTypeInfo();
   FQN typeName(X()%type->getTypeNamespace(), X()%type->getTypeName());
 
-  map<FQN, XSTypeDefinition*>::iterator it=parser->typeMap.find(typeName);
+  auto it=parser->typeMap.find(typeName);
   if(it==parser->typeMap.end())
     throw runtime_error("Internal error: Type {"+typeName.first+"}"+typeName.second+" not found.");
   return it->second->derivedFrom(X()%baseTypeName.first, X()%baseTypeName.second);
@@ -561,12 +561,12 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vecto
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();
-  locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber()));
+  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber());
   ee=found;
   while(ee) {
-    locationStack.push_back(EmbedDOMLocator(E(ee)->getOriginalFilename(true, found),
+    locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
                                             E(ee)->getOriginalElementLineNumber(),
-                                            E(ee)->getEmbedCountNumber()));
+                                            E(ee)->getEmbedCountNumber());
     ee=found;
   }
 }
@@ -574,7 +574,7 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vecto
 void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack,
                                             const string &attrName, ostream &str) {
   if(!locationStack.empty()) {
-    vector<EmbedDOMLocator>::const_iterator it=locationStack.begin();
+    auto it=locationStack.begin();
     str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<fileOutput(*it)<<endl;
     for(it++; it!=locationStack.end(); it++)
       str<<indent<<"included by "<<fileOutput(*it)<<it->getEmbedCount()<<endl;
@@ -595,7 +595,7 @@ void DOMEvalException::setContext(const DOMElement *e) {
   generateLocationStack(e, locationStack);
 }
 
-const char* DOMEvalException::what() const throw() {
+const char* DOMEvalException::what() const noexcept {
   // create return string
   stringstream str;
   str<<errorMsg<<endl;
@@ -613,17 +613,17 @@ namespace { template class rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
 // END: call protected AbstractDOMParser::getScanner from outside, see above
 DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) {
   // store the line number of the element start as user data
-  AbstractDOMParser *abstractParser=dynamic_cast<AbstractDOMParser*>(parser->parser.get());
+  auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser->parser.get());
   int lineNr=(abstractParser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber();
-  e->setUserData(X()%lineNumberKey, new int(lineNr), NULL);
+  e->setUserData(X()%lineNumberKey, new int(lineNr), nullptr);
   return FILTER_ACCEPT;
 }
 
 DOMLSParserFilter::FilterAction LocationInfoFilter::acceptNode(DOMNode *n) {
-  DOMElement* e=static_cast<DOMElement*>(n);
+  auto* e=static_cast<DOMElement*>(n);
   // get the line number of the element start from user data and reset user data
   shared_ptr<int> lineNrPtr(static_cast<int*>(e->getUserData(X()%lineNumberKey)));
-  e->setUserData(X()%lineNumberKey, NULL, NULL);
+  e->setUserData(X()%lineNumberKey, nullptr, nullptr);
   // if no LineNr processing instruction exists create it using the line number from user data
   DOMProcessingInstruction *pi=E(e)->getFirstProcessingInstructionChildNamed("LineNr");
   if(!pi) {
@@ -730,7 +730,7 @@ DOMParser::DOMParser(const set<path> &schemas) {
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
     bind(&DOMLSParser::release, _1));
   // convert parser to AbstractDOMParser and store in parser filter
-  AbstractDOMParser *abstractParser=dynamic_cast<AbstractDOMParser*>(parser.get());
+  auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser.get());
   if(!abstractParser)
     throw runtime_error("Internal error: Parser is not of type AbstractDOMParser.");
   locationFilter.setParser(this);
@@ -791,7 +791,7 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
     return;
   }
   // combine CDATA and text nodes
-  for(DOMNode *c=e->getFirstChild(); c!=0; c=c->getNextSibling())
+  for(DOMNode *c=e->getFirstChild(); c!=nullptr; c=c->getNextSibling())
     if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
       DOMText *replace=static_cast<DOMText*>(e->insertBefore(e->getOwnerDocument()->createTextNode(X()%""), c));
       string data;
@@ -805,9 +805,9 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
       break;
     }
   // walk tree
-  for(DOMElement *c=e->getFirstElementChild(); c!=0; c=c->getNextElementSibling()) {
+  for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
     handleXIncludeAndCDATA(c, dependencies);
-    if(c==NULL) break;
+    if(c==nullptr) break;
   }
 }
 

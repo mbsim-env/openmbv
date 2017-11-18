@@ -36,8 +36,8 @@ class SoTransposeEngine : public SoEngine {
    SoTransposeEngine();
 
  private:
-   virtual ~SoTransposeEngine() {}
-   virtual void evaluate();
+   ~SoTransposeEngine() override = default;
+   void evaluate() override;
 };
 
 }

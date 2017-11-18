@@ -30,14 +30,14 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBV%"Sphere")
 
-Sphere::Sphere() : RigidBody(),
-  radius(1) {
+Sphere::Sphere() : RigidBody()
+  {
 }
 
 DOMElement* Sphere::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"radius", radius);
-  return 0;
+  return nullptr;
 }
 
 void Sphere::initializeUsingXML(DOMElement *element) {

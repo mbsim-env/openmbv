@@ -51,16 +51,16 @@ namespace OpenMBV {
       std::string name;
       std::string enableStr, boundingBoxStr;
       std::string ID; // Note: the ID is metadata and stored as a processing instruction in XML
-      bool selected; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
+      bool selected{false}; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
       std::weak_ptr<Group> parent;
 
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
-      H5::GroupBase *hdf5Group;
+      H5::GroupBase *hdf5Group{nullptr};
       virtual void terminate()=0;
 
       Object();
-      virtual ~Object();
+      ~Object() override;
     public:
       /** Enable this object in the viewer if true (the default) */
       void setEnable(bool enable) { enableStr=(enable==true)?"true":"false"; }

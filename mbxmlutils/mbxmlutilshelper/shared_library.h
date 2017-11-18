@@ -85,7 +85,7 @@ Handle load(const std::string &file, bool global=false) {
       throw std::runtime_error("Unable to load the library '"+file+"': "+getLastError());
 
     // call the init function if it exists
-    InitFuncType initFunc=getSymbol<InitFuncType>(file, "MBXMLUtils_SharedLibrary_init", false);
+    auto initFunc=getSymbol<InitFuncType>(file, "MBXMLUtils_SharedLibrary_init", false);
     if(initFunc) {
       int ret=initFunc();
       if(ret)

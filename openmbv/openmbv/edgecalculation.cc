@@ -65,7 +65,7 @@ class SbVec3fComp {
 // compare two SbVec2i32 objects
 class SbVec2i32Comp {
   public:
-    SbVec2i32Comp() {}
+    SbVec2i32Comp() = default;
     // return true if a<b
     bool operator()(const SbVec2i32& a, const SbVec2i32& b) const {
       if(a[0]==b[0])
@@ -87,8 +87,8 @@ template<class Element, class ElementComp>
 class BSPTree {
   public:
     // create a BSP
-    BSPTree() : ele2Index(), index2Ele(NULL) {} // using a default ElementComp object
-    BSPTree(ElementComp comp) : ele2Index(comp), index2Ele(NULL) {} // using a given ElementComp object
+    BSPTree() : ele2Index(), index2Ele(nullptr) {} // using a default ElementComp object
+    BSPTree(ElementComp comp) : ele2Index(comp), index2Ele(nullptr) {} // using a given ElementComp object
     //descructor
     ~BSPTree() {
       delete[]index2Ele;
@@ -106,7 +106,7 @@ class BSPTree {
     Element* getPointsArrayPtr() {
       delete[]index2Ele;
       index2Ele=new Element[ele2Index.size()];
-      for(typename map<Element, int>::iterator i=ele2Index.begin(); i!=ele2Index.end(); i++)
+      for(auto i=ele2Index.begin(); i!=ele2Index.end(); i++)
         index2Ele[i->second]=i->first;
       return index2Ele;
     }
@@ -124,7 +124,7 @@ class SoCoordinate3FromBSPTree : public SoCoordinate3 {
     SoCoordinate3FromBSPTree(BSPTree<SbVec3f, SbVec3fComp> *bsp_) : bsp(bsp_) {
       point.setValuesPointer(bsp->numPoints(), bsp->getPointsArrayPtr());
     }
-    ~SoCoordinate3FromBSPTree() {
+    ~SoCoordinate3FromBSPTree() override {
       delete bsp;
     }
   private:
@@ -136,7 +136,7 @@ class SoCoordinate3FromBSPTree : public SoCoordinate3 {
 // EDGE CALCULATION
 
 void EdgeCalculation::triangleCB(void *data, SoCallbackAction *action, const SoPrimitiveVertex *vp1, const SoPrimitiveVertex *vp2, const SoPrimitiveVertex *vp3) {
-  vector<SbVec3f> *vertex=(vector<SbVec3f>*)data;
+  auto *vertex=(vector<SbVec3f>*)data;
   // get coordinates of points
   SbVec3f v1=vp1->getPoint();
   SbVec3f v2=vp2->getPoint();
@@ -157,16 +157,16 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
   grp=grp_;
   useCache=useCache_;
   vertex=new vector<SbVec3f>;
-  preData.coord=NULL;
-  preData.edgeIndFPV=NULL;
-  preData.calcLock=NULL;
+  preData.coord=nullptr;
+  preData.edgeIndFPV=nullptr;
+  preData.calcLock=nullptr;
   if(useCache) {
     preData.calcLock=new QReadWriteLock; // stored in a global cache => false positive in valgrind
     preData.calcLock->lockForWrite();
   }
-  creaseEdges=NULL;
-  boundaryEdges=NULL;
-  shilouetteEdges=NULL;
+  creaseEdges=nullptr;
+  boundaryEdges=nullptr;
+  shilouetteEdges=nullptr;
   // get all triangles
   SoCallbackAction cba;
   cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, vertex);
@@ -268,18 +268,18 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 }
 
 void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
-  if(preData.coord==NULL) return;
+  if(preData.coord==nullptr) return;
 
   creaseEdges=new SoIndexedLineSet;
   creaseEdges->ref();
   int nr=0;
-  for(unsigned int i=0; i<preData.edgeIndFPV->size(); i++) {
+  for(auto & i : *preData.edgeIndFPV) {
     // only draw crease edge if two faces belongs to this edge
-    if((*preData.edgeIndFPV)[i].fpv.size()==2) {
-      int vai=(*preData.edgeIndFPV)[i].vai; // index of edge start
-      int vbi=(*preData.edgeIndFPV)[i].vbi; // index of edge end
+    if(i.fpv.size()==2) {
+      int vai=i.vai; // index of edge start
+      int vbi=i.vbi; // index of edge end
       // draw crease edge if angle between fpv[0] and fpv[1] is < pi-creaseAngle
-      if((*preData.edgeIndFPV)[i].fpv[0].dot((*preData.edgeIndFPV)[i].fpv[1])>-cos(creaseAngle)) {
+      if(i.fpv[0].dot(i.fpv[1])>-cos(creaseAngle)) {
         creaseEdges->coordIndex.set1Value(nr++, vai);
         creaseEdges->coordIndex.set1Value(nr++, vbi);
         creaseEdges->coordIndex.set1Value(nr++, -1);
@@ -289,33 +289,33 @@ void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
 }
 
 void EdgeCalculation::calcBoundaryEdges() {
-  if(preData.coord==NULL) return;
+  if(preData.coord==nullptr) return;
 
   boundaryEdges=new SoIndexedLineSet;
   int nr=0;
-  for(unsigned int i=0; i<preData.edgeIndFPV->size(); i++) {
+  for(auto & i : *preData.edgeIndFPV) {
     // draw boundary edge if only one face belongs to this edge
-    if((*preData.edgeIndFPV)[i].fpv.size()==1) {
-      boundaryEdges->coordIndex.set1Value(nr++, (*preData.edgeIndFPV)[i].vai);
-      boundaryEdges->coordIndex.set1Value(nr++, (*preData.edgeIndFPV)[i].vbi);
+    if(i.fpv.size()==1) {
+      boundaryEdges->coordIndex.set1Value(nr++, i.vai);
+      boundaryEdges->coordIndex.set1Value(nr++, i.vbi);
       boundaryEdges->coordIndex.set1Value(nr++, -1);
     }
   }
 }
 
 void EdgeCalculation::calcShilouetteEdges(const SbVec3f &n) {
-  if(preData.coord==NULL) return;
+  if(preData.coord==nullptr) return;
 
   shilouetteEdges=new SoIndexedLineSet;
   int nr=0;
-  for(unsigned int i=0; i<preData.edgeIndFPV->size(); i++) {
+  for(auto & i : *preData.edgeIndFPV) {
     // only draw shilouette edge if two faces belongs to this edge
-    if((*preData.edgeIndFPV)[i].fpv.size()==2) {
-      int vai=(*preData.edgeIndFPV)[i].vai; // index of edge start
-      int vbi=(*preData.edgeIndFPV)[i].vbi; // index of edge end
+    if(i.fpv.size()==2) {
+      int vai=i.vai; // index of edge start
+      int vbi=i.vbi; // index of edge end
       SbVec3f v12=preData.coord->point[vbi]-preData.coord->point[vai]; // edge vector
-      SbVec3f n0=v12.cross((*preData.edgeIndFPV)[i].fpv[0]); // normal of face 0
-      SbVec3f n1=(*preData.edgeIndFPV)[i].fpv[1].cross(v12); // normal of face 1
+      SbVec3f n0=v12.cross(i.fpv[0]); // normal of face 0
+      SbVec3f n1=i.fpv[1].cross(v12); // normal of face 1
       // draw shilouette edge if the face normals to different screen z directions (one i z+ one in z-)
       if(n0.dot(n)*n1.dot(n)<=0) {
         shilouetteEdges->coordIndex.set1Value(nr++, vai);

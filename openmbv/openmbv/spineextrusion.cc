@@ -57,7 +57,7 @@ static SbVec3f calculate_z_axis(const SbVec3f * spine, const int i, const int nu
     }
   }
   else {
-    if (numspine == 2) return SbVec3f(0.0f, 0.0f, 0.0f);
+    if (numspine == 2) return {0.0f, 0.0f, 0.0f};
     else if (i == 0) {
       z0 = spine[2] - spine[1];
       z1 = spine[0] - spine[1];
@@ -146,7 +146,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   }
 
   if(collinear) {
-    SoRotation *rotation = new SoRotation; // set rotation matrix 
+    auto *rotation = new SoRotation; // set rotation matrix 
     std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
     rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(rotation_parameter[0],rotation_parameter[1],rotation_parameter[2]))); 
     SbMatrix Orientation;

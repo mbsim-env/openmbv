@@ -43,13 +43,13 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   ivb=std::static_pointer_cast<OpenMBV::IvBody>(obj);
   iconFile="ivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
-  edgeCalc=NULL;
+  edgeCalc=nullptr;
 
   // read XML
   string fileName=ivb->getIvFileName();
 
   // create so
-  SoSeparator *sep=new SoSeparator; // to enable caching
+  auto *sep=new SoSeparator; // to enable caching
   soSepRigidBody->addChild(sep);
   SoGroup *soIv=Utils::SoDBreadAllCached(fileName.c_str());
   sep->addChild(soIv);
@@ -95,7 +95,7 @@ void IvBody::createProperties() {
     FloatEditor *creaseEdgesEditor=new FloatEditor(properties, QIcon(), "Crease edges bound");
     creaseEdgesEditor->setRange(0, 180); // degree
     creaseEdgesEditor->setStep(5); // degree
-    creaseEdgesEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    creaseEdgesEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     creaseEdgesEditor->setFactor(M_PI/180); // degree to rad conversion factor
     creaseEdgesEditor->setOpenMBVParameter(ivb, &OpenMBV::IvBody::getCreaseEdges, &OpenMBV::IvBody::setCreaseEdges);
 

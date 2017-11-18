@@ -30,18 +30,11 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBV%"Arrow")
 
-Arrow::Arrow() : DynamicColoredBody(), pathStr("false"),
-  data(0),
-  headDiameter(0.5),
-  headLength(0.75),
-  diameter(0.25),
-  scaleLength(1),
-  type(toHead),
-  referencePoint(toPoint) {
+Arrow::Arrow() : DynamicColoredBody(), pathStr("false")
+  {
 }
 
-Arrow::~Arrow() {
-}
+Arrow::~Arrow() = default;
 
 DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
@@ -68,7 +61,7 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
   }
   E(e)->addElementText(OPENMBV%"referencePoint", "'"+referencePointStr+"'");
   E(e)->addElementText(OPENMBV%"scaleLength", scaleLength);
-  return 0;
+  return nullptr;
 }
 
 void Arrow::createHDF5File() {
@@ -76,14 +69,14 @@ void Arrow::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
     vector<string> columns;
-    columns.push_back("Time");
-    columns.push_back("toPoint x");
-    columns.push_back("toPoint y");
-    columns.push_back("toPoint z");
-    columns.push_back("delta x");
-    columns.push_back("delta y");
-    columns.push_back("delta z");
-    columns.push_back("color");
+    columns.emplace_back("Time");
+    columns.emplace_back("toPoint x");
+    columns.emplace_back("toPoint y");
+    columns.emplace_back("toPoint z");
+    columns.emplace_back("delta x");
+    columns.emplace_back("delta y");
+    columns.emplace_back("delta z");
+    columns.emplace_back("color");
     data->setColumnLabel(columns);
   }
 }
@@ -96,7 +89,7 @@ void Arrow::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

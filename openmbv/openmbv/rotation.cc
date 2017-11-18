@@ -42,30 +42,30 @@ Rotation::Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
   // create so
   int open=fabs(rot->getEndAngle()-rot->getStartAngle()-2*M_PI)<1e-6?0:1;
   // coord, normal, face
-  SoCoordinate3 *v=new SoCoordinate3;
+  auto *v=new SoCoordinate3;
   soSepRigidBody->addChild(v);
-  SoNormal *n=new SoNormal;
+  auto *n=new SoNormal;
   soSepRigidBody->addChild(n);
-  SoIndexedFaceSet *f=new SoIndexedFaceSet;
+  auto *f=new SoIndexedFaceSet;
   soSepRigidBody->addChild(f);
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);
-  SoIndexedLineSet *l=new SoIndexedLineSet;
+  auto *l=new SoIndexedLineSet;
   soOutLineSep->addChild(l);
   // cross sections
-  IndexedTesselationFace *csf1=NULL, *csf2=NULL;
-  SoIndexedLineSet *csl1=NULL, *csl2=NULL;
+  IndexedTesselationFace *csf1=nullptr, *csf2=nullptr;
+  SoIndexedLineSet *csl1=nullptr, *csl2=nullptr;
   if(open) {
     // normal binding
-    SoNormalBinding *nb=new SoNormalBinding;
+    auto *nb=new SoNormalBinding;
     soSepRigidBody->addChild(nb);
     nb->value.setValue(SoNormalBinding::OVERALL);
     // normal
-    SoNormal *n1=new SoNormal;
+    auto *n1=new SoNormal;
     soSepRigidBody->addChild(n1);
     n1->vector.set1Value(0, sin(rot->getStartAngle()), 0, -cos(rot->getStartAngle()));
     // vertex ordering
-    SoShapeHints *sh=new SoShapeHints;
+    auto *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
     // face
@@ -74,7 +74,7 @@ Rotation::Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
     csf1->windingRule.setValue(IndexedTesselationFace::ODD);
     csf1->coordinate.connectFrom(&v->point);
     // normal
-    SoNormal *n2=new SoNormal;
+    auto *n2=new SoNormal;
     soSepRigidBody->addChild(n2);
     n2->vector.set1Value(0, -sin(rot->getEndAngle()), 0, cos(rot->getEndAngle()));
     // vertex ordering
@@ -162,14 +162,14 @@ void Rotation::createProperties() {
     FloatEditor *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
     startAngleEditor->setRange(0, 360); // degree
     startAngleEditor->setStep(10); // degree
-    startAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    startAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     startAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
     startAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getStartAngle, &OpenMBV::Rotation::setStartAngle);
 
     FloatEditor *endAngleEditor=new FloatEditor(properties, QIcon(), "End angle");
     endAngleEditor->setRange(0, 360); // degree
     endAngleEditor->setStep(10); // degree
-    endAngleEditor->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    endAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     endAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
     endAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getEndAngle, &OpenMBV::Rotation::setEndAngle);
 

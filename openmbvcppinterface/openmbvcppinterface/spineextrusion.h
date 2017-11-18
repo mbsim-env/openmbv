@@ -23,7 +23,7 @@
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <openmbvcppinterface/polygonpoint.h>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <hdf5serie/vectorserie.h>
 #include <stdexcept>
 
@@ -90,40 +90,40 @@ namespace OpenMBV {
       /** Append a data vector to the h5 datsset */
       template<typename T>
       void append(const T& row) { 
-        if(data==0) throw std::runtime_error("can not append data to an environment object"); 
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object"); 
         data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
       /** Write XML file for not time-dependent data. */
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
     protected:
       SpineExtrusion();
-      virtual ~SpineExtrusion();
+      ~SpineExtrusion() override;
 
       /** Number of spine points used for extrusion along a path. */
-      int numberOfSpinePoints;
+      int numberOfSpinePoints{0};
 
       /** Vector of local x-y points. */
       std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > contour;
 
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
-      H5::VectorSerie<double>* data;
+      H5::VectorSerie<double>* data{nullptr};
 
       /** Scale factor of the body. */
-      double scaleFactor;
+      double scaleFactor{1};
       
       /** Intial rotation of the body. */
       std::vector<double> initialRotation;
       
       /** Write H5 file for time-dependent data. */
-      void createHDF5File();
-      void openHDF5File();
+      void createHDF5File() override;
+      void openHDF5File() override;
   };
 
 }

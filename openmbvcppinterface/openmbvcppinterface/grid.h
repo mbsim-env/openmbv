@@ -28,10 +28,12 @@ namespace OpenMBV {
   class Grid : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double xSize, ySize;
-      unsigned int nx, ny;
+      double xSize{1};
+      double ySize{1};
+      unsigned int nx{10};
+      unsigned int ny{10};
       Grid();
-      ~Grid() {}
+      ~Grid() override = default;
     public:
       /** Set the length in x-direction*/
       void setXSize(double length_) {
@@ -62,9 +64,9 @@ namespace OpenMBV {
 
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

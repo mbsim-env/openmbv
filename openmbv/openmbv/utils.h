@@ -108,7 +108,7 @@ class Utils : virtual public fmatvec::Atom {
     static SoCoordinate3 *tessCoord;
     static void CALLMETHOD tessBeginCB(GLenum type, void *data);
     static void CALLMETHOD tessVertexCB(GLdouble *vertex);
-    static void CALLMETHOD tessEndCB(void);
+    static void CALLMETHOD tessEndCB();
 };
 
 template<class T>

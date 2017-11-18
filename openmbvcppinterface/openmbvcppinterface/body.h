@@ -35,14 +35,14 @@ namespace OpenMBV {
       std::string getRelPathTo(const std::shared_ptr<Body> &destBody);
     protected:
       std::string outLineStr, shilouetteEdgeStr;
-      DrawStyle drawMethod;
+      DrawStyle drawMethod{filled};
       std::shared_ptr<Body> hdf5LinkBody;
       std::string hdf5LinkStr;
-      void createHDF5File();
-      void openHDF5File();
-      void terminate();
+      void createHDF5File() override;
+      void openHDF5File() override;
+      void terminate() override;
       Body();
-      ~Body() {}
+      ~Body() override = default;
     public:
       /** Link this body with dest in the HDF5 file */
       void setHDF5LinkTarget(const std::shared_ptr<Body> &dest) { hdf5LinkBody=dest; }
@@ -68,9 +68,9 @@ namespace OpenMBV {
       DrawStyle getDrawMethod() { return drawMethod; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
       /** Get the number of rows of the default data.
        * Returns -1, if no default data is avaliable.

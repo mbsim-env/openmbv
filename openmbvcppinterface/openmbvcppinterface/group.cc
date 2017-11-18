@@ -23,10 +23,10 @@
 #include <openmbvcppinterface/objectfactory.h>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <hdf5serie/file.h>
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 #ifdef HAVE_BOOST_FILE_LOCK
 #  include <boost/interprocess/sync/file_lock.hpp>
 #endif
@@ -41,17 +41,16 @@ static string dirOfTopLevelFile(Group *grp);
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 
-Group::Group() : Object(), expandStr("true"), separateFile(false) {
+Group::Group() : Object(), expandStr("true") {
 }
 
-Group::~Group() {
-}
+Group::~Group() = default;
 
 void Group::addObject(shared_ptr<Object> newObject) {
   if(newObject->name=="") throw runtime_error("object to add must have a name");
-  for(unsigned int i=0; i<object.size(); i++)
-    if(object[i]->name==newObject->name)
-      throw runtime_error("A object of name "+object[i]->name+" already exists.");
+  for(auto & i : object)
+    if(i->name==newObject->name)
+      throw runtime_error("A object of name "+i->name+" already exists.");
   object.push_back(newObject);
   newObject->parent=shared_from_this();
 }
@@ -72,17 +71,17 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
   if(!separateFile) {
     DOMElement *e=Object::writeXMLFile(parent);
     E(e)->setAttribute("expand", expandStr);
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->writeXMLFile(e);
+    for(auto & i : object)
+      i->writeXMLFile(e);
   }
   else {
     // use the fullName as file name of a separateFile Group with '/' replaced by '.'
     string fullName=getFullName();
-    for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
+    for(char & i : fullName) if(i=='/') i='.';
     // create link (embed) in current xml file
     DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
     DOMElement *inc = D(doc)->createElement(XINCLUDE%"include");
-    parent->insertBefore(inc, NULL);
+    parent->insertBefore(inc, nullptr);
     E(inc)->setAttribute("href", fullName+".ombv.xml");
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
     // create new xml file and write to it till now
@@ -91,23 +90,23 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
       DOMElement *e=Object::writeXMLFile(xmlFile.get());
       E(e)->setAttribute("expand", expandStr);
-      for(unsigned int i=0; i<object.size(); i++)
-        object[i]->writeXMLFile(e);
+      for(auto & i : object)
+        i->writeXMLFile(e);
     DOMParser::serialize(xmlFile.get(), fileName);
   }
-  return 0;
+  return nullptr;
 }
 
 void Group::createHDF5File() {
   std::shared_ptr<Group> p=parent.lock();
   if(!separateFile) {
     hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->createHDF5File();
+    for(auto & i : object)
+      i->createHDF5File();
   }
   else {
     string fullName=getFullName();
-    for(unsigned int i=0; i<fullName.length(); i++) if(fullName[i]=='/') fullName[i]='.';
+    for(char & i : fullName) if(i=='/') i='.';
     // create link in current h5 file
     p->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombv.h5"), string("/")));
     // create new h5 file and write to in till now
@@ -115,13 +114,13 @@ void Group::createHDF5File() {
     fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
     hdf5File=std::make_shared<H5::File>(fileName.substr(0,fileName.length()-4)+".h5", H5::File::write);
     hdf5Group=hdf5File.get();
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->createHDF5File();
+    for(auto & i : object)
+      i->createHDF5File();
   }
 }
 
 void Group::openHDF5File() {
-  hdf5Group=NULL;
+  hdf5Group=nullptr;
   std::shared_ptr<Group> p=parent.lock();
   if(!p) {
     try {
@@ -141,8 +140,8 @@ void Group::openHDF5File() {
     }
   }
   if(hdf5Group)
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->openHDF5File();
+    for(auto & i : object)
+      i->openHDF5File();
 }
 
 void Group::writeXML() {
@@ -152,8 +151,8 @@ void Group::writeXML() {
     shared_ptr<DOMDocument> xmlFile=parser->createDocument();
     DOMElement *parent=Object::writeXMLFile(xmlFile.get());
     E(parent)->setAttribute("expand", expandStr);
-    for(unsigned int i=0; i<object.size(); i++)
-      object[i]->writeXMLFile(parent);
+    for(auto & i : object)
+      i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);
 }
 
@@ -161,17 +160,17 @@ void Group::writeH5() {
   string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
   hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
   hdf5Group=hdf5File.get();
-  for(unsigned int i=0; i<object.size(); i++)
-    object[i]->createHDF5File();
+  for(auto & i : object)
+    i->createHDF5File();
   hdf5File->flush();
 }
 
 void Group::terminate() {
-  for(unsigned int i=0; i<object.size(); i++)
-    object[i]->terminate();
+  for(auto & i : object)
+    i->terminate();
   if(separateFile)
     delete static_cast<H5::File*>(hdf5Group);
-  hdf5Group=0;
+  hdf5Group=nullptr;
 }
 
 void Group::initializeUsingXML(DOMElement *element) {

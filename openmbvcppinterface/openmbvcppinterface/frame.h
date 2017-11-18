@@ -28,10 +28,10 @@ namespace OpenMBV {
   class Frame : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double size;
-      double offset;
+      double size{1};
+      double offset{1};
       Frame();
-      ~Frame() {}
+      ~Frame() override = default;
     public:
       /** Set the length of the three axis, represended by lines in red, green and blue color. */
       void setSize(double size_) { size=size_; }
@@ -47,9 +47,9 @@ namespace OpenMBV {
       double getOffset() { return offset; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

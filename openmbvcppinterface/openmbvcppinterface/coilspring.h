@@ -43,18 +43,22 @@ namespace OpenMBV {
         polyline
       };
     protected:
-      void createHDF5File();
-      void openHDF5File();
-      H5::VectorSerie<double>* data;
-      double springRadius, crossSectionRadius, scaleFactor, numberOfCoils, nominalLength;
-      Type type;
+      void createHDF5File() override;
+      void openHDF5File() override;
+      H5::VectorSerie<double>* data{nullptr};
+      double springRadius{1};
+      double crossSectionRadius{-1};
+      double scaleFactor{1};
+      double numberOfCoils{3};
+      double nominalLength{-1};
+      Type type{tube};
       
       CoilSpring();
-      virtual ~CoilSpring();
+      ~CoilSpring() override;
     public:
       template<typename T>
       void append(const T& row) {
-        if(data==0) throw std::runtime_error("can not append data to an environement object");
+        if(data==nullptr) throw std::runtime_error("can not append data to an environement object");
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
@@ -67,8 +71,8 @@ namespace OpenMBV {
           data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(8); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
 
       void setSpringRadius(double radius) { springRadius=radius; }
       double getSpringRadius() { return springRadius; }
@@ -112,9 +116,9 @@ namespace OpenMBV {
       Type getType() { return type; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

@@ -35,7 +35,7 @@ class Extrusion : public RigidBody {
     Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::Extrusion> e;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

@@ -40,7 +40,7 @@ static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not sup
 set<Object*> Object::objects;
 
 Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
-               properties(NULL), clone(NULL) {
+               properties(nullptr), clone(nullptr) {
   object=obj;
   objects.insert(this);
   // parent item
@@ -52,7 +52,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
 
   // enable or disable
   QPalette palette;
-  if((dynamic_cast<Object*>(parentItem)==0 && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
+  if((dynamic_cast<Object*>(parentItem)==nullptr && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
     drawThisPath=true;
     setData(0, Qt::UserRole, true); // UserRole is used by AbstractViewFilter for normal/grayed items
     setData(0, Qt::ForegroundRole, palette.brush(QPalette::Active, QPalette::Text));
@@ -84,7 +84,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soBBoxSep->addChild(soBBox);
   // register callback function on node change
   nodeSensor=new SoNodeSensor(nodeSensorCB, this);
-  CompoundRigidBody *crb=dynamic_cast<CompoundRigidBody*>(parentItem);
+  auto *crb=dynamic_cast<CompoundRigidBody*>(parentItem);
   if(!crb)
     nodeSensor->attach(soSep);
   else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
@@ -154,13 +154,13 @@ void Object::createProperties() {
 
 QString Object::getInfo() {
   return QString("<b>Path:</b> %1<br/>").arg(object->getFullName(true, true).c_str())+
-         QString("<b>Class:</b> <img src=\"%1\" width=\"16\" height=\"16\"/> %2").
+         QString(R"(<b>Class:</b> <img src="%1" width="16" height="16"/> %2)").
            arg((Utils::getIconPath()+"/"+getIconFile()).c_str()).
            arg(QString(metaObject()->className()).replace("OpenMBVGUI::", ""));  // remove the namespace
 }
 
 void Object::nodeSensorCB(void *data, SoSensor*) {
-  Object *object=(Object*)data;
+  auto *object=(Object*)data;
   if(object->object->getBoundingBox()) {
     SoSearchAction sa;
     sa.setInterest(SoSearchAction::FIRST);
@@ -209,7 +209,7 @@ void Object::setBoundingBox(bool value) {
     object->setBoundingBox(value);
   // update if true
   if(value)
-    nodeSensorCB(this, NULL);
+    nodeSensorCB(this, nullptr);
 }
 
 }

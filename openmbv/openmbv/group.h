@@ -47,10 +47,10 @@ class Group : public Object {
     std::shared_ptr<OpenMBV::Group> grp;
     QTimer *reloadTimer;
     boost::posix_time::ptime xmlLastModified, h5LastModified;
-    void createProperties();
+    void createProperties() override;
   public:
     Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QString getInfo();
+    QString getInfo() override;
     void newObjectSlot();
     void saveFileSlot();
     void reloadFileSlotIfNewer();

@@ -38,10 +38,10 @@ DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Obje
   setIcon(0, Utils::QIconCached(iconFile));
 
   points = new SoCoordinate3;
-  SoIndexedFaceSet *surface = new SoIndexedFaceSet;
+  auto *surface = new SoIndexedFaceSet;
   surface->coordIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
   surface->materialIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
-  SoMaterialBinding *myMaterialBinding = new SoMaterialBinding;
+  auto *myMaterialBinding = new SoMaterialBinding;
   myMaterialBinding->value = SoMaterialBinding::PER_VERTEX_INDEXED;
   myMaterials = new SoMaterial;
   std::vector<double> diffuseColor=faceset->getDiffuseColor();

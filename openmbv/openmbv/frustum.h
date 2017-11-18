@@ -35,7 +35,7 @@ class Frustum : public RigidBody {
     Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::Frustum> f;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

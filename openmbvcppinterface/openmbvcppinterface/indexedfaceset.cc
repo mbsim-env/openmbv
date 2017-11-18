@@ -41,7 +41,7 @@ DOMElement* IndexedFaceSet::writeXMLFile(DOMNode *parent) {
   transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
   E(e)->addElementText(OPENMBV%"indices", indices1based);
 
-  return 0;
+  return nullptr;
 }
 
 void IndexedFaceSet::initializeUsingXML(DOMElement *element) {

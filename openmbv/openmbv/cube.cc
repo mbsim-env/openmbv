@@ -37,7 +37,7 @@ Cube::Cube(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   setIcon(0, Utils::QIconCached(iconFile));
 
   // create so
-  SoCube *cube=new SoCube;
+  auto *cube=new SoCube;
   cube->width.setValue(c->getLength());
   cube->height.setValue(c->getLength());
   cube->depth.setValue(c->getLength());

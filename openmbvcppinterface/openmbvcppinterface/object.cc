@@ -22,7 +22,7 @@
 #include "openmbvcppinterface/group.h"
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-#include <assert.h>
+#include <cassert>
 #include <cmath>
 #include <limits>
 
@@ -56,11 +56,10 @@ namespace OpenMBV {
 // we use none signaling (quiet) NaN values for double in OpenMBVC++Interface -> Throw compile error if these do not exist.
 static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
 
-Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), selected(false), hdf5Group(0) {
+Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID("") {
 }
 
-Object::~Object() {
-}
+Object::~Object() = default;
 
 string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {
   std::shared_ptr<Group> p=parent.lock();
@@ -92,14 +91,14 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   typeName=typeName.substr(typeName.rfind(':')+1);
 
   DOMElement *e=D(doc)->createElement(OPENMBV%typeName);
-  parent->insertBefore(e, NULL);
+  parent->insertBefore(e, nullptr);
   E(e)->setAttribute("name", name);
   E(e)->setAttribute("enable", enableStr);
   E(e)->setAttribute("boundingBox", boundingBoxStr);
   if(!ID.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMProcessingInstruction *id=doc->createProcessingInstruction(X()%"OPENMBV_ID", X()%ID);
-    e->insertBefore(id, NULL);
+    e->insertBefore(id, nullptr);
   }
   return e;
 }

@@ -30,15 +30,14 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frame, OPENMBV%"Frame")
 
-Frame::Frame() : RigidBody(),
-  size(1), offset(1) {
+Frame::Frame() : RigidBody() {
 }
 
 DOMElement* Frame::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"size", size);
   E(e)->addElementText(OPENMBV%"offset", offset);
-  return 0;
+  return nullptr;
 }
 
 void Frame::initializeUsingXML(DOMElement *element) {

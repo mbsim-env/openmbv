@@ -35,15 +35,15 @@ namespace OpenMBVGUI {
 class Path : public Body {
   Q_OBJECT
   protected:
-    virtual double update();
+    double update() override;
     SoCoordinate3 *coord;
     SoLineSet *line;
     int maxFrameRead;
     std::shared_ptr<OpenMBV::Path> path;
-    void createProperties();
+    void createProperties() override;
   public:
     Path(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QString getInfo();
+    QString getInfo() override;
 };
 
 }

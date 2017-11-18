@@ -34,19 +34,19 @@ Grid::Grid(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   iconFile="grid.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  SoSeparator *sep = new SoSeparator;
+  auto *sep = new SoSeparator;
 
-  SoBaseColor *col=new SoBaseColor;
+  auto *col=new SoBaseColor;
   col->rgb=SbColor(color, color, color);
   sep->addChild(col);
 
   double size=1.0;
 
   // coordinates
-  SoScale * scale=new SoScale;
+  auto * scale=new SoScale;
   sep->addChild(scale);
   scale->scaleFactor.setValue(size, size, size);
-  SoCoordinate3 *coord=new SoCoordinate3;
+  auto *coord=new SoCoordinate3;
   sep->addChild(coord);
   int counter=0;
   for (unsigned int i=0; i<g->getYNumber(); i++) {
@@ -59,7 +59,7 @@ Grid::Grid(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   }
   
   for (int i=0; i<counter; i+=2) {
-    SoLineSet * line=new SoLineSet;
+    auto * line=new SoLineSet;
     line->startIndex.setValue(i);
     line->numVertices.setValue(2);
     sep->addChild(line);

@@ -23,8 +23,7 @@ XMLFlatEval::XMLFlatEval(std::vector<path> *dependencies_) : Eval(dependencies_)
 }
 
 // dtor
-XMLFlatEval::~XMLFlatEval() {
-}
+XMLFlatEval::~XMLFlatEval() = default;
 
 // virtual functions
 
@@ -69,7 +68,7 @@ string XMLFlatEval::getSwigType(const Value &value) const {
 }
 
 double XMLFlatEval::cast_double(const Value &value) const {
-  string *v=static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
+  auto *v=static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
   return boost::lexical_cast<double>(boost::algorithm::trim_copy(*v));
 }
 
@@ -89,7 +88,7 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
   string s;
   str>>s; // first token [
   vector<double> v;
-  while(1) {
+  while(true) {
     str>>s; // read next token
     if(s==";") // on ; read next
       continue;
@@ -124,11 +123,11 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
   string s;
   str>>s; // first token
   vector<vector<double> > m;
-  m.push_back(vector<double>());
-  while(1) {
+  m.emplace_back();
+  while(true) {
     str>>s; // read next token
     if(s==";") // on ; new row
-      m.push_back(vector<double>());
+      m.emplace_back();
     else if(s==",") // on , read next
       continue;
     else if(s=="]") // on ] exit

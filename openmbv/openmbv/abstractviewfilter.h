@@ -83,10 +83,10 @@ class AbstractViewFilter : public QWidget {
     int enableRole;
 
     struct Match {
-      Match() : parent(false), me(false), child(false) {}
-      bool parent; // any parent matches
-      bool me;     // myself matches
-      bool child;  // any child matches
+      Match()  = default;
+      bool parent{false}; // any parent matches
+      bool me{false};     // myself matches
+      bool child{false};  // any child matches
     };
     std::map<QModelIndex, Match> match;
 

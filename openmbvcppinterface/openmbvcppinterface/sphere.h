@@ -28,9 +28,9 @@ namespace OpenMBV {
   class Sphere : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double radius;
+      double radius{1};
       Sphere();
-      ~Sphere() {}
+      ~Sphere() override = default;
     public:
       /** Set the radius of the shpere */
       void setRadius(double radius_) {
@@ -40,9 +40,9 @@ namespace OpenMBV {
       double getRadius() { return radius; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

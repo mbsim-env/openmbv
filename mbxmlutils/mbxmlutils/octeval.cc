@@ -73,13 +73,13 @@ namespace {
   bfs::path LIBDIR="lib";
 #endif
 
-  bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=NULL;
+  bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=nullptr;
 
   // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
   template<int T>
   class Block {
     public:
-      Block(std::ostream &str_, std::streambuf *buf=NULL) : str(str_) {
+      Block(std::ostream &str_, std::streambuf *buf=nullptr) : str(str_) {
         if(deactivateBlock) return;
         if(disableCount==0)
           orgcxxx=str.rdbuf(buf);
@@ -127,7 +127,7 @@ OctInit::OctInit() {
     bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
       octave_prefix=getenv("OCTAVE_HOME");
-    else if(getenv("OCTAVE_HOME")==NULL && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+    else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
       // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
       octave_prefix=MBXMLUtils::getInstallPath();
       // the string for putenv must have program life time
@@ -199,7 +199,7 @@ OctInit::~OctInit() {
     eval_string("1+1;", true, dummy, 0); // eval as statement list
 
     // cleanup ocatve, but do NOT call ::exit, we are already exicting the program
-    octave_exit=NULL;
+    octave_exit=nullptr;
     clean_up_and_exit(0);
   }
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
@@ -294,8 +294,8 @@ Eval::Value OctEval::create_string(const string& v) const {
 
 Eval::Value OctEval::createSwigByTypeName(const string &name) const {
   list<octave_value_list> idx;
-  idx.push_back(octave_value_list(name));
-  idx.push_back(octave_value_list());
+  idx.emplace_back(name);
+  idx.emplace_back();
   return C(C(casadiValue)->subsref(".(", idx));
 }
 
@@ -304,8 +304,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   currentImport=make_shared<string>(octInit.initialPath);
 };
 
-OctEval::~OctEval() {
-}
+OctEval::~OctEval() = default;
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
   try {
@@ -366,11 +365,11 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   // clear octave variables
   symbol_table::clear_variables();
   // restore current parameters
-  for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(const auto & i : currentParam)
     #if defined OCTAVE_API_VERSION_NUMBER // check for octave < 3.8: octave < 3.8 defines this macro
       symbol_table::varref(i->first)=*C(i->second);
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
-      symbol_table::assign(i->first, *C(i->second));
+      symbol_table::assign(i.first, *C(i.second));
     #endif
 
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
@@ -551,12 +550,12 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
 
 Eval::Value OctEval::callFunction(const string &name, const vector<Value>& args) const {
   static map<string, octave_function*> functionValue;
-  pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(NULL)));
+  pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(nullptr)));
   if(f.second)
     f.first->second=symbol_table::find_function(name).function_value(); // get ones a pointer performance reasons
   octave_value_list octargs;
-  for(vector<Value>::const_iterator it=args.begin(); it!=args.end(); ++it)
-    octargs.append(*C(*it));
+  for(const auto & arg : args)
+    octargs.append(*C(arg));
   octave_value_list ret=fevalThrow(f.first->second, octargs, 1,
     "Unable to call function "+name+".");
   return C(ret(0));

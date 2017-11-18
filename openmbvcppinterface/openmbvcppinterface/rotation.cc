@@ -32,19 +32,18 @@ namespace OpenMBV {
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBV%"Rotation")
 
 Rotation::Rotation() : RigidBody(),
-  startAngle(0),
+  
   endAngle(2*boost::math::double_constants::pi) {
 }
 
-Rotation::~Rotation() {
-}
+Rotation::~Rotation() = default;
 
 DOMElement* Rotation::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"startAngle", startAngle);
   E(e)->addElementText(OPENMBV%"endAngle", endAngle);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
-  return 0;
+  return nullptr;
 }
 
 

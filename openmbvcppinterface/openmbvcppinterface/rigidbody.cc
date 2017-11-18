@@ -32,13 +32,11 @@ namespace OpenMBV {
 
 RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
   initialTranslation(vector<double>(3, 0)),
-  initialRotation(vector<double>(3, 0)),
-  scaleFactor(1),
-  data(0) {
+  initialRotation(vector<double>(3, 0))
+  {
 }
 
-RigidBody::~RigidBody() {
-}
+RigidBody::~RigidBody() = default;
 
 DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
@@ -57,14 +55,14 @@ void RigidBody::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
     vector<string> columns;
-    columns.push_back("Time");
-    columns.push_back("x");
-    columns.push_back("y");
-    columns.push_back("z");
-    columns.push_back("alpha");
-    columns.push_back("beta");
-    columns.push_back("gamma");
-    columns.push_back("color");
+    columns.emplace_back("Time");
+    columns.emplace_back("x");
+    columns.emplace_back("y");
+    columns.emplace_back("z");
+    columns.emplace_back("alpha");
+    columns.emplace_back("beta");
+    columns.emplace_back("gamma");
+    columns.emplace_back("color");
     data->setColumnLabel(columns);
   }
 }
@@ -77,7 +75,7 @@ void RigidBody::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

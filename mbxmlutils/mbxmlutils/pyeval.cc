@@ -131,8 +131,7 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   currentImport=make_shared<PyO>(CALLPY(PyDict_New));
 }
 
-PyEval::~PyEval() {
-}
+PyEval::~PyEval() = default;
 
 void PyEval::addImport(const string &code, const DOMElement *e) {
   // python globals (fill with builtins)
@@ -277,7 +276,7 @@ Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) 
     f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit->mbxmlutils), name);
   PyO pyargs(CALLPY(PyTuple_New, args.size()));
   int idx=0;
-  for(vector<Value>::const_iterator it=args.begin(); it!=args.end(); ++it, ++idx) {
+  for(auto it=args.begin(); it!=args.end(); ++it, ++idx) {
     PyO v(C(*it));
     CALLPY(PyTuple_SetItem, pyargs, idx, v.incRef()); // PyTuple_SetItem steals a reference of v
   }
@@ -313,7 +312,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   // python globals (fill with imports)
   CALLPY(PyDict_Merge, globals, *static_pointer_cast<PyO>(currentImport), true);
   // python globals (fill with current parameters)
-  for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   PyO ret;
@@ -336,7 +335,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
       boost::split(lines, str, boost::is_any_of("\n")); // split to a vector of lines
       size_t indent=string::npos;
       size_t lineNr=0;
-      for(vector<string>::iterator it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
+      for(auto it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
         size_t pos=it->find_first_not_of(' '); // get first none space character
         if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
         if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
@@ -422,7 +421,7 @@ Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v
   dims[1]=v[0].size();
   PyO ret(PyArray_SimpleNew(2, dims, NPY_DOUBLE));
   int r=0;
-  for(vector<vector<double> >::const_iterator it=v.begin(); it!=v.end(); ++it, ++r)
+  for(auto it=v.begin(); it!=v.end(); ++it, ++r)
     copy(it->begin(), it->end(), static_cast<npy_double*>(PyArray_GETPTR2(reinterpret_cast<PyArrayObject*>(ret.get()), r, 0)));
   return C(ret);
 }
@@ -515,7 +514,7 @@ double arrayScalarGetDouble(PyObject *o) {
 vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
   PyO v(C(value));
   if(PyArray_Check(v.get())) {
-    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
+    auto *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=1)
       throw runtime_error("Value is not of type vector (wrong dimension).");
     int type=PyArray_TYPE(a);
@@ -534,7 +533,7 @@ vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool che
 vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
   PyO v(C(value));
   if(PyArray_Check(v.get())) {
-    PyArrayObject *a=reinterpret_cast<PyArrayObject*>(v.get());
+    auto *a=reinterpret_cast<PyArrayObject*>(v.get());
     if(PyArray_NDIM(a)!=2)
       throw runtime_error("Value is not of type matrix (wrong dimension).");
     int type=PyArray_TYPE(a);
@@ -560,7 +559,7 @@ string cast_string(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
 
 // called from mbxmlutils.registerPath and adds path to the dependencies of this evaluator
 extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
-  mbxmlutilsStaticDependencies.push_back(path);
+  mbxmlutilsStaticDependencies.emplace_back(path);
   return 0;
 }
 

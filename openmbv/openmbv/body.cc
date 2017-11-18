@@ -45,11 +45,11 @@ namespace OpenMBVGUI {
 
 map<SoNode*,Body*> Body::bodyMap;
 
-Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(NULL) {
+Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind), shilouetteEdgeFirstCall(true), edgeCalc(nullptr) {
   body=std::static_pointer_cast<OpenMBV::Body>(obj);
-  frameSensor=NULL;
-  shilouetteEdgeFrameSensor=NULL;
-  shilouetteEdgeOrientationSensor=NULL;
+  frameSensor=nullptr;
+  shilouetteEdgeFrameSensor=nullptr;
+  shilouetteEdgeOrientationSensor=nullptr;
   std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
   if(p) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
@@ -64,13 +64,13 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
-  SoLightModel *lm=new SoLightModel;
+  auto *lm=new SoLightModel;
   soOutLineSep->addChild(lm);
   lm->model.setValue(SoLightModel::BASE_COLOR);
   soOutLineSep->addChild(MainWindow::getInstance()->getOlseColor());
   soOutLineSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
   // render outlines without backface culling
-  SoShapeHints *sh=new SoShapeHints;
+  auto *sh=new SoShapeHints;
   soOutLineSep->addChild(sh);
   sh->shapeType=SoShapeHints::UNKNOWN_SHAPE_TYPE;
 
@@ -80,7 +80,7 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   soShilouetteEdgeSwitch->whichChild.setValue(body->getShilouetteEdge()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soShilouetteEdgeSep=new SoSeparator;
   soShilouetteEdgeSwitch->addChild(soShilouetteEdgeSep);
-  SoLightModel *lm2=new SoLightModel;
+  auto *lm2=new SoLightModel;
   soShilouetteEdgeSep->addChild(lm2);
   lm2->model.setValue(SoLightModel::BASE_COLOR);
   soShilouetteEdgeSep->addChild(MainWindow::getInstance()->getOlseColor());
@@ -135,7 +135,7 @@ Body::~Body() {
   soOutLineSwitch->unref();
 
   // remove from map
-  for(map<SoNode*,Body*>::iterator it=bodyMap.begin(); it!=bodyMap.end(); it++)
+  for(auto it=bodyMap.begin(); it!=bodyMap.end(); it++)
     if(it->second==this) {
       bodyMap.erase(it);
       break;
@@ -172,7 +172,7 @@ void Body::createProperties() {
 }
 
 void Body::frameSensorCB(void *data, SoSensor*) {
-  Body* me=(Body*)data;
+  auto* me=(Body*)data;
   static double time=0;
   double newTime=time;
   if(me->drawThisPath)
@@ -209,13 +209,13 @@ void Body::resetAnimRange(int numOfRows, double dt) {
 }
 
 void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
-  Body *me=(Body*)data;
+  auto *me=(Body*)data;
   bool preproces=sensor==me->shilouetteEdgeFrameSensor || me->shilouetteEdgeFirstCall==true;
   bool shilouetteCalc=sensor==me->shilouetteEdgeFrameSensor || sensor==me->shilouetteEdgeOrientationSensor || me->shilouetteEdgeFirstCall==true;
   me->shilouetteEdgeFirstCall=false;
 
-  SoCoordinate3 *soEdgeCoordOld=NULL;
-  SoIndexedLineSet *soShilouetteEdgeOld=NULL;
+  SoCoordinate3 *soEdgeCoordOld=nullptr;
+  SoIndexedLineSet *soShilouetteEdgeOld=nullptr;
   SbVec3f n;
   if(preproces) { // new preprocessing required: do all except preprocessing and coord exchange
     soEdgeCoordOld=me->soShilouetteEdgeCoord;

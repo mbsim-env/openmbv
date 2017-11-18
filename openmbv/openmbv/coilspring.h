@@ -48,10 +48,10 @@ class CoilSpring : public DynamicColoredBody {
   public:
     /** constructor */
     CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    ~CoilSpring();
+    ~CoilSpring() override;
 
     /** info string in spine extrusion pop-up menu */
-    virtual QString getInfo();
+    QString getInfo() override;
 
   protected:
 
@@ -87,10 +87,10 @@ class CoilSpring : public DynamicColoredBody {
     double nominalLength, N;
 
     /** update method invoked at each time step */
-    virtual double update();
+    double update() override;
 
     std::shared_ptr<OpenMBV::CoilSpring> coilSpring;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

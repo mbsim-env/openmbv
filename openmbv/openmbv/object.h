@@ -68,7 +68,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     virtual void createProperties();
   public:
     Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual ~Object();
+    ~Object() override;
     std::string &getIconFile() { return iconFile; }
     std::shared_ptr<OpenMBV::Object> getObject() { return object; }
     virtual QString getInfo();

@@ -37,10 +37,10 @@ class IvBody : public RigidBody {
   Q_OBJECT
   public:
     IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    ~IvBody();
+    ~IvBody() override;
   protected:
     std::shared_ptr<OpenMBV::IvBody> ivb;
-    void createProperties();
+    void createProperties() override;
 
   private:
     EdgeCalculation *edgeCalc;
@@ -49,7 +49,7 @@ class IvBody : public RigidBody {
       public:
         CalculateEdgesThread(IvBody *ivBody_) : ivBody(ivBody_) {}
       protected:
-        void run() {
+        void run() override {
           std::shared_ptr<OpenMBV::IvBody> ivb=std::static_pointer_cast<OpenMBV::IvBody>(ivBody->object);
           ivBody->calculateEdges(ivb->getFullName(), ivb->getCreaseEdges(), ivb->getBoundaryEdges());
         }

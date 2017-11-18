@@ -63,7 +63,7 @@ const QIcon& Utils::QIconCached(string filename) {
 
 SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
   static unordered_map<string, SoSeparator*> myIvBodyCache;
-  pair<unordered_map<string, SoSeparator*>::iterator, bool> ins=myIvBodyCache.insert(pair<string, SoSeparator*>(filename, (SoSeparator*)NULL));
+  pair<unordered_map<string, SoSeparator*>::iterator, bool> ins=myIvBodyCache.insert(pair<string, SoSeparator*>(filename, (SoSeparator*)nullptr));
   if(ins.second) {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
@@ -97,7 +97,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
   scale=new SoScale;
   sep->addChild(scale);
   scale->scaleFactor.setValue(size, size, size);
-  SoCoordinate3 *coord=new SoCoordinate3;
+  auto *coord=new SoCoordinate3;
   sep->addChild(coord);
   coord->point.set1Value(0, -1.0/2+offset*1.0/2, 0, 0);
   coord->point.set1Value(1, +1.0/2+offset*1.0/2, 0, 0);
@@ -175,7 +175,7 @@ SbVec3f Utils::rotation2Cardan(const SbRotation& R) {
     a=0;
     g=atan2(M[1][0],M[1][1]);
   }
-  return SbVec3f(a,b,g);
+  return {a,b,g};
 }
 
 // for tess
@@ -188,7 +188,7 @@ SoCoordinate3 *Utils::tessCoord;
 
 // tess
 void Utils::tessBeginCB(GLenum type, void *data) {
-  SoGroup *parent=(SoGroup*)data;
+  auto *parent=(SoGroup*)data;
   tessType=type;
   tessNumVertices=0;
   tessCoord=new SoCoordinate3;
@@ -207,7 +207,7 @@ void Utils::tessVertexCB(GLdouble *vertex) {
   tessCoord->point.set1Value(tessNumVertices++, vertex[0], vertex[1], vertex[2]);
 }
 
-void Utils::tessEndCB(void) {
+void Utils::tessEndCB() {
   if(tessType==GL_TRIANGLES)
     for(int i=0; i<tessNumVertices/3; i++)
       tessTriangleStrip->numVertices.set1Value(i, 3);
@@ -234,8 +234,8 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
     str<<"Untitled"<<i;
     name=str.str();
     exist=false;
-    for(unsigned int j=0; j<existingNames.size(); j++)
-      if(existingNames[j]==name) {
+    for(const auto & existingName : existingNames)
+      if(existingName==name) {
         exist=true;
         break;
       }
@@ -243,17 +243,17 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
 
   QDialog dialog;
   dialog.setWindowTitle(title.c_str());
-  QGridLayout *layout=new QGridLayout();
+  auto *layout=new QGridLayout();
   dialog.setLayout(layout);
 
   layout->addWidget(new QLabel("Type:"), 0, 0);
-  QComboBox *cb=new QComboBox();
+  auto *cb=new QComboBox();
   layout->addWidget(cb, 0, 1);
-  for(unsigned int i=0; i<factory.size(); i++)
-    cb->addItem(get<0>(factory[i]), get<1>(factory[i]).c_str());
+  for(const auto & i : factory)
+    cb->addItem(get<0>(i), get<1>(i).c_str());
 
   layout->addWidget(new QLabel("Name:"), 1, 0);
-  QLineEdit *lineEdit=new QLineEdit();
+  auto *lineEdit=new QLineEdit();
   layout->addWidget(lineEdit, 1, 1);
   lineEdit->setText(name.c_str());
 
@@ -269,9 +269,9 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
   do {
     if(dialog.exec()!=QDialog::Accepted) return std::shared_ptr<OpenMBV::Object>();
     unique=true;
-    for(unsigned int j=0; j<existingNames.size(); j++)
-      if(existingNames[j]==lineEdit->text().toStdString()) {
-        QMessageBox::information(0, "Information", "The entered name already exists!");
+    for(const auto & existingName : existingNames)
+      if(existingName==lineEdit->text().toStdString()) {
+        QMessageBox::information(nullptr, "Information", "The entered name already exists!");
         unique=false;
         break;
       }

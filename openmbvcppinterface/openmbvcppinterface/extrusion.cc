@@ -30,13 +30,11 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBV%"Extrusion")
 
-Extrusion::Extrusion() : RigidBody(),
-  windingRule(odd),
-  height(1) {
+Extrusion::Extrusion() : RigidBody()
+  {
 }
 
-Extrusion::~Extrusion() {
-}
+Extrusion::~Extrusion() = default;
 
 DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
@@ -52,7 +50,7 @@ DOMElement *Extrusion::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"height", height);
   for(vector<std::shared_ptr<vector<std::shared_ptr<PolygonPoint> > > >::const_iterator i=contour.begin(); i!=contour.end(); i++) 
     PolygonPoint::serializePolygonPointContour(e, *i);
-  return 0;
+  return nullptr;
 }
 
 

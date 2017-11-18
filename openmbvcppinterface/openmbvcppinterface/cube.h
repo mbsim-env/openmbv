@@ -28,9 +28,9 @@ namespace OpenMBV {
   class Cube : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double length;
+      double length{1};
       Cube();
-      ~Cube() {}
+      ~Cube() override = default;
     public:
       /** Set the length of the cube (x, y and z)*/
       void setLength(double length_) {
@@ -40,9 +40,9 @@ namespace OpenMBV {
       double getLength() { return length; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

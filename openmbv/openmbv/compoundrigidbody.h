@@ -30,11 +30,11 @@ class CompoundRigidBody : public RigidBody {
   Q_OBJECT
   public:
     CompoundRigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    virtual QString getInfo();
+    QString getInfo() override;
     void newRigidBodySlot();
   protected:
-    virtual double update();
-    void createProperties();
+    double update() override;
+    void createProperties() override;
   private:
     std::shared_ptr<OpenMBV::CompoundRigidBody> crb;
 };

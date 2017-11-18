@@ -31,14 +31,14 @@ namespace OpenMBV {
     friend class ObjectFactory;
     protected:
       std::vector<Index> indices;
-      int numvp;
+      int numvp{0};
       H5::VectorSerie<double>* data;
       DynamicIndexedFaceSet();
-      ~DynamicIndexedFaceSet() {}
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      ~DynamicIndexedFaceSet() override = default;
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
       /** Write H5 file for time-dependent data. */
-      void createHDF5File();
-      void openHDF5File();
+      void createHDF5File() override;
+      void openHDF5File() override;
     public:
       /** Get control points
        */
@@ -53,15 +53,15 @@ namespace OpenMBV {
       /** Append a data vector to the h5 datsset */
       template<typename T>
       void append(const T& row) { 
-        if(data==0) throw std::runtime_error("can not append data to an environment object"); 
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object"); 
         data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) { return data?data->getRow(i):std::vector<double>(1+3*numvp); }
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+3*numvp); }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
   };
 
 }

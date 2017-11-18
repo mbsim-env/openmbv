@@ -32,7 +32,7 @@ namespace OpenMBV {
       std::vector<std::vector<double> > vp;
       std::vector<Index> indices;
       IndexedFaceSet();
-      ~IndexedFaceSet() {}
+      ~IndexedFaceSet() override = default;
     public:
       /** Get control points
        */
@@ -45,9 +45,9 @@ namespace OpenMBV {
       void setIndices(const std::vector<Index> &indices_) { indices = indices_; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

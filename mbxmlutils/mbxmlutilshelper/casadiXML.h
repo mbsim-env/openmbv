@@ -36,7 +36,7 @@ inline xercesc::DOMElement *convertCasADiToXML_SXElem(const SXElem &s, std::map<
   xercesc::DOMElement *e;
   if(s.is_symbolic()) {
     e=MBXMLUtils::D(doc)->createElement(CASADI%"SymbolicSX");
-    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%s.name()), NULL);
+    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%s.name()), nullptr);
   }
   else if(s.is_zero())
     e=MBXMLUtils::D(doc)->createElement(CASADI%"ZeroSX");
@@ -54,29 +54,29 @@ inline xercesc::DOMElement *convertCasADiToXML_SXElem(const SXElem &s, std::map<
     e=MBXMLUtils::D(doc)->createElement(CASADI%"IntegerSX");
     std::stringstream str;
     str<<static_cast<int>(s);
-    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%str.str()), NULL);
+    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%str.str()), nullptr);
   }
   else if(s.is_constant()) {
     e=MBXMLUtils::D(doc)->createElement(CASADI%"RealtypeSX");
     std::stringstream str;
     str.precision(std::numeric_limits<double>::digits10+1);
     str<<static_cast<double>(s);
-    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%str.str()), NULL);
+    e->insertBefore(doc->createTextNode(MBXMLUtils::X()%str.str()), nullptr);
   }
   else if(s.hasDep() && s.n_dep()==2) {
     e=MBXMLUtils::D(doc)->createElement(CASADI%"BinarySX");
     std::stringstream str;
     str<<s.op();
     MBXMLUtils::E(e)->setAttribute("op", str.str());
-    e->insertBefore(convertCasADiToXML_SXElem(s.dep(0), nodes, doc), NULL);
-    e->insertBefore(convertCasADiToXML_SXElem(s.dep(1), nodes, doc), NULL);
+    e->insertBefore(convertCasADiToXML_SXElem(s.dep(0), nodes, doc), nullptr);
+    e->insertBefore(convertCasADiToXML_SXElem(s.dep(1), nodes, doc), nullptr);
   }
   else if(s.hasDep() && s.n_dep()==1) {
     e=MBXMLUtils::D(doc)->createElement(CASADI%"UnarySX");
     std::stringstream str;
     str<<s.op();
     MBXMLUtils::E(e)->setAttribute("op", str.str());
-    e->insertBefore(convertCasADiToXML_SXElem(s.dep(0), nodes, doc), NULL);
+    e->insertBefore(convertCasADiToXML_SXElem(s.dep(0), nodes, doc), nullptr);
   }
   else
     throw std::runtime_error("Unknown SXElem type in convertCasADiToXML_SXElem");
@@ -91,9 +91,9 @@ inline xercesc::DOMElement* convertCasADiToXML_SX(const SX &m, std::map<SXNode*,
   xercesc::DOMElement *e=MBXMLUtils::D(doc)->createElement(CASADI%"SX");
   for(int r=0; r<m.size1(); r++) {
     xercesc::DOMElement *row=MBXMLUtils::D(doc)->createElement(CASADI%"row");
-    e->insertBefore(row, NULL);
+    e->insertBefore(row, nullptr);
     for(int c=0; c<m.size2(); c++)
-      row->insertBefore(convertCasADiToXML_SXElem(m(r, c).scalar(), nodes, doc), NULL);
+      row->insertBefore(convertCasADiToXML_SXElem(m(r, c).scalar(), nodes, doc), nullptr);
   }
   return e;
 }
@@ -103,14 +103,14 @@ inline xercesc::DOMElement* convertCasADiToXML(const std::pair<std::vector<casad
   std::map<SXNode*, int> nodes;
   xercesc::DOMElement *e=MBXMLUtils::D(doc)->createElement(CASADI%"Function");
   xercesc::DOMElement *input=MBXMLUtils::D(doc)->createElement(CASADI%"inputs");
-  e->insertBefore(input, NULL);
-  for(size_t i=0; i<f.first.size(); i++)
-    input->insertBefore(convertCasADiToXML_SX(f.first[i], nodes, doc), NULL);
+  e->insertBefore(input, nullptr);
+  for(const auto & i : f.first)
+    input->insertBefore(convertCasADiToXML_SX(i, nodes, doc), nullptr);
   // write each output to XML enclosed by a <outputs> element
   xercesc::DOMElement *output=MBXMLUtils::D(doc)->createElement(CASADI%"outputs");
-  e->insertBefore(output, NULL);
-  for(size_t i=0; i<f.second.size(); i++)
-    output->insertBefore(convertCasADiToXML_SX(f.second[i], nodes, doc), NULL);
+  e->insertBefore(output, nullptr);
+  for(const auto & i : f.second)
+    output->insertBefore(convertCasADiToXML_SX(i, nodes, doc), nullptr);
 
   return e;
 }
@@ -119,7 +119,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
   // creata an SXElem dependent on the type
   SXElem sxelement;
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"BinarySX") {
-    int op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElem dep0(createCasADiSXFromXML(ee, nodes));
     ee=ee->getNextElementSibling();
@@ -127,7 +127,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     sxelement=SXElem::binary(op, dep0, dep1);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"UnarySX") {
-    int op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElem dep=createCasADiSXFromXML(ee, nodes);
     sxelement=SXElem::unary(op, dep);
@@ -152,7 +152,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     sxelement=casadi_limits<SXElem>::nan;
   // reference elements must be handled specially: return the referenced node instead of creating a new one
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SXElemRef") {
-    int refid = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("refid").c_str());
+    auto refid = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("refid").c_str());
     sxelement=SXElem::create(nodes[refid]);
     return sxelement;
   }
@@ -160,7 +160,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     throw std::runtime_error("Unknown XML element named "+MBXMLUtils::X()%e->getTagName()+" in createCasADiSXFromXML");
 
   // insert a newly created SXElem (node) to the list of all nodes
-  int id = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("id").c_str());
+  auto id = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("id").c_str());
   nodes.insert(std::make_pair(id, sxelement.get()));
   return sxelement;
 }

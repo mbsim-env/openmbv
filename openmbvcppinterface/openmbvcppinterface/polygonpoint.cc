@@ -41,8 +41,8 @@ void PolygonPoint::serializePolygonPointContour(DOMElement *parent,
 shared_ptr<vector<shared_ptr<PolygonPoint> > > PolygonPoint::initializeUsingXML(DOMElement *element) {
   vector<vector<double> > matParam=E(element)->getText<vector<vector<double>>>();
   shared_ptr<vector<shared_ptr<PolygonPoint> > > contour=make_shared<vector<shared_ptr<PolygonPoint> > >();
-  for(size_t r=0; r<matParam.size(); r++) {
-    shared_ptr<PolygonPoint> pp=create(matParam[r][0], matParam[r][1], (int)(matParam[r][2]));
+  for(auto & r : matParam) {
+    shared_ptr<PolygonPoint> pp=create(r[0], r[1], (int)(r[2]));
     contour->push_back(pp);
   }
   return contour;

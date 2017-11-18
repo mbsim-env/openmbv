@@ -130,7 +130,7 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
   QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;
-  return 0;
+  return nullptr;
 }
 
 

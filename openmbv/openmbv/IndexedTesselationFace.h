@@ -40,18 +40,18 @@ class IndexedTesselationFace : public SoGroup {
    IndexedTesselationFace(int numChilderen);
    enum WindingRule { ODD, NONZERO, POSITIVE, NEGATIVE, ABS_GEQ_TWO };
 
-   void write(SoWriteAction *action);
+   void write(SoWriteAction *action) override;
 
    // This function must be called after all attributes are set.
    // When reading from a file it is automatically called.
    // This is a HACK because IndexedTesselationFace is not clearly implemented.
-   void generate() { readChildren(NULL); }
+   void generate() { readChildren(nullptr); }
 
  protected:
-   SbBool readChildren(SoInput *in);
+   SbBool readChildren(SoInput *in) override;
 
  private:
-   virtual ~IndexedTesselationFace();
+   ~IndexedTesselationFace() override;
    void constructor();
 };
 

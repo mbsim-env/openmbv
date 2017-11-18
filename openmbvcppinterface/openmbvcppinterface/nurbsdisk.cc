@@ -32,24 +32,15 @@ namespace OpenMBV {
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(NurbsDisk, OPENMBV%"NurbsDisk")
 
 NurbsDisk::NurbsDisk() : DynamicColoredBody(),
-  data(0),
+  
   localFrameStr("false"),
-  scaleFactor(1),
-  drawDegree(1),
-  Ri(0.),
-  Ro(0.),
-  ElementNumberAzimuthal(0),
-  ElementNumberRadial(0),
-  InterpolationDegreeAzimuthal(8),
-  InterpolationDegreeRadial(3),
+  
   KnotVecAzimuthal(vector<double>(17,0)),
-  KnotVecRadial(vector<double>(4,0)),
-  DiskNormal(0),
-  DiskPoint(0) {
+  KnotVecRadial(vector<double>(4,0))
+  {
   }
 
-NurbsDisk::~NurbsDisk() {
-}
+NurbsDisk::~NurbsDisk() = default;
 
 DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
@@ -69,7 +60,7 @@ DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"knotVecRadial", str+fmatvec::toString(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
 
   E(e)->setAttribute("localFrame", localFrameStr);
-  return 0;
+  return nullptr;
 }
 
 void NurbsDisk::createHDF5File() {
@@ -79,17 +70,17 @@ void NurbsDisk::createHDF5File() {
     NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
     vector<string> columns;
-    columns.push_back("Time");
+    columns.emplace_back("Time");
 
     //Global position (position of center of gravity)
-    columns.push_back("Pos_x");
-    columns.push_back("Pos_y");
-    columns.push_back("Pos_z");
+    columns.emplace_back("Pos_x");
+    columns.emplace_back("Pos_y");
+    columns.emplace_back("Pos_z");
 
     //Global orientation (= Cardan angles for orientation of COG)
-    columns.push_back("Rot_alpha");
-    columns.push_back("Rot_beta");
-    columns.push_back("Rot_gamma");
+    columns.emplace_back("Rot_alpha");
+    columns.emplace_back("Rot_beta");
+    columns.emplace_back("Rot_gamma");
 
     //coordinates of control points
     for(int i=0;i<NodeDofs;i++) {
@@ -115,7 +106,7 @@ void NurbsDisk::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

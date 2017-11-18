@@ -40,7 +40,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     EdgeCalculation(SoGroup *grp, bool useCache=true);
 
     /** descructor */
-    ~EdgeCalculation();
+    ~EdgeCalculation() override;
 
     /** Preproces the data collected with collectData.
      * This function is very time consuming for new data in grp from collectData.

@@ -30,12 +30,8 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBV%"Frustum")
 
-Frustum::Frustum() : RigidBody(),
-  baseRadius(1),
-  topRadius(1),
-  height(2),
-  innerBaseRadius(0),
-  innerTopRadius(0) {
+Frustum::Frustum() : RigidBody()
+  {
 }
 
 DOMElement* Frustum::writeXMLFile(DOMNode *parent) {
@@ -45,7 +41,7 @@ DOMElement* Frustum::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"height", height);
   E(e)->addElementText(OPENMBV%"innerBaseRadius", innerBaseRadius);
   E(e)->addElementText(OPENMBV%"innerTopRadius", innerTopRadius);
-  return 0;
+  return nullptr;
 }
 
 void Frustum::initializeUsingXML(DOMElement *element) {

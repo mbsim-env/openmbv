@@ -33,13 +33,13 @@ namespace OpenMBVGUI {
 class SoQtMyViewer : public SoQtExaminerViewer {
   public:
     SoQtMyViewer(QWidget *parent, int transparency);
-    ~SoQtMyViewer();
-    void setSeekMode(SbBool enabled) { SoQtExaminerViewer::setSeekMode(enabled); } // is protected
+    ~SoQtMyViewer() override;
+    void setSeekMode(SbBool enabled) override { SoQtExaminerViewer::setSeekMode(enabled); } // is protected
     void seekToPoint(const SbVec3f& scenepos) { SoQtExaminerViewer::seekToPoint(scenepos); } // is protected
     void myChangeCameraValues(SoCamera *cam) { changeCameraValues(cam); } // is protected
   protected:
-    SbBool processSoEvent(const SoEvent *const event);
-    virtual void actualRedraw(void);
+    SbBool processSoEvent(const SoEvent *const event) override;
+    void actualRedraw() override;
     // for text in viewport
 
     SoSeparator *fgSep, *bgSep;

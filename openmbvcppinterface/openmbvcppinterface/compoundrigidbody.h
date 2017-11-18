@@ -38,13 +38,13 @@ namespace OpenMBV {
       std::vector<std::shared_ptr<RigidBody> > rigidBody;
 
       CompoundRigidBody();
-      ~CompoundRigidBody();
+      ~CompoundRigidBody() override;
     public:
       /** Add a RigidBody to this compound */
       void addRigidBody(std::shared_ptr<RigidBody> rigidBody_) {
         if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");
-        for(unsigned int i=0; i<rigidBody.size(); i++)
-          if(rigidBody[i]->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");
+        for(auto & i : rigidBody)
+          if(i->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");
         rigidBody.push_back(rigidBody_);
         rigidBody_->parent.reset();
         rigidBody_->compound=shared_from_this();
@@ -55,9 +55,9 @@ namespace OpenMBV {
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
       /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }

@@ -23,7 +23,7 @@
 #include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <hdf5serie/vectorserie.h>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 
 namespace OpenMBV {
@@ -140,27 +140,27 @@ namespace OpenMBV {
       /** Append a data vector to the h5 datsset */
       template<typename T>
       void append(const T& row) { 
-        if(data==0) throw std::runtime_error("can not append data to an environment object");
+        if(data==nullptr) throw std::runtime_error("can not append data to an environment object");
         data->append(row);
       }
 
-      int getRows() { return data?data->getRows():-1; }
-      std::vector<double> getRow(int i) {
+      int getRows() override { return data?data->getRows():-1; }
+      std::vector<double> getRow(int i) override {
         int NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
         return data?data->getRow(i):std::vector<double>(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
       /** Write XML file for not time-dependent data. */
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
     protected:
       NurbsDisk(); 
-      virtual ~NurbsDisk();
+      ~NurbsDisk() override;
 
       /** Each row comprises [time,]. */
-      H5::VectorSerie<double>* data;
+      H5::VectorSerie<double>* data{nullptr};
 
       /**
        * \brief String that contains, whether reference Frame should be drawn (="True") or not (="False")
@@ -168,32 +168,35 @@ namespace OpenMBV {
       std::string localFrameStr;
 
       /** Scale factor of the body. */
-      double scaleFactor;
+      double scaleFactor{1};
 
       /** Number of points drawn between the nodes. */
-      int drawDegree;
+      int drawDegree{1};
 
       /** Inner and outer radius of disk */
-      double Ri, Ro;
+      double Ri{0.};
+      double Ro{0.};
 
       /** Number of finite elements in azimuthal and radial direction */
-      int ElementNumberAzimuthal, ElementNumberRadial;
+      int ElementNumberAzimuthal{0};
+      int ElementNumberRadial{0};
 
       /** Degree of interpolating spline polynomials in radial and azimuthal direction */
-      int InterpolationDegreeAzimuthal, InterpolationDegreeRadial;
+      int InterpolationDegreeAzimuthal{8};
+      int InterpolationDegreeRadial{3};
 
       /** Knot vector for azimuthal and radial direction */
       std::vector<double> KnotVecAzimuthal, KnotVecRadial;
 
       /** Normal of the disk in global coordinates */
-      float *DiskNormal;
+      float *DiskNormal{nullptr};
 
       /** Point on the center of the disk used for visualisation*/
-      float *DiskPoint;
+      float *DiskPoint{nullptr};
 
       /** Write H5 file for time-dependent data. */
-      void createHDF5File();
-      void openHDF5File();
+      void createHDF5File() override;
+      void openHDF5File() override;
   };
 
 }

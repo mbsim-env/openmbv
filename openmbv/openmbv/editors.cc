@@ -50,11 +50,11 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObje
   QAction *dialogAction=new QAction("Properties...", this);
   contextMenu->addAction(dialogAction);
   connect(dialogAction, SIGNAL(triggered()), this, SLOT(openDialogSlot()));
-  QAction *sep2=new QAction(this);
+  auto *sep2=new QAction(this);
   sep2->setSeparator("Convenience properties actions");
   contextMenu->addAction(sep2);
 
-  QAction *sep=new QAction(this);
+  auto *sep=new QAction(this);
   sep->setSeparator("Context actions");
   sep->setObjectName("PropertyDialog::AFTER_PROPERTIES__BEFORE_CONTEXT");
   contextMenu->addAction(sep);
@@ -62,8 +62,8 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObje
 }
 
 PropertyDialog::~PropertyDialog() {
-  for(unsigned int i=0; i<editor.size(); i++)
-    delete editor[i];
+  for(auto & i : editor)
+    delete i;
   contextMenu->deleteLater();
 }
 
@@ -161,9 +161,9 @@ void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QLa
 }
 
 void PropertyDialog::updateHeader() {
-  Object *obj=dynamic_cast<Object*>(parentObject);
+  auto *obj=dynamic_cast<Object*>(parentObject);
   if(obj) { // if it is a dialog for a Object
-    QGridLayout *header=new QGridLayout;
+    auto *header=new QGridLayout;
     mainLayout->addLayout(header, 0, 0);
     header->setContentsMargins(0, 0, 0, 16);
     header->setColumnStretch(0, 0);
@@ -187,8 +187,8 @@ void PropertyDialog::addEditor(Editor *child) {
 
 QList<QAction*> PropertyDialog::getActions() {
   QList<QAction*> list;
-  for(unsigned int i=0; i<editor.size(); i++)
-    list.append(editor[i]->findChildren<QAction*>());
+  for(auto & i : editor)
+    list.append(i->findChildren<QAction*>());
   return list;
 }
 
@@ -213,10 +213,10 @@ void Editor::setSelAndCur(QTreeWidgetItem *item, queue<bool> &sel, queue<bool> &
   cur.pop();
 }
 void Editor::unsetClone(Object *obj) {
-  obj->clone=NULL;
+  obj->clone=nullptr;
 }
 void Editor::replaceObject() {
-  Object *obj=dynamic_cast<Object*>(dialog->getParentObject());
+  auto *obj=dynamic_cast<Object*>(dialog->getParentObject());
   if(!obj)
     return;
   QTreeWidget *objectList=MainWindow::getInstance()->objectList;
@@ -317,7 +317,7 @@ void FloatEditor::valueChangedSlot(double newValue) {
 
 
 FloatMatrixEditor::FloatMatrixEditor(PropertyDialog *parent_, const QIcon& icon, const string &name, unsigned int rows_, unsigned int cols_) : Editor(parent_, icon, name) {
-  QGridLayout *layout=new QGridLayout;
+  auto *layout=new QGridLayout;
 
   rows=rows_;
   cols=cols_;
@@ -354,7 +354,7 @@ FloatMatrixEditor::FloatMatrixEditor(PropertyDialog *parent_, const QIcon& icon,
 void FloatMatrixEditor::addRow() {
   table->setRowCount(table->rowCount()+1);
   for(int c=0; c<table->columnCount(); c++) {
-    QDoubleSpinBox *cell=new QDoubleSpinBox;
+    auto *cell=new QDoubleSpinBox;
     table->setCellWidget(table->rowCount()-1, c, cell);
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
@@ -377,7 +377,7 @@ void FloatMatrixEditor::removeRowSlot() {
 void FloatMatrixEditor::addColumn() {
   table->setColumnCount(table->columnCount()+1);
   for(int r=0; r<table->rowCount(); r++) {
-    QDoubleSpinBox *cell=new QDoubleSpinBox;
+    auto *cell=new QDoubleSpinBox;
     table->setCellWidget(r, table->columnCount()-1, cell);
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
@@ -490,13 +490,13 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
 
   // add the label and a comboBox for the value
   comboBox=new QComboBox;
-  for(size_t i=0; i<list.size(); i++)
-    comboBox->addItem(get<2>(list[i]), get<1>(list[i]).c_str(), QVariant(get<0>(list[i])));
+  for(const auto & i : list)
+    comboBox->addItem(get<2>(i), get<1>(i).c_str(), QVariant(get<0>(i)));
   connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(valueChangedSlot(int)));
   dialog->addSmallRow(icon, name, comboBox);
 
   actionGroup=new QActionGroup(this);
-  QAction *sep1=new QAction(actionGroup);
+  auto *sep1=new QAction(actionGroup);
   sep1->setSeparator(name.c_str());
   actionGroup->addAction(sep1);
   for(size_t i=0; i<list.size(); i++) {
@@ -506,7 +506,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
     action->setCheckable(true);
     actionGroup->addAction(action);
   }
-  QAction *sep=new QAction(actionGroup);
+  auto *sep=new QAction(actionGroup);
   sep->setSeparator("");
   actionGroup->addAction(sep);
   connect(actionGroup,SIGNAL(triggered(QAction*)),this,SLOT(actionChangedSlot(QAction*)));
@@ -532,15 +532,15 @@ void ComboBoxEditor::actionChangedSlot(QAction* action) {
 
 Vec3fEditor::Vec3fEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
   // add the label and a 3 spinboxes for the values
-  QHBoxLayout *box=new QHBoxLayout;
-  for(int i=0; i<3; i++) {
-    spinBox[i]=new QDoubleSpinBox;
-    spinBox[i]->setSingleStep(0.01);
-    spinBox[i]->setRange(-DBL_MAX, DBL_MAX);
-    spinBox[i]->setDecimals(6);
-    spinBox[i]->setMinimumWidth(QFontMetrics(spinBox[i]->font()).width("-888.888888000"));
-    connect(spinBox[i], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
-    box->addWidget(spinBox[i]);
+  auto *box=new QHBoxLayout;
+  for(auto & i : spinBox) {
+    i=new QDoubleSpinBox;
+    i->setSingleStep(0.01);
+    i->setRange(-DBL_MAX, DBL_MAX);
+    i->setDecimals(6);
+    i->setMinimumWidth(QFontMetrics(i->font()).width("-888.888888000"));
+    connect(i, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    box->addWidget(i);
   }
   dialog->addSmallRow(icon, name, box);
 }
@@ -554,7 +554,7 @@ void Vec3fEditor::valueChangedSlot() {
 
 
 ColorEditor::ColorEditor(PropertyDialog *parent_, const QIcon& icon, const string &name, bool showResetHueButton) : Editor(parent_, icon, name) {
-  QHBoxLayout *box=new QHBoxLayout;
+  auto *box=new QHBoxLayout;
   colorDialog=new QColorDialog();
   colorDialog->setOption(QColorDialog::NoButtons);
   connect(colorDialog, SIGNAL(currentColorChanged(const QColor &)), this, SLOT(valueChangedSlot()));
@@ -600,8 +600,8 @@ void ColorEditor::resetHue() {
 
 TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
   // add the label and a 6 spinboxes for the 3 translations and 3 rotations
-  QHBoxLayout *trans=new QHBoxLayout;
-  QHBoxLayout *rot=new QHBoxLayout;
+  auto *trans=new QHBoxLayout;
+  auto *rot=new QHBoxLayout;
 
   // create a action to active the Dragger
   draggerCheckBox=new QCheckBox;
@@ -619,7 +619,7 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
     spinBox[i+3]->setDecimals(6);
     spinBox[i  ]->setMinimumWidth(QFontMetrics(spinBox[i  ]->font()).width("-888.888888000"));
     spinBox[i+3]->setMinimumWidth(QFontMetrics(spinBox[i+3]->font()).width("-888.888888000"));
-    spinBox[i+3]->setSuffix(QString::fromUtf8("\xc2\xb0")); // utf8 degree sign
+    spinBox[i+3]->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     connect(spinBox[i  ], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
     connect(spinBox[i+3], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
     trans->addWidget(spinBox[i]);
@@ -634,7 +634,7 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
   soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
   // the dragger is added on the first click on the entry in the property menu (delayed create)
   // (Because the constructor of the dragger takes a long time to execute (performace reason))
-  soDragger=NULL;
+  soDragger=nullptr;
 
   soTranslation=new SoTranslation;
   soTranslation->ref();
@@ -683,13 +683,13 @@ void TransRotEditor::valueChangedSlot() {
 }
 
 void TransRotEditor::draggerSlot(int state) {
-  if(soDragger==NULL) { // delayed create is now done
+  if(soDragger==nullptr) { // delayed create is now done
     soDragger=new SoCenterballDragger;
     soDraggerSwitch->addChild(soDragger);
     soDragger->addMotionCallback(draggerMoveCB, this);
     soDragger->addFinishCallback(draggerFinishedCB, this);
     // scale of the dragger
-    SoSurroundScale *draggerScale=new SoSurroundScale;
+    auto *draggerScale=new SoSurroundScale;
     draggerScale->setDoingTranslations(false);
     draggerScale->numNodesUpToContainer.setValue(5);
     draggerScale->numNodesUpToReset.setValue(4);
@@ -707,8 +707,8 @@ void TransRotEditor::draggerSlot(int state) {
 }
 
 void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
-  TransRotEditor *me=static_cast<TransRotEditor*>(data);
-  SoCenterballDragger* dragger=(SoCenterballDragger*)dragger_;
+  auto *me=static_cast<TransRotEditor*>(data);
+  auto* dragger=(SoCenterballDragger*)dragger_;
   // get values
   SbVec3f t, s;
   SbRotation A, dummy;
@@ -742,9 +742,9 @@ void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {
 }
 
 void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
-  TransRotEditor *me=static_cast<TransRotEditor*>(data);
+  auto *me=static_cast<TransRotEditor*>(data);
   // print final trans/rot to stdout for an Object
-  Object *obj=dynamic_cast<Object*>(me->dialog->parentObject);
+  auto *obj=dynamic_cast<Object*>(me->dialog->parentObject);
   if(obj) {
     QString str("New translation [%1, %2, %3], rotation[%4, %5, %6] on %7");
     str=str.arg(me->spinBox[0]->value())

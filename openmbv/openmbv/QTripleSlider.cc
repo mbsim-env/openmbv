@@ -8,7 +8,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent), totalMin(0), totalMax(99) {
+QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) {
   // the appearance of the splitter handle
   setStyleSheet(QString(
     "QSplitter::handle {"

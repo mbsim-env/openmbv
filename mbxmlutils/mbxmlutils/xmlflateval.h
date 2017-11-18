@@ -12,30 +12,30 @@ namespace MBXMLUtils {
 class XMLFlatEval : public Eval {
   friend class Eval;
   protected:
-    XMLFlatEval(std::vector<boost::filesystem::path> *dependencies_=NULL);
+    XMLFlatEval(std::vector<boost::filesystem::path> *dependencies_=nullptr);
   public:
-    ~XMLFlatEval();
+    ~XMLFlatEval() override;
     static std::string getNameStatic() { return "xmlflat"; }
-    virtual std::string getName() const { return getNameStatic(); }
-    virtual void addImport(const std::string &code, const xercesc::DOMElement *e);
-    virtual bool valueIsOfType(const Value &value, ValueType type) const;
-    virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const;
-    virtual void convertIndex(Value &v, bool evalTo1Based) {}
+    std::string getName() const override { return getNameStatic(); }
+    void addImport(const std::string &code, const xercesc::DOMElement *e) override;
+    bool valueIsOfType(const Value &value, ValueType type) const override;
+    std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
+    void convertIndex(Value &v, bool evalTo1Based) override {}
   protected:
-    virtual Value createSwigByTypeName(const std::string &typeName) const;
-    virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const;
-    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=NULL) const;
-    virtual void* getSwigThis(const Value &value) const;
-    virtual std::string getSwigType(const Value &value) const;
+    Value createSwigByTypeName(const std::string &typeName) const override;
+    Value callFunction(const std::string &name, const std::vector<Value>& args) const override;
+    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const override;
+    void* getSwigThis(const Value &value) const override;
+    std::string getSwigType(const Value &value) const override;
   private:
-    virtual double                           cast_double                (const Value &value) const;
-    virtual std::vector<double>              cast_vector_double         (const Value &value) const;
-    virtual std::vector<std::vector<double> >cast_vector_vector_double  (const Value &value) const;
-    virtual std::string                      cast_string                (const Value &value) const;
-    virtual Value          create_double              (const double& v) const;
-    virtual Value          create_vector_double       (const std::vector<double>& v) const;
-    virtual Value          create_vector_vector_double(const std::vector<std::vector<double> >& v) const;
-    virtual Value          create_string              (const std::string& v) const;
+    double                           cast_double                (const Value &value) const override;
+    std::vector<double>              cast_vector_double         (const Value &value) const override;
+    std::vector<std::vector<double> >cast_vector_vector_double  (const Value &value) const override;
+    std::string                      cast_string                (const Value &value) const override;
+    Value          create_double              (const double& v) const override;
+    Value          create_vector_double       (const std::vector<double>& v) const override;
+    Value          create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
+    Value          create_string              (const std::string& v) const override;
 };
 
 } // end namespace MBXMLUtils

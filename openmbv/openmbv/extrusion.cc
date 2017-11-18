@@ -58,62 +58,62 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soSepRigidBody->addChild(soOutLineSwitch);
   // two side render if !hasHeight
   if(!hasHeight) {
-    SoShapeHints *sh=new SoShapeHints;
+    auto *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
   }
-  SoSeparator *side=new SoSeparator;
+  auto *side=new SoSeparator;
   soSepRigidBody->addChild(side);
   if(hasHeight) {
     // side
     // shape hint
-    SoShapeHints *sh=new SoShapeHints;
+    auto *sh=new SoShapeHints;
     side->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
     sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
     sh->creaseAngle.setValue(M_PI);
   }
   // side
-  for(size_t c=0; c<contour.size(); c++) {
-    SoNormal *n=NULL;
+  for(auto & c : contour) {
+    SoNormal *n=nullptr;
     if(hasHeight) {
       n=new SoNormal;
       side->addChild(n);
     }
-    SoCoordinate3 *v=new SoCoordinate3;
+    auto *v=new SoCoordinate3;
     side->addChild(v);
     size_t r;
-    SoIndexedFaceSet *s=NULL;
+    SoIndexedFaceSet *s=nullptr;
     if(hasHeight) {
       s=new SoIndexedFaceSet;
       side->addChild(s);
     }
     // outline
-    SoIndexedLineSet *ol1=new SoIndexedLineSet;
-    SoIndexedLineSet *ol2=new SoIndexedLineSet;
-    SoIndexedLineSet *ol3=new SoIndexedLineSet;
+    auto *ol1=new SoIndexedLineSet;
+    auto *ol2=new SoIndexedLineSet;
+    auto *ol3=new SoIndexedLineSet;
     soOutLineSep->addChild(v);
     soOutLineSep->addChild(ol1);
     soOutLineSep->addChild(ol2);
     int nr=0;
     soOutLineSep->addChild(ol3);
     //
-    for(r=0; r<contour[c]->size(); r++) {
-      size_t rn=r+1; if(rn>=contour[c]->size()) rn=0;
-      size_t rp; if(r>=1) rp=r-1; else rp=contour[c]->size()-1;
-      v->point.set1Value(2*r+0, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), 0);
-      v->point.set1Value(2*r+1, (*contour[c])[r]->getXComponent(), (*contour[c])[r]->getYComponent(), height);
+    for(r=0; r<c->size(); r++) {
+      size_t rn=r+1; if(rn>=c->size()) rn=0;
+      size_t rp; if(r>=1) rp=r-1; else rp=c->size()-1;
+      v->point.set1Value(2*r+0, (*c)[r]->getXComponent(), (*c)[r]->getYComponent(), 0);
+      v->point.set1Value(2*r+1, (*c)[r]->getXComponent(), (*c)[r]->getYComponent(), height);
       if(hasHeight) {
-        SbVec3f n1((*contour[c])[r]->getYComponent()-(*contour[c])[rp]->getYComponent(),(*contour[c])[rp]->getXComponent()-(*contour[c])[r]->getXComponent(),0); n1.normalize();
-        SbVec3f n2((*contour[c])[rn]->getYComponent()-(*contour[c])[r]->getYComponent(),(*contour[c])[r]->getXComponent()-(*contour[c])[rn]->getXComponent(),0); n2.normalize();
-        if(((int)((*contour[c])[r]->getBorderValue()+0.5))!=1)
+        SbVec3f n1((*c)[r]->getYComponent()-(*c)[rp]->getYComponent(),(*c)[rp]->getXComponent()-(*c)[r]->getXComponent(),0); n1.normalize();
+        SbVec3f n2((*c)[rn]->getYComponent()-(*c)[r]->getYComponent(),(*c)[r]->getXComponent()-(*c)[rn]->getXComponent(),0); n2.normalize();
+        if(((int)((*c)[r]->getBorderValue()+0.5))!=1)
           n1=n2=n1+n2;
         n->vector.set1Value(2*r+0, n1);
         n->vector.set1Value(2*r+1, n2);
       }
       ol1->coordIndex.set1Value(r, 2*r+0);
       ol2->coordIndex.set1Value(r, 2*r+1);
-      if(((int)((*contour[c])[r]->getBorderValue()+0.5))==1) {
+      if(((int)((*c)[r]->getBorderValue()+0.5))==1) {
         ol3->coordIndex.set1Value(nr++, 2*r+0);
         ol3->coordIndex.set1Value(nr++, 2*r+1);
         ol3->coordIndex.set1Value(nr++, -1);
@@ -138,18 +138,18 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   }
   // base and top
   gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
-  SoGroup *soTess=new SoGroup;
+  auto *soTess=new SoGroup;
   soTess->ref();
   vector<GLdouble*> vPtr;
   vPtr.reserve(contour.size()*(contour.size()>0?contour[0]->size():0)*2);
   gluTessBeginPolygon(Utils::tess, soTess);
-  for(size_t c=0; c<contour.size(); c++) {
+  for(auto & c : contour) {
     gluTessBeginContour(Utils::tess);
-    for(size_t r=0; r<contour[c]->size(); r++) {
-      GLdouble *v=new GLdouble[3]; // is deleted later using vPtr
+    for(size_t r=0; r<c->size(); r++) {
+      auto *v=new GLdouble[3]; // is deleted later using vPtr
       vPtr.push_back(v);
-      v[0]=(*contour[c])[r]->getXComponent();
-      v[1]=(*contour[c])[r]->getYComponent();
+      v[0]=(*c)[r]->getXComponent();
+      v[1]=(*c)[r]->getYComponent();
       v[2]=0;
       gluTessVertex(Utils::tess, v, v);
     }
@@ -157,18 +157,18 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   }
   gluTessEndPolygon(Utils::tess);
   // now we can delete all v
-  for(unsigned int i=0; i<vPtr.size(); i++)
-    delete[]vPtr[i];
+  for(auto & i : vPtr)
+    delete[]i;
   // normal binding
-  SoNormalBinding *nb=new SoNormalBinding;
+  auto *nb=new SoNormalBinding;
   soSepRigidBody->addChild(nb);
   nb->value.setValue(SoNormalBinding::OVERALL);
   // normal
-  SoNormal *n=new SoNormal;
+  auto *n=new SoNormal;
   soSepRigidBody->addChild(n);
   n->vector.set1Value(0, 0, 0, -1);
   // vertex ordering
-  SoShapeHints *sh=new SoShapeHints;
+  auto *sh=new SoShapeHints;
   soSepRigidBody->addChild(sh);
   sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
   // base
@@ -176,7 +176,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soTess->unref();
   if(hasHeight) {
     // trans
-    SoTranslation *t=new SoTranslation;
+    auto *t=new SoTranslation;
     soSepRigidBody->addChild(t);
     t->translation.setValue(0, 0, height);
     // normal
@@ -184,7 +184,7 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     soSepRigidBody->addChild(n);
     n->vector.set1Value(0, 0, 0, 1);
     // vertex ordering
-    SoShapeHints *sh=new SoShapeHints;
+    auto *sh=new SoShapeHints;
     soSepRigidBody->addChild(sh);
     sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
     // top

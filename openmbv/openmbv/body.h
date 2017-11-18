@@ -55,7 +55,7 @@ class Body : public Object {
     SoFieldSensor *frameSensor;
   public:
     Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-    ~Body();
+    ~Body() override;
     static void frameSensorCB(void *data, SoSensor*);
     virtual double update()=0; // return the current time
     void resetAnimRange(int numOfRows, double dt);
@@ -66,7 +66,7 @@ class Body : public Object {
     SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
     SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
     static std::map<SoNode*,Body*> bodyMap;
-    void createProperties();
+    void createProperties() override;
     friend class IndexedTesselationFace;
     friend class MainWindow;
 };

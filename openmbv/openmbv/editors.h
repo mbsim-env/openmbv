@@ -58,7 +58,7 @@ class PropertyDialog : public QDialog {
   friend class TransRotEditor;
   public:
     PropertyDialog(QObject *obj);
-    ~PropertyDialog();
+    ~PropertyDialog() override;
     void setParentObject(QObject *obj);
     void addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget);
     void addLargeRow(const QIcon& icon, const std::string& name, QWidget *widget);
@@ -344,19 +344,19 @@ class Vec3fEditor : public Editor {
 
     /*! Set the valid range of the double values */
     void setRange(double min, double max) {
-      for(int i=0; i<3; i++) {
-        spinBox[i]->blockSignals(true);
-        spinBox[i]->setRange(min, max);
-        spinBox[i]->blockSignals(false);
+      for(auto & i : spinBox) {
+        i->blockSignals(true);
+        i->setRange(min, max);
+        i->blockSignals(false);
       }
     }
 
     /*! Set step size of the double values */
     void setStep(double step) {
-      for(int i=0; i<3; i++) {
-        spinBox[i]->blockSignals(true);
-        spinBox[i]->setSingleStep(step);
-        spinBox[i]->blockSignals(false);
+      for(auto & i : spinBox) {
+        i->blockSignals(true);
+        i->setSingleStep(step);
+        i->blockSignals(false);
       }
     }
 
@@ -415,7 +415,7 @@ class TransRotEditor : public Editor {
     /*! Constructor.
      * soTranslation_ and soRotation_ is syncronized with this Editor */
     TransRotEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
-    ~TransRotEditor();
+    ~TransRotEditor() override;
 
     void setGroupMembers(SoGroup *grp);
 

@@ -28,13 +28,14 @@ namespace OpenMBV {
   class DynamicColoredBody : public Body {
     friend class ObjectFactory;
     protected:
-      double minimalColorValue, maximalColorValue;
+      double minimalColorValue{0};
+      double maximalColorValue{1};
       double dynamicColor;
       std::vector<double> diffuseColor;
-      double transparency;
+      double transparency{0};
 
       DynamicColoredBody();
-      ~DynamicColoredBody();
+      ~DynamicColoredBody() override;
     public:
       /** Set the minimal color value.
        * The color value of the body in linearly mapped between minimalColorValue
@@ -92,9 +93,9 @@ namespace OpenMBV {
       double getTransparency() { return transparency; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

@@ -37,7 +37,7 @@ class QTripleSlider : public QSplitter {
   public:
 
     // constructor
-    QTripleSlider(QWidget *parent=NULL);
+    QTripleSlider(QWidget *parent=nullptr);
 
     // total range getter/setter
     public slots: // declare the setters a slots
@@ -69,11 +69,11 @@ class QTripleSlider : public QSplitter {
 
   protected:
 
-    void resizeEvent(QResizeEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
     void syncCurrentRangeToSplitterPosition();
 
     QSlider *slider;
-    int totalMin, totalMax;
+    int totalMin{0}, totalMax{99};
 
   protected slots:
 

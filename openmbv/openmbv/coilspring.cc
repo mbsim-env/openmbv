@@ -30,7 +30,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(NULL), scaledSpine(NULL) {
+CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(nullptr), scaledSpine(nullptr) {
   coilSpring=std::static_pointer_cast<OpenMBV::CoilSpring>(obj);
   iconFile="coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile));
@@ -94,11 +94,11 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       break;
     }
     case OpenMBV::CoilSpring::scaledTube: {
-      SoSeparator *scaledTubeSep=new SoSeparator;
+      auto *scaledTubeSep=new SoSeparator;
       soSep->addChild(scaledTubeSep);
       scale=new SoScale;
       scaledTubeSep->addChild(scale);
-      SoVRMLExtrusion *scaledExtrusion=new SoVRMLExtrusion;
+      auto *scaledExtrusion=new SoVRMLExtrusion;
       scaledTubeSep->addChild(scaledExtrusion);
       // cross section
       scaledExtrusion->crossSection.setNum(iCircSegments+1);
@@ -127,16 +127,16 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       break;
     }
     case OpenMBV::CoilSpring::polyline: {
-      SoSeparator *polylineSep=new SoSeparator;
+      auto *polylineSep=new SoSeparator;
       soSep->addChild(polylineSep);
       scale=new SoScale;
       polylineSep->addChild(scale);
-      SoDrawStyle *ds=new SoDrawStyle;
+      auto *ds=new SoDrawStyle;
       polylineSep->addChild(ds);
       ds->lineWidth.setValue(r);
-      SoCoordinate3 *polylineCoord=new SoCoordinate3;
+      auto *polylineCoord=new SoCoordinate3;
       polylineSep->addChild(polylineCoord);
-      SoLineSet *polyline=new SoLineSet;
+      auto *polyline=new SoLineSet;
       polylineSep->addChild(polyline);
       polyline->numVertices.setValue(int(numberOfSpinePointsPerCoil*N));
       // initialise spine 

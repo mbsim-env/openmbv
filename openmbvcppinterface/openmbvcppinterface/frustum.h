@@ -28,9 +28,13 @@ namespace OpenMBV {
   class Frustum : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double baseRadius, topRadius, height, innerBaseRadius, innerTopRadius;
+      double baseRadius{1};
+      double topRadius{1};
+      double height{2};
+      double innerBaseRadius{0};
+      double innerTopRadius{0};
       Frustum();
-      ~Frustum() {}
+      ~Frustum() override = default;
     public:
       /** Set the radius of the outer side at the base (bottom) */
       void setBaseRadius(double radius) {
@@ -68,9 +72,9 @@ namespace OpenMBV {
       double getInnerTopRadius() { return innerTopRadius; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
   };
 
 }

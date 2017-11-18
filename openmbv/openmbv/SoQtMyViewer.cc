@@ -57,22 +57,22 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   setClearBeforeRender(false); // clear by my background color
   bgSep=new SoSeparator;
   bgSep->ref();
-  SoLightModel *l=new SoLightModel;
+  auto *l=new SoLightModel;
   bgSep->addChild(l);
   l->model.setValue(SoLightModel::BASE_COLOR);
-  SoMaterialBinding *mb=new SoMaterialBinding;
+  auto *mb=new SoMaterialBinding;
   bgSep->addChild(mb);
   mb->value.setValue(SoMaterialBinding::PER_VERTEX);
-  SoMaterial *m=new SoMaterial;
+  auto *m=new SoMaterial;
   bgSep->addChild(m);
   m->diffuseColor.connectFrom(MainWindow::getInstance()->getBgColor());
-  SoCoordinate3 *c=new SoCoordinate3;
+  auto *c=new SoCoordinate3;
   bgSep->addChild(c);
   c->point.set1Value(0, -1, -1, 0);
   c->point.set1Value(1, +1, -1, 0);
   c->point.set1Value(2, +1, +1, 0);
   c->point.set1Value(3, -1, +1, 0);
-  SoFaceSet *f=new SoFaceSet;
+  auto *f=new SoFaceSet;
   bgSep->addChild(f);
   f->numVertices.setValue(4);
 
@@ -84,37 +84,37 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   fgSep->addChild(font);
   font->size.setValue(10);
   // time (top left)
-  SoSeparator *timeSep=new SoSeparator;
+  auto *timeSep=new SoSeparator;
   fgSep->addChild(timeSep);
   timeTrans=new SoTranslation;
   timeSep->addChild(timeTrans);
-  SoBaseColor *soFgColorTop=new SoBaseColor;
+  auto *soFgColorTop=new SoBaseColor;
   timeSep->addChild(soFgColorTop);
   soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
   timeSep->addChild(MainWindow::getInstance()->getTimeString());
   // ombvText (bottom left)
-  SoSeparator *ombvSep=new SoSeparator;
+  auto *ombvSep=new SoSeparator;
   fgSep->addChild(ombvSep);
   ombvTrans=new SoTranslation;
   ombvSep->addChild(ombvTrans);
-  SoText2 *text2=new SoText2;
-  SoBaseColor *soFgColorBottom=new SoBaseColor;
+  auto *text2=new SoText2;
+  auto *soFgColorBottom=new SoBaseColor;
   ombvSep->addChild(soFgColorBottom);
   soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
   ombvSep->addChild(text2);
   text2->string.setValue("OpenMBV [https://www.mbsim-env.de/]");
   // ombvLogo (bottom right)
-  SoSeparator *logoSep=new SoSeparator;
+  auto *logoSep=new SoSeparator;
   fgSep->addChild(logoSep);
   ombvLogoTrans=new SoTranslation;
   logoSep->addChild(ombvLogoTrans);
   ombvLogoScale=new SoScale;
   logoSep->addChild(ombvLogoScale);
-  SoMaterial *cc=new SoMaterial;
+  auto *cc=new SoMaterial;
   logoSep->addChild(cc);
   cc->emissiveColor.setValue(1,1,1);
   cc->transparency.setValue(0.6);
-  SoTexture2 *ombvLogoTex=new SoTexture2;
+  auto *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
   QIcon icon=Utils::QIconCached(":/openmbv.svg");
   QImage image=icon.pixmap(100, 100).toImage();
@@ -134,20 +134,20 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   ombvLogoTex->image.setValue(SbVec2s(w, h), 4, imageData.data());
   ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
   ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
-  SoCoordinate3 *ombvCoords=new SoCoordinate3;
+  auto *ombvCoords=new SoCoordinate3;
   logoSep->addChild(ombvCoords);
   double size=0.15; // the logo filles maximal "size" of the screen
   ombvCoords->point.set1Value(0, 0, 0, 0);
   ombvCoords->point.set1Value(1, -size, 0, 0);
   ombvCoords->point.set1Value(2, -size, size, 0);
   ombvCoords->point.set1Value(3, 0, size, 0);
-  SoTextureCoordinate2 *tc=new SoTextureCoordinate2;
+  auto *tc=new SoTextureCoordinate2;
   logoSep->addChild(tc);
   tc->point.set1Value(0, 1, 1);
   tc->point.set1Value(1, 1, 0);
   tc->point.set1Value(2, 0, 0);
   tc->point.set1Value(3, 0, 1);
-  SoFaceSet *ombvLogo=new SoFaceSet;
+  auto *ombvLogo=new SoFaceSet;
   logoSep->addChild(ombvLogo);
   ombvLogo->numVertices.set1Value(0, 4);
 }
@@ -160,7 +160,7 @@ SoQtMyViewer::~SoQtMyViewer() {
 SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
   // if D is down unset viewing
   if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {
-    SoKeyboardEvent *e=(SoKeyboardEvent*)event;
+    auto *e=(SoKeyboardEvent*)event;
     if(e->getKey()==SoKeyboardEvent::D) {
       if(e->getState()==SoKeyboardEvent::DOWN)
         setViewing(false);
@@ -176,7 +176,7 @@ SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
     return SoQtExaminerViewer::processSoEvent(event);
 }
 
-void SoQtMyViewer::actualRedraw(void) {
+void SoQtMyViewer::actualRedraw() {
   // background
   getGLRenderAction()->apply(bgSep);
 

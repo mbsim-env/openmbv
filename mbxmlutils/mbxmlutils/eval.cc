@@ -1,6 +1,7 @@
 #include <config.h>
 #include "mbxmlutils/eval.h"
 #include "mbxmlutils/eval_static.h"
+#include <utility>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
@@ -28,7 +29,7 @@ namespace {
 
 class ValueUserDataHandler : public xercesc::DOMUserDataHandler {
   public:
-    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst);
+    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
 };
 
 static ValueUserDataHandler valueUserDataHandler;
@@ -60,7 +61,7 @@ vector<string> mbxmlutilsStaticDependencies;
 
 namespace MBXMLUtils {
 
-NewParamLevel::NewParamLevel(const shared_ptr<Eval> &oe_, bool newLevel_) : oe(oe_), newLevel(newLevel_) {
+NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(std::move(oe_)), newLevel(newLevel_) {
   if(newLevel)
     oe->pushContext();
 }
@@ -82,8 +83,8 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
     bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
     shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create()->parse(XMLDIR/"measurement.xml", dependencies);
     DOMElement *ele, *el2;
-    for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling())
-      for(el2=ele->getFirstElementChild(); el2!=0; el2=el2->getNextElementSibling()) {
+    for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling())
+      for(el2=ele->getFirstElementChild(); el2!=nullptr; el2=el2->getNextElementSibling()) {
         if(units.find(E(el2)->getAttribute("name"))!=units.end())
           throw runtime_error(string("Internal error: Unit name ")+E(el2)->getAttribute("name")+" is defined more than once.");
         units[E(el2)->getAttribute("name")]=X()%E(el2)->getFirstTextChild()->getData();
@@ -94,7 +95,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
 
 shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path> *dependencies_) {
   // search if a evaluator named evalName already exits and return a new instance of it, if found
-  map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >::iterator it=getEvaluators().find(evalName);
+  auto it=getEvaluators().find(evalName);
   if(it!=getEvaluators().end())
     return it->second(dependencies_);
 
@@ -127,8 +128,7 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
   throw runtime_error("No evaluator named '"+evalName+"' registered.");
 }
 
-Eval::~Eval() {
-}
+Eval::~Eval() = default;
 
 map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> >& Eval::getEvaluators() {
   static map<string, function<shared_ptr<Eval>(vector<bfs::path>*)> > evaluators;
@@ -217,7 +217,7 @@ void Eval::addParam(const string &paramName, const Value& value) {
 }
 
 void Eval::addParamSet(const DOMElement *e) {
-  for(DOMElement *ee=e->getFirstElementChild(); ee!=NULL; ee=ee->getNextElementSibling()) {
+  for(DOMElement *ee=e->getFirstElementChild(); ee!=nullptr; ee=ee->getNextElementSibling()) {
     if(E(ee)->getTagName()==PV%"import")
       addImport(X()%E(ee)->getFirstTextChild()->getData(), ee);
     else
@@ -236,7 +236,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
   bool function=false;
   DOMNamedNodeMap *attr=e->getAttributes();
   for(int i=0; i<attr->getLength(); i++) {
-    DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+    auto *a=static_cast<DOMAttr*>(attr->item(i));
     // skip xml* attributes
     if((X()%a->getName()).substr(0, 3)=="xml")
       continue;
@@ -254,7 +254,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     // loop over all attributes and search for arg1name, arg2name attributes
     DOMNamedNodeMap *attr=e->getAttributes();
     for(int i=0; i<attr->getLength(); i++) {
-      DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+      auto *a=static_cast<DOMAttr*>(attr->item(i));
       // skip xml* attributes
       if((X()%a->getName()).substr(0, 3)=="xml")
         continue;
@@ -266,8 +266,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
       if(!E(e)->hasAttribute(base+"Nr"))
         throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      int nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      int dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
+      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       Value casadiSX=createSwig<SX*>();
       SX *arg;
@@ -278,8 +278,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
       inputs[nr-1]=*arg;
     }
     // check if one argument was not set. If so error
-    for(int i=0; i<inputs.size(); i++)
-      if(inputs[i].size1()==0 || inputs[i].size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
+    for(auto & input : inputs)
+      if(input.size1()==0 || input.size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
         throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
   }
   
@@ -289,14 +289,14 @@ Eval::Value Eval::eval(const DOMElement *e) {
     int i;
     // calculate nubmer for rows
     i=0;
-    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++);
+    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     vector<double> m(i);
     SX M;
     if(function)
       M.resize(i, 1);
     i=0;
-    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), i++)
+    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
       if(!function)
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
@@ -317,18 +317,18 @@ Eval::Value Eval::eval(const DOMElement *e) {
     int i, j;
     // calculate nubmer for rows and cols
     i=0;
-    for(const DOMElement* row=ec->getFirstElementChild(); row!=0; row=row->getNextElementSibling(), i++);
+    for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++);
     j=0;
-    for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=0; ele=ele->getNextElementSibling(), j++);
+    for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     vector<vector<double> > m(i, vector<double>(j));
     SX M;
     if(function)
       M.resize(i, j);
     i=0;
-    for(const DOMElement* row=ec->getFirstElementChild(); row!=0; row=row->getNextElementSibling(), i++) {
+    for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++) {
       j=0;
-      for(const DOMElement* col=row->getFirstElementChild(); col!=0; col=col->getNextElementSibling(), j++)
+      for(const DOMElement* col=row->getFirstElementChild(); col!=nullptr; col=col->getNextElementSibling(), j++)
         if(!function)
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
@@ -707,8 +707,8 @@ SX Eval::cast_SX(const Value &value) const {
 void Eval::addStaticDependencies(const DOMElement *e) const {
   if(!dependencies)
     return;
-  for(vector<string>::iterator it=mbxmlutilsStaticDependencies.begin(); it!=mbxmlutilsStaticDependencies.end(); ++it) {
-    bfs::path path=E(e)->convertPath(*it);
+  for(auto & mbxmlutilsStaticDependencie : mbxmlutilsStaticDependencies) {
+    bfs::path path=E(e)->convertPath(mbxmlutilsStaticDependencie);
     dependencies->push_back(path);
   }
 }

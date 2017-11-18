@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
   // environment variables
   // Disalbe COIN VBO per default (see --help)
   static char COIN_VBO[11];
-  if(getenv("COIN_VBO")==NULL) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
+  if(getenv("COIN_VBO")==nullptr) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
 
   list<string> arg;
   for(int i=1; i<argc; i++)
-    arg.push_back(argv[i]);
+    arg.emplace_back(argv[i]);
 
   // check parameters
   list<string>::iterator i, i2;

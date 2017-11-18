@@ -37,7 +37,7 @@ namespace OpenMBV {
   class PolygonPoint {
     protected:
       PolygonPoint(double x_, double y_, int b_) : x(x_), y(y_), b(b_) {}
-      ~PolygonPoint() {}
+      ~PolygonPoint() = default;
       static void deleter(PolygonPoint *pp) { delete pp; }
     public:
       static std::shared_ptr<PolygonPoint> create(double x_, double y_, int b_) {

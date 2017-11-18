@@ -44,8 +44,8 @@ IndexedFaceSet::IndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       pts[i][j] = vp[i][j];
   }
 
-  SoCoordinate3 *points = new SoCoordinate3;
-  SoIndexedFaceSet *surface = new SoIndexedFaceSet;
+  auto *points = new SoCoordinate3;
+  auto *surface = new SoIndexedFaceSet;
   points->point.setValues(0, vp.size(), pts);
   surface->coordIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
   soSepRigidBody->addChild(points);

@@ -30,10 +30,11 @@ namespace OpenMBV {
   class Rotation : public RigidBody {
     friend class ObjectFactory;
     protected:
-      double startAngle, endAngle;
+      double startAngle{0};
+      double endAngle;
       std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > contour;
       Rotation();
-      ~Rotation();
+      ~Rotation() override;
     public:
       /** Set start angle of the rotation (Default: 0). */
       void setStartAngle(double angle) {
@@ -65,9 +66,9 @@ namespace OpenMBV {
       std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > getContour() { return contour; }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
   };
 

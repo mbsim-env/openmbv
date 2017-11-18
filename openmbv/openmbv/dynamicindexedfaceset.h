@@ -41,7 +41,7 @@ class DynamicIndexedFaceSet : public DynamicColoredBody {
     std::vector<int> idx;
     SoCoordinate3 *points;
     SoMaterial *myMaterials;
-    virtual double update();
+    double update() override;
 };
 
 }

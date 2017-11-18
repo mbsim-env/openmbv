@@ -45,7 +45,7 @@ class RigidBody : public DynamicColoredBody {
     SoCoordinate3 *pathCoord;
     SoLineSet *pathLine;
     int pathMaxFrameRead;
-    virtual double update();
+    double update() override;
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
@@ -53,11 +53,11 @@ class RigidBody : public DynamicColoredBody {
     SoSeparator *soSepRigidBody;
     TransRotEditor *initialTransRotEditor;
     SoGroup *initTransRotGroup;
-    void createProperties();
+    void createProperties() override;
   public:
     RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
-    ~RigidBody();
-    virtual QString getInfo();
+    ~RigidBody() override;
+    QString getInfo() override;
   public slots:
     void moveCameraWithSlot();
 };

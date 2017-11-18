@@ -35,7 +35,7 @@ class Sphere : public RigidBody {
     Sphere(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::Sphere> s;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

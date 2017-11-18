@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBV%"IvBody")
 
-IvBody::IvBody() : RigidBody(), creaseAngle(-1), boundaryEdges(false) {
+IvBody::IvBody() : RigidBody() {
 }
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
@@ -38,7 +38,7 @@ DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
   E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
   E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
-  return 0;
+  return nullptr;
 }
 
 void IvBody::initializeUsingXML(DOMElement *element) {

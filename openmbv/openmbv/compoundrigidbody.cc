@@ -53,8 +53,8 @@ CompoundRigidBody::CompoundRigidBody(const std::shared_ptr<OpenMBV::Object> &obj
 
   // read XML
   vector<std::shared_ptr<OpenMBV::RigidBody> > rb=crb->getRigidBodies();
-  for(size_t i=0; i<rb.size(); i++)
-    ObjectFactory::create(rb[i], this, soSep, -1);
+  for(const auto & i : rb)
+    ObjectFactory::create(i, this, soSep, -1);
 }
 
 void CompoundRigidBody::createProperties() {
@@ -91,8 +91,8 @@ void CompoundRigidBody::newRigidBodySlot() {
   };
 
   vector<string> existingNames;
-  for(unsigned int j=0; j<crb->getRigidBodies().size(); j++)
-    existingNames.push_back(crb->getRigidBodies()[j]->getName());
+  for(auto & j : crb->getRigidBodies())
+    existingNames.push_back(j->getName());
 
   std::shared_ptr<OpenMBV::Object> obj=Utils::createObjectEditor(factory, existingNames, "Create new RigidBody");
   if(!obj) return;
@@ -114,7 +114,7 @@ double CompoundRigidBody::update() {
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   vector<double> data=rigidBody->getRow(frame);
   for(int i=0; i<childCount(); i++) {
-    RigidBody *childRB=static_cast<RigidBody*>(child(i));
+    auto *childRB=static_cast<RigidBody*>(child(i));
     if(childRB->diffuseColor[0]<0)
       childRB->setColor(data[7]);
   }

@@ -54,9 +54,9 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   // path
   soPathSwitch=new SoSwitch;
   soSep->addChild(soPathSwitch);
-  SoSeparator *pathSep=new SoSeparator;
+  auto *pathSep=new SoSeparator;
   soPathSwitch->addChild(pathSep);
-  SoBaseColor *col=new SoBaseColor;
+  auto *col=new SoBaseColor;
   col->rgb.setValue(0, 1, 0);
   pathSep->addChild(col);
   pathCoord=new SoCoordinate3;
@@ -78,13 +78,13 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     // Line
  
     // line width
-    SoDrawStyle *drawStyle=new SoDrawStyle;
+    auto *drawStyle=new SoDrawStyle;
     soArrowSwitch->addChild(drawStyle);
     drawStyle->lineWidth.setValue(2);
     // line
     lineCoord=new SoCoordinate3;
     soArrowSwitch->addChild(lineCoord);
-    SoLineSet *ls=new SoLineSet;
+    auto *ls=new SoLineSet;
     soArrowSwitch->addChild(ls);
     ls->numVertices.set1Value(0, 2);
   }
@@ -99,11 +99,11 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     rotation2=new SoRotation;
     soArrowSwitch->addChild(rotation2);
     // arrow separator
-    SoSeparator *arrowSep=new SoSeparator;
+    auto *arrowSep=new SoSeparator;
     soArrowSwitch->addChild(arrowSep);
     // add arrow twice for type==bothHeads with half length: mirrored by x-z-plane and moved
     if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
-      SoScale *bScale=new SoScale;
+      auto *bScale=new SoScale;
       soArrowSwitch->addChild(bScale);
       // scale y by -1 to get the mirrored arrow and scale x by -1 to get the same vertex ordering without changing the geometry
       bScale->scaleFactor.setValue(-1,-1,1);
@@ -117,16 +117,16 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     // outline
     arrowSep->addChild(soOutLineSwitch);
     // trans1
-    SoTranslation *trans1=new SoTranslation;
+    auto *trans1=new SoTranslation;
     arrowSep->addChild(trans1);
     trans1->translation.setValue(0, -headLength/2, 0);
     // cone
-    SoCone *cone1=new SoCone;
+    auto *cone1=new SoCone;
     arrowSep->addChild(cone1);
     cone1->bottomRadius.setValue(headDiameter/2);
     cone1->height.setValue(headLength);
     // add the head twice for double heads
-    SoTranslation *dTrans=NULL;
+    SoTranslation *dTrans=nullptr;
     double dTranslate=0;
     if(arrow->getType()==OpenMBV::Arrow::fromDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::toDoubleHead ||
@@ -141,32 +141,32 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
       dTrans->translation.setValue(0, dTranslate, 0);
     }
     // trans2
-    SoTranslation *trans2=new SoTranslation;
+    auto *trans2=new SoTranslation;
     arrowSep->addChild(trans2);
     trans2->translation.setValue(0, -headLength/2, 0);
     // scale only arrow not head (l>2*headLength)
     scale2=new SoScale;
     arrowSep->addChild(scale2);
     // trans2
-    SoTranslation *trans3=new SoTranslation;
+    auto *trans3=new SoTranslation;
     arrowSep->addChild(trans3);
     trans3->translation.setValue(0, -headLength/2, 0);
     // cylinder
-    SoCylinder *cylinder=new SoCylinder;
+    auto *cylinder=new SoCylinder;
     arrowSep->addChild(cylinder);
     cylinder->radius.setValue(diameter/2);
     cylinder->height.setValue(headLength);
 
     // outline
-    SoTranslation *transLO1=new SoTranslation;
+    auto *transLO1=new SoTranslation;
     soOutLineSep->addChild(transLO1);
     transLO1->translation.setValue(0, -headLength, 0);
-    SoCylinder *cylOL1=new SoCylinder;
+    auto *cylOL1=new SoCylinder;
     soOutLineSep->addChild(cylOL1);
     cylOL1->height.setValue(0);
     cylOL1->radius.setValue(headDiameter/2);
     cylOL1->parts.setValue(SoCylinder::SIDES);
-    SoCylinder *cylOL2=new SoCylinder;
+    auto *cylOL2=new SoCylinder;
     soOutLineSep->addChild(cylOL2);
     cylOL2->height.setValue(0);
     cylOL2->radius.setValue(diameter/2);
@@ -187,7 +187,7 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     // for type==bothHeads do not draw the middle outline circle
     if(arrow->getType()!=OpenMBV::Arrow::bothHeads && arrow->getType()!=OpenMBV::Arrow::bothDoubleHeads) {
       soOutLineSep->addChild(scale2);
-      SoTranslation *transLO2=new SoTranslation;
+      auto *transLO2=new SoTranslation;
       soOutLineSep->addChild(transLO2);
       transLO2->translation.setValue(0, -headLength, 0);
       soOutLineSep->addChild(cylOL2);

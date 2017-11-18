@@ -41,7 +41,7 @@ Path::Path(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   resetAnimRange(rows, dt);
   
   // create so
-  SoBaseColor *col=new SoBaseColor;
+  auto *col=new SoBaseColor;
   col->rgb.setHSVValue(path->getColor()[0], path->getColor()[1], path->getColor()[2]);
   soSep->addChild(col);
   coord=new SoCoordinate3;

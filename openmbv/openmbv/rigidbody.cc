@@ -48,9 +48,9 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   // path
   soPathSwitch=new SoSwitch;
   soSep->addChild(soPathSwitch);
-  SoSeparator *pathSep=new SoSeparator;
+  auto *pathSep=new SoSeparator;
   soPathSwitch->addChild(pathSep);
-  SoBaseColor *col=new SoBaseColor;
+  auto *col=new SoBaseColor;
   col->rgb.setValue(0, 1, 0);
   pathSep->addChild(col);
   pathCoord=new SoCoordinate3;
@@ -91,11 +91,11 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   // add a group for the initial translation/rotation here (the SoTranslation/SoRotation is added later by InitialTransRotEditor)
   initTransRotGroup=new SoGroup;
   soSepRigidBody->addChild(initTransRotGroup);
-  SoTranslation *initTrans=new SoTranslation;
+  auto *initTrans=new SoTranslation;
   initTransRotGroup->addChild(initTrans);
   std::vector<double> t=rigidBody->getInitialTranslation();
   initTrans->translation.setValue(t[0], t[1], t[2]);
-  SoRotation *initRot=new SoRotation;
+  auto *initRot=new SoRotation;
   initTransRotGroup->addChild(initRot);
   std::vector<double> r=rigidBody->getInitialRotation();
   initRot->rotation=Utils::cardan2Rotation(SbVec3f(r[0], r[1], r[2])).invert();
@@ -108,14 +108,14 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   // initial scale
-  SoScale *scale=new SoScale;
+  auto *scale=new SoScale;
   scale->scaleFactor.setValue(rigidBody->getScaleFactor(),rigidBody->getScaleFactor(),rigidBody->getScaleFactor());
   soSepRigidBody->addChild(scale);
 
   if(clone && clone->properties)
     initialTransRotEditor=static_cast<RigidBody*>(clone)->initialTransRotEditor;
   else
-    initialTransRotEditor=NULL;
+    initialTransRotEditor=nullptr;
 }
 
 void RigidBody::createProperties() {

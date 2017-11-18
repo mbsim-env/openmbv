@@ -30,18 +30,11 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBV%"CoilSpring")
 
-CoilSpring::CoilSpring() : DynamicColoredBody(),
-  data(0),
-  springRadius(1),
-  crossSectionRadius(-1),
-  scaleFactor(1),
-  numberOfCoils(3),
-  nominalLength(-1),
-  type(tube) {
+CoilSpring::CoilSpring() : DynamicColoredBody()
+  {
 }
 
-CoilSpring::~CoilSpring() {
-}
+CoilSpring::~CoilSpring() = default;
 
 DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
@@ -57,7 +50,7 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
   E(e)->addElementText(OPENMBV%"nominalLength", nominalLength);
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
-  return 0;
+  return nullptr;
 }
 
 void CoilSpring::createHDF5File() {
@@ -65,14 +58,14 @@ void CoilSpring::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
     vector<string> columns;
-    columns.push_back("Time");
-    columns.push_back("fromPoint x");
-    columns.push_back("fromPoint y");
-    columns.push_back("fromPoint z");
-    columns.push_back("toPoint x");
-    columns.push_back("toPoint y");
-    columns.push_back("toPoint z");
-    columns.push_back("color");
+    columns.emplace_back("Time");
+    columns.emplace_back("fromPoint x");
+    columns.emplace_back("fromPoint y");
+    columns.emplace_back("fromPoint z");
+    columns.emplace_back("toPoint x");
+    columns.emplace_back("toPoint y");
+    columns.emplace_back("toPoint z");
+    columns.emplace_back("color");
     data->setColumnLabel(columns);
   }
 }
@@ -85,7 +78,7 @@ void CoilSpring::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }

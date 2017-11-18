@@ -38,11 +38,11 @@ namespace OpenMBV {
         absGEqTwo
       };
     protected:
-      WindingRule windingRule;
-      double height;
+      WindingRule windingRule{odd};
+      double height{1};
       std::vector<std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > > contour;
       Extrusion();
-      ~Extrusion();
+      ~Extrusion() override;
     public:
       /** Set the OpenGL winding rule for the tesselation of the cross section area.
        * Allowable values are "odd", "nonzero", "positive", "negative" and "absGEqTwo".
@@ -80,9 +80,9 @@ namespace OpenMBV {
       }
 
       /** Initializes the time invariant part of the object using a XML node */
-      virtual void initializeUsingXML(xercesc::DOMElement *element);
+      void initializeUsingXML(xercesc::DOMElement *element) override;
 
-      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
 
   };
 

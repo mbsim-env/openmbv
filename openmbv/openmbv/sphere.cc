@@ -37,7 +37,7 @@ Sphere::Sphere(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   setIcon(0, Utils::QIconCached(iconFile));
 
   // create so
-  SoSphere *sphere=new SoSphere;
+  auto *sphere=new SoSphere;
   sphere->radius.setValue(s->getRadius());
   soSepRigidBody->addChild(sphere);
   // scale ref/localFrame

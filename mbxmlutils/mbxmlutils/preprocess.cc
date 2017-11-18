@@ -92,7 +92,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       // check that not both the parameterHref attribute and the child element pv:Parameter exists (This is not checked by the schema)
       DOMElement *inlineParamEle=e->getFirstElementChild();
       if(inlineParamEle && E(inlineParamEle)->getTagName()!=PV%"Parameter")
-        inlineParamEle=NULL;
+        inlineParamEle=nullptr;
       if(inlineParamEle && E(e)->hasAttribute("parameterHref"))
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
       // get localParamEle
@@ -124,7 +124,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
         // no such XPath in param -> output this parameter set to the caller
         if(ret.second) {
           shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
-          for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
+          for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
             Eval::Value parValue;
             // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
             try {
@@ -135,18 +135,18 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
             catch(DOMEvalException &ex) {
               continue;
             }
-            ret.first->second.push_back(make_pair(E(p)->getAttribute("name"), parValue));
+            ret.first->second.emplace_back(E(p)->getAttribute("name"), parValue);
           }
         }
         // XPath already existing in param (specified by caller) -> overwrite all these parameters
         else {
-          for(ParamSet::iterator it=ret.first->second.begin(); it!=ret.first->second.end(); ++it) {
+          for(auto & it : ret.first->second) {
             // serach for a parameter named it->first in localParamEle
-            for(DOMElement *p=localParamEle->getFirstElementChild(); p!=NULL; p=p->getNextElementSibling()) {
-              if(E(p)->getAttribute("name")==it->first) {
+            for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
+              if(E(p)->getAttribute("name")==it.first) {
                 // if found overwrite this parameter
                 p->removeChild(E(p)->getFirstTextChild())->release();
-                Eval::setValue(p, it->second);
+                Eval::setValue(p, it.second);
               }
             }
           }
@@ -213,7 +213,7 @@ void Preprocess::preprocess(shared_ptr<DOMParser> parser, const shared_ptr<Eval>
       // evaluate attributes
       DOMNamedNodeMap *attr=e->getAttributes();
       for(int i=0; i<attr->getLength(); i++) {
-        DOMAttr *a=static_cast<DOMAttr*>(attr->item(i));
+        auto *a=static_cast<DOMAttr*>(attr->item(i));
         // skip xml* attributes
         if((X()%a->getName()).substr(0, 3)=="xml")
           continue;

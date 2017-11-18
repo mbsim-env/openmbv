@@ -31,7 +31,7 @@ ObjectFactory& ObjectFactory::instance() {
 void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc) {
   // check if name was already registred with the same &allocate<CreateType>: if yes return and do not add it twice
   std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(name);
-  for(MapIt it=range.first; it!=range.second; it++)
+  for(auto it=range.first; it!=range.second; it++)
     if(it->second==alloc)
       return;
   // name is not registred with &allocate<CreateType>: register it

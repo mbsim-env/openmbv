@@ -35,7 +35,7 @@ class Cube : public RigidBody {
     Cube(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::Cube> c;
-    void createProperties();
+    void createProperties() override;
 };
 
 }

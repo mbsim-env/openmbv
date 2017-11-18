@@ -226,8 +226,8 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     DLL_PUBLIC void highlightObject(std::string curID);
   public:
     DLL_PUBLIC MainWindow(std::list<std::string>& arg);
-    DLL_PUBLIC ~MainWindow();
-    DLL_PUBLIC bool openFile(std::string fileName, QTreeWidgetItem* parentItem=NULL, SoGroup *soParent=NULL, int ind=-1);
+    DLL_PUBLIC ~MainWindow() override;
+    DLL_PUBLIC bool openFile(std::string fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     DLL_PUBLIC static MainWindow* const getInstance();
     bool soQtEventCB(const SoEvent *const event);
@@ -252,8 +252,8 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     int getReloadTimeout() { return reloadTimeout; }
 
     //Event for dropping
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
     DLL_PUBLIC QTreeWidget* getObjectList() { return objectList; }
 

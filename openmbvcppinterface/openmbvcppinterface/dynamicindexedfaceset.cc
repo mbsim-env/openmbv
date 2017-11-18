@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedFaceSet, OPENMBV%"DynamicIndexedFaceSet")
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet() : DynamicColoredBody(), numvp(0) {}
+DynamicIndexedFaceSet::DynamicIndexedFaceSet() : DynamicColoredBody() {}
 
 DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
@@ -40,7 +40,7 @@ DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
   E(e)->addElementText(OPENMBV%"indices", indices1based);
 
-  return 0;
+  return nullptr;
 }
 
 void DynamicIndexedFaceSet::createHDF5File() {
@@ -48,7 +48,7 @@ void DynamicIndexedFaceSet::createHDF5File() {
   if(!hdf5LinkBody) {
     data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numvp);
     vector<string> columns;
-    columns.push_back("Time");
+    columns.emplace_back("Time");
     for(int i=0;i<numvp;i++) {
       columns.push_back("x"+fmatvec::toString(i));
       columns.push_back("y"+fmatvec::toString(i));
@@ -67,7 +67,7 @@ void DynamicIndexedFaceSet::openHDF5File() {
       data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
     }
     catch(...) {
-      data=NULL;
+      data=nullptr;
       msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
     }
   }
