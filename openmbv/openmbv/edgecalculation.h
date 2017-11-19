@@ -37,7 +37,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
      * This function must be called from the main Coin thread and is very fast.
      * After this function the function preproces must be called exactly ones!
      * If useCache is true the function preproces uses a global, program wide, cache. */
-    EdgeCalculation(SoGroup *grp, bool useCache=true);
+    EdgeCalculation(SoGroup *grp_, bool useCache_=true);
 
     /** descructor */
     ~EdgeCalculation() override;
@@ -51,7 +51,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     /** calculate the crease edges using the crease angle creaseAngle.
      * Before this funciton the function preproces must be called exactly ones!
      * This function is not very time consuming but is thread!!! */
-    void calcCreaseEdges(const double creaseAngle);
+    void calcCreaseEdges(double creaseAngle);
 
     /** calculate the boundary edges.
      * Before this funciton the function preproces must be called exactly ones!

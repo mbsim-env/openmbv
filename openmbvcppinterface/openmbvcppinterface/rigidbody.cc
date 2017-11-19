@@ -30,7 +30,7 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-RigidBody::RigidBody() : DynamicColoredBody(), localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
+RigidBody::RigidBody() :  localFrameStr("false"), referenceFrameStr("false"), pathStr("false"), draggerStr("false"), 
   initialTranslation(vector<double>(3, 0)),
   initialRotation(vector<double>(3, 0))
   {

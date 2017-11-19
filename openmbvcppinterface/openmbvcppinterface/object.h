@@ -64,12 +64,12 @@ namespace OpenMBV {
       ~Object() override;
     public:
       /** Enable this object in the viewer if true (the default) */
-      void setEnable(bool enable) { enableStr=(enable==true)?"true":"false"; }
+      void setEnable(bool enable) { enableStr=(enable)?"true":"false"; }
 
       bool getEnable() { return enableStr=="true"?true:false; }
 
       /** Draw bounding box of this object in the viewer if true (the default) */
-      void setBoundingBox(bool bbox) { boundingBoxStr=(bbox==true)?"true":"false"; }
+      void setBoundingBox(bool bbox) { boundingBoxStr=(bbox)?"true":"false"; }
 
       bool getBoundingBox() { return boundingBoxStr=="true"?true:false; }
 

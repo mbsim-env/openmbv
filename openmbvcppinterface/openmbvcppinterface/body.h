@@ -50,15 +50,15 @@ namespace OpenMBV {
       std::shared_ptr<Body>& getHDF5LinkTarget() { return hdf5LinkBody; }
 
       /** Returns if this body is linked to another */
-      bool isHDF5Link() { return (hdf5LinkBody || hdf5LinkStr!=""); }
+      bool isHDF5Link() { return (hdf5LinkBody || !hdf5LinkStr.empty()); }
 
       /** Draw outline of this object in the viewer if true (the default) */
-      void setOutLine(bool ol) { outLineStr=(ol==true)?"true":"false"; }
+      void setOutLine(bool ol) { outLineStr=(ol)?"true":"false"; }
 
       bool getOutLine() { return outLineStr=="true"?true:false; }
 
       /** Draw shilouette edges of this object in the viewer if true (the default) */
-      void setShilouetteEdge(bool ol) { shilouetteEdgeStr=(ol==true)?"true":"false"; }
+      void setShilouetteEdge(bool ol) { shilouetteEdgeStr=(ol)?"true":"false"; }
 
       bool getShilouetteEdge() { return shilouetteEdgeStr=="true"?true:false; }
 

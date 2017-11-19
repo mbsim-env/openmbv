@@ -41,7 +41,7 @@ class DynamicColoredBody : public Body {
     std::vector<double> diffuseColor;
     double color,oldColor;
     void setColor(double col);
-    void setHueColor(double h);
+    void setHueColor(double hue);
     double getColor() { return color; }
     std::shared_ptr<OpenMBV::DynamicColoredBody> dcb;
     void createProperties() override;

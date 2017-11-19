@@ -41,13 +41,13 @@ static string dirOfTopLevelFile(Group *grp);
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 
-Group::Group() : Object(), expandStr("true") {
+Group::Group() :  expandStr("true") {
 }
 
 Group::~Group() = default;
 
 void Group::addObject(const shared_ptr<Object>& newObject) {
-  if(newObject->name=="") throw runtime_error("object to add must have a name");
+  if(newObject->name.empty()) throw runtime_error("object to add must have a name");
   for(auto & i : object)
     if(i->name==newObject->name)
       throw runtime_error("A object of name "+i->name+" already exists.");
@@ -64,7 +64,7 @@ string Group::getFullName(bool includingFileName, bool stopAtSeparateFile) {
       return p->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
   }
   else
-    return includingFileName==false || fileName.empty() ? name : fileName;
+    return !includingFileName || fileName.empty() ? name : fileName;
 }
 
 DOMElement *Group::writeXMLFile(DOMNode *parent) {
@@ -220,7 +220,7 @@ string dirOfTopLevelFile(Group *grp) {
 
 void Group::write(bool writeXMLFile, bool writeH5File) {
   // use element name as base filename if fileName was not set
-  if(fileName=="") fileName=name+".ombv.xml";
+  if(fileName.empty()) fileName=name+".ombv.xml";
 
 #ifdef HAVE_BOOST_FILE_LOCK
   size_t size=fileName.find_last_of("/\\");

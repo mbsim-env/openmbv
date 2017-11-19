@@ -67,7 +67,7 @@ namespace OpenMBV {
       ~Arrow() override;
     public:
       /** Draw path of this object in the viewer if true (the default) */
-      void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
+      void setPath(bool p) { pathStr=(p)?"true":"false"; }
 
       bool getPath() { return pathStr=="true"?true:false; }
       

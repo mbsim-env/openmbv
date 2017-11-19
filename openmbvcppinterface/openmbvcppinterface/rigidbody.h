@@ -81,22 +81,22 @@ namespace OpenMBV {
       ~RigidBody() override;
     public:
       /** Draw local frame of this object in the viewer if true (the default) */
-      void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
+      void setLocalFrame(bool f) { localFrameStr=(f)?"true":"false"; }
 
       bool getLocalFrame() { return localFrameStr=="true"?true:false; }
 
       /** Draw reference frame of this object in the viewer if true (the default) */
-      void setReferenceFrame(bool f) { referenceFrameStr=(f==true)?"true":"false"; }
+      void setReferenceFrame(bool f) { referenceFrameStr=(f)?"true":"false"; }
 
       bool getReferenceFrame() { return referenceFrameStr=="true"?true:false; }
 
       /** Draw path of this object in the viewer if true (the default) */
-      void setPath(bool p) { pathStr=(p==true)?"true":"false"; }
+      void setPath(bool p) { pathStr=(p)?"true":"false"; }
 
       bool getPath() { return pathStr=="true"?true:false; }
 
       /** Draw dragger of this object in the viewer if true (default: false) */
-      void setDragger(bool p) { draggerStr=(p==true)?"true":"false"; }
+      void setDragger(bool p) { draggerStr=(p)?"true":"false"; }
 
       bool getDragger() { return draggerStr=="true"?true:false; }
 

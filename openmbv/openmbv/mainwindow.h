@@ -230,7 +230,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     DLL_PUBLIC bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
     DLL_PUBLIC static MainWindow* const getInstance();
-    bool soQtEventCB(const SoEvent *const event);
+    bool soQtEventCB(const SoEvent *event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
     SoSepNoPick *getSceneRootBBox() { return sceneRootBBox; }

@@ -59,7 +59,7 @@ class OctEval : public Eval {
     //! get the SWIG class name of this value.
     std::string getSwigType(const Value &value) const override;
 
-    Value createSwigByTypeName(const std::string &typeName) const override;
+    Value createSwigByTypeName(const std::string &name) const override;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());

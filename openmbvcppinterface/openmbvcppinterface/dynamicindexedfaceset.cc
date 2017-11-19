@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedFaceSet, OPENMBV%"DynamicIndexedFaceSet")
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet() : DynamicColoredBody() {}
+DynamicIndexedFaceSet::DynamicIndexedFaceSet()  {}
 
 DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);

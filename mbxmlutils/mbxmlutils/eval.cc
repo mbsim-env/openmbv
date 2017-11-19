@@ -29,11 +29,11 @@ namespace {
 
 class ValueUserDataHandler : public xercesc::DOMUserDataHandler {
   public:
-    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
+    void handle(DOMOperationType operation, const XMLCh* key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
 };
 
-static ValueUserDataHandler valueUserDataHandler;
-static const string evalValueKey("http://www.mbsim-env.de/dom/MBXMLUtils/evalValue");
+ValueUserDataHandler valueUserDataHandler;
+const string evalValueKey("http://www.mbsim-env.de/dom/MBXMLUtils/evalValue");
 
 void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
   void *data, const DOMNode *src, DOMNode *dst) {

@@ -50,7 +50,7 @@ class QTripleSlider : public QSplitter {
 
     // current range getter/setter
     public slots: // declare the setters a slots
-    void setCurrentRange(int min_, int max_);
+    void setCurrentRange(int min, int max);
     void setCurrentMinimum(int min) { setCurrentRange(min, slider->maximum()); }
     void setCurrentMaximum(int max) { setCurrentRange(slider->minimum(), max); }
     public: // the getters may not be slots

@@ -407,9 +407,9 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   string strNoSpace=str;
-  while(strNoSpace.size()>0 && (strNoSpace[0]==' ' || strNoSpace[0]=='\n'))
+  while(!strNoSpace.empty() && (strNoSpace[0]==' ' || strNoSpace[0]=='\n'))
     strNoSpace=strNoSpace.substr(1);
-  while(strNoSpace.size()>0 && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';' ||
+  while(!strNoSpace.empty() && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';' ||
     strNoSpace[strNoSpace.size()-1]=='\n'))
     strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
   if(!symbol_table::is_variable("ret") && !symbol_table::is_variable("ans") && !symbol_table::is_variable(strNoSpace)) {

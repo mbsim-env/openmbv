@@ -25,7 +25,7 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_ADD_FIELD(coordIndex, (-1));
 }
 
-IndexedTesselationFace::IndexedTesselationFace() : SoGroup() {
+IndexedTesselationFace::IndexedTesselationFace()  {
   constructor();
 }
 
@@ -73,7 +73,7 @@ SbBool IndexedTesselationFace::readChildren(SoInput *in) {
   gluTessBeginPolygon(Utils::tess, this);
   bool contourOpen=false;
   for(int i=0; i<coordIndex.getNum(); i++) {
-    if(contourOpen==false && coordIndex[i]>=0) {
+    if(!contourOpen && coordIndex[i]>=0) {
       gluTessBeginContour(Utils::tess);
       contourOpen=true;
     }

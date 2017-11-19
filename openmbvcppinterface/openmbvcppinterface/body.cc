@@ -29,7 +29,7 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-Body::Body() : Object(), outLineStr("true"), shilouetteEdgeStr("false"), 
+Body::Body() :  outLineStr("true"), shilouetteEdgeStr("false"), 
   hdf5LinkStr("") {
 }
 
@@ -50,7 +50,7 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
     e->insertBefore(ee, nullptr);
     E(ee)->setAttribute("ref", getRelPathTo(hdf5LinkBody));
   }
-  else if(hdf5LinkStr!="") {
+  else if(!hdf5LinkStr.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
     e->insertBefore(ee, nullptr);
@@ -82,7 +82,7 @@ std::string Body::getRelPathTo(const std::shared_ptr<Body> &destBody) {
   // create relative path to destination
   string dest=destBody->getFullName();
   string src=getFullName();
-  string reldest="";
+  string reldest;
   while(dest.substr(0,dest.find('/',1))==src.substr(0,src.find('/',1)))  {
     dest=dest.substr(dest.find('/',1));
     src=src.substr(src.find('/',1));

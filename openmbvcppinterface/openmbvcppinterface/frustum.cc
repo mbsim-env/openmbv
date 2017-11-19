@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBV%"Frustum")
 
-Frustum::Frustum() : RigidBody()
+Frustum::Frustum()  
   {
 }
 

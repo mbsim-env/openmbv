@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Arrow, OPENMBV%"Arrow")
 
-Arrow::Arrow() : DynamicColoredBody(), pathStr("false")
+Arrow::Arrow() :  pathStr("false")
   {
 }
 

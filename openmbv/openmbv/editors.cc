@@ -272,13 +272,13 @@ BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::st
 }
 
 void BoolEditor::valueChangedSlot(int state) {
-  if(ombvSetter) ombvSetter(state==Qt::Checked?true:false); // set OpenMBV
+  if(ombvSetter) ombvSetter(state==Qt::Checked); // set OpenMBV
   action->blockSignals(true);
-  action->setChecked(state==Qt::Checked?true:false);
+  action->setChecked(state==Qt::Checked);
   action->blockSignals(false);
   if(replaceObjOnChange)
     replaceObject();
-  emit stateChanged(state==Qt::Checked?true:false);
+  emit stateChanged(state==Qt::Checked);
 }
 
 void BoolEditor::actionChangedSlot() {
@@ -518,7 +518,7 @@ void ComboBoxEditor::valueChangedSlot(int newValue) {
   if(ombvSetter) ombvSetter(comboBox->itemData(newValue).toInt()); // set OpenMBV
   for(int i=1; i<actionGroup->actions().size()-1; i++) {
     actionGroup->actions()[i]->blockSignals(true);
-    actionGroup->actions()[i]->setChecked(i-1==comboBox->itemData(newValue).toInt()?true:false);
+    actionGroup->actions()[i]->setChecked(i-1==comboBox->itemData(newValue).toInt());
     actionGroup->actions()[i]->blockSignals(false);
   }
   replaceObject();
@@ -705,7 +705,7 @@ void TransRotEditor::draggerSlot(int state) {
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     soDraggerSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  if(ombvDraggerSetter) ombvDraggerSetter(state==Qt::Checked?true:false); // set OpenMBV
+  if(ombvDraggerSetter) ombvDraggerSetter(state==Qt::Checked); // set OpenMBV
 }
 
 void TransRotEditor::draggerMoveCB(void *data, SoDragger *dragger_) {

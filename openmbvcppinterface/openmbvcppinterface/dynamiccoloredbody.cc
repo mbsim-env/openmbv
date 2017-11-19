@@ -29,7 +29,7 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-DynamicColoredBody::DynamicColoredBody() : Body(),
+DynamicColoredBody::DynamicColoredBody() : 
   
   dynamicColor(numeric_limits<double>::quiet_NaN()),
   diffuseColor(vector<double>(3))

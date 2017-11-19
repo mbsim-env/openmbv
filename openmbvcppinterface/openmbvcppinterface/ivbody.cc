@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBV%"IvBody")
 
-IvBody::IvBody() : RigidBody() {
+IvBody::IvBody()  {
 }
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
@@ -52,7 +52,7 @@ void IvBody::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"boundaryEdges");
   if(e) {
     string str = X()%E(e)->getFirstTextChild()->getData();
-    setBoundaryEdges((str=="true" || str=="1")?true:false);
+    setBoundaryEdges(str=="true" || str=="1");
   }
 }
 

@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cube, OPENMBV%"Cube")
 
-Cube::Cube() : RigidBody()
+Cube::Cube()  
   {
 }
 

@@ -42,7 +42,7 @@ namespace OpenMBV {
     public:
       /** Add a RigidBody to this compound */
       void addRigidBody(const std::shared_ptr<RigidBody>& rigidBody_) {
-        if(rigidBody_->name=="") throw std::runtime_error("the object to be added must have a name");
+        if(rigidBody_->name.empty()) throw std::runtime_error("the object to be added must have a name");
         for(auto & i : rigidBody)
           if(i->name==rigidBody_->name) throw std::runtime_error("a object of the same name already exists");
         rigidBody.push_back(rigidBody_);
@@ -60,7 +60,7 @@ namespace OpenMBV {
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
       /** Expand this tree node in a view if true (the default) */
-      void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
+      void setExpand(bool expand) { expandStr=(expand)?"true":"false"; }
 
       bool getExpand() { return expandStr=="true"?true:false; }
   };

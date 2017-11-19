@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBV%"Sphere")
 
-Sphere::Sphere() : RigidBody()
+Sphere::Sphere()  
   {
 }
 

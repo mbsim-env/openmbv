@@ -31,7 +31,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CompoundRigidBody, OPENMBV%"CompoundRigidBody")
 
-CompoundRigidBody::CompoundRigidBody() : RigidBody(), expandStr("false") {
+CompoundRigidBody::CompoundRigidBody() :  expandStr("false") {
 }
 
 CompoundRigidBody::~CompoundRigidBody() = default;

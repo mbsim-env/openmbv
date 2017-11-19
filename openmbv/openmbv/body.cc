@@ -142,7 +142,7 @@ Body::~Body() {
     }
 
   // the last Body should reset timeSlider maximum to 0
-  if(bodyMap.size()==0)
+  if(bodyMap.empty())
     MainWindow::getInstance()->timeSlider->setTotalMaximum(0);
 }
 
@@ -210,8 +210,8 @@ void Body::resetAnimRange(int numOfRows, double dt) {
 
 void Body::shilouetteEdgeFrameOrCameraSensorCB(void *data, SoSensor* sensor) {
   auto *me=(Body*)data;
-  bool preproces=sensor==me->shilouetteEdgeFrameSensor || me->shilouetteEdgeFirstCall==true;
-  bool shilouetteCalc=sensor==me->shilouetteEdgeFrameSensor || sensor==me->shilouetteEdgeOrientationSensor || me->shilouetteEdgeFirstCall==true;
+  bool preproces=sensor==me->shilouetteEdgeFrameSensor || me->shilouetteEdgeFirstCall;
+  bool shilouetteCalc=sensor==me->shilouetteEdgeFrameSensor || sensor==me->shilouetteEdgeOrientationSensor || me->shilouetteEdgeFirstCall;
   me->shilouetteEdgeFirstCall=false;
 
   SoCoordinate3 *soEdgeCoordOld=nullptr;

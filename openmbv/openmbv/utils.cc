@@ -40,7 +40,7 @@ namespace OpenMBVGUI {
 bool Utils::initialized=false;
 
 void Utils::initialize() {
-  if(initialized==true) return;
+  if(initialized) return;
   initialized=true;
 
   // tess
@@ -239,7 +239,7 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
         exist=true;
         break;
       }
-  } while(exist==true);
+  } while(exist);
 
   QDialog dialog;
   dialog.setWindowTitle(title.c_str());

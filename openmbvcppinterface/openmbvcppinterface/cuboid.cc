@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Cuboid, OPENMBV%"Cuboid")
 
-Cuboid::Cuboid() : RigidBody(),
+Cuboid::Cuboid() : 
   length(vector<double>(3, 1)) {
 }
 

@@ -57,9 +57,9 @@ class PropertyDialog : public QDialog {
 
   friend class TransRotEditor;
   public:
-    PropertyDialog(QObject *obj);
+    PropertyDialog(QObject *parentObject_);
     ~PropertyDialog() override;
-    void setParentObject(QObject *obj);
+    void setParentObject(QObject *parentObject_);
     void addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget);
     void addLargeRow(const QIcon& icon, const std::string& name, QWidget *widget);
     void addSmallRow(const QIcon& icon, const std::string& name, QLayout *subLayout);

@@ -20,7 +20,7 @@ inline xercesc::DOMElement *convertCasADiToXML_SXElem(const SXElem &s, std::map<
   std::string idStr;
   std::pair<std::map<SXNode*, int>::iterator, bool> ret=nodes.insert(std::make_pair(s.get(), nodes.size()));
   // if the node of s already exists in the list of all nodes write a reference to this node to XML
-  if(ret.second==false) {
+  if(!ret.second) {
     xercesc::DOMElement *e=MBXMLUtils::D(doc)->createElement(CASADI%"SXElemRef");
     std::stringstream str;
     str<<ret.first->second;

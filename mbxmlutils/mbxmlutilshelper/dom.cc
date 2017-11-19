@@ -654,7 +654,7 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
   for(int i=0; i<psviAttributes->getLength(); i++) {
     PSVIAttribute *info=psviAttributes->getAttributePSVIAtIndex(i);
     // the xmlns attribute has not type -> skip it (maybe a bug in xerces, but this attribute is not needed)
-    if(X()%psviAttributes->getAttributeNamespaceAtIndex(i)=="" && X()%psviAttributes->getAttributeNameAtIndex(i)=="xmlns")
+    if((X()%psviAttributes->getAttributeNamespaceAtIndex(i)).empty() && X()%psviAttributes->getAttributeNameAtIndex(i)=="xmlns")
       continue;
 
     XSTypeDefinition *type=info->getTypeDefinition();

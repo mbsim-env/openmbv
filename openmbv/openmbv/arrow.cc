@@ -343,7 +343,7 @@ double Arrow::update() {
 }
 
 QString Arrow::getInfo() {
-  if(data.size()==0) update();
+  if(data.empty()) update();
 
   // convert data back from toHead to fromHead if type==fromHead or fromDoubleHead
   double drFactor=1;

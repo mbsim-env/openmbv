@@ -31,7 +31,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rotation, OPENMBV%"Rotation")
 
-Rotation::Rotation() : RigidBody(),
+Rotation::Rotation() : 
   
   endAngle(2*boost::math::double_constants::pi) {
 }

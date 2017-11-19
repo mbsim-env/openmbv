@@ -31,7 +31,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(NurbsDisk, OPENMBV%"NurbsDisk")
 
-NurbsDisk::NurbsDisk() : DynamicColoredBody(),
+NurbsDisk::NurbsDisk() : 
   
   localFrameStr("false"),
   

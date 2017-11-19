@@ -41,7 +41,7 @@ namespace OpenMBV {
     friend class ObjectFactory;
     public:
       /** Draw reference frame of this object in the viewer if true (the default) */
-      void setLocalFrame(bool f) { localFrameStr=(f==true)?"true":"false"; }
+      void setLocalFrame(bool f) { localFrameStr=(f)?"true":"false"; }
 
       bool getLocalFrame() { return localFrameStr=="true"?true:false; }
 

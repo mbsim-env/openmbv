@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IndexedFaceSet, OPENMBV%"IndexedFaceSet")
 
-IndexedFaceSet::IndexedFaceSet() : RigidBody() {
+IndexedFaceSet::IndexedFaceSet()  {
 }
 
 DOMElement* IndexedFaceSet::writeXMLFile(DOMNode *parent) {

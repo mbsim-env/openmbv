@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CoilSpring, OPENMBV%"CoilSpring")
 
-CoilSpring::CoilSpring() : DynamicColoredBody()
+CoilSpring::CoilSpring()  
   {
 }
 

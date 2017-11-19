@@ -86,7 +86,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
 }
 
-MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
@@ -711,7 +711,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   }
 
   // camera position
-  string cameraFile="";
+  string cameraFile;
   if((i=std::find(arg.begin(), arg.end(), "--camera"))!=arg.end()) {
     i2=i; i2++;
     cameraFile=*i2;
@@ -781,7 +781,7 @@ MainWindow::MainWindow(list<string>& arg) : QMainWindow(), fpsMax(25), helpViewe
   // arg commands after load all files
   
   // camera
-  if(cameraFile!="") {
+  if(!cameraFile.empty()) {
     loadCamera(cameraFile);
   }
   else
@@ -1257,7 +1257,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
       if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=nullptr)
         glViewer->seekToPoint(pickedPoints[0]->getPoint());
       // if at least one object was picked
-      if(pickedObject.size()>0) {
+      if(!pickedObject.empty()) {
         bool objectClicked=false;
         // left or right button clicked => select object
         if(ev->getButton()==SoMouseButtonEvent::BUTTON1 || ev->getButton()==SoMouseButtonEvent::BUTTON2) {
@@ -1685,7 +1685,7 @@ void MainWindow::olseLineWidthSlot() {
 }
 
 void MainWindow::loadWindowState(string filename) {
-  if(filename=="") {
+  if(filename.empty()) {
     QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombv.wst");
     if(fn.isNull()) return;
     filename=fn.toStdString();
@@ -1733,7 +1733,7 @@ void MainWindow::saveWindowState() {
 }
 
 void MainWindow::loadCamera(string filename) {
-  if(filename=="") {
+  if(filename.empty()) {
     QString fn=QFileDialog::getOpenFileName(nullptr, "Load camera", ".", "*.camera.iv");
     if(fn.isNull()) return;
     filename=fn.toStdString();

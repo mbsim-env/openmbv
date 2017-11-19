@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Path, OPENMBV%"Path")
 
-Path::Path() : Body(), data(nullptr), color(vector<double>(3,1)) {
+Path::Path() :  data(nullptr), color(vector<double>(3,1)) {
 }
 
 Path::~Path() = default;

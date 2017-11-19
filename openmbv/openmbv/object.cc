@@ -39,7 +39,7 @@ static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not sup
 
 set<Object*> Object::objects;
 
-Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : QTreeWidgetItem(), drawThisPath(true),
+Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) :  drawThisPath(true),
                properties(nullptr), clone(nullptr) {
   object=obj;
   objects.insert(this);

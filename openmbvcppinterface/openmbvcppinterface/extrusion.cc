@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Extrusion, OPENMBV%"Extrusion")
 
-Extrusion::Extrusion() : RigidBody()
+Extrusion::Extrusion()  
   {
 }
 

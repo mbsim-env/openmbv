@@ -69,12 +69,12 @@ namespace OpenMBV {
 
     public:
       /** Expand this tree node in a view if true (the default) */
-      void setExpand(bool expand) { expandStr=(expand==true)?"true":"false"; }
+      void setExpand(bool expand) { expandStr=(expand)?"true":"false"; }
 
       bool getExpand() { return expandStr=="true"?true:false; }
 
       /** Add a object to this object container */
-      void addObject(const std::shared_ptr<Object>& object);
+      void addObject(const std::shared_ptr<Object>& newObject);
 
       std::vector<std::shared_ptr<Object> >& getObjects() {
         return object;

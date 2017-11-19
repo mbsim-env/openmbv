@@ -117,7 +117,7 @@ class DOMErrorPrinter: public xercesc::DOMErrorHandler, virtual public fmatvec::
 class FQN : public std::pair<std::string, std::string> {
   public:
     //! Empty FQN
-    FQN() : std::pair<std::string, std::string>() {}
+    FQN()  {}
     //! Anonymous FQN
     FQN(const std::string &name) : std::pair<std::string, std::string>("", name) {}
     //! Anonymous FQN (required for implicit casting of string literals to anonymous FQNs)
@@ -250,7 +250,7 @@ class DOMElementWrapper {
     }
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
-    bool isDerivedFrom(const FQN &base) const;
+    bool isDerivedFrom(const FQN &baseTypeName) const;
     //! Get the base URI.
     //! Returns the value of the first OriginalFileName PI define by a parent element or the document uri if no such element is found.
     //! If skipThis is false the OriginalFileName PI of this element in honored else
@@ -323,7 +323,7 @@ class DOMAttrWrapper {
     DOMAttrWrapper(DOMAttrType *me_) : me(me_) {}
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
-    bool isDerivedFrom(const FQN &base) const;
+    bool isDerivedFrom(const FQN &baseTypeName) const;
     //! Treat this object as a pointer (like DOMAttr*)
     typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
       const DOMAttrWrapper*, DOMAttrWrapper*>::type operator->() {
@@ -383,15 +383,15 @@ class LocationInfoFilter : public xercesc::DOMLSParserFilter {
 class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatvec::Atom {
   public:
     void setParser(DOMParser *parser_) { parser=parser_; }
-    void handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIElement *elementInfo) override;
-    void handleAttributesPSVI(const XMLCh *const localName, const XMLCh *const uri, xercesc::PSVIAttributeList *psviAttributes) override;
+    void handleElementPSVI(const XMLCh *localName, const XMLCh *uri, xercesc::PSVIElement *info) override;
+    void handleAttributesPSVI(const XMLCh *localName, const XMLCh *uri, xercesc::PSVIAttributeList *psviAttributes) override;
   private:
     DOMParser *parser;
 };
 
 class DOMParserUserDataHandler : public xercesc::DOMUserDataHandler {
   public:
-    void handle(DOMOperationType operation, const XMLCh* const key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
+    void handle(DOMOperationType operation, const XMLCh* key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
 };
 
 class EntityResolver : public xercesc::XMLEntityResolver {
@@ -465,7 +465,7 @@ void CheckSize<std::vector<std::vector<T>>>::check(const xercesc::DOMElement *me
   if(r!=0 && r!=static_cast<int>(value.size()))
     throw MBXMLUtils::DOMEvalException("Expected matrix of row-size "+fmatvec::toString(r)+
                            " but got matrix of row-size "+fmatvec::toString(value.size())+".", me);
-  if(value.size()>0 && c!=0 && c!=static_cast<int>(value[0].size()))
+  if(!value.empty() && c!=0 && c!=static_cast<int>(value[0].size()))
     throw MBXMLUtils::DOMEvalException("Expected matrix of col-size "+fmatvec::toString(c)+
                            " but got matrix of col-size "+fmatvec::toString(value[0].size())+".", me);
 }

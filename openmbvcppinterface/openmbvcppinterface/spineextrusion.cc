@@ -30,7 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(SpineExtrusion, OPENMBV%"SpineExtrusion")
 
-SpineExtrusion::SpineExtrusion() : DynamicColoredBody(),
+SpineExtrusion::SpineExtrusion() : 
   
   initialRotation(vector<double>(3, 0)) {
 }

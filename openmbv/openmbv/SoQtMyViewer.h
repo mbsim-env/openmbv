@@ -38,7 +38,7 @@ class SoQtMyViewer : public SoQtExaminerViewer {
     void seekToPoint(const SbVec3f& scenepos) { SoQtExaminerViewer::seekToPoint(scenepos); } // is protected
     void myChangeCameraValues(SoCamera *cam) { changeCameraValues(cam); } // is protected
   protected:
-    SbBool processSoEvent(const SoEvent *const event) override;
+    SbBool processSoEvent(const SoEvent *event) override;
     void actualRedraw() override;
     // for text in viewport
 

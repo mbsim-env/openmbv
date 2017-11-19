@@ -72,7 +72,7 @@ class Utils : virtual public fmatvec::Atom {
     /** Convenienc function to convert cardan angles to a rotation matrix */
     static SbRotation cardan2Rotation(const SbVec3f& c);
     /** Convenienc function to convert a rotation matrix to cardan angles */
-    static SbVec3f rotation2Cardan(const SbRotation& r);
+    static SbVec3f rotation2Cardan(const SbRotation& R);
 
     template<class T>
     static void visitTreeWidgetItems(QTreeWidgetItem *root, std::function<void (T)> func, bool onlySelected=false);
