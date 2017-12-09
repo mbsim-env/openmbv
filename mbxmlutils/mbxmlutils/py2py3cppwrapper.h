@@ -189,14 +189,14 @@ inline bool operator>=(const PyO& l, const PyO& r) { return l.get()>=r.get(); }
 // Stores also the Python error objects type, value and traceback.
 class PythonException : public std::exception {
   public:
-    PythonException(const char *file_, int line_);
+    inline PythonException(const char *file_, int line_);
     ~PythonException() noexcept override = default;
     std::string getFile() { return file; }
     int getLine() { return line; }
     PyO getType() { return type; }
     PyO getValue() { return value; }
     PyO getTraceback() { return traceback; }
-    const char* what() const noexcept override;
+    inline const char* what() const noexcept override;
   private:
     std::string file;
     int line;
