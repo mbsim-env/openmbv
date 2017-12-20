@@ -20,7 +20,7 @@
 #include "config.h"
 #include <cassert>
 #include <cfenv>
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "mainwindow.h"
 
 using namespace std;

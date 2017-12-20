@@ -19,12 +19,12 @@
 
 #include "config.h"
 #include <abstractviewfilter.h>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QTreeView>
-#include <QtGui/QListView>
-#include <QtGui/QTableView>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QTreeView>
+#include <QListView>
+#include <QTableView>
 #include <utility>
 
 using namespace std;

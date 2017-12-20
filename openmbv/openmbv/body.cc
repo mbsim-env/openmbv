@@ -31,7 +31,7 @@
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include "SoSpecial.h"
-#include <QtGui/QMenu>
+#include <QMenu>
 #include "mainwindow.h"
 #include <GL/gl.h>
 #include <Inventor/actions/SoCallbackAction.h>

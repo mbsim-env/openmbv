@@ -21,7 +21,7 @@
 #define _OPENMBVGUI_OBJECT_H_
 
 #include <fmatvec/atom.h>
-#include <QtGui/QTreeWidgetItem>
+#include <QTreeWidgetItem>
 #include <string>
 #include <set>
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3

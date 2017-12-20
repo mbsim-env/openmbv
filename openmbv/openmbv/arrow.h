@@ -27,7 +27,7 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoRotation.h>
-#include <QtGui/QMenu>
+#include <QMenu>
 #include <hdf5serie/vectorserie.h>
 #include "editors.h"
 

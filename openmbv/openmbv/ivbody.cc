@@ -32,7 +32,7 @@
 #include "openmbvcppinterface/ivbody.h"
 #include "openmbvcppinterface/group.h"
 
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QMenu>
 
 using namespace std;

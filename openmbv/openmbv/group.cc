@@ -19,13 +19,13 @@
 
 #include "config.h"
 #include "group.h"
-#include <QtGui/QMenu>
-#include <QtGui/QPushButton>
+#include <QMenu>
+#include <QPushButton>
 #include "objectfactory.h"
 #include "mainwindow.h"
 #include <string>
 #include "utils.h"
-#include <QtGui/QMessageBox>
+#include <QMessageBox>
 #include <QtCore/QFileInfo>
 #include "openmbvcppinterface/objectfactory.h"
 #include "openmbvcppinterface/arrow.h"

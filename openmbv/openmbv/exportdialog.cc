@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "exportdialog.h"
-#include <QtGui/QFileDialog>
+#include <QFileDialog>
 #include "mainwindow.h"
 
 namespace OpenMBVGUI {

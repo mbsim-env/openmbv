@@ -28,7 +28,7 @@
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/SbLinear.h>
 #include <hdf5serie/vectorserie.h>
-#include <QtGui/QMenu>
+#include <QMenu>
 
 namespace OpenMBV {
   class CoilSpring;

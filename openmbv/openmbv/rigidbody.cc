@@ -26,7 +26,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
-#include <QtGui/QMenu>
+#include <QMenu>
 #include "utils.h"
 #include "openmbvcppinterface/rigidbody.h"
 #include <cfloat>

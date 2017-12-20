@@ -24,13 +24,13 @@
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include <iostream>
-#include <QtGui/QDialog>
-#include <QtGui/QPushButton>
-#include <QtGui/QLineEdit>
-#include <QtGui/QMessageBox>
-#include <QtGui/QGridLayout>
-#include <QtGui/QComboBox>
-#include <QtGui/QLabel>
+#include <QDialog>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QGridLayout>
+#include <QComboBox>
+#include <QLabel>
 #include <mbxmlutilshelper/getinstallpath.h>
 
 using namespace std;

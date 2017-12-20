@@ -21,14 +21,14 @@
 #define _OPENMBVGUI_MAINWINDOW_H_
 
 #include "abstractviewfilter.h"
-#include <QtGui/QMainWindow>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QSpinBox>
-#include <QtGui/QActionGroup>
-#include <QtGui/QLabel>
-#include <QtGui/QStatusBar>
-#include <QtWebKit/QWebView>
+#include <QMainWindow>
+#include <QTreeWidget>
+#include <QTextEdit>
+#include <QSpinBox>
+#include <QActionGroup>
+#include <QLabel>
+#include <QStatusBar>
+#include <QWebView>
 #include <QtCore/QTimer>
 #include <QtCore/QTime>
 #include <string>

@@ -20,8 +20,8 @@
 #ifndef _OPENMBVGUI_ABSTRACTVIEWFILTER_H_
 #define _OPENMBVGUI_ABSTRACTVIEWFILTER_H_
 
-#include <QtGui/QWidget>
-#include <QtGui/QAbstractItemView>
+#include <QWidget>
+#include <QAbstractItemView>
 #include <functional>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).

@@ -11,6 +11,7 @@ AC_LANG([C++])
 
 # enable C++11
 CXXFLAGS="$CXXFLAGS -std=c++11"
+CPPFLAGS="$CPPFLAGS -fPIC -std=c++11"
 
 dnl By autoscan
 AC_CHECK_FUNCS([memmove])
@@ -49,7 +50,7 @@ fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 dnl Qt
-PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4 QtSvg >= 4.4 QtWebKit >= 4.4])
+PKG_CHECK_MODULES(QT, [Qt5Core >= 5.7 Qt5Gui >= 5.7 Qt5Widgets >= 5.7 Qt5Svg >= 5.7 Qt5WebKit >= 5.7 Qt5WebKitWidgets >= 5.7])
 dnl get moc, uic and rcc
 test -z $MOC && { MOC=$(pkg-config --variable moc_location QtCore) || MOC=moc; }
 test -z $UIC && { UIC=$(pkg-config --variable uic_location QtCore) || UIC=uic; }

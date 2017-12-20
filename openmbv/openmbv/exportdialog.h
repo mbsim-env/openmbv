@@ -20,13 +20,13 @@
 #ifndef _OPENMBVGUI_EXPORTDIALOG_H_
 #define _OPENMBVGUI_EXPORTDIALOG_H_
 
-#include <QtGui/QDialog>
-#include <QtGui/QPushButton>
-#include <QtGui/QLineEdit>
-#include <QtGui/QDoubleSpinBox>
-#include <QtGui/QLabel>
-#include <QtGui/QGridLayout>
-#include <QtGui/QRadioButton>
+#include <QDialog>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QDoubleSpinBox>
+#include <QLabel>
+#include <QGridLayout>
+#include <QRadioButton>
 
 namespace OpenMBVGUI {
 

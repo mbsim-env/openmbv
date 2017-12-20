@@ -19,9 +19,9 @@
 
 #include "config.h"
 #include "object.h"
-#include <QtGui/QMenu>
-#include <QtGui/QApplication>
-#include <QtGui/QGridLayout>
+#include <QMenu>
+#include <QApplication>
+#include <QGridLayout>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include <Inventor/actions/SoSearchAction.h>

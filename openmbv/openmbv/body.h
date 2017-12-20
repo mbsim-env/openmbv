@@ -23,7 +23,7 @@
 #include "object.h"
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/sensors/SoFieldSensor.h>
-#include <QtGui/QActionGroup>
+#include <QActionGroup>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>

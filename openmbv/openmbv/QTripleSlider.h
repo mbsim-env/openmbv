@@ -20,8 +20,8 @@
 #ifndef _OPENMBVGUI_QTRIPPLESLIDER_H_
 #define _OPENMBVGUI_QTRIPPLESLIDER_H_
 
-#include <QtGui/QSplitter>
-#include <QtGui/QSlider>
+#include <QSplitter>
+#include <QSlider>
 
 namespace OpenMBVGUI {
 
