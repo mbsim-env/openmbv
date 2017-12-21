@@ -11,7 +11,6 @@ AC_LANG([C++])
 
 # enable C++11
 CXXFLAGS="$CXXFLAGS -std=c++11"
-CPPFLAGS="$CPPFLAGS -fPIC -std=c++11"
 
 dnl By autoscan
 AC_CHECK_FUNCS([memmove])
@@ -46,15 +45,17 @@ if test "_$host_os" = "_mingw32"; then
   CPPFLAGS="-fno-keep-inline-dllexport $CPPFLAGS"
   LDFLAGS="-mwindows $LDFLAGS"
   WIN32=yes
+else
+  CPPFLAGS="$CPPFLAGS -fPIC"
 fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [Qt5Core >= 5.7 Qt5Gui >= 5.7 Qt5Widgets >= 5.7 Qt5Svg >= 5.7 Qt5WebKit >= 5.7 Qt5WebKitWidgets >= 5.7])
 dnl get moc, uic and rcc
-test -z $MOC && { MOC=$(pkg-config --variable moc_location QtCore) || MOC=moc; }
-test -z $UIC && { UIC=$(pkg-config --variable uic_location QtCore) || UIC=uic; }
-test -z $RCC && { RCC=$(dirname $(which $MOC))/rcc || RCC=rcc; }
+test -z $MOC && { MOC=$(pkg-config --variable=host_bins Qt5Core)/moc || MOC=moc; }
+test -z $UIC && { UIC=$(pkg-config --variable=host_bins Qt5Core)/uic || UIC=uic; }
+test -z $RCC && { RCC=$(pkg-config --variable=host_bins Qt5Core)/rcc || RCC=rcc; }
 AC_SUBST([MOC])
 AC_SUBST([UIC])
 AC_SUBST([RCC])
@@ -89,7 +90,7 @@ AC_ARG_WITH(qwt_lib_prefix,
   [  --with-qwt-lib-prefix=PFX  Prefix where qwt6 library is installed],
   [QWT_LIBS="-L$withval -l$QWT_LIBNAME"],
   [QWT_LIBS="-L$prefix/lib -l$QWT_LIBNAME"])
-OLDCPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS"
+OLDCPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $QWT_CFLAGS $QT_CFLAGS -std=c++11"
 OLDLIBS=$LIBS; LIBS="$LIBS $QWT_LIBS $QT_LIBS"
 AC_CHECK_HEADERS([qwt_wheel.h], [], [AC_MSG_ERROR([Can not find qwt_wheel.h!])])
 AC_CHECK_HEADERS([qwt_system_clock.h], [], [AC_MSG_ERROR([Can not find qwt_system_clock.h! Maybe a qwt5 header is used!])])
@@ -118,9 +119,6 @@ AC_ARG_WITH(windres,
 AC_SUBST([WINDRES])
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=attributes"
-if test "_$host_os" != "_mingw32"; then
-  CPPFLAGS="$CPPFLAGS -fPIC"
-fi
 LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL -no-undefined -Wl,--no-undefined"
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 
