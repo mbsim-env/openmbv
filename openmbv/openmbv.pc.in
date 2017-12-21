@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: openmbv
 Description: OpenMBV library consiting of the MainWindow
-Requires: Qt5Core Qt5Gui Qt5Svg Qt5WebKit Coin openmbvcppinterface SoQt hdf5serie
+Requires: Qt5Core Qt5Gui Qt5Svg Qt5WebKitWidgets Coin openmbvcppinterface SoQt hdf5serie
 Version: @VERSION@
 Libs: -L${libdir} -lopenmbv
 Cflags: -I${includedir}
