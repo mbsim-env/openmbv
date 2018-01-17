@@ -290,24 +290,24 @@ const inline char* PythonException::what() const noexcept {
   // redirect stderr
   PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
   if(!savedstderr)
-    throw std::runtime_error("Internal error: no sys.stderr available.");
+    return "Unable to create Python error message: no sys.stderr available.";
   PyObject *io=PyImport_ImportModule("io");
   if(!io)
-    throw std::runtime_error("Internal error: cannot load io module.");
+    return "Unable to create Python error message: cannot load io module.";
 #if PY_MAJOR_VERSION < 3
   PyObject *fileIO=PyObject_GetAttrString(io, "BytesIO"); // sys.stderr is a file is bytes mode
 #else
   PyObject *fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
 #endif
   if(!fileIO)
-    throw std::runtime_error("Internal error: cannot get in memory file class.");
+    return "Unable to create Python error message: cannot get in memory file class.";
   Py_DECREF(io);
   PyObject *buf=PyObject_CallObject(fileIO, nullptr);
   Py_DECREF(fileIO);
   if(!buf)
-    throw std::runtime_error("Internal error: cannot create new in memory file instance");
+    return "Unable to create Python error message: cannot create new in memory file instance";
   if(PySys_SetObject(const_cast<char*>("stderr"), buf)!=0)
-    throw std::runtime_error("Internal error: cannot redirect stderr");
+    return "Unable to create Python error message: cannot redirect stderr";
   // restore error
   PyErr_Restore(type.get(), value.get(), traceback.get());
   Py_XINCREF(type.get());
@@ -317,25 +317,25 @@ const inline char* PythonException::what() const noexcept {
   PyErr_Print();
   // unredirect stderr
   if(PySys_SetObject(const_cast<char*>("stderr"), savedstderr)!=0)
-    throw std::runtime_error("Internal error: cannot revert redirect stderr");
+    return "Unable to create Python error message: cannot revert redirect stderr";
   // get redirected output as string
   PyObject *getvalue=PyObject_GetAttrString(buf, "getvalue");
   if(!getvalue)
-    throw std::runtime_error("Internal error: cannot get getvalue attribute");
+    return "Unable to create Python error message: cannot get getvalue attribute";
   PyObject *pybufstr=PyObject_CallObject(getvalue, nullptr);
   if(!pybufstr)
-    throw std::runtime_error("Internal error: cannot get string from in memory file output");
+    return "Unable to create Python error message: cannot get string from in memory file output";
   Py_DECREF(getvalue);
   Py_DECREF(buf);
 #if PY_MAJOR_VERSION < 3
   char *strc=PyBytes_AsString(pybufstr); // sys.stderr is a file in bytes mode
   if(!strc)
-    throw std::runtime_error("Internal error: cannot get c string");
+    return "Unable to create Python error message: cannot get c string";
   std::string str(strc);
 #else
   std::string str=PyUnicode_AsUTF8(pybufstr); // sys.stderr is a file in text mode
   if(PyErr_Occurred())
-    throw std::runtime_error("Internal error: cannot get c string");
+    return "Unable to create Python error message: cannot get c string";
 #endif
   Py_DECREF(pybufstr);
   std::stringstream strstr;

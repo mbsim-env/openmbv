@@ -17,6 +17,7 @@ mbxmlutils/mbxmlutilshelper/Makefile.in
 mbxmlutils/missing
 mbxmlutils/xmldoc/Makefile.in
 mbxmlutils/xsd2html/Makefile.in
+mbxmlutils/compile
 openmbv/INSTALL
 openmbv/Makefile.in
 openmbv/aclocal.m4
@@ -31,6 +32,7 @@ openmbv/ltmain.sh
 openmbv/missing
 openmbv/openmbv/Makefile.in
 openmbv/xmldoc/Makefile.in
+openmbv/compile
 openmbvcppinterface/INSTALL
 openmbvcppinterface/Makefile.in
 openmbvcppinterface/aclocal.m4
@@ -52,3 +54,4 @@ openmbvcppinterface/swig/java/Makefile.in
 openmbvcppinterface/swig/octave/Makefile.in
 openmbvcppinterface/swig/python/Makefile.in
 openmbvcppinterface/test-driver
+openmbvcppinterface/compile

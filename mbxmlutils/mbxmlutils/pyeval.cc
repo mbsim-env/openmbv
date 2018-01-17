@@ -97,11 +97,11 @@ PyInit::~PyInit() {
   // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
   catch(const std::exception& ex) {
     cerr<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl;
-    throw;
+    cerr<<"Continuing but undefined behaviour may occur."<<endl;
   }
   catch(...) {
     cerr<<"Unknown exception during Python deinitialization."<<endl;
-    throw;
+    cerr<<"Continuing but undefined behaviour may occur."<<endl;
   }
 }
 

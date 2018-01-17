@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
-        <<"               [--wst <file>] [--camera <file>] [--fullscreen] [--shadows]"<<endl
+        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
         <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
         <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
         <<"--headlight        Load the given head light file (*.iv)"<<endl
         <<"                   (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen       Start in full screen mode"<<endl
-        <<"--shadows          Enable shadows"<<endl
         <<"--olselinewidth    Line width of outlines and shilouette edges"<<endl
         <<"--olsecolor        Color of outlines and shilouette edges"<<endl
         <<"--complexitytype   The complexity type (see inventor SoComplexity.type)"<<endl
@@ -108,7 +107,8 @@ int main(int argc, char *argv[])
         <<"In contrast to Coin3D VBO (Vertex Buffer Object) is disabled per default in"<<endl
         <<"OpenMBV. You can enable it by setting the environment variable COIN_VBO=1."<<endl;
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-    if(i!=arg.end()) arg.erase(i); if(i2!=arg.end()) arg.erase(i2);
+    if(i!=arg.end()) arg.erase(i);
+    if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }
 
