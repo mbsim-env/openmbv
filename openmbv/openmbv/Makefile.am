@@ -209,3 +209,8 @@ pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc openmbv.svg
+
+# freedesktop.org
+freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org
+freedesktoporg_DATA = mbsim-env.org.openmbv.xml mbsim-env.org.openmbv.desktop mimeapps-openmbv.list openmbv.svg
+bin_SCRIPTS = desktopIntegration.sh

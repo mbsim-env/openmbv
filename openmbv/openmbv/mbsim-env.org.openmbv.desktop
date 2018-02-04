@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=OpenMBV
+Icon=mbsim-env.openmbv
+Exec=@bindir@/openmbv %F
+MimeType=application/vnd.mbsim-env.openmbv;
