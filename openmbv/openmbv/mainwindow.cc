@@ -734,6 +734,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
       reloadTimeout=250;
   }
 
+  // maximized
+  if((i=std::find(arg.begin(), arg.end(), "--maximized"))!=arg.end())
+    showMaximized();
+
   // read XML files
   if(arg.empty()) arg.emplace_back("."); // if called without argument load current dir
   QDir dir;

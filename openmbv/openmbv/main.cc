@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
         <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
         <<"               [--autoreload [<timeout>]] [--transparency 1|2]"<<endl
-        <<"               [<dir>|<file>] [<dir>|<file>] ..."<<endl
+        <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
         <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
         <<"                       with similar transparency value."<<endl
         <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
         <<"                       but requires OpenGL extensions by the graphic card."<<endl
+        <<"--maximized        Show window maximized on startup."<<endl
         <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
@@ -114,6 +115,7 @@ int main(int argc, char *argv[])
 
   QCoreApplication::setLibraryPaths(QStringList()); // do not load plugins from buildin defaults
   QApplication app(argc, argv);
+  app.setOrganizationName("MBSim-Env");
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
