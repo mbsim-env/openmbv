@@ -161,7 +161,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     XMLFilePos getUtf16Offset() const override { return ~(XMLFilePos(0)); }
     xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
     const XMLCh *getURI() const override { return file; }
-    std::string getEmbedCount() const;
+    int getEmbedCount() const { return embedCount; }
   private:
     X x;
     const XMLCh *file;
@@ -193,11 +193,11 @@ class DOMEvalException : public std::exception {
       return *this;
     }
     ~DOMEvalException() noexcept override = default;
-    static void generateLocationStack(const xercesc::DOMElement *e, std::vector<EmbedDOMLocator> &locationStack);
-    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
-                                     const std::string &attrName, std::ostream &str);
+    static void generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a,
+                                      std::vector<EmbedDOMLocator> &locationStack);
+    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack, std::ostream &str);
     static std::string fileOutput(const xercesc::DOMLocator &loc);
-    void setContext(const xercesc::DOMElement *e);
+    void setContext(const xercesc::DOMElement *e, const xercesc::DOMAttr* a=nullptr);
     const std::string& getMessage() const { return errorMsg; }
     const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
     const char* what() const noexcept override;

@@ -213,15 +213,6 @@ EmbedDOMLocator::EmbedDOMLocator(const path &file_, int row_, int embedCount_) :
   file=x%file_.string(CODECVT);
 }
 
-string EmbedDOMLocator::getEmbedCount() const {
-  if(embedCount>0) {
-    stringstream str;
-    str<<"[count="<<embedCount<<"]";
-    return str.str();
-  }
-  return "";
-}
-
 template<> const DOMElement *DOMElementWrapper<      DOMElement>::dummyArg=nullptr;
 template<> const DOMElement *DOMElementWrapper<const DOMElement>::dummyArg=nullptr;
 
@@ -552,12 +543,10 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e,
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
   if(e)
-    setContext(e);
-  if(a)
-    attrName=X()%a->getName();
+    setContext(e, a);
 }
 
-void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vector<EmbedDOMLocator> &locationStack) {
+void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a, vector<EmbedDOMLocator> &locationStack) {
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();
@@ -571,35 +560,34 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vecto
   }
 }
 
-void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack,
-                                            const string &attrName, ostream &str) {
+void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack, ostream &str) {
   if(!locationStack.empty()) {
     auto it=locationStack.begin();
-    str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<fileOutput(*it)<<endl;
+    str<<indent<<"At "<<fileOutput(*it)<<endl;
     for(it++; it!=locationStack.end(); it++)
-      str<<indent<<"included by "<<fileOutput(*it)<<it->getEmbedCount()<<endl;
+      str<<indent<<"included by "<<fileOutput(*it)<<
+        (it->getEmbedCount()==0 ? "" : "[count="+to_string(it->getEmbedCount())+"]") <<endl;
   }
 }
 
 string DOMEvalException::fileOutput(const DOMLocator &loc) {
-  if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
-    // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
-  else
+  if(getenv("MBXMLUTILS_HTMLOUTPUT"))
     // html output of filenames and line numbers
     return "<a href=\""+X()%loc.getURI()+"?line="+fmatvec::toString(loc.getLineNumber())+"\">"+
       X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber())+"</a>";
+  // normal (ascii) output of filenames and line numbers
+  return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
 }
 
-void DOMEvalException::setContext(const DOMElement *e) {
-  generateLocationStack(e, locationStack);
+void DOMEvalException::setContext(const DOMElement *e, const DOMAttr* a) {
+  generateLocationStack(e, a, locationStack);
 }
 
 const char* DOMEvalException::what() const noexcept {
   // create return string
   stringstream str;
   str<<errorMsg<<endl;
-  locationStack2Stream("", locationStack, attrName, str);
+  locationStack2Stream("", locationStack, str);
   whatStr=str.str();
   whatStr.resize(whatStr.length()-1); // remote the trailing line feed
   return whatStr.c_str();
