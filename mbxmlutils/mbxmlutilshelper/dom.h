@@ -147,14 +147,20 @@ const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
 //! Extension of DOMLocator with a embed count
 class EmbedDOMLocator : public xercesc::DOMLocator {
   public:
-    EmbedDOMLocator(const boost::filesystem::path &file_, int row_, int embedCount_=0);
-    EmbedDOMLocator(const EmbedDOMLocator &src) {
-      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
-    }
+    EmbedDOMLocator(const boost::filesystem::path &file_, int row_, int embedCount_, std::string xpath_) : DOMLocator(),
+      file(x%file_.string()), row(row_), embedCount(embedCount_), xpath(std::move(xpath_)) {}
+    EmbedDOMLocator(const EmbedDOMLocator &src) : DOMLocator(),
+      file(x%(X()%src.file)), row(src.row), embedCount(src.embedCount), xpath(src.xpath) {}
     EmbedDOMLocator& operator=(const EmbedDOMLocator &src) {
-      file=x%(X()%src.file); row=src.row; embedCount=src.embedCount;
+      file=x%(X()%src.file);
+      row=src.row;
+      embedCount=src.embedCount;
+      xpath=src.xpath;
       return *this;
     }
+    ~EmbedDOMLocator() = default;
+    EmbedDOMLocator(const EmbedDOMLocator &&src) = delete;
+    EmbedDOMLocator& operator=(const EmbedDOMLocator &&src) = delete;
     XMLFileLoc getLineNumber() const override { return row; }
     XMLFileLoc getColumnNumber() const override { return 0; }
     XMLFilePos getByteOffset() const override { return ~(XMLFilePos(0)); }
@@ -162,11 +168,13 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
     const XMLCh *getURI() const override { return file; }
     int getEmbedCount() const { return embedCount; }
+    std::string getRootXPath() const { return xpath; }
   private:
     X x;
     const XMLCh *file;
     int row;
     int embedCount;
+    std::string xpath;
 };
 
 // Exception wrapping for DOMEvalException.
@@ -274,6 +282,12 @@ class DOMElementWrapper {
     //! Set the embed count.
     //! Is store as a processing instruction child node.
     void setEmbedCountNumber(int embedCount);
+    //! Get the embed XPath count.
+    //! If a EmbedXPathCount processing instruction child node exist this number is returned. If not 0 is returned.
+    int getEmbedXPathCount() const;
+    //! Set the embed XPath count.
+    //! Is store as a processing instruction child node.
+    void setEmbedXPathCount(int xPathCount);
     //! Get the line number of the original element
     int getOriginalElementLineNumber() const;
     //! Set the line number of the original element

@@ -18,7 +18,7 @@ using namespace boost::filesystem;
 namespace MBXMLUtils {
 
 void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
-                            const shared_ptr<XPathParamSet>& param, const string &parentXPath,
+                            const shared_ptr<XPathParamSet>& param, const string &parentXPath, int embedXPathCount,
                             const shared_ptr<PositionMap>& position) {
   try {
     string thisXPath; // the XPath of this element (for a Embed its the target element name, for others its just the element name
@@ -88,6 +88,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
     
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
+      E(enew)->setEmbedXPathCount(embedXPathCount);
     
       // check that not both the parameterHref attribute and the child element pv:Parameter exists (This is not checked by the schema)
       DOMElement *inlineParamEle=e->getFirstElementChild();
@@ -297,10 +298,12 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
     
     // walk tree
     DOMElement *c=e->getFirstElementChild();
+    int embedXPathCount=0;
     while(c) {
       // pass param and the new parent XPath to preprocess
       DOMElement *n=c->getNextElementSibling();
-      preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath);
+      if(E(c)->getTagName()==PV%"Embed") embedXPathCount++;
+      preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath, embedXPathCount);
       c=n;
     }
   } RETHROW_MBXMLUTILS(e);

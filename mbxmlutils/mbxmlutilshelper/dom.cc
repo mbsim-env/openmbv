@@ -209,10 +209,6 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
   return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
 }
 
-EmbedDOMLocator::EmbedDOMLocator(const path &file_, int row_, int embedCount_) : row(row_), embedCount(embedCount_) {
-  file=x%file_.string(CODECVT);
-}
-
 template<> const DOMElement *DOMElementWrapper<      DOMElement>::dummyArg=nullptr;
 template<> const DOMElement *DOMElementWrapper<const DOMElement>::dummyArg=nullptr;
 
@@ -419,6 +415,23 @@ void DOMElementWrapper<DOMElementType>::setEmbedCountNumber(int embedCount) {
 }
 
 template<typename DOMElementType>
+int DOMElementWrapper<DOMElementType>::getEmbedXPathCount() const {
+  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedXPathCount");
+  if(pi)
+    return boost::lexical_cast<int>((X()%pi->getData()));
+  return 0;
+}
+template int DOMElementWrapper<const DOMElement>::getEmbedXPathCount() const; // explicit instantiate const variant
+
+template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::setEmbedXPathCount(int xPathCount) {
+  stringstream str;
+  str<<xPathCount;
+  DOMProcessingInstruction *embedXPathCountPI=me->getOwnerDocument()->createProcessingInstruction(X()%"EmbedXPathCount", X()%str.str());
+  me->insertBefore(embedXPathCountPI, me->getFirstChild());
+}
+
+template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("OriginalElementLineNr");
   if(pi)
@@ -546,16 +559,62 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e,
     setContext(e, a);
 }
 
+namespace {
+  string genRootXPath(const DOMNode *n) {
+    const DOMElement *e;
+    if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
+      e=static_cast<const DOMAttr*>(n)->getOwnerElement();
+    else if(n->getNodeType()==DOMNode::ELEMENT_NODE)
+      e=static_cast<const DOMElement*>(n);
+    else
+      throw runtime_error("Internal error: cannot handle this node type in genRootXPath.");
+  
+    const DOMElement *root=e->getOwnerDocument()->getDocumentElement();
+    string xpath;
+    while(true) {
+      // get tag name and namespace uri
+      FQN fqn=E(e)->getTagName();
+      // get xpath count
+      int count=1;
+      for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
+        if(E(ee)->getEmbedXPathCount()>0) {
+          count=E(ee)->getEmbedXPathCount()+1;
+          break;
+        }
+        if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+          count++;
+      }
+      // break or continue
+      if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
+        xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
+        break;
+      }
+      else
+        xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
+      e=static_cast<const DOMElement*>(e->getParentNode());
+    }
+
+    // append the attribute if its a attribute node
+    if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
+      xpath+="/@"+X()%n->getNodeName();
+
+    return xpath;
+  }
+}
+
 void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a, vector<EmbedDOMLocator> &locationStack) {
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();
-  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber());
+  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber(),
+    a?genRootXPath(a):genRootXPath(e));
   ee=found;
   while(ee) {
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
-                                            E(ee)->getOriginalElementLineNumber(),
-                                            E(ee)->getEmbedCountNumber());
+      E(ee)->getOriginalElementLineNumber(),
+      E(ee)->getEmbedCountNumber(),
+      genRootXPath(static_cast<const DOMElement*>(ee->getParentNode()))+"/{"+PV.getNamespaceURI()+"}Embed["+
+        to_string(E(ee)->getEmbedXPathCount())+"]");
     ee=found;
   }
 }
@@ -575,6 +634,23 @@ string DOMEvalException::fileOutput(const DOMLocator &loc) {
     // html output of filenames and line numbers
     return "<a href=\""+X()%loc.getURI()+"?line="+fmatvec::toString(loc.getLineNumber())+"\">"+
       X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber())+"</a>";
+  if(getenv("MBXMLUTILS_XPATHOUTPUT")) {
+    // xpath output
+    const EmbedDOMLocator *eLoc=dynamic_cast<const EmbedDOMLocator*>(&loc);
+    if(eLoc) {
+      return X()%loc.getURI()+":"+eLoc->getRootXPath();
+    }
+    const DOMNode *n=loc.getRelatedNode();
+    if(n) {
+      DOMNode::NodeType t=n->getNodeType();
+      if(t==DOMNode::ELEMENT_NODE || t==DOMNode::ATTRIBUTE_NODE)
+        return X()%loc.getURI()+":"+genRootXPath(n);
+      if(t==DOMNode::TEXT_NODE)
+        return X()%loc.getURI()+":"+genRootXPath(n->getParentNode());
+      throw runtime_error("Internal error: Cannot handle this node type in fileOutput.");
+    }
+    return "<noLocationAvailable>";
+  }
   // normal (ascii) output of filenames and line numbers
   return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
 }

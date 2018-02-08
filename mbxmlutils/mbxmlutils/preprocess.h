@@ -24,6 +24,8 @@ class Preprocess : virtual public fmatvec::Atom {
 
                            // internal: XPath expression of parent element
                            const std::string &parentXPath="",
+                           // internal: XPath expression of parent element
+                           int embedXPathCount=0,
                            // internal: XPath position count of the element e
                            const std::shared_ptr<PositionMap>& position=std::make_shared<PositionMap>()
                           );
