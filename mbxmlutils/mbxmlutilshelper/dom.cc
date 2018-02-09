@@ -2,6 +2,7 @@
 #include "dom.h"
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -205,7 +206,7 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
   }
   DOMLocator *loc=e.getLocation();
   // Note we print here all message types to the Warn stream. If a error occurred a exception is thrown later
-  msg(Warn)<<DOMEvalException::fileOutput(*loc)<<": "<<type<<": "<<X()%e.getMessage()<<endl;
+  msg(Warn)<<DOMEvalException::errorOutput(*loc, type+": "+X()%e.getMessage())<<endl;
   return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
 }
 
@@ -587,6 +588,8 @@ namespace {
       // break or continue
       if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
         xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
+        if(root==e && E(e)->getEmbedXPathCount()>0)
+          xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
         break;
       }
       else
@@ -619,40 +622,64 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const
   }
 }
 
-void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack, ostream &str) {
+string DOMEvalException::errorLocationOutput(const string &indent, const vector<EmbedDOMLocator> &locationStack,
+                                             const string &message) {
+  string ret;
   if(!locationStack.empty()) {
     auto it=locationStack.begin();
-    str<<indent<<"At "<<fileOutput(*it)<<endl;
+    ret+=indent+errorOutput(*it, message)+"\n";
     for(it++; it!=locationStack.end(); it++)
-      str<<indent<<"included by "<<fileOutput(*it)<<
-        (it->getEmbedCount()==0 ? "" : "[count="+to_string(it->getEmbedCount())+"]") <<endl;
+      ret+=indent+"included by "+errorOutput(*it, "", true)+"\n";
   }
+  else
+    ret+=message;
+  return ret;
 }
 
-string DOMEvalException::fileOutput(const DOMLocator &loc) {
-  if(getenv("MBXMLUTILS_HTMLOUTPUT"))
-    // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+fmatvec::toString(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber())+"</a>";
-  if(getenv("MBXMLUTILS_XPATHOUTPUT")) {
-    // xpath output
-    const EmbedDOMLocator *eLoc=dynamic_cast<const EmbedDOMLocator*>(&loc);
-    if(eLoc) {
-      return X()%loc.getURI()+":"+eLoc->getRootXPath();
-    }
+string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &message, bool subsequentError) {
+  // generate xpath
+  string xpath;
+  const EmbedDOMLocator *eLoc=dynamic_cast<const EmbedDOMLocator*>(&loc);
+  if(eLoc)
+    xpath=eLoc->getRootXPath();
+  else {
     const DOMNode *n=loc.getRelatedNode();
     if(n) {
       DOMNode::NodeType t=n->getNodeType();
       if(t==DOMNode::ELEMENT_NODE || t==DOMNode::ATTRIBUTE_NODE)
-        return X()%loc.getURI()+":"+genRootXPath(n);
-      if(t==DOMNode::TEXT_NODE)
-        return X()%loc.getURI()+":"+genRootXPath(n->getParentNode());
-      throw runtime_error("Internal error: Cannot handle this node type in fileOutput.");
+        xpath=genRootXPath(n);
+      else if(t==DOMNode::TEXT_NODE)
+        xpath=genRootXPath(n->getParentNode());
+      else
+        xpath="<noXPathAvailable>";
     }
-    return "<noLocationAvailable>";
+    else
+      xpath="<noXPathAvailable>";
   }
-  // normal (ascii) output of filenames and line numbers
-  return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
+
+  // get MBXMLUTILS_ERROROUTPUT
+  const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
+  string format(ev?ev:R"|($+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|");
+  if(format=="HTML")
+    format=R"|(<a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|";
+  else if(format=="XPATH")
+    format=R"|(<error file="$+{file}" xpath="$+{xpath}"(?{ecount} ecount="$+{ecount}":) sse="(?{sse}1:0)">$+{msg}</error>)|";
+
+  // Generate a boost::match_results object.
+  // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
+  // string and regex to generate it implicitly.
+  string str;
+  str+="@msg"+message;
+  str+="@file"+X()%loc.getURI();
+  str+="@line"+(loc.getLineNumber()>0?to_string(loc.getLineNumber()):"");
+  str+="@xpath"+xpath;
+  str+="@ecount"+(eLoc && eLoc->getEmbedCount()>0?to_string(eLoc->getEmbedCount()):"");
+  str+="@sse"+(subsequentError?string("x"):"");
+  static boost::regex re(
+    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
+  );
+  // apply substitutions
+  return boost::regex_replace(str, re, format, boost::regex_constants::format_all);
 }
 
 void DOMEvalException::setContext(const DOMElement *e, const DOMAttr* a) {
@@ -661,10 +688,7 @@ void DOMEvalException::setContext(const DOMElement *e, const DOMAttr* a) {
 
 const char* DOMEvalException::what() const noexcept {
   // create return string
-  stringstream str;
-  str<<errorMsg<<endl;
-  locationStack2Stream("", locationStack, str);
-  whatStr=str.str();
+  whatStr=errorLocationOutput("", locationStack, errorMsg);
   whatStr.resize(whatStr.length()-1); // remote the trailing line feed
   return whatStr.c_str();
 }

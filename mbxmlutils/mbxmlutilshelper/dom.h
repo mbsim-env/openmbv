@@ -203,8 +203,45 @@ class DOMEvalException : public std::exception {
     ~DOMEvalException() noexcept override = default;
     static void generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a,
                                       std::vector<EmbedDOMLocator> &locationStack);
-    static void locationStack2Stream(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack, std::ostream &str);
-    static std::string fileOutput(const xercesc::DOMLocator &loc);
+    static std::string errorLocationOutput(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
+                                           const std::string &message="");
+
+    /** Convert a error location and error message for outputting it to the console.
+      The behaviour of this function can be adapted by the environment variable MBXMLUTILS_ERROROUTPUT.
+      For each error the value of this variable is printed, where the value is interpreted as a
+      "Boost-Extended Format String Syntax", where the following named sub-expressions are recognized:
+     
+      named sub-expr  | value of the named sub-expression
+      --------------- | -------------------------------------------
+      msg             | the error message
+      file            | the filename where the error occured
+      line            | the line number in the file where the error occured
+      xpath           | the XPath expression from the root element of the file to the element in the file where the error occured
+      ecount          | the embed count number where the error occured
+      sse             | undefined value but only defined if this is a subsequent error
+     
+      All these named sub-expressions may not be defined (see "Boost-Extended Format Syntax Syntax" on how to handle this).
+      If the environment variable MBXMLUTILS_ERROROUTPUT is not set then the following is used as default:
+      \verbatim
+      $+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:)
+      \endverbatim
+     
+      Beside the this default value also the following special values can be used for MBXMLUTILS_ERROROUTPUT:
+     
+      GCC: is equal to the default value above
+     
+      HTML: uses the following:
+      \verbatim
+      <a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:)
+      \endverbatim
+     
+      XPATH: uses the following:
+      \verbatim
+      <error file="$+{file}" xpath="$+{xpath}"(?{ecount} ecount="$+{ecount}":) sse="(?{sse}1:0)">$+{msg}</error>
+      \endverbatim
+     */
+    static std::string errorOutput(const xercesc::DOMLocator &loc, const std::string &message, bool subsequentError=false);
+
     void setContext(const xercesc::DOMElement *e, const xercesc::DOMAttr* a=nullptr);
     const std::string& getMessage() const { return errorMsg; }
     const std::vector<EmbedDOMLocator>& getLocationStack() const { return locationStack; }
