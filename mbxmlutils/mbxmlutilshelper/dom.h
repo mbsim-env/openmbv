@@ -168,7 +168,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
     const XMLCh *getURI() const override { return file; }
     int getEmbedCount() const { return embedCount; }
-    std::string getRootXPath() const { return xpath; }
+    std::string getRootXPathExpression() const { return xpath; }
   private:
     X x;
     const XMLCh *file;
@@ -265,6 +265,10 @@ class DOMElementWrapper {
     const xercesc::DOMElement *getFirstElementChildNamed(const FQN &name) const;
     //! Get first child element of the specified full qualified name
     xercesc::DOMElement *getFirstElementChildNamed(const FQN &name);
+    //! Get next sibling element of the specified full qualified name
+    const xercesc::DOMElement *getNextElementSiblingNamed(const FQN &name) const;
+    //! Get next sibling element of the specified full qualified name
+    xercesc::DOMElement *getNextElementSiblingNamed(const FQN &name);
     //! Get first child processing instruction of the specified target
     const xercesc::DOMProcessingInstruction *getFirstProcessingInstructionChildNamed(const std::string &target) const;
     //! Get first child processing instruction of the specified target
@@ -325,6 +329,9 @@ class DOMElementWrapper {
     //! Set the embed XPath count.
     //! Is store as a processing instruction child node.
     void setEmbedXPathCount(int xPathCount);
+    //! Get the XPath from the root element to this element.
+    //! The root element may not be the document itself if embedding has occured.
+    std::string getRootXPathExpression() const;
     //! Get the line number of the original element
     int getOriginalElementLineNumber() const;
     //! Set the line number of the original element
@@ -375,6 +382,9 @@ class DOMAttrWrapper {
     //! Check if the element is of type base
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &baseTypeName) const;
+    //! Get the XPath from the root element to this attribute.
+    //! The root element may not be the document itself if embedding has occured.
+    std::string getRootXPathExpression() const;
     //! Treat this object as a pointer (like DOMAttr*)
     typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
       const DOMAttrWrapper*, DOMAttrWrapper*>::type operator->() {
@@ -405,6 +415,10 @@ class DOMDocumentWrapper {
     xercesc::DOMElement* createElement(const FQN &name);
     //! Get full qualified tag name
     std::shared_ptr<DOMParser> getParser() const;
+    //! Get the node (DOMElement or DOMAttrType) corresponding the given xpathExpression relative to the root.
+    //! If context is nullptr than the root element is used.
+    //! Only a very small subset of XPath is supported by this function (just the one returned by getRootXPathExpression)
+    xercesc::DOMNode* evalRootXPathExpression(std::string xpathExpression, xercesc::DOMElement* context=nullptr);
     //! Treat this object as a pointer (like DOMDocument*)
     typename std::conditional<std::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
       const DOMDocumentWrapper*, DOMDocumentWrapper*>::type operator->() {

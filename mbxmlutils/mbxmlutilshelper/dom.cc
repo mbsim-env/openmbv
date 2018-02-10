@@ -3,6 +3,7 @@
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+#include <boost/scope_exit.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -11,6 +12,7 @@
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
+#include <xercesc/dom/DOMXPathNSResolver.hpp>
 #include <xercesc/parsers/AbstractDOMParser.hpp>
 #include <xercesc/framework/psvi/PSVIElement.hpp>
 #include <xercesc/framework/psvi/PSVIAttributeList.hpp>
@@ -231,6 +233,23 @@ DOMElement *DOMElementWrapper<DOMElementType>::getFirstElementChildNamed(const F
 };
 
 template<typename DOMElementType>
+const DOMElement *DOMElementWrapper<DOMElementType>::getNextElementSiblingNamed(const FQN &name) const {
+  for(DOMElement *ret=me->getNextElementSibling(); ret; ret=ret->getNextElementSibling())
+    if(E(ret)->getTagName()==name)
+      return ret;
+  return nullptr;
+};
+template const DOMElement *DOMElementWrapper<const DOMElement>::getNextElementSiblingNamed(const FQN &name) const; // explicit instantiate const variant
+
+template<typename DOMElementType>
+DOMElement *DOMElementWrapper<DOMElementType>::getNextElementSiblingNamed(const FQN &name) {
+  for(DOMElement *ret=me->getNextElementSibling(); ret; ret=ret->getNextElementSibling())
+    if(E(ret)->getTagName()==name)
+      return ret;
+  return nullptr;
+};
+
+template<typename DOMElementType>
 const DOMProcessingInstruction *DOMElementWrapper<DOMElementType>::getFirstProcessingInstructionChildNamed(const string &target) const {
   for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling()) {
     if(ret->getNodeType()!=DOMNode::PROCESSING_INSTRUCTION_NODE)
@@ -433,6 +452,39 @@ void DOMElementWrapper<DOMElementType>::setEmbedXPathCount(int xPathCount) {
 }
 
 template<typename DOMElementType>
+string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
+  const DOMElement *e=me;
+  const DOMElement *root=e->getOwnerDocument()->getDocumentElement();
+  string xpath;
+  while(true) {
+    // get tag name and namespace uri
+    FQN fqn=E(e)->getTagName();
+    // get xpath count
+    int count=1;
+    for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
+      if(E(ee)->getEmbedXPathCount()>0) {
+        count=E(ee)->getEmbedXPathCount()+1;
+        break;
+      }
+      if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+        count++;
+    }
+    // break or continue
+    if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
+      xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
+      if(root==e && E(e)->getEmbedXPathCount()>0)
+        xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
+      break;
+    }
+    else
+      xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
+    e=static_cast<const DOMElement*>(e->getParentNode());
+  }
+  return xpath;
+}
+template string DOMElementWrapper<const DOMElement>::getRootXPathExpression() const; // explicit instantiate const variant
+
+template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("OriginalElementLineNr");
   if(pi)
@@ -500,6 +552,12 @@ bool DOMAttrWrapper<DOMAttrType>::isDerivedFrom(const FQN &baseTypeName) const {
 }
 template bool DOMAttrWrapper<const DOMAttr>::isDerivedFrom(const FQN &baseTypeName) const; // explicit instantiate const variant
 
+template<typename DOMAttrType>
+string DOMAttrWrapper<DOMAttrType>::getRootXPathExpression() const {
+  return E(me->getOwnerElement())->getRootXPathExpression()+"/@"+X()%me->getNodeName();
+}
+template string DOMAttrWrapper<const DOMAttr>::getRootXPathExpression() const; // explicit instantiate const variant
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMAttrWrapper<DOMAttr>;
 
@@ -549,6 +607,45 @@ shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
 }
 template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
 
+template<typename DOMDocumentType>
+DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {
+  static const boost::regex re(R"q(/{([^}]+)}([^[]+)\[([0-9]+)\](.*))q");
+  if(!context) context=me->getDocumentElement();
+  DOMElement *p=context;
+  boost::smatch m;
+  bool first=true;
+  while(true) {
+    if(!boost::regex_match(xpathExpression, m, re)) break;
+    // special handling of the first element (the root element itself)
+    if(first && E(p)->getTagName()!=FQN(m.str(1), m.str(2)))
+      throw runtime_error("No matching node found for XPath expression.");
+    if(!first) {
+      p=E(p)->getFirstElementChildNamed(FQN(m.str(1), m.str(2)));
+      if(!p)
+        throw runtime_error("No matching node found for XPath expression.");
+      int count=boost::lexical_cast<int>(m.str(3));
+      for(int c=2; c<=count; ++c) {
+        p=E(p)->getNextElementSiblingNamed(FQN(m.str(1), m.str(2)));
+        if(!p)
+          throw runtime_error("No matching node found for XPath expression.");
+      }
+    }
+    xpathExpression=m.str(4);
+    first=false;
+  }
+  // finished?
+  if(xpathExpression.empty())
+    return p;
+  // handle attribute
+  if(xpathExpression.substr(0, 2)=="/@") {
+    DOMAttr *a=E(p)->getAttributeNode(xpathExpression.substr(2));
+    if(!a)
+      throw runtime_error("No matching node found for XPath expression.");
+    return a;
+  }
+  throw runtime_error("No matching node found for XPath expression.");
+}
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMDocumentWrapper<DOMDocument>;
 
@@ -560,63 +657,19 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e,
     setContext(e, a);
 }
 
-namespace {
-  string genRootXPath(const DOMNode *n) {
-    const DOMElement *e;
-    if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
-      e=static_cast<const DOMAttr*>(n)->getOwnerElement();
-    else if(n->getNodeType()==DOMNode::ELEMENT_NODE)
-      e=static_cast<const DOMElement*>(n);
-    else
-      throw runtime_error("Internal error: cannot handle this node type in genRootXPath.");
-  
-    const DOMElement *root=e->getOwnerDocument()->getDocumentElement();
-    string xpath;
-    while(true) {
-      // get tag name and namespace uri
-      FQN fqn=E(e)->getTagName();
-      // get xpath count
-      int count=1;
-      for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
-        if(E(ee)->getEmbedXPathCount()>0) {
-          count=E(ee)->getEmbedXPathCount()+1;
-          break;
-        }
-        if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
-          count++;
-      }
-      // break or continue
-      if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
-        xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
-        if(root==e && E(e)->getEmbedXPathCount()>0)
-          xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
-        break;
-      }
-      else
-        xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
-      e=static_cast<const DOMElement*>(e->getParentNode());
-    }
-
-    // append the attribute if its a attribute node
-    if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
-      xpath+="/@"+X()%n->getNodeName();
-
-    return xpath;
-  }
-}
-
-void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a, vector<EmbedDOMLocator> &locationStack) {
+void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a,
+                                             vector<EmbedDOMLocator> &locationStack) {
   const DOMElement *ee=e;
   const DOMElement *found;
   locationStack.clear();
   locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber(),
-    a?genRootXPath(a):genRootXPath(e));
+    a?A(a)->getRootXPathExpression():E(e)->getRootXPathExpression());
   ee=found;
   while(ee) {
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
       E(ee)->getOriginalElementLineNumber(),
       E(ee)->getEmbedCountNumber(),
-      genRootXPath(static_cast<const DOMElement*>(ee->getParentNode()))+"/{"+PV.getNamespaceURI()+"}Embed["+
+      E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
         to_string(E(ee)->getEmbedXPathCount())+"]");
     ee=found;
   }
@@ -641,15 +694,17 @@ string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &m
   string xpath;
   const EmbedDOMLocator *eLoc=dynamic_cast<const EmbedDOMLocator*>(&loc);
   if(eLoc)
-    xpath=eLoc->getRootXPath();
+    xpath=eLoc->getRootXPathExpression();
   else {
     const DOMNode *n=loc.getRelatedNode();
     if(n) {
       DOMNode::NodeType t=n->getNodeType();
-      if(t==DOMNode::ELEMENT_NODE || t==DOMNode::ATTRIBUTE_NODE)
-        xpath=genRootXPath(n);
+      if(t==DOMNode::ELEMENT_NODE)
+        xpath=E(static_cast<const DOMElement*>(n))->getRootXPathExpression();
+      if(t==DOMNode::ATTRIBUTE_NODE)
+        xpath=A(static_cast<const DOMAttr*>(n))->getRootXPathExpression();
       else if(t==DOMNode::TEXT_NODE)
-        xpath=genRootXPath(n->getParentNode());
+        xpath=E(static_cast<const DOMElement*>(n->getParentNode()))->getRootXPathExpression();
       else
         xpath="<noXPathAvailable>";
     }
@@ -662,8 +717,8 @@ string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &m
   string format(ev?ev:R"|($+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|");
   if(format=="HTML")
     format=R"|(<a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|";
-  else if(format=="XPATH")
-    format=R"|(<error file="$+{file}" xpath="$+{xpath}"(?{ecount} ecount="$+{ecount}":) sse="(?{sse}1:0)">$+{msg}</error>)|";
+  else if(format=="XPATHHTML")
+    format=R"|((?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)$+{file}(?{sse}:</a>)(?{msg}\: $+{msg}:))|";
 
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
@@ -675,7 +730,7 @@ string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &m
   str+="@xpath"+xpath;
   str+="@ecount"+(eLoc && eLoc->getEmbedCount()>0?to_string(eLoc->getEmbedCount()):"");
   str+="@sse"+(subsequentError?string("x"):"");
-  static boost::regex re(
+  static const boost::regex re(
     R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
   // apply substitutions
