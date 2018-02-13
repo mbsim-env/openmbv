@@ -209,7 +209,7 @@ pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
 pluginsaccessibledir = @bindir@/accessible
 pluginsaccessible_DATA = @QT_PLUGINS@/accessible/*qtaccessiblewidgets*
 pluginsaccessiblebridgedir = @bindir@/accessiblebridge
-pluginsaccessiblebridge_DATA = @QT_PLUGINS@/accessiblebridge/*qspiaccessiblebridge*
+#pluginsaccessiblebridge_DATA = @QT_PLUGINS@/accessiblebridge/*qspiaccessiblebridge* # not available on centos7
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc openmbv.svg
