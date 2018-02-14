@@ -666,11 +666,16 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const
     a?A(a)->getRootXPathExpression():E(e)->getRootXPathExpression());
   ee=found;
   while(ee) {
+    string xpath;
+    if(ee->getParentNode())
+      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
+        to_string(E(ee)->getEmbedXPathCount())+"]";
+    else
+      xpath="<no xpath available>";
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
       E(ee)->getOriginalElementLineNumber(),
       E(ee)->getEmbedCountNumber(),
-      E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
-        to_string(E(ee)->getEmbedXPathCount())+"]");
+      xpath);
     ee=found;
   }
 }

@@ -362,7 +362,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
     }
     catch(const std::exception&) {
       // 'ret' variable not found or invalid expression
-      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\nX"+str, e);
+      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+str, e);
     }
   }
   // convert a list or list of lists to a numpy array
