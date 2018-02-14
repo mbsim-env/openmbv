@@ -311,16 +311,7 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
   }
   if(!me)
     throw runtime_error("Invalid call. Null pointer dereference.");
-  string uri=X()%me->getOwnerDocument()->getDocumentURI();
-  static const string fileScheme="file://";
-  if(uri.substr(0, fileScheme.length())!=fileScheme)
-    throw runtime_error("Only local filenames are allowed.");
-#ifdef _WIN32
-  int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
-#else
-  int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
-#endif
-  return uri.substr(fileScheme.length() + addChars);
+  return D(me->getOwnerDocument())->getDocumentFilename();
 }
 template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skipThis, const DOMElement *&found) const; // explicit instantiate const variant
 
@@ -606,6 +597,21 @@ shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
   return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
 }
 template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
+
+template<typename DOMDocumentType>
+path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
+  string uri=X()%me->getDocumentURI();
+  static const string fileScheme="file://";
+  if(uri.substr(0, fileScheme.length())!=fileScheme)
+    throw runtime_error("Only local filenames are allowed.");
+#ifdef _WIN32
+  int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
+#else
+  int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
+#endif
+  return uri.substr(fileScheme.length() + addChars);
+}
+template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
 
 template<typename DOMDocumentType>
 DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {

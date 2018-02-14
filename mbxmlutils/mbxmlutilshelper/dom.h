@@ -415,6 +415,9 @@ class DOMDocumentWrapper {
     xercesc::DOMElement* createElement(const FQN &name);
     //! Get full qualified tag name
     std::shared_ptr<DOMParser> getParser() const;
+    //! Get the filename of the document.
+    //! This is the same as getDocumentURI but with the file schema removed.
+    boost::filesystem::path getDocumentFilename() const;
     //! Get the node (DOMElement or DOMAttrType) corresponding the given xpathExpression relative to the root.
     //! If context is nullptr than the root element is used.
     //! Only a very small subset of XPath is supported by this function (just the one returned by getRootXPathExpression)
