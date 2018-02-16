@@ -725,11 +725,13 @@ string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &m
 
   // get MBXMLUTILS_ERROROUTPUT
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
-  string format(ev?ev:R"|($+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|");
-  if(format=="HTML")
-    format=R"|(<a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|";
-  else if(format=="XPATHHTML")
-    format=R"|((?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)$+{file}(?{sse}:</a>)(?{msg}\: $+{msg}:))|";
+  string format(ev?ev:"GCC");
+  if(format=="GCC")
+    format=R"|($+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|";
+  else if(format=="HTMLFILELINE")
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT"><a class="FILELINE" href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=<span class="ECOUNT">$+{ecount}</span>]:)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>)|";
+  else if(format=="HTMLXPATH")
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT">(?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)<span class="FILE" data-xpath="$+{xpath}" data-ecount="$+{ecount}">$+{file}</span>(?{sse}:</a>)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>)|";
 
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing

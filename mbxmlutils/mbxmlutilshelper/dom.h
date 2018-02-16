@@ -230,14 +230,14 @@ class DOMEvalException : public std::exception {
      
       GCC: is equal to the default value above
      
-      HTML: uses the following:
+      HTMLFILELINE: uses the following:
       \verbatim
-      <a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:)
+      <span class="MBXMLUTILS_ERROROUTPUT"><a class="FILELINE" href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=<span class="ECOUNT">$+{ecount}</span>]:)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>
       \endverbatim
      
-      XPATH: uses the following:
+      HTMLXPATH: uses the following:
       \verbatim
-      <error file="$+{file}" xpath="$+{xpath}"(?{ecount} ecount="$+{ecount}":) sse="(?{sse}1:0)">$+{msg}</error>
+      <span class="MBXMLUTILS_ERROROUTPUT">(?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)<span class="FILE" data-xpath="$+{xpath}" data-ecount="$+{ecount}">$+{file}</span>(?{sse}:</a>)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>
       \endverbatim
      */
     static std::string errorOutput(const xercesc::DOMLocator &loc, const std::string &message, bool subsequentError=false);
