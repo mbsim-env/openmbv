@@ -77,7 +77,6 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           bind(&DOMElement::release, _1));
       }
       else { // or take the child element (inlineEmbedEle)
-        E(inlineEmbedEle)->setOriginalFilename();
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
           bind(&DOMElement::release, _1));
       }
