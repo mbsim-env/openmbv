@@ -467,8 +467,13 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
         xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
       break;
     }
-    else
+    else {
+      if(E(e)->getEmbedXPathCount()>0)
+        count=1;
       xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
+      if(E(e)->getEmbedXPathCount()>0)
+        xpath="/{"+PV.getNamespaceURI()+"}Embed["+to_string(E(e)->getEmbedXPathCount())+"]"+xpath;
+    }
     e=static_cast<const DOMElement*>(e->getParentNode());
   }
   return xpath;
@@ -687,13 +692,13 @@ void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, const
 }
 
 string DOMEvalException::errorLocationOutput(const string &indent, const vector<EmbedDOMLocator> &locationStack,
-                                             const string &message) {
+                                             const string &message, bool subsequentError) {
   string ret;
   if(!locationStack.empty()) {
     auto it=locationStack.begin();
-    ret+=indent+errorOutput(*it, message)+"\n";
+    ret+=indent+errorOutput(*it, message, subsequentError)+"\n";
     for(it++; it!=locationStack.end(); it++)
-      ret+=indent+"included by "+errorOutput(*it, "", true)+"\n";
+      ret+=indent+errorOutput(*it, "included from here", true)+"\n";
   }
   else
     ret+=message;
@@ -727,11 +732,11 @@ string DOMEvalException::errorOutput(const DOMLocator &loc, const std::string &m
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
   if(format=="GCC")
-    format=R"|($+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:))|";
+    format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
   else if(format=="HTMLFILELINE")
-    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT"><a class="FILELINE" href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=<span class="ECOUNT">$+{ecount}</span>]:)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>)|";
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:) <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
   else if(format=="HTMLXPATH")
-    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT">(?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)<span class="FILE" data-xpath="$+{xpath}" data-ecount="$+{ecount}">$+{file}</span>(?{sse}:</a>)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>)|";
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">$+{file}</a>: <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
 
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing

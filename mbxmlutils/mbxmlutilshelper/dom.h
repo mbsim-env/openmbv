@@ -204,7 +204,7 @@ class DOMEvalException : public std::exception {
     static void generateLocationStack(const xercesc::DOMElement *e, const xercesc::DOMAttr *a,
                                       std::vector<EmbedDOMLocator> &locationStack);
     static std::string errorLocationOutput(const std::string &indent, const std::vector<EmbedDOMLocator> &locationStack,
-                                           const std::string &message="");
+                                           const std::string &message="", bool subsequentError=false);
 
     /** Convert a error location and error message for outputting it to the console.
       The behaviour of this function can be adapted by the environment variable MBXMLUTILS_ERROROUTPUT.
@@ -221,24 +221,12 @@ class DOMEvalException : public std::exception {
       sse             | undefined value but only defined if this is a subsequent error
      
       All these named sub-expressions may not be defined (see "Boost-Extended Format Syntax Syntax" on how to handle this).
-      If the environment variable MBXMLUTILS_ERROROUTPUT is not set then the following is used as default:
-      \verbatim
-      $+{file}(?{line}\:$+{line}:)(?{ecount}[count=$+{ecount}]:)(?{msg}\: $+{msg}:)
-      \endverbatim
+      If the environment variable MBXMLUTILS_ERROROUTPUT is not set then the default GCC is used.
      
-      Beside the this default value also the following special values can be used for MBXMLUTILS_ERROROUTPUT:
-     
-      GCC: is equal to the default value above
-     
-      HTMLFILELINE: uses the following:
-      \verbatim
-      <span class="MBXMLUTILS_ERROROUTPUT"><a class="FILELINE" href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount}[count=<span class="ECOUNT">$+{ecount}</span>]:)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>
-      \endverbatim
-     
-      HTMLXPATH: uses the following:
-      \verbatim
-      <span class="MBXMLUTILS_ERROROUTPUT">(?{sse}:<a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">)<span class="FILE" data-xpath="$+{xpath}" data-ecount="$+{ecount}">$+{file}</span>(?{sse}:</a>)(?{msg}\: <span class="MSG">$+{msg}</span>:)</span>
-      \endverbatim
+      The following values for MBXMLUTILS_ERROROUTPUT are interpreted as an internally defined expression:
+      GCC: use gcc style output
+      HTMLFILELINE: use HTML like output with a link with filename and line number
+      HTMLXPATH: use HTML like output with a link with filename and xpath expression
      */
     static std::string errorOutput(const xercesc::DOMLocator &loc, const std::string &message, bool subsequentError=false);
 
