@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
       // validate main file and get DOM
       cout<<"Read and validate "<<mainxml<<endl;
-      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
+      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies, false);
       dependencies.push_back(mainxml);
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
 
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
       E(mainxmlele)->setOriginalFilename();
       DOMParser::serialize(mainxmldoc.get(), mainxmlpp, false);
       cout<<"Validate preprocessed file"<<endl;
-      parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
+      parser->parse(mainxmlpp, nullptr, false); // = D(mainxmldoc)->validate() (serialization is already done)
     }
 
     // output dependencies?

@@ -71,7 +71,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // validate/load if file is given
       if(!file.empty()) {
         eval->msg(Info)<<"Read and validate "<<file<<endl;
-        shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies);
+        shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies, false);
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
           bind(&DOMElement::release, _1));
@@ -111,7 +111,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         dependencies.push_back(paramFile);
         // validate and local parameter file
         eval->msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
-        localparamxmldoc=parser->parse(paramFile, &dependencies);
+        localparamxmldoc=parser->parse(paramFile, &dependencies, false);
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),

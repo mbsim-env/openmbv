@@ -938,9 +938,16 @@ void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const
   registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
-void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies) {
+void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies, bool doXInclude) {
   // handle xinclude
   if(E(e)->getTagName()==XINCLUDE%"include") {
+    if(!doXInclude) {
+      cout<<DOMEvalException::errorOutput(
+        EmbedDOMLocator(E(e)->getOriginalFilename(false), E(e)->getLineNumber(), E(e)->getEmbedCountNumber(),
+                        E(e)->getRootXPathExpression()),
+        "XML XInclude element found but XInclude is not allowed.")<<endl;
+      throw runtime_error("Found XML XInclude when parsing document, see above error.");
+    }
     path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
     if(dependencies)
       dependencies->push_back(incFile);
@@ -967,12 +974,12 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
     }
   // walk tree
   for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
-    handleXIncludeAndCDATA(c, dependencies);
+    handleXIncludeAndCDATA(c, dependencies, doXInclude);
     if(c==nullptr) break;
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies) {
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
@@ -989,7 +996,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
-  handleXIncludeAndCDATA(root, dependencies);
+  handleXIncludeAndCDATA(root, dependencies, doXInclude);
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   // return DOM document

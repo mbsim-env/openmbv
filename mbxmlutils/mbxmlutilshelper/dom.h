@@ -470,8 +470,10 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! Create DOM parser
     static std::shared_ptr<DOMParser> create(const std::set<boost::filesystem::path> &schemas={});
     //! Parse a XML document
+    //! Track file dependencies if dependencies is not null.
+    //! Allow XML XInclude if doXInclude is true.
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
-                                                  std::vector<boost::filesystem::path> *dependencies=nullptr);
+                                                std::vector<boost::filesystem::path> *dependencies=nullptr, bool doXInclude=true);
     //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
@@ -501,7 +503,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     static DOMParserUserDataHandler userDataHandler;
     std::map<std::string, boost::filesystem::path> registeredGrammar;
 
-    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies=nullptr);
+    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies, bool doXInclude);
 };
 
 }
