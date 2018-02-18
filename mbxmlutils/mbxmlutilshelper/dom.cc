@@ -938,26 +938,7 @@ void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const
   registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
-void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies, bool doXInclude) {
-  // handle xinclude
-  if(E(e)->getTagName()==XINCLUDE%"include") {
-    if(!doXInclude) {
-      cout<<DOMEvalException::errorOutput(
-        EmbedDOMLocator(E(e)->getOriginalFilename(false), E(e)->getLineNumber(), E(e)->getEmbedCountNumber(),
-                        E(e)->getRootXPathExpression()),
-        "XML XInclude element found but XInclude is not allowed.")<<endl;
-      throw runtime_error("Found XML XInclude when parsing document, see above error.");
-    }
-    path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
-    if(dependencies)
-      dependencies->push_back(incFile);
-    shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile, dependencies);
-    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
-    DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
-    e->getParentNode()->replaceChild(incNode, e)->release();
-    e=static_cast<DOMElement*>(incNode);
-    return;
-  }
+void DOMParser::handleCDATA(DOMElement *e) {
   // combine CDATA and text nodes
   for(DOMNode *c=e->getFirstChild(); c!=nullptr; c=c->getNextSibling())
     if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
@@ -974,7 +955,27 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
     }
   // walk tree
   for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
-    handleXIncludeAndCDATA(c, dependencies, doXInclude);
+    handleCDATA(c);
+    if(c==nullptr) break;
+  }
+}
+
+void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
+  // handle xinclude
+  if(E(e)->getTagName()==XINCLUDE%"include") {
+    path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
+    if(dependencies)
+      dependencies->push_back(incFile);
+    shared_ptr<xercesc::DOMDocument> incDoc=D(e->getOwnerDocument())->getParser()->parse(incFile, dependencies);
+    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
+    DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
+    e->getParentNode()->replaceChild(incNode, e)->release();
+    e=static_cast<DOMElement*>(incNode);
+    return;
+  }
+  // walk tree
+  for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
+    handleXInclude(c, dependencies);
     if(c==nullptr) break;
   }
 }
@@ -988,6 +989,8 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   if(errorHandler.getNumErrors()>0)
     throw runtime_error(str(boost::format("Validation failed: %1% Errors, %2% Warnings, see above.")%
       errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
+  // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
+  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   // set file name
   DOMElement *root=doc->getDocumentElement();
   if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
@@ -996,9 +999,9 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
-  handleXIncludeAndCDATA(root, dependencies, doXInclude);
-  // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  handleCDATA(root);
+  if(doXInclude)
+    handleXInclude(root, dependencies);
   // return DOM document
   return doc;
 }

@@ -484,6 +484,8 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     void resetCachedGrammarPool();
     //! create a empty document
     std::shared_ptr<xercesc::DOMDocument> createDocument();
+    //! handle CDATA sections
+    static void handleCDATA(xercesc::DOMElement *e);
   private:
     static const std::string domParserKey;
 
@@ -503,7 +505,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     static DOMParserUserDataHandler userDataHandler;
     std::map<std::string, boost::filesystem::path> registeredGrammar;
 
-    void handleXIncludeAndCDATA(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies, bool doXInclude);
+    static void handleXInclude(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies);
 };
 
 }
