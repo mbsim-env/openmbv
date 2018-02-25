@@ -271,7 +271,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
       Value casadiSX=createSwig<SX*>();
       SX *arg;
-      try { arg=cast<SX*>(casadiSX); } RETHROW_MBXMLUTILS(e)
+      try { arg=cast<SX*>(casadiSX); } RETHROW_AS_DOMEVALEXCEPTION(e)
       *arg=SX::sym(X()%a->getValue(), dim, 1);
       addParam(X()%a->getValue(), casadiSX);
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
@@ -301,7 +301,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
         SX Mele;
-        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } RETHROW_MBXMLUTILS(e)
+        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } RETHROW_AS_DOMEVALEXCEPTION(e)
         if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
         M(i,0)=Mele(0,0);
       }
@@ -333,7 +333,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
           SX Mele;
-          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } RETHROW_MBXMLUTILS(e)
+          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } RETHROW_AS_DOMEVALEXCEPTION(e)
           if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
           M(i,0)=Mele(0,0);
         }
@@ -395,7 +395,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       vector<Value> args(1);
       args[0]=angle;
       Value ret;
-      try { ret=callFunction(string("rotateAbout")+ch, args); } RETHROW_MBXMLUTILS(ec)
+      try { ret=callFunction(string("rotateAbout")+ch, args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
       return ret;
     }
   }
@@ -419,7 +419,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       ele=ele->getNextElementSibling();
       angles[2]=handleUnit(ec, eval(ele));
       Value ret;
-      try { ret=callFunction(rotFuncName[i], angles); } RETHROW_MBXMLUTILS(ec)
+      try { ret=callFunction(rotFuncName[i], angles); } RETHROW_AS_DOMEVALEXCEPTION(ec)
       return ret;
     }
   }
@@ -440,7 +440,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     Value ret;
     vector<Value> args(1);
     args[0]=fileName;
-    try { ret=callFunction("load", args); } RETHROW_MBXMLUTILS(ec)
+    try { ret=callFunction("load", args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
     handleUnit(e, ret);
     return ret;
   }
@@ -473,85 +473,85 @@ Eval::Value Eval::eval(const DOMElement *e) {
   throw DOMEvalException("Dont know how to evaluate this element", e);
 }
 
-Eval::Value Eval::eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe) {
+Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
   bool fullEval;
   if(A(a)->isDerivedFrom(PV%"fullEval"))
     fullEval=true;
   else if(A(a)->isDerivedFrom(PV%"partialEval"))
     fullEval=false;
   else
-    throw DOMEvalException("Unknown XML attribute type", pe, a);
+    throw DOMEvalException("Unknown XML attribute type", a);
 
   // evaluate attribute fully
   if(fullEval) {
-    Value ret=stringToValue(X()%a->getValue(), pe);
+    Value ret=stringToValue(X()%a->getValue(), a->getOwnerElement());
     if(A(a)->isDerivedFrom(PV%"floatFullEval")) {
       if(!valueIsOfType(ret, ScalarType))
-        throw DOMEvalException("Value is not of type scalar float", pe, a);
+        throw DOMEvalException("Value is not of type scalar float", a);
     }
     else if(A(a)->isDerivedFrom(PV%"stringFullEval")) {
       if(!valueIsOfType(ret, StringType)) // also filenameFullEval
-        throw DOMEvalException("Value is not of type scalar string", pe, a);
+        throw DOMEvalException("Value is not of type scalar string", a);
     }
     else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
-      try { cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
+      try { cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
     }
     else if(A(a)->isDerivedFrom(PV%"booleanFullEval")) {
       int value;
-      try { value=cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
+      try { value=cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
       if(value!=0 && value!=1)
-        throw DOMEvalException("Value is not of type scalar boolean", pe, a);
+        throw DOMEvalException("Value is not of type scalar boolean", a);
     }
     else if(A(a)->isDerivedFrom(PV%"indexFullEval")) {
-      try { cast<int>(ret); } RETHROW_MBXMLUTILS(pe);
+      try { cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
       convertIndex(ret, true);
     }
     else
-      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
+      throw DOMEvalException("Unknown XML attribute type for evaluation", a);
 
     // add filenames to dependencies
     if(dependencies && A(a)->isDerivedFrom(PV%"filenameFullEval"))
-      dependencies->push_back(E(pe)->convertPath(cast<string>(ret)));
+      dependencies->push_back(E(a->getOwnerElement())->convertPath(cast<string>(ret)));
 
     return ret;
   }
   // evaluate attribute partially
   else {
     Value ret;
-    string s=partialStringToString(X()%a->getValue(), pe);
+    string s=partialStringToString(X()%a->getValue(), a->getOwnerElement());
     if(A(a)->isDerivedFrom(PV%"varnamePartialEval")) { // also symbolicFunctionArgNameType
       if(s.length()<1)
-        throw DOMEvalException("A variable name must consist of at least 1 character", pe, a);
+        throw DOMEvalException("A variable name must consist of at least 1 character", a);
       if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
-        throw DOMEvalException("A variable name start with _, a-z or A-Z", pe, a);
+        throw DOMEvalException("A variable name start with _, a-z or A-Z", a);
       for(size_t i=1; i<s.length(); i++)
         if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z')))
-          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", pe, a);
+          throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", a);
       ret=create(s);
     }
     else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
       try { ret=create(boost::lexical_cast<double>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", a); }
     else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
       try { ret=create(s); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", a); }
     else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
       try { ret=create<double>(boost::lexical_cast<int>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", a); }
     else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
       try { ret=create<double>(boost::lexical_cast<bool>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", a); }
     else if(A(a)->isDerivedFrom(PV%"indexPartialEval")) {
       try { ret=create<double>(boost::lexical_cast<int>(s)); }
-      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", pe, a); }
+      catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", a); }
       convertIndex(ret, true);
     }
     else
-      throw DOMEvalException("Unknown XML attribute type for evaluation", pe, a);
+      throw DOMEvalException("Unknown XML attribute type for evaluation", a);
 
     // add filenames to dependencies
     if(dependencies && A(a)->isDerivedFrom(PV%"filenamePartialEval"))
-      dependencies->push_back(E(pe)->convertPath(s));
+      dependencies->push_back(E(a->getOwnerElement())->convertPath(s));
 
     return ret;
   }
@@ -615,7 +615,7 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
         subst=cast<string>(ret);
       else
         throw runtime_error("Partial evaluations can only be of type scalar or string.");
-    } RETHROW_MBXMLUTILS(e);
+    } RETHROW_AS_DOMEVALEXCEPTION(e);
     s=s.substr(0,i)+subst+s.substr(j+1);
   }
   return s;
@@ -631,7 +631,7 @@ Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool ful
 DOMElement* Eval::cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const {
   if(valueIsOfType(value, FunctionType))
     return convertCasADiToXML(cast<Function>(value), doc);
-  throw DOMEvalException("Cannot cast this value to DOMElement*.");
+  throw runtime_error("Cannot cast this value to DOMElement*.");
 }
 
 CodeString Eval::cast_CodeString(const Value &value) const {
@@ -669,7 +669,7 @@ CodeString Eval::cast_CodeString(const Value &value) const {
     return ret.str();
   }
   else
-    throw DOMEvalException("Cannot cast this value to a evaluator code string.");
+    throw runtime_error("Cannot cast this value to a evaluator code string.");
 }
 
 int Eval::cast_int(const Value &value) const {
@@ -679,7 +679,7 @@ int Eval::cast_int(const Value &value) const {
   int i=lround(d);
   double delta=fabs(d-i);
   if(delta>eps*i && delta>eps)
-    throw DOMEvalException("Canot cast this value to int.");
+    throw runtime_error("Canot cast this value to int.");
   return i;
 }
 
@@ -688,7 +688,7 @@ SX Eval::cast_SX(const Value &value) const {
   try {
     return *cast<SX*>(value);
   }
-  catch(const DOMEvalException &ex) {}
+  catch(...) {}
   // try to cast to vector<vector<double> >. If this works convert it to SX
   try {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
@@ -699,9 +699,9 @@ SX Eval::cast_SX(const Value &value) const {
         M(r,c)=m[r][c];
     return M;
   }
-  catch(const DOMEvalException &ex) {}
+  catch(...) {}
   // if this also fails -> error
-  throw DOMEvalException("Cannot cast this value to SX");
+  throw runtime_error("Cannot cast this value to SX");
 }
 
 void Eval::addStaticDependencies(const DOMElement *e) const {

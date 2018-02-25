@@ -98,8 +98,6 @@ namespace {
   };
   template<int T> std::streambuf *Block<T>::orgcxxx;
   template<int T> int Block<T>::disableCount=0;
-  #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
-  #define MBXMLUTILS_EVAL_CONCAT(X, Y) MBXMLUTILS_EVAL_CONCAT1(X, Y)
   #define BLOCK_STDOUT Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstdout_, __LINE__)(std::cout)
   #define BLOCK_STDERR Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstderr_, __LINE__)(std::cerr)
   #define REDIR_STDOUT(buf) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(std::cout, buf)
@@ -108,7 +106,7 @@ namespace {
 
 namespace MBXMLUtils {
 
-XMLUTILS_EVAL_REGISTER(OctEval)
+MBXMLUTILS_EVAL_REGISTER(OctEval)
 
 // Helper class to init/deinit octave on library load/unload (unload=program end)
 class OctInit {
@@ -226,13 +224,13 @@ inline Eval::Value C(const octave_value &value) {
 string OctEval::cast_string(const Eval::Value &value) const {
   if(valueIsOfType(value, StringType))
     return C(value)->string_value();
-  throw DOMEvalException("Cannot cast this value to string.");
+  throw runtime_error("Cannot cast this value to string.");
 }
 
 double OctEval::cast_double(const Eval::Value &value) const {
   if(valueIsOfType(value, ScalarType))
     return C(value)->double_value();
-  throw DOMEvalException("Cannot cast this value to double.");
+  throw runtime_error("Cannot cast this value to double.");
 }
 
 vector<double> OctEval::cast_vector_double(const Eval::Value &value) const {
@@ -245,7 +243,7 @@ vector<double> OctEval::cast_vector_double(const Eval::Value &value) const {
       ret[i]=m(i, 0);
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to vector<double>.");
+  throw runtime_error("Cannot cast this value to vector<double>.");
 }
 
 vector<vector<double> > OctEval::cast_vector_vector_double(const Eval::Value &value) const {
@@ -266,7 +264,7 @@ vector<vector<double> > OctEval::cast_vector_vector_double(const Eval::Value &va
         ret[r][c]=m(r, c);
     return ret;
   }
-  throw DOMEvalException("Cannot cast this value to vector<vector<double> >.");
+  throw runtime_error("Cannot cast this value to vector<vector<double> >.");
 }
 
 Eval::Value OctEval::create_double(const double& v) const {
@@ -341,7 +339,7 @@ void OctEval::addImport(const string &code, const DOMElement *e) {
     for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
       if(it->path().extension()==".m")
         dependencies->push_back(it->path());
-  } RETHROW_MBXMLUTILS(e)
+  } RETHROW_AS_DOMEVALEXCEPTION(e)
 }
 
 Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) const {
@@ -375,13 +373,13 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=symbol_table::find_function("path").function_value(); // get ones a pointer for performance reasons
   string curPath;
-  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_MBXMLUTILS(e)
+  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_AS_DOMEVALEXCEPTION(e)
   string &currentPath=*static_pointer_cast<string>(currentImport);
   if(curPath!=currentPath)
   {
     // set path
     try { fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
-      "Unable to set the octave search path "+currentPath); } RETHROW_MBXMLUTILS(e)
+      "Unable to set the octave search path "+currentPath); } RETHROW_AS_DOMEVALEXCEPTION(e)
   }
 
   ostringstream err;
@@ -470,7 +468,7 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
   }
   if(error_state!=0) {
     error_state=0;
-    throw DOMEvalException(err.str()+msg);
+    throw runtime_error(err.str()+msg);
   }
   return ret;
 }
@@ -481,7 +479,7 @@ void* OctEval::getSwigThis(const Value &value) const {
   // get the casadi pointer: octave returns a 64bit integer which represents the pointer
   shared_ptr<octave_value> v=C(value);
   if(v->class_name()!="swig_ref")
-    throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
+    throw runtime_error("This value is not a reference to a SWIG wrapped object.");
   octave_value swigThis=fevalThrow(swig_this, *v, 1, "Cannot get pointer to the SWIG wrapped object.")(0);
   return reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
 }
@@ -489,7 +487,7 @@ void* OctEval::getSwigThis(const Value &value) const {
 string OctEval::getSwigType(const Value &value) const {
   shared_ptr<octave_value> v=C(value);
   if(v->class_name()!="swig_ref")
-    throw DOMEvalException("This value is not a reference to a SWIG wrapped object.");
+    throw runtime_error("This value is not a reference to a SWIG wrapped object.");
   // get the swig type (get ones a pointer to swig_type for performance reasons)
   static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
   return fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();

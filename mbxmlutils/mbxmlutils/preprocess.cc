@@ -38,7 +38,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // get file name if href attribute exist
       path file;
       if(E(e)->hasAttribute("href")) {
-        Eval::Value ret=eval->eval(E(e)->getAttributeNode("href"), e);
+        Eval::Value ret=eval->eval(E(e)->getAttributeNode("href"));
         string subst;
         try {
           if(eval->valueIsOfType(ret, Eval::ScalarType))
@@ -51,8 +51,8 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           else if(eval->valueIsOfType(ret, Eval::StringType))
             subst=eval->cast<string>(ret);
           else
-            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", e, E(e)->getAttributeNode("href"));
-        } RETHROW_MBXMLUTILS(e)
+            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", E(e)->getAttributeNode("href"));
+        } RETHROW_AS_DOMEVALEXCEPTION(e)
         file=E(e)->convertPath(subst);
         dependencies.push_back(file);
       }
@@ -60,18 +60,25 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // evaluate count using parameters
       long count=1;
       if(E(e)->hasAttribute("count"))
-        try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"), e)); } RETHROW_MBXMLUTILS(e)
+        try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
     
       // couter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName"))
-        try { counterName=eval->cast<string>(eval->eval(E(e)->getAttributeNode("counterName"), e)); } RETHROW_MBXMLUTILS(e)
+        try { counterName=eval->cast<string>(eval->eval(E(e)->getAttributeNode("counterName"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
         eval->msg(Info)<<"Read and validate "<<file<<endl;
-        shared_ptr<DOMDocument> newdoc=parser->parse(file, &dependencies, false);
+        shared_ptr<DOMDocument> newdoc;
+        try {
+          newdoc=parser->parse(file, &dependencies, false);
+        }
+        catch(DOMEvalException& ex) {
+          ex.appendContext(e),
+          throw ex;
+        }
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
           bind(&DOMElement::release, _1));
@@ -103,9 +110,9 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
-        Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"), e);
+        Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"));
         string subst;
-        try { subst=eval->cast<string>(ret); } RETHROW_MBXMLUTILS(e)
+        try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
         path paramFile=E(e)->convertPath(subst);
         // add local parameter file to dependencies
         dependencies.push_back(paramFile);
@@ -177,7 +184,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // embed only if 'onlyif' attribute is true
         bool onlyif=true;
         if(E(embed)->hasAttribute("onlyif"))
-          try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif"), embed))==1); } RETHROW_MBXMLUTILS(embed)
+          try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif")))==1); } RETHROW_AS_DOMEVALEXCEPTION(embed)
         if(onlyif) {
           realCount++;
           eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
@@ -223,7 +230,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // skip attributes which are not evaluated
         if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
           continue;
-        Eval::Value value=eval->eval(a, e);
+        Eval::Value value=eval->eval(a);
         string s;
         try {
           if(eval->valueIsOfType(value, Eval::ScalarType))
@@ -236,8 +243,8 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           else if(eval->valueIsOfType(value, Eval::StringType))
             s=eval->cast<string>(value);
           else
-            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", e, a);
-        } RETHROW_MBXMLUTILS(e)
+            throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", a);
+        } RETHROW_AS_DOMEVALEXCEPTION(e)
 
         // attributes of type qnamePartialEval need special handling
         if(A(a)->isDerivedFrom(PV%"qnamePartialEval")) {
@@ -245,7 +252,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           if(s.length()>0 && s[0]=='[') {
             size_t c=s.find(']');
             if(c==string::npos)
-              throw DOMEvalException("QName attribute value defined by [<uri>]<localname> syntax but no ] found.", e, a);
+              throw DOMEvalException("QName attribute value defined by [<uri>]<localname> syntax but no ] found.", a);
             E(e)->setAttribute(X()%a->getName(), FQN(s.substr(1,c-1), s.substr(c+1)));
           }
           else
@@ -280,7 +287,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
             node=eval->cast<DOMElement*>(value, doc);
           else
             node=doc->createTextNode(X()%eval->cast<CodeString>(value));
-        } RETHROW_MBXMLUTILS(e)
+        } RETHROW_AS_DOMEVALEXCEPTION(e)
         e->appendChild(node);
       }
 
@@ -305,7 +312,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath, embedXPathCount);
       c=n;
     }
-  } RETHROW_MBXMLUTILS(e);
+  } RETHROW_AS_DOMEVALEXCEPTION(e);
 }
 
 }

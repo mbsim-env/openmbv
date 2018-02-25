@@ -41,7 +41,7 @@ double arrayScalarGetDouble(PyObject *o);
 
 namespace MBXMLUtils {
 
-XMLUTILS_EVAL_REGISTER(PyEval)
+MBXMLUTILS_EVAL_REGISTER(PyEval)
 
 // Helper class to init/deinit Python on library load/unload (unload=program end)
 class PyInit {
@@ -202,7 +202,7 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
     case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
     case FunctionType: return false;
   }
-  throw DOMEvalException("Internal error: Unknwon ValueType.");
+  throw runtime_error("Internal error: Unknwon ValueType.");
 }
 
 path relative(const path& abs, const path& relTo) {
