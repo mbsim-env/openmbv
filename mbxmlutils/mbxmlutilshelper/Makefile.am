@@ -16,7 +16,7 @@ dist_w3cschema_DATA = XInclude.xsd
 bin_PROGRAMS = mbxmlutilsvalidate
 mbxmlutilsvalidate_SOURCES = validate.cc
 mbxmlutilsvalidate_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS)
 
 
 pythondir = @datadir@/@PACKAGE@/python

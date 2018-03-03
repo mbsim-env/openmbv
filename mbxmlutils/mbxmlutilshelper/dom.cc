@@ -575,7 +575,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
   // parse from memory
   shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
-  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%"<internal>", false);
+  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, me->getDocumentURI(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&DOMDocument::release, _1));
@@ -669,22 +669,20 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
 DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::DOMLocator &loc) {
   // store error message
   errorMsg=errorMsg_;
-  // location without a stack
+
+  // location with a stack
   const DOMNode *n=loc.getRelatedNode();
-  string xpath;
   if(n->getNodeType()==DOMNode::ELEMENT_NODE)
-    xpath=E(static_cast<const DOMElement*>(n))->getRootXPathExpression();
+    appendContext(n, loc.getLineNumber());
   else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
-    xpath=A(static_cast<const DOMAttr*>(n))->getRootXPathExpression();
+    appendContext(n, loc.getLineNumber());
   else if(n->getNodeType()==DOMNode::TEXT_NODE)
-    xpath=E(static_cast<const DOMElement*>(n->getParentNode()))->getRootXPathExpression();
+    appendContext(n->getParentNode(), loc.getLineNumber());
   else
     assert(false && "DOMEvalException can only be called with a DOMLocator of node type element, attribute or text.");
-
-  locationStack.emplace_back(X()%loc.getURI(), loc.getLineNumber(), 0, xpath);
 }
 
-void DOMEvalException::appendContext(const DOMNode *n) {
+void DOMEvalException::appendContext(const DOMNode *n, int lineNr) {
   const DOMElement *ee;
   if(n->getNodeType()==DOMNode::ELEMENT_NODE)
     ee=static_cast<const DOMElement*>(n);
@@ -694,7 +692,9 @@ void DOMEvalException::appendContext(const DOMNode *n) {
     assert(false && "DOMEvalException::appendContext can only be called for element and attribute nodes.");
 
   const DOMElement *found;
-  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber(),
+  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found),
+    lineNr>0 ? lineNr : E(ee)->getLineNumber(),
+    E(ee)->getEmbedCountNumber(),
     n->getNodeType()==DOMNode::ATTRIBUTE_NODE ? A(static_cast<const DOMAttr*>(n))->getRootXPathExpression() :
                                                 E(ee)->getRootXPathExpression());
   ee=found;
@@ -704,7 +704,7 @@ void DOMEvalException::appendContext(const DOMNode *n) {
       xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
         to_string(E(ee)->getEmbedXPathCount())+"]";
     else
-      xpath="<no xpath available>";
+      xpath="[no xpath available]";
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
       E(ee)->getOriginalElementLineNumber(),
       E(ee)->getEmbedCountNumber(),
@@ -728,7 +728,7 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
   // string and regex to generate it implicitly.
   string str;
-  str+="@msg"+message;
+  str+="@msg"+message; // @msg includes a new line at the end
   str+="@file"+X()%loc.getURI();
   str+="@line"+(loc.getLineNumber()>0?to_string(loc.getLineNumber()):"");
   str+="@xpath"+loc.getRootXPathExpression();
@@ -742,18 +742,17 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
 }
 
 const char* DOMEvalException::what() const noexcept {
+  // note the laste line break is skipped
   whatStr.clear();
   if(!locationStack.empty()) {
     auto it=locationStack.begin();
-    whatStr+=convertToString(*it, errorMsg, subsequentError)+"\n";
+    whatStr+=convertToString(*it, errorMsg+(next(it)!=locationStack.end()?"\n":""), subsequentError);
     for(it++; it!=locationStack.end(); it++)
-      whatStr+=convertToString(*it, "included from here", true)+"\n";
+      whatStr+=convertToString(*it, string("included from here")+(next(it)!=locationStack.end()?"\n":""), true);
   }
   else
     whatStr+=errorMsg;
 
-  if(!whatStr.empty())
-    whatStr.resize(whatStr.length()-1); // remote the trailing line feed
   return whatStr.c_str();
 }
 

@@ -175,13 +175,13 @@ OctInit::OctInit() {
     initialPath=feval("path", octave_value_list(), 1)(0).string_value();
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
   }
-  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
+  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception during octave initialization:"<<endl<<ex.what()<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Unknown exception during octave initialization."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during octave initialization."<<endl;
     throw;
   }
 }
@@ -200,14 +200,14 @@ OctInit::~OctInit() {
     octave_exit=nullptr;
     clean_up_and_exit(0);
   }
-  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
+  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception during octave deinitialization:"<<endl<<ex.what()<<endl;
-    cerr<<"Continuing but undefined behaviour may occur."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<ex.what()<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
   }
   catch(...) {
-    cerr<<"Unknown exception during octave deinitialization."<<endl;
-    cerr<<"Continuing but undefined behaviour may occur."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during octave deinitialization."<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
   }
 }
 
@@ -393,7 +393,7 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
   catch(const std::exception &ex) { // should not happend
     error_state=0;
-    throw DOMEvalException(string("Exception: ")+ex.what()+": "+err.str(), e);
+    throw DOMEvalException(string(ex.what())+": "+err.str(), e);
   }
   catch(...) { // should not happend
     error_state=0;
@@ -498,13 +498,13 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   if(!files.empty())
     return files;
 
-  cout<<"Generate file list for the octave casadi wrapper files."<<endl;
+  fmatvec::Atom::msgStatic(Info)<<"Generate file list for the octave casadi wrapper files."<<endl;
   // note: casadi_oct.oct is copied automatically with all other octave oct files later
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR/"@swig_ref");
     srcIt!=bfs::directory_iterator(); ++srcIt)
     files[srcIt->path()]=make_pair(LIBDIR/"@swig_ref", false);
 
-  cout<<"Generate file list for MBXMLUtils m-files."<<endl;
+  fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
     srcIt!=bfs::directory_iterator(); ++srcIt)
     files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
@@ -516,7 +516,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   // get octave fcnfiledir without octave_prefix
   bfs::path octave_fcnfiledir(string(OCTAVE_FCNFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
 
-  cout<<"Generate file list for octave m-files."<<endl;
+  fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave m-files."<<endl;
   bfs::path dir=octave_prefix/octave_fcnfiledir;
   size_t depth=distance(dir.begin(), dir.end());
   for(bfs::recursive_directory_iterator srcIt=bfs::recursive_directory_iterator(octave_prefix/octave_fcnfiledir);
@@ -531,7 +531,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
     files[srcIt->path()]=make_pair(octave_fcnfiledir/dst, false);
   }
 
-  cout<<"Generate file list for octave oct-files (excluding dependencies)."<<endl;
+  fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave oct-files (excluding dependencies)."<<endl;
   // octave oct-files are copied to $FMU/resources/local/$LIBDIR since their are also all dependent libraries
   // installed (and are found their due to Linux rpath or Windows alternate search order flag).
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR); srcIt!=bfs::directory_iterator(); ++srcIt) {

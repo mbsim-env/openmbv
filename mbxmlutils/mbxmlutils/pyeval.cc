@@ -75,13 +75,13 @@ PyInit::PyInit() {
     PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
     asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
   }
-  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
+  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception during Python initialization:"<<endl<<ex.what()<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
   catch(...) {
-    cerr<<"Unknown exception during Python initialization."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python initialization."<<endl;
     throw;
   }
 }
@@ -94,14 +94,14 @@ PyInit::~PyInit() {
     casadiValue.reset();
     mbxmlutils.reset();
   }
-  // print error to cerr and rethrow. (The exception may not be cached since this is called in pre-main)
+  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const std::exception& ex) {
-    cerr<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl;
-    cerr<<"Continuing but undefined behaviour may occur."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
   }
   catch(...) {
-    cerr<<"Unknown exception during Python deinitialization."<<endl;
-    cerr<<"Continuing but undefined behaviour may occur."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
   }
 }
 
@@ -226,7 +226,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 
   path PYTHONDST(PYTHON_SUBDIR);
 
-  cout<<"Generate file list for the Python casadi files."<<endl;
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for the Python casadi files."<<endl;
   path casadiDir=path(CASADI_PREFIX_DIR)/("python" PYTHON_VERSION)/"site-packages"/"casadi";
   if(exists(getInstallPath()/PYTHONDST/"site-packages"/"casadi"))
     casadiDir=getInstallPath()/PYTHONDST/"site-packages"/"casadi";
@@ -236,14 +236,14 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     files[*srcIt]=make_pair(PYTHONDST/"site-packages"/"casadi"/MBXMLUtils::relative(*srcIt, casadiDir).parent_path(), false);
   }
 
-  cout<<"Generate file list for MBXMLUtils py-files."<<endl;
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for MBXMLUtils py-files."<<endl;
   for(auto srcIt=directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
     files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python", false);
   }
 
-  cout<<"Generate file list for Python files."<<endl;
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
   path PYTHONSRC(PYTHON_LIBDIR);
   if(exists(getInstallPath()/PYTHON_SUBDIR/"site-packages"))
     PYTHONSRC=getInstallPath()/PYTHON_SUBDIR;

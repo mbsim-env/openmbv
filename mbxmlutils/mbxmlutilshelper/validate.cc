@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     parser=DOMParser::create(schemas);
   }
   catch(const std::exception &ex) {
-    cerr<<"Exception while loading schemas:"<<endl
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception while loading schemas:"<<endl
          <<ex.what()<<endl;
     return 1;
   }
@@ -38,12 +38,11 @@ int main(int argc, char *argv[]) {
     path xml=argv[i];
     try {
       parser->parse(xml);
-      cerr<<xml<<" validates."<<endl;
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<xml<<" validates."<<endl;
     }
     catch(const std::exception &ex) {
       error++;
-      cerr<<"Exception:"<<endl
-          <<ex.what()<<endl;
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;
     }
   }
   if(error>0)

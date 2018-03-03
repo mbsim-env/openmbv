@@ -18,8 +18,7 @@
   }
   catch(const std::exception &e) {
     std::stringstream str;
-    str<<"Exception: "<<std::endl
-       <<e.what()<<std::endl;
+    str<<e.what()<<std::endl;
     SWIG_exception(SWIG_RuntimeError, str.str().c_str());
   }
   catch(...) {

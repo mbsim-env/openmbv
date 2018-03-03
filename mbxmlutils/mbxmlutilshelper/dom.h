@@ -187,7 +187,7 @@ class DOMEvalException : public std::exception {
       return *this;
     }
     ~DOMEvalException() noexcept override = default;
-    void appendContext(const xercesc::DOMNode *n);
+    void appendContext(const xercesc::DOMNode *n, int lineNr=0);
     const std::string& getMessage() const { return errorMsg; }
     void setMessage(const std::string& errorMsg_) { errorMsg=errorMsg_; }
     void setSubsequentError(bool sse) { subsequentError=sse; }

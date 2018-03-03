@@ -176,7 +176,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         eval->convertIndex(ii, false);
         eval->addParam(counterName, ii);
         if(localParamEle) {
-          eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"<inline element>":file)
+          eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"[inline element]":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
           eval->addParamSet(localParamEle.get());
         }
@@ -187,7 +187,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif")))==1); } RETHROW_AS_DOMEVALEXCEPTION(embed)
         if(onlyif) {
           realCount++;
-          eval->msg(Info)<<"Embed "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+          eval->msg(Info)<<"Embed "<<(file.empty()?"[inline element]":file)<<" ("<<i<<"/"<<count<<")"<<endl;
           if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
             throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);
           e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), insertBefore));
@@ -199,7 +199,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           preprocess(parser, eval, dependencies, e);
         }
         else
-          eval->msg(Info)<<"Skip embeding "<<(file.empty()?"<inline element>":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+          eval->msg(Info)<<"Skip embeding "<<(file.empty()?"[inline element]":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
         throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);
@@ -252,7 +252,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           if(s.length()>0 && s[0]=='[') {
             size_t c=s.find(']');
             if(c==string::npos)
-              throw DOMEvalException("QName attribute value defined by [<uri>]<localname> syntax but no ] found.", a);
+              throw DOMEvalException("QName attribute value defined by '[uri]localname' syntax but no ] found.", a);
             E(e)->setAttribute(X()%a->getName(), FQN(s.substr(1,c-1), s.substr(c+1)));
           }
           else
