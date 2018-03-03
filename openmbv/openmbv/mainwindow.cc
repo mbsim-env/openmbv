@@ -24,6 +24,7 @@
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
+#include <QDesktopWidget>
 #include <QtGui/QDockWidget>
 #include <QtGui/QInputDialog>
 #include <QtGui/QMenuBar>
@@ -87,6 +88,8 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+  setIconSize(iconSize()*qApp->desktop()->logicalDpiY()/96);
+
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
