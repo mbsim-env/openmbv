@@ -679,7 +679,7 @@ int Eval::cast_int(const Value &value) const {
   int i=lround(d);
   double delta=fabs(d-i);
   if(delta>eps*i && delta>eps)
-    throw runtime_error("Canot cast this value to int.");
+    throw runtime_error("Cannot cast this value to int.");
   return i;
 }
 

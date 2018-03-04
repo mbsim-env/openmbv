@@ -237,7 +237,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
             try {
               s=fmatvec::toString(eval->cast<int>(value));
             }
-            catch(const DOMEvalException&) {
+            catch(...) {
               s=fmatvec::toString(eval->cast<double>(value));
             }
           else if(eval->valueIsOfType(value, Eval::StringType))
