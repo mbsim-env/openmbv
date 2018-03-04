@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
+#include <mbxmlutilshelper/getinstallpath.h>
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
@@ -88,6 +89,13 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+  // If <local>/lib/dri exists use it as load path for GL DRI drivers.
+  // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
+  if(boost::filesystem::exists(MBXMLUtils::getInstallPath()/"lib"/"dri")) {
+    static char DRI[2048];
+    putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (MBXMLUtils::getInstallPath()/"lib"/"dri").string().c_str()));
+  }
+
   setIconSize(iconSize()*qApp->desktop()->logicalDpiY()/96);
 
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
