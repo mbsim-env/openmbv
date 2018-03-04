@@ -575,7 +575,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
   // parse from memory
   shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
-  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, me->getDocumentURI(), false);
+  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&DOMDocument::release, _1));
@@ -605,15 +605,22 @@ template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser(
 template<typename DOMDocumentType>
 path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   string uri=X()%me->getDocumentURI();
+  // handle (the original xerces) schema for local files
   static const string fileScheme="file://";
-  if(uri.substr(0, fileScheme.length())!=fileScheme)
-    throw runtime_error("Only local filenames are allowed.");
+  if(uri.substr(0, fileScheme.length())==fileScheme) {
 #ifdef _WIN32
-  int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
+    int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
 #else
-  int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
+    int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
 #endif
-  return uri.substr(fileScheme.length() + addChars);
+    return uri.substr(fileScheme.length() + addChars);
+  }
+  // handle mbxmlutilsfile schema
+  static const string mbxmlutilsfileSchema="mbxmlutilsfile://";
+  if(uri.substr(0, mbxmlutilsfileSchema.length())==mbxmlutilsfileSchema)
+    return uri.substr(mbxmlutilsfileSchema.length());
+  // all other schemas are errors
+  throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
 }
 template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
 
@@ -970,8 +977,16 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&DOMDocument::release, _1));
-  if(errorHandler.hasError())
-    throw errorHandler.getError();
+  doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
+  if(errorHandler.hasError()) {
+    // fix the filename
+    DOMEvalException ex(errorHandler.getError());
+    auto &l=ex.locationStack.front();
+    EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                          l.getEmbedCount(), l.getRootXPathExpression());
+    ex.locationStack.front()=exNew;
+    throw ex;
+  }
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   // set file name
