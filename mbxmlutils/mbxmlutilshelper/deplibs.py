@@ -90,7 +90,7 @@ def getDoNotAdd():
   # for linux
   system=[
     ("equery", ["-C", "files"], ["glibc", "mesa",]), # portage
-    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "mesa-libEGL",]), # rpm
+    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "mesa-libEGL", "libdrm",]), # rpm
   ]
   for s in system:
     for p in s[2]:

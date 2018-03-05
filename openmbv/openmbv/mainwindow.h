@@ -42,7 +42,6 @@
 #include "SoTransposeEngine.h"
 #include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/fields/SoSFUInt32.h>
-#include <FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
@@ -95,7 +94,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
     SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
-    SoShadowGroup *sceneRoot;
+    SoSeparator *sceneRoot;
     SoComplexity *complexity;
     QTimer *animTimer;
     QTime *time;
@@ -130,7 +129,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
     void releaseCameraFromBodySlot();
     void showWorldFrameSlot();
-    void shadowRenderingSlot();
 
     void viewTopSlot() { viewChange(top); }
     void viewBottomSlot() { viewChange(bottom); }
@@ -247,7 +245,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
-    SoShadowGroup* getSceneRoot() { return sceneRoot; }
+    SoSeparator* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     int getReloadTimeout() { return reloadTimeout; }
 

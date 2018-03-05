@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
+#include <mbxmlutilshelper/getinstallpath.h>
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
@@ -88,6 +89,13 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+  // If <local>/lib/dri exists use it as load path for GL DRI drivers.
+  // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
+  if(boost::filesystem::exists(MBXMLUtils::getInstallPath()/"lib"/"dri")) {
+    static char DRI[2048];
+    putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (MBXMLUtils::getInstallPath()/"lib"/"dri").string().c_str()));
+  }
+
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
@@ -144,10 +152,8 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
   }
   glViewer=new SoQtMyViewer(glViewerWG, transparency);
   mainLO->addWidget(glViewerWG,0,0);
-  sceneRoot=new SoShadowGroup;
+  sceneRoot=new SoSeparator;
   sceneRoot->ref();
-  sceneRoot->isActive.setValue(false);
-  sceneRoot->precision.setValue(1.0);
   auto *offset=new SoPolygonOffset; // move all filled polygons in background
   sceneRoot->addChild(offset);
   offset->factor.setValue(0.0);
@@ -389,10 +395,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
   engDrawingView->setCheckable(true);
   topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Top background color...", this, SLOT(topBGColor()));
   bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Bottom background color...", this, SLOT(bottomBGColor()));
-  act=sceneViewMenu->addAction(Utils::QIconCached("shadowrendering.svg"),"Shadow rendering", this, SLOT(shadowRenderingSlot()));
-  act->setToolTip("A SoDirectionalLight or other shadow generating light source must be added.");
-  act->setStatusTip(act->toolTip());
-  act->setCheckable(true);
   menuBar()->addMenu(sceneViewMenu);
 
   // gui view menu
@@ -568,12 +570,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
 
   // react on parameters
 
-  // shadow
-  if((i=std::find(arg.begin(), arg.end(), "--shadows"))!=arg.end()) {
-    sceneRoot->isActive.setValue(true);
-    arg.erase(i);
-  }
-
   // line width for outline and shilouette edges
   olseDrawStyle=new SoDrawStyle;
   olseDrawStyle->ref();
@@ -746,6 +742,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
     else
       reloadTimeout=250;
   }
+
+  // maximized
+  if((i=std::find(arg.begin(), arg.end(), "--maximized"))!=arg.end())
+    showMaximized();
 
   // read XML files
   if(arg.empty()) arg.emplace_back("."); // if called without argument load current dir
@@ -1867,13 +1867,6 @@ void MainWindow::showWorldFrameSlot() {
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_ALL);
   else
     worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-}
-
-void MainWindow::shadowRenderingSlot() {
-  if(sceneRoot->isActive.getValue())
-    sceneRoot->isActive.setValue(false);
-  else
-    sceneRoot->isActive.setValue(true);
 }
 
 void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge) {

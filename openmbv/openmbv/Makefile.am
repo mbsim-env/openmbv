@@ -87,7 +87,7 @@ bin_PROGRAMS = openmbv
 openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
   main.cc
 openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(QWT_CFLAGS)
-openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(SOQT_LIBS) $(QWT_LIBS) -l@BOOST_SYSTEM_LIB@
+openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(QWT_LIBS) -l@BOOST_SYSTEM_LIB@
 
 
 
@@ -182,7 +182,6 @@ dist_icon_DATA = openmbv.svg \
   arrow.svg \
   centerballdragger.svg \
   bgcolor.svg \
-  shadowrendering.svg \
   loadwst.svg \
   savewst.svg \
   loadcamera.svg \
@@ -207,6 +206,15 @@ dist_doc_DATA = guihelp.html
 # plugins
 pluginsiconenginesdir = @bindir@/iconengines
 pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
+pluginsaccessibledir = @bindir@/accessible
+pluginsaccessible_DATA = @QT_PLUGINS@/accessible/*qtaccessiblewidgets*
+pluginsaccessiblebridgedir = @bindir@/accessiblebridge
+#pluginsaccessiblebridge_DATA = @QT_PLUGINS@/accessiblebridge/*qspiaccessiblebridge* # not available on centos7
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc openmbv.svg
+
+# freedesktop.org
+freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org
+freedesktoporg_DATA = mbsim-env.org.openmbv.xml mbsim-env.org.openmbv.desktop mimeapps-openmbv.list openmbv.svg
+bin_SCRIPTS = desktopIntegration.sh
