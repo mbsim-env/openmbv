@@ -696,7 +696,7 @@ void DOMEvalException::appendContext(const DOMNode *n, int lineNr) {
   else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
     ee=static_cast<const DOMAttr*>(n)->getOwnerElement();
   else
-    assert(false && "DOMEvalException::appendContext can only be called for element and attribute nodes.");
+    throw runtime_error("DOMEvalException::appendContext can only be called for element and attribute nodes.");
 
   const DOMElement *found;
   locationStack.emplace_back(E(ee)->getOriginalFilename(false, found),
