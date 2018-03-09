@@ -26,18 +26,18 @@
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
 #include <QDesktopWidget>
-#include <QtGui/QDockWidget>
-#include <QtGui/QInputDialog>
-#include <QtGui/QMenuBar>
-#include <QtGui/QGridLayout>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QFileDialog>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
-#include <QtGui/QToolBar>
-#include <QtGui/QDoubleSpinBox>
-#include <QtGui/QStatusBar>
-#include <QtGui/QColorDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QColorDialog>
 #include <QtCore/QElapsedTimer>
 #include <QWebHistory>
 #include <QWebFrame>
@@ -96,8 +96,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
     static char DRI[2048];
     putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (MBXMLUtils::getInstallPath()/"lib"/"dri").string().c_str()));
   }
-
-  setIconSize(iconSize()*qApp->desktop()->logicalDpiY()/96);
 
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;

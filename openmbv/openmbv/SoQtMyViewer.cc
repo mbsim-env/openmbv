@@ -83,7 +83,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   // font size
   font=new SoFont;
   fgSep->addChild(font);
-  font->size.setValue(10*qApp->desktop()->logicalDpiY()/96);
   // time (top left)
   auto *timeSep=new SoSeparator;
   fgSep->addChild(timeSep);
