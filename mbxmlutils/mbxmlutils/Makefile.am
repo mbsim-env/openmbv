@@ -95,7 +95,7 @@ swigpyrun.h:
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -I. -I.. -I$(top_srcdir) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(XERCESC_LIBS) -l@BOOST_REGEX_LIB@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS)
 
 
 

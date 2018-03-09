@@ -32,6 +32,7 @@
 #endif
 
 #include <string>
+#include <boost/preprocessor/cat.hpp>
 
 namespace MBXMLUtils {
 

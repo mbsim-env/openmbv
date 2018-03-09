@@ -9,16 +9,16 @@
 #include <casadi/casadi.hpp>
 #include <unordered_map>
 
-#define XMLUTILS_EVAL_CONCAT1(X, Y) X##Y
-#define XMLUTILS_EVAL_CONCAT(X, Y) XMLUTILS_EVAL_CONCAT1(X, Y)
-#define XMLUTILS_EVAL_APPENDLINE(X) XMLUTILS_EVAL_CONCAT(X, __LINE__)
+#define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
+#define MBXMLUTILS_EVAL_CONCAT(X, Y) MBXMLUTILS_EVAL_CONCAT1(X, Y)
+#define MBXMLUTILS_EVAL_APPENDLINE(X) MBXMLUTILS_EVAL_CONCAT(X, __LINE__)
 
 /** Use this macro to register a new evaluator */
-#define XMLUTILS_EVAL_REGISTER(T) \
+#define MBXMLUTILS_EVAL_REGISTER(T) \
   namespace { \
     struct Reg { \
       Reg() { Eval::registerEvaluator<T>(); } \
-    } XMLUTILS_EVAL_APPENDLINE(regDummy); \
+    } MBXMLUTILS_EVAL_APPENDLINE(regDummy); \
   }
 
 namespace XERCES_CPP_NAMESPACE {
@@ -133,7 +133,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! Evaluate the XML attribute a using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of a.
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
-    Value eval(const xercesc::DOMAttr *a, const xercesc::DOMElement *pe=nullptr);
+    Value eval(const xercesc::DOMAttr *a);
 
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
@@ -405,7 +405,7 @@ template<typename T>
 T Eval::cast(const Value &value) const {
   // treat all types T as a swig type
   if(getSwigType(value)!=SwigType<T>::name)
-    throw DOMEvalException("This variable is not of SWIG type "+SwigType<T>::name+".");
+    throw std::runtime_error("This variable is not of SWIG type "+SwigType<T>::name+".");
   return static_cast<T>(getSwigThis(value));
 }
 // ... but prevere these specializations

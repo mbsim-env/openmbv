@@ -1,6 +1,7 @@
 #include "config.h"
 #include <cassert>
 #include <cfenv>
+#include <boost/regex.hpp>
 #include "mbxmlutils/preprocess.h"
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <mbxmlutils/eval.h>
@@ -35,12 +36,22 @@ int main(int argc, char *argv[]) {
     if(args.size()<2) {
       cout<<"Usage:"<<endl
           <<"mbxmlutilspp [--dependencies <dep-file-name>]"<<endl
+          <<"             [--stdout <msg> [--stdout <msg> ...]] [--stderr <msg> [--stderr <msg> ...]]"<<endl
           <<"             <schema-file.xsd> [<schema-file.xsd> ...]"<<endl
           <<"             <main-file> [<main-file> ...]"<<endl
           <<"             ..."<<endl
           <<""<<endl
           <<"  --dependencies    Write a newline separated list of dependent files including"<<endl
           <<"                    <param-file> and <main-file> to <dep-file-name>"<<endl
+          <<"  --stdout <msg>    Print on stdout messages of type <msg>."<<endl
+          <<"                    <msg> may be info~<pre>~<post>, warn~<pre>~<post>, debug~<pre>~<post>"<<endl
+          <<"                    error~<pre>~<post>~ or depr~<pre>~<post>~."<<endl
+          <<"                    Each message is prefixed/postfixed with <pre>/<post>."<<endl
+          <<"                    --stdout may be specified multiple times."<<endl
+          <<"                    If --stdout and --stderr is not specified --stdout 'info~Info: ~'"<<endl
+          <<"                    --stderr 'warn~Warn: ~' --stderr 'error~~' --stderr 'depr~Depr:~'"<<endl
+          <<"                    --stderr 'status~~\\r' is used."<<endl
+          <<"  --stderr <msg>    Analog to --stdout but prints to stderr."<<endl
           <<""<<endl
           <<"  The output file is named '.pp.<main-file>'."<<endl
           <<"  Use 'none' if not <param-file> is avaliabel."<<endl
@@ -51,6 +62,54 @@ int main(int argc, char *argv[]) {
           <<""<<endl
           <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl;
       return 0;
+    }
+
+    // defaults for --stdout and --stderr
+    if(find(args.begin(), args.end(), "--stdout")==args.end() &&
+       find(args.begin(), args.end(), "--stderr")==args.end()) {
+      args.push_back("--stdout"); args.push_back("info~Info: ~");
+      args.push_back("--stderr"); args.push_back("warn~Warn: ~");
+      args.push_back("--stderr"); args.push_back("error~~");
+      args.push_back("--stderr"); args.push_back("depr~Depr: ~");
+      args.push_back("--stdout"); args.push_back("status~~\r");
+    }
+
+    // disable all streams
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Info      , std::make_shared<bool>(false));
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Warn      , std::make_shared<bool>(false));
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Debug     , std::make_shared<bool>(false));
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Error     , std::make_shared<bool>(false));
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Deprecated, std::make_shared<bool>(false));
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Status    , std::make_shared<bool>(false));
+
+    // handle --stdout and --stderr args
+    list<string>::iterator it;
+    while((it=find_if(args.begin(), args.end(), [](const string &x){ return x=="--stdout" || x=="--stderr"; }))!=args.end()) {
+      ostream &ostr=*it=="--stdout"?cout:cerr;
+      auto itn=next(it);
+      if(itn==args.end()) {
+        cerr<<"Invalid argument"<<endl;
+        return 1;
+      }
+      fmatvec::Atom::MsgType msgType;
+      if     (itn->substr(0, 5)=="info~"  ) msgType=fmatvec::Atom::Info;
+      else if(itn->substr(0, 5)=="warn~"  ) msgType=fmatvec::Atom::Warn;
+      else if(itn->substr(0, 6)=="debug~" ) msgType=fmatvec::Atom::Debug;
+      else if(itn->substr(0, 6)=="error~" ) msgType=fmatvec::Atom::Error;
+      else if(itn->substr(0, 5)=="depr~"  ) msgType=fmatvec::Atom::Deprecated;
+      else if(itn->substr(0, 7)=="status~") msgType=fmatvec::Atom::Status;
+      else throw runtime_error("Unknown message stream.");
+      static boost::regex re(".*~(.*)~(.*)", boost::regex::extended);
+      boost::smatch m;
+      if(!boost::regex_match(*itn, m, re)) {
+        cerr<<"Invalid argument"<<endl;
+        return 1;
+      }
+      fmatvec::Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(true),
+        std::make_shared<fmatvec::PrePostfixedStream>(m.str(1), m.str(2), ostr));
+
+      args.erase(itn);
+      args.erase(it);
     }
 
     list<string>::iterator i, i2;
@@ -67,7 +126,7 @@ int main(int argc, char *argv[]) {
     SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
 
     // the XML DOM parser
-    cout<<"Create validating XML parser."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
     set<path> schemas={SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"physicalvariable.xsd"};
     for(auto &arg: args) {
       if(boost::algorithm::ends_with(arg, ".xsd"))
@@ -83,8 +142,8 @@ int main(int argc, char *argv[]) {
       path mainxml(arg);
 
       // validate main file and get DOM
-      cout<<"Read and validate "<<mainxml<<endl;
-      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies);
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainxml<<endl;
+      shared_ptr<xercesc::DOMDocument> mainxmldoc=parser->parse(mainxml, &dependencies, false);
       dependencies.push_back(mainxml);
       DOMElement *mainxmlele=mainxmldoc->getDocumentElement();
 
@@ -116,10 +175,11 @@ int main(int argc, char *argv[]) {
 
       // save result file
       path mainxmlpp=".pp."+mainxml.filename().string();
-      cout<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Save preprocessed file "<<mainxml<<" as "<<mainxmlpp<<endl;
+      E(mainxmlele)->setOriginalFilename();
       DOMParser::serialize(mainxmldoc.get(), mainxmlpp, false);
-      cout<<"Validate preprocessed file"<<endl;
-      parser->parse(mainxmlpp); // = D(mainxmldoc)->validate() (serialization is already done)
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Validate preprocessed file"<<endl;
+      parser->parse(mainxmlpp, nullptr, false); // = D(mainxmldoc)->validate() (serialization is already done)
     }
 
     // output dependencies?
@@ -130,12 +190,11 @@ int main(int argc, char *argv[]) {
     }
   }
   catch(const std::exception &ex) {
-    cerr<<"Exception:"<<endl
-        <<ex.what()<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;
     return 1;
   }
   catch(...) {
-    cerr<<"Unknown exception."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception."<<endl;
     return 1;
   }
   return 0;

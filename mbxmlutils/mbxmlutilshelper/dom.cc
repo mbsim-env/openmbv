@@ -2,6 +2,8 @@
 #include "dom.h"
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
+#include <boost/scope_exit.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -10,6 +12,7 @@
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
+#include <xercesc/dom/DOMXPathNSResolver.hpp>
 #include <xercesc/parsers/AbstractDOMParser.hpp>
 #include <xercesc/framework/psvi/PSVIElement.hpp>
 #include <xercesc/framework/psvi/PSVIAttributeList.hpp>
@@ -199,27 +202,14 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
 {
   string type;
   switch(e.getSeverity()) {
-    case DOMError::DOM_SEVERITY_WARNING:     type="Warning";     warningCount++; break;
-    case DOMError::DOM_SEVERITY_ERROR:       type="Error";       errorCount++;   break;
-    case DOMError::DOM_SEVERITY_FATAL_ERROR: type="Fatal error"; errorCount++;   break;
+    case DOMError::DOM_SEVERITY_WARNING:     type="Warning";     break; // we handle warnings as errors
+    case DOMError::DOM_SEVERITY_ERROR:       type="Error";       break;
+    case DOMError::DOM_SEVERITY_FATAL_ERROR: type="Fatal error"; break;
   }
-  DOMLocator *loc=e.getLocation();
-  // Note we print here all message types to the Warn stream. If a error occurred a exception is thrown later
-  msg(Warn)<<DOMEvalException::fileOutput(*loc)<<": "<<type<<": "<<X()%e.getMessage()<<endl;
-  return e.getSeverity()!=DOMError::DOM_SEVERITY_FATAL_ERROR; // continue parsing for none fatal errors
-}
-
-EmbedDOMLocator::EmbedDOMLocator(const path &file_, int row_, int embedCount_) : row(row_), embedCount(embedCount_) {
-  file=x%file_.string(CODECVT);
-}
-
-string EmbedDOMLocator::getEmbedCount() const {
-  if(embedCount>0) {
-    stringstream str;
-    str<<"[count="<<embedCount<<"]";
-    return str.str();
-  }
-  return "";
+  // save the error
+  errorSet=true;
+  error=DOMEvalException(type+": "+X()%e.getMessage(), *e.getLocation());
+  return false; // do not continue parsing
 }
 
 template<> const DOMElement *DOMElementWrapper<      DOMElement>::dummyArg=nullptr;
@@ -237,6 +227,23 @@ template const DOMElement *DOMElementWrapper<const DOMElement>::getFirstElementC
 template<typename DOMElementType>
 DOMElement *DOMElementWrapper<DOMElementType>::getFirstElementChildNamed(const FQN &name) {
   for(DOMElement *ret=me->getFirstElementChild(); ret; ret=ret->getNextElementSibling())
+    if(E(ret)->getTagName()==name)
+      return ret;
+  return nullptr;
+};
+
+template<typename DOMElementType>
+const DOMElement *DOMElementWrapper<DOMElementType>::getNextElementSiblingNamed(const FQN &name) const {
+  for(DOMElement *ret=me->getNextElementSibling(); ret; ret=ret->getNextElementSibling())
+    if(E(ret)->getTagName()==name)
+      return ret;
+  return nullptr;
+};
+template const DOMElement *DOMElementWrapper<const DOMElement>::getNextElementSiblingNamed(const FQN &name) const; // explicit instantiate const variant
+
+template<typename DOMElementType>
+DOMElement *DOMElementWrapper<DOMElementType>::getNextElementSiblingNamed(const FQN &name) {
+  for(DOMElement *ret=me->getNextElementSibling(); ret; ret=ret->getNextElementSibling())
     if(E(ret)->getTagName()==name)
       return ret;
   return nullptr;
@@ -304,16 +311,7 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
   }
   if(!me)
     throw runtime_error("Invalid call. Null pointer dereference.");
-  string uri=X()%me->getOwnerDocument()->getDocumentURI();
-  static const string fileScheme="file://";
-  if(uri.substr(0, fileScheme.length())!=fileScheme)
-    throw runtime_error("Only local filenames are allowed.");
-#ifdef _WIN32
-  int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
-#else
-  int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
-#endif
-  return uri.substr(fileScheme.length() + addChars);
+  return D(me->getOwnerDocument())->getDocumentFilename();
 }
 template path DOMElementWrapper<const DOMElement>::getOriginalFilename(bool skipThis, const DOMElement *&found) const; // explicit instantiate const variant
 
@@ -428,6 +426,61 @@ void DOMElementWrapper<DOMElementType>::setEmbedCountNumber(int embedCount) {
 }
 
 template<typename DOMElementType>
+int DOMElementWrapper<DOMElementType>::getEmbedXPathCount() const {
+  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedXPathCount");
+  if(pi)
+    return boost::lexical_cast<int>((X()%pi->getData()));
+  return 0;
+}
+template int DOMElementWrapper<const DOMElement>::getEmbedXPathCount() const; // explicit instantiate const variant
+
+template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::setEmbedXPathCount(int xPathCount) {
+  stringstream str;
+  str<<xPathCount;
+  DOMProcessingInstruction *embedXPathCountPI=me->getOwnerDocument()->createProcessingInstruction(X()%"EmbedXPathCount", X()%str.str());
+  me->insertBefore(embedXPathCountPI, me->getFirstChild());
+}
+
+template<typename DOMElementType>
+string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
+  const DOMElement *e=me;
+  const DOMElement *root=e->getOwnerDocument()->getDocumentElement();
+  string xpath;
+  while(true) {
+    // get tag name and namespace uri
+    FQN fqn=E(e)->getTagName();
+    // get xpath count
+    int count=1;
+    for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
+      if(E(ee)->getEmbedXPathCount()>0) {
+        count=E(ee)->getEmbedXPathCount()+1;
+        break;
+      }
+      if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+        count++;
+    }
+    // break or continue
+    if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
+      xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
+      if(root==e && E(e)->getEmbedXPathCount()>0)
+        xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
+      break;
+    }
+    else {
+      if(E(e)->getEmbedXPathCount()>0)
+        count=1;
+      xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
+      if(E(e)->getEmbedXPathCount()>0)
+        xpath="/{"+PV.getNamespaceURI()+"}Embed["+to_string(E(e)->getEmbedXPathCount())+"]"+xpath;
+    }
+    e=static_cast<const DOMElement*>(e->getParentNode());
+  }
+  return xpath;
+}
+template string DOMElementWrapper<const DOMElement>::getRootXPathExpression() const; // explicit instantiate const variant
+
+template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
   const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("OriginalElementLineNr");
   if(pi)
@@ -495,6 +548,12 @@ bool DOMAttrWrapper<DOMAttrType>::isDerivedFrom(const FQN &baseTypeName) const {
 }
 template bool DOMAttrWrapper<const DOMAttr>::isDerivedFrom(const FQN &baseTypeName) const; // explicit instantiate const variant
 
+template<typename DOMAttrType>
+string DOMAttrWrapper<DOMAttrType>::getRootXPathExpression() const {
+  return E(me->getOwnerElement())->getRootXPathExpression()+"/@"+X()%me->getNodeName();
+}
+template string DOMAttrWrapper<const DOMAttr>::getRootXPathExpression() const; // explicit instantiate const variant
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMAttrWrapper<DOMAttr>;
 
@@ -516,13 +575,12 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
   // parse from memory
   shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
-  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%"<internal>", false);
+  MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
-  parser->errorHandler.resetCounter();
+  parser->errorHandler.resetError();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&DOMDocument::release, _1));
-  if(parser->errorHandler.getNumErrors()>0)
-    throw runtime_error(str(boost::format("Validation failed: %1% Errors, %2% Warnings, see above.")%
-      parser->errorHandler.getNumErrors()%parser->errorHandler.getNumWarnings()));
+  if(parser->errorHandler.hasError())
+    throw parser->errorHandler.getError();
 
   // replace old document element with new one
   E(newDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
@@ -544,64 +602,164 @@ shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
 }
 template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
 
+template<typename DOMDocumentType>
+path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
+  string uri=X()%me->getDocumentURI();
+  // handle (the original xerces) schema for local files
+  static const string fileScheme="file://";
+  if(uri.substr(0, fileScheme.length())==fileScheme) {
+#ifdef _WIN32
+    int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
+#else
+    int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
+#endif
+    return uri.substr(fileScheme.length() + addChars);
+  }
+  // handle mbxmlutilsfile schema
+  static const string mbxmlutilsfileSchema="mbxmlutilsfile://";
+  if(uri.substr(0, mbxmlutilsfileSchema.length())==mbxmlutilsfileSchema)
+    return uri.substr(mbxmlutilsfileSchema.length());
+  // all other schemas are errors
+  throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
+}
+template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
+
+template<typename DOMDocumentType>
+DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {
+  static const boost::regex re(R"q(/{([^}]+)}([^[]+)\[([0-9]+)\](.*))q");
+  if(!context) context=me->getDocumentElement();
+  DOMElement *p=context;
+  boost::smatch m;
+  bool first=true;
+  while(true) {
+    if(!boost::regex_match(xpathExpression, m, re)) break;
+    // special handling of the first element (the root element itself)
+    if(first && E(p)->getTagName()!=FQN(m.str(1), m.str(2)))
+      throw runtime_error("No matching node found for XPath expression.");
+    if(!first) {
+      p=E(p)->getFirstElementChildNamed(FQN(m.str(1), m.str(2)));
+      if(!p)
+        throw runtime_error("No matching node found for XPath expression.");
+      int count=boost::lexical_cast<int>(m.str(3));
+      for(int c=2; c<=count; ++c) {
+        p=E(p)->getNextElementSiblingNamed(FQN(m.str(1), m.str(2)));
+        if(!p)
+          throw runtime_error("No matching node found for XPath expression.");
+      }
+    }
+    xpathExpression=m.str(4);
+    first=false;
+  }
+  // finished?
+  if(xpathExpression.empty())
+    return p;
+  // handle attribute
+  if(xpathExpression.substr(0, 2)=="/@") {
+    DOMAttr *a=E(p)->getAttributeNode(xpathExpression.substr(2));
+    if(!a)
+      throw runtime_error("No matching node found for XPath expression.");
+    return a;
+  }
+  throw runtime_error("No matching node found for XPath expression.");
+}
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMDocumentWrapper<DOMDocument>;
 
-DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMElement *e, const DOMAttr *a) {
+DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
   // store error message
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
-  if(e)
-    setContext(e);
-  if(a)
-    attrName=X()%a->getName();
+  appendContext(n);
 }
 
-void DOMEvalException::generateLocationStack(const xercesc::DOMElement *e, vector<EmbedDOMLocator> &locationStack) {
-  const DOMElement *ee=e;
+DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::DOMLocator &loc) {
+  // store error message
+  errorMsg=errorMsg_;
+
+  // location with a stack
+  const DOMNode *n=loc.getRelatedNode();
+  if(n->getNodeType()==DOMNode::ELEMENT_NODE)
+    appendContext(n, loc.getLineNumber());
+  else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
+    appendContext(n, loc.getLineNumber());
+  else if(n->getNodeType()==DOMNode::TEXT_NODE)
+    appendContext(n->getParentNode(), loc.getLineNumber());
+  else
+    assert(false && "DOMEvalException can only be called with a DOMLocator of node type element, attribute or text.");
+}
+
+void DOMEvalException::appendContext(const DOMNode *n, int lineNr) {
+  const DOMElement *ee;
+  if(n->getNodeType()==DOMNode::ELEMENT_NODE)
+    ee=static_cast<const DOMElement*>(n);
+  else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
+    ee=static_cast<const DOMAttr*>(n)->getOwnerElement();
+  else
+    throw runtime_error("DOMEvalException::appendContext can only be called for element and attribute nodes.");
+
   const DOMElement *found;
-  locationStack.clear();
-  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found), E(ee)->getLineNumber(), E(ee)->getEmbedCountNumber());
+  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found),
+    lineNr>0 ? lineNr : E(ee)->getLineNumber(),
+    E(ee)->getEmbedCountNumber(),
+    n->getNodeType()==DOMNode::ATTRIBUTE_NODE ? A(static_cast<const DOMAttr*>(n))->getRootXPathExpression() :
+                                                E(ee)->getRootXPathExpression());
   ee=found;
   while(ee) {
+    string xpath;
+    if(ee->getParentNode())
+      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
+        to_string(E(ee)->getEmbedXPathCount())+"]";
+    else
+      xpath="[no xpath available]";
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
-                                            E(ee)->getOriginalElementLineNumber(),
-                                            E(ee)->getEmbedCountNumber());
+      E(ee)->getOriginalElementLineNumber(),
+      E(ee)->getEmbedCountNumber(),
+      xpath);
     ee=found;
   }
 }
 
-void DOMEvalException::locationStack2Stream(const string &indent, const vector<EmbedDOMLocator> &locationStack,
-                                            const string &attrName, ostream &str) {
-  if(!locationStack.empty()) {
-    auto it=locationStack.begin();
-    str<<indent<<"At "<<(attrName.empty()?"":"attribute "+attrName)<<fileOutput(*it)<<endl;
-    for(it++; it!=locationStack.end(); it++)
-      str<<indent<<"included by "<<fileOutput(*it)<<it->getEmbedCount()<<endl;
-  }
-}
+string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::string &message, bool subsequentError) {
+  // get MBXMLUTILS_ERROROUTPUT
+  const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
+  string format(ev?ev:"GCC");
+  if(format=="GCC")
+    format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
+  else if(format=="HTMLFILELINE")
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:) <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
+  else if(format=="HTMLXPATH")
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)">$+{file}</a>: <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
 
-string DOMEvalException::fileOutput(const DOMLocator &loc) {
-  if(!getenv("MBXMLUTILS_HTMLOUTPUT"))
-    // normal (ascii) output of filenames and line numbers
-    return X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber());
-  else
-    // html output of filenames and line numbers
-    return "<a href=\""+X()%loc.getURI()+"?line="+fmatvec::toString(loc.getLineNumber())+"\">"+
-      X()%loc.getURI()+":"+fmatvec::toString(loc.getLineNumber())+"</a>";
-}
-
-void DOMEvalException::setContext(const DOMElement *e) {
-  generateLocationStack(e, locationStack);
+  // Generate a boost::match_results object.
+  // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
+  // string and regex to generate it implicitly.
+  string str;
+  str+="@msg"+message; // @msg includes a new line at the end
+  str+="@file"+X()%loc.getURI();
+  str+="@line"+(loc.getLineNumber()>0?to_string(loc.getLineNumber()):"");
+  str+="@xpath"+loc.getRootXPathExpression();
+  str+="@ecount"+(loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):"");
+  str+="@sse"+(subsequentError?string("x"):"");
+  static const boost::regex re(
+    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
+  );
+  // apply substitutions
+  return boost::regex_replace(str, re, format, boost::regex_constants::format_all);
 }
 
 const char* DOMEvalException::what() const noexcept {
-  // create return string
-  stringstream str;
-  str<<errorMsg<<endl;
-  locationStack2Stream("", locationStack, attrName, str);
-  whatStr=str.str();
-  whatStr.resize(whatStr.length()-1); // remote the trailing line feed
+  // note the laste line break is skipped
+  whatStr.clear();
+  if(!locationStack.empty()) {
+    auto it=locationStack.begin();
+    whatStr+=convertToString(*it, errorMsg+(next(it)!=locationStack.end()?"\n":""), subsequentError);
+    for(it++; it!=locationStack.end(); it++)
+      whatStr+=convertToString(*it, string("included from here")+(next(it)!=locationStack.end()?"\n":""), true);
+  }
+  else
+    whatStr+=errorMsg;
+
   return whatStr.c_str();
 }
 
@@ -642,10 +800,8 @@ DOMNodeFilter::ShowType LocationInfoFilter::getWhatToShow() const {
 
 void TypeDerivativeHandler::handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, PSVIElement *info) {
   XSTypeDefinition *type=info->getTypeDefinition();
-  if(!type) {
-    msg(Warn)<<"No type defined for element {"<<X()%uri<<"}"<<X()%localName<<"."<<endl;
+  if(!type) // no type found for this element just return
     return;
-  }
   FQN name(X()%type->getNamespace(), X()%type->getName());
   parser->typeMap[name]=type;
 }
@@ -658,11 +814,8 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
       continue;
 
     XSTypeDefinition *type=info->getTypeDefinition();
-    if(!type) {
-      msg(Warn)<<"No type defined for attribute {"<<X()%psviAttributes->getAttributeNamespaceAtIndex(i)<<"}"
-               <<X()%psviAttributes->getAttributeNameAtIndex(i)<<" in element {"<<X()%uri<<"}"<<X()%localName<<"."<<endl;
+    if(!type) // no type found for this attribute just return
       return;
-    }
     FQN name(X()%type->getNamespace(), X()%type->getName());
     parser->typeMap[name]=type;
   }
@@ -764,32 +917,19 @@ DOMParser::DOMParser(const set<path> &schemas) {
 
 void DOMParser::loadGrammar(const path &schemaFilename) {
   // load grammar
-  errorHandler.resetCounter();
+  errorHandler.resetError();
   parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
-  if(errorHandler.getNumErrors()>0)
-    throw runtime_error(str(boost::format("Loading XML schema failed: %1% Errors, %2% Warnings, see above.")%
-      errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
+  if(errorHandler.hasError())
+    throw errorHandler.getError();
 }
 
 void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const path &schemaFilename) {
-  shared_ptr<DOMDocument> doc=nonValParser->parse(schemaFilename);//mfmf use sax parser since we just need to parse one attribute of the root element
+  shared_ptr<DOMDocument> doc=nonValParser->parse(schemaFilename);//MISSING use sax parser since we just need to parse one attribute of the root element
   string ns=E(doc->getDocumentElement())->getAttribute("targetNamespace");
   registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
-void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencies) {
-  // handle xinclude
-  if(E(e)->getTagName()==XINCLUDE%"include") {
-    path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
-    if(dependencies)
-      dependencies->push_back(incFile);
-    shared_ptr<xercesc::DOMDocument> incDoc=parse(incFile, dependencies);
-    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
-    DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
-    e->getParentNode()->replaceChild(incNode, e)->release();
-    e=static_cast<DOMElement*>(incNode);
-    return;
-  }
+void DOMParser::handleCDATA(DOMElement *e) {
   // combine CDATA and text nodes
   for(DOMNode *c=e->getFirstChild(); c!=nullptr; c=c->getNextSibling())
     if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
@@ -806,20 +946,49 @@ void DOMParser::handleXIncludeAndCDATA(DOMElement *&e, vector<path> *dependencie
     }
   // walk tree
   for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
-    handleXIncludeAndCDATA(c, dependencies);
+    handleCDATA(c);
     if(c==nullptr) break;
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies) {
+void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
+  // handle xinclude
+  if(E(e)->getTagName()==XINCLUDE%"include") {
+    path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
+    if(dependencies)
+      dependencies->push_back(incFile);
+    shared_ptr<xercesc::DOMDocument> incDoc=D(e->getOwnerDocument())->getParser()->parse(incFile, dependencies);
+    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
+    DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
+    e->getParentNode()->replaceChild(incNode, e)->release();
+    e=static_cast<DOMElement*>(incNode);
+    return;
+  }
+  // walk tree
+  for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
+    handleXInclude(c, dependencies);
+    if(c==nullptr) break;
+  }
+}
+
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
-  errorHandler.resetCounter();
+  errorHandler.resetError();
   shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&DOMDocument::release, _1));
-  if(errorHandler.getNumErrors()>0)
-    throw runtime_error(str(boost::format("Validation failed: %1% Errors, %2% Warnings, see above.")%
-      errorHandler.getNumErrors()%errorHandler.getNumWarnings()));
+  doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
+  if(errorHandler.hasError()) {
+    // fix the filename
+    DOMEvalException ex(errorHandler.getError());
+    auto &l=ex.locationStack.front();
+    EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                          l.getEmbedCount(), l.getRootXPathExpression());
+    ex.locationStack.front()=exNew;
+    throw ex;
+  }
+  // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
+  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   // set file name
   DOMElement *root=doc->getDocumentElement();
   if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
@@ -828,9 +997,9 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
-  handleXIncludeAndCDATA(root, dependencies);
-  // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  handleCDATA(root);
+  if(doXInclude)
+    handleXInclude(root, dependencies);
   // return DOM document
   return doc;
 }

@@ -16,7 +16,7 @@ namespace XERCES_CPP_NAMESPACE {
 namespace MBXMLUtils {
 
 // register this evaluator in the object factory
-XMLUTILS_EVAL_REGISTER(XMLFlatEval)
+MBXMLUTILS_EVAL_REGISTER(XMLFlatEval)
 
 // ctor
 XMLFlatEval::XMLFlatEval(std::vector<path> *dependencies_) : Eval(dependencies_) {

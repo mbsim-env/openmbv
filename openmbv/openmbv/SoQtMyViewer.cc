@@ -30,6 +30,7 @@
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QIcon>
 #include "mainwindow.h"
 
@@ -82,7 +83,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   // font size
   font=new SoFont;
   fgSep->addChild(font);
-  font->size.setValue(10);
+  font->size.setValue(10*qApp->desktop()->logicalDpiY()/96);
   // time (top left)
   auto *timeSep=new SoSeparator;
   fgSep->addChild(timeSep);
