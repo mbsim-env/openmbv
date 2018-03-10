@@ -51,7 +51,7 @@ fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 dnl Qt
-PKG_CHECK_MODULES(QT, [Qt5Core >= 5.7 Qt5Gui >= 5.7 Qt5Widgets >= 5.7 Qt5Svg >= 5.7 Qt5WebKitWidgets >= 5.7])
+PKG_CHECK_MODULES(QT, [Qt5Core >= 5.6 Qt5Gui >= 5.6 Qt5Widgets >= 5.6 Qt5Svg >= 5.6 Qt5WebKitWidgets >= 5.6])
 dnl get moc, uic and rcc
 test -z $MOC && { MOC=$(pkg-config --variable=host_bins Qt5Core)/moc || MOC=moc; }
 test -z $UIC && { UIC=$(pkg-config --variable=host_bins Qt5Core)/uic || UIC=uic; }
