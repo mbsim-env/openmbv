@@ -42,7 +42,7 @@ AC_CANONICAL_HOST
 if test "_$host_os" = "_mingw32"; then
   # -fno-keep-inline-dllexport: requires gcc >= 4.6; and is reauired by Qt to avoid the generatoin of
   # code for inline functions which causes undefines symbols on linkage.
-  CPPFLAGS="-fno-keep-inline-dllexport $CPPFLAGS"
+  CPPFLAGS="-fno-keep-inline-dllexport $CPPFLAGS -DCOIN_DLL -DSOQT_DLL"
   LDFLAGS="-mwindows $LDFLAGS"
   WIN32=yes
 else
@@ -51,7 +51,7 @@ fi
 AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 dnl Qt
-PKG_CHECK_MODULES(QT, [Qt5Core >= 5.6 Qt5Gui >= 5.6 Qt5Widgets >= 5.6 Qt5Svg >= 5.6 Qt5WebKitWidgets >= 5.6])
+PKG_CHECK_MODULES(QT, [Qt5Core >= 5.6 Qt5Gui >= 5.6 Qt5Widgets >= 5.6 Qt5Svg >= 5.6 Qt5WebKitWidgets >= 5.5])
 dnl get moc, uic and rcc
 test -z $MOC && { MOC=$(pkg-config --variable=host_bins Qt5Core)/moc || MOC=moc; }
 test -z $UIC && { UIC=$(pkg-config --variable=host_bins Qt5Core)/uic || UIC=uic; }

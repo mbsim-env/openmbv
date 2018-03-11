@@ -2,7 +2,7 @@ include $(top_srcdir)/qt.mk
 
 if COND_WIN32
   MAYBE_WIN32_SRC = openmbv.rc
-  LIBGLU=-lglu32
+  LIBGLU=-lglu32 -lopengl32
 else
   LIBGLU=-lGLU -lGL
 endif
@@ -207,9 +207,13 @@ dist_doc_DATA = guihelp.html
 pluginsiconenginesdir = @bindir@/iconengines
 pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
 pluginsplatformsdir = @bindir@/platforms
-pluginsplatforms_DATA = @QT_PLUGINS@/platforms/*qxcb*
+if COND_WIN32
+pluginsplatforms_DATA = @QT_PLUGINS@/platforms/qwindows.dll
+else
+pluginsplatforms_DATA = @QT_PLUGINS@/platforms/libqxcb.so
 pluginsxcbglintegrationsdir = @bindir@/xcbglintegrations
 pluginsxcbglintegrations_DATA = @QT_PLUGINS@/xcbglintegrations/*qxcb*
+endif
 
 # some dependencies for openmbv.qrc.cc
 openmbv.qrc.cc: openmbv.qrc openmbv.svg

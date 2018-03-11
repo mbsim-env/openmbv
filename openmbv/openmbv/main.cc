@@ -23,6 +23,9 @@
 #include <QApplication>
 #include <QFileInfo>
 #include "mainwindow.h"
+#ifdef _WIN32
+#  include <windows.h>
+#endif
 
 using namespace std;
 
