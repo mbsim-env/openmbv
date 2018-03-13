@@ -847,6 +847,7 @@ MainWindow::~MainWindow() {
   SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
   SoQt::done();
+  Utils::deinitialize();
 }
 
 bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {

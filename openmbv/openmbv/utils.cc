@@ -20,7 +20,6 @@
 #include <config.h>
 #include "utils.h"
 #include <Inventor/nodes/SoLineSet.h>
-#include <unordered_map>
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include <iostream>
@@ -37,6 +36,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
+unordered_map<string, QIcon> Utils::myIconCache;
 bool Utils::initialized=false;
 
 void Utils::initialize() {
@@ -49,12 +49,18 @@ void Utils::initialize() {
   gluTessCallback(tess, GLU_TESS_END, (void (CALLMETHOD *)())tessEndCB);
 }
 
+void Utils::deinitialize() {
+  if(!initialized) return;
+  initialized=false;
+
+  myIconCache.clear();
+}
+
 const QIcon& Utils::QIconCached(string filename) {
   // fix relative filename
   if(filename[0]!=':' && filename[0]!='/')
     filename=getIconPath()+"/"+filename;
   
-  static unordered_map<string, QIcon> myIconCache;
   pair<unordered_map<string, QIcon>::iterator, bool> ins=myIconCache.insert(pair<string, QIcon>(filename, QIcon()));
   if(ins.second)
     return ins.first->second=QIcon(filename.c_str());

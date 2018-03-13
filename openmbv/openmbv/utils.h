@@ -32,6 +32,7 @@
 #include <GL/glu.h>
 #include <openmbvcppinterface/object.h>
 #include <QTreeWidgetItem>
+#include <unordered_map>
 
 #ifdef WIN32
 #  define CALLMETHOD __stdcall
@@ -48,6 +49,8 @@ class Utils : virtual public fmatvec::Atom {
 
     /** initialize the Utils class. Must be called before any member is used. */
     static void initialize();
+
+    static void deinitialize();
 
 
 
@@ -97,6 +100,8 @@ class Utils : virtual public fmatvec::Atom {
 
 
   private:
+    static std::unordered_map<std::string, QIcon> myIconCache;
+
     // INITIALIZATION
     static bool initialized;
 
