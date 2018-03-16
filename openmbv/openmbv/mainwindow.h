@@ -28,7 +28,6 @@
 #include <QActionGroup>
 #include <QLabel>
 #include <QStatusBar>
-#include <QWebView>
 #include <QtCore/QTimer>
 #include <QtCore/QTime>
 #include <string>
@@ -75,7 +74,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     SoText2 *timeString;
     double fpsMax;
-    QWebView *helpViewerGUI, *helpViewerXML;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
