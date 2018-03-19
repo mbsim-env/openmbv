@@ -353,6 +353,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       E(e)->isDerivedFrom(PV%"fullEval") ||
       E(e)->isDerivedFrom(PV%"integerVector") ||
       E(e)->isDerivedFrom(PV%"indexVector") ||
+      E(e)->isDerivedFrom(PV%"indexMatrix") ||
       function)
     ) {
     Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
@@ -368,9 +369,11 @@ Eval::Value Eval::eval(const DOMElement *e) {
       throw DOMEvalException("Value is not of type vector", e);
     if(E(e)->isDerivedFrom(PV%"indexVector") && !valueIsOfType(ret, VectorType))
       throw DOMEvalException("Value is not of type vector", e);
+    if(E(e)->isDerivedFrom(PV%"indexMatrix") && !valueIsOfType(ret, MatrixType))
+      throw DOMEvalException("Value is not of type matrix", e);
 
-    // handle 1 based index vectors
-    if(E(e)->isDerivedFrom(PV%"indexVector"))
+    // handle 1 based index vectors and matrices
+    if(E(e)->isDerivedFrom(PV%"indexVector") or E(e)->isDerivedFrom(PV%"indexMatrix"))
       convertIndex(ret, true);
 
     // add filenames to dependencies

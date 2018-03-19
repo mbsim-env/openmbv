@@ -347,6 +347,29 @@
         </xs:choice>
       </xs:complexType>
 
+      <!-- index vector -->
+      <xs:complexType name="indexMatrix" mixed="true">
+        <xs:annotation>
+          <xs:documentation>A matrix value of indices (0 or 1 based dependent on the language)</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0">
+          <xs:element name="xmlMatrix">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="ele" minOccurs="0" maxOccurs="unbounded" type="integerFullEval"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:group ref="fromFileGroup"/>
+        </xs:choice>
+      </xs:complexType>
+
       <!-- rotation matrix -->
       <xs:complexType mixed="true" name="rotationMatrix">
         <xs:annotation><xs:documentation>

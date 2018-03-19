@@ -270,6 +270,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
          E(e)->isDerivedFrom(PV%"fullEval") ||
          E(e)->isDerivedFrom(PV%"integerVector") ||
          E(e)->isDerivedFrom(PV%"indexVector") ||
+         E(e)->isDerivedFrom(PV%"indexMatrix") ||
          isCasADi) {
         Eval::Value value=eval->eval(e);
         E(e)->removeAttribute("unit");
