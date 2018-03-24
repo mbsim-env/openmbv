@@ -30,8 +30,6 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedFaceSet, OPENMBV%"DynamicIndexedFaceSet")
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet()  {}
-
 DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"numberOfVertexPositions", numvp);

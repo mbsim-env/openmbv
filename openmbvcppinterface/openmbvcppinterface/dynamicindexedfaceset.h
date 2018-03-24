@@ -26,28 +26,32 @@
 
 namespace OpenMBV {
 
-  /** A nurbs surface */
+  /** A dynamic indexed face set */
   class DynamicIndexedFaceSet : public DynamicColoredBody {
     friend class ObjectFactory;
     protected:
       std::vector<Index> indices;
       int numvp{0};
       H5::VectorSerie<double>* data;
-      DynamicIndexedFaceSet();
+      DynamicIndexedFaceSet() = default;
       ~DynamicIndexedFaceSet() override = default;
       xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
       /** Write H5 file for time-dependent data. */
       void createHDF5File() override;
       void openHDF5File() override;
     public:
-      /** Get control points
+      /** Get number of vertex positions
        */
       int getNumberOfVertexPositions() const { return numvp; }
+      /** Get indices
+       */
       const std::vector<Index>& getIndices() { return indices; }
 
-      /** Set control points
+      /** Set number of vertex positions
        */
       void setNumberOfVertexPositions(int num) { numvp = num; }
+      /** Set indices
+       */
       void setIndices(const std::vector<Index> &indices_) { indices = indices_; }
 
       /** Append a data vector to the h5 datsset */

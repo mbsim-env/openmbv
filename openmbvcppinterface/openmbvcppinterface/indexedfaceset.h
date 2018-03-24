@@ -25,23 +25,27 @@
 
 namespace OpenMBV {
 
-  /** A nurbs surface */
+  /** An indexed face set */
   class IndexedFaceSet : public RigidBody {
     friend class ObjectFactory;
     protected:
       std::vector<std::vector<double> > vp;
       std::vector<Index> indices;
-      IndexedFaceSet();
+      IndexedFaceSet() = default;
       ~IndexedFaceSet() override = default;
     public:
-      /** Get control points
+      /** Get vertex positions
        */
       const std::vector<std::vector<double> >& getVertexPositions() { return vp; }
+      /** Get indices
+       */
       const std::vector<Index>& getIndices() { return indices; }
 
-      /** Set control points
+      /** Set vertex positions
        */
       void setVertexPositions(const std::vector<std::vector<double> > &vp_) { vp = vp_; }
+      /** Set indices
+       */
       void setIndices(const std::vector<Index> &indices_) { indices = indices_; }
 
       /** Initializes the time invariant part of the object using a XML node */

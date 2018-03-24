@@ -30,9 +30,6 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IndexedFaceSet, OPENMBV%"IndexedFaceSet")
 
-IndexedFaceSet::IndexedFaceSet()  {
-}
-
 DOMElement* IndexedFaceSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"vertexPositions", vp);
