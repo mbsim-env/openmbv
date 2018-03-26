@@ -34,6 +34,7 @@
 #include "openmbvcppinterface/invisiblebody.h"
 #include "openmbvcppinterface/ivbody.h"
 #include "openmbvcppinterface/nurbsdisk.h"
+#include "openmbvcppinterface/nurbssurface.h"
 #include "openmbvcppinterface/indexedfaceset.h"
 #include "openmbvcppinterface/dynamicindexedfaceset.h"
 #include "openmbvcppinterface/path.h"
@@ -56,6 +57,7 @@
 #include "ivbody.h"
 #include "mainwindow.h"
 #include "nurbsdisk.h"
+#include "nurbssurface.h"
 #include "indexedfaceset.h"
 #include "dynamicindexedfaceset.h"
 #include "path.h"
@@ -117,6 +119,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new InvisibleBody(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::NurbsDisk))
     return new NurbsDisk(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::NurbsSurface))
+    return new NurbsSurface(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::IndexedFaceSet))
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedFaceSet))

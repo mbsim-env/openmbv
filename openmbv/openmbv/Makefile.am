@@ -39,6 +39,7 @@ libopenmbv_la_SOURCES = \
   spineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc \
+  nurbssurface.cc \
   indexedfaceset.cc \
   dynamicindexedfaceset.cc \
   editors.cc \
@@ -58,6 +59,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   coilspring.moc.cc\
   spineextrusion.moc.cc \
   nurbsdisk.moc.cc \
+  nurbssurface.moc.cc \
   indexedfaceset.moc.cc \
   dynamicindexedfaceset.moc.cc \
   editors.moc.cc \
@@ -120,6 +122,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   spineextrusion.h \
   coilspring.h \
   nurbsdisk.h \
+  nurbssurface.h \
   dynamicindexedfaceset.h \
   editors.h \
   IndexedTesselationFace.h \

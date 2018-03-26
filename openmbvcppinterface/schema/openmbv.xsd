@@ -335,6 +335,21 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="NurbsSurface" substitutionGroup="RigidBody" type="NurbsSurfaceType"/>
+  <xs:complexType name="NurbsSurfaceType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="controlPoints" type="pv:nounitMatrix"/>
+          <xs:element name="numberOfUControlPoints" type="pv:integerFullEval"/>
+          <xs:element name="numberOfVControlPoints" type="pv:integerFullEval"/>
+          <xs:element name="uKnotVector" type="pv:nounitVector"/>
+          <xs:element name="vKnotVector" type="pv:nounitVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="IndexedFaceSet" substitutionGroup="RigidBody" type="IndexedFaceSetType"/>
   <xs:complexType name="IndexedFaceSetType">
     <xs:complexContent>
