@@ -136,5 +136,7 @@ int main(int argc, char *argv[])
   if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
   mainWindow.updateScene(); // must be called after mainWindow.show()
 
+  if(find(arg.begin(), arg.end(), "--autoExit")!=arg.end()) // auto exit after 2 sec
+    QTimer::singleShot(2000, &mainWindow, &OpenMBVGUI::MainWindow::close);
   return app.exec();
 }
