@@ -37,8 +37,6 @@ class DynamicIndexedFaceSet : public DynamicColoredBody {
     DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
-    int numvp;
-    std::vector<int> idx;
     SoCoordinate3 *points;
     SoMaterial *myMaterials;
     double update() override;
