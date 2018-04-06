@@ -363,6 +363,20 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="DynamicNurbsSurface" substitutionGroup="DynamicColoredBody" type="DynamicNurbsSurfaceType"/>
+  <xs:complexType name="DynamicNurbsSurfaceType">
+    <xs:complexContent>
+      <xs:extension base="DynamicColoredBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfUControlPoints" type="pv:integerFullEval"/>
+          <xs:element name="numberOfVControlPoints" type="pv:integerFullEval"/>
+          <xs:element name="uKnotVector" type="pv:nounitVector"/>
+          <xs:element name="vKnotVector" type="pv:nounitVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="IndexedFaceSet" substitutionGroup="RigidBody" type="IndexedFaceSetType"/>
   <xs:complexType name="IndexedFaceSetType">
     <xs:complexContent>
