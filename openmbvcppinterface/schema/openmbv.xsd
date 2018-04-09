@@ -377,6 +377,18 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="IndexedLineSet" substitutionGroup="RigidBody" type="IndexedLineSetType"/>
+  <xs:complexType name="IndexedLineSetType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="vertexPositions" type="pv:nounitMatrix"/>
+          <xs:element name="indices" type="pv:indexVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="IndexedFaceSet" substitutionGroup="RigidBody" type="IndexedFaceSetType"/>
   <xs:complexType name="IndexedFaceSetType">
     <xs:complexContent>
