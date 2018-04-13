@@ -33,6 +33,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   nurbsdisk.cc \
   nurbscurve.cc \
   nurbssurface.cc \
+  dynamicnurbscurve.cc \
   dynamicnurbssurface.cc \
   indexedlineset.cc \
   indexedfaceset.cc \
@@ -64,6 +65,7 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   nurbsdisk.h \
   nurbscurve.h \
   nurbssurface.h \
+  dynamicnurbscurve.h \
   dynamicnurbssurface.h \
   indexedlineset.h \
   indexedfaceset.h \

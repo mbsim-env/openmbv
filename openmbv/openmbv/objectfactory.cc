@@ -36,6 +36,7 @@
 #include "openmbvcppinterface/nurbsdisk.h"
 #include "openmbvcppinterface/nurbscurve.h"
 #include "openmbvcppinterface/nurbssurface.h"
+#include "openmbvcppinterface/dynamicnurbscurve.h"
 #include "openmbvcppinterface/dynamicnurbssurface.h"
 #include "openmbvcppinterface/indexedlineset.h"
 #include "openmbvcppinterface/indexedfaceset.h"
@@ -62,6 +63,7 @@
 #include "nurbsdisk.h"
 #include "nurbscurve.h"
 #include "nurbssurface.h"
+#include "dynamicnurbscurve.h"
 #include "dynamicnurbssurface.h"
 #include "indexedlineset.h"
 #include "indexedfaceset.h"
@@ -129,6 +131,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new NurbsCurve(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::NurbsSurface))
     return new NurbsSurface(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::DynamicNurbsCurve))
+    return new DynamicNurbsCurve(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::DynamicNurbsSurface))
     return new DynamicNurbsSurface(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::IndexedLineSet))

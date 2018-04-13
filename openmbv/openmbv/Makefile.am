@@ -41,6 +41,7 @@ libopenmbv_la_SOURCES = \
   nurbsdisk.cc \
   nurbscurve.cc \
   nurbssurface.cc \
+  dynamicnurbscurve.cc \
   dynamicnurbssurface.cc \
   indexedlineset.cc \
   indexedfaceset.cc \
@@ -64,6 +65,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   nurbsdisk.moc.cc \
   nurbscurve.moc.cc \
   nurbssurface.moc.cc \
+  dynamicnurbscurve.moc.cc \
   dynamicnurbssurface.moc.cc \
   indexedlineset.moc.cc \
   indexedfaceset.moc.cc \
@@ -130,6 +132,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   nurbsdisk.h \
   nurbscurve.h \
   nurbssurface.h \
+  dynamicnurbscurve.h \
   dynamicnurbssurface.h \
   indexedlineset.h \
   indexedfaceset.h \
