@@ -24,5 +24,8 @@
 #include <openmbvcppinterface/grid.h>
 #include <openmbvcppinterface/path.h>
 #include <openmbvcppinterface/indexedfaceset.h>
+#include <openmbvcppinterface/indexedlineset.h>
+#include <openmbvcppinterface/flexiblebody.h>
+#include <openmbvcppinterface/dynamicindexedlineset.h>
 #include <openmbvcppinterface/dynamicindexedfaceset.h>
 %}

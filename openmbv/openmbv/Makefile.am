@@ -45,6 +45,8 @@ libopenmbv_la_SOURCES = \
   dynamicnurbssurface.cc \
   indexedlineset.cc \
   indexedfaceset.cc \
+  flexiblebody.cc \
+  dynamicindexedlineset.cc \
   dynamicindexedfaceset.cc \
   editors.cc \
   IndexedTesselationFace.cc \
@@ -69,6 +71,8 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   dynamicnurbssurface.moc.cc \
   indexedlineset.moc.cc \
   indexedfaceset.moc.cc \
+  flexiblebody.moc.cc \
+  dynamicindexedlineset.moc.cc \
   dynamicindexedfaceset.moc.cc \
   editors.moc.cc \
   arrow.moc.cc\
@@ -136,6 +140,8 @@ libopenmbv_la_HEADERS = mainwindow.h\
   dynamicnurbssurface.h \
   indexedlineset.h \
   indexedfaceset.h \
+  flexiblebody.h \
+  dynamicindexedlineset.h \
   dynamicindexedfaceset.h \
   editors.h \
   IndexedTesselationFace.h \

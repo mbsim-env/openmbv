@@ -413,12 +413,37 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="DynamicIndexedFaceSet" substitutionGroup="DynamicColoredBody" type="DynamicIndexedFaceSetType"/>
+  <xs:element name="FlexibleBody" substitutionGroup="Body" type="FlexibleBodyType"/>
+  <xs:complexType name="FlexibleBodyType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="diffuseColor" type="pv:nounitVector" minOccurs="0"/>
+          <xs:element name="transparency" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="numberOfVertexPositions" type="pv:integerFullEval" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DynamicIndexedLineSet" substitutionGroup="FlexibleBody" type="DynamicIndexedLineSetType"/>
+  <xs:complexType name="DynamicIndexedLineSetType">
+    <xs:complexContent>
+      <xs:extension base="FlexibleBodyType">
+        <xs:sequence>
+          <xs:element name="indices" type="pv:indexVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DynamicIndexedFaceSet" substitutionGroup="FlexibleBody" type="DynamicIndexedFaceSetType"/>
   <xs:complexType name="DynamicIndexedFaceSetType">
     <xs:complexContent>
-      <xs:extension base="DynamicColoredBodyType">
+      <xs:extension base="FlexibleBodyType">
         <xs:sequence>
-          <xs:element name="numberOfVertexPositions" type="pv:integerFullEval"/>
           <xs:element name="indices" type="pv:indexVector"/>
         </xs:sequence>
       </xs:extension>

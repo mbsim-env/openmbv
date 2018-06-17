@@ -37,6 +37,8 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   dynamicnurbssurface.cc \
   indexedlineset.cc \
   indexedfaceset.cc \
+  flexiblebody.cc \
+  dynamicindexedlineset.cc \
   dynamicindexedfaceset.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
@@ -69,4 +71,6 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   dynamicnurbssurface.h \
   indexedlineset.h \
   indexedfaceset.h \
+  flexiblebody.h \
+  dynamicindexedlineset.h \
   dynamicindexedfaceset.h

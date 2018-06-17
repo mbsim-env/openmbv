@@ -30,7 +30,10 @@
 %shared_ptr(OpenMBV::Cuboid)
 %shared_ptr(OpenMBV::Grid)
 %shared_ptr(OpenMBV::Path)
+%shared_ptr(OpenMBV::IndexedLineSet)
 %shared_ptr(OpenMBV::IndexedFaceSet)
+%shared_ptr(OpenMBV::FlexibleBody)
+%shared_ptr(OpenMBV::DynamicIndexedLineSet)
 %shared_ptr(OpenMBV::DynamicIndexedFaceSet)
 
 // handle exceptions
@@ -217,7 +220,10 @@
 %include <openmbvcppinterface/cuboid.h>
 %include <openmbvcppinterface/grid.h>
 %include <openmbvcppinterface/path.h>
+%include <openmbvcppinterface/indexedlineset.h>
 %include <openmbvcppinterface/indexedfaceset.h>
+%include <openmbvcppinterface/flexiblebody.h>
+%include <openmbvcppinterface/dynamicindexedlineset.h>
 %include <openmbvcppinterface/dynamicindexedfaceset.h>
 
 %extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<double> >; };
@@ -226,7 +232,7 @@
 %extend OpenMBV::RigidBody             { %template(append) append<std::vector<double> >; };
 %extend OpenMBV::CoilSpring            { %template(append) append<std::vector<double> >; };
 %extend OpenMBV::Path                  { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::DynamicIndexedFaceSet { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::FlexibleBody          { %template(append) append<std::vector<double> >; };
 
 %include <openmbvcppinterface/objectfactory.h>
 %template(create_Group) OpenMBV::ObjectFactory::create<OpenMBV::Group>;
@@ -246,7 +252,9 @@
 %template(create_Cuboid) OpenMBV::ObjectFactory::create<OpenMBV::Cuboid>;
 %template(create_Grid) OpenMBV::ObjectFactory::create<OpenMBV::Grid>;
 %template(create_Path) OpenMBV::ObjectFactory::create<OpenMBV::Path>;
+%template(create_IndexedLineSet) OpenMBV::ObjectFactory::create<OpenMBV::IndexedLineSet>;
 %template(create_IndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::IndexedFaceSet>;
+%template(create_DynamicIndexedLineSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedLineSet>;
 %template(create_DynamicIndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedFaceSet>;
 
 
