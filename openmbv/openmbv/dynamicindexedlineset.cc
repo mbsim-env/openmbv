@@ -18,12 +18,12 @@
 */
 
 #include "config.h"
-#include "dynamicindexedfaceset.h"
+#include "dynamicindexedlineset.h"
 #include "utils.h"
 #include "mainwindow.h"
-#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoComplexity.h>
-#include "openmbvcppinterface/dynamicindexedfaceset.h"
+#include "openmbvcppinterface/dynamicindexedlineset.h"
 #include <QMenu>
 #include <vector>
 #include <cfloat>
@@ -32,20 +32,20 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : FlexibleBody(obj, parentItem, soParent, ind) {
-  faceset=std::static_pointer_cast<OpenMBV::DynamicIndexedFaceSet>(obj);
-  iconFile="indexedfaceset.svg";
+DynamicIndexedLineSet::DynamicIndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : FlexibleBody(obj, parentItem, soParent, ind) {
+  lineset=std::static_pointer_cast<OpenMBV::DynamicIndexedLineSet>(obj);
+  iconFile="indexedlineset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  auto *surface = new SoIndexedFaceSet;
-  surface->coordIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
-  surface->materialIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
-  soSep->addChild(surface);
+  auto *line = new SoIndexedLineSet;
+  line->coordIndex.setValues(0, lineset->getIndices().size(), lineset->getIndices().data());
+  line->materialIndex.setValues(0, lineset->getIndices().size(), lineset->getIndices().data());
+  soSep->addChild(line);
 }
 
-double DynamicIndexedFaceSet::update() {
+double DynamicIndexedLineSet::update() {
   int frame = MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data = faceset->getRow(frame);
+  std::vector<double> data = lineset->getRow(frame);
 
   SbColor *colorData = mat->diffuseColor.startEditing();
   SbColor *specData = mat->specularColor.startEditing();
@@ -53,9 +53,9 @@ double DynamicIndexedFaceSet::update() {
   mat->diffuseColor[0].getHSVValue(h, s, v);
   double m=1/(maximalColorValue-minimalColorValue);
 
-  points->point.setNum(faceset->getNumberOfVertexPositions());
+  points->point.setNum(lineset->getNumberOfVertexPositions());
   SbVec3f *pointData = points->point.startEditing();
-  for (int i=0; i<faceset->getNumberOfVertexPositions(); i++) {
+  for (int i=0; i<lineset->getNumberOfVertexPositions(); i++) {
     double hue = diffuseColor[0];
     if(hue<0) {
     double col = data[i*4+4];

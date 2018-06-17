@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
-#define _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
+#ifndef _OPENMBVGUI_DYNAMICINDEXEDLINESET_H_
+#define _OPENMBVGUI_DYNAMICINDEXEDLINESET_H_
 
 #include "flexiblebody.h"
 #include <string>
@@ -26,17 +26,17 @@
 #include <Inventor/nodes/SoMaterial.h>
 
 namespace OpenMBV {
-  class DynamicIndexedFaceSet;
+  class DynamicIndexedLineSet;
 }
 
 namespace OpenMBVGUI {
 
-class DynamicIndexedFaceSet : public FlexibleBody {
+class DynamicIndexedLineSet : public FlexibleBody {
   Q_OBJECT
   public:
-    DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    DynamicIndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
+    std::shared_ptr<OpenMBV::DynamicIndexedLineSet> lineset;
     double update() override;
 };
 

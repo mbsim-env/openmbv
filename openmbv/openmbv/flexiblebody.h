@@ -17,27 +17,30 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
-#define _OPENMBVGUI_DYNAMICINDEXEDFACESET_H_
+#ifndef _OPENMBVGUI_FLEXIBLEBODY_H_
+#define _OPENMBVGUI_FLEXIBLEBODY_H_
 
-#include "flexiblebody.h"
+#include "body.h"
 #include <string>
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
 
 namespace OpenMBV {
-  class DynamicIndexedFaceSet;
+  class FlexibleBody;
 }
 
 namespace OpenMBVGUI {
 
-class DynamicIndexedFaceSet : public FlexibleBody {
+class FlexibleBody : public Body {
   Q_OBJECT
   public:
-    DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    std::shared_ptr<OpenMBV::DynamicIndexedFaceSet> faceset;
-    double update() override;
+    std::shared_ptr<OpenMBV::FlexibleBody> body;
+    SoCoordinate3 *points;
+    double minimalColorValue, maximalColorValue;
+    SoMaterial *mat;
+    std::vector<double> diffuseColor;
 };
 
 }

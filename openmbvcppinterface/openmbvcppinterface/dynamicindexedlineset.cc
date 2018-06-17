@@ -18,7 +18,7 @@
 */
 
 #include "config.h"
-#include <openmbvcppinterface/dynamicindexedfaceset.h>
+#include <openmbvcppinterface/dynamicindexedlineset.h>
 #include <iostream>
 #include <fstream>
 
@@ -28,9 +28,9 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedFaceSet, OPENMBV%"DynamicIndexedFaceSet")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicIndexedLineSet, OPENMBV%"DynamicIndexedLineSet")
 
-DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
+DOMElement* DynamicIndexedLineSet::writeXMLFile(DOMNode *parent) {
   DOMElement *e=FlexibleBody::writeXMLFile(parent);
   vector<int> indices1based(indices.size());
   transform(indices.begin(), indices.end(), indices1based.begin(), [](int a){ return a+1; });
@@ -38,7 +38,7 @@ DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
   return e;
 }
 
-void DynamicIndexedFaceSet::initializeUsingXML(DOMElement *element) {
+void DynamicIndexedLineSet::initializeUsingXML(DOMElement *element) {
   FlexibleBody::initializeUsingXML(element);
   auto e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
   vector<int> indices1based=E(e)->getText<vector<int>>();

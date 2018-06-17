@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_DYNAMICINDEXEDFACESET_H
-#define _OPENMBV_DYNAMICINDEXEDFACESET_H
+#ifndef _OPENMBV_DYNAMICINDEXEDLINESET_H
+#define _OPENMBV_DYNAMICINDEXEDLINESET_H
 
 #include <openmbvcppinterface/flexiblebody.h>
 #include <vector>
@@ -26,17 +26,16 @@
 
 namespace OpenMBV {
 
-  /** A dynamic indexed face set */
-  class DynamicIndexedFaceSet : public FlexibleBody {
+  /** A dynamic indexed line set */
+  class DynamicIndexedLineSet : public FlexibleBody {
     friend class ObjectFactory;
     protected:
-      DynamicIndexedFaceSet() = default;
-      ~DynamicIndexedFaceSet() override = default;
+      DynamicIndexedLineSet() = default;
+      ~DynamicIndexedLineSet() override = default;
       xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
       std::vector<Index> indices;
 
     public:
-
       /** Get indices
        */
       const std::vector<Index>& getIndices() { return indices; }
