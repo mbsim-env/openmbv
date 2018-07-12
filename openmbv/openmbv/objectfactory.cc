@@ -141,7 +141,7 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new DynamicNurbsSurface(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::PointSet))
     return new PointSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::PointSet))
+  else if(typeid(*obj)==typeid(OpenMBV::IndexedLineSet))
     return new IndexedLineSet(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::IndexedFaceSet))
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
