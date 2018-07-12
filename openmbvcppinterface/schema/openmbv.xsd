@@ -389,6 +389,17 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="PointSet" substitutionGroup="RigidBody" type="PointSetType"/>
+  <xs:complexType name="PointSetType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="vertexPositions" type="pv:nounitMatrix"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="IndexedLineSet" substitutionGroup="RigidBody" type="IndexedLineSetType"/>
   <xs:complexType name="IndexedLineSetType">
     <xs:complexContent>
