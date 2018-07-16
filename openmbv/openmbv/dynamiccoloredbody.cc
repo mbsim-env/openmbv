@@ -27,7 +27,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-DynamicColoredBody::DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind), color(0), oldColor(std::numeric_limits<double>::quiet_NaN()) {
+DynamicColoredBody::DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind, bool perVertexIndexed) : Body(obj, parentItem, soParent, ind), color(0), oldColor(std::numeric_limits<double>::quiet_NaN()) {
   dcb=std::static_pointer_cast<OpenMBV::DynamicColoredBody>(obj);
   // read XML
   minimalColorValue=dcb->getMinimalColorValue();
@@ -41,9 +41,16 @@ DynamicColoredBody::DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &o
   mat->specularColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, 0.7*diffuseColor[1], diffuseColor[2]);
   mat->transparency.setValue(dcb->getTransparency());
   mat->shininess.setValue(0.9);
-  baseColor=new SoBaseColor;
-  soSep->addChild(baseColor);
-  baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
+  if(perVertexIndexed) {
+    auto *myMaterialBinding = new SoMaterialBinding;
+    myMaterialBinding->value = SoMaterialBinding::PER_VERTEX_INDEXED;
+    soSep->addChild(myMaterialBinding);
+  }
+  else {
+    baseColor=new SoBaseColor;
+    soSep->addChild(baseColor);
+    baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
+  }
 }
 
 void DynamicColoredBody::createProperties() {

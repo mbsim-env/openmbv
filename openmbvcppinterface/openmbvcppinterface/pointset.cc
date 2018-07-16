@@ -17,30 +17,30 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICNURBSCURVE_H_
-#define _OPENMBVGUI_DYNAMICNURBSCURVE_H_
+#include "config.h"
+#include <openmbvcppinterface/pointset.h>
+#include <iostream>
+#include <fstream>
 
-#include "dynamiccoloredbody.h"
-#include <string>
+using namespace std;
+using namespace MBXMLUtils;
+using namespace xercesc;
 
 namespace OpenMBV {
-  class DynamicNurbsCurve;
+
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(PointSet, OPENMBV%"PointSet")
+
+DOMElement* PointSet::writeXMLFile(DOMNode *parent) {
+  DOMElement *e=RigidBody::writeXMLFile(parent);
+  E(e)->addElementText(OPENMBV%"vertexPositions", vp);
+
+  return nullptr;
 }
 
-class SoCoordinate4;
-
-namespace OpenMBVGUI {
-
-class DynamicNurbsCurve : public DynamicColoredBody {
-  Q_OBJECT
-  public:
-    DynamicNurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-  protected:
-    std::shared_ptr<OpenMBV::DynamicNurbsCurve> nurbscurve;
-    SoCoordinate4 *points;
-    double update() override;
-};
-
+void PointSet::initializeUsingXML(DOMElement *element) {
+  RigidBody::initializeUsingXML(element);
+  DOMElement *e=E(element)->getFirstElementChildNamed(OPENMBV%"vertexPositions");
+  setVertexPositions(E(e)->getText<vector<vector<double>>>());
 }
 
-#endif
+}

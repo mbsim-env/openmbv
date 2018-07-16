@@ -20,7 +20,7 @@
 #ifndef _OPENMBVGUI_DYNAMICNURBSSURFACE_H_
 #define _OPENMBVGUI_DYNAMICNURBSSURFACE_H_
 
-#include "rigidbody.h"
+#include "dynamiccoloredbody.h"
 #include <string>
 
 namespace OpenMBV {

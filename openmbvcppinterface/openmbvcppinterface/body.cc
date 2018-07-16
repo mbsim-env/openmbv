@@ -44,6 +44,8 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
     case points: dm="points"; break;
   }
   E(e)->setAttribute("drawMethod", dm);
+  E(e)->setAttribute("pointSize", pointSize);
+  E(e)->setAttribute("lineWidth", lineWidth);
   if(hdf5LinkBody) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
@@ -112,6 +114,10 @@ void Body::initializeUsingXML(DOMElement *element) {
     if(E(element)->getAttribute("drawMethod")=="lines") setDrawMethod(lines);
     if(E(element)->getAttribute("drawMethod")=="points") setDrawMethod(points);
   }
+  if(E(element)->hasAttribute("pointSize"))
+   setPointSize(stod(E(element)->getAttribute("pointSize")));
+  if(E(element)->hasAttribute("lineWidth"))
+   setLineWidth(stod(E(element)->getAttribute("lineWidth")));
   if((e=E(element)->getFirstElementChildNamed(OPENMBV%"hdf5Link")))
     hdf5LinkStr=E(e)->getAttribute("ref");
 }

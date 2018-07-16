@@ -17,29 +17,35 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICNURBSCURVE_H_
-#define _OPENMBVGUI_DYNAMICNURBSCURVE_H_
+#ifndef _OPENMBV_POINTSET_H
+#define _OPENMBV_POINTSET_H
 
-#include "dynamiccoloredbody.h"
-#include <string>
+#include <openmbvcppinterface/rigidbody.h>
+#include <vector>
 
 namespace OpenMBV {
-  class DynamicNurbsCurve;
-}
 
-class SoCoordinate4;
+  /** A point set */
+  class PointSet : public RigidBody {
+    friend class ObjectFactory;
+    protected:
+      std::vector<std::vector<double> > vp;
+      PointSet() = default;
+      ~PointSet() override = default;
+    public:
+      /** Get vertex positions
+       */
+      const std::vector<std::vector<double> >& getVertexPositions() { return vp; }
 
-namespace OpenMBVGUI {
+      /** Set vertex positions
+       */
+      void setVertexPositions(const std::vector<std::vector<double> > &vp_) { vp = vp_; }
 
-class DynamicNurbsCurve : public DynamicColoredBody {
-  Q_OBJECT
-  public:
-    DynamicNurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
-  protected:
-    std::shared_ptr<OpenMBV::DynamicNurbsCurve> nurbscurve;
-    SoCoordinate4 *points;
-    double update() override;
-};
+      /** Initializes the time invariant part of the object using a XML node */
+      void initializeUsingXML(xercesc::DOMElement *element) override;
+
+      xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
+  };
 
 }
 

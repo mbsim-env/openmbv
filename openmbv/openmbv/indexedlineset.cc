@@ -32,11 +32,11 @@ using namespace std;
 namespace OpenMBVGUI {
 
 IndexedLineSet::IndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  faceset=std::static_pointer_cast<OpenMBV::IndexedLineSet>(obj);
-  iconFile="indexedfaceset.svg";
+  lineset=std::static_pointer_cast<OpenMBV::IndexedLineSet>(obj);
+  iconFile="indexedlineset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  vector<vector<double> > vp = faceset->getVertexPositions();
+  vector<vector<double> > vp = lineset->getVertexPositions();
 
   float pts[vp.size()][3];
   for(unsigned int i=0; i<vp.size(); i++) {
@@ -45,11 +45,11 @@ IndexedLineSet::IndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   }
 
   auto *points = new SoCoordinate3;
-  auto *surface = new SoIndexedLineSet;
+  auto *line = new SoIndexedLineSet;
   points->point.setValues(0, vp.size(), pts);
-  surface->coordIndex.setValues(0, faceset->getIndices().size(), faceset->getIndices().data());
+  line->coordIndex.setValues(0, lineset->getIndices().size(), lineset->getIndices().data());
   soSepRigidBody->addChild(points);
-  soSepRigidBody->addChild(surface);
+  soSepRigidBody->addChild(line);
 
   // outline
   soSepRigidBody->addChild(soOutLineSwitch);

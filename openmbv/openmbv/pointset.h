@@ -17,28 +17,25 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICNURBSCURVE_H_
-#define _OPENMBVGUI_DYNAMICNURBSCURVE_H_
+#ifndef _OPENMBVGUI_POINTSET_H_
+#define _OPENMBVGUI_POINTSET_H_
 
-#include "dynamiccoloredbody.h"
+#include "rigidbody.h"
 #include <string>
 
 namespace OpenMBV {
-  class DynamicNurbsCurve;
+  class PointSet;
 }
-
-class SoCoordinate4;
 
 namespace OpenMBVGUI {
 
-class DynamicNurbsCurve : public DynamicColoredBody {
+class PointSet : public RigidBody {
   Q_OBJECT
   public:
-    DynamicNurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    PointSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    std::shared_ptr<OpenMBV::DynamicNurbsCurve> nurbscurve;
-    SoCoordinate4 *points;
-    double update() override;
+    std::shared_ptr<OpenMBV::PointSet> pointset;
+    void createProperties() override;
 };
 
 }

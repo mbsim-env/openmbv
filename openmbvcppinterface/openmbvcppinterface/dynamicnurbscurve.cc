@@ -40,7 +40,7 @@ DOMElement* DynamicNurbsCurve::writeXMLFile(DOMNode *parent) {
 void DynamicNurbsCurve::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*num);
+    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+5*num);
     vector<string> columns;
     columns.emplace_back("Time");
     for(int i=0;i<num;i++) {
@@ -48,6 +48,7 @@ void DynamicNurbsCurve::createHDF5File() {
       columns.push_back("y"+fmatvec::toString(i));
       columns.push_back("z"+fmatvec::toString(i));
       columns.push_back("w"+fmatvec::toString(i));
+      columns.push_back("color"+fmatvec::toString(i));
     }
     data->setColumnLabel(columns);
   }

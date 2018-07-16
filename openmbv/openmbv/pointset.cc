@@ -18,11 +18,11 @@
 */
 
 #include "config.h"
-#include "flexiblebody.h"
+#include "pointset.h"
 #include "utils.h"
-#include "mainwindow.h"
+#include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/nodes/SoComplexity.h>
-#include "openmbvcppinterface/flexiblebody.h"
+#include "openmbvcppinterface/pointset.h"
 #include <QMenu>
 #include <vector>
 #include <cfloat>
@@ -31,19 +31,28 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind, true) {
-  body=std::static_pointer_cast<OpenMBV::FlexibleBody>(obj);
-  iconFile="flexiblebody.svg";
+PointSet::PointSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  pointset=std::static_pointer_cast<OpenMBV::PointSet>(obj);
+  iconFile="pointset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  mat->diffuseColor.setNum(body->getNumberOfVertexPositions());
-  mat->specularColor.setNum(body->getNumberOfVertexPositions());
+  vector<vector<double> > vp = pointset->getVertexPositions();
 
-  points = new SoCoordinate3;
-  soSep->addChild(points);
+  float pts[vp.size()][3];
+  for(unsigned int i=0; i<vp.size(); i++) {
+    for(unsigned int j=0; j<3; j++)
+      pts[i][j] = vp[i][j];
+  }
 
-  // outline
-  soSep->addChild(soOutLineSwitch);
+  auto *points = new SoCoordinate3;
+  auto *pointset = new SoPointSet;
+  points->point.setValues(0, vp.size(), pts);
+  soSepRigidBody->addChild(points);
+  soSepRigidBody->addChild(pointset);
+}
+
+void PointSet::createProperties() {
+  RigidBody::createProperties();
 }
 
 }
