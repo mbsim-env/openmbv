@@ -46,6 +46,8 @@
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"> </script>
+    <script type="text/javascript" src="/mbsim/html/cookiewarning.js"> </script>
     <div class="page-header">
       <h1>MBXMLUtils - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span></p>

@@ -89,6 +89,7 @@
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
+    <script type="text/javascript" src="/mbsim/html/cookiewarning.js"> </script>
     <div class="page-header">
       <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning"><xsl:value-of select="/xs:schema/@targetNamespace"/></span></p>
