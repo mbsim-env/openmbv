@@ -77,10 +77,6 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   if(arrow->getType()==OpenMBV::Arrow::line) {
     // Line
  
-    // line width
-    auto *drawStyle=new SoDrawStyle;
-    soArrowSwitch->addChild(drawStyle);
-    drawStyle->lineWidth.setValue(2);
     // line
     lineCoord=new SoCoordinate3;
     soArrowSwitch->addChild(lineCoord);
