@@ -36,6 +36,8 @@ namespace OpenMBV {
     protected:
       std::string outLineStr, shilouetteEdgeStr;
       DrawStyle drawMethod{filled};
+      double pointSize{0};
+      double lineWidth{0};
       std::shared_ptr<Body> hdf5LinkBody;
       std::string hdf5LinkStr;
       void createHDF5File() override;
@@ -66,6 +68,16 @@ namespace OpenMBV {
       void setDrawMethod(DrawStyle ds) { drawMethod=ds; }
 
       DrawStyle getDrawMethod() { return drawMethod; }
+
+      /** Point size of this object in the viewer (default: 0) */
+      void setPointSize(double ps) { pointSize=ps; }
+
+      double getPointSize() { return pointSize; }
+
+      /** Line width of this object in the viewer (default: 0) */
+      void setLineWidth(double lw) { lineWidth=lw; }
+
+      double getLineWidth() { return lineWidth; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

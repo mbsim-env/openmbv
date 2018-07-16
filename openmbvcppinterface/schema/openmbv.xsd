@@ -88,8 +88,9 @@
         </xs:sequence> 
         <xs:attribute name="outLine" type="pv:booleanFullEval" default="1"/>
         <xs:attribute name="shilouetteEdge" type="pv:booleanFullEval" default="0"/>
-        <xs:attribute name="drawMethod" type="pv:stringPartialEval" default="filled">
-        </xs:attribute>
+        <xs:attribute name="drawMethod" type="pv:stringPartialEval" default="filled"/>
+        <xs:attribute name="pointSize" type="pv:floatFullEval" default="0"/>
+        <xs:attribute name="lineWidth" type="pv:floatFullEval" default="0"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -424,15 +425,11 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="FlexibleBody" substitutionGroup="Body" type="FlexibleBodyType"/>
+  <xs:element name="FlexibleBody" substitutionGroup="DynamicColoredBody" type="FlexibleBodyType"/>
   <xs:complexType name="FlexibleBodyType">
     <xs:complexContent>
-      <xs:extension base="BodyType">
+      <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
-          <xs:element name="minimalColorValue" type="pv:nounitScalar" minOccurs="0"/>
-          <xs:element name="maximalColorValue" type="pv:nounitScalar" minOccurs="0"/>
-          <xs:element name="diffuseColor" type="pv:nounitVector" minOccurs="0"/>
-          <xs:element name="transparency" type="pv:nounitScalar" minOccurs="0"/>
           <xs:element name="numberOfVertexPositions" type="pv:integerFullEval" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>

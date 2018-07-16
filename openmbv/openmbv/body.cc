@@ -101,6 +101,8 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
     case OpenMBV::Body::lines: drawStyle->style.setValue(SoDrawStyle::LINES); break;
     case OpenMBV::Body::points: drawStyle->style.setValue(SoDrawStyle::POINTS); break;
   }
+  drawStyle->pointSize.setValue(body->getPointSize());
+  drawStyle->lineWidth.setValue(body->getLineWidth());
   
   // GUI
   // register callback function for shilouette edges
@@ -166,6 +168,14 @@ void Body::createProperties() {
     });
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
+
+    FloatEditor *pointSizeEditor=new FloatEditor(properties, Utils::QIconCached("pointsize.svg"), "Define point size");
+    pointSizeEditor->setRange(0, DBL_MAX);
+    pointSizeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getPointSize, &OpenMBV::Body::setPointSize);
+
+    FloatEditor *lineWidthEditor=new FloatEditor(properties, Utils::QIconCached("linewidth.svg"), "Define line width");
+    lineWidthEditor->setRange(0, DBL_MAX);
+    lineWidthEditor->setOpenMBVParameter(body, &OpenMBV::Body::getLineWidth, &OpenMBV::Body::setLineWidth);
 
     // MISSING: hdf5link
   }
