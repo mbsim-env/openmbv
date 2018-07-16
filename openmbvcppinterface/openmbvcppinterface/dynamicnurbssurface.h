@@ -20,8 +20,9 @@
 #ifndef _OPENMBV_DYNAMICNURBSSURFACE_H
 #define _OPENMBV_DYNAMICNURBSSURFACE_H
 
-#include <openmbvcppinterface/rigidbody.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <vector>
+#include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {
 

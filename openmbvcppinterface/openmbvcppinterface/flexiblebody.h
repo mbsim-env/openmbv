@@ -20,7 +20,7 @@
 #ifndef _OPENMBV_FLEXIBLEBODY_H
 #define _OPENMBV_FLEXIBLEBODY_H
 
-#include <openmbvcppinterface/body.h>
+#include <openmbvcppinterface/dynamiccoloredbody.h>
 #include <vector>
 #include <hdf5serie/vectorserie.h>
 
@@ -28,59 +28,16 @@ namespace OpenMBV {
 
   /** \brief Abstract base class for all flexible bodies
    */
-  class FlexibleBody : public Body {
+  class FlexibleBody : public DynamicColoredBody {
     protected:
-      double minimalColorValue{0};
-      double maximalColorValue{1};
-      std::vector<double> diffuseColor;
-      double transparency{0};
       int numvp{0};
       H5::VectorSerie<double>* data;
-      FlexibleBody();
+      FlexibleBody() = default;
       ~FlexibleBody() override = default;
       xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
       void createHDF5File() override;
       void openHDF5File() override;
     public:
-      /** Set the minimal color value.
-       * The color value of the body in linearly mapped between minimalColorValue
-       * and maximalColorValue to blue(minimal) over cyan, green, yellow to red(maximal).
-       */
-      void setMinimalColorValue(double min) { minimalColorValue=min; }
-
-      double getMinimalColorValue() { return minimalColorValue; }
-
-      /** Set the maximal color value.
-       * See also minimalColorValue
-       */
-      void setMaximalColorValue(double max) { maximalColorValue=max; }
-
-      double getMaximalColorValue() { return maximalColorValue; }
-
-      /** Set the diffuse color of the body (HSV values from 0 to 1).
-       * If the hue is less then 0 (default = -1) then the dynamic color from the
-       * append routine is used as hue value.
-       */
-      void setDiffuseColor(const std::vector<double> &hsv) {
-        if(hsv.size()!=3) throw std::runtime_error("the dimension does not match");
-        diffuseColor=hsv;
-      }
-
-      void setDiffuseColor(double h, double s, double v) {
-        std::vector<double> hsv;
-        hsv.push_back(h);
-        hsv.push_back(s);
-        hsv.push_back(v);
-        diffuseColor=hsv;
-      }
-
-      std::vector<double> getDiffuseColor() { return diffuseColor; }
-
-      /** Set the transparency of the body. */
-      void setTransparency(double t) { transparency=t; }
-
-      double getTransparency() { return transparency; }
-
       /** Get number of vertex positions
        */
       int getNumberOfVertexPositions() const { return numvp; }

@@ -31,27 +31,15 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
+FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind, true) {
   body=std::static_pointer_cast<OpenMBV::FlexibleBody>(obj);
   iconFile="flexiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  minimalColorValue=body->getMinimalColorValue();
-  maximalColorValue=body->getMaximalColorValue();
-  diffuseColor=body->getDiffuseColor();
-
-  points = new SoCoordinate3;
-  auto *myMaterialBinding = new SoMaterialBinding;
-  myMaterialBinding->value = SoMaterialBinding::PER_VERTEX_INDEXED;
-  mat = new SoMaterial;
-  mat->diffuseColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
-  mat->specularColor.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, 0.7*diffuseColor[1], diffuseColor[2]);
-  mat->transparency.setValue(body->getTransparency());
-  mat->shininess.setValue(0.9);
   mat->diffuseColor.setNum(body->getNumberOfVertexPositions());
   mat->specularColor.setNum(body->getNumberOfVertexPositions());
-  soSep->addChild(mat);
-  soSep->addChild(myMaterialBinding);
+
+  points = new SoCoordinate3;
   soSep->addChild(points);
 
   // outline

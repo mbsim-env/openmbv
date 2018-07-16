@@ -20,7 +20,7 @@
 #ifndef _OPENMBVGUI_FLEXIBLEBODY_H_
 #define _OPENMBVGUI_FLEXIBLEBODY_H_
 
-#include "body.h"
+#include "dynamiccoloredbody.h"
 #include <string>
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
@@ -31,16 +31,13 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
-class FlexibleBody : public Body {
+class FlexibleBody : public DynamicColoredBody {
   Q_OBJECT
   public:
     FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::FlexibleBody> body;
     SoCoordinate3 *points;
-    double minimalColorValue, maximalColorValue;
-    SoMaterial *mat;
-    std::vector<double> diffuseColor;
 };
 
 }
