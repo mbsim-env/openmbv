@@ -47,6 +47,7 @@ libopenmbv_la_SOURCES = \
   indexedlineset.cc \
   indexedfaceset.cc \
   flexiblebody.cc \
+  dynamicpointset.cc \
   dynamicindexedlineset.cc \
   dynamicindexedfaceset.cc \
   editors.cc \
@@ -74,6 +75,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   indexedlineset.moc.cc \
   indexedfaceset.moc.cc \
   flexiblebody.moc.cc \
+  dynamicpointset.moc.cc \
   dynamicindexedlineset.moc.cc \
   dynamicindexedfaceset.moc.cc \
   editors.moc.cc \
@@ -144,6 +146,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   indexedlineset.h \
   indexedfaceset.h \
   flexiblebody.h \
+  dynamicpointset.h \
   dynamicindexedlineset.h \
   dynamicindexedfaceset.h \
   editors.h \

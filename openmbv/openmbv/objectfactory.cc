@@ -41,6 +41,7 @@
 #include "openmbvcppinterface/pointset.h"
 #include "openmbvcppinterface/indexedlineset.h"
 #include "openmbvcppinterface/indexedfaceset.h"
+#include "openmbvcppinterface/dynamicpointset.h"
 #include "openmbvcppinterface/dynamicindexedlineset.h"
 #include "openmbvcppinterface/dynamicindexedfaceset.h"
 #include "openmbvcppinterface/path.h"
@@ -70,6 +71,7 @@
 #include "pointset.h"
 #include "indexedlineset.h"
 #include "indexedfaceset.h"
+#include "dynamicpointset.h"
 #include "dynamicindexedlineset.h"
 #include "dynamicindexedfaceset.h"
 #include "path.h"
@@ -145,6 +147,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new IndexedLineSet(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::IndexedFaceSet))
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::DynamicPointSet))
+    return new DynamicPointSet(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedLineSet))
     return new DynamicIndexedLineSet(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedFaceSet))

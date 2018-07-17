@@ -436,6 +436,13 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="DynamicPointSet" substitutionGroup="FlexibleBody" type="DynamicPointSetType"/>
+  <xs:complexType name="DynamicPointSetType">
+    <xs:complexContent>
+      <xs:extension base="FlexibleBodyType"/>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="DynamicIndexedLineSet" substitutionGroup="FlexibleBody" type="DynamicIndexedLineSetType"/>
   <xs:complexType name="DynamicIndexedLineSetType">
     <xs:complexContent>
