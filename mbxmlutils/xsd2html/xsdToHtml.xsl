@@ -89,6 +89,7 @@
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
+    <script type="text/javascript" src="/mbsim/html/cookiewarning.js"> </script>
     <div class="page-header">
       <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning"><xsl:value-of select="/xs:schema/@targetNamespace"/></span></p>
@@ -244,9 +245,9 @@
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
-    <span class="pull-left small"><a href="https://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
-    <a href="https://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
-    <a href="https://www.mbsim-env.de/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
+    <span class="pull-left small"><a href="/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
+    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
+    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
     Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils 
     <a href="/">Home</a>
     </span>
