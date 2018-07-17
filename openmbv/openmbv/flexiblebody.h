@@ -38,6 +38,7 @@ class FlexibleBody : public DynamicColoredBody {
   protected:
     std::shared_ptr<OpenMBV::FlexibleBody> body;
     SoCoordinate3 *points;
+    double update() override;
 };
 
 }

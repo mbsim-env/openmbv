@@ -37,7 +37,7 @@ class DynamicIndexedLineSet : public FlexibleBody {
     DynamicIndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
     std::shared_ptr<OpenMBV::DynamicIndexedLineSet> lineset;
-    double update() override;
+//    double update() override;
 };
 
 }
