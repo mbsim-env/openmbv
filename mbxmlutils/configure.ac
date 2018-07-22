@@ -18,7 +18,6 @@ AC_CHECK_FUNCS([dup2])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr]) 
-AC_CHECK_FUNCS([malloc]) 
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
@@ -26,7 +25,7 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_CHECK_FUNCS([floor])
 AC_CHECK_FUNCS([pow])
-AC_CHECK_FUNCS([putenv])
+# AC_CHECK_FUNCS([putenv]) cannot be added to to Windows build
 AC_CHECK_FUNCS([sqrt])
 AC_FUNC_ERROR_AT_LINE
 AC_TYPE_UINT64_T
