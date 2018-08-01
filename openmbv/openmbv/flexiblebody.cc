@@ -36,8 +36,8 @@ FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWid
   iconFile="flexiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  mat->diffuseColor.setNum(body->getNumberOfVertexPositions());
-  mat->specularColor.setNum(body->getNumberOfVertexPositions());
+  mat->diffuseColor.setNum(max(1,body->getNumberOfVertexPositions()));
+  mat->specularColor.setNum(max(1,body->getNumberOfVertexPositions()));
 
   points = new SoCoordinate3;
   soSep->addChild(points);
