@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
 AC_INIT([mbxmlutils],[1.3.0],[friedrich.at.gc@googlemail.com])
+AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([xsd2html/addDoxygenToXsd.xsl])
 AC_CONFIG_HEADERS([config.h])
@@ -17,14 +18,17 @@ AC_CHECK_FUNCS([dup2])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([strchr]) 
-AC_CHECK_FUNCS([malloc]) 
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_TYPES([ptrdiff_t])
 AC_C_INLINE
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
-
-AC_CANONICAL_SYSTEM
+AC_CHECK_FUNCS([floor])
+AC_CHECK_FUNCS([pow])
+# AC_CHECK_FUNCS([putenv]) cannot be added to to Windows build
+AC_CHECK_FUNCS([sqrt])
+AC_FUNC_ERROR_AT_LINE
+AC_TYPE_UINT64_T
 
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
