@@ -7,7 +7,7 @@ swig_LTLIBRARIES = libopenmbvjava.la libopenmbvjavaloadJNI.la
 libopenmbvjava_la_SOURCES = OpenMBV_swig_java.cc
 libopenmbvjava_la_LDFLAGS = -module -shrext .jni -avoid-version $(MAYBE_MINGW_CFLAGS) # use jni as so/dll extension for the java native binary file
 libopenmbvjava_la_CPPFLAGS = $(JAVA_JNICFLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -Wstrict-aliasing=0 -I$(top_srcdir)
-libopenmbvjava_la_LIBADD = ../../openmbvcppinterface/libopenmbvcppinterface.la
+libopenmbvjava_la_LIBADD = ../../openmbvcppinterface/libopenmbvcppinterface.la $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS)
 EXTRA_libopenmbvjava_la_DEPENDENCIES = openmbv.jar
 
 libopenmbvjavaloadJNI_la_SOURCES = openmbvjavaloadjni.c
@@ -26,7 +26,7 @@ OpenMBV_swig_java.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*
 	$(MKDIR_P) de/mbsim_env/openmbv
 	rm -f OpenMBV_swig_java.cc
 	$(swig) -java -MP -MD -package de.mbsim_env.openmbv -outdir de/mbsim_env/openmbv -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_java.cc $(srcdir)/../OpenMBV.i
--include OpenMBV_swig_java.d
+-include $(builddir)/OpenMBV_swig_java.d
 
 de/mbsim_env/openmbv/Object.class: OpenMBV_swig_java.cc
 	@JAVAC@ de/mbsim_env/openmbv/*.java

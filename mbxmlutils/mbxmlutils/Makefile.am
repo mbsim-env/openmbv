@@ -107,7 +107,7 @@ AUTOMAKE_OPTIONS = nostdinc
 casadi_oct_swig_octave.cc: $(srcdir)/casadi_oct.i
 	rm -f casadi_oct_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ -o casadi_oct_swig_octave.cc -DCASADI_EXPORT $(CASADI_CFLAGS) $(srcdir)/casadi_oct.i
--include casadi_oct_swig_octave.d
+-include $(builddir)/casadi_oct_swig_octave.d
 
 casadi_oct_la_SOURCES = casadi_oct_swig_octave.cc
 casadi_oct_la_LDFLAGS = -module -shrext .oct -avoid-version
