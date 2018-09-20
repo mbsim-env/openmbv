@@ -14,7 +14,7 @@ CLEANFILES = OpenMBV_swig_octave.cc OpenMBV_swig_octave.d
 OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i
 	rm -f OpenMBV_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i
--include OpenMBV_swig_octave.d
+-include $(builddir)/OpenMBV_swig_octave.d
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
 OpenMBV_la_LDFLAGS = -module -shrext .oct -avoid-version
