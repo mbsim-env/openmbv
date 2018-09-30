@@ -62,7 +62,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       if(E(e)->hasAttribute("count"))
         try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
     
-      // couter name
+      // counter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName"))
         try { counterName=eval->cast<string>(eval->eval(E(e)->getAttributeNode("counterName"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
