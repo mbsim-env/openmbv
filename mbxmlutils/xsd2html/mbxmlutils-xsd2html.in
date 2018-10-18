@@ -85,8 +85,7 @@ mkdir $HTMLDIR
   $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl || exit 1
 echo "DONE"
 echo "Remove all namespace declaration from the html output using sed (maybe a bug in Xalan)"
-sed -re "s/ xmlns:[^ ]+ *= *\"[^\"]+\"//g" $HTMLDIR/index.html > $HTMLDIR/index.html_ || exit 1
-mv -f $HTMLDIR/index.html_ $HTMLDIR/index.html || exit 1
+sed -i -re "s/ xmlns:[^ ]+ *= *\"[^\"]+\"//g" $HTMLDIR/index.html || exit 1
 echo "DONE"
 
 echo "Copy *.svg"
