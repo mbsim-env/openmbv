@@ -33,7 +33,7 @@
       <link rel="shortcut icon" href="/mbsim/html/mbsimenv.ico" type="image/x-icon"/>
       <link rel="icon" href="/mbsim/html/mbsimenv.ico" type="image/x-icon"/>
       <!-- Note: all defined class names and function names here start with _ to differentiate them from bootstrap ones -->
-      <style type="text/css">
+      <style>
         table._figure { margin-left:auto; margin-right:auto; }
         *._type { font-family:monospace; }
         *._element { font-family:monospace; font-weight:bold; }
@@ -61,8 +61,8 @@
         ul._content { padding-left:3ex; list-style-type:none; }
         caption._caption { text-align:center; caption-side:bottom; }
       </style>
-      <script type="text/javascript" src="https://cdn.datatables.net/s/bs-3.3.5/jq-2.1.4,dt-1.10.10/datatables.min.js"> </script>
-      <script type="text/javascript">
+      <script src="https://cdn.datatables.net/s/bs-3.3.5/jq-2.1.4,dt-1.10.10/datatables.min.js"> </script>
+      <script>
         <![CDATA[
         $(document).ready(function() {
           $("._expandcollapsecontent").click(function() {
@@ -86,10 +86,10 @@
           },
         });
       </script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"> </script>
     </head>
     <body style="margin:0.5em">
-    <script type="text/javascript" src="/mbsim/html/cookiewarning.js"> </script>
+    <script src="/mbsim/html/cookiewarning.js"> </script>
     <div class="page-header">
       <h1><xsl:value-of select="$PROJECT"/> - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning"><xsl:value-of select="/xs:schema/@targetNamespace"/></span></p>
