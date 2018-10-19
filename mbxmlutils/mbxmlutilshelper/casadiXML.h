@@ -119,7 +119,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
   // creata an SXElem dependent on the type
   SXElem sxelement;
   if(MBXMLUtils::E(e)->getTagName()==CASADI%"BinarySX") {
-    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op"));
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElem dep0(createCasADiSXFromXML(ee, nodes));
     ee=ee->getNextElementSibling();
@@ -127,7 +127,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     sxelement=SXElem::binary(op, dep0, dep1);
   }
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"UnarySX") {
-    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op").c_str());
+    auto op = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("op"));
     xercesc::DOMElement *ee=e->getFirstElementChild();
     SXElem dep=createCasADiSXFromXML(ee, nodes);
     sxelement=SXElem::unary(op, dep);
@@ -152,7 +152,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     sxelement=casadi_limits<SXElem>::nan;
   // reference elements must be handled specially: return the referenced node instead of creating a new one
   else if(MBXMLUtils::E(e)->getTagName()==CASADI%"SXElemRef") {
-    auto refid = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("refid").c_str());
+    auto refid = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("refid"));
     sxelement=SXElem::create(nodes[refid]);
     return sxelement;
   }
@@ -160,7 +160,7 @@ inline SXElem createCasADiSXFromXML(xercesc::DOMElement *e, std::map<int, SXNode
     throw std::runtime_error("Unknown XML element named "+MBXMLUtils::X()%e->getTagName()+" in createCasADiSXFromXML");
 
   // insert a newly created SXElem (node) to the list of all nodes
-  auto id = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("id").c_str());
+  auto id = boost::lexical_cast<int>(MBXMLUtils::E(e)->getAttribute("id"));
   nodes.insert(std::make_pair(id, sxelement.get()));
   return sxelement;
 }

@@ -18,7 +18,7 @@ using namespace boost::filesystem;
 namespace MBXMLUtils {
 
 void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
-                            const shared_ptr<XPathParamSet>& param, const string &parentXPath, int embedXPathCount,
+                            const shared_ptr<ParamSet>& param, const string &parentXPath, int embedXPathCount,
                             const shared_ptr<PositionMap>& position) {
   try {
     string thisXPath; // the XPath of this element (for a Embed its the target element name, for others its just the element name
@@ -41,13 +41,14 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         Eval::Value ret=eval->eval(E(e)->getAttributeNode("href"));
         string subst;
         try {
-          if(eval->valueIsOfType(ret, Eval::ScalarType))
-            try {
-              subst=fmatvec::toString(eval->cast<int>(ret));
-            }
-            catch(const DOMEvalException&) {
-              subst=fmatvec::toString(eval->cast<double>(ret));
-            }
+          if(eval->valueIsOfType(ret, Eval::ScalarType)) {
+            double d=eval->cast<double>(ret);
+            int i;
+            if(tryDouble2Int(d, i))
+              subst=fmatvec::toString(i);
+            else
+              subst=fmatvec::toString(d);
+          }
           else if(eval->valueIsOfType(ret, Eval::StringType))
             subst=eval->cast<string>(ret);
           else
@@ -125,11 +126,10 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           bind(&DOMElement::release, _1));
       }
 
-      // add/overwrite local parameter to/by param
-      if(localParamEle && param) {
-        pair<XPathParamSet::iterator, bool> ret=param->insert(make_pair(parentXPath+"/"+thisXPath, ParamSet()));
-        // no such XPath in param -> output this parameter set to the caller
-        if(ret.second) {
+      // add/overwrite local parameter to/by param (only handle root level parameters)
+      if(localParamEle && param && parentXPath.empty()) {
+        // no parameters exists in param -> output parameters to the caller
+        if(param->empty()) {
           shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
             Eval::Value parValue;
@@ -140,14 +140,20 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
               E(e)->removeAttribute("convertUnit");
             }
             catch(DOMEvalException &ex) {
+              if(E(p)->getTagName()==PV%"import")
+                eval->msg(Warn)<<"Skipping overwriting of 'pv:import' parameter. Imports cannot be overwritten."<<endl;
+              else
+                eval->msg(Warn)<<"Skipping overwriting of 'pv:"<<E(p)->getTagName().second<<"' named '"
+                               <<E(p)->getAttribute("name")<<"'. This parameter depends on other parameters."<<endl;
               continue;
             }
-            ret.first->second.emplace_back(E(p)->getAttribute("name"), parValue);
+            if(!param->emplace(E(p)->getAttribute("name"), parValue).second)
+              throw DOMEvalException("Cannot add parameter. A parameter with the same name already exists.", p);
           }
         }
-        // XPath already existing in param (specified by caller) -> overwrite all these parameters
+        // no parameters exists in param -> output parameters to the caller
         else {
-          for(auto & it : ret.first->second) {
+          for(auto & it : *param) {
             // serach for a parameter named it->first in localParamEle
             for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
               if(E(p)->getAttribute("name")==it.first) {
@@ -233,13 +239,14 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         Eval::Value value=eval->eval(a);
         string s;
         try {
-          if(eval->valueIsOfType(value, Eval::ScalarType))
-            try {
-              s=fmatvec::toString(eval->cast<int>(value));
-            }
-            catch(...) {
-              s=fmatvec::toString(eval->cast<double>(value));
-            }
+          if(eval->valueIsOfType(value, Eval::ScalarType)) {
+            double d=eval->cast<double>(value);
+            int i;
+            if(tryDouble2Int(d, i))
+              s=fmatvec::toString(i);
+            else
+              s=fmatvec::toString(d);
+          }
           else if(eval->valueIsOfType(value, Eval::StringType))
             s=eval->cast<string>(value);
           else
@@ -310,7 +317,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // pass param and the new parent XPath to preprocess
       DOMElement *n=c->getNextElementSibling();
       if(E(c)->getTagName()==PV%"Embed") embedXPathCount++;
-      preprocess(parser, eval, dependencies, c, param, parentXPath+"/"+thisXPath, embedXPathCount);
+      preprocess(parser, eval, dependencies, c, std::shared_ptr<ParamSet>(), parentXPath+"/"+thisXPath, embedXPathCount);
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);

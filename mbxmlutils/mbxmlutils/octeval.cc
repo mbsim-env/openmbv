@@ -11,7 +11,6 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
 #include "mbxmlutils/eval_static.h"
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 // octave includes: this will include the octave/config.h hence we must take care
@@ -348,8 +347,9 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   if(str=="true") return make_shared<octave_value>(1);
   if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
-  try { return make_shared<octave_value>(boost::lexical_cast<double>(boost::algorithm::trim_copy(str))); }
-  catch(const boost::bad_lexical_cast &) {}
+  double d;
+  if(boost::conversion::try_lexical_convert(boost::algorithm::trim_copy(str), d))
+    return make_shared<octave_value>(d);
   // no common string detected -> evaluate using octave now
 
   // restore current dir on exit and change current dir
@@ -487,7 +487,7 @@ void* OctEval::getSwigThis(const Value &value) const {
 string OctEval::getSwigType(const Value &value) const {
   shared_ptr<octave_value> v=C(value);
   if(v->class_name()!="swig_ref")
-    throw runtime_error("This value is not a reference to a SWIG wrapped object.");
+    return "";
   // get the swig type (get ones a pointer to swig_type for performance reasons)
   static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
   return fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();

@@ -150,9 +150,14 @@ int main(int argc, char *argv[]) {
       // create a clean evaluator (get the evaluator name first form the dom)
       string evalName="octave"; // default evaluator
       DOMElement *evaluator;
-      if(E(mainxmlele)->getTagName()==PV%"Embed")
-        // if the root element IS A Embed than the <evaluator> element is the first child of the first child of the root element
-        evaluator=E(mainxmlele->getFirstElementChild())->getFirstElementChildNamed(PV%"evaluator");
+      if(E(mainxmlele)->getTagName()==PV%"Embed") {
+        // if the root element IS A Embed than the <evaluator> element is the first child of the
+        // first (none pv:Parameter) child of the root element
+        auto r=mainxmlele->getFirstElementChild();
+        if(E(r)->getTagName()==PV%"Parameter")
+          r=r->getNextElementSibling();
+        evaluator=E(r)->getFirstElementChildNamed(PV%"evaluator");
+      }
       else
         // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
         evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");

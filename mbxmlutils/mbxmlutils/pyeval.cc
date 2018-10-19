@@ -9,7 +9,6 @@
 #include "pyeval.h"
 
 // other includes
-#include <boost/lexical_cast.hpp> // to convert a double to int and throw if its not an int
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -32,10 +31,11 @@ inline MBXMLUtils::Eval::Value C(const PyO &value) {
   return make_shared<PyO>(value);
 }
 
-vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly);
-vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly);
-string cast_string(const MBXMLUtils::Eval::Value &value, bool checkOnly);
+bool is_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject** a=nullptr, int *type=nullptr);
+bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject **a=nullptr, int *type=nullptr);
+
 double arrayScalarGetDouble(PyObject *o);
+double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
 }
 
@@ -197,9 +197,9 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   PyO v(C(value));
   switch(type) {
     case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
-    case VectorType: try { ::cast_vector_double(value, true); return true; } catch(...) { return false; }
-    case MatrixType: try { ::cast_vector_vector_double(value, true); return true; } catch(...) { return false; }
-    case StringType: try { ::cast_string(value, true); return true; } catch(...) { return false; }
+    case VectorType: return ::is_vector_double(value);
+    case MatrixType: return ::is_vector_vector_double(value);
+    case StringType: return CALLPY(PyUnicode_Check, v);
     case FunctionType: return false;
   }
   throw runtime_error("Internal error: Unknwon ValueType.");
@@ -292,10 +292,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   if(strtrim=="True") return C(CALLPY(PyBool_FromLong, 1));
   if(strtrim=="False") return C(CALLPY(PyBool_FromLong, 0));
   // check for integer and floating point values
-  try { return C(CALLPY(PyLong_FromLong, boost::lexical_cast<int>(boost::algorithm::trim_copy(strtrim)))); }
-  catch(const boost::bad_lexical_cast &) {}
-  try { return C(CALLPY(PyFloat_FromDouble, boost::lexical_cast<double>(boost::algorithm::trim_copy(strtrim)))); }
-  catch(const boost::bad_lexical_cast &) {}
+  double d;
+  if(boost::conversion::try_lexical_convert(strtrim, d)) {
+    int i;
+    if(tryDouble2Int(d, i))
+      return C(CALLPY(PyLong_FromLong, i));
+    return C(CALLPY(PyFloat_FromDouble, d));
+  }
   // no common string detected -> evaluate using python now
 
   // restore current dir on exit and change current dir
@@ -318,14 +321,19 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   PyO ret;
   PyCompilerFlags flags;
   flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
-  try {
-    // evaluate as expression (using the trimmed str) and save result in ret
-    PyO locals(CALLPY(PyDict_New));
-    mbxmlutilsStaticDependencies.clear();
-    ret=CALLPY(PyRun_StringFlags, strtrim, Py_eval_input, globals, locals, &flags);
+
+  // evaluate as expression (using the trimmed str) and save result in ret
+  PyO locals(CALLPY(PyDict_New));
+  mbxmlutilsStaticDependencies.clear();
+  PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags);
+  // clear the python exception in case of errors (done by creating a dummy PythonException object)
+  if(PyErr_Occurred())
+    PythonException dummy("", 0);
+  if(pyo) { // on success ...
+    ret=PyO(pyo);
     addStaticDependencies(e);
   }
-  catch(const std::exception&) { // on failure ...
+  else { // on failure ...
     PyO locals(CALLPY(PyDict_New));
     try {
       // ... evaluate as statement
@@ -376,7 +384,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
 }
 
 string PyEval::getSwigType(const Value &value) const {
-  return C(value)->ob_type->tp_name;
+  auto &t=C(value)->ob_type;
+  if(!t)
+    return "";
+  return t->tp_name;
 }
 
 double PyEval::cast_double(const Value &value) const {
@@ -391,19 +402,40 @@ double PyEval::cast_double(const Value &value) const {
 }
 
 vector<double> PyEval::cast_vector_double(const Value &value) const {
-  return ::cast_vector_double(value, false);
+  PyArrayObject* a;
+  int type;
+  if(!is_vector_double(value, &a, &type))
+    throw runtime_error("Value is not of type vector.");
+  
+  npy_intp *dims=PyArray_SHAPE(a);
+  vector<double> ret(dims[0]);
+  for(size_t i=0; i<dims[0]; ++i)
+    ret[i]=arrayGetDouble(a, type, i);
+  return ret;
 }
 
 vector<vector<double> >PyEval::cast_vector_vector_double(const Value &value) const {
-  return ::cast_vector_vector_double(value, false);
+  PyArrayObject* a;
+  int type;
+  if(!is_vector_vector_double(value, &a, &type))
+    throw runtime_error("Value is not of type matrix.");
+
+  npy_intp *dims=PyArray_SHAPE(a);
+  vector<vector<double> > ret(dims[0], vector<double>(dims[1]));
+  for(size_t r=0; r<dims[0]; ++r)
+    for(size_t c=0; c<dims[1]; ++c)
+      ret[r][c]=arrayGetDouble(a, type, r, c);
+  return ret;
 }
 
 string PyEval::cast_string(const Value &value) const {
-  return ::cast_string(value, false);
+  return CALLPY(PyUnicode_AsUTF8, C(value));
 }
 
 Eval::Value PyEval::create_double(const double& v) const {
-  try { return C(CALLPY(PyLong_FromLong, boost::lexical_cast<int>(v))); } catch(const boost::bad_lexical_cast &) {}
+  int i;
+  if(tryDouble2Int(v, i))
+    return C(CALLPY(PyLong_FromLong, i));
   return C(CALLPY(PyFloat_FromDouble, v));
 }
 
@@ -463,16 +495,17 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
 
 namespace {
 
-void checkNumPyDoubleType(int type) {
+bool checkNumPyDoubleType(int type) {
   if(type!=NPY_SHORT    && type!=NPY_USHORT    &&
      type!=NPY_INT      && type!=NPY_UINT      &&
      type!=NPY_LONG     && type!=NPY_ULONG     &&
      type!=NPY_LONGLONG && type!=NPY_ULONGLONG &&
      type!=NPY_FLOAT    && type!=NPY_DOUBLE    && type!=NPY_LONGDOUBLE)
-    throw runtime_error("Value is not of type double.");
+    return false;
+  return true;
 }
 
-double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1) {
+double arrayGetDouble(PyArrayObject *a, int type, int r, int c) {
   switch(type) {
     case NPY_SHORT:      return *static_cast<npy_short*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
     case NPY_USHORT:     return *static_cast<npy_ushort*>    (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
@@ -511,49 +544,37 @@ double arrayScalarGetDouble(PyObject *o) {
   return ret;
 }
 
-vector<double> cast_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
+bool is_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject** a, int *type) {
   PyO v(C(value));
   if(PyArray_Check(v.get())) {
-    auto *a=reinterpret_cast<PyArrayObject*>(v.get());
-    if(PyArray_NDIM(a)!=1)
-      throw runtime_error("Value is not of type vector (wrong dimension).");
-    int type=PyArray_TYPE(a);
-    checkNumPyDoubleType(type);
-    if(checkOnly)
-      return vector<double>();
-    npy_intp *dims=PyArray_SHAPE(a);
-    vector<double> ret(dims[0]);
-    for(size_t i=0; i<dims[0]; ++i)
-      ret[i]=arrayGetDouble(a, type, i);
-    return ret;
+    auto *a_=reinterpret_cast<PyArrayObject*>(v.get());
+    if(a) *a=a_;
+    if(PyArray_NDIM(a_)!=1)
+      return false;
+    int type_=PyArray_TYPE(a_);
+    if(type) *type=type_;
+    if(!checkNumPyDoubleType(type_))
+      return false;
+    return true;
   }
-  throw runtime_error("Value is not of type vector (wrong type).");
+  return false;
 }
 
-vector<vector<double> > cast_vector_vector_double(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
+bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject **a, int *type) {
   PyO v(C(value));
   if(PyArray_Check(v.get())) {
-    auto *a=reinterpret_cast<PyArrayObject*>(v.get());
-    if(PyArray_NDIM(a)!=2)
-      throw runtime_error("Value is not of type matrix (wrong dimension).");
-    int type=PyArray_TYPE(a);
-    checkNumPyDoubleType(type);
-    if(checkOnly)
-      return vector<vector<double> >();
-    npy_intp *dims=PyArray_SHAPE(a);
-    vector<vector<double> > ret(dims[0], vector<double>(dims[1]));
-    for(size_t r=0; r<dims[0]; ++r)
-      for(size_t c=0; c<dims[1]; ++c)
-        ret[r][c]=arrayGetDouble(a, type, r, c);
-    return ret;
+    auto *a_=reinterpret_cast<PyArrayObject*>(v.get());
+    if(a) *a=a_;
+    if(PyArray_NDIM(a_)!=2)
+      return false;
+    int type_=PyArray_TYPE(a_);
+    if(type) *type=type_;
+    if(!checkNumPyDoubleType(type_))
+      return false;
+    return true;
   }
-  throw runtime_error("Value is not of type matrix (wrong type).");
+  return false;
 }
-
-string cast_string(const MBXMLUtils::Eval::Value &value, bool checkOnly) {
-  return CALLPY(PyUnicode_AsUTF8, C(value));
-}
-
 
 }
 

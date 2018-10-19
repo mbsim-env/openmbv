@@ -29,6 +29,8 @@ namespace XERCES_CPP_NAMESPACE {
 
 namespace MBXMLUtils {
 
+bool tryDouble2Int(double d, int &i);
+
 //! A dummy object representing a value as string in the syntax of the Eval.
 class CodeString : public std::string {
   public:
@@ -364,6 +366,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! get the SWIG pointer of this value.
     virtual void* getSwigThis(const Value &value) const=0;
     //! get the SWIG type (class name) of this value.
+    //! Returns a empty string if value is not of type swig (it does not throw).
     virtual std::string getSwigType(const Value &value) const=0;
 
     void addStaticDependencies(const xercesc::DOMElement *e) const;

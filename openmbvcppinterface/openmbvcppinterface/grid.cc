@@ -51,9 +51,9 @@ void Grid::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ySize");
   setYSize(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"nx");
-  setXNumber((unsigned int)(boost::lexical_cast<double>((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
+  setXNumber(boost::lexical_cast<unsigned int>(X()%E(e)->getFirstTextChild()->getData()));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ny");
-  setYNumber((unsigned int)(boost::lexical_cast<double>((X()%E(e)->getFirstTextChild()->getData()).c_str())+.1));
+  setYNumber(boost::lexical_cast<unsigned int>(X()%E(e)->getFirstTextChild()->getData()));
 }
 
 }

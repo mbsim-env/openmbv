@@ -61,6 +61,16 @@ vector<string> mbxmlutilsStaticDependencies;
 
 namespace MBXMLUtils {
 
+bool tryDouble2Int(double d, int &i) {
+  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
+
+  i=lround(d);
+  double delta=fabs(d-i);
+  if(delta>eps*i && delta>eps)
+    return false;
+  return true;
+}
+
 NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(std::move(oe_)), newLevel(newLevel_) {
   if(newLevel)
     oe->pushContext();
@@ -607,13 +617,14 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
     Value ret=fullStringToValue(evalStr, e);
     string subst;
     try {
-      if(valueIsOfType(ret, ScalarType))
-        try {
-          subst=fmatvec::toString(cast<int>(ret));
-        }
-        catch(const DOMEvalException&) {
-          subst=fmatvec::toString(cast<double>(ret));
-        }
+      if(valueIsOfType(ret, ScalarType)) {
+        double d=cast<double>(ret);
+        int i;
+        if(tryDouble2Int(d, i))
+          subst=fmatvec::toString(i);
+        else
+          subst=fmatvec::toString(d);
+      }
       else if(valueIsOfType(ret, StringType))
         subst=cast<string>(ret);
       else
@@ -676,22 +687,17 @@ CodeString Eval::cast_CodeString(const Value &value) const {
 }
 
 int Eval::cast_int(const Value &value) const {
-  static const double eps=pow(10, -numeric_limits<double>::digits10-2);
-
   double d=cast<double>(value);
-  int i=lround(d);
-  double delta=fabs(d-i);
-  if(delta>eps*i && delta>eps)
+  int i;
+  if(!tryDouble2Int(d, i))
     throw runtime_error("Cannot cast this value to int.");
   return i;
 }
 
 SX Eval::cast_SX(const Value &value) const {
   // try to cast to SX*. If this works return just a copy of it
-  try {
+  if(getSwigType(value)==SwigType<SX*>::name)
     return *cast<SX*>(value);
-  }
-  catch(...) {}
   // try to cast to vector<vector<double> >. If this works convert it to SX
   try {
     vector<vector<double> > m=cast<vector<vector<double> > >(value);
@@ -702,9 +708,10 @@ SX Eval::cast_SX(const Value &value) const {
         M(r,c)=m[r][c];
     return M;
   }
-  catch(...) {}
-  // if this also fails -> error
-  throw runtime_error("Cannot cast this value to SX");
+  catch(...) {
+    // if this also fails -> error
+    throw runtime_error("Cannot cast this value to SX");
+  }
 }
 
 void Eval::addStaticDependencies(const DOMElement *e) const {

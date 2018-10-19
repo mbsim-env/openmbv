@@ -33,10 +33,10 @@ void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
 
 bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
   switch(type) {
-    case ScalarType: try { cast<double>(value); return true; } catch(...) { return false; };
-    case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };
-    case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };
-    case StringType: try { cast<string>(value); return true; } catch(...) { return false; };
+    case ScalarType: try { cast<double>(value); return true; } catch(...) { return false; };//mfmfcatch fix
+    case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };//mfmfcatch fix
+    case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };//mfmfcatch fix
+    case StringType: try { cast<string>(value); return true; } catch(...) { return false; };//mfmfcatch fix
     case FunctionType: return false;
   }
   return false;
@@ -64,7 +64,7 @@ void* XMLFlatEval::getSwigThis(const Value &value) const {
 }
 
 string XMLFlatEval::getSwigType(const Value &value) const {
-  throw runtime_error("getSwigThis not possible.");
+  return "";
 }
 
 double XMLFlatEval::cast_double(const Value &value) const {
