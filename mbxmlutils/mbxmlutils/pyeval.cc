@@ -293,7 +293,9 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   if(strtrim=="False") return C(CALLPY(PyBool_FromLong, 0));
   // check for integer and floating point values
   double d;
-  if(boost::conversion::try_lexical_convert(strtrim, d)) {
+  char *end;
+  d=strtod(strtrim.c_str(), &end);
+  if(end!=strtrim && string(end).empty()) {
     int i;
     if(tryDouble2Int(d, i))
       return C(CALLPY(PyLong_FromLong, i));

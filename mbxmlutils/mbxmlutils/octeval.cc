@@ -348,7 +348,9 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   if(str=="false") return make_shared<octave_value>(0);
   // check for floating point values
   double d;
-  if(boost::conversion::try_lexical_convert(boost::algorithm::trim_copy(str), d))
+  char *end;
+  d=strtod(str.c_str(), &end);
+  if(end!=str && boost::algorithm::trim_copy(string(end))=="")
     return make_shared<octave_value>(d);
   // no common string detected -> evaluate using octave now
 
