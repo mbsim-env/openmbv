@@ -42,8 +42,11 @@
 
 namespace OpenMBVGUI {
 
+class MainWindow;
+
 /** Utilitiy class */
 class Utils : virtual public fmatvec::Atom {
+  friend MainWindow;
   public:
     // INITIALIZATION
 
@@ -100,7 +103,17 @@ class Utils : virtual public fmatvec::Atom {
 
 
   private:
-    static std::unordered_map<std::string, QIcon> myIconCache;
+    struct SoDeleteSeparator {
+      SoDeleteSeparator() = default;
+      SoDeleteSeparator(const SoDeleteSeparator& other) = delete;
+      SoDeleteSeparator(SoDeleteSeparator&& other) = default;
+      SoDeleteSeparator& operator=(const SoDeleteSeparator& other) = delete;
+      SoDeleteSeparator& operator=(SoDeleteSeparator&& other) = delete;
+      ~SoDeleteSeparator() { if(s) s->unref(); }
+      SoSeparator *s=nullptr;
+    };
+    static std::unordered_map<std::string, SoDeleteSeparator> ivBodyCache;
+    static std::unordered_map<std::string, QIcon> iconCache;
 
     // INITIALIZATION
     static bool initialized;

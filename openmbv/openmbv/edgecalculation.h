@@ -26,11 +26,15 @@
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoGroup.h>
 #include <QtCore/QReadWriteLock>
 
 namespace OpenMBVGUI {
 
+class MainWindow;
+
 class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
+  friend MainWindow;
   Q_OBJECT
   public:
     /** Collect the data to be edge calculated from grp.
@@ -110,10 +114,30 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
       std::vector<SbVec3f> fpv; // vector in the face plane ortho to the edge (vb-va) (one vector for each face sharing this edge)
     };
     struct PreprocessedData { // preprocesses/cached data
-      SoCoordinate3 *coord; // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
-      std::vector<EdgeIndexFacePlaneVec> *edgeIndFPV; // a 1D array for all edges (allocated in preproces and never freed, since the cache uses it)
-      QReadWriteLock *calcLock; // is write locked until the calculation is running
-    } preData;
+      SoCoordinate3 *coord=nullptr; // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
+      std::vector<EdgeIndexFacePlaneVec> *edgeIndFPV=nullptr; // a 1D array for all edges (allocated in preproces and never freed, since the cache uses it)
+      QReadWriteLock *calcLock=nullptr; // is write locked until the calculation is running
+    };
+    struct PreprocessedDataDelete : public PreprocessedData {
+      PreprocessedDataDelete() = default;
+      PreprocessedDataDelete(const PreprocessedDataDelete& other) = delete;
+      PreprocessedDataDelete(PreprocessedDataDelete&& other) = default;
+      PreprocessedDataDelete& operator=(const PreprocessedDataDelete& other) = delete;
+      PreprocessedDataDelete& operator=(PreprocessedDataDelete&& other) = delete;
+      ~PreprocessedDataDelete();
+    };
+    PreprocessedData preData;
+    struct SoDeleteGroup {
+      SoDeleteGroup(SoGroup *g_) : g(g_) {}
+      SoDeleteGroup(const SoDeleteGroup& other) = delete;
+      SoDeleteGroup(SoDeleteGroup&& other) = delete;
+      SoDeleteGroup& operator=(const SoDeleteGroup& other) = delete;
+      SoDeleteGroup& operator=(SoDeleteGroup&& other) = delete;
+      ~SoDeleteGroup() { if(g) g->unref(); }
+      bool operator<(const SoDeleteGroup &other) const { return g<other.g; }
+      SoGroup *g;
+    };
+    static std::map<SoDeleteGroup, PreprocessedDataDelete> edgeCache;
 
     // set by calcCreaseEdges
     SoIndexedLineSet *creaseEdges;

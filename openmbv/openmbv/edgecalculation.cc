@@ -33,6 +33,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
+map<EdgeCalculation::SoDeleteGroup, EdgeCalculation::PreprocessedDataDelete> EdgeCalculation::edgeCache;
+
 // HELPER CLASSES
 
 // compare two SbVec3f objects
@@ -157,9 +159,6 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
   grp=grp_;
   useCache=useCache_;
   vertex=new vector<SbVec3f>;
-  preData.coord=nullptr;
-  preData.edgeIndFPV=nullptr;
-  preData.calcLock=nullptr;
   if(useCache) {
     preData.calcLock=new QReadWriteLock; // stored in a global cache => false positive in valgrind
     preData.calcLock->lockForWrite();
@@ -179,19 +178,21 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
 EdgeCalculation::~EdgeCalculation() {
   if(creaseEdges) creaseEdges->unref();
   if(!useCache) {
-    preData.coord->unref(); // decrement reference count if not a cached entry
+    if(preData.coord) preData.coord->unref(); // decrement reference count if not a cached entry
+    preData.coord=nullptr;
     delete preData.edgeIndFPV;
+    preData.edgeIndFPV=nullptr;
   }
 }
 
 void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
-  static map<SoGroup*, PreprocessedData> myCache;
   static QReadWriteLock mapRWLock;
-  pair<map<SoGroup*, PreprocessedData>::iterator, bool> ins;
+  pair<map<SoDeleteGroup, PreprocessedDataDelete>::iterator, bool> ins;
   if(useCache) {
     mapRWLock.lockForWrite(); // STL map is not thread safe => serialize
     grp->ref(); // increment reference count to prevent a delete for cached entries
-    ins=myCache.insert(pair<SoGroup*, PreprocessedData>(grp, preData)); // if not exist, add empty preData
+    ins=edgeCache.emplace(grp, PreprocessedDataDelete()); // if not exist, add empty preData
+    if(ins.second) static_cast<PreprocessedData&>(ins.first->second)=preData; // set preprocessed data in cache
     mapRWLock.unlock();
   }
   if(!useCache || ins.second) {
@@ -244,7 +245,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
     if(useCache) {
       mapRWLock.lockForWrite(); // STL map is not thread safe => serialize
       preData.calcLock->unlock(); // calculation is finished
-      ins.first->second=preData; // set preprocessed data in cache
+      static_cast<PreprocessedData&>(ins.first->second)=preData; // set preprocessed data in cache
       mapRWLock.unlock();
     }
     maxThreads.release();
@@ -260,6 +261,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
   
   delete vertex; // is no longer required
   delete preData.calcLock; // is not needed
+  preData.calcLock=nullptr;
   ins.first->second.calcLock->lockForRead(); // wait until tha cache entry has finished calculation
   ins.first->second.calcLock->unlock(); // unlock
   mapRWLock.lockForRead(); // STL map is not thread safe => serialize
@@ -333,6 +335,15 @@ SbVec3f EdgeCalculation::v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3) {
   SbVec3f ret=v13-v13.dot(v12)/v12.dot(v12)*v12;
   ret.normalize();
   return ret;
+}
+
+EdgeCalculation::PreprocessedDataDelete::~PreprocessedDataDelete() {
+  if(coord) coord->unref();
+  coord=nullptr;
+  delete edgeIndFPV;
+  edgeIndFPV=nullptr;
+  delete calcLock;
+  calcLock=nullptr;
 }
 
 }
