@@ -54,7 +54,7 @@ NurbsDisk::NurbsDisk(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     knotVecAzimuthal.push_back(dummy[i]);
   dummy=nurbsDisk->getKnotVecRadial();
   knotVecRadial.clear();
-  for(int i=0; i<nr+2+degRadial+1; i++)
+  for(int i=0; i<nr+1+degRadial+1; i++)
     knotVecRadial.push_back(dummy[i]);
 
   nurbsLength = (nr+1)*(nj+degAzimuthal);
