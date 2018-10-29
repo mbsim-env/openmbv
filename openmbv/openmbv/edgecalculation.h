@@ -130,7 +130,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     struct SoDeleteGroup {
       SoDeleteGroup(SoGroup *g_) : g(g_) {}
       SoDeleteGroup(const SoDeleteGroup& other) = delete;
-      SoDeleteGroup(SoDeleteGroup&& other) = delete;
+      SoDeleteGroup(SoDeleteGroup&& other) = default;
       SoDeleteGroup& operator=(const SoDeleteGroup& other) = delete;
       SoDeleteGroup& operator=(SoDeleteGroup&& other) = delete;
       ~SoDeleteGroup() { if(g) g->unref(); }
