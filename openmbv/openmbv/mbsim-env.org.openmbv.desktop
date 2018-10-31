@@ -1,6 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=OpenMBV
+Comment=Open Multi Body Visualization - 3D time dependent visualization
 Icon=mbsim-env.openmbv
 Exec=@bindir@/openmbv --maximized %F
+Terminal=false
 MimeType=application/vnd.mbsim-env.openmbv;
+Categories=Education;Science;ComputerScience;Math;NumericalAnalysis;Physics;Robotics;Engineering;
