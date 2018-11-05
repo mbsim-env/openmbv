@@ -77,9 +77,12 @@ else
 fi
 AC_SUBST([native_prefix])
 
+XC_PATH_CONVERT=echo
 if test "$cross_compiling" == "yes"; then
   AC_SUBST([XC_EXEC_PREFIX],[wine])
+  XC_PATH_CONVERT="winepath -w"
 fi
+AC_SUBST([XC_PATH_CONVERT])
 
 dnl Check for octave
 AC_ARG_WITH([mkoctfile], [  --with-mkoctfile=PROG  The 'mkoctfile' program (Use 'no' to disable the octave interface).],

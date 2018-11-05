@@ -3,7 +3,7 @@
 set -e
 
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
-@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/pythontest.py | tee result.txt
+@XC_EXEC_PREFIX@ @PYTHON_BIN@ $(@XC_PATH_CONVERT@ @abs_srcdir@/pythontest.py) | tee result.txt
 
 diff --strip-trailing-cr @abs_srcdir@/result-ref.txt result.txt
 

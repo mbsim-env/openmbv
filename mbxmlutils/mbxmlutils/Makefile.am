@@ -36,7 +36,7 @@ dist_swigref_DATA = \
 # validate measurement.xml
 .measurement.xml.isvalid: $(srcdir)/measurement.xml $(srcdir)/measurement.xsd
 	rm -f .measurement.xml.isvalid
-	$(XC_EXEC_PREFIX) ../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $(srcdir)/measurement.xsd $(srcdir)/measurement.xml && touch .measurement.xml.isvalid
+	$(XC_EXEC_PREFIX) ../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $$($(XC_PATH_CONVERT) $(abs_srcdir)/measurement.xsd) $$($(XC_PATH_CONVERT) $(abs_srcdir)/measurement.xml) && touch .measurement.xml.isvalid
 
 
 
