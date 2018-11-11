@@ -249,7 +249,7 @@ void GearWheel::createProperties() {
   if(!clone) {
     properties->updateHeader();
     IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
-    numEditor->setRange(0, DBL_MAX);
+    numEditor->setRange(5, 100);
     numEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getNumberOfTeeth, &OpenMBV::GearWheel::setNumberOfTeeth);
     FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
@@ -258,7 +258,7 @@ void GearWheel::createProperties() {
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getModule, &OpenMBV::GearWheel::setModule);
     FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure Angle");
-    pressureAngleEditor->setRange(0, DBL_MAX);
+    pressureAngleEditor->setRange(0, M_PI/4);
     pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getPressureAngle, &OpenMBV::GearWheel::setPressureAngle);
   }
 }
