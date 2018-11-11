@@ -56,7 +56,7 @@ class SpineExtrusion : public DynamicColoredBody {
     int numberOfSpinePoints;
 
     /** twist axis */
-    SbVec3f *twistAxis;
+    SbVec3f twistAxis;
   
     /** update method invoked at each time step */
     double update() override;

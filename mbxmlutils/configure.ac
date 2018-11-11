@@ -78,9 +78,12 @@ if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000
   AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
 fi
 
+XC_PATH_CONVERT=echo
 if test "$cross_compiling" == "yes"; then
   AC_SUBST([XC_EXEC_PREFIX],[wine])
+  XC_PATH_CONVERT="winepath -w"
 fi
+AC_SUBST([XC_PATH_CONVERT])
 
 dnl Check for xslt
 AC_ARG_WITH([xalan],

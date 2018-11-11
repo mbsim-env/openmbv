@@ -88,7 +88,12 @@ static SbVec3f calculate_z_axis(const SbVec3f * spine, const int i, const int nu
   return tmp;
 }
 
-SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), numberOfSpinePoints(0), collinear(true), additionalTwist(0.) {
+SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) :
+  DynamicColoredBody(obj, parentItem, soParent, ind),
+  numberOfSpinePoints(0),
+  twistAxis(0.,1.,0.),
+  collinear(true), additionalTwist(0.)
+{
   spineExtrusion=std::static_pointer_cast<OpenMBV::SpineExtrusion>(obj);
   //h5 dataset
   numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
@@ -105,7 +110,6 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   // body
   extrusion=new SoVRMLExtrusion;
   soSep->addChild(extrusion);
-  twistAxis = new SbVec3f(0.,1.,0.);
 
   // scale
   extrusion->scale.setNum(numberOfSpinePoints);
@@ -147,11 +151,13 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
 
   if(collinear) {
     auto *rotation = new SoRotation; // set rotation matrix 
+    rotation->ref();
     std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
     rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(rotation_parameter[0],rotation_parameter[1],rotation_parameter[2]))); 
     SbMatrix Orientation;
     rotation->rotation.getValue().getValue(Orientation);
     additionalTwist = acos(Orientation[2][2]);
+    rotation->unref();
   }
 }
 
@@ -192,7 +198,7 @@ double SpineExtrusion::update() {
   extrusion->orientation.setNum(numberOfSpinePoints);
   SbRotation *tw = extrusion->orientation.startEditing();
   for(int i=0;i<numberOfSpinePoints;i++) {
-    tw[i] = SbRotation(*twistAxis,data[4*i+4]+additionalTwist);
+    tw[i] = SbRotation(twistAxis,data[4*i+4]+additionalTwist);
   }
   extrusion->orientation.finishEditing();
   extrusion->orientation.setDefault(FALSE);

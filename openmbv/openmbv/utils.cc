@@ -36,7 +36,8 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-unordered_map<string, QIcon> Utils::myIconCache;
+unordered_map<string, Utils::SoDeleteSeparator> Utils::ivBodyCache;
+unordered_map<string, QIcon> Utils::iconCache;
 bool Utils::initialized=false;
 
 void Utils::initialize() {
@@ -53,7 +54,7 @@ void Utils::deinitialize() {
   if(!initialized) return;
   initialized=false;
 
-  myIconCache.clear();
+  iconCache.clear();
 }
 
 const QIcon& Utils::QIconCached(string filename) {
@@ -61,31 +62,30 @@ const QIcon& Utils::QIconCached(string filename) {
   if(filename[0]!=':' && filename[0]!='/')
     filename=getIconPath()+"/"+filename;
   
-  pair<unordered_map<string, QIcon>::iterator, bool> ins=myIconCache.insert(pair<string, QIcon>(filename, QIcon()));
+  pair<unordered_map<string, QIcon>::iterator, bool> ins=iconCache.insert(pair<string, QIcon>(filename, QIcon()));
   if(ins.second)
     return ins.first->second=QIcon(filename.c_str());
   return ins.first->second;
 }
 
 SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
-  static unordered_map<string, SoSeparator*> myIvBodyCache;
-  pair<unordered_map<string, SoSeparator*>::iterator, bool> ins=myIvBodyCache.insert(pair<string, SoSeparator*>(filename, (SoSeparator*)nullptr));
+  auto ins=ivBodyCache.emplace(filename, SoDeleteSeparator());
   if(ins.second) {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
-      ins.first->second=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-      ins.first->second->ref(); // increment reference count to prevent a delete for cached entries
-      return ins.first->second;
+      ins.first->second.s=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
+      ins.first->second.s->ref(); // increment reference count to prevent a delete for cached entries
+      return ins.first->second.s;
     }
     else { // open failed, remove from cache and return a empty IV
       QString str("Unable to find IV file %1."); str=str.arg(filename.c_str());
       MainWindow::getInstance()->statusBar()->showMessage(str);
       msgStatic(Warn)<<str.toStdString()<<endl;
-      myIvBodyCache.erase(ins.first);
+      ivBodyCache.erase(ins.first);
       return new SoSeparator;
     }
   }
-  return ins.first->second;
+  return ins.first->second.s;
 }
 
 // convenience: create frame so

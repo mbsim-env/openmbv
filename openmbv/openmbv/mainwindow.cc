@@ -846,7 +846,12 @@ MainWindow::~MainWindow() {
   delete engDrawingFGColorTopSaved;
   SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
+
+  // delete all globally stored Coin data before deinit Coin/SoQt
+  EdgeCalculation::edgeCache.clear();
+  Utils::ivBodyCache.clear();
   SoQt::done();
+
   Utils::deinitialize();
 }
 
