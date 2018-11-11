@@ -41,7 +41,8 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   flexiblebody.cc \
   dynamicpointset.cc \
   dynamicindexedlineset.cc \
-  dynamicindexedfaceset.cc
+  dynamicindexedfaceset.cc \
+  gearwheel.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
@@ -77,4 +78,5 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   flexiblebody.h \
   dynamicpointset.h \
   dynamicindexedlineset.h \
-  dynamicindexedfaceset.h
+  dynamicindexedfaceset.h \
+  gearwheel.h

@@ -465,4 +465,18 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="GearWheel" substitutionGroup="RigidBody" type="GearWheelType"/>
+  <xs:complexType name="GearWheelType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
+          <xs:element name="width" type="pv:lengthScalar"/>
+          <xs:element name="module" type="pv:lengthScalar"/>
+          <xs:element name="pressureAngle" type="pv:angleScalar"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>

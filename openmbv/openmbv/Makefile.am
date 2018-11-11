@@ -50,6 +50,7 @@ libopenmbv_la_SOURCES = \
   dynamicpointset.cc \
   dynamicindexedlineset.cc \
   dynamicindexedfaceset.cc \
+  gearwheel.cc \
   editors.cc \
   IndexedTesselationFace.cc \
   abstractviewfilter.cc \
@@ -78,6 +79,7 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   dynamicpointset.moc.cc \
   dynamicindexedlineset.moc.cc \
   dynamicindexedfaceset.moc.cc \
+  gearwheel.moc.cc \
   editors.moc.cc \
   arrow.moc.cc\
   rigidbody.moc.cc\
@@ -149,6 +151,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   dynamicpointset.h \
   dynamicindexedlineset.h \
   dynamicindexedfaceset.h \
+  gearwheel.h \
   editors.h \
   IndexedTesselationFace.h \
   abstractviewfilter.h \
