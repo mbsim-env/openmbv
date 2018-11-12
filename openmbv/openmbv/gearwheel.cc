@@ -63,7 +63,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   int numb = 5;
   double dphi = (ga0-deb)/(2*numb);
   double phi = ga0/2;
-  vector<double> x(6*numb), y(6*numb);
+  vector<double> x(6*numb-1), y(6*numb-1);
   for (int i=0; i<numb; i++) {
     x[i] = rf*sin(phi);
     y[i] = rf*cos(phi);
@@ -83,7 +83,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     y[i] = ra*cos(phi);
     phi -= dphi;
   }
-  for (int i=6*numb-1, j=0; i>=3*numb; i--,j++) {
+  for (int i=6*numb-2, j=1; i>=3*numb; i--,j++) {
     x[i] = -x[j];
     y[i] = y[j];
   }
@@ -126,66 +126,66 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     sh->creaseAngle.setValue(M_PI);
   }
   // side
-    SoNormal *n=nullptr;
+  SoNormal *n=nullptr;
+  if(hasWidth) {
+    n=new SoNormal;
+    side->addChild(n);
+  }
+  auto *v=new SoCoordinate3;
+  side->addChild(v);
+  size_t r;
+  SoIndexedFaceSet *s=nullptr;
+  if(hasWidth) {
+    s=new SoIndexedFaceSet;
+    side->addChild(s);
+  }
+  // outline
+  auto *ol1=new SoIndexedLineSet;
+  auto *ol2=new SoIndexedLineSet;
+  auto *ol3=new SoIndexedLineSet;
+  soOutLineSep->addChild(v);
+  soOutLineSep->addChild(ol1);
+  soOutLineSep->addChild(ol2);
+  int nr=0;
+  soOutLineSep->addChild(ol3);
+  //
+  for(r=0; r<X.size(); r++) {
+    size_t rn=r+1; if(rn>=X.size()) rn=0;
+    size_t rp; if(r>=1) rp=r-1; else rp=X.size()-1;
+    v->point.set1Value(2*r+0, X[r], Y[r], 0);
+    v->point.set1Value(2*r+1, X[r], Y[r], width);
     if(hasWidth) {
-      n=new SoNormal;
-      side->addChild(n);
+      SbVec3f n1(Y[r]-Y[rp],X[rp]-X[r],0); n1.normalize();
+      SbVec3f n2(Y[rn]-Y[r],X[r]-X[rn],0); n2.normalize();
+      if(((int)(0+0.5))!=1)
+        n1=n2=n1+n2;
+      n->vector.set1Value(2*r+0, n1);
+      n->vector.set1Value(2*r+1, n2);
     }
-    auto *v=new SoCoordinate3;
-    side->addChild(v);
-    size_t r;
-    SoIndexedFaceSet *s=nullptr;
+    ol1->coordIndex.set1Value(r, 2*r+0);
+    ol2->coordIndex.set1Value(r, 2*r+1);
+    if(((int)(0+0.5))==1) {
+      ol3->coordIndex.set1Value(nr++, 2*r+0);
+      ol3->coordIndex.set1Value(nr++, 2*r+1);
+      ol3->coordIndex.set1Value(nr++, -1);
+    }
     if(hasWidth) {
-      s=new SoIndexedFaceSet;
-      side->addChild(s);
+      s->coordIndex.set1Value(5*r+0, 2*r+0);
+      s->coordIndex.set1Value(5*r+1, 2*r+1);
+      s->coordIndex.set1Value(5*r+2, 2*rn+1);
+      s->coordIndex.set1Value(5*r+3, 2*rn+0);
+      s->coordIndex.set1Value(5*r+4, -1);
+      s->normalIndex.set1Value(5*r+0, 2*r+1);
+      s->normalIndex.set1Value(5*r+1, 2*r+1);
+      s->normalIndex.set1Value(5*r+2, 2*rn);
+      s->normalIndex.set1Value(5*r+3, 2*rn);
+      s->normalIndex.set1Value(5*r+4, -1);
     }
-    // outline
-    auto *ol1=new SoIndexedLineSet;
-    auto *ol2=new SoIndexedLineSet;
-    auto *ol3=new SoIndexedLineSet;
-    soOutLineSep->addChild(v);
-    soOutLineSep->addChild(ol1);
-    soOutLineSep->addChild(ol2);
-    int nr=0;
-    soOutLineSep->addChild(ol3);
-    //
-    for(r=0; r<X.size(); r++) {
-      size_t rn=r+1; if(rn>=X.size()) rn=0;
-      size_t rp; if(r>=1) rp=r-1; else rp=X.size()-1;
-      v->point.set1Value(2*r+0, X[r], Y[r], 0);
-      v->point.set1Value(2*r+1, X[r], Y[r], width);
-      if(hasWidth) {
-        SbVec3f n1(Y[r]-Y[rp],X[rp]-X[r],0); n1.normalize();
-        SbVec3f n2(Y[rn]-Y[r],X[r]-X[rn],0); n2.normalize();
-        if(((int)(0+0.5))!=1)
-          n1=n2=n1+n2;
-        n->vector.set1Value(2*r+0, n1);
-        n->vector.set1Value(2*r+1, n2);
-      }
-      ol1->coordIndex.set1Value(r, 2*r+0);
-      ol2->coordIndex.set1Value(r, 2*r+1);
-      if(((int)(0+0.5))==1) {
-        ol3->coordIndex.set1Value(nr++, 2*r+0);
-        ol3->coordIndex.set1Value(nr++, 2*r+1);
-        ol3->coordIndex.set1Value(nr++, -1);
-      }
-      if(hasWidth) {
-        s->coordIndex.set1Value(5*r+0, 2*r+0);
-        s->coordIndex.set1Value(5*r+1, 2*r+1);
-        s->coordIndex.set1Value(5*r+2, 2*rn+1);
-        s->coordIndex.set1Value(5*r+3, 2*rn+0);
-        s->coordIndex.set1Value(5*r+4, -1);
-        s->normalIndex.set1Value(5*r+0, 2*r+1);
-        s->normalIndex.set1Value(5*r+1, 2*r+1);
-        s->normalIndex.set1Value(5*r+2, 2*rn);
-        s->normalIndex.set1Value(5*r+3, 2*rn);
-        s->normalIndex.set1Value(5*r+4, -1);
-      }
-    }
-    ol1->coordIndex.set1Value(r, 0);
-    ol2->coordIndex.set1Value(r, 1);
-    ol1->coordIndex.set1Value(r+1, -1);
-    ol2->coordIndex.set1Value(r+1, -1);
+  }
+  ol1->coordIndex.set1Value(r, 0);
+  ol2->coordIndex.set1Value(r, 1);
+  ol1->coordIndex.set1Value(r+1, -1);
+  ol2->coordIndex.set1Value(r+1, -1);
 
   // base and top
   gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
