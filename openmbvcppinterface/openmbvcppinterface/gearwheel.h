@@ -31,6 +31,7 @@ namespace OpenMBV {
     protected:
       int N{15};
       double w{5e-2};
+      double be{0};
       double m{16e-3};
       double al{0.349065850398866};
       GearWheel() = default;
@@ -45,6 +46,11 @@ namespace OpenMBV {
       void setWidth(double w_) { w = w_; }
       
       double getWidth() { return w; }
+
+      /** Set the helix angle. */
+      void setHelixAngle(double be_) { be = be_; }
+
+      double getHelixAngle() { return be; }
 
       /** Set the module. */
       void setModule(double m_) { m = m_; }

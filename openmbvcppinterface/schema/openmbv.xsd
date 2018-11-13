@@ -472,6 +472,7 @@
         <xs:sequence>
           <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
           <xs:element name="width" type="pv:lengthScalar"/>
+          <xs:element name="helixAngle" type="pv:angleScalar"/>
           <xs:element name="module" type="pv:lengthScalar"/>
           <xs:element name="pressureAngle" type="pv:angleScalar"/>
         </xs:sequence>

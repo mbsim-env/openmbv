@@ -19,11 +19,7 @@
 
 #include "config.h"
 #include "gearwheel.h"
-#include <Inventor/nodes/SoDrawStyle.h>
-#include <Inventor/nodes/SoNormal.h>
-#include <Inventor/nodes/SoShapeHints.h>
-#include <Inventor/nodes/SoIndexedLineSet.h>
-#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/gearwheel.h"
@@ -40,10 +36,12 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
-  double width = e->getWidth();
   int z = e->getNumberOfTeeth();
+  double width = e->getWidth();
+  double be = e->getHelixAngle();
   double al0 = e->getPressureAngle(); 
   double m = e->getModule();
+
   double d0 = m*z;
   double p0 = M_PI*d0/z;
   double c = 0.167*m;
@@ -62,26 +60,26 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double rf = df/2;
   int numb = 5;
   double dphi = (ga0-deb)/(2*numb);
-  double phi = ga0/2;
+  double phi = -ga0/2;
   vector<double> x(6*numb-1), y(6*numb-1);
   for (int i=0; i<numb; i++) {
     x[i] = rf*sin(phi);
     y[i] = rf*cos(phi);
-    phi -= dphi;
+    phi += dphi;
   }
   dphi = (phia+ala)/numb;
   phi = 0;
   for (int i=numb; i<2*numb; i++) {
-    x[i] = rb*(cos(deb/2)*(-sin(phi)+cos(phi)*phi) + sin(deb/2)*(cos(phi)+sin(phi)*phi));
-    y[i] = rb*(-sin(deb/2)*(-sin(phi)+cos(phi)*phi) + cos(deb/2)*(cos(phi)+sin(phi)*phi));
+    x[i] = rb*(cos(-deb/2)*(sin(phi)-cos(phi)*phi) + sin(-deb/2)*(cos(phi)+sin(phi)*phi));
+    y[i] = rb*(-sin(-deb/2)*(sin(phi)-cos(phi)*phi) + cos(-deb/2)*(cos(phi)+sin(phi)*phi));
     phi += dphi;
   }
   dphi = (deb/2 - phia)/numb;
-  phi = deb/2 - phia;
+  phi = phia - deb/2;
   for (int i=2*numb; i<3*numb; i++) {
     x[i] = ra*sin(phi);
     y[i] = ra*cos(phi);
-    phi -= dphi;
+    phi += dphi;
   }
   for (int i=6*numb-2, j=1; i>=3*numb; i--,j++) {
     x[i] = -x[j];
@@ -92,154 +90,56 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   for(int i=0; i<z; i++) {
     int k = i*x.size();
     for(unsigned int j=0; j<x.size(); j++) {
-      X[k+j] = cos(i*ga0)*x[j] - sin(i*ga0)*y[j];
-      Y[k+j] = sin(i*ga0)*x[j] + cos(i*ga0)*y[j];
+      X[k+j] = cos(i*ga0)*x[j] + sin(i*ga0)*y[j];
+      Y[k+j] = -sin(i*ga0)*x[j] + cos(i*ga0)*y[j];
     }
   }
 
-  int windingRule = GLU_TESS_WINDING_ODD;
-  const bool hasWidth = fabs(width)>1e-13;
-  if(!hasWidth) width = 0;
-  else {
-    auto *t=new SoTranslation;
-    soSepRigidBody->addChild(t);
-    t->translation.setValue(0, 0, -width/2);
-  }
-  // create so
-  // outline
-  soSepRigidBody->addChild(soOutLineSwitch);
-  // two side render if !hasWidth
-  if(!hasWidth) {
-    auto *sh=new SoShapeHints;
-    soSepRigidBody->addChild(sh);
-    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
-  }
-  auto *side=new SoSeparator;
-  soSepRigidBody->addChild(side);
-  if(hasWidth) {
-    // side
-    // shape hint
-    auto *sh=new SoShapeHints;
-    side->addChild(sh);
-    sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
-    sh->shapeType.setValue(SoShapeHints::UNKNOWN_SHAPE_TYPE);
-    sh->creaseAngle.setValue(M_PI);
-  }
-  // side
-  SoNormal *n=nullptr;
-  if(hasWidth) {
-    n=new SoNormal;
-    side->addChild(n);
-  }
-  auto *v=new SoCoordinate3;
-  side->addChild(v);
-  size_t r;
-  SoIndexedFaceSet *s=nullptr;
-  if(hasWidth) {
-    s=new SoIndexedFaceSet;
-    side->addChild(s);
-  }
-  // outline
-  auto *ol1=new SoIndexedLineSet;
-  auto *ol2=new SoIndexedLineSet;
-  auto *ol3=new SoIndexedLineSet;
-  soOutLineSep->addChild(v);
-  soOutLineSep->addChild(ol1);
-  soOutLineSep->addChild(ol2);
-  int nr=0;
-  soOutLineSep->addChild(ol3);
-  //
-  for(r=0; r<X.size(); r++) {
-    size_t rn=r+1; if(rn>=X.size()) rn=0;
-    size_t rp; if(r>=1) rp=r-1; else rp=X.size()-1;
-    v->point.set1Value(2*r+0, X[r], Y[r], 0);
-    v->point.set1Value(2*r+1, X[r], Y[r], width);
-    if(hasWidth) {
-      SbVec3f n1(Y[r]-Y[rp],X[rp]-X[r],0); n1.normalize();
-      SbVec3f n2(Y[rn]-Y[r],X[r]-X[rn],0); n2.normalize();
-      if(((int)(0+0.5))!=1)
-        n1=n2=n1+n2;
-      n->vector.set1Value(2*r+0, n1);
-      n->vector.set1Value(2*r+1, n2);
-    }
-    ol1->coordIndex.set1Value(r, 2*r+0);
-    ol2->coordIndex.set1Value(r, 2*r+1);
-    if(((int)(0+0.5))==1) {
-      ol3->coordIndex.set1Value(nr++, 2*r+0);
-      ol3->coordIndex.set1Value(nr++, 2*r+1);
-      ol3->coordIndex.set1Value(nr++, -1);
-    }
-    if(hasWidth) {
-      s->coordIndex.set1Value(5*r+0, 2*r+0);
-      s->coordIndex.set1Value(5*r+1, 2*r+1);
-      s->coordIndex.set1Value(5*r+2, 2*rn+1);
-      s->coordIndex.set1Value(5*r+3, 2*rn+0);
-      s->coordIndex.set1Value(5*r+4, -1);
-      s->normalIndex.set1Value(5*r+0, 2*r+1);
-      s->normalIndex.set1Value(5*r+1, 2*r+1);
-      s->normalIndex.set1Value(5*r+2, 2*rn);
-      s->normalIndex.set1Value(5*r+3, 2*rn);
-      s->normalIndex.set1Value(5*r+4, -1);
-    }
-  }
-  ol1->coordIndex.set1Value(r, 0);
-  ol2->coordIndex.set1Value(r, 1);
-  ol1->coordIndex.set1Value(r+1, -1);
-  ol2->coordIndex.set1Value(r+1, -1);
+  auto *t = new SoTranslation;
+  soSepRigidBody->addChild(t);
+  t->translation.setValue(0,0,width/2);
 
-  // base and top
-  gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
-  auto *soTess=new SoGroup;
-  soTess->ref();
-  vector<GLdouble*> vPtr;
-  vPtr.reserve(X.size()*2);
-  gluTessBeginPolygon(Utils::tess, soTess);
-    gluTessBeginContour(Utils::tess);
-    for(size_t r=0; r<X.size(); r++) {
-      auto *v=new GLdouble[3]; // is deleted later using vPtr
-      vPtr.push_back(v);
-      v[0]=X[r];
-      v[1]=Y[r];
-      v[2]=0;
-      gluTessVertex(Utils::tess, v, v);
-    }
-    gluTessEndContour(Utils::tess);
-  gluTessEndPolygon(Utils::tess);
-  // now we can delete all v
-  for(auto & i : vPtr)
-    delete[]i;
-  // normal binding
-  auto *nb=new SoNormalBinding;
-  soSepRigidBody->addChild(nb);
-  nb->value.setValue(SoNormalBinding::OVERALL);
-  // normal
-  n=new SoNormal;
-  soSepRigidBody->addChild(n);
-  n->vector.set1Value(0, 0, 0, -1);
-  // vertex ordering
-  auto *sh=new SoShapeHints;
-  soSepRigidBody->addChild(sh);
-  sh->vertexOrdering.setValue(SoShapeHints::CLOCKWISE);
-  // base
-  soSepRigidBody->addChild(soTess);
-  soTess->unref();
-  if(hasWidth) {
-    // trans
-    auto *t=new SoTranslation;
-    soSepRigidBody->addChild(t);
-    t->translation.setValue(0, 0, width);
-    // normal
-    n=new SoNormal;
-    soSepRigidBody->addChild(n);
-    n->vector.set1Value(0, 0, 0, 1);
-    // vertex ordering
-    auto *sh=new SoShapeHints;
-    soSepRigidBody->addChild(sh);
-    sh->vertexOrdering.setValue(SoShapeHints::COUNTERCLOCKWISE);
-    // top
-    soSepRigidBody->addChild(soTess);
-  }
-  // scale ref/localFrame
+  auto *r = new SoRotation;
+  soSepRigidBody->addChild(r);
+  r->rotation.setValue(SbVec3f(1,0,0),-M_PI/2);
+
+  auto *extrusion = new SoVRMLExtrusion;
+  soSepRigidBody->addChild(extrusion);
+
+  // cross section
+  extrusion->crossSection.setNum(X.size()+1);
+  SbVec2f *cs = extrusion->crossSection.startEditing();
+  for(size_t i=0;i<X.size();i++) cs[i] = SbVec2f(X[i], Y[i]); // clockwise in local coordinate system
+  cs[X.size()] =  SbVec2f(X[0], Y[0]); // closed cross section
+  extrusion->crossSection.finishEditing();
+  extrusion->crossSection.setDefault(FALSE);
+
+  // set spine
+  int numw = 5;
+  double dw = width/numw;
+  extrusion->spine.setNum(numw+1);
+  SbVec3f *sp = extrusion->spine.startEditing();
+  for(int i=0; i<=numw; i++)
+    sp[i] = SbVec3f(0,i*dw,0);
+  extrusion->spine.finishEditing();
+  extrusion->spine.setDefault(FALSE);
+
+  // set helix angle
+  double dga = asin(width*tan(be)/rb)/numw;
+  extrusion->orientation.setNum(numw+1);
+  SbRotation *A = extrusion->orientation.startEditing();
+  for(int i=0; i<=numw; i++)
+    A[i] = SbRotation(SbVec3f(0,1,0),i*dga);
+  extrusion->orientation.finishEditing();
+  extrusion->orientation.setDefault(FALSE);
+
+  // additional flags
+//  extrusion->solid=TRUE; // backface culling
+  extrusion->convex=FALSE; // only convex polygons included in visualisation
+//  extrusion->ccw=TRUE; // vertex ordering counterclockwise?
+//  extrusion->beginCap=TRUE; // front side at begin of the spine
+//  extrusion->endCap=TRUE; // front side at end of the spine
+  extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
 }
  
 void GearWheel::createProperties() {
@@ -254,6 +154,9 @@ void GearWheel::createProperties() {
     FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
     widthEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getWidth, &OpenMBV::GearWheel::setWidth);
+    FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
+    helixAngleEditor->setRange(-M_PI/4, M_PI/4);
+    helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getHelixAngle, &OpenMBV::GearWheel::setHelixAngle);
     FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getModule, &OpenMBV::GearWheel::setModule);
