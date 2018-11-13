@@ -49,13 +49,13 @@ void GearWheel::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"width");
   setWidth(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"helixAngle");
-  setHelixAngle(E(e)->getText<double>());
+  if(e) setHelixAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"pitchAngle");
-  setPitchAngle(E(e)->getText<double>());
+  if(e) setPitchAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"module");
-  setModule(E(e)->getText<double>());
+  if(e) setModule(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"pressureAngle");
-  setPressureAngle(E(e)->getText<double>());
+  if(e) setPressureAngle(E(e)->getText<double>());
 }
 
 }

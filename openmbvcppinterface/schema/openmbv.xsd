@@ -472,10 +472,10 @@
         <xs:sequence>
           <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
           <xs:element name="width" type="pv:lengthScalar"/>
-          <xs:element name="helixAngle" type="pv:angleScalar"/>
-          <xs:element name="pitchAngle" type="pv:angleScalar"/>
-          <xs:element name="module" type="pv:lengthScalar"/>
-          <xs:element name="pressureAngle" type="pv:angleScalar"/>
+          <xs:element name="helixAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="pitchAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="module" type="pv:lengthScalar" minOccurs="0"/>
+          <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
