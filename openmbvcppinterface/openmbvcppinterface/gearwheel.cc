@@ -35,6 +35,7 @@ DOMElement *GearWheel::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"numberOfTeeth", N);
   E(e)->addElementText(OPENMBV%"width", w);
   E(e)->addElementText(OPENMBV%"helixAngle", be);
+  E(e)->addElementText(OPENMBV%"pitchAngle", ga);
   E(e)->addElementText(OPENMBV%"module", m);
   E(e)->addElementText(OPENMBV%"pressureAngle", al);
   return nullptr;
@@ -49,6 +50,8 @@ void GearWheel::initializeUsingXML(DOMElement *element) {
   setWidth(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"helixAngle");
   setHelixAngle(E(e)->getText<double>());
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"pitchAngle");
+  setPitchAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"module");
   setModule(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"pressureAngle");

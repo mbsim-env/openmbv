@@ -39,6 +39,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   int z = e->getNumberOfTeeth();
   double width = e->getWidth();
   double be = e->getHelixAngle();
+  double ga = e->getPitchAngle();
   double al0 = e->getPressureAngle(); 
   double m = e->getModule();
 
@@ -125,13 +126,23 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   extrusion->spine.setDefault(FALSE);
 
   // set helix angle
-  double dga = asin(width*tan(be)/rb)/numw;
+  dphi = asin(width*tan(be)/rb)/numw;
   extrusion->orientation.setNum(numw+1);
   SbRotation *A = extrusion->orientation.startEditing();
   for(int i=0; i<=numw; i++)
-    A[i] = SbRotation(SbVec3f(0,1,0),i*dga);
+    A[i] = SbRotation(SbVec3f(0,1,0),i*dphi);
   extrusion->orientation.finishEditing();
   extrusion->orientation.setDefault(FALSE);
+
+ // set pitch angle
+  extrusion->scale.setNum(numw+1);
+  SbVec2f *sc = extrusion->scale.startEditing();
+  for(int i=0; i<=numw; i++) {
+    double scale = 1-tan(ga)*i*dw/ra;
+    sc[i] = SbVec2f(scale,scale); // first x-scale / second z-scale
+  }
+  extrusion->scale.finishEditing();
+  extrusion->scale.setDefault(FALSE);
 
   // additional flags
 //  extrusion->solid=TRUE; // backface culling
@@ -157,6 +168,9 @@ void GearWheel::createProperties() {
     FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
     helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getHelixAngle, &OpenMBV::GearWheel::setHelixAngle);
+    FloatEditor *pitchAngleEditor=new FloatEditor(properties, QIcon(), "Pitch angle");
+    pitchAngleEditor->setRange(-M_PI/4, M_PI/4);
+    pitchAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getPitchAngle, &OpenMBV::GearWheel::setPitchAngle);
     FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getModule, &OpenMBV::GearWheel::setModule);
