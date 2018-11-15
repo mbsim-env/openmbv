@@ -35,6 +35,7 @@ namespace OpenMBV {
       double ga{0};
       double m{16e-3};
       double al{0.349065850398866};
+      double b{0};
       GearWheel() = default;
       ~GearWheel() override = default;
     public:
@@ -67,6 +68,11 @@ namespace OpenMBV {
       void setPressureAngle(double al_) { al = al_; }
       
       double getPressureAngle() { return al; }
+
+      /** Set the pressure angle. */
+      void setBacklash(double b_) { b = b_; }
+
+      double getBacklash() { return b; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

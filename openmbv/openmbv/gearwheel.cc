@@ -42,6 +42,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double ga = e->getPitchAngle();
   double al0 = e->getPressureAngle(); 
   double m = e->getModule();
+  double b = e->getBacklash();
 
   double d0 = m*z;
   double p0 = M_PI*d0/z;
@@ -53,7 +54,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double phi0 = tan(al0)- al0;
   double ala = acos(db/da);
   double phia = tan(ala) - ala;
-  double sb = db*(s0/d0+phi0);
+  double sb = db*(s0/d0+phi0)-b;
   double deb = 2*sb/db;
   double ga0 = 2*p0/d0;
   double rb = db/2;
@@ -177,6 +178,9 @@ void GearWheel::createProperties() {
     FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure Angle");
     pressureAngleEditor->setRange(0, M_PI/4);
     pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getPressureAngle, &OpenMBV::GearWheel::setPressureAngle);
+    FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
+    backlashEditor->setRange(0, 0.005);
+    backlashEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getBacklash, &OpenMBV::GearWheel::setBacklash);
   }
 }
 
