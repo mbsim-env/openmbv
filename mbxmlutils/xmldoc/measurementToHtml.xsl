@@ -47,7 +47,16 @@
     </head>
     <body style="margin:0.5em">
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.23/moment-timezone-with-data-2012-2022.min.js"> </script>
     <script src="/mbsim/html/cookiewarning.js"> </script>
+    <script>
+      $(document).ready(function() {
+        $('.DATETIME').each(function() {
+          $(this).text(moment($(this).text()).tz(moment.tz.guess()).format("ddd, YYYY-MM-DD - HH:mm:ss z"));
+        }); 
+      });
+    </script>
     <div class="page-header">
       <h1>MBXMLUtils - XML Documentation</h1>
       <p>XML-Namespace: <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span></p>

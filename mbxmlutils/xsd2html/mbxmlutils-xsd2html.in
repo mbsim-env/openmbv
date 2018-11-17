@@ -80,7 +80,7 @@ rm -rf $HTMLDIR
 mkdir $HTMLDIR
 @XALAN@ -o $HTMLDIR/index.html \
   -p PROJECT "'$PROJECT'" \
-  -p DATETIME "'$(date -u --iso-8601=seconds)'" \
+  -p DATETIME "'$(date -u +%FT%TZ)'" \
   -p PWD "'$PWD'" \
   $BASENAME.doxygen.xsd @datadir@/@PACKAGE@/xsl/xsdToHtml.xsl || exit 1
 echo "DONE"
