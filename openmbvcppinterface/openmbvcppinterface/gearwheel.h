@@ -69,7 +69,7 @@ namespace OpenMBV {
       
       double getPressureAngle() { return al; }
 
-      /** Set the pressure angle. */
+      /** Set the backlash. */
       void setBacklash(double b_) { b = b_; }
 
       double getBacklash() { return b; }
