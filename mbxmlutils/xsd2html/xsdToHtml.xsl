@@ -62,9 +62,14 @@
         caption._caption { text-align:center; caption-side:bottom; }
       </style>
       <script src="https://cdn.datatables.net/s/bs-3.3.5/jq-2.1.4,dt-1.10.10/datatables.min.js"> </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"> </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.23/moment-timezone-with-data-2012-2022.min.js"> </script>
       <script>
         <![CDATA[
         $(document).ready(function() {
+          $('.DATETIME').each(function() {
+            $(this).text(moment($(this).text()).tz(moment.tz.guess()).format("ddd, YYYY-MM-DD - HH:mm:ss z"));
+          }); 
           $("._expandcollapsecontent").click(function() {
             $($(this).parent().children("ul")[0]).toggleClass("_displaynone");
             $(this).toggleClass("glyphicon-expand");
@@ -248,7 +253,7 @@
     <span class="pull-left small"><a href="/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
     <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
     <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
-    Generated on <xsl:value-of select="$DATETIME"/> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils 
+    Generated on <span class="DATETIME"><xsl:value-of select="$DATETIME"/></span> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils 
     <a href="/">Home</a>
     </span>
     </body></html>
