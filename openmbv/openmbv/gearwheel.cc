@@ -131,7 +131,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   extrusion->orientation.setNum(numw+1);
   SbRotation *A = extrusion->orientation.startEditing();
   for(int i=0; i<=numw; i++)
-    A[i] = SbRotation(SbVec3f(0,1,0),i*dphi);
+    A[i] = SbRotation(SbVec3f(0,1,0),-numw*dphi/2+i*dphi);
   extrusion->orientation.finishEditing();
   extrusion->orientation.setDefault(FALSE);
 
@@ -139,7 +139,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   extrusion->scale.setNum(numw+1);
   SbVec2f *sc = extrusion->scale.startEditing();
   for(int i=0; i<=numw; i++) {
-    double scale = 1-tan(ga)*i*dw/ra;
+    double scale = 1-tan(ga)*(i*dw-width/2)/ra;
     sc[i] = SbVec2f(scale,scale); // first x-scale / second z-scale
   }
   extrusion->scale.finishEditing();
