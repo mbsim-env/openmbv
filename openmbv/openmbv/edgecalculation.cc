@@ -260,7 +260,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
   }
   
   delete vertex; // is no longer required
-  delete preData.calcLock; // is not needed
+  preData.calcLock->unlock(); delete preData.calcLock; // is not needed
   preData.calcLock=nullptr;
   ins.first->second.calcLock->lockForRead(); // wait until tha cache entry has finished calculation
   ins.first->second.calcLock->unlock(); // unlock
