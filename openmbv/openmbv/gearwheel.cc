@@ -127,7 +127,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   extrusion->spine.setDefault(FALSE);
 
   // set helix angle
-  dphi = asin(width*tan(be)/rb)/numw;
+  dphi = width*tan(be)/rb/numw;
   extrusion->orientation.setNum(numw+1);
   SbRotation *A = extrusion->orientation.startEditing();
   for(int i=0; i<=numw; i++)
