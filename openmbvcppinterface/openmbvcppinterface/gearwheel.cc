@@ -39,6 +39,7 @@ DOMElement *GearWheel::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"module", m);
   E(e)->addElementText(OPENMBV%"pressureAngle", al);
   E(e)->addElementText(OPENMBV%"backlash", b);
+  E(e)->addElementText(OPENMBV%"solid", solid);
   return nullptr;
 }
 
@@ -59,6 +60,8 @@ void GearWheel::initializeUsingXML(DOMElement *element) {
   if(e) setPressureAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"backlash");
   if(e) setBacklash(E(e)->getText<double>());
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"solid");
+  if(e) setSolid(E(e)->getText<bool>());
 }
 
 }

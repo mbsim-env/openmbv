@@ -36,6 +36,7 @@ namespace OpenMBV {
       double m{16e-3};
       double al{0.349065850398866};
       double b{0};
+      bool solid{true};
       GearWheel() = default;
       ~GearWheel() override = default;
     public:
@@ -73,6 +74,11 @@ namespace OpenMBV {
       void setBacklash(double b_) { b = b_; }
 
       double getBacklash() { return b; }
+
+      /** Define the gearwheel to be solid or hollow. */
+      void setSolid(bool solid_) { solid = solid_; }
+
+      bool getSolid() { return solid; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
