@@ -34,6 +34,7 @@ namespace OpenMBVGUI {
 class MainWindow;
 template<class Element, class ElementComp> class BSPTree;
 class SbVec3fComp;
+class SoCoordinate3FromBSPTree;
 
 class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
   friend MainWindow;
@@ -128,7 +129,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
 
       // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
       BSPTree<SbVec3f, SbVec3fComp> *coord=nullptr; // coord are push to this class during threaded computation
-      SoCoordinate3 *soCoord=nullptr; // after the threaded computation finished coord are copied to this class
+      SoCoordinate3FromBSPTree *soCoord=nullptr;
 
       std::vector<EdgeIndexFacePlaneVec> *edgeIndFPV=nullptr; // a 1D array for all edges (allocated in preproces and never freed, since the cache uses it)
       QReadWriteLock *calcLock=nullptr; // is write locked until the calculation is running
