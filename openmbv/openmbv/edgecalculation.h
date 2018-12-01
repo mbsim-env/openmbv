@@ -128,7 +128,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     struct PreprocessedData { // preprocesses/cached data
 
       // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
-      BSPTree<SbVec3f, SbVec3fComp> *coord=nullptr; // coord are push to this class during threaded computation
+      std::shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> coord; // coord are push to this class during threaded computation
       SoCoordinate3FromBSPTree *soCoord=nullptr;
 
       std::vector<EdgeIndexFacePlaneVec> *edgeIndFPV=nullptr; // a 1D array for all edges (allocated in preproces and never freed, since the cache uses it)

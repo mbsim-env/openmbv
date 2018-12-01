@@ -123,19 +123,14 @@ class BSPTree {
 // The BSPTree is delete if the this object is deleted.
 class SoCoordinate3FromBSPTree : public SoCoordinate3 {
   public:
-    SoCoordinate3FromBSPTree() : bsp(nullptr) {
-    }
-    ~SoCoordinate3FromBSPTree() override {
-      delete bsp;
-    }
-    void init(BSPTree<SbVec3f, SbVec3fComp> *bsp_) {
+    void init(const shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> &bsp_) {
       if(bsp)
         return;
       bsp=bsp_;
       point.setValuesPointer(bsp->numPoints(), bsp->getPointsArrayPtr());
     }
   private:
-    BSPTree<SbVec3f, SbVec3fComp> *bsp;
+    shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> bsp;
 };
 
 
@@ -215,7 +210,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 
     // CALCULATE
     preData.edgeIndFPV=new vector<EdgeIndexFacePlaneVec>; // is never freed, since the data is cached forever => false positive in valgrind
-    preData.coord=new BSPTree<SbVec3f, SbVec3fComp>(SbVec3fComp(0)); // a 3D float space paritioning for all vertex: allocate dynamically, since the points shared by preData.coords
+    preData.coord=make_shared<BSPTree<SbVec3f, SbVec3fComp>>(SbVec3fComp(0)); // a 3D float space paritioning for all vertex: allocate dynamically, since the points shared by preData.coords
     preData.soCoord=new SoCoordinate3FromBSPTree();
     preData.soCoord->ref();
     BSPTree<SbVec2i32, SbVec2i32Comp> edge; // a 2D interger space paritioning for all edges
@@ -274,7 +269,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 }
 
 void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
 
   for(auto & i : *preData.edgeIndFPV) {
     // only draw crease edge if two faces belongs to this edge
@@ -292,7 +287,7 @@ void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
 }
 
 void EdgeCalculation::calcBoundaryEdges() {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
 
   for(auto & i : *preData.edgeIndFPV) {
     // draw boundary edge if only one face belongs to this edge
@@ -305,7 +300,7 @@ void EdgeCalculation::calcBoundaryEdges() {
 }
 
 void EdgeCalculation::calcShilouetteEdges(const SbVec3f &n) {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
   preData.soCoord->init(preData.coord);
 
   shilouetteEdges=new SoIndexedLineSet;
