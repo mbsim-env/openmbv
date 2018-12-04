@@ -123,14 +123,14 @@ class BSPTree {
 // The BSPTree is delete if the this object is deleted.
 class SoCoordinate3FromBSPTree : public SoCoordinate3 {
   public:
-    SoCoordinate3FromBSPTree(BSPTree<SbVec3f, SbVec3fComp> *bsp_) : bsp(bsp_) {
+    void init(const shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> &bsp_) {
+      if(bsp)
+        return;
+      bsp=bsp_;
       point.setValuesPointer(bsp->numPoints(), bsp->getPointsArrayPtr());
     }
-    ~SoCoordinate3FromBSPTree() override {
-      delete bsp;
-    }
   private:
-    BSPTree<SbVec3f, SbVec3fComp> *bsp;
+    shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> bsp;
 };
 
 
@@ -163,8 +163,8 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
     preData.calcLock=new QReadWriteLock; // stored in a global cache => false positive in valgrind
     preData.calcLock->lockForWrite();
   }
-  creaseEdges=nullptr;
-  boundaryEdges=nullptr;
+  soCreaseEdges=nullptr;
+  soBoundaryEdges=nullptr;
   shilouetteEdges=nullptr;
   // get all triangles
   SoCallbackAction cba;
@@ -176,10 +176,10 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
 }
 
 EdgeCalculation::~EdgeCalculation() {
-  if(creaseEdges) creaseEdges->unref();
+  if(soCreaseEdges) soCreaseEdges->unref();
   if(!useCache) {
-    if(preData.coord) preData.coord->unref(); // decrement reference count if not a cached entry
-    preData.coord=nullptr;
+    if(preData.soCoord) preData.soCoord->unref(); // decrement reference count if not a cached entry
+    preData.soCoord=nullptr;
     delete preData.edgeIndFPV;
     preData.edgeIndFPV=nullptr;
   }
@@ -210,7 +210,9 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 
     // CALCULATE
     preData.edgeIndFPV=new vector<EdgeIndexFacePlaneVec>; // is never freed, since the data is cached forever => false positive in valgrind
-    BSPTree<SbVec3f, SbVec3fComp> *uniqVertex=new BSPTree<SbVec3f, SbVec3fComp>(SbVec3fComp(0)); // a 3D float space paritioning for all vertex: allocate dynamically, since the points shared by preData.coords
+    preData.coord=make_shared<BSPTree<SbVec3f, SbVec3fComp>>(SbVec3fComp(0)); // a 3D float space paritioning for all vertex: allocate dynamically, since the points shared by preData.coords
+    preData.soCoord=new SoCoordinate3FromBSPTree();
+    preData.soCoord->ref();
     BSPTree<SbVec2i32, SbVec2i32Comp> edge; // a 2D interger space paritioning for all edges
     // build preData.edges struct from vertex
     for(unsigned int i=0; i<vertex->size()/3; i++) {
@@ -219,9 +221,9 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
       SbVec3f v2=(*vertex)[3*i+1];
       SbVec3f v3=(*vertex)[3*i+2];
       // add point and get point index
-      unsigned int v1i=uniqVertex->addPoint(v1);
-      unsigned int v2i=uniqVertex->addPoint(v2);
-      unsigned int v3i=uniqVertex->addPoint(v3);
+      unsigned int v1i=preData.coord->addPoint(v1);
+      unsigned int v2i=preData.coord->addPoint(v2);
+      unsigned int v3i=preData.coord->addPoint(v3);
       // add edge and get edge index
       #define addEdge(i,j) addPoint(SbVec2i32((i)<(j)?(i):(j),(i)<(j)?(j):(i))) // smaller index first, larger index second
       unsigned int e1i=edge.addEdge(v1i, v2i);
@@ -238,9 +240,6 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
       #undef expand
     }
     delete vertex; // is no longer required and was allocate in getEdgeData
-    // shift vertex points from BSP to preData.coord->point
-    preData.coord=new SoCoordinate3FromBSPTree(uniqVertex); // stored in a global cache => false positive in valgrind
-    preData.coord->ref(); // increment reference count to prevent a delete for cached entries
 
     if(useCache) {
       mapRWLock.lockForWrite(); // STL map is not thread safe => serialize
@@ -270,11 +269,8 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 }
 
 void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
 
-  creaseEdges=new SoIndexedLineSet;
-  creaseEdges->ref();
-  int nr=0;
   for(auto & i : *preData.edgeIndFPV) {
     // only draw crease edge if two faces belongs to this edge
     if(i.fpv.size()==2) {
@@ -282,31 +278,30 @@ void EdgeCalculation::calcCreaseEdges(const double creaseAngle) {
       int vbi=i.vbi; // index of edge end
       // draw crease edge if angle between fpv[0] and fpv[1] is < pi-creaseAngle
       if(i.fpv[0].dot(i.fpv[1])>-cos(creaseAngle)) {
-        creaseEdges->coordIndex.set1Value(nr++, vai);
-        creaseEdges->coordIndex.set1Value(nr++, vbi);
-        creaseEdges->coordIndex.set1Value(nr++, -1);
+        creaseEdges.push_back(vai);
+        creaseEdges.push_back(vbi);
+        creaseEdges.push_back(-1);
       }
     }
   }
 }
 
 void EdgeCalculation::calcBoundaryEdges() {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
 
-  boundaryEdges=new SoIndexedLineSet;
-  int nr=0;
   for(auto & i : *preData.edgeIndFPV) {
     // draw boundary edge if only one face belongs to this edge
     if(i.fpv.size()==1) {
-      boundaryEdges->coordIndex.set1Value(nr++, i.vai);
-      boundaryEdges->coordIndex.set1Value(nr++, i.vbi);
-      boundaryEdges->coordIndex.set1Value(nr++, -1);
+      boundaryEdges.push_back(i.vai);
+      boundaryEdges.push_back(i.vbi);
+      boundaryEdges.push_back(-1);
     }
   }
 }
 
 void EdgeCalculation::calcShilouetteEdges(const SbVec3f &n) {
-  if(preData.coord==nullptr) return;
+  if(!preData.coord) return;
+  preData.soCoord->init(preData.coord);
 
   shilouetteEdges=new SoIndexedLineSet;
   int nr=0;
@@ -315,7 +310,7 @@ void EdgeCalculation::calcShilouetteEdges(const SbVec3f &n) {
     if(i.fpv.size()==2) {
       int vai=i.vai; // index of edge start
       int vbi=i.vbi; // index of edge end
-      SbVec3f v12=preData.coord->point[vbi]-preData.coord->point[vai]; // edge vector
+      SbVec3f v12=preData.soCoord->point[vbi]-preData.soCoord->point[vai]; // edge vector
       SbVec3f n0=v12.cross(i.fpv[0]); // normal of face 0
       SbVec3f n1=i.fpv[1].cross(v12); // normal of face 1
       // draw shilouette edge if the face normals to different screen z directions (one i z+ one in z-)
@@ -328,6 +323,11 @@ void EdgeCalculation::calcShilouetteEdges(const SbVec3f &n) {
   }
 }
 
+SoCoordinate3* EdgeCalculation::getCoordinates() {
+  preData.soCoord->init(preData.coord);
+  return preData.soCoord;
+}
+
 // return v13 in direction ortogonal to v12 (returned vec is normalized)
 SbVec3f EdgeCalculation::v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3) {
   SbVec3f v12=v2-v1;
@@ -338,8 +338,8 @@ SbVec3f EdgeCalculation::v13OrthoTov12(SbVec3f v1, SbVec3f v2, SbVec3f v3) {
 }
 
 EdgeCalculation::PreprocessedDataDelete::~PreprocessedDataDelete() {
-  if(coord) coord->unref();
-  coord=nullptr;
+  if(soCoord) soCoord->unref();
+  soCoord=nullptr;
   delete edgeIndFPV;
   edgeIndFPV=nullptr;
   delete calcLock;

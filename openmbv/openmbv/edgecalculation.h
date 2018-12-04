@@ -32,6 +32,9 @@
 namespace OpenMBVGUI {
 
 class MainWindow;
+template<class Element, class ElementComp> class BSPTree;
+class SbVec3fComp;
+class SoCoordinate3FromBSPTree;
 
 class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
   friend MainWindow;
@@ -71,16 +74,20 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     /** return the coordinates used bey get*Edges().
      * Before this funciton the function preproces must be called exactly ones!
      * NOTE: Adding the coordinates to the scene graph must be done in the main Cion thread! */
-    SoCoordinate3* getCoordinates() {
-      return preData.coord;
-    }
+    SoCoordinate3* getCoordinates();
 
     /** return the crease edge face-set.
      * Before this funciton the function calcCreaseEdges must be called exactly ones!
      * NOTE: Adding the face-set to the scene graph must be done in the main Cion thread!
      * The coordinates used by this face-set are the ones return by getCoordinates */
     SoIndexedLineSet* getCreaseEdges() {
-      return creaseEdges;
+      if(!soCreaseEdges) {
+        soCreaseEdges=new SoIndexedLineSet;
+        soCreaseEdges->ref();
+        for(size_t nr=0; nr<creaseEdges.size(); ++nr)
+          soCreaseEdges->coordIndex.set1Value(nr, creaseEdges[nr]);
+      }
+      return soCreaseEdges;
     }
 
     /** return the boundary edge face-set.
@@ -88,7 +95,12 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
      * NOTE: Adding the face-set to the scene graph must be done in the main Cion thread!
      * The coordinates used by this face-set are the ones return by getCoordinates */
     SoIndexedLineSet* getBoundaryEdges() {
-      return boundaryEdges;
+      if(!soBoundaryEdges) {
+        soBoundaryEdges=new SoIndexedLineSet;
+        for(size_t nr=0; nr<boundaryEdges.size(); ++nr)
+          soBoundaryEdges->coordIndex.set1Value(nr, boundaryEdges[nr]);
+      }
+      return soBoundaryEdges;
     }
 
     /** return the shilouette edge face-set.
@@ -114,7 +126,11 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
       std::vector<SbVec3f> fpv; // vector in the face plane ortho to the edge (vb-va) (one vector for each face sharing this edge)
     };
     struct PreprocessedData { // preprocesses/cached data
-      SoCoordinate3 *coord=nullptr; // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
+
+      // the coordinates for the face-sets (allocated in preproces and never freed, since the cache uses it)
+      std::shared_ptr<BSPTree<SbVec3f, SbVec3fComp>> coord; // coord are push to this class during threaded computation
+      SoCoordinate3FromBSPTree *soCoord=nullptr;
+
       std::vector<EdgeIndexFacePlaneVec> *edgeIndFPV=nullptr; // a 1D array for all edges (allocated in preproces and never freed, since the cache uses it)
       QReadWriteLock *calcLock=nullptr; // is write locked until the calculation is running
     };
@@ -140,10 +156,12 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     static std::map<SoDeleteGroup, PreprocessedDataDelete> edgeCache;
 
     // set by calcCreaseEdges
-    SoIndexedLineSet *creaseEdges;
+    std::vector<int> creaseEdges; // creaseEdges are push to this class during threaded computation
+    SoIndexedLineSet *soCreaseEdges; // after the threaded computation finished creaseEdges are copied to this class
 
     // set by calcBoundaryEdges
-    SoIndexedLineSet *boundaryEdges;
+    std::vector<int> boundaryEdges; // boundaryEdges are push to this class during threaded computation
+    SoIndexedLineSet *soBoundaryEdges; // after the threaded computation finished boundaryEdges are copied to this class
 
     // set by calcShilouetteEdges
     SoIndexedLineSet *shilouetteEdges;
