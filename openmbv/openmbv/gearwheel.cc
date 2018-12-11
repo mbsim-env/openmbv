@@ -40,8 +40,8 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double width = e->getWidth();
   double be = e->getHelixAngle();
   double ga = e->getPitchAngle();
-  double al0 = e->getPressureAngle(); 
-  double m = e->getModule();
+  double al0 = atan(tan(e->getPressureAngle())/cos(be));
+  double m = e->getModule()/cos(be);
   double b = e->getBacklash();
   bool solid = e->getSolid();
 
