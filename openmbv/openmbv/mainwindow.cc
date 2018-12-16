@@ -1214,14 +1214,17 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
     auto *ev=const_cast<SoMouseButtonEvent*>(static_cast<const SoMouseButtonEvent*>(event));
     static QPoint buttonDownPoint;
     static QElapsedTimer timer;
-    static bool doubleClick=false;
     // save point whre button down was pressed
     if(ev->getState()==SoButtonEvent::DOWN)
       buttonDownPoint=QCursor::pos();
     // detect a double click (at mouse up)
-    doubleClick=false;
-    if(ev->getState()==SoButtonEvent::UP && timer.restart()<QApplication::doubleClickInterval())
-      doubleClick=true;
+    bool doubleClick=false;
+    if(ev->getState()==SoButtonEvent::UP) {
+      if(timer.isValid() && timer.restart()<QApplication::doubleClickInterval())
+        doubleClick=true;
+      if(!timer.isValid())
+        timer.start();
+    }
     // button up without move of cursor => treat as button pressed
     // Do not return inside this code block: the button up event must be processed (to reselect mode, ...)
     if(ev->getState()==SoButtonEvent::UP && (QCursor::pos()-buttonDownPoint).manhattanLength()<=2) {
@@ -1474,7 +1477,7 @@ void MainWindow::speedWheelReleased() {
 }
 
 void MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
-  static SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
+  SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
   myRenderer.setViewportRegion(SbViewportRegion(width, height));
   if(transparent)
     myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
