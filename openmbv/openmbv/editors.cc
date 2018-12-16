@@ -27,7 +27,7 @@ using namespace std::placeholders;
 
 namespace OpenMBVGUI {
 
-PropertyDialog::PropertyDialog(QObject *parentObject_) : parentObject(parentObject_) {
+PropertyDialog::PropertyDialog(QObject *parentObject_) : QDialog(MainWindow::getInstance()), parentObject(parentObject_) {
   // main layout
   mainLayout=new QGridLayout;
   setLayout(mainLayout);
