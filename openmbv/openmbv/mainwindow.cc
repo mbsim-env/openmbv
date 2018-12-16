@@ -749,7 +749,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
     showMaximized();
 
   // read XML files
-  if(arg.empty()) arg.emplace_back("."); // if called without argument load current dir
   QDir dir;
   QRegExp filterRE1(".+\\.ombv\\.xml");
   QRegExp filterRE2(R"(.+\.ombv\.env\.xml)");

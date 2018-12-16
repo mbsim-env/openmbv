@@ -70,8 +70,6 @@ int main(int argc, char *argv[])
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
-        <<"If no <dir>|<file> argument is given, '.' is appended automatically."<<endl
-        <<""<<endl
         <<"-h|--help          Shows this help"<<endl
         <<"--play             Start animation after loading"<<endl
         <<"--speed            Set the animation speed"<<endl
