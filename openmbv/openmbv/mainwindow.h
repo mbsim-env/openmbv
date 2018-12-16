@@ -117,6 +117,8 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void execPropertyMenu();
     static void disableBBox(Object *obj);
     static void enableBBoxOfID(Object *obj, const std::string &ID);
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
   protected slots:
     void objectListClicked();
     void openFileDialog();

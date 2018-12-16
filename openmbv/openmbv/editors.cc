@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QMenu>
+#include <QSettings>
 #include <cfloat>
 #include <mainwindow.h>
 #include <objectfactory.h>
@@ -768,6 +769,18 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
 NotAvailableEditor::NotAvailableEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name) : Editor(parent_, icon, name) {
   dialog->addSmallRow(icon, name, new QLabel("Sorry, a editor for this value is not available.<br/>"
                                              "Please change this value manually in the XML-file."));
+}
+
+void PropertyDialog::closeEvent(QCloseEvent *event) {
+  QSettings settings;
+  settings.setValue("propertydialog/geometry", saveGeometry());
+  QDialog::closeEvent(event);
+}
+
+void PropertyDialog::showEvent(QShowEvent *event) {
+  QSettings settings;
+  restoreGeometry(settings.value("propertydialog/geometry").toByteArray());
+  QDialog::showEvent(event);
 }
 
 }

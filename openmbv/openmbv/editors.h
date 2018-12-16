@@ -77,6 +77,8 @@ class PropertyDialog : public QDialog {
     QObject* parentObject;
     QGridLayout *layout, *mainLayout;
     std::vector<Editor*> editor;
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
   protected slots:
     void openDialogSlot();
     void deleteObjectSlot(); // MISSING: can be removed with Qt5 using a functor in Object

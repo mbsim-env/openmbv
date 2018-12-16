@@ -22,6 +22,7 @@
 #include <cfenv>
 #include <QApplication>
 #include <QFileInfo>
+#include <QSettings>
 #include "mainwindow.h"
 #ifdef _WIN32
 #  include <windows.h>
@@ -124,7 +125,10 @@ int main(int argc, char *argv[])
 #endif
   QCoreApplication::setLibraryPaths(QStringList(QFileInfo(moduleName).absolutePath())); // do not load plugins from buildin defaults
   QApplication app(argc, argv);
-  app.setOrganizationName("MBSim-Env");
+  app.setOrganizationName("mbsim-env");
+  app.setApplicationName("openmbv");
+  app.setOrganizationDomain("www.mbsim-env.de");
+  QSettings::setDefaultFormat(QSettings::IniFormat);
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");

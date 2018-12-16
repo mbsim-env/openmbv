@@ -44,6 +44,7 @@
 #include <QWebElement>
 #include <QShortcut>
 #include <QMimeData>
+#include <QSettings>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -2002,6 +2003,19 @@ void MainWindow::dropEvent(QDropEvent *event) {
       }
     }
   }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+  QSettings settings;
+  settings.setValue("mainwindow/geometry", saveGeometry());
+  settings.setValue("mainwindow/state", saveState());
+  QMainWindow::closeEvent(event);
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+  QSettings settings;
+  restoreGeometry(settings.value("mainwindow/geometry").toByteArray());
+  restoreState(settings.value("mainwindow/state").toByteArray());
 }
 
 }
