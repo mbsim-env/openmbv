@@ -74,6 +74,8 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     soSepRigidBody->addChild(soOutLineSwitch);
     // get data for edge calculation from scene
     edgeCalc=new EdgeCalculation(soIv);
+    // wait for this thread; see addEdgesToScene for erase (currently only used for --autoExit)
+    MainWindow::getInstance()->waitFor.insert(&calculateEdgesThread);
     // pre calculate edges, calculate crease edges and boundary edges in thread and call addEdgesToScene if finished
     connect(&calculateEdgesThread, SIGNAL(finished()), this, SLOT(addEdgesToScene()));
     calculateEdgesThread.start(QThread::IdlePriority);
@@ -129,6 +131,7 @@ void IvBody::addEdgesToScene() {
   QString str("Finished edge calculation for %1 and added to scene."); str=str.arg(ivb->getFullName().c_str());
   emit statusBarShowMessage(str, 1000);
   msg(Info)<<str.toStdString()<<endl;
+  MainWindow::getInstance()->waitFor.erase(&calculateEdgesThread);
 }
 
 }

@@ -255,6 +255,8 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     DLL_PUBLIC QTreeWidget* getObjectList() { return objectList; }
 
+    std::set<void*> waitFor;
+
   signals:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */

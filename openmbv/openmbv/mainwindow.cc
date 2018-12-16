@@ -796,6 +796,19 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr),
 
   //accept drag and drop
   setAcceptDrops(true);
+
+  // auto exit if everything is finished
+  if(std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end()) {
+    auto timer=new QTimer(this);
+    connect(timer, &QTimer::timeout, [this, timer](){
+      if(waitFor.empty()) {
+        timer->stop();
+        if(!close())
+          timer->start(100);
+      }
+    });
+    timer->start(100);
+  }
 }
 
 MainWindow* const MainWindow::getInstance() {
