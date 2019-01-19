@@ -483,4 +483,16 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="Cylinder" substitutionGroup="RigidBody" type="CylinderType"/>
+  <xs:complexType name="CylinderType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="radius" type="pv:lengthScalar"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>

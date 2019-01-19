@@ -48,6 +48,7 @@
 #include "openmbvcppinterface/sphere.h"
 #include "openmbvcppinterface/spineextrusion.h"
 #include "openmbvcppinterface/gearwheel.h"
+#include "openmbvcppinterface/cylinder.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
 #include <mbxmlutilshelper/last_write_time.h>
@@ -151,7 +152,8 @@ void Group::newObjectSlot() {
     {Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          Utils::factory<OpenMBV::Rotation>())},
     {Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            Utils::factory<OpenMBV::Sphere>())},
     {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>())},
-    {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "GearWheel",         Utils::factory<OpenMBV::GearWheel>())},
+    {Utils::FactoryElement(Utils::QIconCached("gearwheel.svg"),         "GearWheel",         Utils::factory<OpenMBV::GearWheel>())},
+    {Utils::FactoryElement(Utils::QIconCached("cylinder.svg"),          "Cylinder",          Utils::factory<OpenMBV::Cylinder>())},
     {Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>())},
     {Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>())}
   };
