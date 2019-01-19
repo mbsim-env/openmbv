@@ -150,12 +150,6 @@ OctInit::OctInit() {
     feval("warning", warnArg);
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
 
-    // remove the default oct serach path ...
-    // (first get octave octfiledir without octave_prefix)
-    bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
-    feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
-    // no error checking here, path may not exist
-
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
     string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
@@ -165,6 +159,12 @@ OctInit::OctInit() {
     dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
+
+    // remove the default oct serach path ...
+    // (first get octave octfiledir without octave_prefix)
+    bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
+    feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
+    // no error checking here, path may not exist
 
     // load casadi
     casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
