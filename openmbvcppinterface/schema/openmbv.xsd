@@ -495,4 +495,21 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="GearRack" substitutionGroup="RigidBody" type="GearRackType"/>
+  <xs:complexType name="GearRackType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
+          <xs:element name="width" type="pv:lengthScalar"/>
+          <xs:element name="helixAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="module" type="pv:lengthScalar" minOccurs="0"/>
+          <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="backlash" type="pv:lengthScalar" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>

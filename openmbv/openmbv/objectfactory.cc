@@ -49,6 +49,7 @@
 #include "openmbvcppinterface/spineextrusion.h"
 #include "openmbvcppinterface/gearwheel.h"
 #include "openmbvcppinterface/cylinder.h"
+#include "openmbvcppinterface/gearrack.h"
 
 #include "arrow.h"
 #include "coilspring.h"
@@ -81,6 +82,7 @@
 #include "spineextrusion.h"
 #include "gearwheel.h"
 #include "cylinder.h"
+#include "gearrack.h"
 #include <string>
 
 #if BOOST_VERSION >= 105600
@@ -167,6 +169,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new GearWheel(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::Cylinder))
     return new Cylinder(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::GearRack))
+    return new GearRack(obj, parentItem, soParent, ind);
   QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;

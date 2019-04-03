@@ -49,6 +49,7 @@
 #include "openmbvcppinterface/spineextrusion.h"
 #include "openmbvcppinterface/gearwheel.h"
 #include "openmbvcppinterface/cylinder.h"
+#include "openmbvcppinterface/gearrack.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
 #include <mbxmlutilshelper/last_write_time.h>
@@ -154,6 +155,7 @@ void Group::newObjectSlot() {
     {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>())},
     {Utils::FactoryElement(Utils::QIconCached("gearwheel.svg"),         "GearWheel",         Utils::factory<OpenMBV::GearWheel>())},
     {Utils::FactoryElement(Utils::QIconCached("cylinder.svg"),          "Cylinder",          Utils::factory<OpenMBV::Cylinder>())},
+    {Utils::FactoryElement(Utils::QIconCached("gearrack.svg"),         "GearRack",           Utils::factory<OpenMBV::GearRack>())},
     {Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>())},
     {Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>())}
   };

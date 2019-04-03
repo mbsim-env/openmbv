@@ -43,7 +43,8 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   dynamicindexedlineset.cc \
   dynamicindexedfaceset.cc \
   gearwheel.cc \
-  cylinder.cc
+  cylinder.cc \
+  gearrack.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
@@ -81,4 +82,5 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   dynamicindexedlineset.h \
   dynamicindexedfaceset.h \
   gearwheel.h \
-  cylinder.h
+  cylinder.h \
+  gearrack.h
