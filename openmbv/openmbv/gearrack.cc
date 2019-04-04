@@ -44,16 +44,8 @@ GearRack::GearRack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
 
-  double d0 = m*z;
   double p0 = M_PI*m;
   double c = 0.167*m;
-  double s0 = p0/2;
-  double df = d0 - 2*(m+c);
-  double da = d0 + 2*m;
-  double db = d0*cos(al0);
-  double phi0 = tan(al0) - al0;
-  double ala = acos(db/da);
-  double phia = tan(ala) - ala;
   double sb = p0/2 + 2*m*tan(al0) - b;
   vector<double> x(7), y(7);
   x[0] = -p0/2;
