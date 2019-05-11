@@ -17,28 +17,27 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_GEARWHEEL_H_
-#define _OPENMBV_GEARWHEEL_H_
+#ifndef _OPENMBV_CYLINDRICALGEAR_H_
+#define _OPENMBV_CYLINDRICALGEAR_H_
 
 #include <openmbvcppinterface/rigidbody.h>
 #include <vector>
 
 namespace OpenMBV {
 
-  /** A gear wheel with an involute tooth profile */
-  class GearWheel : public RigidBody {
+  /** A cylindrical gear with an involute tooth profile */
+  class CylindricalGear : public RigidBody {
     friend class ObjectFactory;
     protected:
       int N{15};
       double w{5e-2};
       double be{0};
-      double ga{0};
       double m{16e-3};
       double al{0.349065850398866};
       double b{0};
-      bool solid{true};
-      GearWheel() = default;
-      ~GearWheel() override = default;
+      bool ext{true};
+      CylindricalGear() = default;
+      ~CylindricalGear() override = default;
     public:
       /** Set the number of teeth */
       void setNumberOfTeeth(int N_) { N = N_; }
@@ -55,11 +54,6 @@ namespace OpenMBV {
 
       double getHelixAngle() { return be; }
 
-      /** Set the pitch angle. */
-      void setPitchAngle(double ga_) { ga = ga_; }
-
-      double getPitchAngle() { return ga; }
-
       /** Set the module. */
       void setModule(double m_) { m = m_; }
       
@@ -75,10 +69,10 @@ namespace OpenMBV {
 
       double getBacklash() { return b; }
 
-      /** Define the gearwheel to be solid or hollow. */
-      void setSolid(bool solid_) { solid = solid_; }
+      /** Define the gearwheel to be external or internal toothed. */
+      void setExternalToothed(bool ext_) { ext = ext_; }
 
-      bool getSolid() { return solid; }
+      bool getExternalToothed() { return ext; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
@@ -89,4 +83,4 @@ namespace OpenMBV {
 
 }
 
-#endif /* _OPENMBV_GEARWHEEL_H_ */
+#endif /* _OPENMBV_CYLINDRICALGEAR_H_ */

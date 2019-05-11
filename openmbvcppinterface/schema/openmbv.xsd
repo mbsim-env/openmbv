@@ -465,19 +465,18 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="GearWheel" substitutionGroup="RigidBody" type="GearWheelType"/>
-  <xs:complexType name="GearWheelType">
+  <xs:element name="CylindricalGear" substitutionGroup="RigidBody" type="CylindricalGearType"/>
+  <xs:complexType name="CylindricalGearType">
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
           <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
           <xs:element name="width" type="pv:lengthScalar"/>
           <xs:element name="helixAngle" type="pv:angleScalar" minOccurs="0"/>
-          <xs:element name="pitchAngle" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="module" type="pv:lengthScalar" minOccurs="0"/>
           <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="backlash" type="pv:lengthScalar" minOccurs="0"/>
-          <xs:element name="solid" type="pv:booleanFullEval" minOccurs="0"/>
+          <xs:element name="externalToothed" type="pv:booleanFullEval" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -495,8 +494,8 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:element name="GearRack" substitutionGroup="RigidBody" type="GearRackType"/>
-  <xs:complexType name="GearRackType">
+  <xs:element name="Rack" substitutionGroup="RigidBody" type="RackType"/>
+  <xs:complexType name="RackType">
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>

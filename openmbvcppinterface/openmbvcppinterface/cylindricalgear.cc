@@ -18,7 +18,7 @@
    */
 
 #include "config.h"
-#include <openmbvcppinterface/gearrack.h>
+#include <openmbvcppinterface/cylindricalgear.h>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -26,27 +26,25 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(GearRack, OPENMBV%"GearRack")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(CylindricalGear, OPENMBV%"CylindricalGear")
 
-DOMElement *GearRack::writeXMLFile(DOMNode *parent) {
+DOMElement *CylindricalGear::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"numberOfTeeth", N);
-  E(e)->addElementText(OPENMBV%"height", h);
   E(e)->addElementText(OPENMBV%"width", w);
   E(e)->addElementText(OPENMBV%"helixAngle", be);
   E(e)->addElementText(OPENMBV%"module", m);
   E(e)->addElementText(OPENMBV%"pressureAngle", al);
   E(e)->addElementText(OPENMBV%"backlash", b);
+  E(e)->addElementText(OPENMBV%"externalToothed", ext);
   return nullptr;
 }
 
-void GearRack::initializeUsingXML(DOMElement *element) {
+void CylindricalGear::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfTeeth");
   setNumberOfTeeth(E(e)->getText<int>());
-  e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
-  setHeight(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"width");
   setWidth(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"helixAngle");
@@ -57,6 +55,8 @@ void GearRack::initializeUsingXML(DOMElement *element) {
   if(e) setPressureAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"backlash");
   if(e) setBacklash(E(e)->getText<double>());
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"externalToothed");
+  if(e) setExternalToothed(E(e)->getText<bool>());
 }
 
 }

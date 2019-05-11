@@ -18,7 +18,7 @@
    */
 
 #include "config.h"
-#include <openmbvcppinterface/gearwheel.h>
+#include <openmbvcppinterface/rack.h>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -26,40 +26,37 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(GearWheel, OPENMBV%"GearWheel")
+OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Rack, OPENMBV%"Rack")
 
-DOMElement *GearWheel::writeXMLFile(DOMNode *parent) {
+DOMElement *Rack::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
   E(e)->addElementText(OPENMBV%"numberOfTeeth", N);
+  E(e)->addElementText(OPENMBV%"height", h);
   E(e)->addElementText(OPENMBV%"width", w);
   E(e)->addElementText(OPENMBV%"helixAngle", be);
-  E(e)->addElementText(OPENMBV%"pitchAngle", ga);
   E(e)->addElementText(OPENMBV%"module", m);
   E(e)->addElementText(OPENMBV%"pressureAngle", al);
   E(e)->addElementText(OPENMBV%"backlash", b);
-  E(e)->addElementText(OPENMBV%"solid", solid);
   return nullptr;
 }
 
-void GearWheel::initializeUsingXML(DOMElement *element) {
+void Rack::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfTeeth");
   setNumberOfTeeth(E(e)->getText<int>());
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"height");
+  setHeight(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"width");
   setWidth(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"helixAngle");
   if(e) setHelixAngle(E(e)->getText<double>());
-  e=E(element)->getFirstElementChildNamed(OPENMBV%"pitchAngle");
-  if(e) setPitchAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"module");
   if(e) setModule(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"pressureAngle");
   if(e) setPressureAngle(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"backlash");
   if(e) setBacklash(E(e)->getText<double>());
-  e=E(element)->getFirstElementChildNamed(OPENMBV%"solid");
-  if(e) setSolid(E(e)->getText<bool>());
 }
 
 }

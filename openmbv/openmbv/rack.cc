@@ -18,11 +18,11 @@
 */
 
 #include "config.h"
-#include "gearrack.h"
+#include "rack.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <vector>
 #include "utils.h"
-#include "openmbvcppinterface/gearrack.h"
+#include "openmbvcppinterface/rack.h"
 #include <QMenu>
 #include <cfloat>
 
@@ -30,9 +30,9 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-GearRack::GearRack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  e=std::static_pointer_cast<OpenMBV::GearRack>(obj);
-  iconFile="gearrack.svg";
+Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  e=std::static_pointer_cast<OpenMBV::Rack>(obj);
+  iconFile="rack.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
@@ -116,7 +116,7 @@ GearRack::GearRack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
   extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
 }
  
-void GearRack::createProperties() {
+void Rack::createProperties() {
   RigidBody::createProperties();
 
   // GUI editors
@@ -124,25 +124,25 @@ void GearRack::createProperties() {
     properties->updateHeader();
     IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
     numEditor->setRange(1, 100);
-    numEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getNumberOfTeeth, &OpenMBV::GearRack::setNumberOfTeeth);
+    numEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getNumberOfTeeth, &OpenMBV::Rack::setNumberOfTeeth);
     FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
-    heightEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getHeight, &OpenMBV::GearRack::setHeight);
+    heightEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getHeight, &OpenMBV::Rack::setHeight);
     FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
-    widthEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getWidth, &OpenMBV::GearRack::setWidth);
+    widthEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getWidth, &OpenMBV::Rack::setWidth);
     FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
-    helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getHelixAngle, &OpenMBV::GearRack::setHelixAngle);
+    helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getHelixAngle, &OpenMBV::Rack::setHelixAngle);
     FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
-    moduleEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getModule, &OpenMBV::GearRack::setModule);
+    moduleEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getModule, &OpenMBV::Rack::setModule);
     FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
     pressureAngleEditor->setRange(0, M_PI/4);
-    pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getPressureAngle, &OpenMBV::GearRack::setPressureAngle);
+    pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getPressureAngle, &OpenMBV::Rack::setPressureAngle);
     FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
     backlashEditor->setRange(0, 0.005);
-    backlashEditor->setOpenMBVParameter(e, &OpenMBV::GearRack::getBacklash, &OpenMBV::GearRack::setBacklash);
+    backlashEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getBacklash, &OpenMBV::Rack::setBacklash);
   }
 }
 

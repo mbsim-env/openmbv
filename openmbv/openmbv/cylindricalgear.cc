@@ -18,11 +18,11 @@
 */
 
 #include "config.h"
-#include "gearwheel.h"
+#include "cylindricalgear.h"
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <vector>
 #include "utils.h"
-#include "openmbvcppinterface/gearwheel.h"
+#include "openmbvcppinterface/cylindricalgear.h"
 #include <QMenu>
 #include <cfloat>
 
@@ -30,20 +30,19 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
-  e=std::static_pointer_cast<OpenMBV::GearWheel>(obj);
-  iconFile="gearwheel.svg";
+CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
+  e=std::static_pointer_cast<OpenMBV::CylindricalGear>(obj);
+  iconFile="cylindricalgear.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
   int z = e->getNumberOfTeeth();
   double width = e->getWidth();
   double be = e->getHelixAngle();
-  double ga = e->getPitchAngle();
   double al0 = atan(tan(e->getPressureAngle())/cos(be));
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
-  bool solid = e->getSolid();
+  bool solid = e->getExternalToothed();
 
   double d0 = m*z;
   double p0 = M_PI*d0/z;
@@ -142,16 +141,6 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     extrusion->orientation.finishEditing();
     extrusion->orientation.setDefault(FALSE);
 
-    // set pitch angle
-    extrusion->scale.setNum(numw+1);
-    SbVec2f *sc = extrusion->scale.startEditing();
-    for(int i=0; i<=numw; i++) {
-      double scale = 1-tan(ga)*(i*dw-width/2)/ra;
-      sc[i] = SbVec2f(scale,scale); // first x-scale / second z-scale
-    }
-    extrusion->scale.finishEditing();
-    extrusion->scale.setDefault(FALSE);
-
     // additional flags
     //  extrusion->solid=TRUE; // backface culling
     extrusion->convex=FALSE; // only convex polygons included in visualisation
@@ -176,7 +165,7 @@ GearWheel::GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   }
 }
  
-void GearWheel::createProperties() {
+void CylindricalGear::createProperties() {
   RigidBody::createProperties();
 
   // GUI editors
@@ -184,27 +173,24 @@ void GearWheel::createProperties() {
     properties->updateHeader();
     IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
     numEditor->setRange(5, 100);
-    numEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getNumberOfTeeth, &OpenMBV::GearWheel::setNumberOfTeeth);
+    numEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getNumberOfTeeth, &OpenMBV::CylindricalGear::setNumberOfTeeth);
     FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
-    widthEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getWidth, &OpenMBV::GearWheel::setWidth);
+    widthEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getWidth, &OpenMBV::CylindricalGear::setWidth);
     FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
-    helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getHelixAngle, &OpenMBV::GearWheel::setHelixAngle);
-    FloatEditor *pitchAngleEditor=new FloatEditor(properties, QIcon(), "Pitch angle");
-    pitchAngleEditor->setRange(-M_PI/4, M_PI/4);
-    pitchAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getPitchAngle, &OpenMBV::GearWheel::setPitchAngle);
+    helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getHelixAngle, &OpenMBV::CylindricalGear::setHelixAngle);
     FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
-    moduleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getModule, &OpenMBV::GearWheel::setModule);
+    moduleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getModule, &OpenMBV::CylindricalGear::setModule);
     FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
     pressureAngleEditor->setRange(0, M_PI/4);
-    pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getPressureAngle, &OpenMBV::GearWheel::setPressureAngle);
+    pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getPressureAngle, &OpenMBV::CylindricalGear::setPressureAngle);
     FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
     backlashEditor->setRange(0, 0.005);
-    backlashEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getBacklash, &OpenMBV::GearWheel::setBacklash);
-    BoolEditor *solidEditor=new BoolEditor(properties, QIcon(), "Solid", "GearWheel::solid");
-    solidEditor->setOpenMBVParameter(e, &OpenMBV::GearWheel::getSolid, &OpenMBV::GearWheel::setSolid);
+    backlashEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getBacklash, &OpenMBV::CylindricalGear::setBacklash);
+    BoolEditor *solidEditor=new BoolEditor(properties, QIcon(), "External thoothed", "CylindricalGear::externalToothed");
+    solidEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getExternalToothed, &OpenMBV::CylindricalGear::setExternalToothed);
   }
 }
 

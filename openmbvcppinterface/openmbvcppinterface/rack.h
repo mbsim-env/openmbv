@@ -17,8 +17,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_GEARRACK_H_
-#define _OPENMBV_GEARRACK_H_
+#ifndef _OPENMBV_RACK_H_
+#define _OPENMBV_RACK_H_
 
 #include <openmbvcppinterface/rigidbody.h>
 #include <vector>
@@ -26,7 +26,7 @@
 namespace OpenMBV {
 
   /** A gear rack with an involute tooth profile */
-  class GearRack : public RigidBody {
+  class Rack : public RigidBody {
     friend class ObjectFactory;
     protected:
       int N{15};
@@ -36,8 +36,8 @@ namespace OpenMBV {
       double m{16e-3};
       double al{0.349065850398866};
       double b{0};
-      GearRack() = default;
-      ~GearRack() override = default;
+      Rack() = default;
+      ~Rack() override = default;
     public:
       /** Set the number of teeth */
       void setNumberOfTeeth(int N_) { N = N_; }
@@ -83,4 +83,4 @@ namespace OpenMBV {
 
 }
 
-#endif /* _OPENMBV_GEARWHEEL_H_ */
+#endif /* _OPENMBV_RACK_H_ */

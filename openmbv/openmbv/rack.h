@@ -17,24 +17,24 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBVGUI_GEARWHEEL_H_
-#define _OPENMBVGUI_GEARWHEEL_H_
+#ifndef _OPENMBVGUI_RACK_H_
+#define _OPENMBVGUI_RACK_H_
 
 #include "rigidbody.h"
 #include <string>
 
 namespace OpenMBV {
-  class GearWheel;
+  class Rack;
 }
 
 namespace OpenMBVGUI {
 
-class GearWheel : public RigidBody {
+class Rack : public RigidBody {
   Q_OBJECT
   public:
-    GearWheel(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
   protected:
-    std::shared_ptr<OpenMBV::GearWheel> e;
+    std::shared_ptr<OpenMBV::Rack> e;
     void createProperties() override;
 };
 

@@ -47,9 +47,9 @@
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/sphere.h"
 #include "openmbvcppinterface/spineextrusion.h"
-#include "openmbvcppinterface/gearwheel.h"
+#include "openmbvcppinterface/cylindricalgear.h"
 #include "openmbvcppinterface/cylinder.h"
-#include "openmbvcppinterface/gearrack.h"
+#include "openmbvcppinterface/rack.h"
 
 #include "arrow.h"
 #include "coilspring.h"
@@ -80,9 +80,9 @@
 #include "path.h"
 #include "sphere.h"
 #include "spineextrusion.h"
-#include "gearwheel.h"
+#include "cylindricalgear.h"
 #include "cylinder.h"
-#include "gearrack.h"
+#include "rack.h"
 #include <string>
 
 #if BOOST_VERSION >= 105600
@@ -165,12 +165,12 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new Sphere(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::SpineExtrusion))
     return new SpineExtrusion(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::GearWheel))
-    return new GearWheel(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::CylindricalGear))
+    return new CylindricalGear(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::Cylinder))
     return new Cylinder(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::GearRack))
-    return new GearRack(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::Rack))
+    return new Rack(obj, parentItem, soParent, ind);
   QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;
