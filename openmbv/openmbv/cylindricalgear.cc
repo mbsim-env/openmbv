@@ -56,7 +56,7 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
   double alf = acos(db/df);
   double phia = tan(ala) - ala;
   double phif = tan(alf) - alf;
-  double sb = db*(s0/d0+phi0)-(solid?b:-b);
+  double sb = db*(s0/d0+phi0)-(solid?b*cos(al0):-b*cos(al0));
   double deb = 2*sb/db;
   double ga0 = 2*p0/d0;
   double rb = db/2;
