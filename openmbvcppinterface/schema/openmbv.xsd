@@ -511,4 +511,38 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="BevelGear" substitutionGroup="RigidBody" type="BevelGearType"/>
+  <xs:complexType name="BevelGearType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
+          <xs:element name="width" type="pv:lengthScalar"/>
+          <xs:element name="helixAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="pitchAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="module" type="pv:lengthScalar" minOccurs="0"/>
+          <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="backlash" type="pv:lengthScalar" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="PlanarGear" substitutionGroup="RigidBody" type="PlanarGearType"/>
+  <xs:complexType name="PlanarGearType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="numberOfTeeth" type="pv:integerFullEval"/>
+          <xs:element name="height" type="pv:lengthScalar"/>
+          <xs:element name="width" type="pv:lengthScalar"/>
+          <xs:element name="helixAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="module" type="pv:lengthScalar" minOccurs="0"/>
+          <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
+          <xs:element name="backlash" type="pv:lengthScalar" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
 </xs:schema>

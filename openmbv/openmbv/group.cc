@@ -50,6 +50,8 @@
 #include "openmbvcppinterface/cylindricalgear.h"
 #include "openmbvcppinterface/cylinder.h"
 #include "openmbvcppinterface/rack.h"
+#include "openmbvcppinterface/bevelgear.h"
+#include "openmbvcppinterface/planargear.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
 #include <mbxmlutilshelper/last_write_time.h>
@@ -156,6 +158,8 @@ void Group::newObjectSlot() {
     {Utils::FactoryElement(Utils::QIconCached("cylindricalgear.svg"),         "CylindricalGear",         Utils::factory<OpenMBV::CylindricalGear>())},
     {Utils::FactoryElement(Utils::QIconCached("cylinder.svg"),          "Cylinder",          Utils::factory<OpenMBV::Cylinder>())},
     {Utils::FactoryElement(Utils::QIconCached("rack.svg"),         "Rack",           Utils::factory<OpenMBV::Rack>())},
+    {Utils::FactoryElement(Utils::QIconCached("bevelgear.svg"),         "BevelGear",           Utils::factory<OpenMBV::BevelGear>())},
+    {Utils::FactoryElement(Utils::QIconCached("planargear.svg"),         "PlanarGear",           Utils::factory<OpenMBV::PlanarGear>())},
     {Utils::FactoryElement(Utils::QIconCached("path.svg"),              "Path",              Utils::factory<OpenMBV::Path>())},
     {Utils::FactoryElement(Utils::QIconCached("group.svg"),             "Group",             Utils::factory<OpenMBV::Group>())}
   };

@@ -17,16 +17,16 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef _OPENMBV_RACK_H_
-#define _OPENMBV_RACK_H_
+#ifndef _OPENMBV_PLANARGEAR_H_
+#define _OPENMBV_PLANARGEAR_H_
 
 #include <openmbvcppinterface/rigidbody.h>
 #include <vector>
 
 namespace OpenMBV {
 
-  /** A rack */
-  class Rack : public RigidBody {
+  /** A planar gear */
+  class PlanarGear : public RigidBody {
     friend class ObjectFactory;
     protected:
       int N{15};
@@ -36,8 +36,8 @@ namespace OpenMBV {
       double m{16e-3};
       double al{0.349065850398866};
       double b{0};
-      Rack() = default;
-      ~Rack() override = default;
+      PlanarGear() = default;
+      ~PlanarGear() override = default;
     public:
       /** Set the number of teeth */
       void setNumberOfTeeth(int N_) { N = N_; }
@@ -83,4 +83,4 @@ namespace OpenMBV {
 
 }
 
-#endif /* _OPENMBV_RACK_H_ */
+#endif /* _OPENMBV_PLANARGEAR_H_ */

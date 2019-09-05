@@ -44,7 +44,9 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   dynamicindexedfaceset.cc \
   cylindricalgear.cc \
   cylinder.cc \
-  rack.cc
+  rack.cc \
+  bevelgear.cc \
+  planargear.cc
 
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
@@ -83,4 +85,6 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   dynamicindexedfaceset.h \
   cylindricalgear.h \
   cylinder.h \
-  rack.h
+  rack.h \
+  bevelgear.h \
+  planargear.h

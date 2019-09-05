@@ -50,6 +50,8 @@
 #include "openmbvcppinterface/cylindricalgear.h"
 #include "openmbvcppinterface/cylinder.h"
 #include "openmbvcppinterface/rack.h"
+#include "openmbvcppinterface/bevelgear.h"
+#include "openmbvcppinterface/planargear.h"
 
 #include "arrow.h"
 #include "coilspring.h"
@@ -83,6 +85,8 @@
 #include "cylindricalgear.h"
 #include "cylinder.h"
 #include "rack.h"
+#include "bevelgear.h"
+#include "planargear.h"
 #include <string>
 
 #if BOOST_VERSION >= 105600
@@ -171,6 +175,10 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new Cylinder(obj, parentItem, soParent, ind);
   else if(typeid(*obj)==typeid(OpenMBV::Rack))
     return new Rack(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::BevelGear))
+    return new BevelGear(obj, parentItem, soParent, ind);
+  else if(typeid(*obj)==typeid(OpenMBV::PlanarGear))
+    return new PlanarGear(obj, parentItem, soParent, ind);
   QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;

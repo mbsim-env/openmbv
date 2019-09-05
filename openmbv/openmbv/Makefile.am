@@ -53,6 +53,8 @@ libopenmbv_la_SOURCES = \
   cylindricalgear.cc \
   cylinder.cc \
   rack.cc \
+  bevelgear.cc \
+  planargear.cc \
   editors.cc \
   IndexedTesselationFace.cc \
   abstractviewfilter.cc \
@@ -84,6 +86,8 @@ QT_BUILT_SOURCES = openmbv.qrc.cc\
   cylindricalgear.moc.cc \
   cylinder.moc.cc \
   rack.moc.cc \
+  bevelgear.moc.cc \
+  planargear.moc.cc \
   editors.moc.cc \
   arrow.moc.cc\
   rigidbody.moc.cc\
@@ -158,6 +162,8 @@ libopenmbv_la_HEADERS = mainwindow.h\
   cylindricalgear.h \
   cylinder.h \
   rack.h \
+  bevelgear.h \
+  planargear.h \
   editors.h \
   IndexedTesselationFace.h \
   abstractviewfilter.h \
