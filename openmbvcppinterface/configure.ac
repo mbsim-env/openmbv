@@ -157,6 +157,15 @@ javajnidir=$(dirname $(readlink -e $javac))/../include
 javajniosdir="${javajniosdir:-$javajnidir/linux}"
 AC_SUBST([JAVA_JNICFLAGS], ["-I$javajnidir -I$javajniosdir"])
 AM_CONDITIONAL([COND_JAVA], [test "_$java" != "_no" -a "_$javac" != "_no"])
+if test "_$java" != "_no" -a "_$javac" != "_no" -a ! -e $javajnidir/jni.h; then
+  AC_MSG_ERROR([$javajnidir/jni.h not found!])
+fi
+# if $javajnidir/jni.h is found than rerun configure if it is changed or removed.
+# rerun if changed is not required but should neven happen since its a quite static system file.
+# rerun if removed is however usefull to reconfigure automatically on system updates chaning the location of this file
+if test -e $javajnidir/jni.h; then
+  AC_SUBST([CONFIG_STATUS_DEPENDENCIES], [$javajnidir/jni.h])
+fi
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
