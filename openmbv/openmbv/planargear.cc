@@ -97,7 +97,7 @@ void PlanarGear::createProperties() {
     numEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getNumberOfTeeth, &OpenMBV::PlanarGear::setNumberOfTeeth);
     FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
-    heightEditor->setOpenMBVParameter(e, &OpenMBV::Rack::getHeight, &OpenMBV::Rack::setHeight);
+    heightEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getHeight, &OpenMBV::PlanarGear::setHeight);
     FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
     widthEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getWidth, &OpenMBV::PlanarGear::setWidth);
