@@ -5,6 +5,6 @@ set -e
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 @XC_EXEC_PREFIX@ @OCTAVE@ -q $(@XC_PATH_CONVERT@ @abs_srcdir@/octavetest.m) | tee result.txt
 
-diff --strip-trailing-cr @abs_srcdir@/result-ref.txt result.txt
+diff --ignore-space-change --strip-trailing-cr @abs_srcdir@/result-ref.txt result.txt
 
-diff --strip-trailing-cr @abs_srcdir@/../MBS_outfile-ref.ombv.xml MBS_outfile.ombv.xml
+diff --ignore-space-change --strip-trailing-cr @abs_srcdir@/../MBS_outfile-ref.ombv.xml MBS_outfile.ombv.xml

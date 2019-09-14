@@ -1,4 +1,5 @@
 #include <config.h>
+#include <cfenv>
 
 // python includes
 #include <Python.h> // due to some bugs in python 3.2 we need to include this first
@@ -60,7 +61,15 @@ PyInit::PyInit() {
     if(exists(getInstallPath()/PYTHON_SUBDIR/"site-packages"))
       home=getInstallPath();
     initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string(), home.string());
+#if !defined(_WIN32) && !defined(NDEBUG)
+    // numpy generates a overflow during initialization -> dislabe this FPE exception
+    int fpeExcept=fedisableexcept(FE_OVERFLOW);
+    assert(fpeExcept!=-1);
+#endif
     CALLPY(_import_array);
+#if !defined(_WIN32) && !defined(NDEBUG)
+    assert(feenableexcept(fpeExcept)!=-1);
+#endif
 
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
     PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string()));

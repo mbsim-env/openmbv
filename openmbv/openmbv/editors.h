@@ -491,7 +491,7 @@ void BoolEditor::setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, bool (OM
   checkbox->setCheckState(ombvGetter()?Qt::Checked:Qt::Unchecked);
   checkbox->blockSignals(false);
   action->blockSignals(true);
-  action->setChecked(ombvGetter()?Qt::Checked:Qt::Unchecked);
+  action->setChecked(ombvGetter());
   action->blockSignals(false);
 }
 
