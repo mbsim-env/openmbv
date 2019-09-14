@@ -1,5 +1,4 @@
 #include <config.h>
-#include <cfenv>
 
 // python includes
 #include <Python.h> // due to some bugs in python 3.2 we need to include this first
@@ -10,6 +9,7 @@
 #include "pyeval.h"
 
 // other includes
+#include <cfenv>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
