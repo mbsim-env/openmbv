@@ -502,9 +502,9 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for the octave casadi wrapper files."<<endl;
   // note: casadi_oct.oct is copied automatically with all other octave oct files later
-  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR/"@swig_ref");
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave"/"@swig_ref");
     srcIt!=bfs::directory_iterator(); ++srcIt)
-    files[srcIt->path()]=make_pair(LIBDIR/"@swig_ref", false);
+    files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave"/"@swig_ref", false);
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
