@@ -508,8 +508,11 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
-    srcIt!=bfs::directory_iterator(); ++srcIt)
+    srcIt!=bfs::directory_iterator(); ++srcIt) {
+    if(is_directory(*srcIt)) // skip directories
+      continue;
     files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
+  }
 
   // get octave prefix
   bfs::path octave_prefix(getInstallPath()); // use octave in install path
