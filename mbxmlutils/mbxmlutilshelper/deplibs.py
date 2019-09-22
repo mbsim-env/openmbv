@@ -1,6 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from __future__ import print_function
 import sys
 import subprocess
 import re
@@ -8,36 +7,24 @@ import os
 import distutils.spawn
 import platform
 import glob
-
-if sys.version_info[0]==2: # to unify python 2 and python 3
-  def lru_cache(maxsize=128, typed=False): # no lru_cache for python2, just just a empty decorator
-    def wrapper(func): return func
-    return wrapper
-else:
-  from functools import lru_cache
+from functools import lru_cache
 
 
 
-# @lru_cache(maxsize=None) the cache is very importend for this function!!!
+@lru_cache(maxsize=None)
 def getWindowsEnvPath(name):
-  if name in getWindowsEnvPath.res:
-    return getWindowsEnvPath.res[name]
-  else:
-    if platform.system()=="Windows":
-      getWindowsEnvPath.res[name]=os.environ[name]
-      return getWindowsEnvPath.res[name]
-    if platform.system()=="Linux":
-      value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
-      ret=[]
-      cmd=["winepath", "-u"]
-      cmd.extend(value.split(';'))
-      vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
-      if name=="PATH" and "WINEPATH" in os.environ:
-        vwin=os.environ["WINEPATH"].split(";")+vwin
-      getWindowsEnvPath.res[name]=';'.join(vwin)
-      return getWindowsEnvPath.res[name]
-    raise RuntimeError('Unknown platform')
-getWindowsEnvPath.res={}
+  if platform.system()=="Windows":
+    return os.environ[name]
+  if platform.system()=="Linux":
+    value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
+    ret=[]
+    cmd=["winepath", "-u"]
+    cmd.extend(value.split(';'))
+    vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
+    if name=="PATH" and "WINEPATH" in os.environ:
+      vwin=os.environ["WINEPATH"].split(";")+vwin
+    return ';'.join(vwin)
+  raise RuntimeError('Unknown platform')
 
 def searchWindowsLibrary(libname, libdir):
   searchDir=[] # is search in order
@@ -80,13 +67,9 @@ def getDependencies(filename):
       return res
   raise RuntimeError(filename+' unknown executable format')
 
-# @lru_cache(maxsize=None) the cache is very importend for this function!!!
+@lru_cache(maxsize=None)
 def getDoNotAdd():
-  if getDoNotAdd.retCache!=None:
-    return getDoNotAdd.retCache
-
-  getDoNotAdd.retCache=set()
-
+  notAdd=set()
   # for linux
   system=[
     ("equery", ["-C", "files"], ["glibc", "mesa",]), # portage
@@ -97,16 +80,15 @@ def getDoNotAdd():
       if distutils.spawn.find_executable(s[0]):
         try:
           for line in subprocess.check_output([s[0]]+s[1]+[p], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
-            getDoNotAdd.retCache.add(os.path.realpath(line))
+            notAdd.add(os.path.realpath(line))
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
 
   # for windows do not add the Windows system dlls (= fake dlls on wine)
-  getDoNotAdd.retCache.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
-  getDoNotAdd.retCache.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
+  notAdd.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
+  notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
 
-  return getDoNotAdd.retCache
-getDoNotAdd.retCache=None
+  return notAdd
 
 @lru_cache(maxsize=None)
 def relDir(filename):

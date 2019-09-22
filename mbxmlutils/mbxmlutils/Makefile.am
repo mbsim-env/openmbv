@@ -136,7 +136,7 @@ install-exec-local: install-moduleLTLIBRARIES
 	    else \
 	      cp -u $$i $(runlibdir)/$$(basename $$i); \
 	    fi; \
-	    python $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/$$(basename $$i) > \
+	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/$$(basename $$i) > \
 	      $(runlibdir)/$$(basename $$i).deplibs.tmp; \
 	    mv -f $(runlibdir)/$$(basename $$i).deplibs.tmp $(runlibdir)/$$(basename $$i).deplibs; \
 	  fi; \
@@ -146,7 +146,7 @@ install-exec-local: install-moduleLTLIBRARIES
 	for F in $(runlibdir)/casadi_oct.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
-	    python $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \
+	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \
 	      $$F.deplibs.tmp; \
 	    mv -f $$F.deplibs.tmp $$F.deplibs; \
 	  fi; \

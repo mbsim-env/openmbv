@@ -8,7 +8,7 @@ deplibs.target:
 	    if test -n "$$dlname"; then \
 	      if test $$libdir/$$dlname -nt $$libdir/$$dlname.deplibs; then \
 	        echo "Create dependency files for $$libdir/$$dlname"; \
-	        python $(prefix)/share/mbxmlutils/python/deplibs.py $$libdir/$$dlname > $$libdir/$$dlname.deplibs.tmp; \
+	        python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$libdir/$$dlname > $$libdir/$$dlname.deplibs.tmp; \
 	        mv -f $$libdir/$$dlname.deplibs.tmp $$libdir/$$dlname.deplibs; \
 	      fi; \
 	    fi; \
