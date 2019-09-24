@@ -40,10 +40,10 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   double h = e->getHeight();
   double be = e->getHelixAngle();
   double al0 = e->getPressureAngle();
-  double m = e->getModule();
+  double m = e->getModule()/cos(be);
   double b = e->getBacklash();
 
-  double d0 = m*nz/cos(be);
+  double d0 = m*nz;
   double r0 = d0/2;
   int numb = 10;
   double du = 0.3/numb;
@@ -58,9 +58,9 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     int signj=j?-1:1;
     double u = -0.15;
     for (int i=0; i<=numb; i++) {
-      x[i] = -signj*u*sin(al0)*cos(be);
+      x[i] = signj*u*sin(al0)*cos(be);
       y[i] = u*cos(al0);
-      z[i] = -signj*u*sin(al0)*sin(be)+r0;
+      z[i] = signj*u*sin(al0)*sin(be)+r0;
       u += du;
     }
     float pts[x.size()][3];
@@ -71,7 +71,7 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     }
     auto *r = new SoRotation;
     soSepRigidBody->addChild(r);
-    r->rotation.setValue(SbVec3f(0,1,0),(j?-2:1)*(M_PI/2-b/m)/nz);
+    r->rotation.setValue(SbVec3f(0,1,0),(j?2:-1)*(M_PI/2-b/m)/nz);
     for(int k=0; k<nz; k++) {
       auto *points = new SoCoordinate3;
       auto *line = new SoLineSet;

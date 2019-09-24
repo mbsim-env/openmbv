@@ -41,10 +41,10 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double be = e->getHelixAngle();
   double ga = e->getPitchAngle();
   double al0 = e->getPressureAngle();
-  double m = e->getModule();
+  double m = e->getModule()/cos(be);
   double b = e->getBacklash();
 
-  double d0 = m*nz/cos(be);
+  double d0 = m*nz;
   double r0 = d0/2;
   int numb = 5;
 
@@ -57,12 +57,12 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     double phi = -30./180*M_PI/2;
     for (int i=0; i<=numb; i++) {
       double phi2 = -phi*R/r0;
-      double u = -signj*sin(phi)/cos(phi-be)*sin(al0)*R;
-      double a = signj*u*sin(al0)*cos(phi-be)+R*sin(phi);
+      double u = signj*sin(phi)/cos(phi-be)*sin(al0)*R;
+      double a = signj*u*sin(al0)*cos(phi-be)-R*sin(phi);
       double b = u*cos(al0)-d*sin(ga);
-      double c = -signj*u*sin(al0)*sin(phi-be)+R*cos(phi)-d*cos(ga);
-      x[i] = -a*cos(phi2)+b*sin(phi2)*cos(ga)-c*sin(phi2)*sin(ga);
-      y[i] = a*sin(phi2)+b*cos(phi2)*cos(ga)-c*cos(phi2)*sin(ga);
+      double c = signj*u*sin(al0)*sin(phi-be)+R*cos(phi)-d*cos(ga);
+      x[i] = a*cos(phi2)+b*sin(phi2)*cos(ga)-c*sin(phi2)*sin(ga);
+      y[i] = -a*sin(phi2)+b*cos(phi2)*cos(ga)-c*cos(phi2)*sin(ga);
       z[i] = b*sin(ga)+c*cos(ga);
       phi += dphi;
     }
@@ -74,7 +74,7 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     }
     auto *r = new SoRotation;
     soSepRigidBody->addChild(r);
-    r->rotation.setValue(SbVec3f(0,0,1),(j?-2:1)*(-M_PI/2+b/m)/nz);
+    r->rotation.setValue(SbVec3f(0,0,1),(j?-2:1)*(M_PI/2-b/m)/nz);
     for(int k=0; k<nz; k++) {
       auto *points = new SoCoordinate3;
       auto *line = new SoLineSet;

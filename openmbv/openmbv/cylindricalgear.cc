@@ -103,11 +103,15 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
   }
 
   if(solid) {
+    auto *r = new SoRotation;
+    soSepRigidBody->addChild(r);
+    r->rotation.setValue(SbVec3f(0,0,1),M_PI);
+
     auto *t = new SoTranslation;
     soSepRigidBody->addChild(t);
     t->translation.setValue(0,0,width/2);
 
-    auto *r = new SoRotation;
+    r = new SoRotation;
     soSepRigidBody->addChild(r);
     r->rotation.setValue(SbVec3f(1,0,0),-M_PI/2);
 
