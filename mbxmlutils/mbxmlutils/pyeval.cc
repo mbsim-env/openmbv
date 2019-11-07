@@ -600,7 +600,10 @@ namespace MBXMLUtils {
 // We include swigpyrun.h at the end here to avoid the usage of functions macros
 // defined in this file which we do not want to use.
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 #include "swigpyrun.h"
+#pragma GCC diagnostic pop
 
 void* PyEval::getSwigThis(const Value &value) const {
   return SWIG_Python_GetSwigThis(C(value).get())->ptr;

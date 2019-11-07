@@ -14,7 +14,7 @@ OpenMBV.py: OpenMBV_swig_python.cc
 
 _OpenMBV_la_SOURCES = OpenMBV_swig_python.cc
 _OpenMBV_la_LDFLAGS = -module -shrext $(PYTHON_SHEXT) -avoid-version
-_OpenMBV_la_CPPFLAGS = $(PYTHON_CFLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -I$(top_srcdir) -Wno-error=unused-but-set-variable -Wno-unused-but-set-variable -Wno-error=unused-value -Wno-unused-value -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
+_OpenMBV_la_CPPFLAGS = $(PYTHON_CFLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -I$(top_srcdir) -Wno-error=unused-but-set-variable -Wno-unused-but-set-variable -Wno-error=unused-value -Wno-unused-value -Wno-unused-variable -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 _OpenMBV_la_LIBADD = $(PYTHON_LIBS) $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS) ../../openmbvcppinterface/libopenmbvcppinterface.la
 
 install-exec-hook: OpenMBV.py
