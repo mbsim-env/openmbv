@@ -30,6 +30,13 @@ AC_CHECK_FUNCS([sqrt])
 AC_FUNC_ERROR_AT_LINE
 AC_TYPE_UINT64_T
 
+# for compile version
+OLDCXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error=class-memaccess"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])], [NOWARNING="-Wno-error=class-memaccess"], [NOWARNING=""])
+CXXFLAGS="$OLDCXXFLAGS"
+AC_SUBST([NOWARNING])
+
 dnl Include path for Boost
 AC_ARG_WITH([boost-inc],
   [  --with-boost-inc=PATH  The path Boost include directory.],

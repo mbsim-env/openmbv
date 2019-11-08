@@ -59,13 +59,13 @@ libmbxmlutils_la_HEADERS = eval.h preprocess.h
 
 # octave evaluator
 libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -Wno-error=class-memaccess
+libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) $(NOWARNING)
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(CASADI_LIBS) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
 # octave registerPath
-registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) -Wno-error=class-memaccess
+registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(NOWARNING)
 registerPath_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
 registerPath_la_SOURCES = registerPath.cc
@@ -111,7 +111,7 @@ casadi_oct_swig_octave.cc: $(srcdir)/casadi_oct.i
 
 casadi_oct_la_SOURCES = casadi_oct_swig_octave.cc
 casadi_oct_la_LDFLAGS = -module -shrext .oct -avoid-version
-casadi_oct_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) -Wno-unused-value -Wno-error=maybe-uninitialized -Wno-unused-function -Wno-error=deprecated-declarations -Wno-error=class-memaccess
+casadi_oct_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(CASADI_CFLAGS) -Wno-unused-value -Wno-error=maybe-uninitialized -Wno-unused-function -Wno-error=deprecated-declarations $(NOWARNING)
 casadi_oct_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
 
 
