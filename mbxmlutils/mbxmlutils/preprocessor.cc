@@ -1,5 +1,6 @@
 #include "config.h"
 #include <cassert>
+#include <fstream>
 #include <cfenv>
 #include <boost/regex.hpp>
 #include "mbxmlutils/preprocess.h"
