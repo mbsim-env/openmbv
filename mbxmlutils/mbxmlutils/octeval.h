@@ -53,14 +53,6 @@ class OctEval : public Eval {
     //! evaluate str fully and return result as an octave variable
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const override;
 
-    //! get the SWIG pointer of this value.
-    void* getSwigThis(const Value &value) const override;
-
-    //! get the SWIG class name of this value.
-    std::string getSwigType(const Value &value) const override;
-
-    Value createSwigByTypeName(const std::string &name) const override;
-
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
 
@@ -70,6 +62,7 @@ class OctEval : public Eval {
     std::vector<double>               cast_vector_double       (const Value &value) const override;
     std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const override;
     std::string                       cast_string              (const Value &value) const override;
+    Function                          cast_Function            (const Value &value) const override;
 
     Value create_double              (const double& v) const override;
     Value create_vector_double       (const std::vector<double>& v) const override;

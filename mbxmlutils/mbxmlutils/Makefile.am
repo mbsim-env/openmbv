@@ -86,10 +86,7 @@ libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h py2py3cppwrapper.h
 
-BUILT_SOURCES = casadi_oct_swig_octave.cc swigpyrun.h
-
-swigpyrun.h:
-	$(swig) -python -external-runtime swigpyrun.h
+BUILT_SOURCES = casadi_oct_swig_octave.cc
 
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
@@ -116,7 +113,7 @@ casadi_oct_la_LIBADD = $(MKOCTFILE_LIBS) $(CASADI_LIBS)
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octave.cc casadi_oct_swig_octave.d swigpyrun.h
+CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd casadi_oct_swig_octave.cc casadi_oct_swig_octave.d
 
 
 

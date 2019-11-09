@@ -291,10 +291,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         DOMNode *node;
         DOMDocument *doc=e->getOwnerDocument();
         try {
-          if(eval->valueIsOfType(value, Eval::FunctionType))
-            node=eval->cast<DOMElement*>(value, doc);
-          else
-            node=doc->createTextNode(X()%eval->cast<CodeString>(value));
+          node=doc->createTextNode(X()%eval->cast<CodeString>(value));
         } RETHROW_AS_DOMEVALEXCEPTION(e)
         e->appendChild(node);
       }

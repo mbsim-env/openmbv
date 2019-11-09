@@ -47,24 +47,12 @@ map<path, pair<path, bool> >& XMLFlatEval::requiredFiles() const {
   return ret;
 }
 
-Eval::Value XMLFlatEval::createSwigByTypeName(const string &typeName) const {
-  throw runtime_error("createSwig<T> not possible.");
-}
-
 Eval::Value XMLFlatEval::callFunction(const string &name, const vector<Value>& args) const {
   throw runtime_error("callFunction not possible.");
 }
 
 Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *e) const {
   return make_shared<string>(str);
-}
-
-void* XMLFlatEval::getSwigThis(const Value &value) const {
-  throw runtime_error("getSwigThis not possible.");
-}
-
-string XMLFlatEval::getSwigType(const Value &value) const {
-  return "";
 }
 
 double XMLFlatEval::cast_double(const Value &value) const {
@@ -150,6 +138,10 @@ string XMLFlatEval::cast_string(const Value &value) const {
   if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
+}
+
+Eval::Function XMLFlatEval::cast_Function(const Value &value) const {
+  throw runtime_error("mfmf");
 }
 
 Eval::Value XMLFlatEval::create_double(const double& v) const {

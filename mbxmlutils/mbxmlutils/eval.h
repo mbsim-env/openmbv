@@ -6,7 +6,6 @@
 #include <boost/variant.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
-#include <casadi/casadi.hpp>
 #include <unordered_map>
 
 #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
@@ -72,8 +71,6 @@ class NewParamLevel {
     bool newLevel;
 };
 
-template<class T> struct SwigType { static std::string name; };
-
 /*! Expression evaluator and converter. */
 class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::Atom {
   public:
@@ -89,8 +86,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
       FunctionType
     };
 
+    //! Representation of a function: first is a vector of independent variables.
+    //! second is the function (depending on these independent variables).
+    //! All have the format of a fmatvec AST serailization.
+    typedef std::pair<std::vector<std::string>, std::string> Function;
+
     //! Typedef for a shared value
-    typedef std::pair<std::vector<casadi::SX>, std::vector<casadi::SX>> Function;
     typedef boost::variant<std::shared_ptr<void>, Function> Value;
 
   protected:
@@ -140,14 +141,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
      * following table. If a combination is not allowed a exception is thrown.
-     * If a c-pointer is returned this c-pointer is only guaranteed to be valid for the lifetime of the object
-     * \p value being passed as argument. This pointer is a reference to the value \p value in the interpreter.
-     * If a DOMElement* is returned \p doc must be given and ownes the memory of the returned DOM tree. For other
-     * return types this function must be called with only one argument cast(const Value &value);
      * <table>
      *   <tr>
      *     <th></th>
-     *     <th colspan="7"><tt>value</tt> is of Type ...</th>
+     *     <th colspan="5"><tt>value</tt> is of Type ...</th>
      *   </tr>
      *   <tr>
      *     <th>Template Type <tt>T</tt> equals ...</th>
@@ -155,9 +152,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <th>real vector</th>
      *     <th>real matrix</th>
      *     <th>string</th>
-     *     <th><i>SWIG</i> <tt>casadi::SX</tt></th>
      *     <th><tt>Function</tt></th>
-     *     <th><i>SWIG</i> <tt>XYZ</tt></th>
      *   </tr>
      *
      *   <tr>
@@ -166,9 +161,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>double</tt></th>
@@ -176,9 +169,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>vector&lt;double&gt;</tt></th>
@@ -186,9 +177,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td>X</td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>vector&lt;vector&lt;double&gt;&nbsp;&gt;</tt></th>
@@ -196,9 +185,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td>X</td>
      *     <!--matrix-->     <td>X</td>
      *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>string</tt></th>
@@ -206,9 +193,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td>X</td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>CodeString</tt></th>
@@ -216,39 +201,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td>returns e.g. <code>[3;7]</code></td>
      *     <!--matrix-->     <td>returns e.g. <code>[1,3;5,4]</code></td>
      *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
-     *     <!--SX-->         <td></td>
-     *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>DOMElement*</tt></th>
-     *     <!--scalar-->     <td></td>
-     *     <!--vector-->     <td></td>
-     *     <!--matrix-->     <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--Function-->   <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX</tt></th>
-     *     <!--scalar-->     <td>X</td>
-     *     <!--vector-->     <td>X</td>
-     *     <!--matrix-->     <td>X</td>
-     *     <!--string-->     <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>casadi::SX*</tt></th>
-     *     <!--scalar-->     <td></td>
-     *     <!--vector-->     <td></td>
-     *     <!--matrix-->     <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SX-->         <td>X</td>
-     *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td></td>
+     *     <!--Function-->   <td>returns e.g. <code>( 2 [...] {...} [...])</code></td>
      *   </tr>
      *   <tr>
      *     <!--CAST TO-->    <th><tt>Function</tt></th>
@@ -256,29 +209,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--vector-->     <td></td>
      *     <!--matrix-->     <td></td>
      *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
      *     <!--Function-->   <td>X</td>
-     *     <!--XYZ-->        <td></td>
-     *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>XYZ*</tt></th>
-     *     <!--scalar-->     <td></td>
-     *     <!--vector-->     <td></td>
-     *     <!--matrix-->     <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--SX-->         <td></td>
-     *     <!--Function-->   <td></td>
-     *     <!--XYZ-->        <td>*</td>
      *   </tr>
      * </table>
-     * For arbitary evaluator values of type SWIG wrapper object (see * in table) a instantiation of
-     * <code>template<> string SwigType<XYZ*>::name("<swig_type_name_of_XYZ>");</code>
-     * is required.
      */
-    template<typename T>
-    T cast(const Value &value, xercesc::DOMDocument *doc) const;
-
-    //! see cast(const Value &value, shared_ptr<DOMDocument> &doc)
     template<typename T>
     T cast(const Value &value) const;
 
@@ -329,12 +263,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     // stack of imports
     std::stack<std::shared_ptr<void> > importStack;
 
-    template<typename T>
-    Value createSwig() const;
-
-    //! create a SWIG object of name typeName.
-    virtual Value createSwigByTypeName(const std::string &typeName) const=0;
-
     /*! Return the value of a call to name using the arguments args.
      * The following functions must be implemented by the evaluator:
      *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given in rad.
@@ -350,8 +278,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      */
     virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
-    Value casadiValue;
-
     //! evaluate the string str using the current parameters and return the result.
     virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const=0;
 
@@ -363,12 +289,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
       return std::shared_ptr<E>(new E(dependencies_));
     }
 
-    //! get the SWIG pointer of this value.
-    virtual void* getSwigThis(const Value &value) const=0;
-    //! get the SWIG type (class name) of this value.
-    //! Returns a empty string if value is not of type swig (it does not throw).
-    virtual std::string getSwigType(const Value &value) const=0;
-
     void addStaticDependencies(const xercesc::DOMElement *e) const;
 
   private:
@@ -377,13 +297,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual std::vector<double>               cast_vector_double       (const Value &value) const=0;
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const=0;
     virtual std::string                       cast_string              (const Value &value) const=0;
+    virtual Function                          cast_Function            (const Value &value) const=0;
     // spezialization of cast(const Value &value)
     CodeString          cast_CodeString  (const Value &value) const;
     int                 cast_int         (const Value &value) const;
-    casadi::SX          cast_SX          (const Value &value) const;
-
-    // spezialization of cast(const Value &value, xercesc::DOMDocument *doc)
-    xercesc::DOMElement* cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const;
 
     // virtual spezialization of create(...)
     virtual Value create_double              (const double& v) const=0;
@@ -399,30 +316,14 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
 };
 
-template<typename T>
-Eval::Value Eval::createSwig() const {
-  return createSwigByTypeName(SwigType<T>::name);
-}
-
-template<typename T>
-T Eval::cast(const Value &value) const {
-  // treat all types T as a swig type
-  if(getSwigType(value)!=SwigType<T>::name)
-    throw std::runtime_error("This variable is not of SWIG type "+SwigType<T>::name+".");
-  return static_cast<T>(getSwigThis(value));
-}
-// ... but prevere these specializations
+// specializations
 template<> std::string Eval::cast<std::string>(const Value &value) const;
 template<> CodeString Eval::cast<CodeString>(const Value &value) const;
 template<> double Eval::cast<double>(const Value &value) const;
 template<> int Eval::cast<int>(const Value &value) const;
 template<> std::vector<double> Eval::cast<std::vector<double> >(const Value &value) const;
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const Value &value) const;
-template<> casadi::SX Eval::cast<casadi::SX>(const Value &value) const;
 template<> Eval::Function Eval::cast<Eval::Function>(const Value &value) const;
-
-// no template definition, only this spezialization
-template<> xercesc::DOMElement* Eval::cast<xercesc::DOMElement*>(const Value &value, xercesc::DOMDocument *doc) const;
 
 // spezializations for create
 template<> Eval::Value Eval::create<double>                            (const double& v) const;

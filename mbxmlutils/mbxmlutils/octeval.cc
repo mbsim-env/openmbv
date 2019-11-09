@@ -226,6 +226,10 @@ string OctEval::cast_string(const Eval::Value &value) const {
   throw runtime_error("Cannot cast this value to string.");
 }
 
+Eval::Function OctEval::cast_Function(const Eval::Value &value) const {
+  throw runtime_error("mfmf");
+}
+
 double OctEval::cast_double(const Eval::Value &value) const {
   if(valueIsOfType(value, ScalarType))
     return C(value)->double_value();
@@ -289,15 +293,7 @@ Eval::Value OctEval::create_string(const string& v) const {
   return make_shared<octave_value>(v);
 }
 
-Eval::Value OctEval::createSwigByTypeName(const string &name) const {
-  list<octave_value_list> idx;
-  idx.emplace_back(name);
-  idx.emplace_back();
-  return C(C(casadiValue)->subsref(".(", idx));
-}
-
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
-  casadiValue=octInit.casadiValue;
   currentImport=make_shared<string>(octInit.initialPath);
 };
 
@@ -473,26 +469,6 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
     throw runtime_error(err.str()+msg);
   }
   return ret;
-}
-
-// cast octave value to swig object ptr or swig object copy
-void* OctEval::getSwigThis(const Value &value) const {
-  static octave_function *swig_this=symbol_table::find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
-  // get the casadi pointer: octave returns a 64bit integer which represents the pointer
-  shared_ptr<octave_value> v=C(value);
-  if(v->class_name()!="swig_ref")
-    throw runtime_error("This value is not a reference to a SWIG wrapped object.");
-  octave_value swigThis=fevalThrow(swig_this, *v, 1, "Cannot get pointer to the SWIG wrapped object.")(0);
-  return reinterpret_cast<void*>(swigThis.uint64_scalar_value().value());
-}
-
-string OctEval::getSwigType(const Value &value) const {
-  shared_ptr<octave_value> v=C(value);
-  if(v->class_name()!="swig_ref")
-    return "";
-  // get the swig type (get ones a pointer to swig_type for performance reasons)
-  static octave_function *swig_type=symbol_table::find_function("swig_type").function_value();
-  return fevalThrow(swig_type, *v, 1, "Unable to get swig type.")(0).string_value();
 }
 
 map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {

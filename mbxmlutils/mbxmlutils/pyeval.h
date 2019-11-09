@@ -23,16 +23,14 @@ class PyEval : public Eval {
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
     void convertIndex(Value &v, bool evalTo1Base) override;
   protected:
-    Value createSwigByTypeName(const std::string &typeName) const override;
     Value callFunction(const std::string &name, const std::vector<Value>& args) const override;
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const override;
-    void* getSwigThis(const Value &value) const override;
-    std::string getSwigType(const Value &value) const override;
   private:
     double                           cast_double                (const Value &value) const override;
     std::vector<double>              cast_vector_double         (const Value &value) const override;
     std::vector<std::vector<double> >cast_vector_vector_double  (const Value &value) const override;
     std::string                      cast_string                (const Value &value) const override;
+    Function                         cast_Function              (const Value &value) const override;
     Value          create_double              (const double& v) const override;
     Value          create_vector_double       (const std::vector<double>& v) const override;
     Value          create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;

@@ -136,7 +136,6 @@ int MBXMLUtils_SharedLibrary_init() {
 }
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  casadiValue=C(pyInit->casadiValue);
   currentImport=make_shared<PyO>(CALLPY(PyDict_New));
 }
 
@@ -275,10 +274,6 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   return files;
 }
 
-Eval::Value PyEval::createSwigByTypeName(const string &typeName) const {
-  return C(CALLPY(PyObject_CallObject, CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, C(casadiValue)), typeName), PyO()));
-}
-
 Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
   pair<map<string, PyO>::iterator, bool> f=pyInit->functionValue.insert(make_pair(name, PyO()));
   if(f.second)
@@ -394,13 +389,6 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   return C(ret);
 }
 
-string PyEval::getSwigType(const Value &value) const {
-  auto &t=C(value)->ob_type;
-  if(!t)
-    return "";
-  return t->tp_name;
-}
-
 double PyEval::cast_double(const Value &value) const {
   PyO v(C(value));
   if(CALLPY(PyFloat_Check, v))
@@ -441,6 +429,10 @@ vector<vector<double> >PyEval::cast_vector_vector_double(const Value &value) con
 
 string PyEval::cast_string(const Value &value) const {
   return CALLPY(PyUnicode_AsUTF8, C(value));
+}
+
+Eval::Function PyEval::cast_Function(const Value &value) const {
+  throw runtime_error("mfmf");
 }
 
 Eval::Value PyEval::create_double(const double& v) const {
@@ -593,20 +585,4 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
   mbxmlutilsStaticDependencies.emplace_back(path);
   return 0;
-}
-
-namespace MBXMLUtils {
-
-// We include swigpyrun.h at the end here to avoid the usage of functions macros
-// defined in this file which we do not want to use.
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-#include "swigpyrun.h"
-#pragma GCC diagnostic pop
-
-void* PyEval::getSwigThis(const Value &value) const {
-  return SWIG_Python_GetSwigThis(C(value).get())->ptr;
-}
-
 }

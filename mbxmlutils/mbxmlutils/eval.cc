@@ -9,11 +9,9 @@
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/toString.h>
 #include <mbxmlutilshelper/utils.h>
-#include "mbxmlutilshelper/casadiXML.h"
 #include "mbxmlutilshelper/shared_library.h"
 
 using namespace std;
-using namespace casadi;
 using namespace xercesc;
 using namespace MBXMLUtils;
 namespace bfs=boost::filesystem;
@@ -80,8 +78,6 @@ NewParamLevel::~NewParamLevel() {
   if(newLevel)
     oe->popContext();
 }
-
-template<> string SwigType<SX*>::name("SX");
 
 map<string, string> Eval::units;
 
@@ -171,18 +167,8 @@ vector<double> Eval::cast<vector<double> >(const Value &value) const {
 }
 
 template<>
-SX Eval::cast<SX>(const Value &value) const {
-  return cast_SX(value);
-}
-
-template<>
 vector<vector<double> > Eval::cast<vector<vector<double> > >(const Value &value) const {
   return cast_vector_vector_double(value);
-}
-
-template<>
-DOMElement* Eval::cast<DOMElement*>(const Value &value, xercesc::DOMDocument *doc) const {
-  return cast_DOMElement_p(value, doc);
 }
 
 template<>
@@ -258,40 +244,40 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(shared_from_this(), function);
-  vector<SX> inputs;
-  if(function) {
-    addParam("casadi", casadiValue);
-    // loop over all attributes and search for arg1name, arg2name attributes
-    DOMNamedNodeMap *attr=e->getAttributes();
-    for(int i=0; i<attr->getLength(); i++) {
-      auto *a=static_cast<DOMAttr*>(attr->item(i));
-      // skip xml* attributes
-      if((X()%a->getName()).substr(0, 3)=="xml")
-        continue;
-      // skip all attributes not of type symbolicFunctionArgNameType
-      if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
-        continue;
-      string base=X()%a->getName();
-      if(!E(e)->hasAttribute(base+"Dim"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
-      if(!E(e)->hasAttribute(base+"Nr"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
-
-      Value casadiSX=createSwig<SX*>();
-      SX *arg;
-      try { arg=cast<SX*>(casadiSX); } RETHROW_AS_DOMEVALEXCEPTION(e)
-      *arg=SX::sym(X()%a->getValue(), dim, 1);
-      addParam(X()%a->getValue(), casadiSX);
-      inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
-      inputs[nr-1]=*arg;
-    }
-    // check if one argument was not set. If so error
-    for(auto & input : inputs)
-      if(input.size1()==0 || input.size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
-        throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
-  }
+  vector<string> inputs;
+//mfmf  if(function) {
+//mfmf    addParam("casadi", casadiValue);
+//mfmf    // loop over all attributes and search for arg1name, arg2name attributes
+//mfmf    DOMNamedNodeMap *attr=e->getAttributes();
+//mfmf    for(int i=0; i<attr->getLength(); i++) {
+//mfmf      auto *a=static_cast<DOMAttr*>(attr->item(i));
+//mfmf      // skip xml* attributes
+//mfmf      if((X()%a->getName()).substr(0, 3)=="xml")
+//mfmf        continue;
+//mfmf      // skip all attributes not of type symbolicFunctionArgNameType
+//mfmf      if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
+//mfmf        continue;
+//mfmf      string base=X()%a->getName();
+//mfmf      if(!E(e)->hasAttribute(base+"Dim"))
+//mfmf        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
+//mfmf      if(!E(e)->hasAttribute(base+"Nr"))
+//mfmf        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
+//mfmf      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
+//mfmf      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+//mfmf
+//mfmf      Value casadiSX=createSwig<SX*>();
+//mfmf      SX *arg;
+//mfmf      try { arg=cast<SX*>(casadiSX); } RETHROW_AS_DOMEVALEXCEPTION(e)
+//mfmf      *arg=SX::sym(X()%a->getValue(), dim, 1);
+//mfmf      addParam(X()%a->getValue(), casadiSX);
+//mfmf      inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
+//mfmf      inputs[nr-1]=*arg;
+//mfmf    }
+//mfmf    // check if one argument was not set. If so error
+//mfmf    for(auto & input : inputs)
+//mfmf      if(input.size1()==0 || input.size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
+//mfmf        throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
+//mfmf  }
   
   // a XML vector
   ec=E(e)->getFirstElementChildNamed(PV%"xmlVector");
@@ -302,23 +288,27 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     vector<double> m(i);
-    SX M;
-    if(function)
-      M.resize(i, 1);
+    vector<string> M(i);
     i=0;
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
       if(!function)
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else {
-        SX Mele;
-        try { Mele=cast<SX>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)); } RETHROW_AS_DOMEVALEXCEPTION(e)
-        if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-        M(i,0)=Mele(0,0);
+        M[i]=cast<Function>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)).second;
+        if(M[i][0]!='{')
+          throw DOMEvalException("Scalar argument required.", ele);
       }
     if(!function)
       return handleUnit(e, create(m));
-    else
-      return Function{inputs, {M}};
+    else {
+      string func("[");
+      for(size_t i=0; i<M.size(); ++i) {
+        func+=M[i];
+        if(i<M.size()-1) func+="; ";
+      }
+      func+="]";
+      return Function(inputs, func);
+    }
   }
   
   // a XML matrix
@@ -332,9 +322,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     vector<vector<double> > m(i, vector<double>(j));
-    SX M;
-    if(function)
-      M.resize(i, j);
+    vector<vector<string> > M(i, vector<string>(j));
     i=0;
     for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++) {
       j=0;
@@ -342,16 +330,25 @@ Eval::Value Eval::eval(const DOMElement *e) {
         if(!function)
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else {
-          SX Mele;
-          try { Mele=cast<SX>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)); } RETHROW_AS_DOMEVALEXCEPTION(e)
-          if(Mele.size1()!=1 || Mele.size2()!=1) throw DOMEvalException("Scalar argument required.", e);
-          M(i,0)=Mele(0,0);
+          M[i][j]=cast<Function>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)).second;
+          if(M[i][j][0]!='{')
+            throw DOMEvalException("Scalar argument required.", col);
         }
     }
     if(!function)
       return handleUnit(e, create(m));
-    else
-      return Function{inputs, {M}};
+    else {
+      string func("[");
+      for(size_t r=0; r<M.size(); ++r) {
+        for(size_t c=0; c<M[r].size(); ++c) {
+          func+=M[r][c];
+          if(c<M[r].size()-1) func+=", ";
+        }
+        if(r<M.size()-1) func+="; ";
+      }
+      func+="]";
+      return Function(inputs, func);
+    }
   }
   
   // a element with a single text child (including unit conversion)
@@ -396,7 +393,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return ret;
     else
-      return Function{inputs, {cast<SX>(ret)}};
+      return Function(inputs, "mfmf");
   }
   
   // rotation about x,y,z
@@ -642,12 +639,6 @@ Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool ful
     return create(partialStringToString(str, e));
 }
 
-DOMElement* Eval::cast_DOMElement_p(const Value &value, xercesc::DOMDocument *doc) const {
-  if(valueIsOfType(value, FunctionType))
-    return convertCasADiToXML(cast<Function>(value), doc);
-  throw runtime_error("Cannot cast this value to DOMElement*.");
-}
-
 CodeString Eval::cast_CodeString(const Value &value) const {
   ostringstream ret;
   ret.precision(numeric_limits<double>::digits10+1);
@@ -682,6 +673,9 @@ CodeString Eval::cast_CodeString(const Value &value) const {
     ret<<"'"<<cast<string>(value)<<"'";
     return ret.str();
   }
+  else if(valueIsOfType(value, FunctionType)) {
+    return CodeString("( 2 mfmf mfmf mfmf )");
+  }
   else
     throw runtime_error("Cannot cast this value to a evaluator code string.");
 }
@@ -692,26 +686,6 @@ int Eval::cast_int(const Value &value) const {
   if(!tryDouble2Int(d, i))
     throw runtime_error("Cannot cast this value to int.");
   return i;
-}
-
-SX Eval::cast_SX(const Value &value) const {
-  // try to cast to SX*. If this works return just a copy of it
-  if(getSwigType(value)==SwigType<SX*>::name)
-    return *cast<SX*>(value);
-  // try to cast to vector<vector<double> >. If this works convert it to SX
-  try {
-    vector<vector<double> > m=cast<vector<vector<double> > >(value);
-    SX M;
-    M.resize(m.size(), m[0].size());
-    for(int r=0; r<m.size(); ++r)
-      for(int c=0; c<m[r].size(); ++c)
-        M(r,c)=m[r][c];
-    return M;
-  }
-  catch(...) {
-    // if this also fails -> error
-    throw runtime_error("Cannot cast this value to SX");
-  }
 }
 
 void Eval::addStaticDependencies(const DOMElement *e) const {
