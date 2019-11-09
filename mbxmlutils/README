@@ -1,7 +1,7 @@
 Installation
 ====================
 
-This project provides XML utilities for the visualization of mechanical systems. It needs fmatvec, Xerces, Xalan, Casadi, swig, octave. After the installation proceed with the following steps.
+This project provides XML utilities for the visualization of mechanical systems. It needs fmatvec, Xerces, Xalan, octave. After the installation proceed with the following steps.
 
 
 1. Checkout from git

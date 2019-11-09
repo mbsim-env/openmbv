@@ -13,5 +13,5 @@ Name: MBXMLUtils
 Description: XML utilities for physical applications (multi body applications)
 Requires: xerces-c fmatvec
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutils -lmbxmlutilshelper @CASADI_LIBS@ @XERCESC_LIBS@ @FMATVEC_LIBS@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
-Cflags: -I${includedir} @CASADI_CFLAGS@ @XERCESC_CFLAGS@ @FMATVEC_CFLAGS@
+Libs: -L${libdir} -lmbxmlutils -lmbxmlutilshelper @XERCESC_LIBS@ @FMATVEC_LIBS@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+Cflags: -I${includedir} @XERCESC_CFLAGS@ @FMATVEC_CFLAGS@

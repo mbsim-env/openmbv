@@ -66,25 +66,6 @@ if test "_$host_os" != "_mingw32"; then
 fi
 AC_SUBST([LIBDL])
 
-dnl Check for casadi 
-PKG_CHECK_MODULES(CASADI, [casadi >= 3.0.0])
-CASADI_PREFIX_DIR="$(pkg-config --variable=prefix casadi)"
-AC_SUBST([CASADI_PREFIX_DIR])
-
-dnl Check for SWIG
-AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
-  [swigpath="$withval"],[swigpath=""])
-AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
-if test "_$swig" == "_no"; then
-  AC_MSG_ERROR([SWIG not found])
-fi
-SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
-AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
-SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+9]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+10]]; then
-  AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
-fi
-
 XC_PATH_CONVERT=echo
 if test "$cross_compiling" == "yes"; then
   AC_SUBST([XC_EXEC_PREFIX],[wine])
@@ -235,7 +216,7 @@ test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpa
 dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile mbxmlutils/pyeval-config.h])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

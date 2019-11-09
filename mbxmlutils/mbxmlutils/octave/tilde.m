@@ -1,5 +1,6 @@
 function out=tilde(in)
 
+  error('mfmf');
   if (strcmp(typeinfo(in), 'swig_ref') && in.size1()==3 && in.size2()==1) || size(in)==[3,1]
 
     out=[     0, -in(3),  in(2) ;...

@@ -25,7 +25,6 @@
 
       <xs:include schemaLocation="parameter.xsd"/>
       <xs:include schemaLocation="embed.xsd"/>
-      <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
 
       <!-- base type for a XML text element which is fully converted by the evaluator. -->
       <xs:simpleType name="fullEval">
@@ -410,31 +409,6 @@
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
-
-      <!-- the MBXMLUtils XML representation of a casadi Function.
-           This may be replaced later by MathML or OpenMath if casadi supports it -->
-      <xs:group name="symbolicFunctionXMLElement">
-        <xs:annotation>
-          <xs:documentation>
-            A symbolic function definition which is evaluated at runtime using dynamic input parameters
-            provided by the runtime. The representation of the symbolic function must either be given by
-            the MBXMLUtils notation for CasADi::Function or by an expression (using the SWIG
-            interface of CasADi). Using a expression you have full access to other scalar,
-            vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
-            must be defined which set the name of this input parameter for the access in the expression.
-            For each vector input paramter moreover an attribure named 'xyzDim' must be defined
-            which defines the vector dimension of this input.
-            (The XML schema must also define a fixed (hidden) attribute named 'xyzNr' which is set the integer
-            number corresponding to the argument number of the function)
-          </xs:documentation>
-        </xs:annotation>
-        <xs:choice>
-          <xs:element ref="casadi:Function" xmlns:casadi="http://www.mbsim-env.de/MBXMLUtils/CasADi"/>
-          <xs:group ref="xmlScalarGroup"/>
-          <xs:group ref="xmlVectorGroup"/>
-          <xs:group ref="xmlMatrixGroup"/>
-        </xs:choice>
-      </xs:group>
 
     </xs:schema>
 

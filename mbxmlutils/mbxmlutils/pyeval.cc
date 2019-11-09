@@ -15,7 +15,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include "mbxmlutils/eval_static.h"
-#include "pyeval-config.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -50,7 +49,6 @@ class PyInit {
     PyInit();
     ~PyInit();
     PyO mbxmlutils;
-    PyO casadiValue;
     map<string, PyO> functionValue;
     PyO asarray;
 };
@@ -62,11 +60,12 @@ PyInit::PyInit() {
       home=getInstallPath();
     initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string(), home.string());
 #if !defined(_WIN32) && !defined(NDEBUG)
-    // numpy generates a overflow during initialization -> dislabe this FPE exception
-    int fpeExcept=fedisableexcept(FE_OVERFLOW);
+    // sympy and numpy generates a overflow during initialization -> dislabe this FPE exception
+    int fpeExcept=fedisableexcept(FE_OVERFLOW | FE_INVALID | FE_OVERFLOW);
     assert(fpeExcept!=-1);
 #endif
     CALLPY(_import_array);
+    CALLPY(PyImport_ImportModule, "sympy");
 #if !defined(_WIN32) && !defined(NDEBUG)
     assert(feenableexcept(fpeExcept)!=-1);
 #endif
@@ -74,12 +73,8 @@ PyInit::PyInit() {
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
     PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
-    PyO casadipath(CALLPY(PyUnicode_FromString, string(CASADI_PREFIX_DIR)+"/python"+PYTHON_VERSION+"/site-packages"));
-    CALLPY(PyList_Append, path, casadipath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
-
-    casadiValue=CALLPY(PyImport_ImportModule, "casadi");
 
     PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
     asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
@@ -100,7 +95,6 @@ PyInit::~PyInit() {
     // clear all Python object before deinit
     asarray.reset();
     functionValue.clear();
-    casadiValue.reset();
     mbxmlutils.reset();
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
@@ -233,16 +227,6 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     return files;
 
   path PYTHONDST(PYTHON_SUBDIR);
-
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for the Python casadi files."<<endl;
-  path casadiDir=path(CASADI_PREFIX_DIR)/("python" PYTHON_VERSION)/"site-packages"/"casadi";
-  if(exists(getInstallPath()/PYTHONDST/"site-packages"/"casadi"))
-    casadiDir=getInstallPath()/PYTHONDST/"site-packages"/"casadi";
-  for(auto srcIt=recursive_directory_iterator(casadiDir); srcIt!=recursive_directory_iterator(); ++srcIt) {
-    if(is_directory(*srcIt)) // skip directories
-      continue;
-    files[*srcIt]=make_pair(PYTHONDST/"site-packages"/"casadi"/MBXMLUtils::relative(*srcIt, casadiDir).parent_path(), false);
-  }
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for MBXMLUtils py-files."<<endl;
   for(auto srcIt=directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {

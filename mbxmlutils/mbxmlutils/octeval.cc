@@ -112,7 +112,6 @@ class OctInit {
   public:
     OctInit();
     ~OctInit();
-    shared_ptr<octave_value> casadiValue;
     string initialPath;
 };
 
@@ -166,10 +165,6 @@ OctInit::OctInit() {
     feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
     // no error checking here, path may not exist
 
-    // load casadi
-    casadiValue=make_shared<octave_value>(feval("swigLocalLoad", octave_value_list("casadi_oct"), 1)(0));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to initialize casadi."); }
-
     // save initial octave search path
     initialPath=feval("path", octave_value_list(), 1)(0).string_value();
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
@@ -189,8 +184,6 @@ OctInit::~OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
 
-    // clear all octave variables before deinit
-    casadiValue.reset();
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
     eval_string("1+1;", true, dummy, 0); // eval as statement list
@@ -475,12 +468,6 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   static map<bfs::path, pair<bfs::path, bool> > files;
   if(!files.empty())
     return files;
-
-  fmatvec::Atom::msgStatic(Info)<<"Generate file list for the octave casadi wrapper files."<<endl;
-  // note: casadi_oct.oct is copied automatically with all other octave oct files later
-  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave"/"@swig_ref");
-    srcIt!=bfs::directory_iterator(); ++srcIt)
-    files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave"/"@swig_ref", false);
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");

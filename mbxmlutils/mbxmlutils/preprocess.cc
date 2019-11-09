@@ -5,7 +5,6 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
-#include "mbxmlutilshelper/casadiXML.h"
 #include <fmatvec/toString.h>
 #include <boost/scope_exit.hpp>
 
@@ -214,10 +213,8 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         e=nullptr;
       return;
     }
-    else if(E(e)->getTagName()==casadi::CASADI%"Function")
-      return; // skip processing of Function elements
     else {
-      bool isCasADi=false;
+      bool function=false;
 
       // set the XPath of this (none Embed) element to the name of the element itself (including the proper position)
       int pos=++(*position)[E(e)->getTagName()];
@@ -230,9 +227,9 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // skip xml* attributes
         if((X()%a->getName()).substr(0, 3)=="xml")
           continue;
-        // check for casadi functions
+        // check for functions
         if(A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
-          isCasADi=true;
+          function=true;
         // skip attributes which are not evaluated
         if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
           continue;
@@ -278,7 +275,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
          E(e)->isDerivedFrom(PV%"integerVector") ||
          E(e)->isDerivedFrom(PV%"indexVector") ||
          E(e)->isDerivedFrom(PV%"indexMatrix") ||
-         isCasADi) {
+         function) {
         Eval::Value value=eval->eval(e);
         E(e)->removeAttribute("unit");
         E(e)->removeAttribute("convertUnit");

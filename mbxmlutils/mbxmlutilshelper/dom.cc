@@ -860,8 +860,6 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   // handle namespaces known by MBXMLUtils
   if(ns==XINCLUDE.getNamespaceURI())
     file=SCHEMADIR/"http___www_w3_org/XInclude.xsd";
-  else if(ns=="http://www.mbsim-env.de/MBXMLUtils/CasADi")
-    file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils_CasADi/casadi.xsd";
   else if(ns==PV.getNamespaceURI())
     file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils/physicalvariable.xsd";
   // handle namespaces registered to the parser

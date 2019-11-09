@@ -6,7 +6,7 @@
 namespace MBXMLUtils {
 
 /*! A (dummy) evaluator taking the xmlflat syntax as input and output.
- * This evaluator cannot evaluate any expresion nor any parametrisation or casadi actions can be done.
+ * This evaluator cannot evaluate any expresion nor any parametrisation.
  * Its just a dummy evaluator for testing. But it can be used for evaluate xmlflat file or a normal file
  * without and parametrisation and without any expression. */
 class XMLFlatEval : public Eval {
