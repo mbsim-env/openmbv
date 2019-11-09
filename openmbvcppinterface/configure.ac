@@ -16,6 +16,13 @@ AC_TYPE_SIZE_T
 # enable C++11
 CXXFLAGS="$CXXFLAGS -std=c++11"
 
+# for compile version
+OLDCXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-error=class-memaccess"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])], [NOWARNING="-Wno-error=class-memaccess"], [NOWARNING=""])
+CXXFLAGS="$OLDCXXFLAGS"
+AC_SUBST([NOWARNING])
+
 dnl force strict standard conformance
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-long-long"
 if test "_$host_os" != "_mingw32"; then
