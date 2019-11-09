@@ -88,8 +88,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     //! Representation of a function: first is a vector of independent variables.
     //! second is the function (depending on these independent variables).
-    //! All have the format of a fmatvec AST serailization.
-    typedef std::pair<std::vector<std::string>, std::string> Function;
+    typedef std::pair<std::vector<std::shared_ptr<void>>, std::shared_ptr<void>> Function;
 
     //! Typedef for a shared value
     typedef boost::variant<std::shared_ptr<void>, Function> Value;
@@ -124,6 +123,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
     void addParamSet(const xercesc::DOMElement *e);
+    //! Add a independent variable named paramName and return Value.
+    virtual std::shared_ptr<void> addIndependentVariableParam(const std::string &paramName, int dim) = 0;
 
     //! Import evaluator statements. This routine highly depends on the evaluator.
     //! See the spezialized evaluators documentation for details.
@@ -279,7 +280,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
     //! evaluate the string str using the current parameters and return the result.
-    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const=0;
+    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const=0;
 
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e) const;
@@ -307,6 +308,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual Value create_vector_double       (const std::vector<double>& v) const=0;
     virtual Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
     virtual Value create_string              (const std::string& v) const=0;
+    virtual Value create_vector_void         (const std::vector<std::shared_ptr<void>>& v) const=0;
+    virtual Value create_vector_vector_void  (const std::vector<std::vector<std::shared_ptr<void>> >& v) const=0;
+
+    virtual std::string serializeFunction(const std::shared_ptr<void> &x) const = 0;
 
     Value handleUnit(const xercesc::DOMElement *e, const Value &ret);
 
@@ -326,10 +331,12 @@ template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<
 template<> Eval::Function Eval::cast<Eval::Function>(const Value &value) const;
 
 // spezializations for create
-template<> Eval::Value Eval::create<double>                            (const double& v) const;
-template<> Eval::Value Eval::create<std::vector<double> >              (const std::vector<double>& v) const;
-template<> Eval::Value Eval::create<std::vector<std::vector<double> > >(const std::vector<std::vector<double> >& v) const;
-template<> Eval::Value Eval::create<std::string>                       (const std::string& v) const;
+template<> Eval::Value Eval::create<double>                                         (const double& v) const;
+template<> Eval::Value Eval::create<std::vector<double> >                           (const std::vector<double>& v) const;
+template<> Eval::Value Eval::create<std::vector<std::vector<double> > >             (const std::vector<std::vector<double> >& v) const;
+template<> Eval::Value Eval::create<std::string>                                    (const std::string& v) const;
+template<> Eval::Value Eval::create<std::vector<std::shared_ptr<void>>>             (const std::vector<std::shared_ptr<void>>& v) const;
+template<> Eval::Value Eval::create<std::vector<std::vector<std::shared_ptr<void>>>>(const std::vector<std::vector<std::shared_ptr<void>> >& v) const;
 
 } // end namespace MBXMLUtils
 

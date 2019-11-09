@@ -51,6 +51,10 @@ class PyInit {
     PyO mbxmlutils;
     map<string, PyO> functionValue;
     PyO asarray;
+    PyO sympy;
+    PyO symbols;
+    PyO matrix;
+    PyO serializeFunction;
 };
 
 PyInit::PyInit() {
@@ -65,7 +69,7 @@ PyInit::PyInit() {
     assert(fpeExcept!=-1);
 #endif
     CALLPY(_import_array);
-    CALLPY(PyImport_ImportModule, "sympy");
+    sympy=CALLPY(PyImport_ImportModule, "sympy");
 #if !defined(_WIN32) && !defined(NDEBUG)
     assert(feenableexcept(fpeExcept)!=-1);
 #endif
@@ -78,9 +82,13 @@ PyInit::PyInit() {
 
     PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
     asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
+
+    symbols=CALLPY(PyObject_GetAttrString, sympy, "symbols");
+    matrix=CALLPY(PyObject_GetAttrString, sympy, "Matrix");
+    serializeFunction=CALLPY(PyObject_GetAttrString, mbxmlutils, "_serializeFunction");
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const std::exception& ex) {
+  catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
@@ -93,12 +101,16 @@ PyInit::PyInit() {
 PyInit::~PyInit() {
   try {
     // clear all Python object before deinit
+    serializeFunction.reset();
+    matrix.reset();
+    symbols.reset();
+    sympy.reset();
     asarray.reset();
     functionValue.clear();
     mbxmlutils.reset();
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const std::exception& ex) {
+  catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
       <<"Continuing but undefined behaviour may occur."<<endl;
   }
@@ -116,7 +128,7 @@ PyInit::~PyInit() {
 // after the so is fully loaded does work. Hence, we define the MBXMLUtils_SharedLibrary_init function
 // here which is executed by SharedLibrary::load after the lib is loaded.
 // On Windows this is not required, but does not hurt.
-std::unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
+unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
 
 extern "C"
 int MBXMLUtils_SharedLibrary_init() {
@@ -134,6 +146,24 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
 }
 
 PyEval::~PyEval() = default;
+
+shared_ptr<void> PyEval::addIndependentVariableParam(const string &paramName, int dim) {
+  PyO indep;
+  if(dim==0) {
+    PyO args(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, args, 0, CALLPYB(PyUnicode_FromString, paramName));
+    indep=CALLPY(PyObject_CallObject, pyInit->symbols, args);
+  }
+  else {
+    PyO args(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, args, 0, CALLPYB(PyUnicode_FromString, paramName + "_:" + to_string(dim)));
+    PyO s(CALLPY(PyObject_CallObject, pyInit->symbols, args));
+    CALLPY(PyTuple_SetItem, args, 0, s.incRef());
+    indep=CALLPY(PyObject_CallObject, pyInit->matrix, args);
+  }
+  addParam(paramName, C(indep));
+  return make_shared<PyO>(indep);
+}
 
 void PyEval::addImport(const string &code, const DOMElement *e) {
   // python globals (fill with builtins)
@@ -194,8 +224,8 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
-  if(type==FunctionType && boost::get<Function>(&value))
-    return true;
+  if(boost::get<Function>(&value))
+    return type==FunctionType;
   PyO v(C(value));
   switch(type) {
     case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
@@ -351,14 +381,14 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
       CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globals, locals, &flags);
       addStaticDependencies(e);
     }
-    catch(const std::exception& ex) { // on failure -> report error
+    catch(const exception& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+str, e);
     }
     try {
       // get 'ret' variable from statement
       ret=CALLPYB(PyDict_GetItemString, locals, "ret");
     }
-    catch(const std::exception&) {
+    catch(const exception&) {
       // 'ret' variable not found or invalid expression
       throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+str, e);
     }
@@ -416,7 +446,7 @@ string PyEval::cast_string(const Value &value) const {
 }
 
 Eval::Function PyEval::cast_Function(const Value &value) const {
-  throw runtime_error("mfmf");
+  throw runtime_error("mfmf6");
 }
 
 Eval::Value PyEval::create_double(const double& v) const {
@@ -447,6 +477,35 @@ Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v
 
 Eval::Value PyEval::create_string(const string& v) const {
   return C(CALLPY(PyUnicode_FromString, v));
+}
+
+Eval::Value PyEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+  PyO arg(CALLPY(PyTuple_New, 1));
+  PyO item(CALLPY(PyList_New, v.size()));
+  for(size_t i=0; i<v.size(); ++i)
+    CALLPY(PyList_SetItem, item, i, C(v[i]).incRef());
+  CALLPY(PyTuple_SetItem, arg, 0, item.incRef());
+  return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
+}
+
+Eval::Value PyEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+  PyO arg(CALLPY(PyTuple_New, 1));
+  PyO rows(CALLPY(PyList_New, v.size()));
+  for(size_t r=0; r<v.size(); ++r) {
+    PyO row(CALLPY(PyList_New, v[r].size()));
+    for(size_t c=0; c<v[r].size(); ++c)
+      CALLPY(PyList_SetItem, row, c, C(v[r][c]).incRef());
+    CALLPY(PyList_SetItem, rows, r, row.incRef());
+  }
+  CALLPY(PyTuple_SetItem, arg, 0, rows.incRef());
+  return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
+}
+
+string PyEval::serializeFunction(const std::shared_ptr<void> &x) const {
+  PyO arg(CALLPY(PyTuple_New, 1));
+  CALLPY(PyTuple_SetItem, arg, 0, C(x).incRef());
+  PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction, arg);
+  return CALLPY(PyUnicode_AsUTF8, ser);
 }
 
 void PyEval::convertIndex(Value &v, bool evalTo1Base) {

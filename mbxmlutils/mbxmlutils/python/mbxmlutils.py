@@ -1,5 +1,7 @@
+from __future__ import print_function #mfmf
 import numpy
 import sympy
+import uuid
 
 
 
@@ -14,6 +16,68 @@ def _convert(x):
     return numpy.array([_convert(xi) for xi in x])
   else:
     return _convertScalar(x)
+
+def _serializeFunction(x):
+  if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix":
+    s="["
+    (rows, cols)=x.shape;
+    for r in range(0, rows):
+      for c in range(0, cols):
+        s+=_serializeFunction(x[r,c])
+        if c<cols-1:
+          s+=", "
+      if r<rows-1:
+        s+="; "
+    s+="]"
+    return s
+  else:
+    def serializeVertex(x):
+      if x.func.__name__=="Symbol":
+        uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
+        return " s "+str(uid)
+      if isinstance(x, sympy.Integer):
+        return " i "+str(x)
+      if isinstance(x, sympy.Float) or isinstance(x, sympy.Rational):
+        return " d "+str(x)
+      opStr=_serializeFunction.opMap.get(x.func.__name__)
+      if opStr==None:
+        raise RuntimeError("Unknown operator "+x.func.__name__+": "+str(x))
+      nrArgs=len(x.args)
+      if (x.func.__name__=="Add" or x.func.__name__=="Mul") and nrArgs>2:
+        return serializeVertex(x.func(x.args[0], x.func(*x.args[1:]), evaluate=False));
+      if opStr[1]!=nrArgs:
+        raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
+      s=" o "+opStr[0]+" "+str(nrArgs)
+      for op in x.args:
+        s+=serializeVertex(op)
+      return s
+    s="{"
+    s+=serializeVertex(x)
+    s+=" }"
+    return s
+_serializeFunction.indepMap={}
+_serializeFunction.opMap={
+  'Add':   ("+", 2),
+# '':      ("-", 2),
+  'Mul':   ("*", 2),
+# '':      ("/", 2),
+  'Pow':   ("pow", 2),
+  'log':   ("log", 1),
+  'sqrt':  ("sqrt", 1),
+# '':      ("neg", 1),
+  'sin':   ("sin", 1),
+  'cos':   ("cos", 1),
+  'tan':   ("tan", 1),
+  'sinh':  ("sinh", 1),
+  'cosh':  ("cosh", 1),
+  'tanh':  ("tanh", 1),
+  'asin':  ("asin", 1),
+  'acos':  ("acos", 1),
+  'atan':  ("atan", 1),
+  'asinh': ("asinh", 1),
+  'acosh': ("acosh", 1),
+  'atanh': ("atanh", 1),
+}
 
 
 
@@ -122,7 +186,11 @@ def tilde(x):
                         [ x[2],     0, -x[0]], \
                         [-x[1],  x[0],     0]])
 
-  elif (len(x)==3 and len(x[0])==3) or (hasattr(x, 'shape') and x.shape==(3,3)):
+  elif len(x)==3 and len(x[0])==3 and not hasattr(x, 'shape'):
+
+    return numpy.array([x[2][1], x[0][2], x[1][0]])
+
+  elif hasattr(x, 'shape') and x.shape==(3,3):
 
     return numpy.array([x[2,1], x[0,2], x[1,0]])
 

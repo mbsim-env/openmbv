@@ -17,13 +17,14 @@ class XMLFlatEval : public Eval {
     ~XMLFlatEval() override;
     static std::string getNameStatic() { return "xmlflat"; }
     std::string getName() const override { return getNameStatic(); }
+    std::shared_ptr<void> addIndependentVariableParam(const std::string &paramName, int dim) override;
     void addImport(const std::string &code, const xercesc::DOMElement *e) override;
     bool valueIsOfType(const Value &value, ValueType type) const override;
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
     void convertIndex(Value &v, bool evalTo1Based) override {}
   protected:
     Value callFunction(const std::string &name, const std::vector<Value>& args) const override;
-    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const override;
+    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
   private:
     double                           cast_double                (const Value &value) const override;
     std::vector<double>              cast_vector_double         (const Value &value) const override;
@@ -34,6 +35,10 @@ class XMLFlatEval : public Eval {
     Value          create_vector_double       (const std::vector<double>& v) const override;
     Value          create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
     Value          create_string              (const std::string& v) const override;
+    Value          create_vector_void         (const std::vector<std::shared_ptr<void>>& v) const override;
+    Value          create_vector_vector_void  (const std::vector<std::vector<std::shared_ptr<void>> >& v) const override;
+
+    std::string serializeFunction(const std::shared_ptr<void> &x) const override;
 };
 
 } // end namespace MBXMLUtils

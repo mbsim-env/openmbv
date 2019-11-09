@@ -78,7 +78,7 @@ namespace {
   template<int T>
   class Block {
     public:
-      Block(std::ostream &str_, std::streambuf *buf=nullptr) : str(str_) {
+      Block(ostream &str_, streambuf *buf=nullptr) : str(str_) {
         if(deactivateBlock) return;
         if(disableCount==0)
           orgcxxx=str.rdbuf(buf);
@@ -91,11 +91,11 @@ namespace {
           str.rdbuf(orgcxxx);
       }
     private:
-      std::ostream &str;
-      static std::streambuf *orgcxxx;
+      ostream &str;
+      static streambuf *orgcxxx;
       static int disableCount;
   };
-  template<int T> std::streambuf *Block<T>::orgcxxx;
+  template<int T> streambuf *Block<T>::orgcxxx;
   template<int T> int Block<T>::disableCount=0;
   #define BLOCK_STDOUT Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstdout_, __LINE__)(std::cout)
   #define BLOCK_STDERR Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstderr_, __LINE__)(std::cerr)
@@ -170,7 +170,7 @@ OctInit::OctInit() {
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const std::exception& ex) {
+  catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<ex.what()<<endl;
     throw;
   }
@@ -193,7 +193,7 @@ OctInit::~OctInit() {
     clean_up_and_exit(0);
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const std::exception& ex) {
+  catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<ex.what()<<endl
       <<"Continuing but undefined behaviour may occur."<<endl;
   }
@@ -220,7 +220,7 @@ string OctEval::cast_string(const Eval::Value &value) const {
 }
 
 Eval::Function OctEval::cast_Function(const Eval::Value &value) const {
-  throw runtime_error("mfmf");
+  throw runtime_error("mfmf3");
 }
 
 double OctEval::cast_double(const Eval::Value &value) const {
@@ -267,14 +267,14 @@ Eval::Value OctEval::create_double(const double& v) const {
   return make_shared<octave_value>(v);
 }
 
-Eval::Value OctEval::create_vector_double(const std::vector<double>& v) const {
+Eval::Value OctEval::create_vector_double(const vector<double>& v) const {
   Matrix m(v.size(), 1);
   for(int i=0; i<v.size(); ++i)
     m(i)=v[i];
   return make_shared<octave_value>(m);
 }
 
-Eval::Value OctEval::create_vector_vector_double(const std::vector<std::vector<double> >& v) const {
+Eval::Value OctEval::create_vector_vector_double(const vector<vector<double> >& v) const {
   Matrix m(v.size(), v[0].size());
   for(int r=0; r<v.size(); ++r)
     for(int c=0; c<v[r].size(); ++c)
@@ -286,11 +286,27 @@ Eval::Value OctEval::create_string(const string& v) const {
   return make_shared<octave_value>(v);
 }
 
+Eval::Value OctEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+  throw runtime_error("mfmf124");
+}
+
+Eval::Value OctEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+  throw runtime_error("mfmf125");
+}
+
+string OctEval::serializeFunction(const std::shared_ptr<void> &x) const {
+  throw runtime_error("mfmf129");
+}
+
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   currentImport=make_shared<string>(octInit.initialPath);
 };
 
 OctEval::~OctEval() = default;
+
+shared_ptr<void> OctEval::addIndependentVariableParam(const string &paramName, int dim) {
+  return shared_ptr<void>();//mfmf
+}
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
   try {
@@ -382,7 +398,7 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     eval_string(str, true, dummy, 0); // eval as statement list
     addStaticDependencies(e);
   }
-  catch(const std::exception &ex) { // should not happend
+  catch(const exception &ex) { // should not happend
     error_state=0;
     throw DOMEvalException(string(ex.what())+": "+err.str(), e);
   }

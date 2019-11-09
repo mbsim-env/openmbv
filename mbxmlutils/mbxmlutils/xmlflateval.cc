@@ -19,13 +19,17 @@ namespace MBXMLUtils {
 MBXMLUTILS_EVAL_REGISTER(XMLFlatEval)
 
 // ctor
-XMLFlatEval::XMLFlatEval(std::vector<path> *dependencies_) : Eval(dependencies_) {
+XMLFlatEval::XMLFlatEval(vector<path> *dependencies_) : Eval(dependencies_) {
 }
 
 // dtor
 XMLFlatEval::~XMLFlatEval() = default;
 
 // virtual functions
+
+shared_ptr<void> XMLFlatEval::addIndependentVariableParam(const string &paramName, int dim) {
+  return shared_ptr<void>();
+}
 
 void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
   throw runtime_error("addImport not possible.");
@@ -72,7 +76,7 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
   boost::algorithm::replace_all(valueStr, ";", " ; ");
   boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
-  str.exceptions(std::ios::failbit | std::ios::badbit);
+  str.exceptions(ios::failbit | ios::badbit);
   string s;
   str>>s; // first token [
   vector<double> v;
@@ -87,9 +91,9 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
   }
 
   // check end of stream
-  str>>std::ws;
+  str>>ws;
   if(!str.eof())
-    throw std::runtime_error("Input not fully read.");
+    throw runtime_error("Input not fully read.");
 
   return v;
 }
@@ -107,7 +111,7 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
   boost::algorithm::replace_all(valueStr, ";", " ; ");
   boost::algorithm::replace_all(valueStr, "\n", " ; ");
   istringstream str(valueStr);
-  str.exceptions(std::ios::failbit | std::ios::badbit);
+  str.exceptions(ios::failbit | ios::badbit);
   string s;
   str>>s; // first token
   vector<vector<double> > m;
@@ -125,9 +129,9 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
   }
 
   // check end of stream
-  str>>std::ws;
+  str>>ws;
   if(!str.eof())
-    throw std::runtime_error("Input not fully read.");
+    throw runtime_error("Input not fully read.");
 
   return m;
 }
@@ -141,7 +145,7 @@ string XMLFlatEval::cast_string(const Value &value) const {
 }
 
 Eval::Function XMLFlatEval::cast_Function(const Value &value) const {
-  throw runtime_error("mfmf");
+  throw runtime_error("mfmf7");
 }
 
 Eval::Value XMLFlatEval::create_double(const double& v) const {
@@ -173,6 +177,18 @@ Eval::Value XMLFlatEval::create_vector_vector_double(const vector<vector<double>
 
 Eval::Value XMLFlatEval::create_string(const string& v) const {
   return make_shared<string>("'"+v+"'");
+}
+
+Eval::Value XMLFlatEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+  throw runtime_error("create function not possible.");
+}
+
+Eval::Value XMLFlatEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+  throw runtime_error("create function not possible.");
+}
+
+string XMLFlatEval::serializeFunction(const std::shared_ptr<void> &x) const {
+  throw runtime_error("mfmf130");
 }
 
 } // end namespace MBXMLUtils

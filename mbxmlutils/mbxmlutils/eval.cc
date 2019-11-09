@@ -69,7 +69,7 @@ bool tryDouble2Int(double d, int &i) {
   return true;
 }
 
-NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(std::move(oe_)), newLevel(newLevel_) {
+NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(move(oe_)), newLevel(newLevel_) {
   if(newLevel)
     oe->pushContext();
 }
@@ -122,7 +122,7 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
   try {
     SharedLibrary::load(canonical(libName).string(), loadWithGlobalFlag);
   }
-  catch(const std::exception &ex) {
+  catch(const exception &ex) {
     throw runtime_error("Unable to load the evaluator named '"+evalName+"'.\n"
                         "System error message: "+ex.what());
   }
@@ -208,6 +208,16 @@ Eval::Value Eval::create<string>(const string& v) const {
   return create_string(v);
 }
 
+template<>
+Eval::Value Eval::create<vector<shared_ptr<void>>>(const vector<shared_ptr<void>>& v) const {
+  return create_vector_void(v);
+}
+
+template<>
+Eval::Value Eval::create<vector<vector<shared_ptr<void>>>>(const vector<vector<shared_ptr<void>> >& v) const {
+  return create_vector_vector_void(v);
+}
+
 void Eval::addParam(const string &paramName, const Value& value) {
   currentParam[paramName]=value;
 }
@@ -244,40 +254,34 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(shared_from_this(), function);
-  vector<string> inputs;
-//mfmf  if(function) {
-//mfmf    addParam("casadi", casadiValue);
-//mfmf    // loop over all attributes and search for arg1name, arg2name attributes
-//mfmf    DOMNamedNodeMap *attr=e->getAttributes();
-//mfmf    for(int i=0; i<attr->getLength(); i++) {
-//mfmf      auto *a=static_cast<DOMAttr*>(attr->item(i));
-//mfmf      // skip xml* attributes
-//mfmf      if((X()%a->getName()).substr(0, 3)=="xml")
-//mfmf        continue;
-//mfmf      // skip all attributes not of type symbolicFunctionArgNameType
-//mfmf      if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
-//mfmf        continue;
-//mfmf      string base=X()%a->getName();
-//mfmf      if(!E(e)->hasAttribute(base+"Dim"))
-//mfmf        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
-//mfmf      if(!E(e)->hasAttribute(base+"Nr"))
-//mfmf        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-//mfmf      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-//mfmf      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
-//mfmf
-//mfmf      Value casadiSX=createSwig<SX*>();
-//mfmf      SX *arg;
-//mfmf      try { arg=cast<SX*>(casadiSX); } RETHROW_AS_DOMEVALEXCEPTION(e)
-//mfmf      *arg=SX::sym(X()%a->getValue(), dim, 1);
-//mfmf      addParam(X()%a->getValue(), casadiSX);
-//mfmf      inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor (isNull()==true)
-//mfmf      inputs[nr-1]=*arg;
-//mfmf    }
-//mfmf    // check if one argument was not set. If so error
-//mfmf    for(auto & input : inputs)
-//mfmf      if(input.size1()==0 || input.size2()==0) // a empty object is a error (see above), since not all arg?name args were defined
-//mfmf        throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
-//mfmf  }
+  vector<shared_ptr<void>> inputs;
+  if(function) {
+    // loop over all attributes and search for arg1name, arg2name attributes
+    DOMNamedNodeMap *attr=e->getAttributes();
+    for(int i=0; i<attr->getLength(); i++) {
+      auto *a=static_cast<DOMAttr*>(attr->item(i));
+      // skip xml* attributes
+      if((X()%a->getName()).substr(0, 3)=="xml")
+        continue;
+      // skip all attributes not of type symbolicFunctionArgNameType
+      if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
+        continue;
+      string base=X()%a->getName();
+      if(!E(e)->hasAttribute(base+"Dim"))
+        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
+      if(!E(e)->hasAttribute(base+"Nr"))
+        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
+      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
+      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+
+      inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor
+      inputs[nr-1]=addIndependentVariableParam(X()%a->getValue(), dim);
+    }
+    // check if one argument was not set. If so error
+    for(auto & input : inputs)
+      if(!input) // a empty object is a error (see above), since not all arg?name args were defined
+        throw DOMEvalException("All argXName attributes up to the largest argument number must be specified.", e);
+  }
   
   // a XML vector
   ec=E(e)->getFirstElementChildNamed(PV%"xmlVector");
@@ -288,27 +292,17 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     vector<double> m(i);
-    vector<string> M(i);
+    vector<shared_ptr<void>> M(i);
     i=0;
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
       if(!function)
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
-      else {
-        M[i]=cast<Function>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)).second;
-        if(M[i][0]!='{')
-          throw DOMEvalException("Scalar argument required.", ele);
-      }
+      else
+        M[i]=boost::get<shared_ptr<void>>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
     if(!function)
       return handleUnit(e, create(m));
-    else {
-      string func("[");
-      for(size_t i=0; i<M.size(); ++i) {
-        func+=M[i];
-        if(i<M.size()-1) func+="; ";
-      }
-      func+="]";
-      return Function(inputs, func);
-    }
+    else
+      return Function(inputs, boost::get<shared_ptr<void>>(create(M)));
   }
   
   // a XML matrix
@@ -322,33 +316,20 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     vector<vector<double> > m(i, vector<double>(j));
-    vector<vector<string> > M(i, vector<string>(j));
+    vector<vector<shared_ptr<void>> > M(i, vector<shared_ptr<void>>(j));
     i=0;
     for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++) {
       j=0;
       for(const DOMElement* col=row->getFirstElementChild(); col!=nullptr; col=col->getNextElementSibling(), j++)
         if(!function)
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
-        else {
-          M[i][j]=cast<Function>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)).second;
-          if(M[i][j][0]!='{')
-            throw DOMEvalException("Scalar argument required.", col);
-        }
+        else
+          M[i][j]=boost::get<shared_ptr<void>>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
     }
     if(!function)
       return handleUnit(e, create(m));
-    else {
-      string func("[");
-      for(size_t r=0; r<M.size(); ++r) {
-        for(size_t c=0; c<M[r].size(); ++c) {
-          func+=M[r][c];
-          if(c<M[r].size()-1) func+=", ";
-        }
-        if(r<M.size()-1) func+="; ";
-      }
-      func+="]";
-      return Function(inputs, func);
-    }
+    else
+      return Function(inputs, boost::get<shared_ptr<void>>(create(M)));
   }
   
   // a element with a single text child (including unit conversion)
@@ -393,7 +374,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return ret;
     else
-      return Function(inputs, "mfmf");
+      return Function(inputs, boost::get<shared_ptr<void>>(ret));
   }
   
   // rotation about x,y,z
@@ -674,7 +655,14 @@ CodeString Eval::cast_CodeString(const Value &value) const {
     return ret.str();
   }
   else if(valueIsOfType(value, FunctionType)) {
-    return CodeString("( 2 mfmf mfmf mfmf )");
+    auto func=cast<Function>(value);
+    string ret("{ "+to_string(func.first.size()));
+    for(auto &indep : func.first) {
+      indep.get();
+      ret+=" "+serializeFunction(indep);
+    }
+    ret+=" "+serializeFunction(func.second)+" }";
+    return ret;
   }
   else
     throw runtime_error("Cannot cast this value to a evaluator code string.");

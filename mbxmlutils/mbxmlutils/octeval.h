@@ -34,6 +34,8 @@ class OctEval : public Eval {
     static std::string getNameStatic() { return "octave"; }
     std::string getName() const override { return getNameStatic(); }
 
+    std::shared_ptr<void> addIndependentVariableParam(const std::string &paramName, int dim) override;
+
     //! Add octave search path to the current evaluator context.
     //! \p code must evaluate to a string representing a directory/path.
     //! A relative path is expanded to an absolute path using the path of e as current directory.
@@ -51,7 +53,7 @@ class OctEval : public Eval {
   protected:
 
     //! evaluate str fully and return result as an octave variable
-    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr) const override;
+    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
@@ -68,6 +70,10 @@ class OctEval : public Eval {
     Value create_vector_double       (const std::vector<double>& v) const override;
     Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
     Value create_string              (const std::string& v) const override;
+    Value create_vector_void         (const std::vector<std::shared_ptr<void>>& v) const override;
+    Value create_vector_vector_void  (const std::vector<std::vector<std::shared_ptr<void>> >& v) const override;
+
+    std::string serializeFunction(const std::shared_ptr<void> &x) const override;
 };
 
 } // end namespace MBXMLUtils

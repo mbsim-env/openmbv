@@ -410,6 +410,29 @@
         </xs:complexContent>
       </xs:complexType>
 
+      <!-- the MBXMLUtils XML representation of a Function. -->
+      <xs:group name="symbolicFunctionXMLElement">
+        <xs:annotation>
+          <xs:documentation>
+            A symbolic function definition which is evaluated at runtime using dynamic input parameters
+            provided by the runtime. The representation of the symbolic function must either be given by
+            the MBXMLUtils notation by an expression of the used evaluator.
+            Using a expression you have full access to other scalar,
+            vector or matrix parameters. For each input parameter an attribute named 'xyz' of type 'symbolicFunctionArgNameType'
+            must be defined which set the name of this input parameter for the access in the expression.
+            For each vector input paramter moreover an attribure named 'xyzDim' must be defined
+            which defines the vector dimension of this input.
+            (The XML schema must also define a fixed (hidden) attribute named 'xyzNr' which is set the integer
+            number corresponding to the argument number of the function)
+          </xs:documentation>
+        </xs:annotation>
+        <xs:choice>
+          <xs:group ref="xmlScalarGroup"/>
+          <xs:group ref="xmlVectorGroup"/>
+          <xs:group ref="xmlMatrixGroup"/>
+        </xs:choice>
+      </xs:group>
+
     </xs:schema>
 
   </xsl:template>
