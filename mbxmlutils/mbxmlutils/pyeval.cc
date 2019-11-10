@@ -24,7 +24,7 @@ using namespace PythonCpp;
 namespace {
 
 inline PyO C(const MBXMLUtils::Eval::Value &value) {
-  return *static_pointer_cast<PyO>(boost::get<shared_ptr<void> >(value));
+  return *static_pointer_cast<PyO>(value);
 }
 
 inline MBXMLUtils::Eval::Value C(const PyO &value) {
@@ -147,7 +147,7 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
 
 PyEval::~PyEval() = default;
 
-shared_ptr<void> PyEval::addIndependentVariableParam(const string &paramName, int dim) {
+Eval::Value PyEval::addFunctionIndepParam(const string &paramName, int dim) {
   PyO indep;
   if(dim==0) {
     PyO args(CALLPY(PyTuple_New, 1));
@@ -224,15 +224,13 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
-  if(boost::get<Function>(&value))
-    return type==FunctionType;
   PyO v(C(value));
   switch(type) {
     case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
     case VectorType: return ::is_vector_double(value);
     case MatrixType: return ::is_vector_vector_double(value);
     case StringType: return CALLPY(PyUnicode_Check, v);
-    case FunctionType: return false;
+    case FunctionType: return PyTuple_Check(v.get());
   }
   throw runtime_error("Internal error: Unknwon ValueType.");
 }
@@ -445,10 +443,6 @@ string PyEval::cast_string(const Value &value) const {
   return CALLPY(PyUnicode_AsUTF8, C(value));
 }
 
-Eval::Function PyEval::cast_Function(const Value &value) const {
-  throw runtime_error("mfmf6");
-}
-
 Eval::Value PyEval::create_double(const double& v) const {
   int i;
   if(tryDouble2Int(v, i))
@@ -479,7 +473,7 @@ Eval::Value PyEval::create_string(const string& v) const {
   return C(CALLPY(PyUnicode_FromString, v));
 }
 
-Eval::Value PyEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+Eval::Value PyEval::create_vector_FunctionDep(const vector<Value>& v) const {
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO item(CALLPY(PyList_New, v.size()));
   for(size_t i=0; i<v.size(); ++i)
@@ -488,7 +482,7 @@ Eval::Value PyEval::create_vector_void(const vector<shared_ptr<void>>& v) const 
   return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
 }
 
-Eval::Value PyEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+Eval::Value PyEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO rows(CALLPY(PyList_New, v.size()));
   for(size_t r=0; r<v.size(); ++r) {
@@ -501,11 +495,31 @@ Eval::Value PyEval::create_vector_vector_void(const vector<vector<shared_ptr<voi
   return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
 }
 
-string PyEval::serializeFunction(const std::shared_ptr<void> &x) const {
-  PyO arg(CALLPY(PyTuple_New, 1));
-  CALLPY(PyTuple_SetItem, arg, 0, C(x).incRef());
-  PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction, arg);
-  return CALLPY(PyUnicode_AsUTF8, ser);
+Eval::Value PyEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
+  auto t=CALLPY(PyTuple_New, indeps.size()+1);
+  for(size_t i=0; i<indeps.size(); ++i)
+    CALLPY(PyTuple_SetItem, t, i, C(indeps[i]).incRef());
+  CALLPY(PyTuple_SetItem, t, indeps.size(), C(dep).incRef());
+  return C(t);
+}
+
+string PyEval::serializeFunction(const Value &x) const {
+  auto serializeFunctionPy=[](PyO& o) {
+    PyO arg(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, arg, 0, o.incRef());
+    PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction, arg);
+    return CALLPY(PyUnicode_AsUTF8, ser);
+  };
+
+  auto nrIndeps=CALLPY(PyTuple_Size, C(x))-1;
+  string ret("{ "+to_string(nrIndeps));
+  for(size_t i=0; i<nrIndeps; ++i) {
+    auto indep=CALLPY(PyTuple_GetItem, C(x), i);
+    ret+=" "+serializeFunctionPy(indep);
+  }
+  auto dep=CALLPY(PyTuple_GetItem, C(x), nrIndeps);
+  ret+=" "+serializeFunctionPy(dep)+" }";
+  return ret;
 }
 
 void PyEval::convertIndex(Value &v, bool evalTo1Base) {

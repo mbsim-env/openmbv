@@ -1,4 +1,3 @@
-from __future__ import print_function #mfmf
 import numpy
 import sympy
 import uuid

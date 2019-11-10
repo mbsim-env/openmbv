@@ -3,7 +3,6 @@
 
 #include <fmatvec/atom.h>
 #include <boost/filesystem.hpp>
-#include <boost/variant.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <unordered_map>
@@ -86,12 +85,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
       FunctionType
     };
 
-    //! Representation of a function: first is a vector of independent variables.
-    //! second is the function (depending on these independent variables).
-    typedef std::pair<std::vector<std::shared_ptr<void>>, std::shared_ptr<void>> Function;
-
     //! Typedef for a shared value
-    typedef boost::variant<std::shared_ptr<void>, Function> Value;
+    typedef std::shared_ptr<void> Value;
 
   protected:
     //! Constructor.
@@ -123,8 +118,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! The parameters are added from top to bottom as they appear in the XML element e.
     //! Parameters may depend on parameters already added.
     void addParamSet(const xercesc::DOMElement *e);
-    //! Add a independent variable named paramName and return Value.
-    virtual std::shared_ptr<void> addIndependentVariableParam(const std::string &paramName, int dim) = 0;
 
     //! Import evaluator statements. This routine highly depends on the evaluator.
     //! See the spezialized evaluators documentation for details.
@@ -204,14 +197,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      *     <!--string-->     <td>returns e.g. <code>'foo'</code></td>
      *     <!--Function-->   <td>returns e.g. <code>( 2 [...] {...} [...])</code></td>
      *   </tr>
-     *   <tr>
-     *     <!--CAST TO-->    <th><tt>Function</tt></th>
-     *     <!--scalar-->     <td></td>
-     *     <!--vector-->     <td></td>
-     *     <!--matrix-->     <td></td>
-     *     <!--string-->     <td></td>
-     *     <!--Function-->   <td>X</td>
-     *   </tr>
      * </table>
      */
     template<typename T>
@@ -230,7 +215,13 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
     Value stringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr, bool fullEval=true) const;
 
-    //! create a value of the given type
+    //! create a value of the given type. T can be one of:
+    //! double: create a floating point value
+    //! vector<double>: create a vector of floating point values
+    //! vector<vector<double>>: create a matrix of floating point values
+    //! string: create a string value
+    //! vector<Value>: create a vector of dependent functions
+    //! vector<vector<Value>: create a matrix of dependent functions
     template<class T>
     Value create(const T& v) const;
 
@@ -246,6 +237,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     static void setValue(xercesc::DOMElement *e, const Value &v);
 
   protected:
+    //! Add a independent variable named paramName and return Value.
+    virtual Value addFunctionIndepParam(const std::string &paramName, int dim) = 0;
+
+    //! create a Function with n independents and a dependent function (scalar, vector or matrix)
+    virtual Value createFunction(const std::vector<Value> &indeps, const Value &dep) const = 0;
+
     //! Push the current context to a internal stack.
     void pushContext();
 
@@ -260,9 +257,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     std::stack<std::unordered_map<std::string, Value> > paramStack;
 
     // current imports
-    std::shared_ptr<void> currentImport;
+    Value currentImport;
     // stack of imports
-    std::stack<std::shared_ptr<void> > importStack;
+    std::stack<Value> importStack;
 
     /*! Return the value of a call to name using the arguments args.
      * The following functions must be implemented by the evaluator:
@@ -298,20 +295,19 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual std::vector<double>               cast_vector_double       (const Value &value) const=0;
     virtual std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const=0;
     virtual std::string                       cast_string              (const Value &value) const=0;
-    virtual Function                          cast_Function            (const Value &value) const=0;
     // spezialization of cast(const Value &value)
     CodeString          cast_CodeString  (const Value &value) const;
     int                 cast_int         (const Value &value) const;
 
     // virtual spezialization of create(...)
-    virtual Value create_double              (const double& v) const=0;
-    virtual Value create_vector_double       (const std::vector<double>& v) const=0;
-    virtual Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const=0;
-    virtual Value create_string              (const std::string& v) const=0;
-    virtual Value create_vector_void         (const std::vector<std::shared_ptr<void>>& v) const=0;
-    virtual Value create_vector_vector_void  (const std::vector<std::vector<std::shared_ptr<void>> >& v) const=0;
+    virtual Value create_double                   (const double& v) const=0;
+    virtual Value create_vector_double            (const std::vector<double>& v) const=0;
+    virtual Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const=0;
+    virtual Value create_string                   (const std::string& v) const=0;
+    virtual Value create_vector_FunctionDep       (const std::vector<Value>& v) const=0;
+    virtual Value create_vector_vector_FunctionDep(const std::vector<std::vector<Value> >& v) const=0;
 
-    virtual std::string serializeFunction(const std::shared_ptr<void> &x) const = 0;
+    virtual std::string serializeFunction(const Value &x) const = 0;
 
     Value handleUnit(const xercesc::DOMElement *e, const Value &ret);
 
@@ -328,15 +324,14 @@ template<> double Eval::cast<double>(const Value &value) const;
 template<> int Eval::cast<int>(const Value &value) const;
 template<> std::vector<double> Eval::cast<std::vector<double> >(const Value &value) const;
 template<> std::vector<std::vector<double> > Eval::cast<std::vector<std::vector<double> > >(const Value &value) const;
-template<> Eval::Function Eval::cast<Eval::Function>(const Value &value) const;
 
 // spezializations for create
-template<> Eval::Value Eval::create<double>                                         (const double& v) const;
-template<> Eval::Value Eval::create<std::vector<double> >                           (const std::vector<double>& v) const;
-template<> Eval::Value Eval::create<std::vector<std::vector<double> > >             (const std::vector<std::vector<double> >& v) const;
-template<> Eval::Value Eval::create<std::string>                                    (const std::string& v) const;
-template<> Eval::Value Eval::create<std::vector<std::shared_ptr<void>>>             (const std::vector<std::shared_ptr<void>>& v) const;
-template<> Eval::Value Eval::create<std::vector<std::vector<std::shared_ptr<void>>>>(const std::vector<std::vector<std::shared_ptr<void>> >& v) const;
+template<> Eval::Value Eval::create<double>                               (const double& v) const;
+template<> Eval::Value Eval::create<std::vector<double> >                 (const std::vector<double>& v) const;
+template<> Eval::Value Eval::create<std::vector<std::vector<double> > >   (const std::vector<std::vector<double> >& v) const;
+template<> Eval::Value Eval::create<std::string>                          (const std::string& v) const;
+template<> Eval::Value Eval::create<std::vector<Eval::Value>>             (const std::vector<Value>& v) const;
+template<> Eval::Value Eval::create<std::vector<std::vector<Eval::Value>>>(const std::vector<std::vector<Value> >& v) const;
 
 } // end namespace MBXMLUtils
 

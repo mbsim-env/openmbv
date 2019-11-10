@@ -34,8 +34,6 @@ class OctEval : public Eval {
     static std::string getNameStatic() { return "octave"; }
     std::string getName() const override { return getNameStatic(); }
 
-    std::shared_ptr<void> addIndependentVariableParam(const std::string &paramName, int dim) override;
-
     //! Add octave search path to the current evaluator context.
     //! \p code must evaluate to a string representing a directory/path.
     //! A relative path is expanded to an absolute path using the path of e as current directory.
@@ -52,6 +50,8 @@ class OctEval : public Eval {
 
   protected:
 
+    Value addFunctionIndepParam(const std::string &paramName, int dim) override;
+
     //! evaluate str fully and return result as an octave variable
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
 
@@ -64,16 +64,16 @@ class OctEval : public Eval {
     std::vector<double>               cast_vector_double       (const Value &value) const override;
     std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const override;
     std::string                       cast_string              (const Value &value) const override;
-    Function                          cast_Function            (const Value &value) const override;
 
-    Value create_double              (const double& v) const override;
-    Value create_vector_double       (const std::vector<double>& v) const override;
-    Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
-    Value create_string              (const std::string& v) const override;
-    Value create_vector_void         (const std::vector<std::shared_ptr<void>>& v) const override;
-    Value create_vector_vector_void  (const std::vector<std::vector<std::shared_ptr<void>> >& v) const override;
+    Value create_double                   (const double& v) const override;
+    Value create_vector_double            (const std::vector<double>& v) const override;
+    Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const override;
+    Value create_string                   (const std::string& v) const override;
+    Value create_vector_FunctionDep       (const std::vector<Value>& v) const override;
+    Value create_vector_vector_FunctionDep(const std::vector<std::vector<Value> >& v) const override;
+    Value createFunction(const std::vector<Value> &indeps, const Value &dep) const override;
 
-    std::string serializeFunction(const std::shared_ptr<void> &x) const override;
+    std::string serializeFunction(const Value &x) const override;
 };
 
 } // end namespace MBXMLUtils

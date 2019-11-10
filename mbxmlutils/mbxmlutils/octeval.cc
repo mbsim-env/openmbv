@@ -206,7 +206,7 @@ OctInit::~OctInit() {
 OctInit octInit; // init octave on library load and deinit on library unload = program end
 
 inline shared_ptr<octave_value> C(const Eval::Value &value) {
-  return static_pointer_cast<octave_value>(boost::get<shared_ptr<void> >(value));
+  return static_pointer_cast<octave_value>(value);
 }
 
 inline Eval::Value C(const octave_value &value) {
@@ -217,10 +217,6 @@ string OctEval::cast_string(const Eval::Value &value) const {
   if(valueIsOfType(value, StringType))
     return C(value)->string_value();
   throw runtime_error("Cannot cast this value to string.");
-}
-
-Eval::Function OctEval::cast_Function(const Eval::Value &value) const {
-  throw runtime_error("mfmf3");
 }
 
 double OctEval::cast_double(const Eval::Value &value) const {
@@ -286,15 +282,19 @@ Eval::Value OctEval::create_string(const string& v) const {
   return make_shared<octave_value>(v);
 }
 
-Eval::Value OctEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+Eval::Value OctEval::create_vector_FunctionDep(const vector<Value>& v) const {
   throw runtime_error("mfmf124");
 }
 
-Eval::Value OctEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+Eval::Value OctEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
   throw runtime_error("mfmf125");
 }
 
-string OctEval::serializeFunction(const std::shared_ptr<void> &x) const {
+Eval::Value OctEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
+  throw runtime_error("create function not possible.");
+}
+
+string OctEval::serializeFunction(const Value &x) const {
   throw runtime_error("mfmf129");
 }
 
@@ -304,8 +304,8 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
 
 OctEval::~OctEval() = default;
 
-shared_ptr<void> OctEval::addIndependentVariableParam(const string &paramName, int dim) {
-  return shared_ptr<void>();//mfmf
+Eval::Value OctEval::addFunctionIndepParam(const string &paramName, int dim) {
+  return Value();//mfmf
 }
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
@@ -433,8 +433,6 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
 }
 
 bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
-  if(type==FunctionType && boost::get<Eval::Function>(&value))
-    return true;
   shared_ptr<octave_value> v=C(value);
   switch(type) {
     case ScalarType:
@@ -460,7 +458,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
       return false;
 
     case FunctionType:
-      return false;
+      return false;//mfmf
   }
   return false;
 }

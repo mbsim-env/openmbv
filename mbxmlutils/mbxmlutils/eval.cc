@@ -171,11 +171,6 @@ vector<vector<double> > Eval::cast<vector<vector<double> > >(const Value &value)
   return cast_vector_vector_double(value);
 }
 
-template<>
-Eval::Function Eval::cast<Eval::Function>(const Value &value) const {
-  return boost::get<Eval::Function>(value);
-}
-
 void Eval::pushContext() {
   paramStack.push(currentParam);
   importStack.push(currentImport);
@@ -209,13 +204,13 @@ Eval::Value Eval::create<string>(const string& v) const {
 }
 
 template<>
-Eval::Value Eval::create<vector<shared_ptr<void>>>(const vector<shared_ptr<void>>& v) const {
-  return create_vector_void(v);
+Eval::Value Eval::create<vector<Eval::Value>>(const vector<Value>& v) const {
+  return create_vector_FunctionDep(v);
 }
 
 template<>
-Eval::Value Eval::create<vector<vector<shared_ptr<void>>>>(const vector<vector<shared_ptr<void>> >& v) const {
-  return create_vector_vector_void(v);
+Eval::Value Eval::create<vector<vector<Eval::Value>>>(const vector<vector<Value> >& v) const {
+  return create_vector_vector_FunctionDep(v);
 }
 
 void Eval::addParam(const string &paramName, const Value& value) {
@@ -254,7 +249,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
   // for functions add the function arguments as parameters
   NewParamLevel newParamLevel(shared_from_this(), function);
-  vector<shared_ptr<void>> inputs;
+  vector<Value> inputs;
   if(function) {
     // loop over all attributes and search for arg1name, arg2name attributes
     DOMNamedNodeMap *attr=e->getAttributes();
@@ -275,7 +270,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor
-      inputs[nr-1]=addIndependentVariableParam(X()%a->getValue(), dim);
+      inputs[nr-1]=addFunctionIndepParam(X()%a->getValue(), dim);
     }
     // check if one argument was not set. If so error
     for(auto & input : inputs)
@@ -292,17 +287,17 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++);
     // get/eval values
     vector<double> m(i);
-    vector<shared_ptr<void>> M(i);
+    vector<Value> M(i);
     i=0;
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
       if(!function)
         m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
       else
-        M[i]=boost::get<shared_ptr<void>>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
+        M[i]=stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele);
     if(!function)
       return handleUnit(e, create(m));
     else
-      return Function(inputs, boost::get<shared_ptr<void>>(create(M)));
+      return createFunction(inputs, create(M));
   }
   
   // a XML matrix
@@ -316,7 +311,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     for(const DOMElement* ele=ec->getFirstElementChild()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), j++);
     // get/eval values
     vector<vector<double> > m(i, vector<double>(j));
-    vector<vector<shared_ptr<void>> > M(i, vector<shared_ptr<void>>(j));
+    vector<vector<Value> > M(i, vector<Value>(j));
     i=0;
     for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++) {
       j=0;
@@ -324,12 +319,12 @@ Eval::Value Eval::eval(const DOMElement *e) {
         if(!function)
           m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
         else
-          M[i][j]=boost::get<shared_ptr<void>>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
+          M[i][j]=stringToValue(X()%E(col)->getFirstTextChild()->getData(), col);
     }
     if(!function)
       return handleUnit(e, create(m));
     else
-      return Function(inputs, boost::get<shared_ptr<void>>(create(M)));
+      return createFunction(inputs, create(M));
   }
   
   // a element with a single text child (including unit conversion)
@@ -374,7 +369,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return ret;
     else
-      return Function(inputs, boost::get<shared_ptr<void>>(ret));
+      return createFunction(inputs, ret);
   }
   
   // rotation about x,y,z
@@ -655,14 +650,7 @@ CodeString Eval::cast_CodeString(const Value &value) const {
     return ret.str();
   }
   else if(valueIsOfType(value, FunctionType)) {
-    auto func=cast<Function>(value);
-    string ret("{ "+to_string(func.first.size()));
-    for(auto &indep : func.first) {
-      indep.get();
-      ret+=" "+serializeFunction(indep);
-    }
-    ret+=" "+serializeFunction(func.second)+" }";
-    return ret;
+    return serializeFunction(value);
   }
   else
     throw runtime_error("Cannot cast this value to a evaluator code string.");

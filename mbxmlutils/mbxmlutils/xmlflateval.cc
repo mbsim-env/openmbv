@@ -27,8 +27,8 @@ XMLFlatEval::~XMLFlatEval() = default;
 
 // virtual functions
 
-shared_ptr<void> XMLFlatEval::addIndependentVariableParam(const string &paramName, int dim) {
-  return shared_ptr<void>();
+Eval::Value XMLFlatEval::addFunctionIndepParam(const string &paramName, int dim) {
+  return Value();
 }
 
 void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
@@ -60,12 +60,12 @@ Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *
 }
 
 double XMLFlatEval::cast_double(const Value &value) const {
-  auto *v=static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
+  auto *v=static_cast<string*>(value.get());
   return boost::lexical_cast<double>(boost::algorithm::trim_copy(*v));
 }
 
 vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
-  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
+  string valueStr=*static_cast<string*>(value.get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [ ] if not already done
   if(valueStr[valueStr.size()-1]!=']')
@@ -99,7 +99,7 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
 }
 
 vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &value) const {
-  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
+  string valueStr=*static_cast<string*>(value.get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='[') valueStr="["+valueStr+"]"; // surround with [] if not already done
   if(valueStr[valueStr.size()-1]!=']')
@@ -137,15 +137,11 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
 }
 
 string XMLFlatEval::cast_string(const Value &value) const {
-  string valueStr=*static_cast<string*>(boost::get<shared_ptr<void> >(value).get());
+  string valueStr=*static_cast<string*>(value.get());
   boost::algorithm::trim(valueStr);
   if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
-}
-
-Eval::Function XMLFlatEval::cast_Function(const Value &value) const {
-  throw runtime_error("mfmf7");
 }
 
 Eval::Value XMLFlatEval::create_double(const double& v) const {
@@ -179,15 +175,19 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
   return make_shared<string>("'"+v+"'");
 }
 
-Eval::Value XMLFlatEval::create_vector_void(const vector<shared_ptr<void>>& v) const {
+Eval::Value XMLFlatEval::create_vector_FunctionDep(const vector<Value>& v) const {
   throw runtime_error("create function not possible.");
 }
 
-Eval::Value XMLFlatEval::create_vector_vector_void(const vector<vector<shared_ptr<void>> >& v) const {
+Eval::Value XMLFlatEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
   throw runtime_error("create function not possible.");
 }
 
-string XMLFlatEval::serializeFunction(const std::shared_ptr<void> &x) const {
+Eval::Value XMLFlatEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
+  throw runtime_error("create function not possible.");
+}
+
+string XMLFlatEval::serializeFunction(const Value &x) const {
   throw runtime_error("mfmf130");
 }
 
