@@ -203,16 +203,6 @@ Eval::Value Eval::create<string>(const string& v) const {
   return create_string(v);
 }
 
-template<>
-Eval::Value Eval::create<vector<Eval::Value>>(const vector<Value>& v) const {
-  return create_vector_FunctionDep(v);
-}
-
-template<>
-Eval::Value Eval::create<vector<vector<Eval::Value>>>(const vector<vector<Value> >& v) const {
-  return create_vector_vector_FunctionDep(v);
-}
-
 void Eval::addParam(const string &paramName, const Value& value) {
   currentParam[paramName]=value;
 }
@@ -270,7 +260,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
       auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
 
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor
-      inputs[nr-1]=addFunctionIndepParam(X()%a->getValue(), dim);
+      inputs[nr-1]=createFunctionIndep(dim);
+      addParam(X()%a->getValue(), inputs[nr-1]);
     }
     // check if one argument was not set. If so error
     for(auto & input : inputs)
@@ -297,7 +288,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return handleUnit(e, create(m));
     else
-      return createFunction(inputs, create(M));
+      return createFunction(inputs, createFunctionDep(M));
   }
   
   // a XML matrix
@@ -324,7 +315,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     if(!function)
       return handleUnit(e, create(m));
     else
-      return createFunction(inputs, create(M));
+      return createFunction(inputs, createFunctionDep(M));
   }
   
   // a element with a single text child (including unit conversion)

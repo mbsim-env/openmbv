@@ -220,8 +220,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! vector<double>: create a vector of floating point values
     //! vector<vector<double>>: create a matrix of floating point values
     //! string: create a string value
-    //! vector<Value>: create a vector of dependent functions
-    //! vector<vector<Value>: create a matrix of dependent functions
     template<class T>
     Value create(const T& v) const;
 
@@ -237,9 +235,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     static void setValue(xercesc::DOMElement *e, const Value &v);
 
   protected:
-    //! Add a independent variable named paramName and return Value.
-    virtual Value addFunctionIndepParam(const std::string &paramName, int dim) = 0;
-
+    //! create a function independent variable. If dim == 0 a scalar is created else a vector.
+    virtual Value createFunctionIndep(int dim) const = 0;
+    //! create a vector function dependent
+    virtual Value createFunctionDep(const std::vector<Value>& v) const=0;
+    //! create a matrix function dependent
+    virtual Value createFunctionDep(const std::vector<std::vector<Value> >& v) const=0;
     //! create a Function with n independents and a dependent function (scalar, vector or matrix)
     virtual Value createFunction(const std::vector<Value> &indeps, const Value &dep) const = 0;
 
@@ -304,8 +305,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual Value create_vector_double            (const std::vector<double>& v) const=0;
     virtual Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const=0;
     virtual Value create_string                   (const std::string& v) const=0;
-    virtual Value create_vector_FunctionDep       (const std::vector<Value>& v) const=0;
-    virtual Value create_vector_vector_FunctionDep(const std::vector<std::vector<Value> >& v) const=0;
 
     virtual std::string serializeFunction(const Value &x) const = 0;
 

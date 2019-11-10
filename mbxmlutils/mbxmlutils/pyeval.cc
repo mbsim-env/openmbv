@@ -52,7 +52,7 @@ class PyInit {
     map<string, PyO> functionValue;
     PyO asarray;
     PyO sympy;
-    PyO symbols;
+    PyO dummy;
     PyO matrix;
     PyO serializeFunction;
 };
@@ -83,7 +83,7 @@ PyInit::PyInit() {
     PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
     asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
 
-    symbols=CALLPY(PyObject_GetAttrString, sympy, "symbols");
+    dummy=CALLPY(PyObject_GetAttrString, sympy, "Dummy");
     matrix=CALLPY(PyObject_GetAttrString, sympy, "Matrix");
     serializeFunction=CALLPY(PyObject_GetAttrString, mbxmlutils, "_serializeFunction");
   }
@@ -103,7 +103,7 @@ PyInit::~PyInit() {
     // clear all Python object before deinit
     serializeFunction.reset();
     matrix.reset();
-    symbols.reset();
+    dummy.reset();
     sympy.reset();
     asarray.reset();
     functionValue.clear();
@@ -147,21 +147,18 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
 
 PyEval::~PyEval() = default;
 
-Eval::Value PyEval::addFunctionIndepParam(const string &paramName, int dim) {
+Eval::Value PyEval::createFunctionIndep(int dim) const {
   PyO indep;
-  if(dim==0) {
-    PyO args(CALLPY(PyTuple_New, 1));
-    CALLPY(PyTuple_SetItem, args, 0, CALLPYB(PyUnicode_FromString, paramName));
-    indep=CALLPY(PyObject_CallObject, pyInit->symbols, args);
-  }
+  if(dim==0)
+    indep=CALLPY(PyObject_CallObject, pyInit->dummy, CALLPY(PyTuple_New, 0));
   else {
-    PyO args(CALLPY(PyTuple_New, 1));
-    CALLPY(PyTuple_SetItem, args, 0, CALLPYB(PyUnicode_FromString, paramName + "_:" + to_string(dim)));
-    PyO s(CALLPY(PyObject_CallObject, pyInit->symbols, args));
-    CALLPY(PyTuple_SetItem, args, 0, s.incRef());
-    indep=CALLPY(PyObject_CallObject, pyInit->matrix, args);
+    PyO list(CALLPY(PyList_New, dim));
+    for(size_t i=0; i<dim; ++i)
+      CALLPY(PyList_SetItem, list, i, CALLPYB(PyObject_CallObject, pyInit->dummy, CALLPY(PyTuple_New, 0)));
+    PyO arg(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, arg, 0, list.incRef());
+    indep=CALLPY(PyObject_CallObject, pyInit->matrix, arg);
   }
-  addParam(paramName, C(indep));
   return make_shared<PyO>(indep);
 }
 
@@ -473,7 +470,7 @@ Eval::Value PyEval::create_string(const string& v) const {
   return C(CALLPY(PyUnicode_FromString, v));
 }
 
-Eval::Value PyEval::create_vector_FunctionDep(const vector<Value>& v) const {
+Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO item(CALLPY(PyList_New, v.size()));
   for(size_t i=0; i<v.size(); ++i)
@@ -482,7 +479,7 @@ Eval::Value PyEval::create_vector_FunctionDep(const vector<Value>& v) const {
   return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
 }
 
-Eval::Value PyEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
+Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO rows(CALLPY(PyList_New, v.size()));
   for(size_t r=0; r<v.size(); ++r) {

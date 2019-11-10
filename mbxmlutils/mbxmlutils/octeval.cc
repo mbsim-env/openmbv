@@ -282,11 +282,11 @@ Eval::Value OctEval::create_string(const string& v) const {
   return make_shared<octave_value>(v);
 }
 
-Eval::Value OctEval::create_vector_FunctionDep(const vector<Value>& v) const {
+Eval::Value OctEval::createFunctionDep(const vector<Value>& v) const {
   throw runtime_error("mfmf124");
 }
 
-Eval::Value OctEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
+Eval::Value OctEval::createFunctionDep(const vector<vector<Value> >& v) const {
   throw runtime_error("mfmf125");
 }
 
@@ -304,7 +304,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
 
 OctEval::~OctEval() = default;
 
-Eval::Value OctEval::addFunctionIndepParam(const string &paramName, int dim) {
+Eval::Value OctEval::createFunctionIndep(int dim) const {
   return Value();//mfmf
 }
 

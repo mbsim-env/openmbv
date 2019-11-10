@@ -27,7 +27,7 @@ XMLFlatEval::~XMLFlatEval() = default;
 
 // virtual functions
 
-Eval::Value XMLFlatEval::addFunctionIndepParam(const string &paramName, int dim) {
+Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
   return Value();
 }
 
@@ -175,11 +175,11 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
   return make_shared<string>("'"+v+"'");
 }
 
-Eval::Value XMLFlatEval::create_vector_FunctionDep(const vector<Value>& v) const {
+Eval::Value XMLFlatEval::createFunctionDep(const vector<Value>& v) const {
   throw runtime_error("create function not possible.");
 }
 
-Eval::Value XMLFlatEval::create_vector_vector_FunctionDep(const vector<vector<Value> >& v) const {
+Eval::Value XMLFlatEval::createFunctionDep(const vector<vector<Value> >& v) const {
   throw runtime_error("create function not possible.");
 }
 

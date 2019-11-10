@@ -31,7 +31,7 @@ def _serializeFunction(x):
     return s
   else:
     def serializeVertex(x):
-      if x.func.__name__=="Symbol":
+      if x.func.__name__=="Dummy":
         uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
         return " s "+str(uid)
       if isinstance(x, sympy.Integer):

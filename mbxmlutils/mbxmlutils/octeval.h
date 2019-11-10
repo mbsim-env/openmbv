@@ -50,7 +50,7 @@ class OctEval : public Eval {
 
   protected:
 
-    Value addFunctionIndepParam(const std::string &paramName, int dim) override;
+    Value createFunctionIndep(int dim) const override;
 
     //! evaluate str fully and return result as an octave variable
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
@@ -69,8 +69,9 @@ class OctEval : public Eval {
     Value create_vector_double            (const std::vector<double>& v) const override;
     Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const override;
     Value create_string                   (const std::string& v) const override;
-    Value create_vector_FunctionDep       (const std::vector<Value>& v) const override;
-    Value create_vector_vector_FunctionDep(const std::vector<std::vector<Value> >& v) const override;
+
+    Value createFunctionDep(const std::vector<Value>& v) const override;
+    Value createFunctionDep(const std::vector<std::vector<Value> >& v) const override;
     Value createFunction(const std::vector<Value> &indeps, const Value &dep) const override;
 
     std::string serializeFunction(const Value &x) const override;
