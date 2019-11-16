@@ -36,7 +36,7 @@ physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalva
 
 
 lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la $(LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA)
-module_LTLIBRARIES = registerPath.la
+module_LTLIBRARIES = fmatvec_symbolic_swig_octave.la registerPath.la
 moduledir = $(runlibdir)
 
 # utility library
@@ -75,6 +75,8 @@ libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h py2py3cppwrapper.h
 
+BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
+
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
@@ -83,11 +85,28 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd
+# Newer octave version (>=3.8!?) use #include <config.h> instead of #include "config.h"
+# in oct.h. Hence we are not allowed to add -I.. to compile flags since
+# this will include config.h from this project (mbxmlutils) instead of the octave
+# one. Since -I.. is added as a default include path by automake we must prevent this.
+AUTOMAKE_OPTIONS = nostdinc
+fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
+	rm -f fmatvec_symbolic_swig_octave.cc
+	$(swig) -octave -MP -MD -Werror -c++ -globals . -o fmatvec_symbolic_swig_octave.cc $(FMATVEC_CFLAGS) $(srcdir)/fmatvec_symbolic_swig_octave.i
+-include $(builddir)/fmatvec_symbolic_swig_octave.d
+
+fmatvec_symbolic_swig_octave_la_SOURCES = fmatvec_symbolic_swig_octave.cc
+fmatvec_symbolic_swig_octave_la_LDFLAGS = -module -shrext .oct -avoid-version
+fmatvec_symbolic_swig_octave_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(FMATVEC_CFLAGS) -Wno-deprecated-declarations $(NOWARNING)
+fmatvec_symbolic_swig_octave_la_LIBADD = $(MKOCTFILE_LIBS) $(FMATVEC_LIBS)
 
 
 
-# generate deplib files for octave oct-files, mbxmlutils-eval-octave and registerPath
+CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_octave.d
+
+
+
+# generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	OCTLIBDIR=$$($(XC_EXEC_PREFIX) $(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
@@ -110,7 +129,7 @@ install-exec-local: install-moduleLTLIBRARIES
 	done; \
 	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
 	set -e; \
-	for F in $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
+	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
 	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \

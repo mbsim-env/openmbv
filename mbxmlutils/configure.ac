@@ -33,7 +33,7 @@ AC_TYPE_UINT64_T
 # for compile version
 OLDCXXFLAGS="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error=class-memaccess"
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])], [NOWARNING="-Wno-error=class-memaccess"], [NOWARNING=""])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])], [NOWARNING="-Wno-class-memaccess"], [NOWARNING=""])
 CXXFLAGS="$OLDCXXFLAGS"
 AC_SUBST([NOWARNING])
 
@@ -60,11 +60,30 @@ AC_SUBST([BOOST_REGEX_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
+# check for debug build
+DEBUGBUILD=1
+echo $CFLAGS $CXXFLAGS $CPPFLAGS | grep "\-DNDEBUG" > /dev/null && DEBUGBUILD=0
+AC_SUBST([DEBUGBUILD])
+
 dnl shared libraries
 if test "_$host_os" != "_mingw32"; then
   LIBDL="-ldl"
 fi
 AC_SUBST([LIBDL])
+
+dnl Check for SWIG
+AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
+  [swigpath="$withval"],[swigpath=""])
+AC_PATH_PROG([swig],[swig],[no],[${swigpath:-$PATH}])
+if test "_$swig" == "_no"; then
+  AC_MSG_ERROR([SWIG not found])
+fi
+SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
+AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
+SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
+if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+6]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+9]] -o $SWIGVERSION_ -eq $[[3*1000000+0*1000+10]]; then
+  AC_MSG_ERROR([SWIG >= 3.0.6 needed, but SWIG = 3.0.9 and 3.0.10 has bugs])
+fi
 
 XC_PATH_CONVERT=echo
 if test "$cross_compiling" == "yes"; then
@@ -156,6 +175,7 @@ DATADIR="$(eval echo $(eval echo $datadir))"
 AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
+AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
 
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
@@ -217,6 +237,7 @@ dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
 AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile])
+AC_CONFIG_FILES([mbxmlutils/octave/testsymbolic.sh],[chmod +x mbxmlutils/octave/testsymbolic.sh])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 AC_OUTPUT

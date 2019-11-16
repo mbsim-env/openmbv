@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
+@XC_EXEC_PREFIX@ @OCTAVE@ -q -p @prefix@/lib -p @prefix@/bin -p @prefix@/share/mbxmlutils/octave @abs_srcdir@/testsymbolic.m > testsymbolic.out
+RET=$?
+
+cat testsymbolic.out
+
+if [ @DEBUGBUILD@ -eq 1 ]; then
+  echo "This is a debug build -> checking output"
+  diff @abs_srcdir@/testsymbolic.ref testsymbolic.out
+  RETDIFF=$?
+else
+  echo "This is a release build -> NOT checking output"
+fi
+
+test $RET -ne 0 && exit $RET
+exit $RETDIFF

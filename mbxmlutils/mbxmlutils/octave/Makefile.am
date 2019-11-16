@@ -7,4 +7,7 @@ dist_octave_DATA = cardan.m \
 		   rotateAboutY.m\
 		   rotateAboutZ.m\
 		   euler.m\
-		   tilde.m
+		   tilde.m\
+		   swigLocalLoad.m
+
+TESTS = testsymbolic.sh

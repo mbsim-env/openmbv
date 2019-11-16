@@ -18,6 +18,7 @@ mbxmlutils/missing
 mbxmlutils/xmldoc/Makefile.in
 mbxmlutils/xsd2html/Makefile.in
 mbxmlutils/compile
+mbxmlutils/test-driver
 openmbv/INSTALL
 openmbv/Makefile.in
 openmbv/aclocal.m4
