@@ -1,3 +1,5 @@
+try
+
 % init
 sym=swigLocalLoad('fmatvec_symbolic_swig_octave');
 
@@ -6,10 +8,10 @@ cs=3.1
 is=sym.IndependentVariable()
 ss=sym.SymbolicExpression(3.1)
 cv=[3.1;3.1]
-iv=sym.IndependentVector(2,sym.NONINIT)
-sv=sym.SymbolicVector(2,sym.INIT,sym.SymbolicExpression(3.1))
+iv=sym.VectorIndep(2,sym.NONINIT)
+sv=sym.VectorSym(2,sym.INIT,sym.SymbolicExpression(3.1))
 cm=[3.1,3.1;3.1,3.1]
-sm=sym.SymbolicMatrix(2,2,sym.INIT,sym.SymbolicExpression(3.1))
+sm=sym.MatrixSym(2,2,sym.INIT,sym.SymbolicExpression(3.1))
 
 % operator *
 cs*cs 
@@ -136,9 +138,23 @@ sm-cm
 cm-sm
 sm-sm
 
-% functions
+% functions on symbolic scalars
 sin(cs)
 sin(cv)
 sin(cm)
 sym.sin(is)
 sym.sin(ss)
+
+% matrix/vector functions
+cm'
+sm'
+norm(cv)
+sym.norm(iv)
+sym.norm(sv)
+
+catch err
+
+disp(err);
+exit(1);
+
+end
