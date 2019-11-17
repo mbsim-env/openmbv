@@ -38,6 +38,10 @@ typedef fmatvec::SymbolicExpression SS;
 // transpose
 %rename(__hermitian__) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>::T;
 
+%ignore fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>::operator();
+%ignore fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>::operator();
+%ignore fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>::operator();
+
 %include <std_string.i>
 %include <fmatvec/types.h>
 %include <fmatvec/matrix.h>
@@ -77,6 +81,8 @@ typedef fmatvec::SymbolicExpression SS;
     str<<*$self;
     return str.str();
   }
+  IndependentVariable& __paren__(int i) { return (*$self)(i-1); }
+  void __paren_asgn__(int i, const fmatvec::IndependentVariable &x) { (*$self)(i-1)=x; }
 }
 
 %extend fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression> {
@@ -85,6 +91,9 @@ typedef fmatvec::SymbolicExpression SS;
     str<<*$self;
     return str.str();
   }
+  SymbolicExpression& __paren__(int i) { return (*$self)(i-1); }
+  void __paren_asgn__(int i, const fmatvec::SymbolicExpression &x) { (*$self)(i-1)=x; }
+  void __paren_asgn__(int i, const double &x) { (*$self)(i-1)=x; }
 }
 
 %extend fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression> {
@@ -93,6 +102,9 @@ typedef fmatvec::SymbolicExpression SS;
     str<<*$self;
     return str.str();
   }
+  SymbolicExpression& __paren__(int r, int c) { return (*$self)(r-1,c-1); }
+  void __paren_asgn__(int r, int c, const fmatvec::SymbolicExpression &x) { (*$self)(r-1,c-1)=x; }
+  void __paren_asgn__(int r, int c, const double &x) { (*$self)(r-1,c-1)=x; }
 }
 
 %inline %{
