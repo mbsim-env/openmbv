@@ -7,11 +7,11 @@ sym=swigLocalLoad('fmatvec_symbolic_swig_octave');
 cs=3.1
 is=sym.IndependentVariable()
 ss=sym.SymbolicExpression(3.1)
-cv=[3.1;3.1]
-iv=sym.VectorIndep(2,sym.NONINIT)
-sv=sym.VectorSym(2,sym.INIT,sym.SymbolicExpression(3.1))
-cm=[3.1,3.1;3.1,3.1]
-sm=sym.MatrixSym(2,2,sym.INIT,sym.SymbolicExpression(3.1))
+cv=[3.1;3.1;3.1]
+iv=sym.VectorIndep(3,sym.NONINIT)
+sv=sym.VectorSym(3,sym.INIT,sym.SymbolicExpression(3.1))
+cm=[3.1,3.1,3.1;3.1,3.1,3.1;3.1,3.1,3.1]
+sm=sym.MatrixSym(3,3,sym.INIT,sym.SymbolicExpression(3.1))
 
 % operator *
 cs*cs 
