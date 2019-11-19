@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fmatvec/toString.h>
+#include <fmatvec/ast.h>
 
 using namespace boost::filesystem;
 using namespace std;
@@ -28,7 +29,9 @@ XMLFlatEval::~XMLFlatEval() = default;
 // virtual functions
 
 Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
-  return Value();
+  stringstream str;
+  str<<fmatvec::IndependentVariable();
+  return make_shared<string>(str.str());
 }
 
 void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
@@ -41,7 +44,11 @@ bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
     case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };//mfmfcatch fix
     case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };//mfmfcatch fix
     case StringType: try { cast<string>(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case FunctionType: return false;
+    case FunctionType: {
+      string valueStr=*static_cast<string*>(value.get());
+      boost::trim(valueStr);
+      return valueStr[0]=='{';
+    }
   }
   return false;
 }
@@ -176,19 +183,34 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<Value>& v) const {
-  throw runtime_error("create function not possible.");
+  string str("[");
+  for(int i=0; i<v.size(); ++i)
+    str+=*static_cast<string*>(v[i].get())+(i!=v.size()-1?";":"");
+  str+="]";
+  return make_shared<string>(str);
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<vector<Value> >& v) const {
-  throw runtime_error("create function not possible.");
+  string str("[");
+  for(int r=0; r<v.size(); ++r) {
+    for(int c=0; c<v[r].size(); ++c)
+      str+=*static_cast<string*>(v[r][c].get())+(c!=v[r].size()-1?",":"");
+    str+=(r!=v.size()-1?";":"");
+  }
+  str+="]";
+  return make_shared<string>(str);
 }
 
 Eval::Value XMLFlatEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
-  throw runtime_error("create function not possible.");
+  string str("{ "+to_string(indeps.size()));
+  for(int i=0; i<indeps.size(); ++i)
+    str+=" "+*static_cast<string*>(indeps[i].get());
+  str+=" "+*static_cast<string*>(dep.get())+" }";
+  return make_shared<string>(str);
 }
 
 string XMLFlatEval::serializeFunction(const Value &x) const {
-  throw runtime_error("mfmf130");
+  return *static_cast<string*>(x.get());
 }
 
 } // end namespace MBXMLUtils
