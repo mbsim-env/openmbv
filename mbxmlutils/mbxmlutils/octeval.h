@@ -8,6 +8,10 @@ class octave_value;
 class octave_value_list;
 class octave_function;
 
+namespace fmatvec {
+  class SymbolicExpression;
+}
+
 namespace XERCES_CPP_NAMESPACE { class DOMElement; }
 
 namespace MBXMLUtils {
@@ -57,6 +61,10 @@ class OctEval : public Eval {
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());
+
+    static void* getSwigPtr(const octave_value &v);
+    static Value createSwigByTypeName(const std::string &name);
+    static std::string getSwigType(const octave_value &value);
 
     Value callFunction(const std::string &name, const std::vector<Value>& args) const override;
 

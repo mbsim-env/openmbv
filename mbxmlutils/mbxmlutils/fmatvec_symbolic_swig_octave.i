@@ -246,4 +246,26 @@ typedef fmatvec::SymbolicExpression SS;
   SM op_MatrixSym_sub_matrix(const SM &a, const octave_value &b) { return a-toMat(b); }
   SM op_matrix_sub_MatrixSym(const octave_value &a, const SM &b) { return toMat(a)-b; }
 
+  namespace fmatvec {
+    SymbolicExpression pow(const double &a, const SymbolicExpression &b) { return pow(SS(a),b); }
+    SymbolicExpression pow(const SymbolicExpression &a, const double &b) { return pow(a,SS(b)); }
+    SymbolicExpression pow(const double &a, const double &b) { return pow(a,SS(b)); }
+    SymbolicExpression pow(const SymbolicExpression &a, const int &b) { return pow(a,SS(b)); }
+    SymbolicExpression pow(const double &a, const int &b) { return pow(a,SS(b)); }
+    SymbolicExpression log(const double &a) { return log(SS(a)); }
+    SymbolicExpression sqrt(const double &a) { return sqrt(SS(a)); }
+    SymbolicExpression sin(const double &a) { return sin(SS(a)); }
+    SymbolicExpression cos(const double &a) { return cos(SS(a)); }
+    SymbolicExpression tan(const double &a) { return tan(SS(a)); }
+    SymbolicExpression sinh(const double &a) { return sinh(SS(a)); }
+    SymbolicExpression cosh(const double &a) { return cosh(SS(a)); }
+    SymbolicExpression tanh(const double &a) { return tanh(SS(a)); }
+    SymbolicExpression asin(const double &a) { return asin(SS(a)); }
+    SymbolicExpression acos(const double &a) { return acos(SS(a)); }
+    SymbolicExpression atan(const double &a) { return atan(SS(a)); }
+    SymbolicExpression asinh(const double &a) { return asinh(SS(a)); }
+    SymbolicExpression acosh(const double &a) { return acosh(SS(a)); }
+    SymbolicExpression atanh(const double &a) { return atanh(SS(a)); }
+  }
+
 %}

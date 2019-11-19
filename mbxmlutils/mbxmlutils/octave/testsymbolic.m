@@ -152,7 +152,7 @@ norm(cv)
 sym.norm(iv)
 sym.norm(sv)
 
-% horz-/vertcat mfmf
+% horz-/vertcat
 vertcat(cs,cs)
 vertcat(cs,is)
 vertcat(cs,ss)
