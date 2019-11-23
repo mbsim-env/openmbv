@@ -15,8 +15,7 @@
 #include "mbxmlutils/eval_static.h"
 #include <boost/algorithm/string/trim.hpp>
 
-#include <octave/version.h>
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   #include <octave-config.h>
   #undef OCTAVE_USE_DEPRECATED_FUNCTIONS
   #include <octave/ovl.h>
@@ -56,13 +55,13 @@
   #define xx_is_variable symbol_table::is_variable
   #define xx_varval symbol_table::varval
   #define xx_isreal is_real_type
-  #define xx_iscell is_cell_type
+  #define xx_iscell is_cell
 #endif
 #include <octave/octave.h>
 #include <octave/symtab.h>
 #include <octave/parse.h>
 #include <octave/defaults.h>
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
 #else
   // pop the above macros
   #pragma pop_macro("PACKAGE")
@@ -78,7 +77,7 @@
 using namespace std;
 using namespace xercesc;
 namespace bfs=boost::filesystem;
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
 using namespace octave;
 #endif
 
@@ -138,7 +137,7 @@ class OctInit {
     OctInit();
     ~OctInit();
     string initialPath;
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
     octave::interpreter interpreter;
 #endif
 };
@@ -147,7 +146,7 @@ OctInit::OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings during octave initialization
 
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
     if(interpreter.execute()!=0)
       throw runtime_error("Cannot execute octave interpreter.");
 #else
@@ -192,7 +191,7 @@ OctInit::OctInit() {
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
 #else
     // remove the default oct serach path ...
     // (first get octave octfiledir without octave_prefix)
@@ -220,7 +219,7 @@ OctInit::~OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
 
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
 #else
     //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
     int dummy;
@@ -483,14 +482,14 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
 
   // clear octave variables
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   octInit.interpreter.get_symbol_table().current_scope().clear_variables();
 #else
   symbol_table::clear_variables();
 #endif
   // restore current parameters
   for(const auto & i : currentParam)
-    #if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+    #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
       octInit.interpreter.get_symbol_table().assign(i.first, *C(i.second));
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
       symbol_table::assign(i.first, *C(i.second));
@@ -577,7 +576,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
       return false;
 
     case FunctionType:
-      if(v->iscell()) return true;
+      if(v->xx_iscell()) return true;
       return false;
   }
   return false;
@@ -611,7 +610,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
     files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
   }
 
-#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >=4
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   bfs::path octave_prefix(config::octave_home());
   // get octave fcnfiledir without octave_prefix
   bfs::path octave_fcnfiledir(config::fcn_file_dir().substr(config::octave_home().length()+1));

@@ -1,5 +1,7 @@
 try
 
+format short e;
+
 % init
 sym=swigLocalLoad('fmatvec_symbolic_swig_octave');
 

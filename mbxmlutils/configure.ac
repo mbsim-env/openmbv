@@ -109,6 +109,11 @@ if test "_$mkoctfile" == "_no"; then
   AC_PATH_PROG([mkoctfile],[mkoctfile],[no],[$prefix/bin:$PATH])
 fi
 test "_$mkoctfile" = "_no" && AC_MSG_ERROR([mkoctfile not found])
+# get mkoctfile version
+X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
+AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X], [Octave version])
+X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
+AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X], [Octave version])
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
 MKOCTFILE_LIBS="$(echo \
