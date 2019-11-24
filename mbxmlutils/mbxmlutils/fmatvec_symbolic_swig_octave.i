@@ -3,19 +3,15 @@
 #pragma SWIG nowarn=373,374,365,366,367,368,371,362,509,503,305,315
 
 %{
-#include <fmatvec/types.h>
 #include <fmatvec/fmatvec.h>
 #include <fmatvec/ast.h>
-#include <fmatvec/linear_algebra.h>
 #include <sstream>
-
-using namespace fmatvec;
 %}
 
 namespace std {
   template<class T> class shared_ptr {};
 }
-%template(shared_ptr_AST_Vertex) std::shared_ptr<const fmatvec::AST::Vertex>;
+%template(dummy_shared_ptr_AST_Vertex) std::shared_ptr<const fmatvec::AST::Vertex>;
 
 // typemaps
 typedef fmatvec::IndependentVariable IS;
@@ -42,18 +38,18 @@ typedef fmatvec::SymbolicExpression SS;
 %ignore fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>::operator();
 %ignore fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>::operator();
 
-%include <std_string.i>
+%import <std_string.i>
 %include <fmatvec/types.h>
-%include <fmatvec/matrix.h>
+%import <fmatvec/matrix.h>
 %include <fmatvec/ast.h>
-%include <fmatvec/var_fixed_general_matrix.h>
-%include <fmatvec/var_vector.h>
-%include <fmatvec/var_general_matrix.h>
-%include <fmatvec/linear_algebra.h>
+%import <fmatvec/var_fixed_general_matrix.h>
+%import <fmatvec/var_vector.h>
+%import <fmatvec/var_general_matrix.h>
+%import <fmatvec/linear_algebra.h>
 
-%template(Dummy1) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Fixed<1>,fmatvec::IndependentVariable>;
+%template(dummy_matrix_general_var_fixed_indep) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Fixed<1>,fmatvec::IndependentVariable>;
 %template(VectorIndep) fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>;
-%template(Dummy2) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Fixed<1>,fmatvec::SymbolicExpression>;
+%template(dummy_matrix_general_fixed_sym) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Fixed<1>,fmatvec::SymbolicExpression>;
 %template(VectorSym) fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>;
 %template(MatrixSym) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>;
 %template(norm) fmatvec::nrm2<fmatvec::Var, fmatvec::IndependentVariable>;
@@ -107,12 +103,8 @@ typedef fmatvec::SymbolicExpression SS;
   void __paren_asgn__(int r, int c, const double &x) { (*$self)(r-1,c-1)=x; }
 }
 
-%inline %{
-  typedef fmatvec::IndependentVariable IS;
-  typedef fmatvec::SymbolicExpression SS;
-  typedef fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable> IV;
-  typedef fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression> SV;
-  typedef fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression> SM;
+%{
+  // helper functions
 
   fmatvec::MatV toMat(const octave_value &x) {
     ::Matrix m=x.matrix_value();
@@ -135,6 +127,14 @@ typedef fmatvec::SymbolicExpression SS;
       ret(r)=m(r);
     return ret;
   }
+%}
+
+%inline %{
+  typedef fmatvec::IndependentVariable IS;
+  typedef fmatvec::SymbolicExpression SS;
+  typedef fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable> IV;
+  typedef fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression> SV;
+  typedef fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression> SM;
 
   /***** operator * *****/
 
@@ -249,23 +249,23 @@ typedef fmatvec::SymbolicExpression SS;
   namespace fmatvec {
     SymbolicExpression pow(const double &a, const SymbolicExpression &b) { return pow(SS(a),b); }
     SymbolicExpression pow(const SymbolicExpression &a, const double &b) { return pow(a,SS(b)); }
-    SymbolicExpression pow(const double &a, const double &b) { return pow(a,SS(b)); }
+    double             pow(const double &a, const double &b) { return std::pow(a,b); }
     SymbolicExpression pow(const SymbolicExpression &a, const int &b) { return pow(a,SS(b)); }
     SymbolicExpression pow(const double &a, const int &b) { return pow(a,SS(b)); }
-    SymbolicExpression log(const double &a) { return log(SS(a)); }
-    SymbolicExpression sqrt(const double &a) { return sqrt(SS(a)); }
-    SymbolicExpression sin(const double &a) { return sin(SS(a)); }
-    SymbolicExpression cos(const double &a) { return cos(SS(a)); }
-    SymbolicExpression tan(const double &a) { return tan(SS(a)); }
-    SymbolicExpression sinh(const double &a) { return sinh(SS(a)); }
-    SymbolicExpression cosh(const double &a) { return cosh(SS(a)); }
-    SymbolicExpression tanh(const double &a) { return tanh(SS(a)); }
-    SymbolicExpression asin(const double &a) { return asin(SS(a)); }
-    SymbolicExpression acos(const double &a) { return acos(SS(a)); }
-    SymbolicExpression atan(const double &a) { return atan(SS(a)); }
-    SymbolicExpression asinh(const double &a) { return asinh(SS(a)); }
-    SymbolicExpression acosh(const double &a) { return acosh(SS(a)); }
-    SymbolicExpression atanh(const double &a) { return atanh(SS(a)); }
+    double             log(const double &a) { return std::log(a); }
+    double             sqrt(const double &a) { return std::sqrt(a); }
+    double             sin(const double &a) { return std::sin(a); }
+    double             cos(const double &a) { return std::cos(a); }
+    double             tan(const double &a) { return std::tan(a); }
+    double             sinh(const double &a) { return std::sinh(a); }
+    double             cosh(const double &a) { return std::cosh(a); }
+    double             tanh(const double &a) { return std::tanh(a); }
+    double             asin(const double &a) { return std::asin(a); }
+    double             acos(const double &a) { return std::acos(a); }
+    double             atan(const double &a) { return std::atan(a); }
+    double             asinh(const double &a) { return std::asinh(a); }
+    double             acosh(const double &a) { return std::acosh(a); }
+    double             atanh(const double &a) { return std::atanh(a); }
   }
 
 %}
