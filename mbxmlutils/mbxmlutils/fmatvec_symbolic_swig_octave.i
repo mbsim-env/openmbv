@@ -52,8 +52,6 @@ typedef fmatvec::SymbolicExpression SS;
 %template(dummy_matrix_general_fixed_sym) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Fixed<1>,fmatvec::SymbolicExpression>;
 %template(VectorSym) fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>;
 %template(MatrixSym) fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>;
-%template(norm) fmatvec::nrm2<fmatvec::Var, fmatvec::IndependentVariable>;
-%template(norm) fmatvec::nrm2<fmatvec::Var, fmatvec::SymbolicExpression>;
 
 %extend fmatvec::IndependentVariable {
   std::string __str__() {
@@ -126,6 +124,11 @@ typedef fmatvec::SymbolicExpression SS;
     for(int r=0; r<rows; r++)
       ret(r)=m(r);
     return ret;
+  }
+
+  octave_value_list callBuiltin(const char* name, const octave_value_list &arg, int n=1) {
+    octave_function *func=octave::interpreter::the_interpreter()->get_symbol_table().builtin_find(name).function_value();//mfmf oct<4
+    return feval(func, arg, n);
   }
 %}
 
@@ -249,23 +252,27 @@ typedef fmatvec::SymbolicExpression SS;
   namespace fmatvec {
     SymbolicExpression pow(const double &a, const SymbolicExpression &b) { return pow(SS(a),b); }
     SymbolicExpression pow(const SymbolicExpression &a, const double &b) { return pow(a,SS(b)); }
-    double             pow(const double &a, const double &b) { return std::pow(a,b); }
+    octave_value       pow(const octave_value a, const octave_value b) { return callBuiltin("power", octave_value_list(a).append(b))(0); }
     SymbolicExpression pow(const SymbolicExpression &a, const int &b) { return pow(a,SS(b)); }
     SymbolicExpression pow(const double &a, const int &b) { return pow(a,SS(b)); }
-    double             log(const double &a) { return std::log(a); }
-    double             sqrt(const double &a) { return std::sqrt(a); }
-    double             sin(const double &a) { return std::sin(a); }
-    double             cos(const double &a) { return std::cos(a); }
-    double             tan(const double &a) { return std::tan(a); }
-    double             sinh(const double &a) { return std::sinh(a); }
-    double             cosh(const double &a) { return std::cosh(a); }
-    double             tanh(const double &a) { return std::tanh(a); }
-    double             asin(const double &a) { return std::asin(a); }
-    double             acos(const double &a) { return std::acos(a); }
-    double             atan(const double &a) { return std::atan(a); }
-    double             asinh(const double &a) { return std::asinh(a); }
-    double             acosh(const double &a) { return std::acosh(a); }
-    double             atanh(const double &a) { return std::atanh(a); }
+    octave_value       log(const octave_value a) { return callBuiltin("log", a)(0); }
+    octave_value       sqrt(const octave_value a) { return callBuiltin("sqrt", a)(0); }
+    octave_value       sin(const octave_value a) { return callBuiltin("sin", a)(0); }
+    octave_value       cos(const octave_value a) { return callBuiltin("cos", a)(0); }
+    octave_value       tan(const octave_value a) { return callBuiltin("tan", a)(0); }
+    octave_value       sinh(const octave_value a) { return callBuiltin("sinh", a)(0); }
+    octave_value       cosh(const octave_value a) { return callBuiltin("cosh", a)(0); }
+    octave_value       tanh(const octave_value a) { return callBuiltin("tanh", a)(0); }
+    octave_value       asin(const octave_value a) { return callBuiltin("asin", a)(0); }
+    octave_value       acos(const octave_value a) { return callBuiltin("acos", a)(0); }
+    octave_value       atan(const octave_value a) { return callBuiltin("atan", a)(0); }
+    octave_value       asinh(const octave_value a) { return callBuiltin("asinh", a)(0); }
+    octave_value       acosh(const octave_value a) { return callBuiltin("acosh", a)(0); }
+    octave_value       atanh(const octave_value a) { return callBuiltin("atanh", a)(0); }
+
+    SymbolicExpression norm(const IV &a) { return nrm2(a); }
+    SymbolicExpression norm(const SV &a) { return nrm2(a); }
+    octave_value       norm(const octave_value a) { return callBuiltin("norm", a)(0); }
   }
 
 %}

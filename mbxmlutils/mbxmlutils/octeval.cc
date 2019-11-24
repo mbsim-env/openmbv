@@ -367,8 +367,12 @@ Eval::Value OctEval::createSwigByTypeName(const string &name) {
   list<octave_value_list> idx;
   idx.emplace_back(name);
   idx.emplace_back();
-  static auto fmatvec_symbolic_swig_octave=C(feval("swigLocalLoad", octave_value_list("fmatvec_symbolic_swig_octave"), 1)(0));
-  return C(C(fmatvec_symbolic_swig_octave)->subsref(".(", idx));
+  static bool firstCall=true;
+  if(firstCall)
+    fevalThrow(xx_find_function("fmatvec_symbolic_swig_octave").function_value(), octave_value_list(), 0,
+      "Failed to load fmatvec_symbolic_swig_octave.");
+  return C(fevalThrow(xx_find_function("new_"+name).function_value(), octave_value_list(), 1,
+    "Failed to create "+name)(0));
 }
 
 string OctEval::getSwigType(const octave_value &v) {

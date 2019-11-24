@@ -1,6 +1,5 @@
 function ret=horzcat(varargin)
-  global swigGlobalModuleVar_fmatvec_symbolic_swig_octave;
-  sym=swigGlobalModuleVar_fmatvec_symbolic_swig_octave;
+  fmatvec_symbolic_swig_octave;
 
   % helper functions
   function c=cols(x)
@@ -58,7 +57,7 @@ function ret=horzcat(varargin)
   end
 
   % create return value
-  ret=sym.MatrixSym(nrrows, sum(nrcols));
+  ret=MatrixSym(nrrows, sum(nrcols));
   for i=1:length(varargin)
     for r=1:nrrows
       for c=1:nrcols(i)

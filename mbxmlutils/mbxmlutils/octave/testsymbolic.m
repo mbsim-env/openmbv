@@ -3,17 +3,17 @@ try
 format short e;
 
 % init
-sym=swigLocalLoad('fmatvec_symbolic_swig_octave');
+fmatvec_symbolic_swig_octave;
 
 % constructors
 cs=3.1
-is=sym.IndependentVariable()
-ss=sym.SymbolicExpression(3.1)
+is=IndependentVariable()
+ss=SymbolicExpression(3.1)
 cv=[3.1;3.1;3.1]
-iv=sym.VectorIndep(3,sym.NONINIT)
-sv=sym.VectorSym(3,sym.INIT,sym.SymbolicExpression(3.1))
+iv=VectorIndep(3,fmatvec_symbolic_swig_octave.NONINIT)
+sv=VectorSym(3,fmatvec_symbolic_swig_octave.INIT,SymbolicExpression(3.1))
 cm=[3.1,3.1,3.1;3.1,3.1,3.1;3.1,3.1,3.1]
-sm=sym.MatrixSym(3,3,sym.INIT,sym.SymbolicExpression(3.1))
+sm=MatrixSym(3,3,fmatvec_symbolic_swig_octave.INIT,SymbolicExpression(3.1))
 
 % operator *
 cs*cs 
@@ -144,15 +144,15 @@ sm-sm
 sin(cs)
 sin(cv)
 sin(cm)
-sym.sin(is)
-sym.sin(ss)
+sin(is)
+sin(ss)
 
 % matrix/vector functions
 cm'
 sm'
 norm(cv)
-sym.norm(iv)
-sym.norm(sv)
+norm(iv)
+norm(sv)
 
 % horz-/vertcat
 [cs;cs]
@@ -182,7 +182,7 @@ sym.norm(sv)
 [sv,cv]
 [sv,iv]
 [sv,sv]
-[sym.MatrixSym(1,3);sym.MatrixSym(1,3)]
+[MatrixSym(1,3);MatrixSym(1,3)]
 
 % helper functions
 rotateAboutX(cs)

@@ -1,6 +1,5 @@
 function ret=vertcat(varargin)
-  global swigGlobalModuleVar_fmatvec_symbolic_swig_octave;
-  sym=swigGlobalModuleVar_fmatvec_symbolic_swig_octave;
+  fmatvec_symbolic_swig_octave;
 
   % helper functions
   function [c,rettype]=cols(x)
@@ -73,9 +72,9 @@ function ret=vertcat(varargin)
 
   % create return value
   if strcmp(rt, 'matrix')
-    ret=sym.MatrixSym(sum(nrrows), nrcols);
+    ret=MatrixSym(sum(nrrows), nrcols);
   else
-    ret=sym.VectorSym(sum(nrrows));
+    ret=VectorSym(sum(nrrows));
   end
   for i=1:length(varargin)
     for r=1:nrrows(i)
