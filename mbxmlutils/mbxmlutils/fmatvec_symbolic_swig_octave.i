@@ -127,7 +127,11 @@ typedef fmatvec::SymbolicExpression SS;
   }
 
   octave_value_list callBuiltin(const char* name, const octave_value_list &arg, int n=1) {
-    octave_function *func=octave::interpreter::the_interpreter()->get_symbol_table().builtin_find(name).function_value();//mfmf oct<4
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    auto func=octave::interpreter::the_interpreter()->get_symbol_table().builtin_find(name).function_value();
+#else
+    auto func=symbol_table::builtin_find(name).function_value();
+#endif
     return feval(func, arg, n);
   }
 %}
