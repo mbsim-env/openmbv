@@ -93,6 +93,7 @@ AUTOMAKE_OPTIONS = nostdinc
 fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
 	rm -f fmatvec_symbolic_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ -globals . -o fmatvec_symbolic_swig_octave.cc $(FMATVEC_CFLAGS) $(srcdir)/fmatvec_symbolic_swig_octave.i
+	test @MBXMLUTILS_OCTAVE_MAJOR_VERSION@ -ge 4 -a @MBXMLUTILS_OCTAVE_MINOR_VERSION@ -ge 4 && sed -i -re "s/\<is_object\>/isobject/" fmatvec_symbolic_swig_octave.cc # WORKAROUND for SWIG bug
 -include $(builddir)/fmatvec_symbolic_swig_octave.d
 
 fmatvec_symbolic_swig_octave_la_SOURCES = fmatvec_symbolic_swig_octave.cc
