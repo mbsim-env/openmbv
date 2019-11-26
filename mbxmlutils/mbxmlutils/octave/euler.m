@@ -1,5 +1,4 @@
 function A=euler(varargin)
-  fmatvec_symbolic_swig_octave;
 
   nargs=length(varargin);
   if nargs==3

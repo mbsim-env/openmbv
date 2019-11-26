@@ -367,10 +367,6 @@ Eval::Value OctEval::createSwigByTypeName(const string &name) {
   list<octave_value_list> idx;
   idx.emplace_back(name);
   idx.emplace_back();
-  static bool firstCall=true;
-  if(firstCall)
-    fevalThrow(xx_find_function("fmatvec_symbolic_swig_octave").function_value(), octave_value_list(), 0,
-      "Failed to load fmatvec_symbolic_swig_octave.");
   return C(fevalThrow(xx_find_function("new_"+name).function_value(), octave_value_list(), 1,
     "Failed to create "+name)(0));
 }
@@ -498,6 +494,12 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
       symbol_table::assign(i.first, *C(i.second));
     #endif
+
+  // add fmatvec_symbolic_swig_octave //mfmf try to remove this if after clear_variables the context is reset.
+  static bool firstCall=true;
+  if(firstCall)
+    fevalThrow(xx_find_function("fmatvec_symbolic_swig_octave").function_value(), octave_value_list(), 0,
+      "Failed to load fmatvec_symbolic_swig_octave.");
 
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons

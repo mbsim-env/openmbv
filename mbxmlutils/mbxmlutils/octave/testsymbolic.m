@@ -2,9 +2,6 @@ try
 
 format short e;
 
-% init
-fmatvec_symbolic_swig_octave;
-
 % constructors
 cs=3.1
 is=IndependentVariable()

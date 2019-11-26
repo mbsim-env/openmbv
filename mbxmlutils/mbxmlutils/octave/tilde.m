@@ -1,5 +1,4 @@
 function out=tilde(in)
-  fmatvec_symbolic_swig_octave;
 
   if size(in)==[3,1] || (strcmp(typeinfo(in), 'swig_ref') && (strcmp(swig_type(in), 'VectorIndep') || ...
                                                               strcmp(swig_type(in), 'VectorSym')))

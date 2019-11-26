@@ -8,7 +8,8 @@ dist_octave_DATA = cardan.m \
 		   rotateAboutY.m\
 		   rotateAboutZ.m\
 		   euler.m\
-		   tilde.m
+		   tilde.m\
+		   PKG_ADD
 
 dist_octaveSwigRef_DATA = @swig_ref/horzcat.m\
                           @swig_ref/vertcat.m
