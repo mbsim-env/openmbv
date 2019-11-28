@@ -1,5 +1,5 @@
 function ret=vertcat(varargin)
-  fmatvec_symbolic_swig_octave;
+  global MatrixSym VectorSym;
 
   % helper functions
   function [c,rettype]=cols(x)

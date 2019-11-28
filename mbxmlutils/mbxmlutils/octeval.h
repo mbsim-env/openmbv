@@ -44,6 +44,8 @@ class OctEval : public Eval {
     //! The absolute path is then added using "addpath" to the octave search path.
     void addImport(const std::string &code, const xercesc::DOMElement *e) override;
 
+    void addImportHelper(const boost::filesystem::path &dir);
+
     //! get the type of value
     bool valueIsOfType(const Value &value, ValueType type) const override;
 
@@ -53,6 +55,14 @@ class OctEval : public Eval {
     void convertIndex(Value &v, bool evalTo1Based) override {}
 
   protected:
+
+    struct Import {
+      std::string path;
+      std::map<std::string, octave_value> vn;
+      std::map<std::string, octave_value> gvn;
+      std::map<std::string, octave_value> ufn;
+      std::map<std::string, octave_value> tlvn;
+    };
 
     Value createFunctionIndep(int dim) const override;
 

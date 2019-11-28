@@ -1,5 +1,5 @@
 function ret=horzcat(varargin)
-  fmatvec_symbolic_swig_octave;
+  global MatrixSym;
 
   % helper functions
   function c=cols(x)

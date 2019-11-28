@@ -20,6 +20,7 @@
   #undef OCTAVE_USE_DEPRECATED_FUNCTIONS
   #include <octave/ovl.h>
   #include <octave/interpreter.h>
+  #define xx_symbol_table octInit.interpreter.get_symbol_table().
   #define xx_find_function octInit.interpreter.get_symbol_table().find_function
   #define xx_is_variable octInit.interpreter.get_symbol_table().current_scope().is_variable
   #define xx_varval octInit.interpreter.get_symbol_table().varval
@@ -51,6 +52,7 @@
   // now all octave includes can follow
   #include <octave/oct-obj.h>
   #include <octave/toplev.h>
+  #define xx_symbol_table symbol_table::
   #define xx_find_function symbol_table::find_function
   #define xx_is_variable symbol_table::is_variable
   #define xx_varval symbol_table::varval
@@ -183,11 +185,6 @@ OctInit::OctInit() {
 
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
     string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
-    feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-    // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
-    dir=(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave").string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
@@ -408,7 +405,12 @@ string OctEval::serializeFunction(const Value &x) const {
 }
 
 OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
-  currentImport=make_shared<string>(octInit.initialPath);
+  auto ci=make_shared<Import>();
+  currentImport=ci;
+  ci->path=octInit.initialPath;
+
+  // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
+  addImportHelper(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave");
 };
 
 OctEval::~OctEval() = default;
@@ -422,34 +424,74 @@ Eval::Value OctEval::createFunctionIndep(int dim) const {
   return ret;
 }
 
+void OctEval::addImportHelper(const boost::filesystem::path &dir) {
+  // some special handing for the octave addpath is required since addpath is very time consuming
+  // in octave. Hence we try to change the path as less as possible. See also fullStringToValue.
+
+  static octave_function *addpath=xx_find_function("addpath").function_value(); // get ones a pointer for performance reasons
+  static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons
+  // set octave path to top of stack of not already done
+  string curPath;
+  curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+  auto ci=static_pointer_cast<Import>(currentImport);
+  string &currentPath=ci->path;
+  if(curPath!=currentPath)
+  {
+    // set path
+    fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
+      "Unable to set the octave search path "+currentPath);
+  }
+  // add dir to octave path
+  auto vn1=xx_symbol_table variable_names();
+  //auto gvn1=xx_symbol_table global_variable_names();
+  //auto ufn1=xx_symbol_table user_function_names();
+  //auto tlvn1=xx_symbol_table top_level_variable_names();
+  fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
+    "Unable to add octave search path "+absolute(dir).string());
+  auto vn2=xx_symbol_table variable_names();
+  //auto gvn2=xx_symbol_table global_variable_names();
+  //auto ufn2=xx_symbol_table user_function_names();
+  //auto tlvn2=xx_symbol_table top_level_variable_names();
+  // get new path and store it in top of stack
+  currentPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+
+  // create a list of all variables added by the addPath command and register these as parameter
+  // to restore it in any new context with this addPath.
+  auto fillVars=[](const list<string> &l1, const list<string> &l2, map<string, octave_value> &im,
+                      function<octave_value(const string&)> get){
+    set<string> s1(l1.begin(), l1.end());
+    set<string> s2(l2.begin(), l2.end());
+    set<string> newVars;
+    set_difference(l2.begin(), l2.end(), l1.begin(), l1.end(), inserter(newVars, newVars.begin()));
+    for(auto &n : newVars)
+      im[n]=get(n);
+  };
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, &octInit.interpreter.get_symbol_table(), _1));
+  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter.get_symbol_table(), _1));
+  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter.get_symbol_table(), _1));
+  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter.get_symbol_table(), _1));
+#else
+  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, _1, symbol_table::current_scope(), symbol_table::current_context()));
+  //fillVars(gvn1, gvn2, ci->gvn, &symbol_table::global_varval);
+  //fillVars(ufn1, ufn2, ci->ufn, &symbol_table::find_user_function);
+  //fillVars(tlvn1, tlvn2, ci->tlvn, &symbol_table::top_level_varval);
+#endif
+}
+
 void OctEval::addImport(const string &code, const DOMElement *e) {
   try {
     bfs::path dir;
-    // evaluate code to and string (directory to add using addpath)
-    dir=cast<string>(fullStringToValue(code, e));
-    // convert to an absolute path using e
-    dir=E(e)->convertPath(dir);
-
-    // some special handing for the octave addpath is required since addpath is very time consuming
-    // in octave. Hence we try to change the path as less as possible. See also fullStringToValue.
-
-    static octave_function *addpath=xx_find_function("addpath").function_value(); // get ones a pointer for performance reasons
-    static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons
-    // set octave path to top of stack of not already done
-    string curPath;
-    curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
-    string &currentPath=*static_pointer_cast<string>(currentImport);
-    if(curPath!=currentPath)
-    {
-      // set path
-      fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
-        "Unable to set the octave search path "+currentPath);
+    if(e) {
+      // evaluate code to and string (directory to add using addpath)
+      dir=cast<string>(fullStringToValue(code, e));
+      // convert to an absolute path using e
+      dir=E(e)->convertPath(dir);
     }
-    // add dir to octave path
-    fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
-      "Unable to add octave search path "+absolute(dir).string());
-    // get new path and store it in top of stack
-    currentPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
+    else
+      dir=code;
+
+    addImportHelper(dir);
 
     if(!dependencies)
       return;
@@ -457,7 +499,7 @@ void OctEval::addImport(const string &code, const DOMElement *e) {
     for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
       if(it->path().extension()==".m")
         dependencies->push_back(it->path());
-  } RETHROW_AS_DOMEVALEXCEPTION(e)
+  } RETHROW_AS_DOMEVALEXCEPTION(e)//mfmf e may be null
 }
 
 Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) const {
@@ -495,17 +537,12 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
       symbol_table::assign(i.first, *C(i.second));
     #endif
 
-  // add fmatvec_symbolic_swig_octave //mfmf try to remove this if after clear_variables the context is reset.
-  static bool firstCall=true;
-  if(firstCall)
-    fevalThrow(xx_find_function("fmatvec_symbolic_swig_octave").function_value(), octave_value_list(), 0,
-      "Failed to load fmatvec_symbolic_swig_octave.");
-
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons
   string curPath;
   try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_AS_DOMEVALEXCEPTION(e)
-  string &currentPath=*static_pointer_cast<string>(currentImport);
+  auto ci=static_pointer_cast<Import>(currentImport);
+  string &currentPath=ci->path;
   if(curPath!=currentPath)
   {
     // set path
@@ -513,10 +550,28 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
       "Unable to set the octave search path "+currentPath); } RETHROW_AS_DOMEVALEXCEPTION(e)
   }
 
+  // restore variables from import
+  auto restoreVars=[](map<string, octave_value> &im, function<void(const string&, const octave_value &v)> set) {
+    for(auto &i : im)
+      set(i.first, i.second);
+  };
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+  restoreVars(ci->vn, bind(&symbol_table::assign, &octInit.interpreter.get_symbol_table(), _1, _2));
+  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
+  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter.get_symbol_table(), _1, _2));
+  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
+#else
+  restoreVars(ci->vn, bind(&symbol_table::assign, _1, _2, symbol_table::current_scope(), symbol_table::current_context(), false));
+  //restoreVars(ci->gvn, &symbol_table::global_assign);
+  //restoreVars(ci->ufn, &symbol_table::install_user_function);
+  //restoreVars(ci->tlvn, &symbol_table::top_level_assign);
+#endif
+
   ostringstream err;
+  ostringstream out;
   try{
     int dummy;
-    BLOCK_STDOUT;
+    REDIR_STDOUT(out.rdbuf());
     REDIR_STDERR(err.rdbuf());
     mbxmlutilsStaticDependencies.clear();
     eval_string(str, true, dummy, 0); // eval as statement list
@@ -524,15 +579,15 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
   catch(const exception &ex) { // should not happend
     error_state=0;
-    throw DOMEvalException(string(ex.what())+": "+err.str(), e);
+    throw DOMEvalException(string(ex.what())+":\n"+out.str()+"\n"+err.str(), e);
   }
   catch(...) { // should not happend
     error_state=0;
-    throw DOMEvalException("Unknwon exception: "+err.str(), e);
+    throw DOMEvalException("Unknwon exception:\n"+out.str()+"\n"+err.str(), e);
   }
   if(error_state!=0) { // if error => wrong code => throw error
     error_state=0;
-    throw DOMEvalException(err.str()+"Unable to evaluate expression: "+str, e);
+    throw DOMEvalException(out.str()+"\n"+err.str()+"Unable to evaluate expression: "+str, e);
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   string strNoSpace=str;
