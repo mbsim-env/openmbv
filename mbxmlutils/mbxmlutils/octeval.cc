@@ -324,8 +324,12 @@ Eval::Value OctEval::createFunctionDep(const vector<Value>& v) const {
   for(int i=0; i<v.size(); ++i) {
     if(valueIsOfType(v[i], ScalarType))
       (*vec)(i)=C(v[i])->double_value();
-    else
+    else {
+      string type=getSwigType(*C(v[i]));
+      if(type!="SymbolicExpression" && type!="IndependentVariable")
+        throw runtime_error("Value is not scalar symbolic or independent variable.");
       (*vec)(i)=*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(*C(v[i])));
+    }
   }
   return ret;
 }
@@ -338,8 +342,12 @@ Eval::Value OctEval::createFunctionDep(const vector<vector<Value> >& v) const {
     for(int c=0; c<v[r].size(); ++c)
       if(valueIsOfType(v[r][c], ScalarType))
         (*mat)(r,c)=C(v[r][c])->double_value();
-      else
+      else {
+        string type=getSwigType(*C(v[r][c]));
+        if(type!="SymbolicExpression" && type!="IndependentVariable")
+          throw runtime_error("Value is not scalar symbolic or independent variable.");
         (*mat)(r,c)=*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(*C(v[r][c])));
+      }
   return ret;
 }
 
@@ -499,7 +507,7 @@ void OctEval::addImport(const string &code, const DOMElement *e) {
     for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
       if(it->path().extension()==".m")
         dependencies->push_back(it->path());
-  } RETHROW_AS_DOMEVALEXCEPTION(e)//mfmf e may be null
+  } RETHROW_AS_DOMEVALEXCEPTION(e)
 }
 
 Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) const {

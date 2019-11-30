@@ -253,6 +253,24 @@ typedef fmatvec::SymbolicExpression SS;
   SM op_MatrixSym_sub_matrix(const SM &a, const octave_value &b) { return a-toMat(b); }
   SM op_matrix_sub_MatrixSym(const octave_value &a, const SM &b) { return toMat(a)-b; }
 
+  /***** operator - *****/
+  SS op_IndependentVariable_uminus(const IS &a) { return -a; }
+  SS op_SymbolicExpression_uminus(const SS &a) { return -a; }
+  SV op_VectorIndep_uminus(const IV &a) { return -a; }
+  SV op_VectorSym_uminus(const SV &a) { return -a; }
+  SM op_MatrixSym_uminus(const SM &a) { return -a; }
+
+  /***** operator ^ *****/
+ 
+  SS op_scalar_pow_IndependentVariable(const double &a, const IS &b) { return pow(a,b); }
+  SS op_scalar_pow_SymbolicExpression(const double &a, const SS &b) { return pow(a,b); }
+  SS op_IndependentVariable_pow_scalar(const IS &a, const double &b) { return pow(a,b); }
+  SS op_IndependentVariable_pow_IndependentVariable(const IS &a, const IS &b) { return pow(a,b); }
+  SS op_IndependentVariable_pow_SymbolicExpression(const IS &a, const SS &b) { return pow(a,b); }
+  SS op_SymbolicExpression_pow_scalar(const SS &a, const double &b) { return pow(a,b); }
+  SS op_SymbolicExpression_pow_IndependentVariable(const SS &a, const IS &b) { return pow(a,b); }
+  SS op_SymbolicExpression_pow_SymbolicExpression(const SS &a, const SS &b) { return pow(a,b); }
+
   namespace fmatvec {
     SymbolicExpression pow(const double &a, const SymbolicExpression &b) { return pow(SS(a),b); }
     SymbolicExpression pow(const SymbolicExpression &a, const double &b) { return pow(a,SS(b)); }
@@ -273,6 +291,8 @@ typedef fmatvec::SymbolicExpression SS;
     octave_value       asinh(const octave_value a) { return callBuiltin("asinh", a)(0); }
     octave_value       acosh(const octave_value a) { return callBuiltin("acosh", a)(0); }
     octave_value       atanh(const octave_value a) { return callBuiltin("atanh", a)(0); }
+    octave_value       exp(const octave_value a) { return callBuiltin("exp", a)(0); }
+    octave_value       sign(const octave_value a) { return callBuiltin("sign", a)(0); }
 
     SymbolicExpression norm(const IV &a) { return nrm2(a); }
     SymbolicExpression norm(const SV &a) { return nrm2(a); }
