@@ -30,6 +30,7 @@ XMLFlatEval::~XMLFlatEval() = default;
 
 Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
   stringstream str;
+  str.precision(std::numeric_limits<double>::digits10+1);
   str<<fmatvec::IndependentVariable();
   return make_shared<string>(str.str());
 }

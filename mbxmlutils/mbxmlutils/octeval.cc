@@ -389,6 +389,7 @@ string OctEval::serializeFunction(const Value &x) const {
   auto c=C(x)->cell_value();
   int nrIndeps=c.dims()(0)-1;
   stringstream str;
+  str.precision(std::numeric_limits<double>::digits10+1);
   str<<"{ "<<nrIndeps;
   for(int i=0; i<nrIndeps; ++i) {
     string type=getSwigType(c(i));
