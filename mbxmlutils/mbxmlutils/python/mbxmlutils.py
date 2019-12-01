@@ -76,6 +76,8 @@ _serializeFunction.opMap={
   'asinh': ("asinh", 1),
   'acosh': ("acosh", 1),
   'atanh': ("atanh", 1),
+  'exp':   ("exp", 1),
+  'sign':  ("sign", 1),
 }
 
 
