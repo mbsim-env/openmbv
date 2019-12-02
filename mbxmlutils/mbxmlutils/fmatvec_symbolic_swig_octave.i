@@ -293,6 +293,7 @@ typedef fmatvec::SymbolicExpression SS;
     octave_value       atanh(const octave_value a) { return callBuiltin("atanh", a)(0); }
     octave_value       exp(const octave_value a) { return callBuiltin("exp", a)(0); }
     octave_value       sign(const octave_value a) { return callBuiltin("sign", a)(0); }
+    octave_value       abs(const octave_value a) { return callBuiltin("abs", a)(0); }
 
     SymbolicExpression norm(const IV &a) { return nrm2(a); }
     SymbolicExpression norm(const SV &a) { return nrm2(a); }
