@@ -512,10 +512,10 @@ string PyEval::serializeFunction(const Value &x) const {
   auto nrIndeps=CALLPY(PyTuple_Size, C(x))-1;
   string ret("{ "+to_string(nrIndeps));
   for(size_t i=0; i<nrIndeps; ++i) {
-    auto indep=CALLPY(PyTuple_GetItem, C(x), i);
+    auto indep=CALLPYB(PyTuple_GetItem, C(x), i);
     ret+=" "+serializeFunctionPy(indep);
   }
-  auto dep=CALLPY(PyTuple_GetItem, C(x), nrIndeps);
+  auto dep=CALLPYB(PyTuple_GetItem, C(x), nrIndeps);
   ret+=" "+serializeFunctionPy(dep)+" }";
   return ret;
 }
