@@ -398,17 +398,26 @@ string OctEval::serializeFunction(const Value &x) const {
     else if(type=="VectorIndep")
       str<<" "<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>*>(getSwigPtr(c(i)));
     else
-      throw runtime_error("Unknown type for independent variable in function.");
+      throw runtime_error("Unknown type for independent variable in function: "+type);
   }
   string type=getSwigType(c(nrIndeps));
-  if(type=="SymbolicExpression")
+  auto cc=C(c(nrIndeps));
+  if(valueIsOfType(cc, ScalarType))
+    str<<" "<<fmatvec::SymbolicExpression(cast<double>(cc));
+  else if(valueIsOfType(cc, VectorType))
+    str<<" "<<static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>>(
+              fmatvec::VecV(cast<vector<double>>(cc)));
+  else if(valueIsOfType(cc, MatrixType))
+    str<<" "<<static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>>(
+              fmatvec::MatV(cast<vector<vector<double>>>(cc)));
+  else if(type=="SymbolicExpression" || type=="IndependentVariable")
     str<<" "<<*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(c(nrIndeps)));
-  else if(type=="VectorSym")
+  else if(type=="VectorSym" || type=="VectorIndep")
     str<<" "<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
   else if(type=="MatrixSym")
     str<<" "<<*static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
   else
-    throw runtime_error("Unknown type for dependent variable in function.");
+    throw runtime_error("Unknown type for dependent variable in function: "+type);
   str<<" }";
   return str.str();
 }
