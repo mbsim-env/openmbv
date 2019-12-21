@@ -114,6 +114,7 @@ install-exec-local: install-moduleLTLIBRARIES
         test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
 	mkdir -p $(runlibdir); \
 	for i in $$OCTLIBDIR/oct/*/*.oct; do \
+	  test $$(basename $$i) == __init_gnuplot__.oct && continue; \
 	  if test $$i -nt $(runlibdir)/$$(basename $$i).deplibs; then \
 	    echo "Create dependency file and wrapper file for $$i"; \
 	    if [ $(host_os) != "mingw32" ]; then \
