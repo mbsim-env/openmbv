@@ -37,6 +37,9 @@ typedef fmatvec::SymbolicExpression SS;
 %ignore fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>::operator();
 %ignore fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>::operator();
 %ignore fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>::operator();
+%feature("valuewrapper") fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>;
+%feature("valuewrapper") fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>;
+%feature("valuewrapper") fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>;
 
 %import <std_string.i>
 %include <fmatvec/types.h>
