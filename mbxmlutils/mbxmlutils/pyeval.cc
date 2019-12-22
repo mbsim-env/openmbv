@@ -506,7 +506,7 @@ string PyEval::serializeFunction(const Value &x) const {
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, o.incRef());
     PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction, arg);
-    return CALLPY(PyUnicode_AsUTF8, ser);
+    return string(CALLPY(PyUnicode_AsUTF8, ser));
   };
 
   auto nrIndeps=CALLPY(PyTuple_Size, C(x))-1;

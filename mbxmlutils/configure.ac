@@ -185,8 +185,8 @@ AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
 
 # check for python
-AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: 2.7).],
-  [pythonversion="$withval"],[pythonversion="2.7"])
+AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
+  [pythonversion="$withval"],[pythonversion=$(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")])
 AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalutor is ALPHA hence it must be enabled explicitly.])
 AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
 if test "x$enable_python" == "xyes"; then
@@ -202,8 +202,8 @@ if test "x$enable_python" == "xyes"; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
   elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR
-  elif test -d $PYTHON_LIBDIR/dist-packages/numpy/core/include; then # debian special handling
-    PYTHON_LIBDIR=$PYTHON_LIBDIR
+  elif test -d /usr/lib/python3/dist-packages/numpy/core/include; then # debian special handling
+    PYTHON_LIBDIR=/usr/lib/python3
   else
     AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
   fi

@@ -27,8 +27,8 @@
  * For more information, please refer to <http://unlicense.org/>
  */
 
-#ifndef _PY2PY3CPPWRAPPER_H_
-#define _PY2PY3CPPWRAPPER_H_
+#ifndef _PYCPPWRAPPER_H_
+#define _PYCPPWRAPPER_H_
 
 #include <Python.h>
 #include <string>
@@ -39,86 +39,21 @@
 #include <memory>
 #include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet
 
+#if PY_MAJOR_VERSION < 3
+  #error "This file can only handle python >= 3"
+#endif
+
 namespace PythonCpp {
 
 // initialize python giving main as program name to python
 inline void initializePython(const std::string &main, const std::string &home="") {
   static const std::string mainStatic=main;
   static const std::string homeStatic=home;
-#if PY_MAJOR_VERSION < 3
-  Py_SetProgramName(const_cast<char*>(mainStatic.c_str()));
-  if(!homeStatic.empty())
-    Py_SetPythonHome(const_cast<char*>(homeStatic.c_str()));
-#else
   Py_SetProgramName(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(mainStatic).c_str()));
   if(!homeStatic.empty())
     Py_SetPythonHome(const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(homeStatic).c_str()));
-#endif
   Py_InitializeEx(0);
 }
-
-// wrap some python 3 function to also work in python 2 (the wrappers have suffix _Py2Py2
-// and are later defined without the suffix as a macro)
-
-inline bool PyLong_Check_Py2Py3(PyObject *o) {
-#if PY_MAJOR_VERSION < 3
-  return PyLong_Check(o) || PyInt_Check(o);
-#else
-  return PyLong_Check(o);
-#endif
-}
-
-inline long PyLong_AsLong_Py2Py3(PyObject *o) {
-#if PY_MAJOR_VERSION < 3
-  if(PyInt_Check(o))
-    return PyInt_AsLong(o);
-  return PyLong_AsLong(o);
-#else
-  return PyLong_AsLong(o);
-#endif
-}
-
-inline bool PyUnicode_Check_Py2Py3(PyObject *o) {
-#if PY_MAJOR_VERSION < 3
-  return PyUnicode_Check(o) || PyString_Check(o);
-#else
-  return PyUnicode_Check(o);
-#endif
-}
-
-// we cannot return char* here since for python 3 this would lead to a reference to a temporary
-inline std::string PyUnicode_AsUTF8_Py2Py3(PyObject *o) {
-#if PY_MAJOR_VERSION < 3
-  if(PyString_Check(o)) {
-    char *retc=PyString_AsString(o);
-    if(!retc) return "";
-    return retc;
-  }
-  PyObject *str=PyUnicode_AsUTF8String(o);
-  if(!str) return "";
-  char *retc=PyString_AsString(str);
-  if(!retc) {
-    Py_DECREF(str);
-    return "";
-  }
-  std::string ret=retc;
-  Py_DECREF(str);
-  return ret;
-#else
-  char *retc=PyUnicode_AsUTF8(o);
-  if(!retc) return "";
-  return retc;
-#endif
-}
-
-// now define the wrappers without the suffix: now the wrappers are active!!!!!
-
-#undef PyLong_Check
-#undef PyUnicode_Check
-#define PyLong_Check PythonCpp::PyLong_Check_Py2Py3
-#define PyLong_AsLong PythonCpp::PyLong_AsLong_Py2Py3
-#define PyUnicode_Check PythonCpp::PyUnicode_Check_Py2Py3
-#define PyUnicode_AsUTF8 PythonCpp::PyUnicode_AsUTF8_Py2Py3
 
 // make PyRun_String a function
 inline PyObject* PyRun_String_func(const char *str, int start, PyObject *globals, PyObject *locals) { return PyRun_String(str, start, globals, locals); }
@@ -150,10 +85,15 @@ inline int PyObject_TypeCheck_func(PyObject *p, PyTypeObject *type) { return PyO
 #undef PyObject_TypeCheck
 #define PyObject_TypeCheck PythonCpp::PyObject_TypeCheck_func
 
-// make Py_InitModule a function
-inline PyObject* Py_InitModule_func(char *name, PyMethodDef *methods) { return Py_InitModule(name, methods); }
-#undef Py_InitModule
-#define Py_InitModule PythonCpp::Py_InitModule_func
+// make PyLong_Check a function
+inline int PyLong_Check_func(PyObject *p) { return PyLong_Check(p); }
+#undef PyLong_Check
+#define PyLong_Check PythonCpp::PyLong_Check_func
+
+// make PyUnicode_Check a function
+inline int PyUnicode_Check_func(PyObject *p) { return PyUnicode_Check(p); }
+#undef PyUnicode_Check
+#define PyUnicode_Check PythonCpp::PyUnicode_Check_func
 
 // we use this for python object for c++ reference counting
 class PyO {
@@ -294,11 +234,7 @@ const inline char* PythonException::what() const noexcept {
   PyObject *io=PyImport_ImportModule("io");
   if(!io)
     return "Unable to create Python error message: cannot load io module.";
-#if PY_MAJOR_VERSION < 3
-  PyObject *fileIO=PyObject_GetAttrString(io, "BytesIO"); // sys.stderr is a file is bytes mode
-#else
   PyObject *fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
-#endif
   if(!fileIO)
     return "Unable to create Python error message: cannot get in memory file class.";
   Py_DECREF(io);
@@ -327,16 +263,9 @@ const inline char* PythonException::what() const noexcept {
     return "Unable to create Python error message: cannot get string from in memory file output";
   Py_DECREF(getvalue);
   Py_DECREF(buf);
-#if PY_MAJOR_VERSION < 3
-  char *strc=PyBytes_AsString(pybufstr); // sys.stderr is a file in bytes mode
-  if(!strc)
-    return "Unable to create Python error message: cannot get c string";
-  std::string str(strc);
-#else
   std::string str=PyUnicode_AsUTF8(pybufstr); // sys.stderr is a file in text mode
   if(PyErr_Occurred())
     return "Unable to create Python error message: cannot get c string";
-#endif
   Py_DECREF(pybufstr);
   std::stringstream strstr;
   strstr<<"Python exception";

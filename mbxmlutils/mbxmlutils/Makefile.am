@@ -73,7 +73,7 @@ libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON
 libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h py2py3cppwrapper.h
+libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h pycppwrapper.h
 
 BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 

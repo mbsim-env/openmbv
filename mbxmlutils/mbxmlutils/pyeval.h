@@ -2,7 +2,7 @@
 #define _MBXMLUTILS_PYEVAL_H_
 
 #include "eval.h"
-#include "py2py3cppwrapper.h"
+#include "pycppwrapper.h"
 
 namespace MBXMLUtils {
 

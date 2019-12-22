@@ -88,12 +88,12 @@ def registerPath(path):
   if registerPath.dll==None:
     import ctypes
     import sys
-    if sys.platform=='linux2':
+    if sys.platform.startswith('linux'):
       registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
     else:
       registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
   # call the mbxmlutilsPyEvalRegisterPath function in this lib
-  ret=registerPath.dll.mbxmlutilsPyEvalRegisterPath(path)
+  ret=registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
 registerPath.dll=None
 
 
