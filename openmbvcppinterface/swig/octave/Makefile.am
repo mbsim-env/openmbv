@@ -11,6 +11,7 @@ swig_LTLIBRARIES = OpenMBV.la
 BUILT_SOURCES = OpenMBV_swig_octave.cc
 
 CLEANFILES = OpenMBV_swig_octave.cc OpenMBV_swig_octave.d
+.DELETE_ON_ERROR: # swig -Werror requires this
 OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i
 	rm -f OpenMBV_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i
