@@ -269,7 +269,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       continue;
     path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
     if(*subDir.begin()=="site-packages" &&
-      *(++subDir.begin())!="numpy" && *(++subDir.begin())!="sympy") // skip site-packages dir but not numpy and sympy
+      *(++subDir.begin())!="numpy" && *(++subDir.begin())!="sympy" && *(++subDir.begin())!="mpmath") // skip site-packages dir but not numpy and sympy/mpmath
       continue;
     if(*subDir.begin()=="config") // skip config dir
       continue;
