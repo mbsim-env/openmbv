@@ -90,6 +90,7 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 # this will include config.h from this project (mbxmlutils) instead of the octave
 # one. Since -I.. is added as a default include path by automake we must prevent this.
 AUTOMAKE_OPTIONS = nostdinc
+.DELETE_ON_ERROR: # swig -Werror requires this
 fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
 	rm -f fmatvec_symbolic_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ -globals . -o fmatvec_symbolic_swig_octave.cc $(FMATVEC_CFLAGS) $(srcdir)/fmatvec_symbolic_swig_octave.i

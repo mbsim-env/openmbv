@@ -1,6 +1,6 @@
 %module fmatvec_symbolic_swig_octave
 
-#pragma SWIG nowarn=373,374,365,366,367,368,371,362,509,503,305,315
+#pragma SWIG nowarn=373,374,375,365,366,367,368,371,362,509,503,305,315
 
 %{
 #include <fmatvec/fmatvec.h>

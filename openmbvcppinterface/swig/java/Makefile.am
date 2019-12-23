@@ -21,6 +21,7 @@ clean-local: clean-local-javasource
 .PHONY: clean-local-javasource
 clean-local-javasource:
 	rm -rf de
+.DELETE_ON_ERROR: # swig -Werror requires this
 OpenMBV_swig_java.cc: $(srcdir)/../OpenMBV.i $(top_srcdir)/openmbvcppinterface/*.h
 	rm -rf de/mbsim_env/openmbv
 	$(MKDIR_P) de/mbsim_env/openmbv
