@@ -28,7 +28,6 @@
 #include <QActionGroup>
 #include <QLabel>
 #include <QStatusBar>
-#include <QWebView>
 #include <QtCore/QTimer>
 #include <QtCore/QTime>
 #include <string>
@@ -75,7 +74,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     SoText2 *timeString;
     double fpsMax;
-    QWebView *helpViewerGUI, *helpViewerXML;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
@@ -112,7 +110,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     std::shared_ptr<OpenMBV::Body> openMBVBodyForLastFrame;
     QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
-    void help(const std::string& type, QDialog *helpDialog);
     static void toggleAction(Object *current, QAction *currentAct);
     void execPropertyMenu();
     static void disableBBox(Object *obj);
@@ -123,9 +120,9 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void objectListClicked();
     void openFileDialog();
     void newFileDialog();
+    void aboutOpenMBV();
     void guiHelp();
     void xmlHelp();
-    void aboutOpenMBV();
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }
     void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
@@ -166,8 +163,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void exportSequenceAsPNG();
     void exportCurrentAsIV();
     void exportCurrentAsPS();
-    void helpHomeXML();
-    void helpHomeGUI();
     void stopSCSlot();
     void lastFrameSCSlot();
     void playSCSlot();
@@ -215,7 +210,6 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
     void complexityType();
     void complexityValue();
-    void loadFinished();
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
     void selectionChanged();

@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
 #include <QDesktopWidget>
+#include <QDesktopServices>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMenuBar>
@@ -39,9 +40,6 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QColorDialog>
 #include <QtCore/QElapsedTimer>
-#include <QWebHistory>
-#include <QWebFrame>
-#include <QWebElement>
 #include <QShortcut>
 #include <QMimeData>
 #include <QSettings>
@@ -90,7 +88,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
 }
 
-MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), helpViewerGUI(nullptr), helpViewerXML(nullptr), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   // If <local>/lib/dri exists use it as load path for GL DRI drivers.
   // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
   if(boost::filesystem::exists(MBXMLUtils::getInstallPath()/"lib"/"dri")) {
@@ -969,71 +967,25 @@ void MainWindow::objectListClicked() {
 }
 
 void MainWindow::guiHelp() {
-  static QDialog *guiHelpDialog=nullptr;
-  help("GUI", guiHelpDialog);
+  static QDialog *gui=nullptr;
+  if(gui==nullptr) {
+    gui=new QDialog(this);
+    gui->setWindowTitle("GUI Help");
+    gui->setMinimumSize(500, 500);
+    auto *layout=new QGridLayout;
+    gui->setLayout(layout);
+    auto *text=new QTextEdit;
+    layout->addWidget(text, 0, 0);
+    text->setReadOnly(true);
+    ifstream file((MBXMLUtils::getInstallPath()/"share"/"openmbv"/"doc"/"guihelp.html").string());
+    string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    text->setHtml(content.c_str());
+  }
+  gui->show();
 }
 
 void MainWindow::xmlHelp() {
-  static QDialog *xmlHelpDialog=nullptr;
-  help("XML", xmlHelpDialog);
-}
-
-void MainWindow::help(const std::string& type, QDialog *helpDialog) {
-  if(!helpDialog) {
-    helpDialog=new QDialog(this);
-    helpDialog->setWindowIcon(Utils::QIconCached("help.svg"));
-    auto *layout=new QGridLayout(helpDialog);
-    helpDialog->setLayout(layout);
-    QPushButton *home=new QPushButton("Home",helpDialog);
-    layout->addWidget(home,0,0);
-    QPushButton *helpBackward=new QPushButton("Backward",helpDialog);
-    layout->addWidget(helpBackward,0,1);
-    QPushButton *helpForward=new QPushButton("Forward",helpDialog);
-    layout->addWidget(helpForward,0,2);
-    auto *helpViewer=new QWebView(helpDialog);
-    connect(helpViewer, SIGNAL(loadFinished(bool)), this, SLOT(loadFinished()));
-    layout->addWidget(helpViewer,1,0,1,3);
-    connect(helpForward, SIGNAL(clicked()), helpViewer, SLOT(forward()));
-    connect(helpBackward, SIGNAL(clicked()), helpViewer, SLOT(back()));
-    if(type=="GUI") {
-      helpDialog->setWindowTitle("OpenMBV - GUI Help");
-      connect(home, SIGNAL(clicked()), this, SLOT(helpHomeGUI()));
-      helpViewer->load(QUrl(("file://"+Utils::getDocPath()+"/guihelp.html").c_str()));
-      helpViewerGUI=helpViewer;
-    }
-    else if(type=="XML") {
-      helpDialog->setWindowTitle("OpenMBV - XML Help");
-      connect(home, SIGNAL(clicked()), this, SLOT(helpHomeXML()));
-      helpViewer->load(QUrl(("file://"+Utils::getXMLDocPath()+"/http___www_mbsim-env_de_OpenMBV/index.html").c_str()));
-      helpViewerXML=helpViewer;
-    }
-  }
-  helpDialog->show();
-  helpDialog->raise();
-  helpDialog->activateWindow();
-  helpDialog->resize(700,500);
-}
-
-void MainWindow::loadFinished() {
-  // set html fg color to gui fg color
-  if(helpViewerGUI)
-    helpViewerGUI->page()->mainFrame()->findFirstElement("body").setStyleProperty(
-      "color",
-      palette().text().color().name()
-    );
-  if(helpViewerXML)
-    helpViewerXML->page()->mainFrame()->findFirstElement("body").setStyleProperty(
-      "color",
-      palette().text().color().name()
-    );
-}
-
-void MainWindow::helpHomeGUI() {
-  helpViewerGUI->load(QUrl(("file://"+Utils::getDocPath()+"/guihelp.html").c_str()));
-}
-
-void MainWindow::helpHomeXML() {
-  helpViewerXML->load(QUrl(("file://"+Utils::getXMLDocPath()+"/http___www_mbsim-env_de_OpenMBV/index.html").c_str()));
+  QDesktopServices::openUrl(QUrl::fromLocalFile((MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"doc"/"http___www_mbsim-env_de_OpenMBV"/"index.html").string().c_str()));
 }
 
 void MainWindow::aboutOpenMBV() {
