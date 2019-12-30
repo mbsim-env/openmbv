@@ -2,11 +2,6 @@
  
 set -e
 
-if [ "_@XC_EXEC_PREFIX@" == "_wine" ]; then
-  # FIXME: octave on wine does not work for some onknown reason
-  exit 0
-fi
-
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 @XC_EXEC_PREFIX@ @OCTAVE@ -q $(@XC_PATH_CONVERT@ @abs_srcdir@/octavetest.m) | tee result.txt
 

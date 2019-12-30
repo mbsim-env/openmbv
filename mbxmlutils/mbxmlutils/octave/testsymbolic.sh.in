@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ "_@XC_EXEC_PREFIX@" == "_wine" ]; then
-  # FIXME: octave on wine does not work for some onknown reason
-  exit 0
-fi
-
 export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
 @XC_EXEC_PREFIX@ @OCTAVE@ -q -p @prefix@/lib -p @prefix@/bin -p @prefix@/share/mbxmlutils/octave @abs_srcdir@/testsymbolic.m > testsymbolic.out
 RET=$?
