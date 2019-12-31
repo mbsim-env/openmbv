@@ -59,10 +59,7 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
-    path home;
-    if(exists(getInstallPath()/PYTHON_SUBDIR/"site-packages"))
-      home=getInstallPath();
-    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string(), home.string());
+    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string());
 #if !defined(_WIN32) && !defined(NDEBUG)
     // sympy and numpy generates a overflow during initialization -> dislabe this FPE exception
     int fpeExcept=fedisableexcept(FE_OVERFLOW | FE_INVALID | FE_OVERFLOW);
