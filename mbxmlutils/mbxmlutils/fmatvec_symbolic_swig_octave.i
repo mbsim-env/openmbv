@@ -5,6 +5,7 @@
 %{
 #include <fmatvec/fmatvec.h>
 #include <fmatvec/ast.h>
+#include <fmatvec/stream.h>
 #include <sstream>
 %}
 
