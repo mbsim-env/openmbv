@@ -6,6 +6,7 @@
 #include <../mbxmlutils/../config.h>
 
 // normal includes
+#include <boost/bind.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/fmatvec.h>
@@ -485,12 +486,12 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
       im[n]=get(n);
   };
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter.get_symbol_table(), _1));
+  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, &octInit.interpreter.get_symbol_table(), std::placeholders::_1));
+  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter.get_symbol_table(), placeholders::_1));
+  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter.get_symbol_table(), placeholders::_1));
+  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter.get_symbol_table(), placeholders::_1));
 #else
-  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, _1, symbol_table::current_scope(), symbol_table::current_context()));
+  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, std::placeholders::_1, symbol_table::current_scope(), symbol_table::current_context()));
   //fillVars(gvn1, gvn2, ci->gvn, &symbol_table::global_varval);
   //fillVars(ufn1, ufn2, ci->ufn, &symbol_table::find_user_function);
   //fillVars(tlvn1, tlvn2, ci->tlvn, &symbol_table::top_level_varval);
@@ -574,12 +575,12 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
       set(i.first, i.second);
   };
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  restoreVars(ci->vn, bind(&symbol_table::assign, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
+  restoreVars(ci->vn, boost::bind(&symbol_table::assign, &octInit.interpreter.get_symbol_table(), boost::placeholders::_1, boost::placeholders::_2));
+  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter.get_symbol_table(), placeholders::_1, placeholders::_2));
+  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter.get_symbol_table(), placeholders::_1, placeholders::_2));
+  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter.get_symbol_table(), placeholders::_1, placeholders::_2));
 #else
-  restoreVars(ci->vn, bind(&symbol_table::assign, _1, _2, symbol_table::current_scope(), symbol_table::current_context(), false));
+  restoreVars(ci->vn, std::bind(&symbol_table::assign, std::placeholders::_1, std::placeholders::_2, symbol_table::current_scope(), symbol_table::current_context(), false));
   //restoreVars(ci->gvn, &symbol_table::global_assign);
   //restoreVars(ci->ufn, &symbol_table::install_user_function);
   //restoreVars(ci->tlvn, &symbol_table::top_level_assign);
