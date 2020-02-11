@@ -29,6 +29,11 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_TYPE_INT32_T
 
+dnl Include path for Boost
+AC_ARG_WITH([boost-inc],
+  [  --with-boost-inc=PATH  The path Boost include directory.],
+  [CPPFLAGS="$CPPFLAGS -I$withval"; DEFINES="$DEFINES -I$withval"])
+
 AC_CHECK_HEADERS([boost/filesystem.hpp],[],[AC_MSG_ERROR([Can not find boost/filesystem.hpp])])
 
 AC_ARG_WITH([boost-filesystem-lib],
