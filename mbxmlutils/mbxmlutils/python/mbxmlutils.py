@@ -33,11 +33,11 @@ def _serializeFunction(x):
     def serializeVertex(x):
       if x.func.__name__=="Dummy":
         uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
-        return "{s "+str(uid)+"}"
+        return str(uid)
       if isinstance(x, sympy.Integer):
-        return "{i "+str(x)+"}"
+        return str(x)
       if isinstance(x, sympy.Float) or isinstance(x, sympy.Rational):
-        return "{d "+str(x)+"}"
+        return str(x)
       opStr=_serializeFunction.opMap.get(x.func.__name__)
       if opStr==None:
         raise RuntimeError("Unknown operator "+x.func.__name__+": "+str(x))
@@ -46,19 +46,22 @@ def _serializeFunction(x):
         return serializeVertex(x.func(x.args[0], x.func(*x.args[1:]), evaluate=False));
       if opStr[1]!=nrArgs:
         raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
-      s="{o "+opStr[0]
+      s=opStr[0]+"("
+      first=True
       for op in x.args:
-        s+=" "+serializeVertex(op)
-      s+="}"
+        if not first: s+=","
+        s+=serializeVertex(op)
+        first=False
+      s+=")"
       return s
     s=serializeVertex(x)
     return s
 _serializeFunction.indepMap={}
 _serializeFunction.opMap={
-  'Add':   ("+", 2),
-# '':      ("-", 2),
-  'Mul':   ("*", 2),
-# '':      ("/", 2),
+  'Add':   ("plus", 2),
+# '':      ("minus", 2),
+  'Mul':   ("mult", 2),
+# '':      ("div", 2),
   'Pow':   ("pow", 2),
   'log':   ("log", 1),
   'sqrt':  ("sqrt", 1),

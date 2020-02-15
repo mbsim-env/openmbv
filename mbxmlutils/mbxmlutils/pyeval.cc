@@ -507,13 +507,13 @@ string PyEval::serializeFunction(const Value &x) const {
   };
 
   auto nrIndeps=CALLPY(PyTuple_Size, C(x))-1;
-  string ret("{ "+to_string(nrIndeps));
+  string ret("function(");
   for(size_t i=0; i<nrIndeps; ++i) {
     auto indep=CALLPYB(PyTuple_GetItem, C(x), i);
-    ret+=" "+serializeFunctionPy(indep);
+    ret+=serializeFunctionPy(indep)+", ";
   }
   auto dep=CALLPYB(PyTuple_GetItem, C(x), nrIndeps);
-  ret+=" "+serializeFunctionPy(dep)+" }";
+  ret+=serializeFunctionPy(dep)+")";
   return ret;
 }
 
