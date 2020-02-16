@@ -390,17 +390,17 @@ string OctEval::serializeFunction(const Value &x) const {
   auto c=C(x)->cell_value();
   int nrIndeps=c.dims()(0)-1;
   stringstream str;
-  str.precision(std::numeric_limits<double>::digits10+1);
-  str<<"function(";
+  str<<"f(";
   for(int i=0; i<nrIndeps; ++i) {
     string type=getSwigType(c(i));
     if(type=="IndependentVariable")
-      str<<*static_cast<fmatvec::IndependentVariable*>(getSwigPtr(c(i)))<<", ";
+      str<<(i==0?"":",")<<*static_cast<fmatvec::IndependentVariable*>(getSwigPtr(c(i)));
     else if(type=="VectorIndep")
-      str<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>*>(getSwigPtr(c(i)))<<", ";
+      str<<(i==0?"":",")<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>*>(getSwigPtr(c(i)));
     else
       throw runtime_error("Unknown type for independent variable in function: "+type);
   }
+  str<<")=";
   string type=getSwigType(c(nrIndeps));
   auto cc=C(c(nrIndeps));
   if(valueIsOfType(cc, ScalarType))
@@ -419,7 +419,6 @@ string OctEval::serializeFunction(const Value &x) const {
     str<<*static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
   else
     throw runtime_error("Unknown type for dependent variable in function: "+type);
-  str<<")";
   return str.str();
 }
 
