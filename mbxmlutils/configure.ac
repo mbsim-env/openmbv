@@ -161,6 +161,7 @@ SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
 AC_CHECKING(compiling a octave program)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <stdlib.h>
 #include <cstdlib>
