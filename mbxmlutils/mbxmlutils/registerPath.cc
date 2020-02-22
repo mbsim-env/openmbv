@@ -1,3 +1,7 @@
+// octave used M_PI which is not longer defined in newer compilers
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <octave/oct.h>
 #include "mbxmlutils/eval_static.h"
 

@@ -19,7 +19,7 @@ OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
 OpenMBV_la_LDFLAGS = -module -shrext .oct -avoid-version
-OpenMBV_la_CPPFLAGS = $(OCTAVE_FLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -I$(top_srcdir) -Wno-error=sign-compare -Wno-error=unused-function -Wno-sign-compare -Wno-unused-function -Wno-error=unused-value -Wno-unused-value -Wno-error=deprecated-declarations $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK
+OpenMBV_la_CPPFLAGS = $(OCTAVE_FLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -I$(top_srcdir) -Wno-error=sign-compare -Wno-error=unused-function -Wno-sign-compare -Wno-unused-function -Wno-error=unused-value -Wno-unused-value -Wno-error=deprecated-declarations $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES
 OpenMBV_la_LIBADD = $(OCTAVE_LIBS) $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS) ../../openmbvcppinterface/libopenmbvcppinterface.la
 
 
