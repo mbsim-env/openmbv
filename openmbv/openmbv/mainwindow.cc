@@ -102,7 +102,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
-  setWindowIcon(Utils::QIconCached(":/openmbv.svg"));
+  setWindowIcon(Utils::QIconCached((MBXMLUtils::getInstallPath()/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
 
   // init Utils
   Utils::initialize();
