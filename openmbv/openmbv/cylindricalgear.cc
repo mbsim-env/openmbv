@@ -40,11 +40,11 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
   double width = e->getWidth();
   double be = e->getHelixAngle();
   double al0 = atan(tan(e->getPressureAngle())/cos(be));
-  double m = e->getModule()/cos(be);
+  double m = e->getModule();
   double b = e->getBacklash();
   bool solid = e->getExternalToothed();
 
-  double d0 = m*z;
+  double d0 = m*z/cos(be);
   double p0 = M_PI*d0/z;
   double c = 0.167*m;
   double s0 = p0/2;
@@ -137,7 +137,7 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
     extrusion->spine.setDefault(FALSE);
 
     // set helix angle
-    dphi = width*tan(be)/rb/numw;
+    dphi = -width*tan(be)/rb/numw;
     extrusion->orientation.setNum(numw+1);
     SbRotation *A = extrusion->orientation.startEditing();
     for(int i=0; i<=numw; i++)

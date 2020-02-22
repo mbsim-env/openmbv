@@ -46,16 +46,16 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
 
   double p0 = M_PI*m;
   double c = 0.167*m;
-  double sb = p0/2 + 2*m*tan(al0) - b;
+  double sb = p0/2 + 2*e->getModule()*tan(al0) - b;
   vector<double> x(7), y(7);
   x[0] = -p0/2;
-  y[0] = -m-c;
+  y[0] = -e->getModule()-c;
   x[1] = -sb/2;
   y[1] = y[0];
   x[2] = x[1];
-  y[2] = -m;
-  x[3] = x[2]+2*m*tan(al0);
-  y[3] = m;
+  y[2] = -e->getModule();
+  x[3] = x[2]+2*e->getModule()*tan(al0);
+  y[3] = e->getModule();
   for (int i=6, j=1; i>=4; i--,j++) {
     x[i] = -x[j];
     y[i] = y[j];

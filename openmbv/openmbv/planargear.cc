@@ -46,7 +46,7 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   double d0 = m*nz;
   double r0 = d0/2;
   int numb = 10;
-  double du = 0.3/numb;
+  double du = e->getModule()/cos(al0)/numb;
   vector<double> x(numb+1), y(numb+1), z(numb+1);
 
   auto *cyl = new SoCylinder;
@@ -56,7 +56,7 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
 
   for(int j=0; j<2; j++) {
     int signj=j?-1:1;
-    double u = -0.15;
+    double u = -du/2;
     for (int i=0; i<=numb; i++) {
       x[i] = signj*u*sin(al0)*cos(be);
       y[i] = u*cos(al0);
