@@ -502,7 +502,7 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
       if(!(s[0]=='_' || ('a'<=s[0] && s[0]<='z') || ('A'<=s[0] && s[0]<='Z')))
         throw DOMEvalException("A variable name start with _, a-z or A-Z", a);
       for(size_t i=1; i<s.length(); i++)
-        if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z')))
+        if(!(s[i]=='_' || ('a'<=s[i] && s[i]<='z') || ('A'<=s[i] && s[i]<='Z') || ('0'<=s[i] && s[i]<='9')))
           throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", a);
       ret=create(s);
     }
