@@ -31,15 +31,6 @@
   #define xx_varval octInit.interpreter.get_symbol_table().varval
   #define xx_isreal isreal
   #define xx_iscell iscell
-#elif MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=2
-  #include <octave/ovl.h>
-  #include <octave/interpreter.h>
-  #define xx_symbol_table symbol_table::
-  #define xx_find_function symbol_table::find_function
-  #define xx_is_variable symbol_table::is_variable
-  #define xx_varval symbol_table::varval
-  #define xx_isreal is_real_type
-  #define xx_iscell is_cell
 #else
   // octave includes: this will include the octave/config.h hence we must take care
   // about redefintions of preprocessor defines
@@ -78,7 +69,6 @@
 #include <octave/parse.h>
 #include <octave/defaults.h>
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-#elif MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=2
 #else
   // pop the above macros
   #pragma pop_macro("PACKAGE")

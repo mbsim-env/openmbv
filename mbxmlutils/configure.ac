@@ -116,6 +116,17 @@ AC_SUBST([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X])
 X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
 AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X], [Octave version])
 AC_SUBST([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X])
+# check octave version
+if test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -gt 4004; then
+  AC_MSG_WARN([Using untested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.
+Use at your own risk.])
+elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004 -o \
+          $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 3008; then
+  AC_MSG_NOTICE([Using tested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.])
+else
+  AC_MSG_ERROR([octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION is not supported.
+Supported and tested are 3.8 and 4.4. Versions > 4.4 are untested, use at your own risk.])
+fi
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
 MKOCTFILE_LIBS="$(echo \
