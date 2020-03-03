@@ -153,12 +153,12 @@ OctInit::OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings during octave initialization
 
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-    if(interpreter.execute()!=0)
-      throw runtime_error("Cannot execute octave interpreter.");
-#else
     // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
-    bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
+    #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+      bfs::path octave_prefix(config::octave_home());
+    #else
+      bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
+    #endif
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
       octave_prefix=getenv("OCTAVE_HOME");
     else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
@@ -169,6 +169,10 @@ OctInit::OctInit() {
       putenv((char*)OCTAVE_HOME.c_str());
     }
 
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+    if(interpreter.execute()!=0)
+      throw runtime_error("Cannot execute octave interpreter.");
+#else
     // initialize octave
     static vector<char*> octave_argv;
     octave_argv.resize(6);
