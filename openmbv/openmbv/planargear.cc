@@ -42,10 +42,9 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
   double w = e->getWidth();
-  double h = e->getHeight();
+  double h = e->getHeight()-2*e->getModule();
 
-  double d0 = m*nz;
-  double r0 = d0/2;
+  double r0 = m*nz/2;
   double dphi = (M_PI/2-b/m)/nz;
 
   vector<double> x(8), y(8), z(8);
