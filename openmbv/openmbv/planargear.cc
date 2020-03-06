@@ -38,7 +38,7 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   // read XML
   int nz = e->getNumberOfTeeth();
   double be = e->getHelixAngle();
-  double al0 = e->getPressureAngle();
+  double al = e->getPressureAngle();
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
   double w = e->getWidth();
@@ -48,33 +48,35 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   double dphi = (M_PI/2-b/m)/nz;
 
   vector<double> x(8), y(8), z(8);
+  float pts[x.size()][3];
   for(int j=0; j<2; j++) {
     int signj=j?-1:1;
-    double eta = -e->getModule()/cos(al0);
+    double eta = -e->getModule()/cos(al);
     double s = w/2;
-    double xi = (s-eta*sin(al0)*sin(be))/cos(be);
-    x[4*j+0] = -eta*sin(al0)*cos(be)+xi*sin(be);
-    y[4*j+0] = signj*eta*cos(al0);
-    z[4*j+0] = eta*sin(al0)*sin(be)+r0+xi*cos(be);
+    double xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+0] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+0] = signj*eta*cos(al);
+    z[4*j+0] = eta*sin(al)*sin(be)+r0+xi*cos(be);
     s = -w/2;
-    xi = (s-eta*sin(al0)*sin(be))/cos(be);
-    x[4*j+1] = -eta*sin(al0)*cos(be)+xi*sin(be);
-    y[4*j+1] = signj*eta*cos(al0);
-    z[4*j+1] = eta*sin(al0)*sin(be)+r0+xi*cos(be);
-    eta = e->getModule()/cos(al0);
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+1] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+1] = signj*eta*cos(al);
+    z[4*j+1] = eta*sin(al)*sin(be)+r0+xi*cos(be);
+    eta = e->getModule()/cos(al);
     s = -w/2;
-    xi = (s-eta*sin(al0)*sin(be))/cos(be);
-    x[4*j+2] = -eta*sin(al0)*cos(be)+xi*sin(be);
-    y[4*j+2] = signj*eta*cos(al0);
-    z[4*j+2] = eta*sin(al0)*sin(be)+r0+xi*cos(be);
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+2] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+2] = signj*eta*cos(al);
+    z[4*j+2] = eta*sin(al)*sin(be)+r0+xi*cos(be);
     s = w/2;
-    xi = (s-eta*sin(al0)*sin(be))/cos(be);
-    x[4*j+3] = -eta*sin(al0)*cos(be)+xi*sin(be);
-    y[4*j+3] = signj*eta*cos(al0);
-    z[4*j+3] = eta*sin(al0)*sin(be)+r0+xi*cos(be);
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+3] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+3] = signj*eta*cos(al);
+    z[4*j+3] = eta*sin(al)*sin(be)+r0+xi*cos(be);
     for(int i=4*j; i<4*j+4; i++) {
-      x[i] = cos(dphi)*x[i] + signj*sin(dphi)*z[i];
-      z[i] = -signj*sin(dphi)*x[i] + cos(dphi)*z[i];
+      pts[i][0] = cos(dphi)*x[i] + signj*sin(dphi)*z[i];
+      pts[i][1] = y[i];
+      pts[i][2] = -signj*sin(dphi)*x[i] + cos(dphi)*z[i];
     }
   }
 
@@ -103,13 +105,6 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   indices[22] = 2;
   indices[23] = 1;
   indices[24] = -1;
-
-  float pts[x.size()][3];
-  for(unsigned int i=0; i<x.size(); i++) {
-    pts[i][0] = x[i];
-    pts[i][1] = y[i];
-    pts[i][2] = z[i];
-  }
 
   for(int k=0; k<nz; k++) {
     auto *points = new SoCoordinate3;
