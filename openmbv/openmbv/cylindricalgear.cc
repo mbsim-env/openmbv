@@ -19,7 +19,8 @@
 
 #include "config.h"
 #include "cylindricalgear.h"
-#include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
+#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/cylindricalgear.h"
@@ -36,137 +37,207 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
-  int z = e->getNumberOfTeeth();
-  double width = e->getWidth();
+  int nz = e->getNumberOfTeeth();
   double be = e->getHelixAngle();
-  double al0 = atan(tan(e->getPressureAngle())/cos(be));
-  double m = e->getModule();
+  double al = e->getPressureAngle();
+  double m = e->getModule()/cos(be);
   double b = e->getBacklash();
-  bool solid = e->getExternalToothed();
+  double w = e->getWidth();
 
-  double d0 = m*z/cos(be);
-  double p0 = M_PI*d0/z;
-  double c = 0.167*m;
-  double s0 = p0/2;
-  double df = d0 - 2*(solid?(m+c):-(m+c));
-  double da = d0 + 2*(solid?m:-m);
-  double db = d0*cos(al0);
-  double phi0 = tan(al0) - al0;
-  double ala = acos(db/da);
-  double alf = acos(db/df);
-  double phia = tan(ala) - ala;
-  double phif = tan(alf) - alf;
-  double sb = db*(s0/d0+phi0)-(solid?b*cos(al0):-b*cos(al0));
-  double deb = 2*sb/db;
-  double ga0 = 2*p0/d0;
-  double rb = db/2;
-  double ra = da/2;
-  double rf = df/2;
-  int numb = 5;
-  double dphi = (ga0-deb)/2/numb;
-  double phi = -ga0/2;
-  vector<double> x(6*numb-1), y(6*numb-1);
-  double R = solid?rf:rb;
-  for (int i=0; i<numb; i++) {
-    x[i] = R*sin(phi);
-    y[i] = R*cos(phi);
-    phi += dphi;
-  }
-  dphi = (solid?(phia+ala):(phif+alf))/numb;
-  phi = 0;
-  for (int i=numb; i<2*numb; i++) {
-    x[i] = rb*(cos(-deb/2)*(sin(phi)-cos(phi)*phi) + sin(-deb/2)*(cos(phi)+sin(phi)*phi));
-    y[i] = rb*(-sin(-deb/2)*(sin(phi)-cos(phi)*phi) + cos(-deb/2)*(cos(phi)+sin(phi)*phi));
-    phi += dphi;
-  }
-  double Phi = solid?phia:phif;
-  dphi = (deb/2-Phi)/numb;
-  phi = Phi-deb/2;
-  R = solid?ra:rf;
-  for (int i=2*numb; i<3*numb; i++) {
-    x[i] = R*sin(phi);
-    y[i] = R*cos(phi);
-    phi += dphi;
-  }
-  for (int i=6*numb-2, j=1; i>=3*numb; i--,j++) {
-    x[i] = -x[j];
-    y[i] = y[j];
-  }
-  vector<double> X(z*x.size());
-  vector<double> Y(X.size());
-  for(int i=0; i<z; i++) {
-    int k = i*x.size();
-    for(unsigned int j=0; j<x.size(); j++) {
-      X[k+j] = cos(i*ga0)*x[j] + sin(i*ga0)*y[j];
-      Y[k+j] = -sin(i*ga0)*x[j] + cos(i*ga0)*y[j];
+  int signe = e->getExternalToothed()?1:-1;
+  double r0 = m*nz/2;
+  double dphi = (M_PI/2-signe*b/m)/nz;
+  double alq = atan(tan(al)/cos(be));
+
+  double phiO[2], phiI[2];
+  double d = pow(cos(be),2)+pow(sin(be)*sin(al),2);
+  double a = pow(cos(be)*cos(al),2);
+
+  double r = r0*cos(alq);
+  double s = w/2;
+  b = -2*cos(al)*cos(be)*(s*cos(al)*sin(be)+r0*sin(al));
+  double c = s*s*pow(cos(al)*sin(be),2)+(r0*r0-r*r)*d+2*s*r0*sin(al)*sin(be)*cos(al);
+  phiO[0] = fabs(b+sqrt(fabs(b*b-4*a*c)))/2/a/r0;
+
+  s = -w/2;
+  b = -2*cos(al)*cos(be)*(s*cos(al)*sin(be)+r0*sin(al));
+  c = s*s*pow(cos(al)*sin(be),2)+(r0*r0-r*r)*d+2*s*r0*sin(al)*sin(be)*cos(al);
+  phiI[0] = fabs(b+sqrt(fabs(b*b-4*a*c)))/2/a/r0;
+
+  r = r0+e->getModule();
+  s = w/2;
+  b = -2*cos(al)*cos(be)*(s*cos(al)*sin(be)+r0*sin(al));
+  c = s*s*pow(cos(al)*sin(be),2)+(r0*r0-r*r)*d+2*s*r0*sin(al)*sin(be)*cos(al);
+  phiO[1] = fabs(b+sqrt(fabs(b*b-4*a*c)))/2/a/r0;
+
+  s = -w/2;
+  b = -2*cos(al)*cos(be)*(s*cos(al)*sin(be)+r0*sin(al));
+  c = s*s*pow(cos(al)*sin(be),2)+(r0*r0-r*r)*d+2*s*r0*sin(al)*sin(be)*cos(al);
+  phiI[1] = fabs(b+sqrt(fabs(b*b-4*a*c)))/2/a/r0;
+
+  double etaMaxO[2], etaMaxI[2], etaMinO[2], etaMinI[2];
+  etaMinO[0] = -phiO[0];
+  etaMinI[0] = -phiI[0];
+  etaMaxO[0] = phiO[1];
+  etaMaxI[0] = phiI[1];
+  etaMinO[1] = -phiI[1];
+  etaMinI[1] = -phiO[1];
+  etaMaxO[1] = phiI[0];
+  etaMaxI[1] = phiO[0];
+
+  int nf = 8;
+  int nn = 2*nf;
+  double x[2*nn], y[2*nn], z[2*nn];
+  for(int j=0; j<2; j++) {
+    int signj=j?-1:1;
+
+    double s = w/2;
+    for(int k=0; k<nf; k++) {
+      double eta = etaMinO[j]+(etaMaxO[j]-etaMinO[j])/(nf-1)*k;
+      double xi = signe*(-r0*eta*pow(sin(al),2)*sin(be)+s*cos(be))/(pow(sin(be)*sin(al),2)+pow(cos(be),2));
+      double x_ = -r0*eta;
+      double l = (x_/cos(be)-signe*xi*tan(be))*sin(al);
+      double a = x_-l*sin(al)*cos(be)-signe*xi*sin(be);
+      double b = signj*l*cos(al)-r0;
+      double c = -l*sin(al)*sin(be)+signe*xi*cos(be);
+      x[nn*j+k] = a*cos(eta)-b*sin(eta);
+      y[nn*j+k] = a*sin(eta)+b*cos(eta);
+      z[nn*j+k] = c;
+    }
+
+    s = -w/2;
+    for(int k=0; k<nf; k++) {
+      double eta = etaMinI[j]+(etaMaxI[j]-etaMinI[j])/(nf-1)*k;
+      double xi = signe*(-r0*eta*pow(sin(al),2)*sin(be)+s*cos(be))/(pow(sin(be)*sin(al),2)+pow(cos(be),2));
+      double x_ = -r0*eta;
+      double l = (x_/cos(be)-signe*xi*tan(be))*sin(al);
+      double a = x_-l*sin(al)*cos(be)-signe*xi*sin(be);
+      double b = signj*l*cos(al)-r0;
+      double c = -l*sin(al)*sin(be)+signe*xi*cos(be);
+      x[nn*j+nf+k] = a*cos(eta)-b*sin(eta);
+      y[nn*j+nf+k] = a*sin(eta)+b*cos(eta);
+      z[nn*j+nf+k] = c;
     }
   }
 
-  if(solid) {
-    auto *r = new SoRotation;
-    soSepRigidBody->addChild(r);
-    r->rotation.setValue(SbVec3f(0,0,1),M_PI);
+  int ns = 2*nn+4;
+  int np = nz*ns+2*nz+2;
+  float pts[np][3];
 
-    auto *t = new SoTranslation;
-    soSepRigidBody->addChild(t);
-    t->translation.setValue(0,0,width/2);
+  int nii = e->getExternalToothed()?(2*nn+2*(nf-1)*5+5*5+2*6):(2*(nf-1)*5+5*5);
+  int ni = nz*nii;
+  int indices[ni];
 
-    r = new SoRotation;
-    soSepRigidBody->addChild(r);
-    r->rotation.setValue(SbVec3f(1,0,0),-M_PI/2);
-
-    auto *extrusion = new SoVRMLExtrusion;
-    soSepRigidBody->addChild(extrusion);
-
-    // cross section
-    extrusion->crossSection.setNum(X.size()+1);
-    SbVec2f *cs = extrusion->crossSection.startEditing();
-    for(size_t i=0;i<X.size();i++) cs[i] = SbVec2f(X[i], Y[i]); // clockwise in local coordinate system
-    cs[X.size()] =  SbVec2f(X[0], Y[0]); // closed cross section
-    extrusion->crossSection.finishEditing();
-    extrusion->crossSection.setDefault(FALSE);
-
-    // set spine
-    int numw = 5;
-    double dw = width/numw;
-    extrusion->spine.setNum(numw+1);
-    SbVec3f *sp = extrusion->spine.startEditing();
-    for(int i=0; i<=numw; i++)
-      sp[i] = SbVec3f(0,i*dw,0);
-    extrusion->spine.finishEditing();
-    extrusion->spine.setDefault(FALSE);
-
-    // set helix angle
-    dphi = -width*tan(be)/rb/numw;
-    extrusion->orientation.setNum(numw+1);
-    SbRotation *A = extrusion->orientation.startEditing();
-    for(int i=0; i<=numw; i++)
-      A[i] = SbRotation(SbVec3f(0,1,0),-numw*dphi/2+i*dphi);
-    extrusion->orientation.finishEditing();
-    extrusion->orientation.setDefault(FALSE);
-
-    // additional flags
-    //  extrusion->solid=TRUE; // backface culling
-    extrusion->convex=FALSE; // only convex polygons included in visualisation
-    //  extrusion->ccw=TRUE; // vertex ordering counterclockwise?
-    //  extrusion->beginCap=TRUE; // front side at begin of the spine
-    //  extrusion->endCap=TRUE; // front side at end of the spine
-    extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
-  }
-  else {
-    float pts[X.size()][3];
-    for(unsigned int i=0; i<X.size(); i++) {
-      pts[i][0] = X[i];
-      pts[i][1] = Y[i];
-      pts[i][2] = 0;
+  int l=0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][0] = 0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][1] = 0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][2] = w/2;
+  pts[(nz-1)*ns+2*nn+5+2*nz][0] = 0;
+  pts[(nz-1)*ns+2*nn+5+2*nz][1] = 0;
+  pts[(nz-1)*ns+2*nn+5+2*nz][2] = -w/2;
+  for(int v=0; v<nz; v++) {
+    double phi = 2*M_PI/nz*v;
+    pts[(nz-1)*ns+2*nn+4+v][0] = sin(phi-M_PI/nz)*(r0-e->getModule());
+    pts[(nz-1)*ns+2*nn+4+v][1] = -cos(phi-M_PI/nz)*(r0-e->getModule());
+    pts[(nz-1)*ns+2*nn+4+v][2] = w/2;
+    pts[(nz-1)*ns+2*nn+4+nz+v][0] = pts[(nz-1)*ns+2*nn+4+v][0];
+    pts[(nz-1)*ns+2*nn+4+nz+v][1] = pts[(nz-1)*ns+2*nn+4+v][1];
+    pts[(nz-1)*ns+2*nn+4+nz+v][2] = -w/2;
+  for(int j=0; j<2; j++) {
+    int signj=j?-1:1;
+    for(int i=nn*j; i<nn*j+nn; i++) {
+      pts[v*ns+i][0] = cos(phi-signj*dphi)*x[i] - sin(phi-signj*dphi)*y[i];
+      pts[v*ns+i][1] = sin(phi-signj*dphi)*x[i] + cos(phi-signj*dphi)*y[i];
+      pts[v*ns+i][2] = z[i];
     }
-    auto *points = new SoCoordinate3;
-    auto *line = new SoLineSet;
-    points->point.setValues(0, X.size(), pts);
-    line->numVertices.setValue(X.size());
-    soSepRigidBody->addChild(points);
-    soSepRigidBody->addChild(line);
+    pts[v*ns+2*nn+2*j][0] = pts[v*ns+(3*nf-1)*j][0]*(r0-e->getModule())/(r0*cos(alq));
+    pts[v*ns+2*nn+2*j][1] = pts[v*ns+(3*nf-1)*j][1]*(r0-e->getModule())/(r0*cos(alq));
+    pts[v*ns+2*nn+2*j][2] = w/2;
+    pts[v*ns+2*nn+2*j+1][0] = pts[v*ns+(3*nf-1)*j+nf][0]*(r0-e->getModule())/(r0*cos(alq));
+    pts[v*ns+2*nn+2*j+1][1] = pts[v*ns+(3*nf-1)*j+nf][1]*(r0-e->getModule())/(r0*cos(alq));
+    pts[v*ns+2*nn+2*j+1][2] = -w/2;
   }
+
+  // left
+  indices[l++] = v*ns+2*nn+1;
+  indices[l++] = v*ns+nf;
+  indices[l++] = v*ns+0;
+  indices[l++] = v*ns+2*nn;
+  indices[l++] = -1;
+  for(int k=0; k<nf-1; k++) {
+    indices[l++] = v*ns+nf+k;
+    indices[l++] = v*ns+nf+k+1;
+    indices[l++] = v*ns+nf-(nf-(k+1));
+    indices[l++] = v*ns+nf-(nf-k);
+    indices[l++] = -1;
+  }
+  // right
+  indices[l++] = v*ns+4*nf-1;
+  indices[l++] = v*ns+2*nn+3;
+  indices[l++] = v*ns+2*nn+2;
+  indices[l++] = v*ns+3*nf-1;
+  indices[l++] = -1;
+  for(int k=0; k<nf-1; k++) {
+    indices[l++] = v*ns+3*nf+k;
+    indices[l++] = v*ns+3*nf+k+1;
+    indices[l++] = v*ns+3*nf-(nf-(k+1));
+    indices[l++] = v*ns+3*nf-(nf-k);
+    indices[l++] = -1;
+  }
+  // top
+  indices[l++] = v*ns+3*nf;
+  indices[l++] = v*ns+2*nf;
+  indices[l++] = v*ns+nf-1;
+  indices[l++] = v*ns+2*nf-1;
+  indices[l++] = -1;
+  if(e->getExternalToothed()) {
+  // front
+  indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
+  indices[l++] = (nz-1)*ns+2*nn+4+v;
+  indices[l++] = v*ns+2*nn;
+  for(int k=0; k<nf; k++)
+    indices[l++] = v*ns+k;
+  for(int k=0; k<nf; k++)
+    indices[l++] = v*ns+2*nf+k;
+  indices[l++] = v*ns+2*nn+2;
+  indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
+  indices[l++] = -1;
+  // back
+  indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
+  indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
+  indices[l++] = v*ns+2*nn+3;
+  for(int k=0; k<nf; k++)
+    indices[l++] = v*ns+4*nf-(k+1);
+  for(int k=0; k<nf; k++)
+    indices[l++] = v*ns+2*nf-(k+1);
+  indices[l++] = v*ns+2*nn+1;
+  indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
+  indices[l++] = -1;
+  }
+  //
+  indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
+  indices[l++] = v*ns+2*nn+1;
+  indices[l++] = v*ns+2*nn;
+  indices[l++] = (nz-1)*ns+2*nn+4+v;
+  indices[l++] = -1;
+  //
+  indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
+  indices[l++] = v*ns+2*nn+2;
+  indices[l++] = v*ns+2*nn+3;
+  indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
+  indices[l++] = -1;
+  }
+
+  SoShapeHints *hints = new SoShapeHints;
+  hints->vertexOrdering = e->getExternalToothed()?SoShapeHints::COUNTERCLOCKWISE:SoShapeHints::CLOCKWISE;
+  hints->shapeType = SoShapeHints::SOLID;
+  soSepRigidBody->addChild(hints);
+  auto *points = new SoCoordinate3;
+  auto *face = new SoIndexedFaceSet;
+  points->point.setValues(0, np, pts);
+  face->coordIndex.setValues(0, ni, indices);
+  soSepRigidBody->addChild(points);
+  soSepRigidBody->addChild(face);
 }
  
 void CylindricalGear::createProperties() {
