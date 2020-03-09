@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "rack.h"
-#include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
+#include <Inventor/nodes/SoCube.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/rack.h"
@@ -36,84 +36,94 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
-  int z = e->getNumberOfTeeth();
-  double h = e->getHeight();
-  double width = e->getWidth();
+  int nz = e->getNumberOfTeeth();
   double be = e->getHelixAngle();
-  double al0 = atan(tan(e->getPressureAngle())/cos(be));
+  double al = e->getPressureAngle();
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
+  double w = e->getWidth();
+  double h = e->getHeight()-2*e->getModule();
 
-  double p0 = M_PI*m;
-  double c = 0.167*m;
-  double sb = p0/2 + 2*e->getModule()*tan(al0) - b;
-  vector<double> x(7), y(7);
-  x[0] = -p0/2;
-  y[0] = -e->getModule()-c;
-  x[1] = -sb/2;
-  y[1] = y[0];
-  x[2] = x[1];
-  y[2] = -e->getModule();
-  x[3] = x[2]+2*e->getModule()*tan(al0);
-  y[3] = e->getModule();
-  for (int i=6, j=1; i>=4; i--,j++) {
-    x[i] = -x[j];
-    y[i] = y[j];
-  }
-  vector<double> X(z*x.size()+3);
-  vector<double> Y(X.size()+3);
-  for(int i=0; i<z; i++) {
-    int k = i*x.size();
-    for(unsigned int j=0; j<x.size(); j++) {
-      X[k+j] = x[j]+i*p0;
-      Y[k+j] = y[j];
+  double dx = (m*M_PI/2-b)/2;
+
+  vector<double> x(8), y(8), z(8);
+  float pts[x.size()][3];
+  for(int j=0; j<2; j++) {
+    int signj=j?-1:1;
+    double eta = -e->getModule()/cos(al);
+    double s = w/2;
+    double xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+0] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+0] = signj*eta*cos(al);
+    z[4*j+0] = eta*sin(al)*sin(be)+xi*cos(be);
+    s = -w/2;
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+1] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+1] = signj*eta*cos(al);
+    z[4*j+1] = eta*sin(al)*sin(be)+xi*cos(be);
+    eta = e->getModule()/cos(al);
+    s = -w/2;
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+2] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+2] = signj*eta*cos(al);
+    z[4*j+2] = eta*sin(al)*sin(be)+xi*cos(be);
+    s = w/2;
+    xi = (s-eta*sin(al)*sin(be))/cos(be);
+    x[4*j+3] = -eta*sin(al)*cos(be)+xi*sin(be);
+    y[4*j+3] = signj*eta*cos(al);
+    z[4*j+3] = eta*sin(al)*sin(be)+xi*cos(be);
+    for(int i=4*j; i<4*j+4; i++) {
+      pts[i][0] = x[i] + signj*dx;
+      pts[i][1] = y[i];
+      pts[i][2] = z[i];
     }
   }
-  X[X.size()-3] = X[X.size()-4]+(p0-sb)/2;
-  Y[X.size()-3] = Y[X.size()-4];
-  X[X.size()-2] = X[X.size()-3];
-  Y[X.size()-2] = Y[X.size()-3]-(h-2*m);
-  X[X.size()-1] = X[0];
-  Y[X.size()-1] = Y[X.size()-2];
 
+  int indices[25];
+  for(int i=0; i<4; i++)
+    indices[i] = i;
+  indices[4] = -1;
+  for(int i=5; i<9; i++)
+    indices[i] = i-1;
+  indices[9] = -1;
+  // top
+  indices[10] = 5;
+  indices[11] = 4;
+  indices[12] = 3;
+  indices[13] = 2;
+  indices[14] = -1;
+  // front
+  indices[15] = 0;
+  indices[16] = 3;
+  indices[17] = 4;
+  indices[18] = 7;
+  indices[19] = -1;
+  // back
+  indices[20] = 6;
+  indices[21] = 5;
+  indices[22] = 2;
+  indices[23] = 1;
+  indices[24] = -1;
+
+  for(int k=0; k<nz; k++) {
+    auto *points = new SoCoordinate3;
+    auto *face = new SoIndexedFaceSet;
+    points->point.setValues(0, x.size(), pts);
+    face->coordIndex.setValues(0, 25, indices);
+    soSepRigidBody->addChild(points);
+    soSepRigidBody->addChild(face);
+    auto *t = new SoTranslation;
+    soSepRigidBody->addChild(t);
+    t->translation.setValue(SbVec3f(m*M_PI,0,0));
+  }
   auto *t = new SoTranslation;
   soSepRigidBody->addChild(t);
-  t->translation.setValue(0,0,width/2);
-
-  auto *r = new SoRotation;
-  soSepRigidBody->addChild(r);
-  r->rotation.setValue(SbVec3f(1,0,0),-M_PI/2);
-
-  auto *extrusion = new SoVRMLExtrusion;
-  soSepRigidBody->addChild(extrusion);
-
-  // cross section
-  extrusion->crossSection.setNum(X.size()+1);
-  SbVec2f *cs = extrusion->crossSection.startEditing();
-  for(size_t i=0;i<X.size();i++) cs[i] = SbVec2f(X[i], Y[i]); // clockwise in local coordinate system
-  cs[X.size()] =  SbVec2f(X[0], Y[0]); // closed cross section
-  extrusion->crossSection.finishEditing();
-  extrusion->crossSection.setDefault(FALSE);
-
-  // set spine
-  int numw = 2;
-  double dw = width/numw;
-//  double dx = dw*tan(be);
-  extrusion->spine.setNum(numw+1);
-  SbVec3f *sp = extrusion->spine.startEditing();
-  for(int i=0; i<=numw; i++)
-    sp[i] = SbVec3f(0,i*dw,0);
-//    sp[i] = SbVec3f(-numw*dx/2+i*dx,i*dw,0);
-  extrusion->spine.finishEditing();
-  extrusion->spine.setDefault(FALSE);
-
-  // additional flags
-  //  extrusion->solid=TRUE; // backface culling
-  extrusion->convex=FALSE; // only convex polygons included in visualisation
-  //  extrusion->ccw=TRUE; // vertex ordering counterclockwise?
-  //  extrusion->beginCap=TRUE; // front side at begin of the spine
-  //  extrusion->endCap=TRUE; // front side at end of the spine
-  extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
+  t->translation.setValue(SbVec3f(-(2*nz+2)*m*M_PI/4,-e->getModule()-h/2,0));
+  auto *cube = new SoCube;
+  soSepRigidBody->addChild(cube);
+  cube->width.setValue(nz*m*M_PI);
+  cube->height.setValue(h);
+  cube->depth.setValue(w);
 }
  
 void Rack::createProperties() {
