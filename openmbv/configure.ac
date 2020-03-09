@@ -29,6 +29,11 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 AC_TYPE_INT32_T
 
+dnl Include path for Boost
+AC_ARG_WITH([boost-inc],
+  [  --with-boost-inc=PATH  The path Boost include directory.],
+  [CPPFLAGS="$CPPFLAGS -I$withval"; DEFINES="$DEFINES -I$withval"])
+
 AC_CHECK_HEADERS([boost/filesystem.hpp],[],[AC_MSG_ERROR([Can not find boost/filesystem.hpp])])
 
 AC_ARG_WITH([boost-filesystem-lib],
@@ -55,13 +60,11 @@ AM_CONDITIONAL([COND_WIN32], [test "_$WIN32" = "_yes"])
 
 dnl Qt
 PKG_CHECK_MODULES(QT, [Qt5Core >= 5.6 Qt5Gui >= 5.6 Qt5Widgets >= 5.6 Qt5Svg >= 5.6])
-dnl get moc, uic and rcc
+dnl get moc and uic
 test -z $MOC && { MOC=$(pkg-config --variable=host_bins Qt5Core)/moc || MOC=moc; }
 test -z $UIC && { UIC=$(pkg-config --variable=host_bins Qt5Core)/uic || UIC=uic; }
-test -z $RCC && { RCC=$(pkg-config --variable=host_bins Qt5Core)/rcc || RCC=rcc; }
 AC_SUBST([MOC])
 AC_SUBST([UIC])
-AC_SUBST([RCC])
 
 AC_ARG_WITH(qmake, [  --with-qmake=PATH qmake program],
   [QMAKE="$withval"], [QMAKE="qmake"])

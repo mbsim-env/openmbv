@@ -10,6 +10,12 @@
 #include <fmatvec/toString.h>
 #include <mbxmlutilshelper/utils.h>
 #include "mbxmlutilshelper/shared_library.h"
+#include <boost/phoenix/object/construct.hpp>
+#include <boost/spirit/include/qi_symbols.hpp>
+#include <boost/spirit/include/qi_rule.hpp>
+#include <boost/spirit/include/qi_char_.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -556,29 +562,31 @@ Eval::Value Eval::handleUnit(const xercesc::DOMElement *e, const Value &ret) {
 }
 
 string Eval::partialStringToString(const string &str, const DOMElement *e) const {
-  string s=str;
-  size_t i;
-  while((i=s.find('{'))!=string::npos) {
-    size_t j=i;
-    do {
-      j=s.find('}', j+1);
-      if(j==string::npos) throw DOMEvalException("no matching } found in attriubte.", e);
-    }
-    while(s[j-1]=='\\'); // skip } which is quoted with backslash
-    string evalStr=s.substr(i+1,j-i-1);
-    // remove the backlash quote from { and }
-    size_t k=0;
-    while((k=evalStr.find('{', k))!=string::npos) {
-      if(k==0 || evalStr[k-1]!='\\') throw DOMEvalException("{ must be quoted with a backslash inside {...}.", e);
-      evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-    }
-    k=0;
-    while((k=evalStr.find('}', k))!=string::npos) {
-      if(k==0 || evalStr[k-1]!='\\') throw DOMEvalException("} must be quoted with a backslash inside {...}.", e);
-      evalStr=evalStr.substr(0, k-1)+evalStr.substr(k);
-    }
-    
-    Value ret=fullStringToValue(evalStr, e);
+  namespace qi = boost::spirit::qi;
+  namespace phx = boost::phoenix;
+  using It = string::const_iterator;
+
+  static bool init=false;
+  vector<char> start;
+  static qi::rule<It, pair<vector<char>, vector<char>>()> exprText;
+  if(!init) {
+    init=true;
+    static qi::symbols<char, char> esc;
+    esc.add("\\{", '{');
+    esc.add("\\}", '}');
+    exprText = ('{' >> *(esc | (qi::char_ - '}')) >> '}' >> *(qi::char_ - '{'))
+               [qi::_val=phx::construct<pair<vector<char>, vector<char>>>(qi::_1, qi::_2)];
+  }
+  qi::rule<It, vector<pair<vector<char>, vector<char>>>()> name;
+  name = (*(qi::char_ - '{'))[phx::ref(start)=qi::_1] >> (*exprText)[qi::_val=qi::_1] >> qi::eoi;
+  vector<pair<vector<char>, vector<char>>> parsedContent;
+  if(!qi::parse(str.begin(), str.end(), name, parsedContent))
+    throw runtime_error("Cannot parse the partial evaluation string:\n"+str);
+  // init s with the text before the first expression
+  string s(start.begin(), start.end());
+  for(auto &exprName: parsedContent) {
+    // eval expression
+    Value ret=fullStringToValue(string(exprName.first.begin(), exprName.first.end()), e);
     string subst;
     try {
       if(valueIsOfType(ret, ScalarType)) {
@@ -594,7 +602,9 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
       else
         throw runtime_error("Partial evaluations can only be of type scalar or string.");
     } RETHROW_AS_DOMEVALEXCEPTION(e);
-    s=s.substr(0,i)+subst+s.substr(j+1);
+    s+=subst;
+    // append text after expression^
+    s+=string(exprName.second.begin(), exprName.second.end());
   }
   return s;
 }
