@@ -86,7 +86,9 @@ def getDoNotAdd():
 
   # for windows do not add the Windows system dlls (= fake dlls on wine)
   notAdd.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
+  notAdd.update(glob.glob("/usr/lib/wine/fakedlls/*")) # read wine fake dlls
   notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
+  notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/syswow64/*")) # copy in HOME dir
 
   return notAdd
 

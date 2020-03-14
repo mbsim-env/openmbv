@@ -1,3 +1,7 @@
+// octave used M_PI which is not longer defined in newer compilers
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 // includes are somehow tricky with octave, see also Makefile.am
 
 // include config.h
@@ -6,6 +10,7 @@
 #include <../mbxmlutils/../config.h>
 
 // normal includes
+#include <boost/bind.hpp>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/fmatvec.h>
@@ -20,10 +25,10 @@
   #undef OCTAVE_USE_DEPRECATED_FUNCTIONS
   #include <octave/ovl.h>
   #include <octave/interpreter.h>
-  #define xx_symbol_table octInit.interpreter.get_symbol_table().
-  #define xx_find_function octInit.interpreter.get_symbol_table().find_function
-  #define xx_is_variable octInit.interpreter.get_symbol_table().current_scope().is_variable
-  #define xx_varval octInit.interpreter.get_symbol_table().varval
+  #define xx_symbol_table octInit.interpreter->get_symbol_table().
+  #define xx_find_function octInit.interpreter->get_symbol_table().find_function
+  #define xx_is_variable octInit.interpreter->get_symbol_table().current_scope().is_variable
+  #define xx_varval octInit.interpreter->get_symbol_table().varval
   #define xx_isreal isreal
   #define xx_iscell iscell
 #else
@@ -140,7 +145,7 @@ class OctInit {
     ~OctInit();
     string initialPath;
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-    octave::interpreter interpreter;
+    unique_ptr<octave::interpreter> interpreter;
 #endif
 };
 
@@ -148,12 +153,8 @@ OctInit::OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings during octave initialization
 
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-    if(interpreter.execute()!=0)
-      throw runtime_error("Cannot execute octave interpreter.");
-#else
     // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
-    bfs::path octave_prefix(OCTAVE_PREFIX); // hard coded default (setting OCTAVE_HOME not requried)
+    bfs::path octave_prefix;
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
       octave_prefix=getenv("OCTAVE_HOME");
     else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
@@ -163,7 +164,22 @@ OctInit::OctInit() {
       static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
       putenv((char*)OCTAVE_HOME.c_str());
     }
+    #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+      // init interpreter
+      interpreter.reset(new octave::interpreter());
+    #endif
+    if(octave_prefix.empty()) {
+      #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+        octave_prefix=config::octave_home();
+      #else
+        octave_prefix=OCTAVE_PREFIX; // hard coded default (setting OCTAVE_HOME not requried)
+      #endif
+    }
 
+#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
+    if(interpreter->execute()!=0)
+      throw runtime_error("Cannot execute octave interpreter.");
+#else
     // initialize octave
     static vector<char*> octave_argv;
     octave_argv.resize(6);
@@ -389,36 +405,35 @@ string OctEval::serializeFunction(const Value &x) const {
   auto c=C(x)->cell_value();
   int nrIndeps=c.dims()(0)-1;
   stringstream str;
-  str.precision(std::numeric_limits<double>::digits10+1);
-  str<<"{ "<<nrIndeps;
+  str<<"f(";
   for(int i=0; i<nrIndeps; ++i) {
     string type=getSwigType(c(i));
     if(type=="IndependentVariable")
-      str<<" "<<*static_cast<fmatvec::IndependentVariable*>(getSwigPtr(c(i)));
+      str<<(i==0?"":",")<<*static_cast<fmatvec::IndependentVariable*>(getSwigPtr(c(i)));
     else if(type=="VectorIndep")
-      str<<" "<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>*>(getSwigPtr(c(i)));
+      str<<(i==0?"":",")<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::IndependentVariable>*>(getSwigPtr(c(i)));
     else
       throw runtime_error("Unknown type for independent variable in function: "+type);
   }
+  str<<")=";
   string type=getSwigType(c(nrIndeps));
   auto cc=C(c(nrIndeps));
   if(valueIsOfType(cc, ScalarType))
-    str<<" "<<fmatvec::SymbolicExpression(cast<double>(cc));
+    str<<fmatvec::SymbolicExpression(cast<double>(cc));
   else if(valueIsOfType(cc, VectorType))
-    str<<" "<<static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>>(
+    str<<static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>>(
               fmatvec::VecV(cast<vector<double>>(cc)));
   else if(valueIsOfType(cc, MatrixType))
-    str<<" "<<static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>>(
+    str<<static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>>(
               fmatvec::MatV(cast<vector<vector<double>>>(cc)));
   else if(type=="SymbolicExpression" || type=="IndependentVariable")
-    str<<" "<<*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(c(nrIndeps)));
+    str<<*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(c(nrIndeps)));
   else if(type=="VectorSym" || type=="VectorIndep")
-    str<<" "<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
+    str<<*static_cast<fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
   else if(type=="MatrixSym")
-    str<<" "<<*static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
+    str<<*static_cast<fmatvec::Matrix<fmatvec::General, fmatvec::Var, fmatvec::Var, fmatvec::SymbolicExpression>*>(getSwigPtr(c(nrIndeps)));
   else
     throw runtime_error("Unknown type for dependent variable in function: "+type);
-  str<<" }";
   return str.str();
 }
 
@@ -485,12 +500,12 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
       im[n]=get(n);
   };
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter.get_symbol_table(), _1));
-  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter.get_symbol_table(), _1));
+  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, &octInit.interpreter->get_symbol_table(), std::placeholders::_1));
+  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
+  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1));
+  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
 #else
-  fillVars(vn1, vn2, ci->vn, bind(&symbol_table::varval, _1, symbol_table::current_scope(), symbol_table::current_context()));
+  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, std::placeholders::_1, symbol_table::current_scope(), symbol_table::current_context()));
   //fillVars(gvn1, gvn2, ci->gvn, &symbol_table::global_varval);
   //fillVars(ufn1, ufn2, ci->ufn, &symbol_table::find_user_function);
   //fillVars(tlvn1, tlvn2, ci->tlvn, &symbol_table::top_level_varval);
@@ -543,14 +558,14 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
 
   // clear octave variables
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  octInit.interpreter.get_symbol_table().current_scope().clear_variables();
+  octInit.interpreter->get_symbol_table().current_scope().clear_variables();
 #else
   symbol_table::clear_variables();
 #endif
   // restore current parameters
   for(const auto & i : currentParam)
     #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-      octInit.interpreter.get_symbol_table().assign(i.first, *C(i.second));
+      octInit.interpreter->get_symbol_table().assign(i.first, *C(i.second));
     #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
       symbol_table::assign(i.first, *C(i.second));
     #endif
@@ -574,12 +589,12 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
       set(i.first, i.second);
   };
 #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  restoreVars(ci->vn, bind(&symbol_table::assign, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter.get_symbol_table(), _1, _2));
-  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter.get_symbol_table(), _1, _2));
+  restoreVars(ci->vn, boost::bind(&symbol_table::assign, &octInit.interpreter->get_symbol_table(), boost::placeholders::_1, boost::placeholders::_2));
+  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
+  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
+  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
 #else
-  restoreVars(ci->vn, bind(&symbol_table::assign, _1, _2, symbol_table::current_scope(), symbol_table::current_context(), false));
+  restoreVars(ci->vn, std::bind(&symbol_table::assign, std::placeholders::_1, std::placeholders::_2, symbol_table::current_scope(), symbol_table::current_context(), false));
   //restoreVars(ci->gvn, &symbol_table::global_assign);
   //restoreVars(ci->ufn, &symbol_table::install_user_function);
   //restoreVars(ci->tlvn, &symbol_table::top_level_assign);

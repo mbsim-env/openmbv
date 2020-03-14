@@ -63,7 +63,7 @@ libopenmbv_la_SOURCES = \
 nodist_libopenmbv_la_SOURCES=$(QT_BUILT_SOURCES)
 
 # C++ source file to build automatically (e.g. abc.moc.cc by abc.h)
-QT_BUILT_SOURCES = openmbv.qrc.cc\
+QT_BUILT_SOURCES = \
   mainwindow.moc.cc\
   exportdialog.moc.cc\
   object.moc.cc\
@@ -168,7 +168,6 @@ libopenmbv_la_HEADERS = mainwindow.h\
   IndexedTesselationFace.h \
   abstractviewfilter.h \
   QTripleSlider.h
-noinst_HEADERS = openmbv.qrc
 
 icondir = @datadir@/openmbv/icons
 dist_icon_DATA = openmbv.svg \
@@ -257,9 +256,6 @@ pluginsplatforms_DATA = @QT_PLUGINS@/platforms/libqxcb.so
 pluginsxcbglintegrationsdir = @bindir@/xcbglintegrations
 pluginsxcbglintegrations_DATA = @QT_PLUGINS@/xcbglintegrations/*qxcb*
 endif
-
-# some dependencies for openmbv.qrc.cc
-openmbv.qrc.cc: openmbv.qrc openmbv.svg
 
 # freedesktop.org
 freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org

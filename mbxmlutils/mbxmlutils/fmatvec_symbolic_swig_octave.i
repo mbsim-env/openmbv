@@ -1,10 +1,11 @@
 %module fmatvec_symbolic_swig_octave
 
-#pragma SWIG nowarn=373,374,375,365,366,367,368,371,362,509,503,305,315
+#pragma SWIG nowarn=373,374,375,365,366,367,368,371,362,509,503,305,315,317
 
 %{
 #include <fmatvec/fmatvec.h>
 #include <fmatvec/ast.h>
+#include <fmatvec/stream.h>
 #include <sstream>
 %}
 
@@ -130,7 +131,7 @@ typedef fmatvec::SymbolicExpression SS;
   }
 
   octave_value_list callBuiltin(const char* name, const octave_value_list &arg, int n=1) {
-#if SWIG_OCTAVE_PREREQ(4,0,0)
+#if SWIG_OCTAVE_PREREQ(4,4,0)
     auto func=octave::interpreter::the_interpreter()->get_symbol_table().builtin_find(name).function_value();
 #else
     auto func=symbol_table::builtin_find(name).function_value();
