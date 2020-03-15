@@ -140,3 +140,15 @@ install-exec-local: install-moduleLTLIBRARIES
 	    mv -f $$F.deplibs.tmp $$F.deplibs; \
 	  fi; \
 	done
+	set -e; \
+	mkdir -p $(prefix)/share/deplibs; \
+	for i in $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
+	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
+	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.dll; do \
+	  if test $$i -nt $(prefix)/share/deplibs/$$(basename $$i).deplibs; then \
+	    echo "Create dependency file and wrapper file for $$i"; \
+	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$i > \
+	      $(prefix)/share/deplibs/$$(basename $$i).deplibs.tmp; \
+	    mv -f $(prefix)/share/deplibs/$$(basename $$i).deplibs.tmp $(prefix)/share/deplibs/$$(basename $$i).deplibs; \
+	  fi; \
+	done

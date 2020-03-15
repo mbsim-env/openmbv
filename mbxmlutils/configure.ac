@@ -213,15 +213,19 @@ if test "x$enable_python" == "xyes"; then
   fi
   if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
+    PYTHON_PACKAGES=site-packages
   elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR
+    PYTHON_PACKAGES=site-packages
   elif test -d /usr/lib/python3/dist-packages/numpy/core/include; then # debian special handling
     PYTHON_LIBDIR=/usr/lib/python3
+    PYTHON_PACKAGES=dist-packages
   else
     AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
   fi
   AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
   AC_SUBST([PYTHON_LIBDIR])
+  AC_SUBST([PYTHON_PACKAGES])
   PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
   AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
   AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
