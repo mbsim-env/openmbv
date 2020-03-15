@@ -15,6 +15,7 @@
 #include <boost/algorithm/string/join.hpp>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include "mbxmlutils/eval_static.h"
+#include <regex>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -265,12 +266,17 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     if(is_directory(*srcIt)) // skip directories
       continue;
     path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
-    if(*subDir.begin()=="site-packages" &&
+    if((*subDir.begin()=="site-packages" || *subDir.begin()=="dist-packages") &&
       *(++subDir.begin())!="numpy" && *(++subDir.begin())!="sympy" && *(++subDir.begin())!="mpmath") // skip site-packages dir but not numpy and sympy/mpmath
       continue;
     if(*subDir.begin()=="config") // skip config dir
       continue;
-    files[*srcIt]=make_pair(PYTHONDST/subDir, false);
+    bool bin=false;
+    const regex so(".*.so(\\..*)?");
+    if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
+       regex_match(srcIt->path().filename().string(), so))
+      bin=true;
+    files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
   }
 #if _WIN32
   // on Windows include the PYTHONSRC/../DLLs directory
