@@ -272,7 +272,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     if(*subDir.begin()=="config") // skip config dir
       continue;
     bool bin=false;
-    const regex so(".*.so(\\..*)?");
+    const regex so(".*\\.so(\\..*)*");
     if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
        regex_match(srcIt->path().filename().string(), so))
       bin=true;
