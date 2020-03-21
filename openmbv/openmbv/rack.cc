@@ -19,7 +19,6 @@
 
 #include "config.h"
 #include "rack.h"
-#include <Inventor/nodes/SoCube.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/rack.h"
@@ -70,11 +69,11 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   }
 
   int ns = 2*nn;
-  int np = nz*ns+2*nz+6;//+4;
+  int np = nz*ns+2*nz+6;
   float pts[np][3];
 
   int nii = 4*(nf-1)*5+3*5;
-  int ni = nz*nii+25;//+5*5;
+  int ni = nz*nii+25;
   int indices[ni];
 
   int l=0;
