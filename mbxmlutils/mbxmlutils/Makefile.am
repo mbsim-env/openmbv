@@ -41,27 +41,27 @@ moduledir = $(runlibdir)
 
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) -I.. -I. $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_la_LIBADD = ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(LIBDL)
 libmbxmlutils_la_SOURCES = eval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = eval.h preprocess.h
 
 # octave evaluator
 libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) $(NOWARNING)
+libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) $(NOWARNING)
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
 # octave registerPath
-registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) -I. $(MKOCTFILE_CFLAGS) $(NOWARNING)
+registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(NOWARNING)
 registerPath_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
 registerPath_la_SOURCES = registerPath.cc
 
 # xmlflat dummy evaluator
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_xmlflat_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
@@ -69,7 +69,7 @@ libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 
 # python part of the utility library
 libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) -I. -I.. $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/site-packages/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
+libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/site-packages/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
@@ -80,16 +80,11 @@ BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 # program to convert a complex xml file to a plain xml file
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
-mbxmlutilspp_CPPFLAGS = -I. -I.. -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
+mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_REGEX_LIB@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS)
 
 
 
-# Newer octave version (>=3.8!?) use #include <config.h> instead of #include "config.h"
-# in oct.h. Hence we are not allowed to add -I.. to compile flags since
-# this will include config.h from this project (mbxmlutils) instead of the octave
-# one. Since -I.. is added as a default include path by automake we must prevent this.
-AUTOMAKE_OPTIONS = nostdinc
 .DELETE_ON_ERROR: # swig -Werror requires this
 fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
 	rm -f fmatvec_symbolic_swig_octave.cc

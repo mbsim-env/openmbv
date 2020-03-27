@@ -20,73 +20,19 @@
 #include "mbxmlutils/eval_static.h"
 #include <boost/algorithm/string/trim.hpp>
 
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-  #include <octave-config.h>
-  #undef OCTAVE_USE_DEPRECATED_FUNCTIONS
-  #include <octave/ovl.h>
-  #include <octave/interpreter.h>
-  #define xx_symbol_table octInit.interpreter->get_symbol_table().
-  #define xx_find_function octInit.interpreter->get_symbol_table().find_function
-  #define xx_is_variable octInit.interpreter->get_symbol_table().current_scope().is_variable
-  #define xx_varval octInit.interpreter->get_symbol_table().varval
-  #define xx_isreal isreal
-  #define xx_iscell iscell
-#else
-  // octave includes: this will include the octave/config.h hence we must take care
-  // about redefintions of preprocessor defines
-  // push some macros
-  #pragma push_macro("PACKAGE")
-  #pragma push_macro("PACKAGE_BUGREPORT")
-  #pragma push_macro("PACKAGE_NAME")
-  #pragma push_macro("PACKAGE_STRING")
-  #pragma push_macro("PACKAGE_TARNAME")
-  #pragma push_macro("PACKAGE_URL")
-  #pragma push_macro("PACKAGE_VERSION")
-  #pragma push_macro("VERSION")
-  // undefined some macros
-  #undef PACKAGE
-  #undef PACKAGE_BUGREPORT
-  #undef PACKAGE_NAME
-  #undef PACKAGE_STRING
-  #undef PACKAGE_TARNAME
-  #undef PACKAGE_URL
-  #undef PACKAGE_VERSION
-  #undef VERSION
-  // now include octave/config.h which must be the first octave include
-  #include <octave/config.h>
-  // now all octave includes can follow
-  #include <octave/oct-obj.h>
-  #include <octave/toplev.h>
-  #define xx_symbol_table symbol_table::
-  #define xx_find_function symbol_table::find_function
-  #define xx_is_variable symbol_table::is_variable
-  #define xx_varval symbol_table::varval
-  #define xx_isreal is_real_type
-  #define xx_iscell is_cell
-#endif
+#include <octave-config.h>
+#undef OCTAVE_USE_DEPRECATED_FUNCTIONS
+#include <octave/ovl.h>
+#include <octave/interpreter.h>
 #include <octave/octave.h>
 #include <octave/symtab.h>
 #include <octave/parse.h>
 #include <octave/defaults.h>
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-#else
-  // pop the above macros
-  #pragma pop_macro("PACKAGE")
-  #pragma pop_macro("PACKAGE_BUGREPORT")
-  #pragma pop_macro("PACKAGE_NAME")
-  #pragma pop_macro("PACKAGE_STRING")
-  #pragma pop_macro("PACKAGE_TARNAME")
-  #pragma pop_macro("PACKAGE_URL")
-  #pragma pop_macro("PACKAGE_VERSION")
-  #pragma pop_macro("VERSION")
-#endif
 
 using namespace std;
 using namespace xercesc;
 namespace bfs=boost::filesystem;
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
 using namespace octave;
-#endif
 
 namespace {
   //TODO not working on Windows
@@ -144,9 +90,7 @@ class OctInit {
     OctInit();
     ~OctInit();
     string initialPath;
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
     unique_ptr<octave::interpreter> interpreter;
-#endif
 };
 
 OctInit::OctInit() {
@@ -164,33 +108,13 @@ OctInit::OctInit() {
       static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
       putenv((char*)OCTAVE_HOME.c_str());
     }
-    #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
       // init interpreter
       interpreter.reset(new octave::interpreter());
-    #endif
-    if(octave_prefix.empty()) {
-      #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-        octave_prefix=config::octave_home();
-      #else
-        octave_prefix=OCTAVE_PREFIX; // hard coded default (setting OCTAVE_HOME not requried)
-      #endif
-    }
+    if(octave_prefix.empty())
+      octave_prefix=config::octave_home();
 
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
     if(interpreter->execute()!=0)
       throw runtime_error("Cannot execute octave interpreter.");
-#else
-    // initialize octave
-    static vector<char*> octave_argv;
-    octave_argv.resize(6);
-    octave_argv[0]=const_cast<char*>("embedded");
-    octave_argv[1]=const_cast<char*>("--no-history");
-    octave_argv[2]=const_cast<char*>("--no-init-file");
-    octave_argv[3]=const_cast<char*>("--no-line-editing");
-    octave_argv[4]=const_cast<char*>("--no-window-system");
-    octave_argv[5]=const_cast<char*>("--silent");
-    octave_main(6, &octave_argv[0], 1);                              
-#endif
   
     // set some global octave config
     octave_value_list warnArg;
@@ -203,15 +127,6 @@ OctInit::OctInit() {
     string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
-
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-#else
-    // remove the default oct serach path ...
-    // (first get octave octfiledir without octave_prefix)
-    bfs::path octave_octfiledir(string(OCTAVE_OCTFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
-    feval("rmpath", octave_value_list(octave_value((octave_prefix/octave_octfiledir).string())));
-    // no error checking here, path may not exist
-#endif
 
     // save initial octave search path
     initialPath=feval("path", octave_value_list(), 1)(0).string_value();
@@ -231,17 +146,7 @@ OctInit::OctInit() {
 OctInit::~OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
-
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-#else
-    //Workaround: eval a VALID dummy statement before leaving "main" to prevent a crash in post main
-    int dummy;
-    eval_string("1+1;", true, dummy, 0); // eval as statement list
-
-    // cleanup ocatve, but do NOT call ::exit, we are already exicting the program
-    octave_exit=nullptr;
-    clean_up_and_exit(0);
-#endif
+    // nothing needed for now (in octave 4.4)
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -376,7 +281,7 @@ Eval::Value OctEval::createFunction(const vector<Value> &indeps, const Value &de
 }
 
 void* OctEval::getSwigPtr(const octave_value &v) {
-  static octave_function *swig_this=xx_find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
+  static octave_function *swig_this=octInit.interpreter->get_symbol_table().find_function("swig_this").function_value(); // get ones a pointer to swig_this for performance reasons
   // get the pointer: octave returns a 64bit integer which represents the pointer
   if(v.class_name()!="swig_ref")
     throw runtime_error("This value is not a reference to a SWIG wrapped object.");
@@ -388,7 +293,7 @@ Eval::Value OctEval::createSwigByTypeName(const string &name) {
   list<octave_value_list> idx;
   idx.emplace_back(name);
   idx.emplace_back();
-  return C(fevalThrow(xx_find_function("new_"+name).function_value(), octave_value_list(), 1,
+  return C(fevalThrow(octInit.interpreter->get_symbol_table().find_function("new_"+name).function_value(), octave_value_list(), 1,
     "Failed to create "+name)(0));
 }
 
@@ -396,7 +301,7 @@ string OctEval::getSwigType(const octave_value &v) {
   if(v.class_name()!="swig_ref")
     return "";
   // get the swig type (get ones a pointer to swig_type for performance reasons)
-  static octave_function *swig_type=xx_find_function("swig_type").function_value();
+  static octave_function *swig_type=octInit.interpreter->get_symbol_table().find_function("swig_type").function_value();
   return fevalThrow(swig_type, v, 1, "Unable to get swig type.")(0).string_value();
 }
 
@@ -461,8 +366,8 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
   // some special handing for the octave addpath is required since addpath is very time consuming
   // in octave. Hence we try to change the path as less as possible. See also fullStringToValue.
 
-  static octave_function *addpath=xx_find_function("addpath").function_value(); // get ones a pointer for performance reasons
-  static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons
+  static octave_function *addpath=octInit.interpreter->get_symbol_table().find_function("addpath").function_value(); // get ones a pointer for performance reasons
+  static octave_function *path=octInit.interpreter->get_symbol_table().find_function("path").function_value(); // get ones a pointer for performance reasons
   // set octave path to top of stack of not already done
   string curPath;
   curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
@@ -475,16 +380,16 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
       "Unable to set the octave search path "+currentPath);
   }
   // add dir to octave path
-  auto vn1=xx_symbol_table variable_names();
-  //auto gvn1=xx_symbol_table global_variable_names();
-  //auto ufn1=xx_symbol_table user_function_names();
-  //auto tlvn1=xx_symbol_table top_level_variable_names();
+  auto vn1=octInit.interpreter->get_symbol_table().variable_names();
+  //auto gvn1=octInit.interpreter->get_symbol_table().global_variable_names();
+  //auto ufn1=octInit.interpreter->get_symbol_table().user_function_names();
+  //auto tlvn1=octInit.interpreter->get_symbol_table().top_level_variable_names();
   fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
     "Unable to add octave search path "+absolute(dir).string());
-  auto vn2=xx_symbol_table variable_names();
-  //auto gvn2=xx_symbol_table global_variable_names();
-  //auto ufn2=xx_symbol_table user_function_names();
-  //auto tlvn2=xx_symbol_table top_level_variable_names();
+  auto vn2=octInit.interpreter->get_symbol_table().variable_names();
+  //auto gvn2=octInit.interpreter->get_symbol_table().global_variable_names();
+  //auto ufn2=octInit.interpreter->get_symbol_table().user_function_names();
+  //auto tlvn2=octInit.interpreter->get_symbol_table().top_level_variable_names();
   // get new path and store it in top of stack
   currentPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
 
@@ -499,17 +404,10 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
     for(auto &n : newVars)
       im[n]=get(n);
   };
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, &octInit.interpreter->get_symbol_table(), std::placeholders::_1));
   //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
   //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1));
   //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
-#else
-  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, std::placeholders::_1, symbol_table::current_scope(), symbol_table::current_context()));
-  //fillVars(gvn1, gvn2, ci->gvn, &symbol_table::global_varval);
-  //fillVars(ufn1, ufn2, ci->ufn, &symbol_table::find_user_function);
-  //fillVars(tlvn1, tlvn2, ci->tlvn, &symbol_table::top_level_varval);
-#endif
 }
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
@@ -557,21 +455,13 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
 
   // clear octave variables
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   octInit.interpreter->get_symbol_table().current_scope().clear_variables();
-#else
-  symbol_table::clear_variables();
-#endif
   // restore current parameters
   for(const auto & i : currentParam)
-    #if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
-      octInit.interpreter->get_symbol_table().assign(i.first, *C(i.second));
-    #else // octave >= 3.8 does not define this macro but OCTAVE_[MAJOR|...]_VERSION
-      symbol_table::assign(i.first, *C(i.second));
-    #endif
+    octInit.interpreter->get_symbol_table().assign(i.first, *C(i.second));
 
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
-  static octave_function *path=xx_find_function("path").function_value(); // get ones a pointer for performance reasons
+  static octave_function *path=octInit.interpreter->get_symbol_table().find_function("path").function_value(); // get ones a pointer for performance reasons
   string curPath;
   try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_AS_DOMEVALEXCEPTION(e)
   auto ci=static_pointer_cast<Import>(currentImport);
@@ -588,17 +478,10 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     for(auto &i : im)
       set(i.first, i.second);
   };
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   restoreVars(ci->vn, boost::bind(&symbol_table::assign, &octInit.interpreter->get_symbol_table(), boost::placeholders::_1, boost::placeholders::_2));
   //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
   //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
   //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
-#else
-  restoreVars(ci->vn, std::bind(&symbol_table::assign, std::placeholders::_1, std::placeholders::_2, symbol_table::current_scope(), symbol_table::current_context(), false));
-  //restoreVars(ci->gvn, &symbol_table::global_assign);
-  //restoreVars(ci->ufn, &symbol_table::install_user_function);
-  //restoreVars(ci->tlvn, &symbol_table::top_level_assign);
-#endif
 
   ostringstream err;
   ostringstream out;
@@ -629,17 +512,17 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   while(!strNoSpace.empty() && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';' ||
     strNoSpace[strNoSpace.size()-1]=='\n'))
     strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
-  if(!xx_is_variable("ret") && !xx_is_variable("ans") && !xx_is_variable(strNoSpace)) {
+  if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret") && !octInit.interpreter->get_symbol_table().current_scope().is_variable("ans") && !octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace)) {
     throw DOMEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
       str, e);
   }
   octave_value ret;
-  if(xx_is_variable(strNoSpace))
-    ret=xx_varval(strNoSpace);
-  else if(!xx_is_variable("ret"))
-    ret=xx_varval("ans");
+  if(octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace))
+    ret=octInit.interpreter->get_symbol_table().varval(strNoSpace);
+  else if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret"))
+    ret=octInit.interpreter->get_symbol_table().varval("ans");
   else
-    ret=xx_varval("ret");
+    ret=octInit.interpreter->get_symbol_table().varval("ret");
 
   return C(ret);
 }
@@ -648,12 +531,12 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
   shared_ptr<octave_value> v=C(value);
   switch(type) {
     case ScalarType:
-      if(!v->is_string() && v->is_scalar_type() && v->xx_isreal()) return true;
+      if(!v->is_string() && v->is_scalar_type() && v->isreal()) return true;
       return false;
 
     case VectorType:
       if(valueIsOfType(value, ScalarType)) return true;
-      if(!v->is_string() && v->is_matrix_type() && v->xx_isreal()) {
+      if(!v->is_string() && v->is_matrix_type() && v->isreal()) {
         Matrix m=v->matrix_value();
         if(m.cols()==1) return true;
       }
@@ -662,7 +545,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
     case MatrixType:
       if(valueIsOfType(value, ScalarType)) return true;
       if(valueIsOfType(value, VectorType)) return true;
-      if(!v->is_string() && v->is_matrix_type() && v->xx_isreal()) return true;
+      if(!v->is_string() && v->is_matrix_type() && v->isreal()) return true;
       return false;
 
     case StringType:
@@ -670,7 +553,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
       return false;
 
     case FunctionType:
-      if(v->xx_iscell()) return true;
+      if(v->iscell()) return true;
       return false;
   }
   return false;
@@ -704,18 +587,9 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
     files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
   }
 
-#if MBXMLUTILS_OCTAVE_MAJOR_VERSION >= 4 && MBXMLUTILS_OCTAVE_MINOR_VERSION >=4
   bfs::path octave_prefix(config::octave_home());
   // get octave fcnfiledir without octave_prefix
   bfs::path octave_fcnfiledir(config::fcn_file_dir().substr(config::octave_home().length()+1));
-#else
-  // get octave prefix
-  bfs::path octave_prefix(getInstallPath()); // use octave in install path
-  if(!exists(octave_prefix/"share"/"octave")) // if not found use octave in system path
-    octave_prefix=OCTAVE_PREFIX;
-  // get octave fcnfiledir without octave_prefix
-  bfs::path octave_fcnfiledir(string(OCTAVE_FCNFILEDIR).substr(string(OCTAVE_PREFIX).length()+1));
-#endif
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave m-files."<<endl;
   bfs::path dir=octave_prefix/octave_fcnfiledir;
@@ -751,7 +625,7 @@ Eval::Value OctEval::callFunction(const string &name, const vector<Value>& args)
   static map<string, octave_function*> functionValue;
   pair<map<string, octave_function*>::iterator, bool> f=functionValue.insert(make_pair(name, static_cast<octave_function*>(nullptr)));
   if(f.second)
-    f.first->second=xx_find_function(name).function_value(); // get ones a pointer performance reasons
+    f.first->second=octInit.interpreter->get_symbol_table().find_function(name).function_value(); // get ones a pointer performance reasons
   octave_value_list octargs;
   for(const auto & arg : args)
     octargs.append(*C(arg));
