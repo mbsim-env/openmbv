@@ -81,8 +81,8 @@ fi
 SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
 AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
 SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+11]]; then
-  AC_MSG_ERROR([SWIG >= 3.0.11])
+if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]]; then
+  AC_MSG_ERROR([SWIG >= 3.0.12 is needed.])
 fi
 
 XC_PATH_CONVERT=echo
