@@ -14,7 +14,7 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # enable C++11
-CXXFLAGS="$CXXFLAGS -std=c++11"
+CXXFLAGS="$CXXFLAGS -std=c++17"
 
 # for compile version
 OLDCXXFLAGS="$CXXFLAGS"
