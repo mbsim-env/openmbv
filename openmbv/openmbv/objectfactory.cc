@@ -88,27 +88,7 @@
 #include "bevelgear.h"
 #include "planargear.h"
 #include <string>
-
-#if BOOST_VERSION >= 105600
-  #include <boost/core/demangle.hpp>
-#else
-  #include <cxxabi.h>
-  #ifndef BOOST_CORE_DEMANGLE_REPLACEMENT
-  #define BOOST_CORE_DEMANGLE_REPLACEMENT
-  namespace boost {
-    namespace core {
-      inline std::string demangle(const std::string &name) {
-        int status;
-        char* retc=abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
-        if(status!=0) throw std::runtime_error("Cannot demangle c++ symbol.");
-        std::string ret(retc);
-        free(retc);
-        return ret;
-      }
-    }
-  }
-  #endif
-#endif
+#include <boost/core/demangle.hpp>
 
 using namespace std;
 
