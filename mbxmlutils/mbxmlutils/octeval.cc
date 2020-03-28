@@ -10,7 +10,7 @@
 #include <../mbxmlutils/../config.h>
 
 // normal includes
-#include <boost/bind.hpp>
+#include <functional>
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/fmatvec.h>
@@ -404,10 +404,11 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
     for(auto &n : newVars)
       im[n]=get(n);
   };
-  fillVars(vn1, vn2, ci->vn, std::bind(&symbol_table::varval, &octInit.interpreter->get_symbol_table(), std::placeholders::_1));
-  //fillVars(gvn1, gvn2, ci->gvn, bind(&symbol_table::global_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
-  //fillVars(ufn1, ufn2, ci->ufn, bind(&symbol_table::find_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1));
-  //fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval, &octInit.interpreter->get_symbol_table(), placeholders::_1));
+  auto &gst=octInit.interpreter->get_symbol_table();
+  fillVars(vn1  , vn2  , ci->vn  , bind(&symbol_table::varval            , &gst, placeholders::_1));
+//fillVars(gvn1 , gvn2 , ci->gvn , bind(&symbol_table::global_varval     , &gst, placeholders::_1));
+//fillVars(ufn1 , ufn2 , ci->ufn , bind(&symbol_table::find_user_function, &gst, placeholders::_1));
+//fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval  , &gst, placeholders::_1));
 }
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
@@ -478,10 +479,12 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     for(auto &i : im)
       set(i.first, i.second);
   };
-  restoreVars(ci->vn, boost::bind(&symbol_table::assign, &octInit.interpreter->get_symbol_table(), boost::placeholders::_1, boost::placeholders::_2));
-  //restoreVars(ci->gvn, bind(&symbol_table::global_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
-  //restoreVars(ci->ufn, bind(&symbol_table::install_user_function, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
-  //restoreVars(ci->tlvn, bind(&symbol_table::top_level_assign, &octInit.interpreter->get_symbol_table(), placeholders::_1, placeholders::_2));
+  auto &gst=octInit.interpreter->get_symbol_table();
+  using GstFuncType = void(symbol_table::*)(const string&, const octave_value &);
+  restoreVars(ci->vn  , bind<GstFuncType>(&symbol_table::assign               , &gst, std::placeholders::_1, std::placeholders::_2));
+//restoreVars(ci->gvn , bind<GstFuncType>(&symbol_table::global_assign        , &gst, placeholders::_1, placeholders::_2));
+//restoreVars(ci->ufn , bind<GstFuncType>(&symbol_table::install_user_function, &gst, placeholders::_1, placeholders::_2));
+//restoreVars(ci->tlvn, bind<GstFuncType>(&symbol_table::top_level_assign     , &gst, placeholders::_1, placeholders::_2));
 
   ostringstream err;
   ostringstream out;
