@@ -2,8 +2,8 @@
 #include "dom.h"
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include <boost/scope_exit.hpp>
-#include <regex>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -626,13 +626,14 @@ template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const
 
 template<typename DOMDocumentType>
 DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {
-  static const std::regex re(R"q(/{([^}]+)}([^[]+)\[([0-9]+)\](.*))q");
+  // we cannot use std::regex here since named groups and conditionals are not supported by std::regex
+  static const boost::regex re(R"q(/{([^}]+)}([^[]+)\[([0-9]+)\](.*))q");
   if(!context) context=me->getDocumentElement();
   DOMElement *p=context;
-  std::smatch m;
+  boost::smatch m;
   bool first=true;
   while(true) {
-    if(!std::regex_match(xpathExpression, m, re)) break;
+    if(!boost::regex_match(xpathExpression, m, re)) break;
     // special handling of the first element (the root element itself)
     if(first && E(p)->getTagName()!=FQN(m.str(1), m.str(2)))
       throw runtime_error("No matching node found for XPath expression.");
@@ -741,11 +742,11 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   str+="@xpath"+loc.getRootXPathExpression();
   str+="@ecount"+(loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):"");
   str+="@sse"+(subsequentError?string("x"):"");
-  static const std::regex re(
+  static const boost::regex re(
     R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
   // apply substitutions
-  return std::regex_replace(str, re, format, std::regex_constants::format_sed);
+  return boost::regex_replace(str, re, format, boost::regex_constants::format_all);
 }
 
 const char* DOMEvalException::what() const noexcept {

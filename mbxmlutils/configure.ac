@@ -53,6 +53,10 @@ AC_ARG_WITH([boost-system-lib],
   [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
+AC_ARG_WITH([boost-regex-lib],
+  [  --with-boost-regex-lib=LIBNAME  The library name of boost regex excluding prefix/suffix (Default: boost_regex).],
+  [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])
+AC_SUBST([BOOST_REGEX_LIB])
 
 AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
 
