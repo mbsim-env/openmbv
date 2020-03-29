@@ -21,7 +21,6 @@
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
-#include <mbxmlutilshelper/getinstallpath.h>
 #include "mainwindow.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
@@ -74,6 +73,7 @@
 #include <Inventor/SoPickedPoint.h>
 #include "IndexedTesselationFace.h"
 #include "utils.h"
+#include <boost/dll.hpp>
 
 using namespace std;
 using namespace std::placeholders;
@@ -89,11 +89,12 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+  boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
   // If <local>/lib/dri exists use it as load path for GL DRI drivers.
   // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
-  if(boost::filesystem::exists(MBXMLUtils::getInstallPath()/"lib"/"dri")) {
+  if(boost::filesystem::exists(installPath/"lib"/"dri")) {
     static char DRI[2048];
-    putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (MBXMLUtils::getInstallPath()/"lib"/"dri").string().c_str()));
+    putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (installPath/"lib"/"dri").string().c_str()));
   }
 
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
@@ -102,7 +103,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
-  setWindowIcon(Utils::QIconCached((MBXMLUtils::getInstallPath()/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
+  setWindowIcon(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
 
   // init Utils
   Utils::initialize();
@@ -549,7 +550,8 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   QMenu *helpMenu=new QMenu("Help", menuBar());
   helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, SLOT(guiHelp()));
   helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, SLOT(xmlHelp()));
-  helpMenu->addAction(Utils::QIconCached(":/openmbv.svg"), "About OpenMBV...", this, SLOT(aboutOpenMBV()));
+  helpMenu->addAction(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()),
+                      "About OpenMBV...", this, SLOT(aboutOpenMBV()));
   menuBar()->addMenu(helpMenu);
 
   // status bar
@@ -977,7 +979,7 @@ void MainWindow::guiHelp() {
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 0);
     text->setReadOnly(true);
-    ifstream file((MBXMLUtils::getInstallPath()/"share"/"openmbv"/"doc"/"guihelp.html").string());
+    ifstream file((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"doc"/"guihelp.html").string());
     string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     text->setHtml(content.c_str());
   }
@@ -985,7 +987,7 @@ void MainWindow::guiHelp() {
 }
 
 void MainWindow::xmlHelp() {
-  QDesktopServices::openUrl(QUrl::fromLocalFile((MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"doc"/"http___www_mbsim-env_de_OpenMBV"/"index.html").string().c_str()));
+  QDesktopServices::openUrl(QUrl::fromLocalFile((boost::dll::program_location().parent_path().parent_path()/"share"/"mbxmlutils"/"doc"/"http___www_mbsim-env_de_OpenMBV"/"index.html").string().c_str()));
 }
 
 void MainWindow::aboutOpenMBV() {
@@ -1000,7 +1002,8 @@ void MainWindow::aboutOpenMBV() {
     about->setLayout(layout);
     QLabel *icon=new QLabel;
     layout->addWidget(icon, 0, 0, Qt::AlignTop);
-    icon->setPixmap(Utils::QIconCached(":/openmbv.svg").pixmap(64,64));
+    icon->setPixmap(Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg")
+                    .string().c_str()).pixmap(64,64));
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 1);
     text->setReadOnly(true);

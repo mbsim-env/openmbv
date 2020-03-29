@@ -195,4 +195,6 @@ AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh
 AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
 AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
 
+hardcode_into_libs=no # do not add hardcoded libdirs to ltlibraries
+hardcode_libdir_flag_spec_CXX= # do not add hardcodeed libdirs to ltbinaries
 AC_OUTPUT

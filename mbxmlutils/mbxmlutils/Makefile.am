@@ -81,7 +81,7 @@ BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS)
+mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(LIBDL)
 
 
 

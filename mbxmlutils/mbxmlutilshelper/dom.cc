@@ -19,7 +19,7 @@
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
-#include "getinstallpath.h"
+#include "thislinelocation.h"
 #include <fmatvec/toString.h>
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
@@ -148,6 +148,8 @@ bool lexical_cast<bool>(const string& arg)
 }
 
 namespace MBXMLUtils {
+
+ThisLineLocation domLoc;
 
 namespace {
   InitXerces initXerces;
@@ -857,7 +859,8 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   // handle schema import -> map namespace to local file
   string ns=X()%resourceIdentifier->getNameSpace();
   path file;
-  path SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+  static boost::filesystem::path installPath(domLoc().parent_path().parent_path());
+  path SCHEMADIR=installPath/"share"/"mbxmlutils"/"schema";
   // handle namespaces known by MBXMLUtils
   if(ns==XINCLUDE.getNamespaceURI())
     file=SCHEMADIR/"http___www_w3_org/XInclude.xsd";

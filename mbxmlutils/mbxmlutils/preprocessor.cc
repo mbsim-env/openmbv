@@ -4,7 +4,7 @@
 #include <cfenv>
 #include <regex>
 #include "mbxmlutils/preprocess.h"
-#include <mbxmlutilshelper/getinstallpath.h>
+#include <mbxmlutilshelper/thislinelocation.h>
 #include <mbxmlutils/eval.h>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -15,6 +15,8 @@ using namespace xercesc;
 using namespace boost::filesystem;
 
 path SCHEMADIR;
+
+ThisLineLocation loc;
 
 int main(int argc, char *argv[]) {
 #ifndef _WIN32
@@ -124,7 +126,7 @@ int main(int argc, char *argv[]) {
       args.erase(i); args.erase(i2);
     }
 
-    SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+    SCHEMADIR=loc().parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
     // the XML DOM parser
     fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;

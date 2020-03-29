@@ -12,7 +12,6 @@
 // normal includes
 #include <functional>
 #include <mbxmlutilshelper/dom.h>
-#include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/fmatvec.h>
 #include <fmatvec/ast.h>
 #include <xercesc/dom/DOMAttr.hpp>
@@ -101,11 +100,11 @@ OctInit::OctInit() {
     bfs::path octave_prefix;
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
       octave_prefix=getenv("OCTAVE_HOME");
-    else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::getInstallPath()/"share"/"octave")) {
+    else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::Eval::installPath/"share"/"octave")) {
       // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
-      octave_prefix=MBXMLUtils::getInstallPath();
+      octave_prefix=MBXMLUtils::Eval::installPath;
       // the string for putenv must have program life time
-      static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::getInstallPath().string(CODECVT);
+      static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::Eval::installPath.string(CODECVT);
       putenv((char*)OCTAVE_HOME.c_str());
     }
       // init interpreter
@@ -124,12 +123,19 @@ OctInit::OctInit() {
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
 
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
-    string dir=(MBXMLUtils::getInstallPath()/LIBDIR).string(CODECVT);
+    string dir=(MBXMLUtils::Eval::installPath/LIBDIR).string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
     // save initial octave search path
     initialPath=feval("path", octave_value_list(), 1)(0).string_value();
+    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
+
+    // deregister __finish__, see OctEval::~OctEval
+    octave_value_list atexitArg;
+    atexitArg.append("__finish__");
+    atexitArg.append(0);
+    feval("atexit", atexitArg);
     if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
@@ -147,6 +153,10 @@ OctInit::~OctInit() {
   try {
     BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
     // nothing needed for now (in octave 4.4)
+
+    // __finish__.m which is run at exit is deregistered during octave initialzation via atext.
+    // This is required to avoid running octave code after octave was alread removed.
+    // (atexit is run on library unload at program exit)
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -348,7 +358,7 @@ OctEval::OctEval(vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   ci->path=octInit.initialPath;
 
   // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
-  addImportHelper(MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"octave");
+  addImportHelper(installPath/"share"/"mbxmlutils"/"octave");
 };
 
 OctEval::~OctEval() = default;
@@ -583,21 +593,22 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
     return files;
 
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<endl;
-  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"octave");
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(installPath/"share"/"mbxmlutils"/"octave");
     srcIt!=bfs::directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
     files[srcIt->path()]=make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
   }
 
-  bfs::path octave_prefix(config::octave_home());
+  files[installPath/LIBDIR/"fmatvec_symbolic_swig_octave.oct"]=make_pair(LIBDIR, true);
+  files[installPath/LIBDIR/"registerPath.oct"]=make_pair(LIBDIR, true);
+
   // get octave fcnfiledir without octave_prefix
   bfs::path octave_fcnfiledir(config::fcn_file_dir().substr(config::octave_home().length()+1));
-
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave m-files."<<endl;
-  bfs::path dir=octave_prefix/octave_fcnfiledir;
+  bfs::path dir=config::octave_home()/octave_fcnfiledir;
   size_t depth=distance(dir.begin(), dir.end());
-  for(bfs::recursive_directory_iterator srcIt=bfs::recursive_directory_iterator(octave_prefix/octave_fcnfiledir);
+  for(bfs::recursive_directory_iterator srcIt=bfs::recursive_directory_iterator(dir);
       srcIt!=bfs::recursive_directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
@@ -609,16 +620,15 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
     files[srcIt->path()]=make_pair(octave_fcnfiledir/dst, false);
   }
 
+  // get octave octfiledir without octave_prefix
+  bfs::path octave_octfiledir(config::oct_file_dir().substr(config::octave_home().length()+1));
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave oct-files (excluding dependencies)."<<endl;
-  // octave oct-files are copied to $FMU/resources/local/$LIBDIR since their are also all dependent libraries
-  // installed (and are found their due to Linux rpath or Windows alternate search order flag).
-  for(bfs::directory_iterator srcIt=bfs::directory_iterator(getInstallPath()/LIBDIR); srcIt!=bfs::directory_iterator(); ++srcIt) {
-    if(srcIt->path().filename()=="OpenMBV.oct") // skip OpenMBV.oct
-      continue;
+  for(bfs::directory_iterator srcIt=bfs::directory_iterator(config::octave_home()/octave_octfiledir);
+      srcIt!=bfs::directory_iterator(); ++srcIt) {
     if(srcIt->path().extension()==".oct")
-      files[srcIt->path()]=make_pair(LIBDIR, true);
+      files[srcIt->path()]=make_pair(octave_octfiledir, true);
     if(srcIt->path().filename()=="PKG_ADD")
-      files[srcIt->path()]=make_pair(LIBDIR, false);
+      files[srcIt->path()]=make_pair(octave_octfiledir, false);
   }
 
   return files;

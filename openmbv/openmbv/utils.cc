@@ -30,7 +30,7 @@
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
-#include <mbxmlutilshelper/getinstallpath.h>
+#include <boost/dll.hpp>
 
 using namespace std;
 
@@ -288,16 +288,20 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
   return obj;
 }
 
+namespace {
+  boost::filesystem::path sharePath(boost::dll::program_location().parent_path().parent_path()/"share");
+}
+
 string Utils::getIconPath() {
-  return (MBXMLUtils::getInstallPath()/"share"/"openmbv"/"icons").string();
+  return (sharePath/"openmbv"/"icons").string();
 }
 
 string Utils::getXMLDocPath() {
-  return (MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"doc").string();
+  return (sharePath/"mbxmlutils"/"doc").string();
 }
 
 string Utils::getDocPath() {
-  return (MBXMLUtils::getInstallPath()/"share"/"openmbv"/"doc").string();
+  return (sharePath/"openmbv"/"doc").string();
 }
 
 }
