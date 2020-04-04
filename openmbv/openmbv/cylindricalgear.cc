@@ -264,6 +264,8 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
     face->coordIndex.setValues(0, ni, indices);
   }
   else {
+    double R = e->getOutsideRadius()>0?e->getOutsideRadius():r0+e->getModule()*2;
+
     int ns = 2*nn+8;
     int np = nz*ns+4*nz;
     float pts[np][3];
@@ -282,8 +284,8 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
       pts[(nz-1)*ns+2*nn+8+nz+v][1] = pts[(nz-1)*ns+2*nn+8+v][1];
       pts[(nz-1)*ns+2*nn+8+nz+v][2] = -w/2;
       //
-      pts[(nz-1)*ns+2*nn+8+2*nz+v][0] = sin(phi-M_PI/nz)*(r0+e->getModule()*2);
-      pts[(nz-1)*ns+2*nn+8+2*nz+v][1] = -cos(phi-M_PI/nz)*(r0+e->getModule()*2);
+      pts[(nz-1)*ns+2*nn+8+2*nz+v][0] = sin(phi-M_PI/nz)*R;
+      pts[(nz-1)*ns+2*nn+8+2*nz+v][1] = -cos(phi-M_PI/nz)*R;
       pts[(nz-1)*ns+2*nn+8+2*nz+v][2] = w/2;
       pts[(nz-1)*ns+2*nn+8+3*nz+v][0] = pts[(nz-1)*ns+2*nn+8+2*nz+v][0];
       pts[(nz-1)*ns+2*nn+8+3*nz+v][1] = pts[(nz-1)*ns+2*nn+8+2*nz+v][1];
@@ -295,17 +297,17 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
           pts[v*ns+i][1] = sin(phi-signj*dphi)*x[i] + cos(phi-signj*dphi)*y[i];
           pts[v*ns+i][2] = z[i];
         }
-        pts[v*ns+2*nn+4*j][0] = pts[v*ns+(3*nf-1)*j][0]*(r0+e->getModule()*2)/(r0*cos(alq));
-        pts[v*ns+2*nn+4*j][1] = pts[v*ns+(3*nf-1)*j][1]*(r0+e->getModule()*2)/(r0*cos(alq));
+        pts[v*ns+2*nn+4*j][0] = pts[v*ns+(3*nf-1)*j][0]*R/(r0*cos(alq));
+        pts[v*ns+2*nn+4*j][1] = pts[v*ns+(3*nf-1)*j][1]*R/(r0*cos(alq));
         pts[v*ns+2*nn+4*j][2] = w/2;
-        pts[v*ns+2*nn+4*j+1][0] = pts[v*ns+nf+(3*nf-1)*j][0]*(r0+e->getModule()*2)/(r0*cos(alq));
-        pts[v*ns+2*nn+4*j+1][1] = pts[v*ns+nf+(3*nf-1)*j][1]*(r0+e->getModule()*2)/(r0*cos(alq));
+        pts[v*ns+2*nn+4*j+1][0] = pts[v*ns+nf+(3*nf-1)*j][0]*R/(r0*cos(alq));
+        pts[v*ns+2*nn+4*j+1][1] = pts[v*ns+nf+(3*nf-1)*j][1]*R/(r0*cos(alq));
         pts[v*ns+2*nn+4*j+1][2] = -w/2;
-        pts[v*ns+2*nn+4*j+2][0] = pts[v*ns+nf-1+(nf+1)*j][0]*(r0+e->getModule()*2)/(r0+e->getModule());
-        pts[v*ns+2*nn+4*j+2][1] = pts[v*ns+nf-1+(nf+1)*j][1]*(r0+e->getModule()*2)/(r0+e->getModule());
+        pts[v*ns+2*nn+4*j+2][0] = pts[v*ns+nf-1+(nf+1)*j][0]*R/(r0+e->getModule());
+        pts[v*ns+2*nn+4*j+2][1] = pts[v*ns+nf-1+(nf+1)*j][1]*R/(r0+e->getModule());
         pts[v*ns+2*nn+4*j+2][2] = w/2;
-        pts[v*ns+2*nn+4*j+3][0] = pts[v*ns+2*nf-1+(nf+1)*j][0]*(r0+e->getModule()*2)/(r0+e->getModule());
-        pts[v*ns+2*nn+4*j+3][1] = pts[v*ns+2*nf-1+(nf+1)*j][1]*(r0+e->getModule()*2)/(r0+e->getModule());
+        pts[v*ns+2*nn+4*j+3][0] = pts[v*ns+2*nf-1+(nf+1)*j][0]*R/(r0+e->getModule());
+        pts[v*ns+2*nn+4*j+3][1] = pts[v*ns+2*nf-1+(nf+1)*j][1]*R/(r0+e->getModule());
         pts[v*ns+2*nn+4*j+3][2] = -w/2;
       }
 

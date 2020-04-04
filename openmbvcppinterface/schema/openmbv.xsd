@@ -477,6 +477,7 @@
           <xs:element name="pressureAngle" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="backlash" type="pv:lengthScalar" minOccurs="0"/>
           <xs:element name="externalToothed" type="pv:booleanFullEval" minOccurs="0"/>
+          <xs:element name="outsideRadius" type="pv:lengthScalar" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

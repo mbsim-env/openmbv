@@ -36,6 +36,7 @@ namespace OpenMBV {
       double al{0.349065850398866};
       double b{0};
       bool ext{true};
+      double R{0};
       CylindricalGear() = default;
       ~CylindricalGear() override = default;
     public:
@@ -73,6 +74,11 @@ namespace OpenMBV {
       void setExternalToothed(bool ext_) { ext = ext_; }
 
       bool getExternalToothed() { return ext; }
+
+      /** Set the outside radius. */
+      void setOutsideRadius(double R_) { R = R_; }
+
+      double getOutsideRadius() { return R; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
