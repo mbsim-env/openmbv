@@ -195,7 +195,7 @@ DATADIR="$(eval echo $(eval echo $datadir))"
 AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
-AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
+AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
 
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
