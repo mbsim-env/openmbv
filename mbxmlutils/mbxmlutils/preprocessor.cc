@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
       args.erase(i); args.erase(i2);
     }
 
-    SCHEMADIR=loc().parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
+    SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
     // the XML DOM parser
     fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
