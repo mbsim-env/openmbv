@@ -71,14 +71,20 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   }
 
   int ns = 2*nn;
-  int np = 2*nz*ns+4*nz;
+  int np = 2*nz*ns+4*nz+2;
   float pts[np][3];
 
-  int nii = 4*(nf-1)*5+12*5;
+  int nii = 4*(nf-1)*5+6*5+6*4;
   int ni = nz*nii;
   int indices[ni];
 
   int l=0;
+  pts[2*((nz-1)*ns+2*nn)+4*nz][0] = 0;
+  pts[2*((nz-1)*ns+2*nn)+4*nz][1] = -e->getModule();
+  pts[2*((nz-1)*ns+2*nn)+4*nz][2] = 0;
+  pts[2*((nz-1)*ns+2*nn)+4*nz+1][0] = 0;
+  pts[2*((nz-1)*ns+2*nn)+4*nz+1][1] = -e->getModule()-h;
+  pts[2*((nz-1)*ns+2*nn)+4*nz+1][2] = 0;
   for(int v=0; v<nz; v++) {
     double phi = 2*M_PI/nz*v;
     pts[2*((nz-1)*ns+2*nn)+v][0] = sin(phi+M_PI/nz)*(r0+w/2);
@@ -171,36 +177,30 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     indices[l++] = v*ns+3*nf-1;
     indices[l++] = -1;
     //
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+nf;
     indices[l++] = v*ns+nf;
     indices[l++] = 2*((nz-1)*ns+2*nn)+nz+v;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+3*nz+v;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
     indices[l++] = -1;
     indices[l++] = v*ns+nf;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+nf;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+4*nf-1;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
     indices[l++] = v*ns+4*nf-1;
     indices[l++] = -1;
-    indices[l++] = v*ns+4*nf-1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+4*nf-1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+3*nz+(v==0?nz-1:v-1);
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
     indices[l++] = 2*((nz-1)*ns+2*nn)+nz+(v==0?nz-1:v-1);
+    indices[l++] = v*ns+4*nf-1;
     indices[l++] = -1;
     //
-    indices[l++] = (nz-1)*ns+2*nn+v*ns;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+nf;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+3*nz+v;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
     indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
+    indices[l++] = (nz-1)*ns+2*nn+v*ns;
     indices[l++] = -1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+4*nf-1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+nf;
     indices[l++] = (nz-1)*ns+2*nn+v*ns;
     indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
     indices[l++] = -1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
-    indices[l++] = 2*((nz-1)*ns+2*nn)+3*nz+(v==0?nz-1:v-1);
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+4*nf-1;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
     indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
     indices[l++] = -1;
   }
 
