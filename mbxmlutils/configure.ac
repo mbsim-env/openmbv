@@ -262,6 +262,7 @@ AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
 AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile])
 AC_CONFIG_FILES([mbxmlutils/octave/testsymbolic.sh],[chmod +x mbxmlutils/octave/testsymbolic.sh])
+AC_CONFIG_FILES([mbxmlutils/measurement.sh],[chmod +x mbxmlutils/measurement.sh])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
 hardcode_into_libs=no # do not add hardcoded libdirs to ltlibraries

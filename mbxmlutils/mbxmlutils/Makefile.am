@@ -23,14 +23,12 @@ dist_xml_DATA = measurement.xml
 
 
 # validate measurement.xml
-.measurement.xml.isvalid: $(srcdir)/measurement.xml $(srcdir)/measurement.xsd
-	rm -f .measurement.xml.isvalid
-	$(XC_EXEC_PREFIX) ../mbxmlutilshelper/mbxmlutilsvalidate$(EXEEXT) $$($(XC_PATH_CONVERT) $(abs_srcdir)/measurement.xsd) $$($(XC_PATH_CONVERT) $(abs_srcdir)/measurement.xml) && touch .measurement.xml.isvalid
+TESTS = measurement.sh
 
 
 
 # generate physicalvariable.xsd
-physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl .measurement.xml.isvalid
+physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 	@XALAN@ -o physicalvariable.xsd $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
@@ -99,7 +97,7 @@ fmatvec_symbolic_swig_octave_la_LIBADD = $(MKOCTFILE_LIBS) $(FMATVEC_LIBS)
 
 
 
-CLEANFILES = .measurement.xml.isvalid physicalvariable.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_octave.d
+CLEANFILES = physicalvariable.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_octave.d
 
 
 
