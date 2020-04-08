@@ -140,6 +140,7 @@ MKOCTFILE_LIBS="$(echo \
   $(unset FLIBS; $XC_EXEC_PREFIX $mkoctfile -p FLIBS | dos2unix) \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
   | sed -re 's|\\|/|g')"
+MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g')"
 
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
@@ -163,10 +164,14 @@ if test "$cross_compiling" == "yes"; then
     RERUN=$?
   done
   MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
+
+  # convert MKOCTFILE_LIBDIR to unix path if cross compiling
+  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR))
 fi
 
 AC_SUBST([MKOCTFILE_CFLAGS])
 AC_SUBST([MKOCTFILE_LIBS])
+AC_SUBST([MKOCTFILE_LIBDIR])
 # try to compile a octave stand alone program
 SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"

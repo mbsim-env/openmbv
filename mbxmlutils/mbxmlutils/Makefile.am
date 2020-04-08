@@ -104,44 +104,21 @@ CLEANFILES = physicalvariable.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbol
 # generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
-	OCTLIBDIR=$$($(XC_EXEC_PREFIX) $(mkoctfile) -p OCTLIBDIR | dos2unix | tr '\\' '/'); \
-        test "$(build)" != "$(host)" && OCTLIBDIR=$$(readlink -f $$(winepath -u $$OCTLIBDIR)); \
-	mkdir -p $(runlibdir); \
-	for i in $$OCTLIBDIR/oct/*/*.oct; do \
-	  test $$(basename $$i) == __init_gnuplot__.oct && continue; \
-	  if test $$i -nt $(runlibdir)/$$(basename $$i).deplibs; then \
-	    echo "Create dependency file and wrapper file for $$i"; \
-	    if [ $(host_os) != "mingw32" ]; then \
-	      cp -u $$i $(runlibdir)/$$(basename $$i .oct).so; \
-	      $(CC) -shared -fPIC -Wl,--disable-new-dtags,-rpath,\$$ORIGIN/../lib -o $(runlibdir)/$$(basename $$i) \
-	        $(runlibdir)/$$(basename $$i .oct).so; \
-	    else \
-	      cp -u $$i $(runlibdir)/$$(basename $$i); \
-	    fi; \
-	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $(runlibdir)/$$(basename $$i) > \
-	      $(runlibdir)/$$(basename $$i).deplibs.tmp; \
-	    mv -f $(runlibdir)/$$(basename $$i).deplibs.tmp $(runlibdir)/$$(basename $$i).deplibs; \
-	  fi; \
-	done; \
-	cp -u $$OCTLIBDIR/oct/*/PKG_ADD $(runlibdir)
-	set -e; \
 	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
-	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > \
-	      $$F.deplibs.tmp; \
-	    mv -f $$F.deplibs.tmp $$F.deplibs; \
+	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > $$F.deplibs; \
 	  fi; \
 	done
 	set -e; \
 	mkdir -p $(prefix)/share/deplibs; \
-	for i in $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
+	for i in $(MKOCTFILE_LIBDIR)/oct/*/*.oct \
+	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.dll; do \
+	  test $$(basename $$i) == __init_gnuplot__.oct && continue; \
 	  if test $$i -nt $(prefix)/share/deplibs/$$(basename $$i).deplibs; then \
 	    echo "Create dependency file and wrapper file for $$i"; \
-	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$i > \
-	      $(prefix)/share/deplibs/$$(basename $$i).deplibs.tmp; \
-	    mv -f $(prefix)/share/deplibs/$$(basename $$i).deplibs.tmp $(prefix)/share/deplibs/$$(basename $$i).deplibs; \
+	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$i > $(prefix)/share/deplibs/$$(basename $$i).deplibs; \
 	  fi; \
 	done
