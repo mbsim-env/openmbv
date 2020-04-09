@@ -113,6 +113,9 @@ install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	mkdir -p $(prefix)/share/deplibs; \
 	for i in $(MKOCTFILE_LIBDIR)/oct/*/*.oct \
+	         $(PYTHON_LIBDIR2)/*.so \
+	         $(PYTHON_LIBDIR2)/*.dll \
+	         $(PYTHON_LIBDIR2)/*.pyd \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.dll; do \

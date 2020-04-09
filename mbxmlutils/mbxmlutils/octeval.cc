@@ -625,6 +625,7 @@ map<bfs::path, pair<bfs::path, bool> >& OctEval::requiredFiles() const {
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave oct-files (excluding dependencies)."<<endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(config::octave_home()/octave_octfiledir);
       srcIt!=bfs::directory_iterator(); ++srcIt) {
+    if(srcIt->path().filename()=="__init_gnuplot__.oct") continue;
     if(srcIt->path().extension()==".oct")
       files[srcIt->path()]=make_pair(octave_octfiledir, true);
     if(srcIt->path().filename()=="PKG_ADD")
