@@ -94,8 +94,6 @@ class OctInit {
 
 OctInit::OctInit() {
   try {
-    BLOCK_STDERR; // to avoid some warnings during octave initialization
-
     // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
     bfs::path octave_prefix;
     if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
@@ -151,7 +149,6 @@ OctInit::OctInit() {
 
 OctInit::~OctInit() {
   try {
-    BLOCK_STDERR; // to avoid some warnings/errors during octave deinitialization
     // nothing needed for now (in octave 4.4)
 
     // __finish__.m which is run at exit is deregistered during octave initialzation via atext.
@@ -574,15 +571,17 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
 
 octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_list &arg, int n,
                                        const string &msg) {
+  ostringstream out;
   ostringstream err;
   octave_value_list ret;
   {
+    REDIR_STDOUT(out.rdbuf());
     REDIR_STDERR(err.rdbuf());
     ret=feval(func, arg, n);
   }
   if(error_state!=0) {
     error_state=0;
-    throw runtime_error(err.str()+msg);
+    throw runtime_error(msg+":\n"+out.str()+"\n"+err.str());
   }
   return ret;
 }
