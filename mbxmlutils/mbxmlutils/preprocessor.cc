@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
 
     // output dependencies?
     if(!depFileName.empty()) {
-      std::ofstream dependenciesFile(depFileName.string().c_str());
+      boost::filesystem::ofstream dependenciesFile(depFileName);
       for(auto & dependencie : dependencies)
         dependenciesFile<<dependencie.string()<<endl;
     }

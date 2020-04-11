@@ -936,7 +936,7 @@ void MainWindow::newFileDialog() {
   if(filename.toUpper().endsWith(".OMBV.XML")) basename=filename.left(filename.length()-9);
   if(filename.toUpper().endsWith(".OMBV.ENV.XML")) basename=filename.left(filename.length()-13);
   basename.remove(0, basename.lastIndexOf('/')+1);
-  ofstream file(filename.toStdString().c_str());
+  ofstream file(filename.toStdString());
   file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
       <<"<Group name=\""<<basename.toStdString()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
   openFile(filename.toStdString());
@@ -979,7 +979,7 @@ void MainWindow::guiHelp() {
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 0);
     text->setReadOnly(true);
-    ifstream file((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"doc"/"guihelp.html").string());
+    boost::filesystem::ifstream file(boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"doc"/"guihelp.html");
     string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     text->setHtml(content.c_str());
   }
