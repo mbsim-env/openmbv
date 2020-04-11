@@ -11,7 +11,7 @@ AC_PROG_CXX
 AC_LANG([C++])
 
 # enable C++11
-CXXFLAGS="$CXXFLAGS -std=c++11"
+CXXFLAGS="$CXXFLAGS -std=c++17"
 
 dnl By autoscan
 AC_CHECK_FUNCS([dup2])
@@ -81,8 +81,9 @@ fi
 SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
 AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
 SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+11]]; then
-  AC_MSG_ERROR([SWIG >= 3.0.11])
+if test $SWIGVERSION_ -lt $[[4*1000000+0*1000+1]] -o
+   ($(cat /etc/debian_version) == "10.3" -a $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]]); then # debian 10.3 patches swig 3.0.12
+  AC_MSG_ERROR([SWIG >= 4.0.1 is needed.])
 fi
 
 XC_PATH_CONVERT=echo
@@ -120,12 +121,11 @@ AC_SUBST([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X])
 if test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -gt 4004; then
   AC_MSG_WARN([Using untested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.
 Use at your own risk.])
-elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004 -o \
-          $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 3008; then
+elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004; then
   AC_MSG_NOTICE([Using tested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.])
 else
   AC_MSG_ERROR([octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION is not supported.
-Supported and tested are 3.8 and 4.4. Versions > 4.4 are untested, use at your own risk.])
+Supported and tested 4.4. Versions > 4.4 are untested, use at your own risk.])
 fi
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
@@ -140,6 +140,7 @@ MKOCTFILE_LIBS="$(echo \
   $(unset FLIBS; $XC_EXEC_PREFIX $mkoctfile -p FLIBS | dos2unix) \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
   | sed -re 's|\\|/|g')"
+MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g')"
 
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
@@ -163,10 +164,14 @@ if test "$cross_compiling" == "yes"; then
     RERUN=$?
   done
   MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
+
+  # convert MKOCTFILE_LIBDIR to unix path if cross compiling
+  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR))
 fi
 
 AC_SUBST([MKOCTFILE_CFLAGS])
 AC_SUBST([MKOCTFILE_LIBS])
+AC_SUBST([MKOCTFILE_LIBDIR])
 # try to compile a octave stand alone program
 SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
@@ -195,7 +200,7 @@ DATADIR="$(eval echo $(eval echo $datadir))"
 AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
 AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
 AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
-AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
+AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
 
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
@@ -211,6 +216,11 @@ if test "x$enable_python" == "xyes"; then
   if test "$cross_compiling" == "yes"; then
     PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
   fi
+  if test "_$host_os" != "_mingw32"; then
+    PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
+  else
+    PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
+  fi
   if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
     PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
     PYTHON_PACKAGES=site-packages
@@ -225,6 +235,7 @@ if test "x$enable_python" == "xyes"; then
   fi
   AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
   AC_SUBST([PYTHON_LIBDIR])
+  AC_SUBST([PYTHON_LIBDIR2])
   AC_SUBST([PYTHON_PACKAGES])
   PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
   AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
@@ -262,6 +273,9 @@ AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
 AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile])
 AC_CONFIG_FILES([mbxmlutils/octave/testsymbolic.sh],[chmod +x mbxmlutils/octave/testsymbolic.sh])
+AC_CONFIG_FILES([mbxmlutils/measurement.sh],[chmod +x mbxmlutils/measurement.sh])
 AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
 
+hardcode_into_libs=no # do not add hardcoded libdirs to ltlibraries
+hardcode_libdir_flag_spec_CXX= # do not add hardcodeed libdirs to ltbinaries
 AC_OUTPUT

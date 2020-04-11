@@ -71,7 +71,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // validate/load if file is given
       if(!file.empty()) {
         eval->msg(Info)<<"Read and validate "<<file<<endl;
-        shared_ptr<DOMDocument> newdoc;
+        shared_ptr<xercesc::DOMDocument> newdoc;
         try {
           newdoc=parser->parse(file, &dependencies, false);
         }
@@ -104,7 +104,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
       // get localParamEle
       shared_ptr<DOMElement> localParamEle;
-      shared_ptr<DOMDocument> localparamxmldoc;
+      shared_ptr<xercesc::DOMDocument> localparamxmldoc;
       if(inlineParamEle) { // inline parameter
         E(inlineParamEle)->setOriginalFilename();
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
@@ -286,7 +286,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         while(E(e)->getFirstTextChild())
           e->removeChild(E(e)->getFirstTextChild())->release();
         DOMNode *node;
-        DOMDocument *doc=e->getOwnerDocument();
+        xercesc::DOMDocument *doc=e->getOwnerDocument();
         try {
           node=doc->createTextNode(X()%eval->cast<CodeString>(value));
         } RETHROW_AS_DOMEVALEXCEPTION(e)

@@ -6,7 +6,6 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-#include <mbxmlutilshelper/getinstallpath.h>
 #include <fmatvec/toString.h>
 #include <mbxmlutilshelper/utils.h>
 #include "mbxmlutilshelper/shared_library.h"
@@ -59,11 +58,15 @@ void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation
                       (dst ? ", dstType="+fmatvec::toString(dst->getNodeType()) : ""));
 }
 
+ThisLineLocation loc;
+
 }
 
 vector<string> mbxmlutilsStaticDependencies;
 
 namespace MBXMLUtils {
+
+boost::filesystem::path Eval::installPath(boost::filesystem::path(loc()).parent_path().parent_path());
 
 bool tryDouble2Int(double d, int &i) {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
@@ -92,7 +95,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   if(!initialized) {
     // get units
     msg(Info)<<"Build unit list for measurements."<<endl;
-    bfs::path XMLDIR=MBXMLUtils::getInstallPath()/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
+    bfs::path XMLDIR=installPath/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
     shared_ptr<xercesc::DOMDocument> mmdoc=DOMParser::create()->parse(XMLDIR/"measurement.xml", dependencies, false);
     DOMElement *ele, *el2;
     for(ele=mmdoc->getDocumentElement()->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling())
@@ -113,15 +116,14 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
 
   // load the evaluator plugin named evalName
   msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
-  static const bfs::path installDir(getInstallPath());
 
   // check if a library named libmbxmlutils-eval-global-<evalName>.<ext> exists.
   // If it exists we load this library with the RTLD_GLOBAL flag (on Linux).
   // If it not exists we load a library named libmbxmlutils-eval-<evalName>.<ext> with the RTLD_LOCAL flag (on Linux).
-  bfs::path libName=installDir/LIBBIN/("libmbxmlutils-eval-global-"+evalName+SHEXT);
+  bfs::path libName=installPath/LIBBIN/("libmbxmlutils-eval-global-"+evalName+SHEXT);
   bool loadWithGlobalFlag=true;
   if(!bfs::exists(libName)) {
-    libName=installDir/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT);
+    libName=installPath/LIBBIN/("libmbxmlutils-eval-"+evalName+SHEXT);
     loadWithGlobalFlag=false;
   }
 

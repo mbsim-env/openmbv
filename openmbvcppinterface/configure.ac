@@ -14,7 +14,7 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # enable C++11
-CXXFLAGS="$CXXFLAGS -std=c++11"
+CXXFLAGS="$CXXFLAGS -std=c++17"
 
 # for compile version
 OLDCXXFLAGS="$CXXFLAGS"
@@ -102,7 +102,7 @@ if test "_$mkoctfile" == "_no"; then
 fi
 OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
 AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
-AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave$(test "$cross_compiling" == "yes" && echo .exe)])
+AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
 OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
 OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
 if test "$cross_compiling" == "yes"; then
@@ -195,4 +195,6 @@ AC_CONFIG_FILES([swig/octave/octavetest.sh], [chmod +x swig/octave/octavetest.sh
 AC_CONFIG_FILES([swig/python/pythontest.sh], [chmod +x swig/python/pythontest.sh])
 AC_CONFIG_FILES([swig/java/javatest.sh], [chmod +x swig/java/javatest.sh])
 
+hardcode_into_libs=no # do not add hardcoded libdirs to ltlibraries
+hardcode_libdir_flag_spec_CXX= # do not add hardcodeed libdirs to ltbinaries
 AC_OUTPUT

@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
+#include <mbxmlutilshelper/thislinelocation.h>
 #include <unordered_map>
 
 #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
@@ -87,6 +88,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     //! Typedef for a shared value
     typedef std::shared_ptr<void> Value;
+
+    static boost::filesystem::path installPath;
 
   protected:
     //! Constructor.

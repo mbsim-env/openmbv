@@ -19,7 +19,7 @@
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
-#include "getinstallpath.h"
+#include "thislinelocation.h"
 #include <fmatvec/toString.h>
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
@@ -148,6 +148,8 @@ bool lexical_cast<bool>(const string& arg)
 }
 
 namespace MBXMLUtils {
+
+ThisLineLocation domLoc;
 
 namespace {
   InitXerces initXerces;
@@ -578,7 +580,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
-  shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&DOMDocument::release, _1));
+  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&xercesc::DOMDocument::release, _1));
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
 
@@ -600,7 +602,7 @@ template<typename DOMDocumentType>
 shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
   return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
 }
-template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
+template shared_ptr<DOMParser> DOMDocumentWrapper<const xercesc::DOMDocument>::getParser() const; // explicit instantiate const variant
 
 template<typename DOMDocumentType>
 path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
@@ -622,10 +624,11 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   // all other schemas are errors
   throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
 }
-template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
+template path DOMDocumentWrapper<const xercesc::DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
 
 template<typename DOMDocumentType>
 DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {
+  // we cannot use std::regex here since named groups and conditionals are not supported by std::regex
   static const boost::regex re(R"q(/{([^}]+)}([^[]+)\[([0-9]+)\](.*))q");
   if(!context) context=me->getDocumentElement();
   DOMElement *p=context;
@@ -664,7 +667,7 @@ DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpa
 }
 
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
-template class DOMDocumentWrapper<DOMDocument>;
+template class DOMDocumentWrapper<xercesc::DOMDocument>;
 
 DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
   // store error message
@@ -856,7 +859,8 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   // handle schema import -> map namespace to local file
   string ns=X()%resourceIdentifier->getNameSpace();
   path file;
-  path SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+  static boost::filesystem::path installPath(boost::filesystem::path(domLoc()).parent_path().parent_path());
+  path SCHEMADIR=installPath/"share"/"mbxmlutils"/"schema";
   // handle namespaces known by MBXMLUtils
   if(ns==XINCLUDE.getNamespaceURI())
     file=SCHEMADIR/"http___www_w3_org/XInclude.xsd";
@@ -922,7 +926,7 @@ void DOMParser::loadGrammar(const path &schemaFilename) {
 }
 
 void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const path &schemaFilename) {
-  shared_ptr<DOMDocument> doc=nonValParser->parse(schemaFilename);//MISSING use sax parser since we just need to parse one attribute of the root element
+  shared_ptr<xercesc::DOMDocument> doc=nonValParser->parse(schemaFilename);//MISSING use sax parser since we just need to parse one attribute of the root element
   string ns=E(doc->getDocumentElement())->getAttribute("targetNamespace");
   registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
@@ -969,12 +973,12 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
+shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
-  shared_ptr<DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&DOMDocument::release, _1));
+  shared_ptr<xercesc::DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1025,7 +1029,7 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPri
 namespace {
   shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint) {
     if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-      static_cast<DOMDocument*>(n)->normalizeDocument();
+      static_cast<xercesc::DOMDocument*>(n)->normalizeDocument();
     else
       n->getOwnerDocument()->normalizeDocument();
 
@@ -1041,8 +1045,8 @@ void DOMParser::resetCachedGrammarPool() {
   typeMap.clear();
 }
 
-shared_ptr<DOMDocument> DOMParser::createDocument() {
-  shared_ptr<DOMDocument> doc(domImpl->createDocument(), bind(&DOMDocument::release, _1));
+shared_ptr<xercesc::DOMDocument> DOMParser::createDocument() {
+  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), bind(&xercesc::DOMDocument::release, _1));
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   return doc;
 }

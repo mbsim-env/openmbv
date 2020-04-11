@@ -33,6 +33,7 @@
 #include <QDesktopWidget>
 #include <QIcon>
 #include "mainwindow.h"
+#include <boost/dll.hpp>
 
 using namespace std;
 
@@ -116,7 +117,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   cc->transparency.setValue(0.6);
   auto *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
-  QIcon icon=Utils::QIconCached(":/openmbv.svg");
+  QIcon icon=Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str());
   QImage image=icon.pixmap(100, 100).toImage();
   int w=image.width();
   int h=image.height();
