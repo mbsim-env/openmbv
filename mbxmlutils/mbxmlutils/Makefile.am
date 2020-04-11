@@ -118,7 +118,7 @@ install-exec-local: install-moduleLTLIBRARIES
 	         $(PYTHON_LIBDIR2)/*.pyd \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
 	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
-	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.dll; do \
+	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/.libs/*.dll; do \
 	  test $$(basename $$i) == __init_gnuplot__.oct && continue; \
 	  if test $$i -nt $(prefix)/share/deplibs/$$(basename $$i).deplibs; then \
 	    echo "Create dependency file and wrapper file for $$i"; \
