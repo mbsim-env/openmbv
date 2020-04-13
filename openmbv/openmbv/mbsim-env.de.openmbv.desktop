@@ -6,4 +6,4 @@ Icon=mbsim-env.openmbv
 Exec=@bindir@/openmbv %F
 Terminal=false
 MimeType=application/vnd.mbsim-env.openmbv;
-Categories=Education;Science;ComputerScience;Math;NumericalAnalysis;Physics;Robotics;Engineering;
+Categories=Science;ComputerScience;NumericalAnalysis;Physics;Math;Robotics;
