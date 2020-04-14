@@ -95,8 +95,22 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   collinear(true), additionalTwist(0.)
 {
   spineExtrusion=std::static_pointer_cast<OpenMBV::SpineExtrusion>(obj);
-  //h5 dataset
-  numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
+
+  std::vector<double> data;
+
+  if( spineExtrusion->getStateOffSet().size() > 0 ) {
+    data = std::vector<double>(spineExtrusion->getStateOffSet().size()+1);
+
+    for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
+      data[i+1] = spineExtrusion->getStateOffSet()[i]; // we have == 0.0 due to local init
+
+    //xml dataset
+    numberOfSpinePoints = int((spineExtrusion->getStateOffSet().size())/4);
+  } else {
+    //h5 dataset
+    data = spineExtrusion->getRow(0);
+    numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
+  }
   int rows=spineExtrusion->getRows();
   double dt;
   if(rows>=2) dt=spineExtrusion->getRow(1)[0]-spineExtrusion->getRow(0)[0]; else dt=0;
@@ -137,7 +151,6 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   // test if spine point are collinear
   const SbVec3f empty(0.0f, 0.0f, 0.0f);
 
-  std::vector<double> data=spineExtrusion->getRow(0);
   std::vector<SbVec3f> data_coin(numberOfSpinePoints);
   for(int i=0;i<numberOfSpinePoints;i++) {
     data_coin[i] = SbVec3f(data[4*i+1],data[4*i+2],data[4*i+3]);
@@ -159,6 +172,11 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     additionalTwist = acos(Orientation[2][2]);
     rotation->unref();
   }
+
+  if( spineExtrusion->getStateOffSet().size() > 0 ) {
+    setIvSpine(data);
+  }
+
 }
 
 void SpineExtrusion::createProperties() {
@@ -181,10 +199,22 @@ QString SpineExtrusion::getInfo() {
 }
 
 double SpineExtrusion::update() {
+  if(spineExtrusion->getRows()==-1) return 0; // do nothing for environement objects
+
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
   std::vector<double> data=spineExtrusion->getRow(frame);
 
+  if( spineExtrusion->getStateOffSet().size() > 0 )
+    for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
+      data[i+1] += spineExtrusion->getStateOffSet()[i];
+
+  setIvSpine(data);
+
+  return data[0];
+}
+
+void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   // set spine
   extrusion->spine.setNum(numberOfSpinePoints);
   SbVec3f *sp = extrusion->spine.startEditing();
@@ -202,9 +232,6 @@ double SpineExtrusion::update() {
   }
   extrusion->orientation.finishEditing();
   extrusion->orientation.setDefault(FALSE);
-
-  return data[0];
 }
-
 
 }

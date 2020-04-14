@@ -42,6 +42,8 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
+  if( stateOffSet.size() > 0 )
+    E(e)->addElementText(OPENMBV%"stateOffSet", vector<double>(stateOffSet));
   return nullptr;
 }
 
@@ -84,6 +86,9 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
   setInitialRotation(E(e)->getText<vector<double>>(3));
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"stateOffSet");
+  if( e )
+    setStateOffSet(E(e)->getText<vector<double>>());
 }
 
 }

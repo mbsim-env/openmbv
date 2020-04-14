@@ -69,6 +69,8 @@ class SpineExtrusion : public DynamicColoredBody {
 
     std::shared_ptr<OpenMBV::SpineExtrusion> spineExtrusion;
     void createProperties() override;
+
+    void setIvSpine(const std::vector<double>& data);
 };
 
 }
