@@ -20,7 +20,6 @@
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fmatvec/toString.h>
-//mfmf do not include this here #include <fmatvec/stream.h>
 
 namespace XERCES_CPP_NAMESPACE {
   class DOMProcessingInstruction;

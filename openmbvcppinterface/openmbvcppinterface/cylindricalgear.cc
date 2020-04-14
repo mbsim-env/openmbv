@@ -37,6 +37,7 @@ DOMElement *CylindricalGear::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"pressureAngle", al);
   E(e)->addElementText(OPENMBV%"backlash", b);
   E(e)->addElementText(OPENMBV%"externalToothed", ext);
+  E(e)->addElementText(OPENMBV%"outsideRadius", R);
   return nullptr;
 }
 
@@ -57,6 +58,8 @@ void CylindricalGear::initializeUsingXML(DOMElement *element) {
   if(e) setBacklash(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"externalToothed");
   if(e) setExternalToothed(E(e)->getText<bool>());
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"outsideRadius");
+  if(e) setOutsideRadius(E(e)->getText<double>());
 }
 
 }

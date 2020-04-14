@@ -2,9 +2,9 @@
 #include <cassert>
 #include <fstream>
 #include <cfenv>
-#include <boost/regex.hpp>
+#include <regex>
 #include "mbxmlutils/preprocess.h"
-#include <mbxmlutilshelper/getinstallpath.h>
+#include <mbxmlutilshelper/thislinelocation.h>
 #include <mbxmlutils/eval.h>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -15,6 +15,8 @@ using namespace xercesc;
 using namespace boost::filesystem;
 
 path SCHEMADIR;
+
+ThisLineLocation loc;
 
 int main(int argc, char *argv[]) {
 #ifndef _WIN32
@@ -100,9 +102,9 @@ int main(int argc, char *argv[]) {
       else if(itn->substr(0, 5)=="depr~"  ) msgType=fmatvec::Atom::Deprecated;
       else if(itn->substr(0, 7)=="status~") msgType=fmatvec::Atom::Status;
       else throw runtime_error("Unknown message stream.");
-      static boost::regex re(".*~(.*)~(.*)", boost::regex::extended);
-      boost::smatch m;
-      if(!boost::regex_match(*itn, m, re)) {
+      static std::regex re(".*~(.*)~(.*)", std::regex::extended);
+      std::smatch m;
+      if(!std::regex_match(*itn, m, re)) {
         cerr<<"Invalid argument"<<endl;
         return 1;
       }
@@ -124,7 +126,7 @@ int main(int argc, char *argv[]) {
       args.erase(i); args.erase(i2);
     }
 
-    SCHEMADIR=getInstallPath()/"share"/"mbxmlutils"/"schema";
+    SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
     // the XML DOM parser
     fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
@@ -190,7 +192,7 @@ int main(int argc, char *argv[]) {
 
     // output dependencies?
     if(!depFileName.empty()) {
-      std::ofstream dependenciesFile(depFileName.string().c_str());
+      boost::filesystem::ofstream dependenciesFile(depFileName);
       for(auto & dependencie : dependencies)
         dependenciesFile<<dependencie.string()<<endl;
     }

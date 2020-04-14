@@ -19,16 +19,36 @@
 
 #include "config.h"
 #include "bevelgear.h"
-#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/bevelgear.h"
 #include <QMenu>
 #include <cfloat>
+#include <boost/math/tools/roots.hpp>
 
 using namespace std;
+using namespace boost::math::tools;
 
 namespace OpenMBVGUI {
+
+struct Residuum {
+  Residuum(double al_, double be_, double ga_, double r1_, double s_, double h_, int signi_) : al(al_), be(be_), ga(ga_), r1(r1_), s(s_), h(h_), signi(signi_) { }
+  double operator()(const double &eta) {
+    double phi = -sin(ga)*eta;
+    double xi = (s*cos(phi-be)+r1*sin(phi)*pow(sin(al),2)*sin(be))/(-sin(phi-be)*pow(sin(al),2)*sin(be)+cos(phi-be)*cos(be));
+    double l = (sin(phi)/cos(phi-be)*r1+xi*tan(phi-be))*sin(al);
+    double x = -l*sin(al)*cos(phi-be)+xi*sin(phi-be)+r1*sin(phi);
+    double b = signi*l*cos(al);
+    double c = l*sin(al)*sin(phi-be)+xi*cos(phi-be)+r1*cos(phi);
+    double y = b*cos(ga)-c*sin(ga);
+    double z = b*sin(ga)+c*cos(ga);
+    double hm = z*tan(ga)+h/cos(ga);
+    return x*x+y*y-hm*hm;
+  }
+  double al, be, ga, r1, s, h;
+  int signi;
+};
 
 BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   e=std::static_pointer_cast<OpenMBV::BevelGear>(obj);
@@ -37,67 +57,205 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
 
   // read XML
   int nz = e->getNumberOfTeeth();
-  double width = e->getWidth();
   double be = e->getHelixAngle();
   double ga = e->getPitchAngle();
-  double al0 = e->getPressureAngle();
+  double al = e->getPressureAngle();
   double m = e->getModule()/cos(be);
   double b = e->getBacklash();
+  double w = e->getWidth();
 
-  double d0 = m*nz;
-  double r0 = d0/2;
-  int numb = 5;
+  double r0 = m*nz/2;
+  double r1 = r0/sin(ga);
+  double d = sqrt(r1*r1-r0*r0);
+  double dphi = (M_PI/2-b/m)/nz;
+  double alq = al;
 
-  double R = r0/sin(ga);
-  double d = sqrt(R*R-r0*r0);
-  double dphi = 60./180*M_PI/2/numb;
-  vector<double> x(numb+1), y(numb+1), z(numb+1);
+  double etaMaxO[2], etaMaxI[2], etaMinO[2], etaMinI[2];
+  const boost::uintmax_t maxit = 20;
+  boost::uintmax_t it = maxit;
+  int digits = std::numeric_limits<double>::digits;
+  int get_digits = digits - 3;
+  double h[2];
+  h[0] = -e->getModule()/2;
+  h[1] = e->getModule();
+  eps_tolerance<double> tol(get_digits);
+  for(int i=0; i<2; i++) {
+    int signi=i?-1:1;
+    bool rising = i?false:true;
+    std::pair<double, double> r = bracket_and_solve_root(Residuum(al,be,ga,r1,w/2,h[i],signi),-0.5,2.,rising,tol,it);
+    etaMinO[i] = r.first;
+    r = bracket_and_solve_root(Residuum(al,be,ga,r1,-w/2,h[i],signi),-0.5,2.,rising,tol,it);
+    etaMinI[i] = r.first;
+    r = bracket_and_solve_root(Residuum(al,be,ga,r1,w/2,h[not i],signi),0.5,2.,rising,tol,it);
+    etaMaxO[i] = r.first;
+    r = bracket_and_solve_root(Residuum(al,be,ga,r1,-w/2,h[not i],signi),0.5,2.,rising,tol,it);
+    etaMaxI[i] = r.first;
+  }
+
+  int nf = 8;
+  int nn = 2*nf;
+  double x[2*nn], y[2*nn], z[2*nn];
   for(int j=0; j<2; j++) {
     int signj=j?-1:1;
-    double phi = -30./180*M_PI/2;
-    for (int i=0; i<=numb; i++) {
-      double phi2 = -phi*R/r0;
-      double u = signj*sin(phi)/cos(phi-be)*sin(al0)*R;
-      double a = signj*u*sin(al0)*cos(phi-be)-R*sin(phi);
-      double b = u*cos(al0)-d*sin(ga);
-      double c = signj*u*sin(al0)*sin(phi-be)+R*cos(phi)-d*cos(ga);
-      x[i] = a*cos(phi2)+b*sin(phi2)*cos(ga)-c*sin(phi2)*sin(ga);
-      y[i] = -a*sin(phi2)+b*cos(phi2)*cos(ga)-c*cos(phi2)*sin(ga);
-      z[i] = b*sin(ga)+c*cos(ga);
-      phi += dphi;
+
+    double s = w/2;
+    for(int k=0; k<nf; k++) {
+      double eta = etaMinO[j]+(etaMaxO[j]-etaMinO[j])/(nf-1)*k;
+      double phi = -sin(ga)*eta;
+      double xi = (s*cos(phi-be)+r1*sin(phi)*pow(sin(al),2)*sin(be))/(-sin(phi-be)*pow(sin(al),2)*sin(be)+cos(phi-be)*cos(be));
+      double l = (sin(phi)/cos(phi-be)*r1+xi*tan(phi-be))*sin(al);
+      double a = -l*sin(al)*cos(phi-be)+xi*sin(phi-be)+r1*sin(phi);
+      double b = signj*l*cos(al);
+      double c = l*sin(al)*sin(phi-be)+xi*cos(phi-be)+r1*cos(phi);
+      x[nn*j+k] = a*cos(eta)-b*sin(eta)*cos(ga)+c*sin(eta)*sin(ga);
+      y[nn*j+k] = a*sin(eta)+b*cos(eta)*cos(ga)-c*cos(eta)*sin(ga);
+      z[nn*j+k] = b*sin(ga)+c*cos(ga)-d;
     }
-    float pts[x.size()][3];
-    for(unsigned int i=0; i<x.size(); i++) {
-      pts[i][0] = x[i];
-      pts[i][1] = y[i];
-      pts[i][2] = z[i];
-    }
-    auto *r = new SoRotation;
-    soSepRigidBody->addChild(r);
-    r->rotation.setValue(SbVec3f(0,0,1),(j?-2:1)*(M_PI/2-b/m)/nz);
-    for(int k=0; k<nz; k++) {
-      auto *points = new SoCoordinate3;
-      auto *line = new SoLineSet;
-      points->point.setValues(0, x.size(), pts);
-      line->numVertices.setValue(x.size());
-      soSepRigidBody->addChild(points);
-      soSepRigidBody->addChild(line);
-      auto *r = new SoRotation;
-      soSepRigidBody->addChild(r);
-      r->rotation.setValue(SbVec3f(0,0,1),signj*2*M_PI/nz);
+
+    s = -w/2;
+    for(int k=0; k<nf; k++) {
+      double eta = etaMinI[j]+(etaMaxI[j]-etaMinI[j])/(nf-1)*k;
+      double phi = -sin(ga)*eta;
+      double xi = (s*cos(phi-be)+r1*sin(phi)*pow(sin(al),2)*sin(be))/(-sin(phi-be)*pow(sin(al),2)*sin(be)+cos(phi-be)*cos(be));
+      double l = (sin(phi)/cos(phi-be)*r1+xi*tan(phi-be))*sin(al);
+      double a = -l*sin(al)*cos(phi-be)+xi*sin(phi-be)+r1*sin(phi);
+      double b = signj*l*cos(al);
+      double c = l*sin(al)*sin(phi-be)+xi*cos(phi-be)+r1*cos(phi);
+      x[nn*j+nf+k] = a*cos(eta)-b*sin(eta)*cos(ga)+c*sin(eta)*sin(ga);
+      y[nn*j+nf+k] = a*sin(eta)+b*cos(eta)*cos(ga)-c*cos(eta)*sin(ga);
+      z[nn*j+nf+k] = b*sin(ga)+c*cos(ga)-d;
     }
   }
 
-  auto *r = new SoRotation;
-  soSepRigidBody->addChild(r);
-  r->rotation.setValue(SbVec3f(1,0,0),M_PI/2);
+  auto *points = new SoCoordinate3;
+  auto *face = new SoIndexedFaceSet;
 
-  auto *cyl = new SoCylinder;
-  soSepRigidBody->addChild(cyl);
-  cyl->radius.setValue(m*nz/2);
-  cyl->height.setValue(width);
+  //  nz = 1;
+  int ns = 2*nn+4;
+  int np = nz*ns+2*nz+2;
+  float pts[np][3];
+
+  int nii = 4*(nf-1)*5+3*5+6*4;
+  int ni = nz*nii;
+  int indices[ni];
+
+  int l=0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][0] = 0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][1] = 0;
+  pts[(nz-1)*ns+2*nn+4+2*nz][2] = e->getModule()/2*sin(ga)-d+(r1+w/2)*cos(ga);
+  pts[(nz-1)*ns+2*nn+5+2*nz][0] = 0;
+  pts[(nz-1)*ns+2*nn+5+2*nz][1] = 0;
+  pts[(nz-1)*ns+2*nn+5+2*nz][2] = e->getModule()/2*sin(ga)-d+(r1-w/2)*cos(ga);
+  for(int v=0; v<nz; v++) {
+    double phi = 2*M_PI/nz*v;
+    pts[(nz-1)*ns+2*nn+4+v][0] = -sin(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1+w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+v][1] = cos(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1+w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+v][2] = e->getModule()/2*sin(ga)-d+(r1+w/2)*cos(ga);
+    pts[(nz-1)*ns+2*nn+4+nz+v][0] = -sin(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1-w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+nz+v][1] = cos(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1-w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+nz+v][2] = e->getModule()/2*sin(ga)-d+(r1-w/2)*cos(ga);
+    for(int j=0; j<2; j++) {
+      int signj=j?-1:1;
+      for(int i=nn*j; i<nn*j+nn; i++) {
+        pts[v*ns+i][0] = cos(phi-signj*dphi)*x[i] - sin(phi-signj*dphi)*y[i];
+        pts[v*ns+i][1] = sin(phi-signj*dphi)*x[i] + cos(phi-signj*dphi)*y[i];
+        pts[v*ns+i][2] = z[i];
+      }
+      pts[v*ns+2*nn+2*j][0] = pts[v*ns+(3*nf-1)*j][0]*(r0-e->getModule())/(r0*cos(alq));
+      pts[v*ns+2*nn+2*j][1] = pts[v*ns+(3*nf-1)*j][1]*(r0-e->getModule())/(r0*cos(alq));
+      pts[v*ns+2*nn+2*j][2] = w/2;
+      pts[v*ns+2*nn+2*j+1][0] = pts[v*ns+2*nn+2*j][0];
+      pts[v*ns+2*nn+2*j+1][1] = pts[v*ns+2*nn+2*j][1];
+      pts[v*ns+2*nn+2*j+1][2] = -w/2;
+    }
+
+    // left
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+nf+k;
+      indices[l++] = v*ns+nf+k+1;
+      indices[l++] = v*ns+k+1;
+      indices[l++] = v*ns+k;
+      indices[l++] = -1;
+    }
+    // right
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+3*nf+k;
+      indices[l++] = v*ns+3*nf+k+1;
+      indices[l++] = v*ns+2*nf+k+1;
+      indices[l++] = v*ns+2*nf+k;
+      indices[l++] = -1;
+    }
+    // top
+    indices[l++] = v*ns+3*nf;
+    indices[l++] = v*ns+2*nf;
+    indices[l++] = v*ns+nf-1;
+    indices[l++] = v*ns+2*nf-1;
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
+    indices[l++] = v*ns+nf;
+    indices[l++] = v*ns;
+    indices[l++] = (nz-1)*ns+2*nn+4+v;
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
+    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
+    indices[l++] = -1;
+    // front
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+k;
+      indices[l++] = v*ns+k+1;
+      indices[l++] = v*ns+3*nf-(k+2);
+      indices[l++] = v*ns+3*nf-(k+1);
+      indices[l++] = -1;
+    }
+    // back
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+2*nf-(k+1);
+      indices[l++] = v*ns+2*nf-(k+2);
+      indices[l++] = v*ns+3*nf+k+1;
+      indices[l++] = v*ns+3*nf+k;
+      indices[l++] = -1;
+    }
+    indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
+    indices[l++] = (nz-1)*ns+2*nn+4+v;
+    indices[l++] = v*ns;
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
+    indices[l++] = v*ns;
+    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
+    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
+    indices[l++] = v*ns+nf;
+    indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
+    indices[l++] = -1;
+    //
+    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = v*ns+nf;
+    indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
+    indices[l++] = -1;
+    //
+    indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
+    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
+    indices[l++] = -1;
+  }
+  points->point.setValues(0, np, pts);
+  face->coordIndex.setValues(0, ni, indices);
+
+  soSepRigidBody->addChild(points);
+  soSepRigidBody->addChild(face);
 }
- 
+
 void BevelGear::createProperties() {
   RigidBody::createProperties();
 

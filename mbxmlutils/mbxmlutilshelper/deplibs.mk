@@ -1,8 +1,8 @@
 # Note: with automake 1.14 we can use %reldir% instead of $(prefix)/share/mbxmlutils/python!
 deplibs.target:
 	set -e; \
-	echo "Create dependency file(s) (only if python is found) for $(lib_LTLIBRARIES)"
-	if which python &> /dev/null; then \
+	echo "Create dependency file(s) (only if python3 is found) for $(lib_LTLIBRARIES)"
+	if which python3 &> /dev/null; then \
 	  for lib_la in $(lib_LTLIBRARIES); do \
 	    . $(libdir)/$$lib_la; \
 	    if test -n "$$dlname"; then \

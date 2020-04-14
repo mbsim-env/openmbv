@@ -27,11 +27,9 @@
  * For more information, please refer to <http://unlicense.org/>
  */
 
-#ifndef MBXMLUTILS_SHAREDLIBNAME
-#  error "MBXMLUTILS_SHAREDLIBNAME must be defined before including this implementation file."
-#endif
+#ifndef _MBXMLUTILSHELPER_THISLINELOCATION_H_
+#define _MBXMLUTILSHELPER_THISLINELOCATION_H_
 
-#include <boost/preprocessor/cat.hpp>
 #ifdef _WIN32
 #  include <windows.h>
 #else
@@ -43,38 +41,43 @@
 #endif
 
 namespace {
-
-#ifdef _WIN32
-extern "C" void *__ImageBase;
-#else
-char buffer[2048];
-std::string pathAtLoadTime=getcwd(buffer, sizeof(buffer));
-#endif
-
+  #ifdef _WIN32
+    extern "C" void *__ImageBase;
+  #endif
 }
 
 namespace MBXMLUtils {
 
-std::string BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))() {
-  static std::string ret;
-  if(!ret.empty())
-    return ret;
-
-  // get the shared library file path containing this function
+//! We do not use boost::dll or boost::filesystem here to enable this class header only.
+//! Usage:
+//! ThisLineLocation loc; // as a global variable at the code where you want to get the location.
+//! std::string location=loc(); // to get the absolute path of the lib where loc is defined in.
+class ThisLineLocation {
+  public:
+    ThisLineLocation() {
 #ifdef _WIN32
-  char moduleName[2048];
-  GetModuleFileName(reinterpret_cast<HMODULE>(&__ImageBase), moduleName, sizeof(moduleName));
-  ret=moduleName;
+      char moduleName[2048];
+      GetModuleFileName(reinterpret_cast<HMODULE>(&__ImageBase), moduleName, sizeof(moduleName));
+      p=moduleName;
 #else
-  Dl_info info;
-  dladdr(reinterpret_cast<void*>(&BOOST_PP_CAT(get, BOOST_PP_CAT(MBXMLUTILS_SHAREDLIBNAME, SharedLibPath))), &info);
-  // convert to absolute path and return
-  std::string name(info.dli_fname);
-  ret=name[0]=='/'?name:pathAtLoadTime+"/"+name;
+      char buffer[2048];
+      std::string curDir=getcwd(buffer, sizeof(buffer));
+
+      Dl_info info;
+      dladdr(reinterpret_cast<void*>(&dummyFunc), &info);
+      // convert to absolute path and return
+      std::string name(info.dli_fname);
+      p=name[0]=='/'?name:curDir+"/"+name;
 #endif
-  return ret;
-}
+    }
+    std::string operator()() { return p; }
+  private:
+    std::string p;
+#ifndef _WIN32
+    static void dummyFunc() {}
+#endif
+};
 
 }
 
-#undef MBXMLUTILS_SHAREDLIBNAME
+#endif

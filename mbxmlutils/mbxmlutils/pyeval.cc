@@ -13,7 +13,6 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <mbxmlutilshelper/getinstallpath.h>
 #include "mbxmlutils/eval_static.h"
 #include <regex>
 
@@ -60,7 +59,7 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
-    initializePython((getInstallPath()/"bin"/"mbxmlutilspp").string());
+    initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
 #if !defined(_WIN32) && !defined(NDEBUG)
     // sympy and numpy generates a overflow during initialization -> dislabe this FPE exception
     int fpeExcept=fedisableexcept(FE_OVERFLOW | FE_INVALID | FE_OVERFLOW);
@@ -73,7 +72,7 @@ PyInit::PyInit() {
 #endif
 
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
-    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (getInstallPath()/"share"/"mbxmlutils"/"python").string()));
+    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
 
     mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
@@ -252,7 +251,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   path PYTHONDST(PYTHON_SUBDIR);
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for MBXMLUtils py-files."<<endl;
-  for(auto srcIt=directory_iterator(getInstallPath()/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {
+  for(auto srcIt=directory_iterator(installPath/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
     files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python", false);
@@ -260,8 +259,8 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
   path PYTHONSRC(PYTHON_LIBDIR);
-  if(exists(getInstallPath()/PYTHON_SUBDIR/"site-packages"))
-    PYTHONSRC=getInstallPath()/PYTHON_SUBDIR;
+  if(exists(installPath/PYTHON_SUBDIR/"site-packages"))
+    PYTHONSRC=installPath/PYTHON_SUBDIR;
   for(auto srcIt=recursive_directory_iterator(PYTHONSRC); srcIt!=recursive_directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
@@ -272,7 +271,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     if(*subDir.begin()=="config") // skip config dir
       continue;
     bool bin=false;
-    const regex so(".*.so(\\..*)?");
+    const regex so(".*\\.so(\\..*)*");
     if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
        regex_match(srcIt->path().filename().string(), so))
       bin=true;

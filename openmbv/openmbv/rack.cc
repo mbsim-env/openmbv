@@ -19,7 +19,6 @@
 
 #include "config.h"
 #include "rack.h"
-#include <Inventor/nodes/SoCube.h>
 #include <vector>
 #include "utils.h"
 #include "openmbvcppinterface/rack.h"
@@ -46,84 +45,155 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
 
   double dx = (m*M_PI/2-b)/2;
 
-  vector<double> x(8), y(8), z(8);
-  float pts[x.size()][3];
+  int nf = 2;
+  int nn = 2*nf;
+  vector<double> x(2*nn), y(2*nn), z(2*nn);
   for(int j=0; j<2; j++) {
     int signj=j?-1:1;
-    double eta = -e->getModule()/cos(al);
     double s = w/2;
-    double xi = (s-eta*sin(al)*sin(be))/cos(be);
-    x[4*j+0] = -eta*sin(al)*cos(be)+xi*sin(be);
-    y[4*j+0] = signj*eta*cos(al);
-    z[4*j+0] = eta*sin(al)*sin(be)+xi*cos(be);
+    for(int k=0; k<nf; k++) {
+      double eta = e->getModule()/cos(al)*(double(2*k)/(nf-1)-1);
+      double xi = (s-eta*sin(al)*sin(be))/cos(be);
+      x[nn*j+k] = -eta*sin(al)*cos(be)+xi*sin(be);
+      y[nn*j+k] = signj*eta*cos(al);
+      z[nn*j+k] = eta*sin(al)*sin(be)+xi*cos(be);
+    }
     s = -w/2;
-    xi = (s-eta*sin(al)*sin(be))/cos(be);
-    x[4*j+1] = -eta*sin(al)*cos(be)+xi*sin(be);
-    y[4*j+1] = signj*eta*cos(al);
-    z[4*j+1] = eta*sin(al)*sin(be)+xi*cos(be);
-    eta = e->getModule()/cos(al);
-    s = -w/2;
-    xi = (s-eta*sin(al)*sin(be))/cos(be);
-    x[4*j+2] = -eta*sin(al)*cos(be)+xi*sin(be);
-    y[4*j+2] = signj*eta*cos(al);
-    z[4*j+2] = eta*sin(al)*sin(be)+xi*cos(be);
-    s = w/2;
-    xi = (s-eta*sin(al)*sin(be))/cos(be);
-    x[4*j+3] = -eta*sin(al)*cos(be)+xi*sin(be);
-    y[4*j+3] = signj*eta*cos(al);
-    z[4*j+3] = eta*sin(al)*sin(be)+xi*cos(be);
-    for(int i=4*j; i<4*j+4; i++) {
-      pts[i][0] = x[i] + signj*dx;
-      pts[i][1] = y[i];
-      pts[i][2] = z[i];
+    for(int k=0; k<nf; k++) {
+      double eta = e->getModule()/cos(al)*(double(2*k)/(nf-1)-1);
+      double xi = (s-eta*sin(al)*sin(be))/cos(be);
+      x[nn*j+nf+k] = -eta*sin(al)*cos(be)+xi*sin(be);
+      y[nn*j+nf+k] = signj*eta*cos(al);
+      z[nn*j+nf+k] = eta*sin(al)*sin(be)+xi*cos(be);
     }
   }
 
-  int indices[25];
-  for(int i=0; i<4; i++)
-    indices[i] = i;
-  indices[4] = -1;
-  for(int i=5; i<9; i++)
-    indices[i] = i-1;
-  indices[9] = -1;
-  // top
-  indices[10] = 5;
-  indices[11] = 4;
-  indices[12] = 3;
-  indices[13] = 2;
-  indices[14] = -1;
-  // front
-  indices[15] = 0;
-  indices[16] = 3;
-  indices[17] = 4;
-  indices[18] = 7;
-  indices[19] = -1;
-  // back
-  indices[20] = 6;
-  indices[21] = 5;
-  indices[22] = 2;
-  indices[23] = 1;
-  indices[24] = -1;
+  int ns = 2*nn;
+  int np = nz*ns+2*nz+6;
+  float pts[np][3];
 
-  for(int k=0; k<nz; k++) {
-    auto *points = new SoCoordinate3;
-    auto *face = new SoIndexedFaceSet;
-    points->point.setValues(0, x.size(), pts);
-    face->coordIndex.setValues(0, 25, indices);
-    soSepRigidBody->addChild(points);
-    soSepRigidBody->addChild(face);
-    auto *t = new SoTranslation;
-    soSepRigidBody->addChild(t);
-    t->translation.setValue(SbVec3f(m*M_PI,0,0));
+  int nii = 4*(nf-1)*5+3*5;
+  int ni = nz*nii+25;
+  int indices[ni];
+
+  int l=0;
+  for(int v=0; v<nz; v++) {
+    double x_ = m*M_PI*v ;
+    pts[(nz-1)*ns+2*nn+v][0] = x_+m*M_PI/2;
+    pts[(nz-1)*ns+2*nn+v][1] = -e->getModule();
+    pts[(nz-1)*ns+2*nn+v][2] = w/2;
+    pts[(nz-1)*ns+2*nn+nz+v][0] = pts[(nz-1)*ns+2*nn+v][0];
+    pts[(nz-1)*ns+2*nn+nz+v][1] = pts[(nz-1)*ns+2*nn+v][1];
+    pts[(nz-1)*ns+2*nn+nz+v][2] = -w/2;
+    for(int j=0; j<2; j++) {
+      int signj=j?-1:1;
+      for(int i=nn*j; i<nn*j+nn; i++) {
+        pts[v*ns+i][0] = x[i] + x_+signj*dx;
+        pts[v*ns+i][1] = y[i];
+        pts[v*ns+i][2] = z[i];
+      }
+    }
+
+    // left
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+nf+k;
+      indices[l++] = v*ns+nf+k+1;
+      indices[l++] = v*ns+k+1;
+      indices[l++] = v*ns+k;
+      indices[l++] = -1;
+    }
+    // right
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+3*nf+k;
+      indices[l++] = v*ns+3*nf+k+1;
+      indices[l++] = v*ns+2*nf+k+1;
+      indices[l++] = v*ns+2*nf+k;
+      indices[l++] = -1;
+    }
+    // top
+    indices[l++] = v*ns+3*nf;
+    indices[l++] = v*ns+2*nf;
+    indices[l++] = v*ns+nf-1;
+    indices[l++] = v*ns+2*nf-1;
+    indices[l++] = -1;
+    // front
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+k;
+      indices[l++] = v*ns+k+1;
+      indices[l++] = v*ns+3*nf-(k+2);
+      indices[l++] = v*ns+3*nf-(k+1);
+      indices[l++] = -1;
+    }
+    // back
+    for(int k=0; k<nf-1; k++) {
+      indices[l++] = v*ns+2*nf-(k+1);
+      indices[l++] = v*ns+2*nf-(k+2);
+      indices[l++] = v*ns+3*nf+k+1;
+      indices[l++] = v*ns+3*nf+k;
+      indices[l++] = -1;
+    }
+    //
+    indices[l++] = v*ns+nf;
+    indices[l++] = v*ns;
+    indices[l++] = (nz-1)*ns+2*nn+v;
+    indices[l++] = (nz-1)*ns+2*nn+nz+v;
+    indices[l++] = -1;
+    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = v*ns+4*nf-1;
+    indices[l++] = (nz-1)*ns+2*nn+nz+(v==0?nz+1:v-1);
+    indices[l++] = (nz-1)*ns+2*nn+(v==0?2*nz:v-1);
+    indices[l++] = -1;
   }
-  auto *t = new SoTranslation;
-  soSepRigidBody->addChild(t);
-  t->translation.setValue(SbVec3f(-(2*nz+2)*m*M_PI/4,-e->getModule()-h/2,0));
-  auto *cube = new SoCube;
-  soSepRigidBody->addChild(cube);
-  cube->width.setValue(nz*m*M_PI);
-  cube->height.setValue(h);
-  cube->depth.setValue(w);
+  pts[(nz-1)*ns+2*nn+2*nz][0] = -m*M_PI/2;
+  pts[(nz-1)*ns+2*nn+2*nz][1] = -e->getModule();
+  pts[(nz-1)*ns+2*nn+2*nz][2] = w/2;
+  pts[(nz-1)*ns+2*nn+2*nz+1][0] = -m*M_PI/2;
+  pts[(nz-1)*ns+2*nn+2*nz+1][1] = -e->getModule();
+  pts[(nz-1)*ns+2*nn+2*nz+1][2] = -w/2;
+  pts[(nz-1)*ns+2*nn+2*nz+2][0] = pts[(nz-1)*ns+2*nn+2*nz][0];
+  pts[(nz-1)*ns+2*nn+2*nz+2][1] = pts[(nz-1)*ns+2*nn+2*nz][1]-h;
+  pts[(nz-1)*ns+2*nn+2*nz+2][2] = w/2;
+  pts[(nz-1)*ns+2*nn+2*nz+3][0] = pts[(nz-1)*ns+2*nn+2*nz+1][0];
+  pts[(nz-1)*ns+2*nn+2*nz+3][1] = pts[(nz-1)*ns+2*nn+2*nz+1][1]-h;
+  pts[(nz-1)*ns+2*nn+2*nz+3][2] = -w/2;
+  pts[(nz-1)*ns+2*nn+2*nz+4][0] = pts[(nz-1)*ns+2*nn+nz-1][0];
+  pts[(nz-1)*ns+2*nn+2*nz+4][1] = pts[(nz-1)*ns+2*nn+nz-1][1]-h;
+  pts[(nz-1)*ns+2*nn+2*nz+4][2] = w/2;
+  pts[(nz-1)*ns+2*nn+2*nz+5][0] = pts[(nz-1)*ns+2*nn+2*nz-1][0];
+  pts[(nz-1)*ns+2*nn+2*nz+5][1] = pts[(nz-1)*ns+2*nn+2*nz-1][1]-h;
+  pts[(nz-1)*ns+2*nn+2*nz+5][2] = -w/2;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indices[l++] = -1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indices[l++] = (nz-1)*ns+2*nn+nz-1;
+  indices[l++] = -1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indices[l++] = (nz-1)*ns+2*nn+nz-1;
+  indices[l++] = -1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indices[l++] = -1;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indices[l++] = -1;
+
+  auto *points = new SoCoordinate3;
+  auto *face = new SoIndexedFaceSet;
+  points->point.setValues(0, np, pts);
+  face->coordIndex.setValues(0, ni, indices);
+  soSepRigidBody->addChild(points);
+  soSepRigidBody->addChild(face);
 }
  
 void Rack::createProperties() {
