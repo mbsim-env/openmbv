@@ -68,7 +68,10 @@ Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *
 
 double XMLFlatEval::cast_double(const Value &value) const {
   auto *v=static_cast<string*>(value.get());
-  return boost::lexical_cast<double>(boost::algorithm::trim_copy(*v));
+  auto vStr=boost::algorithm::trim_copy(*v);
+  if(vStr=="true") return 1;
+  if(vStr=="false") return 0;
+  return boost::lexical_cast<double>(vStr);
 }
 
 vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
@@ -93,8 +96,11 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
       continue;
     else if(s=="]") // on ] exit
       break;
-    else // else push double to vector
-      v.push_back(boost::lexical_cast<double>(s));
+    else { // else push double to vector
+      if(s=="true") v.push_back(1);
+      else if(s=="false") v.push_back(0);
+      else v.push_back(boost::lexical_cast<double>(s));
+    }
   }
 
   // check end of stream
@@ -131,8 +137,11 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
       continue;
     else if(s=="]") // on ] exit
       break;
-    else // else push double to vector
+    else { // else push double to vector
+      if(s=="true") (--m.end())->push_back(1);
+      else if(s=="false") (--m.end())->push_back(0);
       (--m.end())->push_back(boost::lexical_cast<double>(s));
+    }
   }
 
   // check end of stream
@@ -146,7 +155,8 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
 string XMLFlatEval::cast_string(const Value &value) const {
   string valueStr=*static_cast<string*>(value.get());
   boost::algorithm::trim(valueStr);
-  if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
+  if((valueStr[0]!='\'' && valueStr[0]!='"') ||
+     (valueStr[valueStr.size()-1]!='\'' && valueStr[valueStr.size()-1]!='"'))
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
 }
