@@ -909,7 +909,7 @@ void MainWindow::newFileDialog() {
   if(dialog.exec()==QDialog::Rejected) return;
 
   boost::filesystem::path filename=dialog.selectedFiles()[0].toStdString();
-  ofstream file(filename);
+  boost::filesystem::ofstream file(filename);
   file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
       <<"<Group name=\""<<filename.stem().string()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
   openFile(filename.string());
