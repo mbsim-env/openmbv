@@ -41,7 +41,7 @@ static string dirOfTopLevelFile(Group *grp);
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 
-Group::Group() :  expandStr("true") {
+Group::Group() : expandStr("true"), environmentStr("false") {
 }
 
 Group::~Group() = default;
@@ -82,8 +82,8 @@ DOMElement *Group::writeXMLFile(DOMNode *parent) {
     DOMDocument *doc=parent->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(parent) : parent->getOwnerDocument();
     DOMElement *inc = D(doc)->createElement(XINCLUDE%"include");
     parent->insertBefore(inc, nullptr);
-    E(inc)->setAttribute("href", fullName+".ombv.xml");
-    fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
+    E(inc)->setAttribute("href", fullName+".ombvx");
+    fileName=dirOfTopLevelFile(this)+fullName+".ombvx";
     // create new xml file and write to it till now
     // use the directory of the topLevelFile and the above fullName
     shared_ptr<DOMParser> parser=DOMParser::create();
@@ -108,11 +108,11 @@ void Group::createHDF5File() {
     string fullName=getFullName();
     for(char & i : fullName) if(i=='/') i='.';
     // create link in current h5 file
-    p->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombv.h5"), string("/")));
+    p->hdf5Group->createExternalLink(name, make_pair(boost::filesystem::path(fullName+".ombvh5"), string("/")));
     // create new h5 file and write to in till now
     // use the directory of the topLevelFile and the above fullName
-    fileName=dirOfTopLevelFile(this)+fullName+".ombv.xml";
-    hdf5File=std::make_shared<H5::File>(fileName.substr(0,fileName.length()-4)+".h5", H5::File::write);
+    fileName=dirOfTopLevelFile(this)+fullName+".ombvx";
+    hdf5File=std::make_shared<H5::File>(fileName.substr(0,fileName.length()-6)+".ombvh5", H5::File::write);
     hdf5Group=hdf5File.get();
     for(auto & i : object)
       i->createHDF5File();
@@ -124,16 +124,17 @@ void Group::openHDF5File() {
   std::shared_ptr<Group> p=parent.lock();
   if(!p) {
     try {
-      hdf5File=std::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-4)+".h5", H5::File::read);
+      hdf5File=std::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-6)+".ombvh5", H5::File::read);
       hdf5Group=hdf5File.get();
     }
     catch(...) {
-      msg(Warn)<<"Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-4)+".h5"<<"'"<<endl;
+      msg(Warn)<<"Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-6)+".ombvh5"<<"'"<<endl;
     }
   }
   else {
     try {
-      hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
+      if(!getEnvironment())
+        hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
     }
     catch(...) {
       msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
@@ -146,18 +147,19 @@ void Group::openHDF5File() {
 
 void Group::writeXML() {
   separateFile=true;
-  // write .ombv.xml file
-    shared_ptr<DOMParser> parser=DOMParser::create();
-    shared_ptr<DOMDocument> xmlFile=parser->createDocument();
-    DOMElement *parent=Object::writeXMLFile(xmlFile.get());
-    E(parent)->setAttribute("expand", expandStr);
-    for(auto & i : object)
-      i->writeXMLFile(parent);
+  // write .ombvx file
+  shared_ptr<DOMParser> parser=DOMParser::create();
+  shared_ptr<DOMDocument> xmlFile=parser->createDocument();
+  DOMElement *parent=Object::writeXMLFile(xmlFile.get());
+  E(parent)->setAttribute("expand", expandStr);
+  if(environmentStr=="true") E(parent)->setAttribute("environment", environmentStr);
+  for(auto & i : object)
+    i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);
 }
 
 void Group::writeH5() {
-  string h5FileName=fileName.substr(0,fileName.length()-4)+".h5";
+  string h5FileName=fileName.substr(0,fileName.length()-6)+".ombvh5";
   hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
   hdf5Group=hdf5File.get();
   for(auto & i : object)
@@ -183,6 +185,9 @@ void Group::initializeUsingXML(DOMElement *element) {
     setSeparateFile(true);
     fileName=X()%ofn->getData();
   }
+  if(E(element)->hasAttribute("environment") && 
+     (E(element)->getAttribute("environment")=="true" || E(element)->getAttribute("environment")=="1"))
+    setEnvironment(true);
 
   DOMElement *e;
   e=element->getFirstElementChild();
@@ -220,13 +225,13 @@ string dirOfTopLevelFile(Group *grp) {
 
 void Group::write(bool writeXMLFile, bool writeH5File) {
   // use element name as base filename if fileName was not set
-  if(fileName.empty()) fileName=name+".ombv.xml";
+  if(fileName.empty()) fileName=name+".ombvx";
 
 #ifdef HAVE_BOOST_FILE_LOCK
   size_t size=fileName.find_last_of("/\\");
   int pos;
   if(size==string::npos) pos=-1; else pos=static_cast<int>(size);
-  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1, fileName.length()-4)+".lock";
+  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1)+".lock";
 
   // try to create file
   FILE *f=fopen(lockFileName.c_str(), "a");
@@ -265,12 +270,12 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 #endif
 }
 
-void Group::read(bool readXMLFile, bool readH5File) {
+void Group::read() {
 #ifdef HAVE_BOOST_FILE_LOCK
   size_t size=fileName.find_last_of("/\\");
   int pos;
   if(size==string::npos) pos=-1; else pos=static_cast<int>(size);
-  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1, fileName.length()-4)+".lock";
+  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1)+".lock";
 
   // try to create file
   FILE *f=fopen(lockFileName.c_str(), "a");
@@ -291,8 +296,9 @@ void Group::read(bool readXMLFile, bool readH5File) {
   }
 #endif
   try {
-    if(readXMLFile) readXML();
-    if(readH5File)  readH5();
+    readXML();
+    if(!getEnvironment())
+      readH5();
   }
   catch(...) {
 #ifdef HAVE_BOOST_FILE_LOCK

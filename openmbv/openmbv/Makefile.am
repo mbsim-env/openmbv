@@ -181,7 +181,6 @@ dist_icon_DATA = openmbv.svg \
   h5file.svg \
   unloadfile.svg \
   reloadfile.svg \
-  envfile.svg \
   addfile.svg \
   savefile.svg \
   newfile.svg \

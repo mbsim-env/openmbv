@@ -751,20 +751,16 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
 
   // read XML files
   QDir dir;
-  QRegExp filterRE1(".+\\.ombv\\.xml");
-  QRegExp filterRE2(R"(.+\.ombv\.env\.xml)");
+  QRegExp filterRE1(".+\\.ombvx");
   dir.setFilter(QDir::Files);
   i=arg.begin();
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
-      // open all .+\.ombv\.xml and then all .+\.ombv\.env\.xml files
+      // open all .+\.ombvx
       QStringList file=dir.entryList();
       for(int j=0; j<file.size(); j++)
         if(filterRE1.exactMatch(file[j]))
-          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
-      for(int j=0; j<file.size(); j++)
-        if(filterRE2.exactMatch(file[j]))
           openFile(dir.path().toStdString()+"/"+file[j].toStdString());
       i2=i; i++; arg.erase(i2);
       continue;
@@ -873,23 +869,10 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   if(parentItem==nullptr) parentItem=objectList->invisibleRootItem();
   if(soParent==nullptr) soParent=sceneRoot;
 
-  // check file type
-  bool env;
-  if(fileName.length()>string(".ombv.xml").length() && fileName.substr(fileName.length()-string(".ombv.xml").length())==".ombv.xml")
-    env=false;
-  else if(fileName.length()>string(".ombv.env.xml").length() && fileName.substr(fileName.length()-string(".ombv.env.xml").length())==".ombv.env.xml")
-    env=true;
-  else {
-    QString str("Unknown file type: %1!"); str=str.arg(fileName.c_str());
-    statusBar()->showMessage(str, 10000);
-    msg(Warn)<<str.toStdString()<<endl;
-    return false;
-  }
-
   // read XML
   std::shared_ptr<OpenMBV::Group> rootGroup=OpenMBV::ObjectFactory::create<OpenMBV::Group>();
   rootGroup->setFileName(fileName);
-  rootGroup->read(true, !env);
+  rootGroup->read();
   if(rootGroup->getHDF5File())
     rootGroup->getHDF5File()->refreshAfterWriterFlush();
 
@@ -897,10 +880,7 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
   object->setText(0, fileName.c_str());
   object->setToolTip(0, QFileInfo(fileName.c_str()).absoluteFilePath());
-  if(!env)
-    object->getIconFile()="h5file.svg";
-  else
-    object->getIconFile()="envfile.svg";
+  object->getIconFile()="h5file.svg";
   object->setIcon(0, Utils::QIconCached(object->getIconFile()));
 
   // force a update
@@ -913,9 +893,7 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
 
 void MainWindow::openFileDialog() {
   QStringList files=QFileDialog::getOpenFileNames(nullptr, "Add OpenMBV Files", ".",
-    "OpenMBV files (*.ombv.xml *.ombv.env.xml);;"
-    "OpenMBV animation files (*.ombv.xml);;"
-    "OpenMBV environment files (*.ombv.env.xml)");
+    "OpenMBV files (*.ombvx)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
 }
@@ -925,21 +903,16 @@ void MainWindow::newFileDialog() {
   dialog.setWindowTitle("New OpenMBV File");
   dialog.setDirectory(".");
   dialog.setNameFilter(
-    "OpenMBV files (*.ombv.xml *.ombv.env.xml);;"
-    "OpenMBV animation files (*.ombv.xml);;"
-    "OpenMBV environment files (*.ombv.env.xml)");
+    "OpenMBV files (*.ombvx)");
   dialog.setAcceptMode(QFileDialog::AcceptSave);
-  dialog.setDefaultSuffix("ombv.xml");
+  dialog.setDefaultSuffix("ombx");
   if(dialog.exec()==QDialog::Rejected) return;
 
-  QString filename=dialog.selectedFiles()[0], basename;
-  if(filename.toUpper().endsWith(".OMBV.XML")) basename=filename.left(filename.length()-9);
-  if(filename.toUpper().endsWith(".OMBV.ENV.XML")) basename=filename.left(filename.length()-13);
-  basename.remove(0, basename.lastIndexOf('/')+1);
-  ofstream file(filename.toStdString());
+  boost::filesystem::path filename=dialog.selectedFiles()[0].toStdString();
+  ofstream file(filename);
   file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
-      <<"<Group name=\""<<basename.toStdString()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
-  openFile(filename.toStdString());
+      <<"<Group name=\""<<filename.stem().string()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
+  openFile(filename.string());
 }
 
 void MainWindow::toggleAction(Object *current, QAction *currentAct) {
@@ -1411,7 +1384,7 @@ void MainWindow::heavyWorkSlot() {
     // get number of rows of first none enviroment body
     if(!openMBVBodyForLastFrame) {
       auto it=Body::getBodyMap().begin();
-      while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==-1)
+      while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
         it++;
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
@@ -1545,7 +1518,7 @@ void MainWindow::exportSequenceAsPNG() {
   bool transparent=dialog.getTransparent();
   QString fileName=dialog.getFileName();
   if(!fileName.toUpper().endsWith(".PNG")) return;
-  fileName=fileName.remove(fileName.length()-4,4);
+  fileName=fileName.remove(fileName.length()-6,6);
   double speed=speedSB->value();
   int startFrame=timeSlider->currentMinimum();
   int endFrame=timeSlider->currentMaximum();
@@ -1665,7 +1638,7 @@ void MainWindow::olseLineWidthSlot() {
 
 void MainWindow::loadWindowState(string filename) {
   if(filename.empty()) {
-    QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombv.wst");
+    QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombvwst");
     if(fn.isNull()) return;
     filename=fn.toStdString();
   }
@@ -1691,10 +1664,10 @@ void MainWindow::saveWindowState() {
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;
 
-  QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombv.wst", "*.ombv.wst");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombvwst", "*.ombvwst");
   if(filename.isNull()) return;
-  if(!filename.endsWith(".ombv.wst",Qt::CaseInsensitive))
-    filename=filename+".ombv.wst";
+  if(!filename.endsWith(".ombvwst",Qt::CaseInsensitive))
+    filename=filename+".ombvwst";
   // geometry
   WindowState windowState;
   windowState.hasMenuBar=toggleMenuBar->isChecked();
@@ -1951,7 +1924,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
 void MainWindow::dropEvent(QDropEvent *event) {
   for (int i = 0; i < event->mimeData()->urls().size(); i++) {
     QString path = event->mimeData()->urls()[i].toLocalFile().toLocal8Bit().data();
-    if (path.endsWith("ombv.xml")) {
+    if (path.endsWith("ombvx")) {
       QFile Fout(path);
       if (Fout.exists()) {
         openFile(Fout.fileName().toStdString());

@@ -8,4 +8,4 @@ export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 
 diff --ignore-space-change --strip-trailing-cr @abs_srcdir@/result-ref.txt result.txt
 
-diff --ignore-space-change --strip-trailing-cr @abs_srcdir@/../MBS_outfile-ref.ombv.xml MBS_outfile.ombv.xml
+diff --ignore-space-change --strip-trailing-cr @abs_srcdir@/../MBS_outfile-ref.ombvx MBS_outfile.ombvx

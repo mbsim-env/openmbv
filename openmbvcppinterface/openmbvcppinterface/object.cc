@@ -55,8 +55,8 @@ void Object::initializeUsingXML(DOMElement *element) {
      (E(element)->getAttribute("enable")=="false" || E(element)->getAttribute("enable")=="0"))
     setEnable(false);
   if(E(element)->hasAttribute("boundingBox") && 
-     (E(element)->getAttribute("boundingBox")=="false" || E(element)->getAttribute("boundingBox")=="0"))
-    setBoundingBox(false);
+     (E(element)->getAttribute("boundingBox")=="true" || E(element)->getAttribute("boundingBox")=="1"))
+    setBoundingBox(true);
 
   DOMProcessingInstruction *ID = E(element)->getFirstProcessingInstructionChildNamed("OPENMBV_ID");
   if(ID)

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
         <<"                       but requires OpenGL extensions by the graphic card."<<endl
         <<"--maximized        Show window maximized on startup."<<endl
-        <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
+        <<"<dir>              Open/Load all [^.]+\\.ombvx files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
         <<"                   are allowd."<<endl

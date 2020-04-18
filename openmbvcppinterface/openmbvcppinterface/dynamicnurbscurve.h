@@ -60,7 +60,7 @@ namespace OpenMBV {
         data->append(row);
       }
 
-      int getRows() override { return data?data->getRows():-1; }
+      int getRows() override { return data?data->getRows():0; }
       std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*num); }
 
       /** Initializes the time invariant part of the object using a XML node */

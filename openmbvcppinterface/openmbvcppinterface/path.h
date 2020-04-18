@@ -52,7 +52,7 @@ namespace OpenMBV {
         data->append(row);
       }
 
-      int getRows() override { return data?data->getRows():-1; }
+      int getRows() override { return data?data->getRows():0; }
       std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(4); }
 
       /** Set the color of the path (HSV values from 0 to 1). */

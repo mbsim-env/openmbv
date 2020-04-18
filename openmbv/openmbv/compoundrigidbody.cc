@@ -105,7 +105,7 @@ void CompoundRigidBody::newRigidBodySlot() {
 }
 
 double CompoundRigidBody::update() {
-  if(rigidBody->getRows()==-1) return 0; // do nothing for environement objects
+  if(rigidBody->getRows()==0) return 0; // do nothing for environement objects
 
   // call the normal update for a RigidBody
   double t=RigidBody::update();

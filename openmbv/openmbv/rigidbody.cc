@@ -164,7 +164,7 @@ void RigidBody::moveCameraWithSlot() {
 }
 
 double RigidBody::update() {
-  if(rigidBody->getRows()==-1) return 0; // do nothing for environement objects
+  if(rigidBody->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();

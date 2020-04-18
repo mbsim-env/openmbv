@@ -8,7 +8,7 @@
 '    'EDIT!!! OpenMBV-PATH'
 ' 3. Change or duplicate the 'OpenMBV_path1' subroutine for each instance of
 '    OpenMBV and change the OpenMBV parameters. See the line after
-'    'EDIT!!! *.ombv.xml PATH'
+'    'EDIT!!! *.ombvx PATH'
 ' 4. Set the Powerpoint 'User Action' of the object on click to the macro
 '    'OpenMBV_path1'
 ' 5. Run/Load the Add-In file "AutoEvents.ppa" before the presentation
@@ -80,6 +80,6 @@ End Sub
 
 Sub OpenMBV_path1(objShape As Shape)
   ' The first argument of the OpenMBV call is passed as a parameter list to openmbv.exe
-  ' EDIT!!! *.ombv.xml PATH
+  ' EDIT!!! *.ombvx PATH
   Call OpenMBV(".", objShape)
 End Sub

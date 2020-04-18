@@ -187,10 +187,8 @@ void Group::saveFileSlot() {
         "\n"
         "This will overwrite the following files:\n"
         "- OpenMBV-XML-file '%1'\n"
-        "- OpenMBV-Parameter-XML-file '%2' (if exists)\n"
-        "- all included OpenMBV-XML-Files\n"
-        "- all dedicated OpenMBV-Parameter-XML-Files"
-      ).arg(grp->getFileName().c_str()).arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
+        "- all included OpenMBV-XML-Files"
+      ).arg(grp->getFileName().c_str()),
       QMessageBox::Cancel | QMessageBox::SaveAll);
     showAgain=new QCheckBox("Do not show this dialog again");
     auto *layout=static_cast<QGridLayout*>(askSave->layout());
