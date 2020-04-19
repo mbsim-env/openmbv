@@ -29,9 +29,7 @@ XMLFlatEval::~XMLFlatEval() = default;
 // virtual functions
 
 Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
-  stringstream str;
-  str<<fmatvec::IndependentVariable();
-  return make_shared<string>(str.str());
+  return make_shared<string>();
 }
 
 void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
@@ -47,7 +45,7 @@ bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
     case FunctionType: {
       string valueStr=*static_cast<string*>(value.get());
       boost::trim(valueStr);
-      return valueStr[0]=='{';
+      return valueStr.substr(0,2)=="f(";
     }
   }
   return false;
@@ -193,30 +191,15 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<Value>& v) const {
-  string str("[");
-  for(int i=0; i<v.size(); ++i)
-    str+=*static_cast<string*>(v[i].get())+(i!=v.size()-1?";":"");
-  str+="]";
-  return make_shared<string>(str);
+  return make_shared<string>();
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<vector<Value> >& v) const {
-  string str("[");
-  for(int r=0; r<v.size(); ++r) {
-    for(int c=0; c<v[r].size(); ++c)
-      str+=*static_cast<string*>(v[r][c].get())+(c!=v[r].size()-1?",":"");
-    str+=(r!=v.size()-1?";":"");
-  }
-  str+="]";
-  return make_shared<string>(str);
+  return make_shared<string>();
 }
 
 Eval::Value XMLFlatEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
-  string str("{ "+to_string(indeps.size()));
-  for(int i=0; i<indeps.size(); ++i)
-    str+=" "+*static_cast<string*>(indeps[i].get());
-  str+=" "+*static_cast<string*>(dep.get())+" }";
-  return make_shared<string>(str);
+  return dep;
 }
 
 string XMLFlatEval::serializeFunction(const Value &x) const {
