@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fmatvec/toString.h>
 #include <fmatvec/ast.h>
+#include <regex>
 
 using namespace boost::filesystem;
 using namespace std;
@@ -37,15 +38,33 @@ void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
 }
 
 bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
+  string valueStr=*static_cast<string*>(value.get());
+  boost::trim(valueStr);
   switch(type) {
-    case ScalarType: try { cast<double>(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case StringType: try { cast<string>(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case FunctionType: {
-      string valueStr=*static_cast<string*>(value.get());
+    case ScalarType:
+      if(valueStr=="true") return true; // "true" is a scalar
+      if(valueStr=="false") return true; // "false" is a scalar
+      double d;
+      return boost::conversion::try_lexical_convert(valueStr, d); // any value e.g. -6.73 is a scalar
+    case VectorType:
+      if(valueStr[0]!='[') return false; // if not starting with "[" it NOT a vector
+      // it is starting with "["
+      // remove the valid starting "[" and trailing "]"
+      valueStr=valueStr.substr(1, valueStr.length()-2);
       boost::trim(valueStr);
-      return valueStr.substr(0,2)=="f(";
+      // remove the valid "new row" regex (" *; *")
+      static std::regex re(" *; *");
+      valueStr=regex_replace(valueStr, re, "");
+      // if now some invalid "new col" (" " or ",") is contained than its NOT a vector
+      if(valueStr.find(' ')!=string::npos) return false;
+      if(valueStr.find(',')!=string::npos) return false;
+      return true;
+    case MatrixType:
+      return valueStr[0]=='['; // everything starting with "[" is s matrix
+    case StringType:
+      return valueStr[0]=='\'' || valueStr[0]=='"'; // everything starting with "'" or with '"' is a string
+    case FunctionType: {
+      return valueStr.substr(0,2)=="f("; // everything starting with "f(" is a function
     }
   }
   return false;
