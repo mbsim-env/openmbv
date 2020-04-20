@@ -268,5 +268,7 @@ endif
 
 # freedesktop.org
 freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org
+windowsdir = @datadir@/mbsim-env/windows
 freedesktoporg_DATA = mbsim-env.de.openmbv.xml mbsim-env.de.openmbv.desktop mimeapps-openmbv.list openmbv.svg
-bin_SCRIPTS = desktopIntegration.sh
+windows_DATA = createLnk.vbs mbsim-env.de.openmbv.source.bat
+bin_SCRIPTS = desktopIntegration.sh desktopIntegration.bat
