@@ -47,6 +47,7 @@ bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
       double d;
       return boost::conversion::try_lexical_convert(valueStr, d); // any value e.g. -6.73 is a scalar
     case VectorType:
+      if(valueIsOfType(value, ScalarType)) return true;
       if(valueStr[0]!='[') return false; // if not starting with "[" it NOT a vector
       // it is starting with "["
       // remove the valid starting "[" and trailing "]"
@@ -60,6 +61,7 @@ bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
       if(valueStr.find(',')!=string::npos) return false;
       return true;
     case MatrixType:
+      if(valueIsOfType(value, ScalarType)) return true;
       return valueStr[0]=='['; // everything starting with "[" is s matrix
     case StringType:
       return valueStr[0]=='\'' || valueStr[0]=='"'; // everything starting with "'" or with '"' is a string
