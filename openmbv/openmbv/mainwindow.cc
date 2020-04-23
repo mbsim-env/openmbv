@@ -1924,7 +1924,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
 void MainWindow::dropEvent(QDropEvent *event) {
   for (int i = 0; i < event->mimeData()->urls().size(); i++) {
     QString path = event->mimeData()->urls()[i].toLocalFile().toLocal8Bit().data();
-    if (path.endsWith("ombvx")) {
+    if (path.endsWith(".ombvx")) {
       QFile Fout(path);
       if (Fout.exists()) {
         openFile(Fout.fileName().toStdString());

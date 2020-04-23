@@ -89,7 +89,7 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
   if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
 
     reloadTimer=new QTimer(this);
     connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
@@ -228,9 +228,9 @@ void Group::reloadFileSlot() {
 
 void Group::reloadFileSlotIfNewer() {
   if(boost::myfilesystem::last_write_time(text(0).toStdString())>xmlLastModified &&
-     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString())>h5LastModified) {
+     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString())>h5LastModified) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
     reloadFileSlot();
   }
 }
