@@ -3,6 +3,7 @@
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
@@ -21,6 +22,7 @@
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
+#include <boost/spirit/include/qi.hpp>
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
 #include <xercesc/internal/XMLScanner.hpp>
@@ -34,115 +36,70 @@ namespace boost {
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<double>(3,7,7.9)
 template<>
-vector<double> lexical_cast(const string& str_) {
-  string str(str_);
-  for(char & i : str)
-    if(i=='[' || i==']' || i==';') i=' ';
-  stringstream stream(str);
-  stream.exceptions(std::ios::badbit);
-  double d;
-  vector<double> ret;
-  while(true) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
+vector<double> lexical_cast(const string& str) {
+  namespace qi = boost::spirit::qi;
 
-  // check end of stream
-  stream>>std::ws;
-  if(!stream.eof())
-    throw std::runtime_error("Input not fully read.");
+  static qi::rule<string::const_iterator, vector<double>(), boost::spirit::qi::space_type> vec =
+    '[' >> (qi::double_ % ';') >> ']' >> qi::eoi;
 
-  return ret;
+  vector<double> v;
+  if(!qi::phrase_parse(str.begin(), str.end(), vec, qi::space, v))
+    throw runtime_error("'"+str+"' does not contain a double vector.");
+  return v;
 }
 
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<double> >
 template<>
-vector<vector<double>> lexical_cast(const string& str_) {
-  string str(str_);
-  vector<vector<double> > ret;
-  for(char & i : str)
-    if(i=='[' || i==']' || i==',') i=' ';
-  bool br=false;
-  while(true) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(boost::lexical_cast<vector<double>>(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
+vector<vector<double>> lexical_cast(const string& str) {
+  namespace qi = boost::spirit::qi;
+
+  static qi::rule<string::const_iterator, vector<vector<double>>(), boost::spirit::qi::space_type> vec =
+    '[' >> ((qi::double_ % ',') % ';') >> ']' >> qi::eoi;
+
+  vector<vector<double>> v;
+  if(!qi::phrase_parse(str.begin(), str.end(), vec, qi::space, v))
+    throw runtime_error("'"+str+"' does not contain a double matrix.");
+  return v;
 }
 
 // convenience: convert e.g. "[3;7;7.9]" to std::vector<int>(3,7,7.9)
 template<>
-vector<int> lexical_cast(const string& str_) {
-  string str(str_);
-  for(char & i : str)
-    if(i=='[' || i==']' || i==';') i=' ';
-  stringstream stream(str);
-  stream.exceptions(std::ios::badbit);
-  int d;
-  vector<int> ret;
-  while(true) {
-    stream>>d;
-    if(stream.fail()) break;
-    ret.push_back(d);
-  }
+vector<int> lexical_cast(const string& str) {
+  namespace qi = boost::spirit::qi;
 
-  // check end of stream
-  stream>>std::ws;
-  if(!stream.eof())
-    throw std::runtime_error("Input not fully read.");
+  static qi::rule<string::const_iterator, vector<int>(), boost::spirit::qi::space_type> vec =
+    '[' >> (qi::int_ % ';') >> ']' >> qi::eoi;
 
-  return ret;
+  vector<int> v;
+  if(!qi::phrase_parse(str.begin(), str.end(), vec, qi::space, v))
+    throw runtime_error("'"+str+"' does not contain a int vector.");
+  return v;
 }
 
 
 // convenience: convert e.g. "[3,7;9,7.9]" to std::vector<std::vector<int> >
 template<>
-vector<vector<int>> lexical_cast(const string& str_) {
-  string str(str_);
-  vector<vector<int> > ret;
-  for(char & i : str)
-    if(i=='[' || i==']' || i==',') i=' ';
-  bool br=false;
-  while(true) {
-    int end=str.find(';'); if(end<0) { end=str.length(); br=true; }
-    ret.push_back(boost::lexical_cast<vector<int>>(str.substr(0,end)));
-    if(br) break;
-    str=str.substr(end+1);
-  }
-  return ret;
+vector<vector<int>> lexical_cast(const string& str) {
+  namespace qi = boost::spirit::qi;
+
+  static qi::rule<string::const_iterator, vector<vector<int>>(), boost::spirit::qi::space_type> vec =
+    '[' >> ((qi::int_ % ',') % ';') >> ']' >> qi::eoi;
+
+  vector<vector<int>> v;
+  if(!qi::phrase_parse(str.begin(), str.end(), vec, qi::space, v))
+    throw runtime_error("'"+str+"' does not contain a int matrix.");
+  return v;
 }
 
 template<>
 bool lexical_cast<bool>(const string& arg)
 {
-  istringstream str(arg);
-  str.exceptions(std::ios::failbit | std::ios::badbit);
-
-  string s;
-  str>>s;
-  bool b;
-  if(s=="true")
-    b=true;
-  else if(s=="false")
-    b=false;
-  else if(s=="1")
-    b=true;
-  else if(s=="0")
-    b=false;
-  else {
-    str.str(arg);
-    str>>b;
-  }
-
-  // check end of stream
-  str>>std::ws;
-  if(!str.eof())
-    throw std::runtime_error("Input not fully read.");
-
-  return b;
+  string s(boost::trim_copy(arg));
+  if(s=="0") return false;
+  if(s=="1") return true;
+  if(s=="false") return false;
+  if(s=="true") return true;
+  throw std::runtime_error("Input is not bool:\n"+arg);
 }
 
 }
