@@ -68,10 +68,10 @@ QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) 
   setChildrenCollapsible(false);
 
   // pipe Slider signals throught
-  connect(slider, SIGNAL(sliderMoved(int)), this, SLOT(sliderMovedSlot(int)));
+  connect(slider, &QSlider::sliderMoved, this, &QTripleSlider::sliderMovedSlot);
 
   // connections
-  connect(this, SIGNAL(splitterMoved(int, int)), this, SLOT(syncSplitterPositionToCurrentRange()));
+  connect(this, &QTripleSlider::splitterMoved, this, &QTripleSlider::syncSplitterPositionToCurrentRange);
 }
 
 void QTripleSlider::syncSplitterPositionToCurrentRange() {
@@ -89,12 +89,12 @@ void QTripleSlider::syncSplitterPositionToCurrentRange() {
   // set new current range and emit
   int oldValue=slider->value(); // slave old value before
   slider->setRange(newMin, newMax);
-  emit currentRangeChanged(newMin, newMax);
+  currentRangeChanged(newMin, newMax);
 
   // do nothing if slider value has not changed
   if(oldValue==slider->value()) return;
   // emit 
-  emit sliderMoved(slider->value());
+  sliderMoved(slider->value());
 }
 
 void QTripleSlider::setTotalRange(int min_, int max_) {
@@ -115,12 +115,12 @@ void QTripleSlider::setTotalRange(int min_, int max_) {
   if(!currentRangeHasChanged) return;
   // sync current range and emit
   syncCurrentRangeToSplitterPosition();
-  emit currentRangeChanged(slider->minimum(), slider->maximum());
+  currentRangeChanged(slider->minimum(), slider->maximum());
 
   // do nothing if value has not changed
   if(oldValue==slider->value()) return;
   // emit
-  emit sliderMoved(slider->value());
+  sliderMoved(slider->value());
 }
 
 void QTripleSlider::setCurrentRange(int min, int max) {
@@ -139,7 +139,7 @@ void QTripleSlider::setCurrentRange(int min, int max) {
   // do nothing if value has not changed
   if(oldValue==slider->value()) return;
   // emit
-  emit sliderMoved(slider->value());
+  sliderMoved(slider->value());
 }
 
 void QTripleSlider::resizeEvent(QResizeEvent *event) {
@@ -173,7 +173,7 @@ void QTripleSlider::syncCurrentRangeToSplitterPosition() {
 }
 
 void QTripleSlider::sliderMovedSlot(int value) {
-  emit sliderMoved(value);
+  sliderMoved(value);
 }
 
 }

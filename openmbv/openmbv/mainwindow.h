@@ -116,7 +116,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     static void enableBBoxOfID(Object *obj, const std::string &ID);
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
-  protected slots:
+  protected:
     void objectListClicked();
     void openFileDialog();
     void newFileDialog();
@@ -172,9 +172,11 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void bottomBGColor();
     void olseColorSlot();
     void olseLineWidthSlot();
-    void loadWindowState(std::string filename="");
+    void loadWindowState();
+    void loadWindowState(std::string filename);
     void saveWindowState();
-    void loadCamera(std::string filename="");
+    void loadCamera();
+    void loadCamera(std::string filename);
     void saveCamera();
     void toggleMenuBarSlot();
     void toggleStatusBarSlot();
@@ -213,12 +215,11 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
-  public slots:
+  public:
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     DLL_PUBLIC void highlightObject(std::string curID);
-  public:
     DLL_PUBLIC MainWindow(std::list<std::string>& arg);
     DLL_PUBLIC ~MainWindow() override;
     DLL_PUBLIC bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
@@ -253,7 +254,7 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     std::set<void*> waitFor;
 
-  signals:
+  Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */
     DLL_PUBLIC void objectSelected(std::string curID, Object *curPtr);

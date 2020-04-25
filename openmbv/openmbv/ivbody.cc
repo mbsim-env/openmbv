@@ -77,12 +77,12 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     // wait for this thread; see addEdgesToScene for erase (currently only used for --autoExit)
     MainWindow::getInstance()->waitFor.insert(&calculateEdgesThread);
     // pre calculate edges, calculate crease edges and boundary edges in thread and call addEdgesToScene if finished
-    connect(&calculateEdgesThread, SIGNAL(finished()), this, SLOT(addEdgesToScene()));
+    connect(&calculateEdgesThread, &CalculateEdgesThread::finished, this, &IvBody::addEdgesToScene);
     calculateEdgesThread.start(QThread::IdlePriority);
   }
 
-  connect(this, SIGNAL(statusBarShowMessage(const QString &, int)),
-          MainWindow::getInstance()->statusBar(), SLOT(showMessage(const QString &, int)));
+  connect(this, &IvBody::statusBarShowMessage,
+          MainWindow::getInstance()->statusBar(), &QStatusBar::showMessage);
 }
 
 void IvBody::createProperties() {
@@ -116,7 +116,7 @@ void IvBody::calculateEdges(const string& fullName, double creaseEdges, bool bou
   // delete by a destructor call of a parent object of this object.
   // (OpenMBV::~Group deletes all children)
   QString str("Started edge calculation for %1 in a thread:"); str=str.arg(fullName.c_str());
-  emit statusBarShowMessage(str, 1000);
+  statusBarShowMessage(str, 1000);
   msg(Info)<<str.toStdString()<<endl;
   edgeCalc->preproces(fullName, true);
   if(creaseEdges>=0) edgeCalc->calcCreaseEdges(creaseEdges);
@@ -129,7 +129,7 @@ void IvBody::addEdgesToScene() {
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
   QString str("Finished edge calculation for %1 and added to scene."); str=str.arg(ivb->getFullName().c_str());
-  emit statusBarShowMessage(str, 1000);
+  statusBarShowMessage(str, 1000);
   msg(Info)<<str.toStdString()<<endl;
   MainWindow::getInstance()->waitFor.erase(&calculateEdgesThread);
 }

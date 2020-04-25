@@ -171,8 +171,8 @@ EdgeCalculation::EdgeCalculation(SoGroup *grp_, bool useCache_) {
   cba.addTriangleCallback(SoShape::getClassTypeId(), triangleCB, vertex);
   cba.apply(grp);
 
-  connect(this, SIGNAL(statusBarShowMessage(const QString &, int)),
-          MainWindow::getInstance()->statusBar(), SLOT(showMessage(const QString &, int)));
+  connect(this, &EdgeCalculation::statusBarShowMessage,
+          MainWindow::getInstance()->statusBar(), &QStatusBar::showMessage);
 }
 
 EdgeCalculation::~EdgeCalculation() {
@@ -204,7 +204,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
 
     if(printMessage) {
       QString str("Calculating edges for %1!"); str=str.arg(fullName.c_str());
-      emit statusBarShowMessage(str, 1000);
+      statusBarShowMessage(str, 1000);
       msg(Info)<<str.toStdString()<<endl;
     }
 
@@ -254,7 +254,7 @@ void EdgeCalculation::preproces(const string &fullName, bool printMessage) {
   // GET AN EXISTING ELEMENT
   if(printMessage) {
     QString str("Use cached data! Waiting for cached data to get ready!");
-    emit statusBarShowMessage(str, 1000);
+    statusBarShowMessage(str, 1000);
     msg(Info)<<str.toStdString()<<endl;
   }
   

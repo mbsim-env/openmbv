@@ -92,7 +92,7 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
 
     reloadTimer=new QTimer(this);
-    connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
+    connect(reloadTimer,&QTimer::timeout,this,&Group::reloadFileSlotIfNewer);
     reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
   }
 }
@@ -102,23 +102,31 @@ void Group::createProperties() {
 
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", properties);
-  connect(newObject,SIGNAL(triggered()),properties,SLOT(newObjectSlot()));
+  connect(newObject,&QAction::triggered,properties,[this](){
+    static_cast<Group*>(properties->getParentObject())->newObjectSlot();
+  });
   properties->addContextAction(newObject);
 
   if(grp->getSeparateFile()) {
     QAction *saveFile=new QAction(Utils::QIconCached("savefile.svg"),"Save XML-file", properties);
     saveFile->setObjectName("Group::saveFile");
-    connect(saveFile,SIGNAL(triggered()),properties,SLOT(saveFileSlot()));
+    connect(saveFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->saveFileSlot();
+    });
     properties->addContextAction(saveFile);
 
     QAction *unloadFile=new QAction(Utils::QIconCached("unloadfile.svg"),"Unload XML/H5-file", properties);
     unloadFile->setObjectName("Group::unloadFile");
-    connect(unloadFile,SIGNAL(triggered()),properties,SLOT(unloadFileSlot()));
+    connect(unloadFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->unloadFileSlot();
+    });
     properties->addContextAction(unloadFile);
 
     QAction *reloadFile=new QAction(Utils::QIconCached("reloadfile.svg"),"Reload XML/H5-file", properties);
     reloadFile->setObjectName("Group::reloadFile");
-    connect(reloadFile,SIGNAL(triggered()),properties,SLOT(reloadFileSlot()));
+    connect(reloadFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->reloadFileSlot();
+    });
     properties->addContextAction(reloadFile);
   }
 
@@ -223,7 +231,7 @@ void Group::reloadFileSlot() {
   else
     MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind), 0, QItemSelectionModel::NoUpdate);
 
-  emit MainWindow::getInstance()->fileReloaded();
+  MainWindow::getInstance()->fileReloaded();
 }
 
 void Group::reloadFileSlotIfNewer() {

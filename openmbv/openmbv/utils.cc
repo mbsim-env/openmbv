@@ -265,11 +265,11 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
 
   QPushButton *cancel=new QPushButton("Cancel");
   layout->addWidget(cancel, 2, 0);
-  QObject::connect(cancel, SIGNAL(released()), &dialog, SLOT(reject()));
+  QObject::connect(cancel, &QPushButton::released, &dialog, &QDialog::reject);
   QPushButton *ok=new QPushButton("OK");
   layout->addWidget(ok, 2, 1);
   ok->setDefault(true);
-  QObject::connect(ok, SIGNAL(released()), &dialog, SLOT(accept()));
+  QObject::connect(ok, &QPushButton::released, &dialog, &QDialog::accept);
 
   bool unique;
   do {

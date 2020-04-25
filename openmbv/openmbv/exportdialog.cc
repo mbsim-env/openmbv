@@ -70,15 +70,15 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence) : QDialog(parent) {
   fileName.setText("openmbv.png");
   dialogLO.addWidget(&fileName, row, 1);
   fileNameButton.setText("Browse...");
-  connect(&fileNameButton, SIGNAL(clicked(bool)), this, SLOT(fileBrowser()));
+  connect(&fileNameButton, &QPushButton::clicked, this, &ExportDialog::fileBrowser);
   dialogLO.addWidget(&fileNameButton, row, 2);
   abort.setText("Abort");
-  connect(&abort, SIGNAL(clicked(bool)), this, SLOT(reject()));
+  connect(&abort, &QPushButton::clicked, this, &ExportDialog::reject);
   row++;
   dialogLO.addWidget(&abort, row, 0);
   ok.setDefault(true);
   ok.setText("OK");
-  connect(&ok, SIGNAL(clicked(bool)), this, SLOT(accept()));
+  connect(&ok, &QPushButton::clicked, this, &ExportDialog::accept);
   dialogLO.addWidget(&ok, row, 2);
 }
 

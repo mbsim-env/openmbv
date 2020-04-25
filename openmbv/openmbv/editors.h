@@ -79,17 +79,7 @@ class PropertyDialog : public QDialog {
     std::vector<Editor*> editor;
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
-  protected slots:
     void openDialogSlot();
-    void deleteObjectSlot(); // MISSING: can be removed with Qt5 using a functor in Object
-    void setBoundingBox(bool); // MISSING: can be removed with Qt5 using a functor in Object
-    void newRigidBodySlot(); // MISSING: can be removed with Qt5 using a functor in CompoundRigidBody
-    void newObjectSlot(); // MISSING: can be removed with Qt5 using a functor in Group
-    void saveFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
-    void unloadFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
-    void reloadFileSlot(); // MISSING: can be removed with Qt5 using a functor in Group
-    void moveCameraWithSlot_RigidBody(); // MISSING: can be removed with Qt5 using a functor in RigidBody
-    void moveCameraWithSlot_Nurbsdisk(); // MISSING: can be removed with Qt5 using a functor in NurbsDisk
 };
 
 
@@ -129,14 +119,13 @@ class BoolEditor : public Editor {
     /* return this boolean Editor as an checkable action */
     QAction *getAction() { return action; }
 
-  signals:
+  Q_SIGNALS:
     void stateChanged(bool state);
 
-  protected slots:
+  protected:
     void valueChangedSlot(int);
     void actionChangedSlot();
 
-  protected:
     QCheckBox *checkbox;
     std::function<bool ()> ombvGetter;
     std::function<void (bool)> ombvSetter;
@@ -176,10 +165,9 @@ class FloatEditor : public Editor {
     template<class OMBVClass>
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double));
 
-  protected slots:
+  protected:
     void valueChangedSlot(double);
 
-  protected:
     double factor;
     QDoubleSpinBox *spinBox;
     std::function<double ()> ombvGetter;
@@ -221,14 +209,13 @@ class FloatMatrixEditor : public Editor {
       std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > (OMBVClass::*getter)(),
       void (OMBVClass::*setter)(const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &));
 
-  protected slots:
+  protected:
     void addRowSlot(); // calls valueChanged (also see addRow)
     void removeRowSlot(); // calls valueChanged
     void addColumnSlot(); // calls valueChanged (also see addColumn)
     void removeColumnSlot(); // calls valueChanged
     void valueChangedSlot();
 
-  protected:
     void addRow(); // does not call valueChanged (also see addRowSlot)
     void addColumn(); // does not call valueChanged (also see addColumnSlot)
     unsigned int rows, cols;
@@ -265,10 +252,9 @@ class IntEditor : public Editor {
     template<class OMBVClass>
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, unsigned int (OMBVClass::*getter)(), void (OMBVClass::*setter)(unsigned int));
 
-  protected slots:
+  protected:
     void valueChangedSlot(int);
 
-  protected:
     QSpinBox *spinBox;
     std::function<int ()> ombvGetter;
     std::function<void (int)> ombvSetter;
@@ -291,10 +277,9 @@ class StringEditor : public Editor {
     template<class OMBVClass>
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::string (OMBVClass::*getter)(), void (OMBVClass::*setter)(std::string));
 
-  protected slots:
+  protected:
     void valueChangedSlot(const QString&);
 
-  protected:
     QLineEdit *lineEdit;
     std::function<std::string ()> ombvGetter;
     std::function<void (std::string)> ombvSetter;
@@ -321,11 +306,10 @@ class ComboBoxEditor : public Editor {
     /* return this ComboBox Editor as an ActionGroup */
     QActionGroup *getActionGroup() { return actionGroup; }
 
-  protected slots:
+  protected:
     void valueChangedSlot(int);
     void actionChangedSlot(QAction* action);
 
-  protected:
     QComboBox *comboBox;
     std::function<int ()> ombvGetter;
     std::function<void (int)> ombvSetter;
@@ -368,10 +352,9 @@ class Vec3fEditor : public Editor {
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(double x, double y, double z));
 
-  protected slots:
+  protected:
     void valueChangedSlot();
 
-  protected:
     QDoubleSpinBox *spinBox[3];
     std::function<std::vector<double> ()> ombvGetter;
     std::function<void (double, double, double)> ombvSetter;
@@ -393,12 +376,11 @@ class ColorEditor : public Editor {
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, std::vector<double> (OMBVClass::*getter)(),
                                                void (OMBVClass::*setter)(double h, double s, double v));
 
-  protected slots:
+  protected:
     void valueChangedSlot();
     void showDialog();
     void resetHue();
 
-  protected:
     QColorDialog *colorDialog;
     std::function<std::vector<double> ()> ombvGetter;
     std::function<void (double, double, double)> ombvSetter;
@@ -440,11 +422,10 @@ class TransRotEditor : public Editor {
                                                bool (OMBVClass::*draggerGetter)(),
                                                void (OMBVClass::*draggerSetter)(bool b));
 
-  protected slots:
+  protected:
     void valueChangedSlot();
     void draggerSlot(int state);
 
-  protected:
     QDoubleSpinBox *spinBox[6];
     SoTranslation *soTranslation;
     SoRotation *soRotation;

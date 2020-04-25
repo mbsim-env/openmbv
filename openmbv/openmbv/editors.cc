@@ -50,7 +50,7 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : QDialog(MainWindow::get
   contextMenu->setSeparatorsCollapsible(false);
   QAction *dialogAction=new QAction("Properties...", this);
   contextMenu->addAction(dialogAction);
-  connect(dialogAction, SIGNAL(triggered()), this, SLOT(openDialogSlot()));
+  connect(dialogAction, &QAction::triggered, this, &PropertyDialog::openDialogSlot);
   auto *sep2=new QAction(this);
   sep2->setSeparator("Convenience properties actions");
   contextMenu->addAction(sep2);
@@ -70,34 +70,6 @@ PropertyDialog::~PropertyDialog() {
 
 void PropertyDialog::openDialogSlot() {
   show();
-}
-
-void PropertyDialog::deleteObjectSlot() { // MISSING: can be removed with Qt5 using a functor in Object
-  static_cast<Object*>(parentObject)->deleteObjectSlot();
-}
-void PropertyDialog::setBoundingBox(bool b) { // MISSING: can be removed with Qt5 using a functor in Object
-  static_cast<Object*>(parentObject)->setBoundingBox(b);
-}
-void PropertyDialog::newRigidBodySlot() { // MISSING: can be removed with Qt5 using a functor in CompoundRigidBody
-  static_cast<CompoundRigidBody*>(parentObject)->newRigidBodySlot();
-}
-void PropertyDialog::newObjectSlot() { // MISSING: can be removed with Qt5 using a functor in Group
-  static_cast<Group*>(parentObject)->newObjectSlot();
-}
-void PropertyDialog::saveFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
-  static_cast<Group*>(parentObject)->saveFileSlot();
-}
-void PropertyDialog::unloadFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
-  static_cast<Group*>(parentObject)->unloadFileSlot();
-}
-void PropertyDialog::reloadFileSlot() { // MISSING: can be removed with Qt5 using a functor in Group
-  static_cast<Group*>(parentObject)->reloadFileSlot();
-}
-void PropertyDialog::moveCameraWithSlot_RigidBody() { // MISSING: can be removed with Qt5 using a functor in RigidBody
-  static_cast<RigidBody*>(parentObject)->moveCameraWithSlot();
-}
-void PropertyDialog::moveCameraWithSlot_Nurbsdisk() { // MISSING: can be removed with Qt5 using a functor in NurbsDisk
-  static_cast<NurbsDisk*>(parentObject)->moveCameraWithSlot();
 }
 
 void PropertyDialog::setParentObject(QObject *parentObject_) {
@@ -263,13 +235,13 @@ void Editor::replaceObject() {
 BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName,
                        bool replaceObjOnChange_) : Editor(parent_, icon, name),replaceObjOnChange(replaceObjOnChange_) {
   checkbox=new QCheckBox;
-  connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(valueChangedSlot(int)));
+  connect(checkbox, &QCheckBox::stateChanged, this, &BoolEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, checkbox);
 
   action=new QAction(icon, name.c_str(), this);
   action->setCheckable(true);
   action->setObjectName(qtObjectName.c_str());
-  connect(action,SIGNAL(changed()),this,SLOT(actionChangedSlot()));
+  connect(action,&QAction::changed,this,&BoolEditor::actionChangedSlot);
 }
 
 void BoolEditor::valueChangedSlot(int state) {
@@ -279,7 +251,7 @@ void BoolEditor::valueChangedSlot(int state) {
   action->blockSignals(false);
   if(replaceObjOnChange)
     replaceObject();
-  emit stateChanged(state==Qt::Checked);
+  stateChanged(state==Qt::Checked);
 }
 
 void BoolEditor::actionChangedSlot() {
@@ -298,7 +270,7 @@ FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   spinBox->setRange(-DBL_MAX, DBL_MAX);
   spinBox->setDecimals(6);
   spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).width("-888.888888000"));
-  connect(spinBox, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot(double)));
+  connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, spinBox);
 }
 
@@ -328,21 +300,21 @@ FloatMatrixEditor::FloatMatrixEditor(PropertyDialog *parent_, const QIcon& icon,
   // if rows==0 add a add and remove row button
   if(rows==0) {
     button=new QPushButton("Add row");
-    connect(button, SIGNAL(released()), this, SLOT(addRowSlot()));
+    connect(button, &QPushButton::released, this, &FloatMatrixEditor::addRowSlot);
     layout->addWidget(button, 0, layoutCols++);
 
     button=new QPushButton("Remove row");
-    connect(button, SIGNAL(released()), this, SLOT(removeRowSlot()));
+    connect(button, &QPushButton::released, this, &FloatMatrixEditor::removeRowSlot);
     layout->addWidget(button, 0, layoutCols++);
   }
   // if cols==0 add a add and remove col button
   if(cols==0) {
     button=new QPushButton("Add column");
-    connect(button, SIGNAL(released()), this, SLOT(addColumnSlot()));
+    connect(button, &QPushButton::released, this, &FloatMatrixEditor::addColumnSlot);
     layout->addWidget(button, 0, layoutCols++);
 
     button=new QPushButton("Remove column");
-    connect(button, SIGNAL(released()), this, SLOT(removeColumnSlot()));
+    connect(button, &QPushButton::released, this, &FloatMatrixEditor::removeColumnSlot);
     layout->addWidget(button, 0, layoutCols++);
   }
 
@@ -361,7 +333,7 @@ void FloatMatrixEditor::addRow() {
     cell->setRange(-DBL_MAX, DBL_MAX);
     cell->setDecimals(6);
     cell->setMinimumWidth(QFontMetrics(cell->font()).width("-888.888888000"));
-    connect(cell, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    connect(cell, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatMatrixEditor::valueChangedSlot);
   }
 }
 
@@ -384,7 +356,7 @@ void FloatMatrixEditor::addColumn() {
     cell->setRange(-DBL_MAX, DBL_MAX);
     cell->setDecimals(6);
     cell->setMinimumWidth(QFontMetrics(cell->font()).width("-888.888888000"));
-    connect(cell, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    connect(cell, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatMatrixEditor::valueChangedSlot);
   }
 }
 
@@ -457,7 +429,7 @@ IntEditor::IntEditor(PropertyDialog *parent_, const QIcon& icon, const string &n
   spinBox=new QSpinBox;
   spinBox->setRange(INT_MIN, INT_MAX);
   spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).width("-888.888888000"));
-  connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(valueChangedSlot(int)));
+  connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &IntEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, spinBox);
 }
 
@@ -474,7 +446,7 @@ void IntEditor::valueChangedSlot(int newValue) {
 StringEditor::StringEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
   // add the label and a lineEdit for the value
   lineEdit=new QLineEdit;
-  connect(lineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(valueChangedSlot(const QString&)));
+  connect(lineEdit, &QLineEdit::textChanged, this, &StringEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, lineEdit);
 }
 
@@ -495,7 +467,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   comboBox=new QComboBox;
   for(const auto & i : list)
     comboBox->addItem(get<2>(i), get<1>(i).c_str(), QVariant(get<0>(i)));
-  connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(valueChangedSlot(int)));
+  connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ComboBoxEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, comboBox);
 
   actionGroup=new QActionGroup(this);
@@ -512,7 +484,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   auto *sep=new QAction(actionGroup);
   sep->setSeparator("");
   actionGroup->addAction(sep);
-  connect(actionGroup,SIGNAL(triggered(QAction*)),this,SLOT(actionChangedSlot(QAction*)));
+  connect(actionGroup,&QActionGroup::triggered,this,&ComboBoxEditor::actionChangedSlot);
 }
 
 void ComboBoxEditor::valueChangedSlot(int newValue) {
@@ -542,7 +514,7 @@ Vec3fEditor::Vec3fEditor(PropertyDialog *parent_, const QIcon& icon, const strin
     i->setRange(-DBL_MAX, DBL_MAX);
     i->setDecimals(6);
     i->setMinimumWidth(QFontMetrics(i->font()).width("-888.888888000"));
-    connect(i, SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    connect(i, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &Vec3fEditor::valueChangedSlot);
     box->addWidget(i);
   }
   dialog->addSmallRow(icon, name, box);
@@ -560,13 +532,13 @@ ColorEditor::ColorEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   auto *box=new QHBoxLayout;
   colorDialog=new QColorDialog();
   colorDialog->setOption(QColorDialog::NoButtons);
-  connect(colorDialog, SIGNAL(currentColorChanged(const QColor &)), this, SLOT(valueChangedSlot()));
+  connect(colorDialog, &QColorDialog::currentColorChanged, this, &ColorEditor::valueChangedSlot);
   QPushButton *showDL=new QPushButton("Color...");
-  connect(showDL, SIGNAL(clicked()), this, SLOT(showDialog()));
+  connect(showDL, &QPushButton::clicked, this, &ColorEditor::showDialog);
   box->addWidget(showDL);
   if(showResetHueButton) {
     QPushButton *resetHue=new QPushButton("Reset to hue from HDF5");
-    connect(resetHue, SIGNAL(clicked()), this, SLOT(resetHue()));
+    connect(resetHue, &QPushButton::clicked, this, &ColorEditor::resetHue);
     box->addWidget(resetHue);
   }
   dialog->addSmallRow(icon, name, box);
@@ -609,7 +581,7 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
   // create a action to active the Dragger
   draggerCheckBox=new QCheckBox;
   dialog->addSmallRow(Utils::QIconCached("centerballdragger.svg"), name+" dragger", draggerCheckBox);
-  connect(draggerCheckBox, SIGNAL(stateChanged(int)), this, SLOT(draggerSlot(int)));
+  connect(draggerCheckBox, &QCheckBox::stateChanged, this, &TransRotEditor::draggerSlot);
 
   for(int i=0; i<3; i++) {
     spinBox[i  ]=new QDoubleSpinBox;
@@ -623,8 +595,8 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
     spinBox[i  ]->setMinimumWidth(QFontMetrics(spinBox[i  ]->font()).width("-888.888888000"));
     spinBox[i+3]->setMinimumWidth(QFontMetrics(spinBox[i+3]->font()).width("-888.888888000"));
     spinBox[i+3]->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
-    connect(spinBox[i  ], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
-    connect(spinBox[i+3], SIGNAL(valueChanged(double)), this, SLOT(valueChangedSlot()));
+    connect(spinBox[i  ], static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &TransRotEditor::valueChangedSlot);
+    connect(spinBox[i+3], static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &TransRotEditor::valueChangedSlot);
     trans->addWidget(spinBox[i]);
     rot->addWidget(spinBox[i+3]);
   }

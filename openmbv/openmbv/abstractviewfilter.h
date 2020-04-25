@@ -59,7 +59,6 @@ class AbstractViewFilter : public QWidget {
     //! Setting the filter applies the filter on the view.
     DLL_PUBLIC void setFilter(const QString &filter);
 
-  public slots:
     //! Applies the current filter on the view.
     //! This is automatically done when using setFilter or when pressing enter in the filter QTextEdit.
     DLL_PUBLIC void applyFilter();

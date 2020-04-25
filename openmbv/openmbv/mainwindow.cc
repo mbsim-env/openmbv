@@ -42,6 +42,7 @@
 #include <QShortcut>
 #include <QMimeData>
 #include <QSettings>
+#include <QMetaMethod>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -226,7 +227,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   timeSlider=new QTripleSlider(this);
   mainLO->addWidget(timeSlider, 0, 1);
   timeSlider->setTotalRange(0, 0);
-  connect(timeSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateFrame(int)));
+  connect(timeSlider, &QTripleSlider::sliderMoved, this, &MainWindow::updateFrame);
 
   // object list dock widget
   QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
@@ -242,21 +243,21 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   objectListLO->addWidget(objectList, 1,0);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  connect(objectList,SIGNAL(pressed(QModelIndex)), this, SLOT(objectListClicked()));
-  connect(objectList,SIGNAL(itemCollapsed(QTreeWidgetItem*)), this, SLOT(collapseItem(QTreeWidgetItem*)));
-  connect(objectList,SIGNAL(itemExpanded(QTreeWidgetItem*)), this, SLOT(expandItem(QTreeWidgetItem*)));
-  connect(objectList,SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
-  connect(new QShortcut(QKeySequence("1"),this), SIGNAL(activated()), this, SLOT(expandToDepth1()));
-  connect(new QShortcut(QKeySequence("2"),this), SIGNAL(activated()), this, SLOT(expandToDepth2()));
-  connect(new QShortcut(QKeySequence("3"),this), SIGNAL(activated()), this, SLOT(expandToDepth3()));
-  connect(new QShortcut(QKeySequence("4"),this), SIGNAL(activated()), this, SLOT(expandToDepth4()));
-  connect(new QShortcut(QKeySequence("5"),this), SIGNAL(activated()), this, SLOT(expandToDepth5()));
-  connect(new QShortcut(QKeySequence("6"),this), SIGNAL(activated()), this, SLOT(expandToDepth6()));
-  connect(new QShortcut(QKeySequence("7"),this), SIGNAL(activated()), this, SLOT(expandToDepth7()));
-  connect(new QShortcut(QKeySequence("8"),this), SIGNAL(activated()), this, SLOT(expandToDepth8()));
-  connect(new QShortcut(QKeySequence("9"),this), SIGNAL(activated()), this, SLOT(expandToDepth9()));
+  connect(objectList,&QTreeWidget::pressed, this, &MainWindow::objectListClicked);
+  connect(objectList,&QTreeWidget::itemCollapsed, this, &MainWindow::collapseItem);
+  connect(objectList,&QTreeWidget::itemExpanded, this, &MainWindow::expandItem);
+  connect(objectList,&QTreeWidget::itemSelectionChanged, this, &MainWindow::selectionChanged);
+  connect(new QShortcut(QKeySequence("1"),this), &QShortcut::activated, this, &MainWindow::expandToDepth1);
+  connect(new QShortcut(QKeySequence("2"),this), &QShortcut::activated, this, &MainWindow::expandToDepth2);
+  connect(new QShortcut(QKeySequence("3"),this), &QShortcut::activated, this, &MainWindow::expandToDepth3);
+  connect(new QShortcut(QKeySequence("4"),this), &QShortcut::activated, this, &MainWindow::expandToDepth4);
+  connect(new QShortcut(QKeySequence("5"),this), &QShortcut::activated, this, &MainWindow::expandToDepth5);
+  connect(new QShortcut(QKeySequence("6"),this), &QShortcut::activated, this, &MainWindow::expandToDepth6);
+  connect(new QShortcut(QKeySequence("7"),this), &QShortcut::activated, this, &MainWindow::expandToDepth7);
+  connect(new QShortcut(QKeySequence("8"),this), &QShortcut::activated, this, &MainWindow::expandToDepth8);
+  connect(new QShortcut(QKeySequence("9"),this), &QShortcut::activated, this, &MainWindow::expandToDepth9);
   objectList->setEditTriggers(QTreeWidget::EditKeyPressed);
-  connect(objectList->itemDelegate(), SIGNAL(closeEditor(QWidget *)), this, SLOT(editFinishedSlot()));
+  connect(objectList->itemDelegate(), &QAbstractItemDelegate::closeEditor, this, &MainWindow::editFinishedSlot);
 
   // object info dock widget
   QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
@@ -270,7 +271,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   objectInfoLO->addWidget(objectInfo, 0,0);
   objectInfo->setReadOnly(true);
   objectInfo->setLineWrapMode(QTextEdit::NoWrap);
-  connect(objectList,SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),this,SLOT(setObjectInfo(QTreeWidgetItem*)));
+  connect(objectList,&QTreeWidget::currentItemChanged,this,&MainWindow::setObjectInfo);
 
   // menu bar
   auto *mb=new QMenuBar(this);
@@ -279,25 +280,25 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   QAction *act;
   // file menu
   QMenu *fileMenu=new QMenu("File", menuBar());
-  QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, SLOT(openFileDialog()));
-  fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, SLOT(newFileDialog()));
+  QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, &MainWindow::openFileDialog);
+  fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, &MainWindow::newFileDialog);
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, SLOT(exportCurrentAsPNG()), QKeySequence("Ctrl+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, &MainWindow::exportCurrentAsPNG, QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
-  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG...", this, SLOT(exportSequenceAsPNG()), QKeySequence("Ctrl+Shift+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG...", this, &MainWindow::exportSequenceAsPNG, QKeySequence("Ctrl+Shift+P"));
   addAction(act); // must work also if menu bar is invisible
-  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as IV...", this, SLOT(exportCurrentAsIV()));
-  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, SLOT(exportCurrentAsPS()));
+  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as IV...", this, &MainWindow::exportCurrentAsIV);
+  fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, &MainWindow::exportCurrentAsPS);
   fileMenu->addSeparator();
-  fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, SLOT(loadWindowState()));
-  act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, SLOT(saveWindowState()), QKeySequence("Ctrl+W"));
+  fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadWindowState));
+  act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, &MainWindow::saveWindowState, QKeySequence("Ctrl+W"));
   addAction(act); // must work also if menu bar is invisible
-  fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, SLOT(loadCamera()));
-  act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, SLOT(saveCamera()), QKeySequence("Ctrl+C"));
+  fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadCamera));
+  act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, &MainWindow::saveCamera, QKeySequence("Ctrl+C"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, SLOT(quit()));
+  act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, &QApplication::quit);
   addAction(act); // must work also if menu bar is invisible
   menuBar()->addMenu(fileMenu);
 
@@ -323,97 +324,97 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   animationMenu->addAction(lastFrameAct);
   animationMenu->addAction(playAct);
   menuBar()->addMenu(animationMenu);
-  connect(stopAct, SIGNAL(triggered()), this, SLOT(stopSCSlot()));
-  connect(lastFrameAct, SIGNAL(triggered()), this, SLOT(lastFrameSCSlot()));
-  connect(playAct, SIGNAL(triggered()), this, SLOT(playSCSlot()));
+  connect(stopAct, &QAction::triggered, this, &MainWindow::stopSCSlot);
+  connect(lastFrameAct, &QAction::triggered, this, &MainWindow::lastFrameSCSlot);
+  connect(playAct, &QAction::triggered, this, &MainWindow::playSCSlot);
 
 
   // scene view menu
   QMenu *sceneViewMenu=new QMenu("Scene View", menuBar());
-  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, SLOT(viewAllSlot()), QKeySequence("A"));
+  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
   QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
-  QAction *topViewAct=axialView->addAction(Utils::QIconCached("topview.svg"),"Top", this, SLOT(viewTopSlot()), QKeySequence("T"));
+  QAction *topViewAct=axialView->addAction(Utils::QIconCached("topview.svg"),"Top", this, &MainWindow::viewTopSlot, QKeySequence("T"));
   addAction(topViewAct); // must work also if menu bar is invisible
-  QAction *bottomViewAct=axialView->addAction(Utils::QIconCached("bottomview.svg"),"Bottom", this, SLOT(viewBottomSlot()), QKeySequence("Shift+T"));
+  QAction *bottomViewAct=axialView->addAction(Utils::QIconCached("bottomview.svg"),"Bottom", this, &MainWindow::viewBottomSlot, QKeySequence("Shift+T"));
   addAction(bottomViewAct); // must work also if menu bar is invisible
-  QAction *frontViewAct=axialView->addAction(Utils::QIconCached("frontview.svg"),"Front", this, SLOT(viewFrontSlot()), QKeySequence("F"));
+  QAction *frontViewAct=axialView->addAction(Utils::QIconCached("frontview.svg"),"Front", this, &MainWindow::viewFrontSlot, QKeySequence("F"));
   addAction(frontViewAct); // must work also if menu bar is invisible
-  QAction *backViewAct=axialView->addAction(Utils::QIconCached("backview.svg"),"Back", this, SLOT(viewBackSlot()), QKeySequence("Shift+F"));
+  QAction *backViewAct=axialView->addAction(Utils::QIconCached("backview.svg"),"Back", this, &MainWindow::viewBackSlot, QKeySequence("Shift+F"));
   addAction(backViewAct); // must work also if menu bar is invisible
-  QAction *rightViewAct=axialView->addAction(Utils::QIconCached("rightview.svg"),"Right", this, SLOT(viewRightSlot()), QKeySequence("R"));
+  QAction *rightViewAct=axialView->addAction(Utils::QIconCached("rightview.svg"),"Right", this, &MainWindow::viewRightSlot, QKeySequence("R"));
   addAction(rightViewAct); // must work also if menu bar is invisible
-  QAction *leftViewAct=axialView->addAction(Utils::QIconCached("leftview.svg"),"Left", this, SLOT(viewLeftSlot()), QKeySequence("Shift+R"));
+  QAction *leftViewAct=axialView->addAction(Utils::QIconCached("leftview.svg"),"Left", this, &MainWindow::viewLeftSlot, QKeySequence("Shift+R"));
   addAction(leftViewAct); // must work also if menu bar is invisible
   QMenu *spaceView=sceneViewMenu->addMenu(Utils::QIconCached("spaceview.svg"),"Space view");
-  QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached("isometricview.svg"),"Isometric", this, SLOT(viewIsometricSlot()));
-  QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached("dimetricview.svg"),"Dimetric", this, SLOT(viewDimetricSlot()));
+  QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached("isometricview.svg"),"Isometric", this, &MainWindow::viewIsometricSlot);
+  QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached("dimetricview.svg"),"Dimetric", this, &MainWindow::viewDimetricSlot);
   // QKeySequence("D") is used by SoQtMyViewer for dragger manipulation
   QMenu *rotateView=sceneViewMenu->addMenu(Utils::QIconCached("rotateview.svg"),"Rotate view");
-  act=rotateView->addAction("+10deg About World-X-Axis", this, SLOT(viewRotateXpWorld()), QKeySequence("X"));
+  act=rotateView->addAction("+10deg About World-X-Axis", this, &MainWindow::viewRotateXpWorld, QKeySequence("X"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-X-Axis", this, SLOT(viewRotateXmWorld()), QKeySequence("Shift+X"));
+  act=rotateView->addAction("-10deg About World-X-Axis", this, &MainWindow::viewRotateXmWorld, QKeySequence("Shift+X"));
   addAction(act);
-  act=rotateView->addAction("+10deg About World-Y-Axis", this, SLOT(viewRotateYpWorld()), QKeySequence("Y"));
+  act=rotateView->addAction("+10deg About World-Y-Axis", this, &MainWindow::viewRotateYpWorld, QKeySequence("Y"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-Y-Axis", this, SLOT(viewRotateYmWorld()), QKeySequence("Shift+Y"));
+  act=rotateView->addAction("-10deg About World-Y-Axis", this, &MainWindow::viewRotateYmWorld, QKeySequence("Shift+Y"));
   addAction(act);
-  act=rotateView->addAction("+10deg About World-Z-Axis", this, SLOT(viewRotateZpWorld()), QKeySequence("Z"));
+  act=rotateView->addAction("+10deg About World-Z-Axis", this, &MainWindow::viewRotateZpWorld, QKeySequence("Z"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-Z-Axis", this, SLOT(viewRotateZmWorld()), QKeySequence("Shift+Z"));
+  act=rotateView->addAction("-10deg About World-Z-Axis", this, &MainWindow::viewRotateZmWorld, QKeySequence("Shift+Z"));
   addAction(act);
   rotateView->addSeparator();
-  act=rotateView->addAction("+10deg About Screen-X-Axis", this, SLOT(viewRotateXpScreen()), QKeySequence("Ctrl+X"));
+  act=rotateView->addAction("+10deg About Screen-X-Axis", this, &MainWindow::viewRotateXpScreen, QKeySequence("Ctrl+X"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-X-Axis", this, SLOT(viewRotateXmScreen()), QKeySequence("Ctrl+Shift+X"));
+  act=rotateView->addAction("-10deg About Screen-X-Axis", this, &MainWindow::viewRotateXmScreen, QKeySequence("Ctrl+Shift+X"));
   addAction(act);
-  act=rotateView->addAction("+10deg About Screen-Y-Axis", this, SLOT(viewRotateYpScreen()), QKeySequence("Ctrl+Y"));
+  act=rotateView->addAction("+10deg About Screen-Y-Axis", this, &MainWindow::viewRotateYpScreen, QKeySequence("Ctrl+Y"));
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-Y-Axis", this, SLOT(viewRotateYmScreen()), QKeySequence("Ctrl+Shift+Y"));
+  act=rotateView->addAction("-10deg About Screen-Y-Axis", this, &MainWindow::viewRotateYmScreen, QKeySequence("Ctrl+Shift+Y"));
   addAction(act);
-  act=rotateView->addAction("+10deg About Screen-Z-Axis", this, SLOT(viewRotateZpScreen()), QKeySequence("Ctrl+Z"));
+  act=rotateView->addAction("+10deg About Screen-Z-Axis", this, &MainWindow::viewRotateZpScreen, QKeySequence("Ctrl+Z"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-Z-Axis", this, SLOT(viewRotateZmScreen()), QKeySequence("Ctrl+Shift+Z"));
+  act=rotateView->addAction("-10deg About Screen-Z-Axis", this, &MainWindow::viewRotateZmScreen, QKeySequence("Ctrl+Shift+Z"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   sceneViewMenu->addSeparator();
-  act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, SLOT(showWorldFrameSlot()), QKeySequence("W"));
+  act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, &MainWindow::showWorldFrameSlot, QKeySequence("W"));
   act->setCheckable(true);
-  sceneViewMenu->addAction(Utils::QIconCached("olselinewidth.svg"),"Outline and shilouette edge line width...", this, SLOT(olseLineWidthSlot()));
-  sceneViewMenu->addAction(Utils::QIconCached("olsecolor.svg"),"Outline and shilouette edge color...", this, SLOT(olseColorSlot()));
-  sceneViewMenu->addAction(Utils::QIconCached("complexitytype.svg"),"Complexity type...", this, SLOT(complexityType()));
-  sceneViewMenu->addAction(Utils::QIconCached("complexityvalue.svg"),"Complexity value...", this, SLOT(complexityValue()));
+  sceneViewMenu->addAction(Utils::QIconCached("olselinewidth.svg"),"Outline and shilouette edge line width...", this, &MainWindow::olseLineWidthSlot);
+  sceneViewMenu->addAction(Utils::QIconCached("olsecolor.svg"),"Outline and shilouette edge color...", this, &MainWindow::olseColorSlot);
+  sceneViewMenu->addAction(Utils::QIconCached("complexitytype.svg"),"Complexity type...", this, &MainWindow::complexityType);
+  sceneViewMenu->addAction(Utils::QIconCached("complexityvalue.svg"),"Complexity value...", this, &MainWindow::complexityValue);
   sceneViewMenu->addSeparator();
-  QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, SLOT(toggleCameraTypeSlot()), QKeySequence("C"));
+  QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, &MainWindow::toggleCameraTypeSlot, QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
-  sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, SLOT(releaseCameraFromBodySlot()));
+  sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
   sceneViewMenu->addSeparator();
-  engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, SLOT(toggleEngDrawingViewSlot()));
+  engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, &MainWindow::toggleEngDrawingViewSlot);
   engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
   engDrawingView->setStatusTip(engDrawingView->toolTip());
   engDrawingView->setCheckable(true);
-  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Top background color...", this, SLOT(topBGColor()));
-  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Bottom background color...", this, SLOT(bottomBGColor()));
+  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Top background color...", this, &MainWindow::topBGColor);
+  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Bottom background color...", this, &MainWindow::bottomBGColor);
   menuBar()->addMenu(sceneViewMenu);
 
   // gui view menu
   QMenu *guiViewMenu=new QMenu("GUI View", menuBar());
-  toggleMenuBar=guiViewMenu->addAction("Menu bar", this, SLOT(toggleMenuBarSlot()), QKeySequence("F10"));
+  toggleMenuBar=guiViewMenu->addAction("Menu bar", this, &MainWindow::toggleMenuBarSlot, QKeySequence("F10"));
   addAction(toggleMenuBar); // must work also if menu bar is invisible
   toggleMenuBar->setCheckable(true);
   toggleMenuBar->setChecked(true);
-  toggleStatusBar=guiViewMenu->addAction("Status bar", this, SLOT(toggleStatusBarSlot()));
+  toggleStatusBar=guiViewMenu->addAction("Status bar", this, &MainWindow::toggleStatusBarSlot);
   toggleStatusBar->setCheckable(true);
   toggleStatusBar->setChecked(true);
-  toggleFrameSlider=guiViewMenu->addAction("Frame/Time slider", this, SLOT(toggleFrameSliderSlot()));
+  toggleFrameSlider=guiViewMenu->addAction("Frame/Time slider", this, &MainWindow::toggleFrameSliderSlot);
   toggleFrameSlider->setCheckable(true);
   toggleFrameSlider->setChecked(true);
-  QAction *toggleFullScreen=guiViewMenu->addAction("Full screen", this, SLOT(toggleFullScreenSlot()), QKeySequence("F5"));
+  QAction *toggleFullScreen=guiViewMenu->addAction("Full screen", this, &MainWindow::toggleFullScreenSlot, QKeySequence("F5"));
   addAction(toggleFullScreen); // must work also if menu bar is invisible
   toggleFullScreen->setCheckable(true);
-  toggleDecoration=guiViewMenu->addAction("Window decoration", this, SLOT(toggleDecorationSlot()));
+  toggleDecoration=guiViewMenu->addAction("Window decoration", this, &MainWindow::toggleDecorationSlot);
   toggleDecoration->setCheckable(true);
   toggleDecoration->setChecked(true);
   menuBar()->addMenu(guiViewMenu);
@@ -467,7 +468,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   speedSB->setDecimals(3);
   speedSB->setButtonSymbols(QDoubleSpinBox::NoButtons);
   speedSB->setValue(1.0);
-  connect(speedSB, SIGNAL(valueChanged(double)), this, SLOT(restartPlay()));
+  connect(speedSB, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::restartPlay);
   QWidget *speedWG=new QWidget(this);
   auto *speedLO=new QGridLayout(speedWG);
   speedLO->setSpacing(0);
@@ -479,15 +480,15 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(10);
   speedWheel->setTotalAngle(360*15);
-  connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChangedD(double)));
-  connect(speedWheel, SIGNAL(wheelPressed()), this, SLOT(speedWheelPressed()));
-  connect(speedWheel, SIGNAL(wheelReleased()), this, SLOT(speedWheelReleased()));
+  connect(speedWheel, &QwtWheel::valueChanged, this, &MainWindow::speedWheelChangedD);
+  connect(speedWheel, &QwtWheel::wheelPressed, this, &MainWindow::speedWheelPressed);
+  connect(speedWheel, &QwtWheel::wheelReleased, this, &MainWindow::speedWheelReleased);
   speedWheel->setRange(-20000, 20000);
   speedWheel->setOrientation(Qt::Vertical);
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
   animationTB->addWidget(speedWG);
-  connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), SIGNAL(activated()), this, SLOT(speedUpSlot()));
-  connect(new QShortcut(QKeySequence(Qt::Key_PageDown),this), SIGNAL(activated()), this, SLOT(speedDownSlot()));
+  connect(new QShortcut(QKeySequence(Qt::Key_PageUp),this), &QShortcut::activated, this, &MainWindow::speedUpSlot);
+  connect(new QShortcut(QKeySequence(Qt::Key_PageDown),this), &QShortcut::activated, this, &MainWindow::speedDownSlot);
   animationTB->addSeparator();
   // frame spin box
   frameSB=new QSpinBox;
@@ -501,14 +502,14 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   frameLO->addWidget(frameL, 0, 0);
   frameLO->addWidget(frameSB, 1, 0);
   animationTB->addWidget(frameWG);
-  connect(frameSB, SIGNAL(valueChanged(int)), this, SLOT(updateFrame(int)));
-  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(frameSBSetRange(int,int)));
-  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(restartPlay()));
-  connect(timeSlider, SIGNAL(currentRangeChanged(int,int)), this, SLOT(frameMinMaxSetValue(int,int)));
-  connect(new QShortcut(QKeySequence(Qt::Key_Right),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
-  connect(new QShortcut(QKeySequence(Qt::Key_Left),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
-  connect(new QShortcut(QKeySequence(Qt::Key_J),this), SIGNAL(activated()), frameSB, SLOT(stepUp()));
-  connect(new QShortcut(QKeySequence(Qt::Key_K),this), SIGNAL(activated()), frameSB, SLOT(stepDown()));
+  connect(frameSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::updateFrame);
+  connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::frameSBSetRange);
+  connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::restartPlay);
+  connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::frameMinMaxSetValue);
+  connect(new QShortcut(QKeySequence(Qt::Key_Right),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
+  connect(new QShortcut(QKeySequence(Qt::Key_Left),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
+  connect(new QShortcut(QKeySequence(Qt::Key_J),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
+  connect(new QShortcut(QKeySequence(Qt::Key_K),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
   // min frame spin box
   frameMinSB=new QSpinBox;
   frameMinSB->setMinimumSize(55,0);
@@ -522,7 +523,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   frameMinLO->addWidget(frameMinL, 0, 0);
   frameMinLO->addWidget(frameMinSB, 1, 0);
   animationTB->addWidget(frameMinWG);
-  connect(frameMinSB, SIGNAL(valueChanged(int)), timeSlider, SLOT(setCurrentMinimum(int)));
+  connect(frameMinSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), timeSlider, &QTripleSlider::setCurrentMinimum);
   // max frame spin box
   frameMaxSB=new QSpinBox;
   frameMaxSB->setMinimumSize(55,0);
@@ -536,7 +537,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   frameMaxLO->addWidget(frameMaxL, 0, 0);
   frameMaxLO->addWidget(frameMaxSB, 1, 0);
   animationTB->addWidget(frameMaxWG);
-  connect(frameMaxSB, SIGNAL(valueChanged(int)), timeSlider, SLOT(setCurrentMaximum(int)));
+  connect(frameMaxSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), timeSlider, &QTripleSlider::setCurrentMaximum);
 
   // tool menu
   QMenu *toolMenu=new QMenu("Tools", menuBar());
@@ -548,10 +549,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   // help menu
   menuBar()->addSeparator();
   QMenu *helpMenu=new QMenu("Help", menuBar());
-  helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, SLOT(guiHelp()));
-  helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, SLOT(xmlHelp()));
+  helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, &MainWindow::guiHelp);
+  helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, &MainWindow::xmlHelp);
   helpMenu->addAction(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()),
-                      "About OpenMBV...", this, SLOT(aboutOpenMBV()));
+                      "About OpenMBV...", this, &MainWindow::aboutOpenMBV);
   menuBar()->addMenu(helpMenu);
 
   // status bar
@@ -567,7 +568,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
 
   // animation timer
   animTimer=new QTimer(this);
-  connect(animTimer, SIGNAL(timeout()), this, SLOT(heavyWorkSlot()));
+  connect(animTimer, &QTimer::timeout, this, &MainWindow::heavyWorkSlot);
   time=new QTime();
 
   // react on parameters
@@ -937,8 +938,8 @@ void MainWindow::objectListClicked() {
     frame->touch(); // force rendering the scene
   }
   if(!objectList->currentItem()) return;
-  emit objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
-                      static_cast<Object*>(objectList->currentItem()));
+  objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
+                 static_cast<Object*>(objectList->currentItem()));
 }
 
 void MainWindow::guiHelp() {
@@ -1229,7 +1230,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
               it=pickedObject.begin();
               for(int i=0; i<ind; i++, it++);
               objectList->setCurrentItem(*it,0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-              emit objectSelected((*it)->object->getID(), *it);
+              objectSelected((*it)->object->getID(), *it);
               objectClicked=true;
             }
             delete menu;
@@ -1237,7 +1238,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           // alt was not down => select the first object under the clicked point
           else {
             objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-            emit objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
+            objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
             objectClicked=true;
           }
           // right button => show context menu of picked object
@@ -1249,9 +1250,9 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
           // return the current item if existing or the first selected item
           Object *object=static_cast<Object*>(objectList->currentItem()?objectList->currentItem():objectList->selectedItems().first());
           // show properties dialog only if objectDoubleClicked is not connected to some other slot
-          if(receivers(SIGNAL(objectDoubleClicked(std::string, Object *)))==0)
+          if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
             object->getProperties()->show();
-          emit objectDoubleClicked(object->object->getID(), object);
+          objectDoubleClicked(object->object->getID(), object);
         }
       }
     }
@@ -1636,6 +1637,9 @@ void MainWindow::olseLineWidthSlot() {
   olseDrawStyle->lineWidth.setValue(QInputDialog::getDouble(this, "Outline and shilouette edge...", "Line width: ", olseDrawStyle->lineWidth.getValue()));
 }
 
+void MainWindow::loadWindowState() {
+  loadWindowState("");
+}
 void MainWindow::loadWindowState(string filename) {
   if(filename.empty()) {
     QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombvwst");
@@ -1684,6 +1688,9 @@ void MainWindow::saveWindowState() {
   stateFile.close();
 }
 
+void MainWindow::loadCamera() {
+  loadCamera("");
+}
 void MainWindow::loadCamera(string filename) {
   if(filename.empty()) {
     QString fn=QFileDialog::getOpenFileName(nullptr, "Load camera", ".", "*.camera.iv");

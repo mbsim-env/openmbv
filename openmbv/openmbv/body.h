@@ -59,7 +59,6 @@ class Body : public Object {
     static void frameSensorCB(void *data, SoSensor*);
     virtual double update()=0; // return the current time
     void resetAnimRange(int numOfRows, double dt);
-  public slots:
     static std::map<SoNode*,Body*>& getBodyMap() { return bodyMap; }
   protected:
     std::shared_ptr<OpenMBV::Body> body;

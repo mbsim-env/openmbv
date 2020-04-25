@@ -166,7 +166,7 @@ class EdgeCalculation : public QObject, virtual public fmatvec::Atom {
     // set by calcShilouetteEdges
     SoIndexedLineSet *shilouetteEdges;
 
-  signals:
+  Q_SIGNALS:
     void statusBarShowMessage(const QString &message, int timeout=0);
 };
 
