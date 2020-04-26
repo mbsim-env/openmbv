@@ -41,7 +41,7 @@ static string dirOfTopLevelFile(Group *grp);
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 
-Group::Group() : expandStr("true"), environmentStr("false") {
+Group::Group() : expandStr("true") {
 }
 
 Group::~Group() = default;
@@ -102,7 +102,7 @@ void Group::createHDF5File() {
   if(!separateFile) {
     hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
     for(auto & i : object)
-      i->createHDF5File();
+      if(!i->getEnvironment()) i->createHDF5File();
   }
   else {
     string fullName=getFullName();
@@ -115,7 +115,7 @@ void Group::createHDF5File() {
     hdf5File=std::make_shared<H5::File>(fileName.substr(0,fileName.length()-6)+".ombvh5", H5::File::write);
     hdf5Group=hdf5File.get();
     for(auto & i : object)
-      i->createHDF5File();
+      if(!i->getEnvironment()) i->createHDF5File();
   }
 }
 
@@ -152,7 +152,6 @@ void Group::writeXML() {
   shared_ptr<DOMDocument> xmlFile=parser->createDocument();
   DOMElement *parent=Object::writeXMLFile(xmlFile.get());
   E(parent)->setAttribute("expand", expandStr);
-  if(environmentStr=="true") E(parent)->setAttribute("environment", environmentStr);
   for(auto & i : object)
     i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);
@@ -185,9 +184,6 @@ void Group::initializeUsingXML(DOMElement *element) {
     setSeparateFile(true);
     fileName=X()%ofn->getData();
   }
-  if(E(element)->hasAttribute("environment") && 
-     (E(element)->getAttribute("environment")=="true" || E(element)->getAttribute("environment")=="1"))
-    setEnvironment(true);
 
   DOMElement *e;
   e=element->getFirstElementChild();

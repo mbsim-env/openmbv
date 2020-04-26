@@ -39,7 +39,6 @@ namespace OpenMBV {
       std::vector<std::shared_ptr<Object> > object;
       std::string expandStr;
       std::string fileName; // the file name of the .ombvx file of this separateFile Group including the absolute or relatvie path
-      std::string environmentStr;
       bool separateFile{false};
       std::shared_ptr<H5::File> hdf5File;
       void createHDF5File() override;
@@ -96,12 +95,6 @@ namespace OpenMBV {
       /** Sets the file name of the .ombvx file of this separateFile Group
        * including the absolute or relatvie path */
       void setFileName(const std::string &fn) { fileName=fn; }
-
-      /** If set to true than this object is an environment object:
-       * a static object which has no time dependent part (does not read anything from the h5 file). */
-      void setEnvironment(bool env) { environmentStr=(env)?"true":"false"; }
-
-      bool getEnvironment() { return environmentStr=="true"?true:false; }
       
       /** Initialisze/Wrtie the tree (XML and h5).
        * This function simply calls writeXML() and writeH5().

@@ -36,7 +36,7 @@ namespace OpenMBV {
 // we use none signaling (quiet) NaN values for double in OpenMBVC++Interface -> Throw compile error if these do not exist.
 static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
 
-Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID("") {
+Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), ID(""), environmentStr("false") {
 }
 
 Object::~Object() = default;
@@ -57,6 +57,9 @@ void Object::initializeUsingXML(DOMElement *element) {
   if(E(element)->hasAttribute("boundingBox") && 
      (E(element)->getAttribute("boundingBox")=="true" || E(element)->getAttribute("boundingBox")=="1"))
     setBoundingBox(true);
+  if(E(element)->hasAttribute("environment") && 
+     (E(element)->getAttribute("environment")=="true" || E(element)->getAttribute("environment")=="1"))
+    setEnvironment(true);
 
   DOMProcessingInstruction *ID = E(element)->getFirstProcessingInstructionChildNamed("OPENMBV_ID");
   if(ID)
@@ -75,6 +78,7 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   E(e)->setAttribute("name", name);
   E(e)->setAttribute("enable", enableStr);
   E(e)->setAttribute("boundingBox", boundingBoxStr);
+  if(environmentStr=="true") E(e)->setAttribute("environment", environmentStr);
   if(!ID.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMProcessingInstruction *id=doc->createProcessingInstruction(X()%"OPENMBV_ID", X()%ID);
