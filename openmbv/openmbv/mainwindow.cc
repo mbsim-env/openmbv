@@ -1933,9 +1933,8 @@ void MainWindow::dropEvent(QDropEvent *event) {
     QString path = event->mimeData()->urls()[i].toLocalFile().toLocal8Bit().data();
     if (path.endsWith(".ombvx")) {
       QFile Fout(path);
-      if (Fout.exists()) {
+      if (Fout.exists())
         openFile(Fout.fileName().toStdString());
-      }
     }
   }
 }
@@ -1951,6 +1950,7 @@ void MainWindow::showEvent(QShowEvent *event) {
   QSettings settings;
   restoreGeometry(settings.value("mainwindow/geometry").toByteArray());
   restoreState(settings.value("mainwindow/state").toByteArray());
+  QMainWindow::showEvent(event);
 }
 
 }
