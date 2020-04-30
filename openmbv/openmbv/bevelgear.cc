@@ -68,7 +68,6 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   double r1 = r0/sin(ga);
   double d = sqrt(r1*r1-r0*r0);
   double dphi = (M_PI/2-b/m)/nz;
-  double alq = al;
 
   double etaMaxO[2], etaMaxI[2], etaMinO[2], etaMinI[2];
   const boost::uintmax_t maxit = 20;
@@ -130,30 +129,29 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   auto *points = new SoCoordinate3;
   auto *face = new SoIndexedFaceSet;
 
-  //  nz = 1;
   int ns = 2*nn+4;
   int np = nz*ns+2*nz+2;
   float pts[np][3];
 
-  int nii = 4*(nf-1)*5+3*5+6*4;
+  int nii = 4*(nf-1)*5+7*5+6*4;
   int ni = nz*nii;
   int indices[ni];
 
   int l=0;
   pts[(nz-1)*ns+2*nn+4+2*nz][0] = 0;
   pts[(nz-1)*ns+2*nn+4+2*nz][1] = 0;
-  pts[(nz-1)*ns+2*nn+4+2*nz][2] = e->getModule()/2*sin(ga)-d+(r1+w/2)*cos(ga);
+  pts[(nz-1)*ns+2*nn+4+2*nz][2] = e->getModule()*sin(ga)-d+(r1+w/2)*cos(ga);
   pts[(nz-1)*ns+2*nn+5+2*nz][0] = 0;
   pts[(nz-1)*ns+2*nn+5+2*nz][1] = 0;
-  pts[(nz-1)*ns+2*nn+5+2*nz][2] = e->getModule()/2*sin(ga)-d+(r1-w/2)*cos(ga);
+  pts[(nz-1)*ns+2*nn+5+2*nz][2] = e->getModule()*sin(ga)-d+(r1-w/2)*cos(ga);
   for(int v=0; v<nz; v++) {
     double phi = 2*M_PI/nz*v;
-    pts[(nz-1)*ns+2*nn+4+v][0] = -sin(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1+w/2)*sin(ga));
-    pts[(nz-1)*ns+2*nn+4+v][1] = cos(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1+w/2)*sin(ga));
-    pts[(nz-1)*ns+2*nn+4+v][2] = e->getModule()/2*sin(ga)-d+(r1+w/2)*cos(ga);
-    pts[(nz-1)*ns+2*nn+4+nz+v][0] = -sin(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1-w/2)*sin(ga));
-    pts[(nz-1)*ns+2*nn+4+nz+v][1] = cos(phi-M_PI/nz)*(e->getModule()/2*cos(ga)-(r1-w/2)*sin(ga));
-    pts[(nz-1)*ns+2*nn+4+nz+v][2] = e->getModule()/2*sin(ga)-d+(r1-w/2)*cos(ga);
+    pts[(nz-1)*ns+2*nn+4+v][0] = -sin(phi-M_PI/nz)*(e->getModule()*cos(ga)-(r1+w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+v][1] = cos(phi-M_PI/nz)*(e->getModule()*cos(ga)-(r1+w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+v][2] = e->getModule()*sin(ga)-d+(r1+w/2)*cos(ga);
+    pts[(nz-1)*ns+2*nn+4+nz+v][0] = -sin(phi-M_PI/nz)*(e->getModule()*cos(ga)-(r1-w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+nz+v][1] = cos(phi-M_PI/nz)*(e->getModule()*cos(ga)-(r1-w/2)*sin(ga));
+    pts[(nz-1)*ns+2*nn+4+nz+v][2] = e->getModule()*sin(ga)-d+(r1-w/2)*cos(ga);
     for(int j=0; j<2; j++) {
       int signj=j?-1:1;
       for(int i=nn*j; i<nn*j+nn; i++) {
@@ -161,12 +159,16 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
         pts[v*ns+i][1] = sin(phi-signj*dphi)*x[i] + cos(phi-signj*dphi)*y[i];
         pts[v*ns+i][2] = z[i];
       }
-      pts[v*ns+2*nn+2*j][0] = pts[v*ns+(3*nf-1)*j][0]*(r0-e->getModule())/(r0*cos(alq));
-      pts[v*ns+2*nn+2*j][1] = pts[v*ns+(3*nf-1)*j][1]*(r0-e->getModule())/(r0*cos(alq));
-      pts[v*ns+2*nn+2*j][2] = w/2;
-      pts[v*ns+2*nn+2*j+1][0] = pts[v*ns+2*nn+2*j][0];
-      pts[v*ns+2*nn+2*j+1][1] = pts[v*ns+2*nn+2*j][1];
-      pts[v*ns+2*nn+2*j+1][2] = -w/2;
+      double R1 = (pts[v*ns+(3*nf-1)*j][2]+d)*tan(ga)-e->getModule()/2/cos(ga);
+      double R2 = (e->getModule()*sin(ga)+(r1+w/2)*cos(ga))*tan(ga)-e->getModule()/cos(ga);
+      pts[v*ns+2*nn+2*j][0] = pts[v*ns+(3*nf-1)*j][0]*R2/R1;
+      pts[v*ns+2*nn+2*j][1] = pts[v*ns+(3*nf-1)*j][1]*R2/R1;
+      pts[v*ns+2*nn+2*j][2] = e->getModule()*sin(ga)-d+(r1+w/2)*cos(ga);
+      R1 = (pts[v*ns+nf+(3*nf-1)*j][2]+d)*tan(ga)-e->getModule()/2/cos(ga);
+      R2 = (e->getModule()*sin(ga)+(r1-w/2)*cos(ga))*tan(ga)-e->getModule()/cos(ga);
+      pts[v*ns+2*nn+2*j+1][0] = pts[v*ns+nf+(3*nf-1)*j][0]*R2/R1;
+      pts[v*ns+2*nn+2*j+1][1] = pts[v*ns+nf+(3*nf-1)*j][1]*R2/R1;
+      pts[v*ns+2*nn+2*j+1][2] = e->getModule()*sin(ga)-d+(r1-w/2)*cos(ga);
     }
 
     // left
@@ -193,14 +195,14 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
-    indices[l++] = v*ns+nf;
-    indices[l++] = v*ns;
+    indices[l++] = v*ns+2*nn+1;
+    indices[l++] = v*ns+2*nn;
     indices[l++] = (nz-1)*ns+2*nn+4+v;
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
-    indices[l++] = v*ns+3*nf-1;
-    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = v*ns+2*nn+2;
+    indices[l++] = v*ns+2*nn+3;
     indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
     indices[l++] = -1;
     // front
@@ -221,32 +223,56 @@ BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     }
     indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
     indices[l++] = (nz-1)*ns+2*nn+4+v;
-    indices[l++] = v*ns;
+    indices[l++] = v*ns+2*nn;
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
-    indices[l++] = v*ns;
-    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = v*ns+2*nn;
+    indices[l++] = v*ns+2*nn+2;
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+4+2*nz;
-    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = v*ns+2*nn+2;
     indices[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
-    indices[l++] = v*ns+nf;
+    indices[l++] = v*ns+2*nn+1;
     indices[l++] = (nz-1)*ns+2*nn+4+nz+v;
     indices[l++] = -1;
     //
-    indices[l++] = v*ns+3*nf-1+nf;
-    indices[l++] = v*ns+nf;
+    indices[l++] = v*ns+2*nn+3;
+    indices[l++] = v*ns+2*nn+1;
     indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
     indices[l++] = -1;
     //
     indices[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
-    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = v*ns+2*nn+3;
     indices[l++] = (nz-1)*ns+2*nn+5+2*nz;
+    indices[l++] = -1;
+
+    indices[l++] = v*ns+2*nn+2;
+    indices[l++] = v*ns+2*nn;
+    indices[l++] = v*ns;
+    indices[l++] = v*ns+3*nf-1;
+    indices[l++] = -1;
+
+    indices[l++] = v*ns+2*nn+1;
+    indices[l++] = v*ns+2*nn+3;
+    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = v*ns+nf;
+    indices[l++] = -1;
+
+    indices[l++] = v*ns+nf;
+    indices[l++] = v*ns;
+    indices[l++] = v*ns+2*nn;
+    indices[l++] = v*ns+2*nn+1;
+    indices[l++] = -1;
+
+    indices[l++] = v*ns+3*nf-1+nf;
+    indices[l++] = v*ns+2*nn+3;
+    indices[l++] = v*ns+2*nn+2;
+    indices[l++] = v*ns+3*nf-1;
     indices[l++] = -1;
   }
   points->point.setValues(0, np, pts);
