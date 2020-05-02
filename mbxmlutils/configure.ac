@@ -128,7 +128,7 @@ else
 Supported and tested 4.4. Versions > 4.4 are untested, use at your own risk.])
 fi
 # get mkoctfile compiler flags
-MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
+MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g' | tr '\n' ' ')"
 MKOCTFILE_LIBS="$(echo \
   $(unset RLD_FLAG; $XC_EXEC_PREFIX $mkoctfile -p RLD_FLAG | dos2unix) \
   $(unset LFLAGS; $XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) \
@@ -139,8 +139,8 @@ MKOCTFILE_LIBS="$(echo \
   $(unset BLAS_LIBS; $XC_EXEC_PREFIX $mkoctfile -p BLAS_LIBS | dos2unix) \
   $(unset FLIBS; $XC_EXEC_PREFIX $mkoctfile -p FLIBS | dos2unix) \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
-  | sed -re 's|\\|/|g')"
-MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g')"
+  | sed -re 's|\\|/|g' | tr '\n' ' ')"
+MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g' | tr '\n' ' ')"
 
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
