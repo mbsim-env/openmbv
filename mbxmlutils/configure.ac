@@ -111,10 +111,10 @@ if test "_$mkoctfile" == "_no"; then
 fi
 test "_$mkoctfile" = "_no" && AC_MSG_ERROR([mkoctfile not found])
 # get mkoctfile version
-X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
+X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
 AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X], [Octave version])
 AC_SUBST([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X])
-X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
+X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
 AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X], [Octave version])
 AC_SUBST([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X])
 # check octave version
@@ -147,7 +147,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $MKOCTFILE_CFLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
     MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $MKOCTFILE_CFLAGS | grep "\-I" &> /dev/null
     RERUN=$?
@@ -158,7 +158,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $MKOCTFILE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
     MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $MKOCTFILE_LIBS | grep "\-L" &> /dev/null
     RERUN=$?
@@ -166,7 +166,7 @@ if test "$cross_compiling" == "yes"; then
   MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
 
   # convert MKOCTFILE_LIBDIR to unix path if cross compiling
-  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR))
+  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR | dos2unix))
 fi
 
 AC_SUBST([MKOCTFILE_CFLAGS])
@@ -177,6 +177,7 @@ SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
 AC_CHECKING(compiling a octave program)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+  #define _USE_MATH_DEFINES
   #include <octave/interpreter.h>
 ]],[[
   octave::interpreter oct;
@@ -205,7 +206,7 @@ if test "x$enable_python" == "xyes"; then
   fi
   PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
   if test "$cross_compiling" == "yes"; then
-    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
+    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR | dos2unix))
   fi
   if test "_$host_os" != "_mingw32"; then
     PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
