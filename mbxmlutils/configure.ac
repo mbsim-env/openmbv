@@ -177,18 +177,9 @@ SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
 AC_CHECKING(compiling a octave program)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <stdlib.h>
-#include <cstdlib>
-#include <unistd.h>
-#include <octave/oct.h>
-#include <octave/octave.h>
-#include <octave/parse.h>]],[[
-  const char *octave_argv[2]={"dummy", "-q"};
-  octave_main(2, (char**)octave_argv, 1);
-  int dummy;
-  eval_string("1+1;",true,dummy,0);
+  #include <octave/interpreter.h>
+]],[[
+  octave::interpreter oct;
 ]])], AC_MSG_RESULT([done]), AC_MSG_ERROR([can not compile a octave program]))
 CPPFLAGS=$SAVE_CPPFLAGS
 LIBS=$SAVE_LIBS
