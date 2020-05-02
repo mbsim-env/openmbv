@@ -70,15 +70,10 @@ SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/
 if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+11]]; then
   AC_MSG_ERROR([SWIG >= 3.0.11])
 fi
-dnl Check for octave
-DOS2UNIX="cat"
-if test "$cross_compiling" == "yes"; then
-  DOS2UNIX="dos2unix"
-fi
 
 dnl Convert prefix to native path
 if test "$cross_compiling" == "yes"; then
-  native_prefix=$(winepath -w $prefix)
+  native_prefix=$(winepath -w $prefix | dos2unix)
 else
   native_prefix=$prefix
 fi
@@ -100,17 +95,17 @@ fi
 if test "_$mkoctfile" == "_no"; then
   AC_MSG_ERROR([mkoctfile not found!])
 fi
-OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
+OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | dos2unix | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
 AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
 AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
-OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | dos2unix) | sed -re 's|\\|/|g')"
+OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
 if test "$cross_compiling" == "yes"; then
   # convert OCTAVE_FLAGS to unix path if cross compiling
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $OCTAVE_FLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
     OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $OCTAVE_FLAGS | grep "\-I" &> /dev/null
     RERUN=$?
@@ -121,7 +116,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $OCTAVE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
     OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $OCTAVE_LIBS | grep "\-L" &> /dev/null
     RERUN=$?

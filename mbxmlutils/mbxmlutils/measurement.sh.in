@@ -1,5 +1,5 @@
 #!/bin/bash
 
-@XC_EXEC_PREFIX@ @prefix@/bin/mbxmlutilsvalidate $(@XC_PATH_CONVERT@ @abs_srcdir@/measurement.xsd) $(@XC_PATH_CONVERT@ @prefix@/share/mbxmlutils/xml/measurement.xml)
+@XC_EXEC_PREFIX@ @prefix@/bin/mbxmlutilsvalidate $(@XC_PATH_CONVERT@ @abs_srcdir@/measurement.xsd | dos2unix) $(@XC_PATH_CONVERT@ @prefix@/share/mbxmlutils/xml/measurement.xml | dos2unix)
 RET=$?
 exit $RET
