@@ -37,6 +37,10 @@ class Deprecated : virtual public fmatvec::Atom {
     static std::set<std::size_t> printedMessages;
 };
 
+// Setup the fmatvec::Atom message streams from command arguments.
+// This removed parsed arguments from args.
+void setupMessageStreams(std::list<std::string> &args);
+
 }
 
 #endif
