@@ -24,6 +24,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <list>
 #include <xercesc/dom/DOMElement.hpp>
 
 namespace MBXMLUtils {
