@@ -73,7 +73,7 @@ fi
 
 dnl Convert prefix to native path
 if test "$cross_compiling" == "yes"; then
-  native_prefix=$(winepath -w $prefix | dos2unix)
+  native_prefix=$(winepath -w $prefix)
 else
   native_prefix=$prefix
 fi
@@ -105,7 +105,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $OCTAVE_FLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
     OCTAVE_FLAGS=$(echo $OCTAVE_FLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $OCTAVE_FLAGS | grep "\-I" &> /dev/null
     RERUN=$?
@@ -116,7 +116,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $OCTAVE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
     OCTAVE_LIBS=$(echo $OCTAVE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $OCTAVE_LIBS | grep "\-L" &> /dev/null
     RERUN=$?

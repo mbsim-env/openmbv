@@ -147,7 +147,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $MKOCTFILE_CFLAGS | sed -re "s|.*-I(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
     MKOCTFILE_CFLAGS=$(echo $MKOCTFILE_CFLAGS | sed -re "s|(.*)-I@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $MKOCTFILE_CFLAGS | grep "\-I" &> /dev/null
     RERUN=$?
@@ -158,7 +158,7 @@ if test "$cross_compiling" == "yes"; then
   RERUN=0
   while test $RERUN -eq 0; do
     WINPATH=$(echo $MKOCTFILE_LIBS | sed -re "s|.*-L(@<:@^ @:>@+).*|\1|")
-    UNIXPATH=$(readlink -f $(winepath -u $WINPATH | dos2unix))
+    UNIXPATH=$(readlink -f $(winepath -u $WINPATH))
     MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|(.*)-L@<:@^ @:>@+(.*)|\1-X$UNIXPATH\2|")
     echo $MKOCTFILE_LIBS | grep "\-L" &> /dev/null
     RERUN=$?
@@ -166,7 +166,7 @@ if test "$cross_compiling" == "yes"; then
   MKOCTFILE_LIBS=$(echo $MKOCTFILE_LIBS | sed -re "s|-X|-L|g")
 
   # convert MKOCTFILE_LIBDIR to unix path if cross compiling
-  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR | dos2unix))
+  MKOCTFILE_LIBDIR=$(readlink -f $(winepath -u $MKOCTFILE_LIBDIR))
 fi
 
 AC_SUBST([MKOCTFILE_CFLAGS])
@@ -206,7 +206,7 @@ if test "x$enable_python" == "xyes"; then
   fi
   PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
   if test "$cross_compiling" == "yes"; then
-    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR | dos2unix))
+    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
   fi
   if test "_$host_os" != "_mingw32"; then
     PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
