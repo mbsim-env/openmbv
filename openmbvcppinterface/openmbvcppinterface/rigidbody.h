@@ -69,8 +69,8 @@ namespace OpenMBV {
     friend class CompoundRigidBody;
     protected:
       std::string localFrameStr, referenceFrameStr, pathStr, draggerStr;
-      std::vector<double> initialTranslation;
-      std::vector<double> initialRotation;
+      std::vector<double> initialTranslation{3};
+      std::vector<double> initialRotation{3};
       double scaleFactor{1};
       void createHDF5File() override;
       void openHDF5File() override;
@@ -110,11 +110,9 @@ namespace OpenMBV {
 
       /** Set initial translaton between the local frame of the body and the reference frame */
       void setInitialTranslation(double x, double y, double z) {
-        std::vector<double> initTrans;
-        initTrans.push_back(x);
-        initTrans.push_back(y);
-        initTrans.push_back(z);
-        initialTranslation=initTrans;
+        initialTranslation[0] = x;
+        initialTranslation[1] = y;
+        initialTranslation[2] = z;
       }
 
       /** Set initial rotation between the local frame of the body and the reference frame.
@@ -131,11 +129,9 @@ namespace OpenMBV {
        * Use cardan angles to represent the transformation matrix
        */
       void setInitialRotation(double a, double b, double g) {
-        std::vector<double> initRot;
-        initRot.push_back(a);
-        initRot.push_back(b);
-        initRot.push_back(g);
-        initialRotation=initRot;
+        initialRotation[0] = a;
+        initialRotation[1] = b;
+        initialRotation[2] = g;
       }
 
       /** Set the scale factor of the body */

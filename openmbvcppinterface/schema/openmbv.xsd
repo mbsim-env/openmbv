@@ -115,9 +115,9 @@
     <xs:complexContent>
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
-          <xs:element name="initialTranslation" type="pv:lengthVector"/>
-          <xs:element name="initialRotation" type="pv:angleVector"/>
-          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="initialTranslation" type="pv:lengthVector" minOccurs="0"/>
+          <xs:element name="initialRotation" type="pv:angleVector" minOccurs="0"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar" minOccurs="0"/>
         </xs:sequence> 
         <xs:attribute name="localFrame" type="pv:booleanFullEval" default="0"/>
         <xs:attribute name="referenceFrame" type="pv:booleanFullEval" default="0"/>
