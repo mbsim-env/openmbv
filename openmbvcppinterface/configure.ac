@@ -70,11 +70,6 @@ SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/
 if test $SWIGVERSION_ -lt $[[3*1000000+0*1000+11]]; then
   AC_MSG_ERROR([SWIG >= 3.0.11])
 fi
-dnl Check for octave
-DOS2UNIX="cat"
-if test "$cross_compiling" == "yes"; then
-  DOS2UNIX="dos2unix"
-fi
 
 dnl Convert prefix to native path
 if test "$cross_compiling" == "yes"; then
@@ -100,11 +95,11 @@ fi
 if test "_$mkoctfile" == "_no"; then
   AC_MSG_ERROR([mkoctfile not found!])
 fi
-OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
+OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | dos2unix | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
 AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
 AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
-OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | $DOS2UNIX) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | $DOS2UNIX) | sed -re 's|\\|/|g')"
-OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | $DOS2UNIX) | sed -re 's|\\|/|g')"
+OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | dos2unix) | sed -re 's|\\|/|g')"
+OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
 if test "$cross_compiling" == "yes"; then
   # convert OCTAVE_FLAGS to unix path if cross compiling
   RERUN=0

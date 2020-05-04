@@ -81,8 +81,8 @@ fi
 SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
 AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
 SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-if test $SWIGVERSION_ -lt $[[4*1000000+0*1000+1]] -o
-   ($(cat /etc/debian_version) == "10.3" -a $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]]); then # debian 10.3 patches swig 3.0.12
+if test $SWIGVERSION_ -lt $[[4*1000000+0*1000+1]] -a \( "_$(cat /etc/debian_version 2> /dev/null)" != "_10.3" \
+  -o $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]] \); then # debian 10.3 patches swig 3.0.12
   AC_MSG_ERROR([SWIG >= 4.0.1 is needed.])
 fi
 
@@ -111,10 +111,10 @@ if test "_$mkoctfile" == "_no"; then
 fi
 test "_$mkoctfile" = "_no" && AC_MSG_ERROR([mkoctfile not found])
 # get mkoctfile version
-X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
+X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
 AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X], [Octave version])
 AC_SUBST([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X])
-X=$($XC_EXEC_PREFIX $mkoctfile --version | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
+X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
 AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X], [Octave version])
 AC_SUBST([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X])
 # check octave version
@@ -177,18 +177,10 @@ SAVE_CPPFLAGS=$CPPFLAGS; CPPFLAGS="$CPPFLAGS $MKOCTFILE_CFLAGS"
 SAVE_LIBS=$LIBS; LIBS="$MKOCTFILE_LIBS $LIBS"
 AC_CHECKING(compiling a octave program)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <stdlib.h>
-#include <cstdlib>
-#include <unistd.h>
-#include <octave/oct.h>
-#include <octave/octave.h>
-#include <octave/parse.h>]],[[
-  const char *octave_argv[2]={"dummy", "-q"};
-  octave_main(2, (char**)octave_argv, 1);
-  int dummy;
-  eval_string("1+1;",true,dummy,0);
+  #define _USE_MATH_DEFINES
+  #include <octave/interpreter.h>
+]],[[
+  octave::interpreter oct;
 ]])], AC_MSG_RESULT([done]), AC_MSG_ERROR([can not compile a octave program]))
 CPPFLAGS=$SAVE_CPPFLAGS
 LIBS=$SAVE_LIBS

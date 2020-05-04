@@ -14,6 +14,10 @@ using namespace MBXMLUtils;
 using namespace xercesc;
 using namespace boost::filesystem;
 
+namespace {
+  ThisLineLocation loc;
+}
+
 namespace MBXMLUtils {
 
 void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
@@ -315,6 +319,56 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);
+}
+
+shared_ptr<xercesc::DOMDocument> Preprocess::preprocessFile(
+  std::vector<path> &dependencies, std::set<boost::filesystem::path> schemas,
+  const boost::filesystem::path &mainXML) {
+  static const path SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
+
+  // the XML DOM parser
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
+  schemas.insert(SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"physicalvariable.xsd");
+  shared_ptr<DOMParser> parser=DOMParser::create(schemas);
+
+  // validate main file and get DOM
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainXML<<endl;
+  shared_ptr<xercesc::DOMDocument> mainXMLDoc=parser->parse(mainXML, &dependencies, false);
+  dependencies.push_back(mainXML);
+  DOMElement *mainxmlele=mainXMLDoc->getDocumentElement();
+
+  // create a clean evaluator (get the evaluator name first form the dom)
+  string evalName="octave"; // default evaluator
+  DOMElement *evaluator;
+  if(E(mainxmlele)->getTagName()==PV%"Embed") {
+    // if the root element IS A Embed than the <evaluator> element is the first child of the
+    // first (none pv:Parameter) child of the root element
+    auto r=mainxmlele->getFirstElementChild();
+    if(E(r)->getTagName()==PV%"Parameter")
+      r=r->getNextElementSibling();
+    evaluator=E(r)->getFirstElementChildNamed(PV%"evaluator");
+  }
+  else
+    // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
+    evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+  if(evaluator)
+    evalName=X()%E(evaluator)->getFirstTextChild()->getData();
+  shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
+
+  // embed/validate/unit/eval files
+  Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
+
+  // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
+  evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+  if(evaluator)
+    E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
+  else {
+    evaluator=D(mainXMLDoc)->createElement(PV%"evaluator");
+    evaluator->appendChild(mainXMLDoc->createTextNode(X()%"xmlflat"));
+    mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
+  }
+
+  return mainXMLDoc;
 }
 
 }
