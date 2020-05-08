@@ -97,11 +97,11 @@ void RigidBody::initializeUsingXML(DOMElement *element) {
     setDragger(true);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialTranslation");
-  setInitialTranslation(E(e)->getText<vector<double>>(3));
+  if(e) setInitialTranslation(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
-  setInitialRotation(E(e)->getText<vector<double>>(3));
+  if(e) setInitialRotation(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  setScaleFactor(E(e)->getText<double>());
+  if(e) setScaleFactor(E(e)->getText<double>());
 }
 
 std::shared_ptr<Group> RigidBody::getSeparateGroup() {
