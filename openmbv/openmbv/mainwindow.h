@@ -48,7 +48,9 @@
 #include <qwt_wheel.h>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
-// Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
+// Hence we explicitly export ALL symbols.
+// We cannot export selectively symbols since some symbols defined by Q_OBJECT needs also to be exported.
+// The clear Qt way would be to use PImpl but this is not done here.
 #ifdef _WIN32
 #  define DLL_PUBLIC __declspec(dllexport)
 #else
@@ -59,7 +61,7 @@ class QListWidgetItem;
 
 namespace OpenMBVGUI {
 
-class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
+class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   Q_OBJECT
   friend class Body;
   friend class Editor;
@@ -219,12 +221,12 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
-    DLL_PUBLIC void highlightObject(std::string curID);
-    DLL_PUBLIC MainWindow(std::list<std::string>& arg);
-    DLL_PUBLIC ~MainWindow() override;
-    DLL_PUBLIC bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
+    void highlightObject(std::string curID);
+    MainWindow(std::list<std::string>& arg);
+    ~MainWindow() override;
+    bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { glViewer->getSceneManager()->render(); }
-    DLL_PUBLIC static MainWindow* const getInstance();
+    static MainWindow* const getInstance();
     bool soQtEventCB(const SoEvent *event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
@@ -250,19 +252,19 @@ class MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
-    DLL_PUBLIC QTreeWidget* getObjectList() { return objectList; }
+    QTreeWidget* getObjectList() { return objectList; }
 
     std::set<void*> waitFor;
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.
      * Either by selecting it in the objects list or in the 3D view. */
-    DLL_PUBLIC void objectSelected(std::string curID, Object *curPtr);
+    void objectSelected(std::string curID, Object *curPtr);
     /** This signal is emitted whenever a object is double clicked in the 3D view.
      * If this signal is connected to at least one slot the property dialog is no longer shown automatically. */
-    DLL_PUBLIC void objectDoubleClicked(std::string curID, Object *curPtr);
+    void objectDoubleClicked(std::string curID, Object *curPtr);
     /** This signal is emmited whenever a file has been reloaded */
-    DLL_PUBLIC void fileReloaded();
+    void fileReloaded();
 };
 
 }

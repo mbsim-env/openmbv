@@ -25,7 +25,9 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
-// Hence we explicitly export the required symbols. This should be done for all code for a clean Windows build!
+// Hence we explicitly export ALL symbols.
+// We cannot export selectively symbols since some symbols defined by Q_OBJECT needs also to be exported.
+// The clear Qt way would be to use PImpl but this is not done here.
 #ifdef _WIN32
 #  define DLL_PUBLIC __declspec(dllexport)
 #else
@@ -38,7 +40,7 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
-class Group : public Object {
+class DLL_PUBLIC Group : public Object {
   Q_OBJECT
   friend class MainWindow;
   friend class Object;
@@ -55,7 +57,7 @@ class Group : public Object {
     void saveFileSlot();
     void reloadFileSlotIfNewer();
     void reloadFileSlot();
-    DLL_PUBLIC void unloadFileSlot();
+    void unloadFileSlot();
 };
 
 }
