@@ -500,7 +500,7 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     REDIR_STDOUT(out.rdbuf());
     REDIR_STDERR(err.rdbuf());
     mbxmlutilsStaticDependencies.clear();
-    eval_string(str, true, dummy, 0); // eval as statement list
+    octInit.interpreter->eval_string(str, true, dummy, 0); // eval as statement list
     addStaticDependencies(e);
   }
   catch(const exception &ex) { // should not happend
