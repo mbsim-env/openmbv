@@ -43,22 +43,22 @@ def searchWindowsLibrary(libname, libdir):
 def getDependencies(filename):
   res=set()
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB.*executable', content)!=None or re.search('ELF [0-9]+-bit LSB.*shared object', content)!=None:
-    if re.search('statically linked', content)!=None:
+  if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
+    if re.search('statically linked', content) is not None:
       return res # skip static executables
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
       match=re.search("^\s*(.+)\s=>\snot found$", line)
-      if match!=None:
+      if match is not None:
         raise RuntimeError('Library '+match.expand("\\1")+' not found')
       match=re.search("^.*\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match!=None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
+      if match is not None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
         res.add(match.expand("\\1"))
     return res
-  elif re.search('PE32\+? executable', content)!=None:
+  elif re.search('PE32\+? executable', content) is not None:
     try:
       for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
         match=re.search("^\s*DLL Name:\s(.+)$", line)
-        if match!=None:
+        if match is not None:
           absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename))
           if not os.path.realpath(absfile) in getDoNotAdd():
             res.add(absfile)
@@ -95,9 +95,9 @@ def getDoNotAdd():
 @lru_cache(maxsize=None)
 def relDir(filename):
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB.*executable', content)!=None or re.search('ELF [0-9]+-bit LSB.*shared object', content)!=None:
+  if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     return "lib" # Linux
-  elif re.search('PE32\+? executable', content)!=None:
+  elif re.search('PE32\+? executable', content) is not None:
     return "bin" # Windows
   else:
     raise RuntimeError(filename+' unknwon executable format')
@@ -106,10 +106,10 @@ def relDir(filename):
 def depLibs(filename):
   ret=set()
   content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB.*executable', content)!=None or re.search('ELF [0-9]+-bit LSB.*shared object', content)!=None:
+  if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     # on Linux search none recursively using ldd
     ret=getDependencies(filename)
-  elif re.search('PE32\+? executable', content)!=None:
+  elif re.search('PE32\+? executable', content) is not None:
     # on Windows search recursively using objdump
     def walkDependencies(filename, deps):
       if filename not in deps:

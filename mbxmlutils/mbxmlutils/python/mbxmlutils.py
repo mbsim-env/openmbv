@@ -39,7 +39,7 @@ def _serializeFunction(x):
       if isinstance(x, sympy.Float) or isinstance(x, sympy.Rational):
         return str(x)
       opStr=_serializeFunction.opMap.get(x.func.__name__)
-      if opStr==None:
+      if opStr is None:
         raise RuntimeError("Unknown operator "+x.func.__name__+": "+str(x))
       nrArgs=len(x.args)
       if (x.func.__name__=="Add" or x.func.__name__=="Mul") and nrArgs>2:
@@ -87,7 +87,7 @@ _serializeFunction.opMap={
 
 def registerPath(path):
   # load the libmbxmlutils-eval-global-python.so ones
-  if registerPath.dll==None:
+  if registerPath.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
