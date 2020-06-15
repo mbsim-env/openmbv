@@ -40,20 +40,16 @@ class QTripleSlider : public QSplitter {
     QTripleSlider(QWidget *parent=nullptr);
 
     // total range getter/setter
-    public slots: // declare the setters a slots
     void setTotalRange(int min_, int max_);
     void setTotalMinimum(int min) { setTotalRange(min, totalMax); }
     void setTotalMaximum(int max) { setTotalRange(totalMin, max); }
-    public: // the getters may not be slots
     int totalMinimum() { return totalMin; }
     int totalMaximum() { return totalMax; }
 
     // current range getter/setter
-    public slots: // declare the setters a slots
     void setCurrentRange(int min, int max);
     void setCurrentMinimum(int min) { setCurrentRange(min, slider->maximum()); }
     void setCurrentMaximum(int max) { setCurrentRange(slider->minimum(), max); }
-    public: // the getters may not be slots
     int currentMinimum() { return slider->minimum(); }
     int currentMaximum() { return slider->maximum(); }
 
@@ -61,7 +57,7 @@ class QTripleSlider : public QSplitter {
     int value() { return slider->value(); }
     void setValue(int value) { return slider->setValue(value); }
 
-  signals:
+  Q_SIGNALS:
 
     // signals on changes
     void currentRangeChanged(int min, int max);
@@ -75,7 +71,7 @@ class QTripleSlider : public QSplitter {
     QSlider *slider;
     int totalMin{0}, totalMax{99};
 
-  protected slots:
+  protected:
 
     void syncSplitterPositionToCurrentRange();
     void sliderMovedSlot(int value);

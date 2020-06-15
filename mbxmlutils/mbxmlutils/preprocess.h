@@ -7,7 +7,6 @@
 
 namespace MBXMLUtils {
 
-
 class Preprocess : virtual public fmatvec::Atom {
   protected:
     typedef std::map<FQN, int> PositionMap;
@@ -27,6 +26,11 @@ class Preprocess : virtual public fmatvec::Atom {
                            // internal: XPath position count of the element e
                            const std::shared_ptr<PositionMap>& position=std::make_shared<PositionMap>()
                           );
+
+    // same as process but reads from mainXML and return preprocessed DOMDocument.
+    static std::shared_ptr<xercesc::DOMDocument> preprocessFile(
+      std::vector<boost::filesystem::path> &dependencies, std::set<boost::filesystem::path> schemas,
+      const boost::filesystem::path &mainXML);
 };
 
 }

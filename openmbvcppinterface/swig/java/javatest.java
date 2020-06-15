@@ -23,7 +23,7 @@ public class javatest {
     group.addObject(ifs);
     
     // create H5 and xml file
-    group.setFileName("MBS_outfile.ombv.xml");
+    group.setFileName("MBS_outfile.ombvx");
     group.write(true, true);
     
     // some action on the returned cube

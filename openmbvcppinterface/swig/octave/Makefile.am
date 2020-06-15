@@ -14,12 +14,12 @@ CLEANFILES = OpenMBV_swig_octave.cc OpenMBV_swig_octave.d
 .DELETE_ON_ERROR: # swig -Werror requires this
 OpenMBV_swig_octave.cc: $(srcdir)/../OpenMBV.i
 	rm -f OpenMBV_swig_octave.cc
-	$(swig) -octave -MP -MD -Werror -c++ $(FMATVEC_CFLAGS) -I$(top_srcdir) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i
+	$(swig) -octave -MP -MD -Werror -c++ -I$(top_srcdir) $(FMATVEC_CFLAGS) -o OpenMBV_swig_octave.cc $(srcdir)/../OpenMBV.i
 -include $(builddir)/OpenMBV_swig_octave.d
 
 OpenMBV_la_SOURCES = OpenMBV_swig_octave.cc
 OpenMBV_la_LDFLAGS = -module -shrext .oct -avoid-version
-OpenMBV_la_CPPFLAGS = $(OCTAVE_FLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -I$(top_srcdir) -Wno-error=sign-compare -Wno-error=unused-function -Wno-sign-compare -Wno-unused-function -Wno-error=unused-value -Wno-unused-value -Wno-error=deprecated-declarations $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES
+OpenMBV_la_CPPFLAGS = -I$(top_srcdir) $(OCTAVE_FLAGS) $(HDF5SERIE_CFLAGS) $(MBXMLUTILSHELPER_CFLAGS) -Wno-error=sign-compare -Wno-error=unused-function -Wno-sign-compare -Wno-unused-function -Wno-error=unused-value -Wno-unused-value -Wno-error=deprecated-declarations $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES
 OpenMBV_la_LIBADD = $(OCTAVE_LIBS) $(HDF5SERIE_LIBS) $(MBXMLUTILSHELPER_LIBS) ../../openmbvcppinterface/libopenmbvcppinterface.la
 
 

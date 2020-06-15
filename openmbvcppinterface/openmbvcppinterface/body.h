@@ -85,7 +85,7 @@ namespace OpenMBV {
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
       /** Get the number of rows of the default data.
-       * Returns -1, if no default data is avaliable.
+       * Returns 0, if no default data is avaliable.
        * NOTE: see also append()
        */
       virtual int getRows()=0;

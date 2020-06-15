@@ -113,7 +113,7 @@ class NurbsDisk : public DynamicColoredBody {
     std::shared_ptr<OpenMBV::NurbsDisk> nurbsDisk;
     void createProperties() override;
 
-    public slots:
+    public:
       void moveCameraWithSlot();
 };
 

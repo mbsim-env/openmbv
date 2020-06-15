@@ -24,6 +24,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <list>
 #include <xercesc/dom/DOMElement.hpp>
 
 namespace MBXMLUtils {
@@ -36,6 +37,10 @@ class Deprecated : virtual public fmatvec::Atom {
   private:
     static std::set<std::size_t> printedMessages;
 };
+
+// Setup the fmatvec::Atom message streams from command arguments.
+// This removed parsed arguments from args.
+void setupMessageStreams(std::list<std::string> &args);
 
 }
 

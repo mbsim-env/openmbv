@@ -16,7 +16,7 @@ cuboid.setLength(1.234, 3, 4);
 group.addObject(cube);
 group.addObject(cuboid);
 
-group.setFileName('MBS_outfile.ombv.xml');
+group.setFileName('MBS_outfile.ombvx');
 group.write(true, true);
 
 cube.getName()

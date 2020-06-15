@@ -7,6 +7,7 @@
 #include <mbxmlutilshelper/dom.h>
 #include <mbxmlutilshelper/thislinelocation.h>
 #include <unordered_map>
+#include <stack>
 
 #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
 #define MBXMLUTILS_EVAL_CONCAT(X, Y) MBXMLUTILS_EVAL_CONCAT1(X, Y)

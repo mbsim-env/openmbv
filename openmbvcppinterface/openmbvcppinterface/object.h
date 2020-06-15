@@ -52,6 +52,7 @@ namespace OpenMBV {
       std::string name;
       std::string enableStr, boundingBoxStr;
       std::string ID; // Note: the ID is metadata and stored as a processing instruction in XML
+      std::string environmentStr;
       bool selected{false}; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
       std::weak_ptr<Group> parent;
 
@@ -80,6 +81,12 @@ namespace OpenMBV {
 
       /** Returns the full name (path) of the object */
       virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
+
+      /** If set to true than this object is an environment object:
+       * a static object which has no time dependent part (does not read anything from the h5 file). */
+      void setEnvironment(bool env) { environmentStr=(env)?"true":"false"; }
+
+      bool getEnvironment() { return environmentStr=="true"?true:false; }
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);

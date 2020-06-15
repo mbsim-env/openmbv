@@ -144,7 +144,7 @@ namespace OpenMBV {
         data->append(row);
       }
 
-      int getRows() override { return data?data->getRows():-1; }
+      int getRows() override { return data?data->getRows():0; }
       std::vector<double> getRow(int i) override {
         int NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
         return data?data->getRow(i):std::vector<double>(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);

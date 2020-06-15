@@ -31,7 +31,7 @@ int main() {
 
   shared_ptr<Group> g=ObjectFactory::create<Group>();
   g->setName("mygrp");
-  g->setFileName("mygrp.ombv.xml");
+  g->setFileName("mygrp.ombvx");
 
     shared_ptr<Cuboid> c2=ObjectFactory::create<Cuboid>();
     c2->setName("mycubeaa");
@@ -178,7 +178,7 @@ int main() {
   {
 
   shared_ptr<Group> g=ObjectFactory::create<Group>();
-  g->setFileName("mygrp.ombv.xml");
+  g->setFileName("mygrp.ombvx");
   g->read();
   walkHierarchy(g);
   

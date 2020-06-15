@@ -89,10 +89,10 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
   if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
 
     reloadTimer=new QTimer(this);
-    connect(reloadTimer,SIGNAL(timeout()),this,SLOT(reloadFileSlotIfNewer()));
+    connect(reloadTimer,&QTimer::timeout,this,&Group::reloadFileSlotIfNewer);
     reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
   }
 }
@@ -102,23 +102,31 @@ void Group::createProperties() {
 
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", properties);
-  connect(newObject,SIGNAL(triggered()),properties,SLOT(newObjectSlot()));
+  connect(newObject,&QAction::triggered,properties,[this](){
+    static_cast<Group*>(properties->getParentObject())->newObjectSlot();
+  });
   properties->addContextAction(newObject);
 
   if(grp->getSeparateFile()) {
     QAction *saveFile=new QAction(Utils::QIconCached("savefile.svg"),"Save XML-file", properties);
     saveFile->setObjectName("Group::saveFile");
-    connect(saveFile,SIGNAL(triggered()),properties,SLOT(saveFileSlot()));
+    connect(saveFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->saveFileSlot();
+    });
     properties->addContextAction(saveFile);
 
     QAction *unloadFile=new QAction(Utils::QIconCached("unloadfile.svg"),"Unload XML/H5-file", properties);
     unloadFile->setObjectName("Group::unloadFile");
-    connect(unloadFile,SIGNAL(triggered()),properties,SLOT(unloadFileSlot()));
+    connect(unloadFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->unloadFileSlot();
+    });
     properties->addContextAction(unloadFile);
 
     QAction *reloadFile=new QAction(Utils::QIconCached("reloadfile.svg"),"Reload XML/H5-file", properties);
     reloadFile->setObjectName("Group::reloadFile");
-    connect(reloadFile,SIGNAL(triggered()),properties,SLOT(reloadFileSlot()));
+    connect(reloadFile,&QAction::triggered,properties,[this](){
+      static_cast<Group*>(properties->getParentObject())->reloadFileSlot();
+    });
     properties->addContextAction(reloadFile);
   }
 
@@ -187,10 +195,8 @@ void Group::saveFileSlot() {
         "\n"
         "This will overwrite the following files:\n"
         "- OpenMBV-XML-file '%1'\n"
-        "- OpenMBV-Parameter-XML-file '%2' (if exists)\n"
-        "- all included OpenMBV-XML-Files\n"
-        "- all dedicated OpenMBV-Parameter-XML-Files"
-      ).arg(grp->getFileName().c_str()).arg((grp->getFileName().substr(0,grp->getFileName().length()-4)+".param.xml").c_str()),
+        "- all included OpenMBV-XML-Files"
+      ).arg(grp->getFileName().c_str()),
       QMessageBox::Cancel | QMessageBox::SaveAll);
     showAgain=new QCheckBox("Do not show this dialog again");
     auto *layout=static_cast<QGridLayout*>(askSave->layout());
@@ -225,14 +231,14 @@ void Group::reloadFileSlot() {
   else
     MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind), 0, QItemSelectionModel::NoUpdate);
 
-  emit MainWindow::getInstance()->fileReloaded();
+  MainWindow::getInstance()->fileReloaded();
 }
 
 void Group::reloadFileSlotIfNewer() {
   if(boost::myfilesystem::last_write_time(text(0).toStdString())>xmlLastModified &&
-     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString())>h5LastModified) {
+     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString())>h5LastModified) {
     xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-3, 3)+"h5").toStdString());
+    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
     reloadFileSlot();
   }
 }

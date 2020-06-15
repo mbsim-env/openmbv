@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
         <<"                       but requires OpenGL extensions by the graphic card."<<endl
         <<"--maximized        Show window maximized on startup."<<endl
-        <<"<dir>              Open/Load all [^.]+\\.ombv.xml and [^.]+\\.ombv.env.xml files"<<endl
+        <<"<dir>              Open/Load all [^.]+\\.ombvx files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
         <<"                   are allowd."<<endl
@@ -111,8 +111,6 @@ int main(int argc, char *argv[])
         <<"In contrast to Coin3D VBO (Vertex Buffer Object) is disabled per default in"<<endl
         <<"OpenMBV. You can enable it by setting the environment variable COIN_VBO=1."<<endl;
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-    if(i!=arg.end()) arg.erase(i);
-    if(i2!=arg.end()) arg.erase(i2);
     return 0;
   }
 
@@ -124,7 +122,13 @@ int main(int argc, char *argv[])
   moduleName[s]=0; // null terminate
 #endif
   QCoreApplication::setLibraryPaths(QStringList(QFileInfo(moduleName).absolutePath())); // do not load plugins from buildin defaults
+
   QApplication app(argc, argv);
+  // regenerate arg: QApplication removes all arguments known by Qt
+  arg.clear();
+  for (int i=1; i<argc; i++)
+    arg.push_back(argv[i]);
+
   app.setOrganizationName("mbsim-env");
   app.setApplicationName("openmbv");
   app.setOrganizationDomain("www.mbsim-env.de");

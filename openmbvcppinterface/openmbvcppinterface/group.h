@@ -38,7 +38,7 @@ namespace OpenMBV {
     protected:
       std::vector<std::shared_ptr<Object> > object;
       std::string expandStr;
-      std::string fileName; // the file name of the .ombv.xml file of this separateFile Group including the absolute or relatvie path
+      std::string fileName; // the file name of the .ombvx file of this separateFile Group including the absolute or relatvie path
       bool separateFile{false};
       std::shared_ptr<H5::File> hdf5File;
       void createHDF5File() override;
@@ -86,13 +86,13 @@ namespace OpenMBV {
       bool getSeparateFile() { return separateFile; }
       std::shared_ptr<H5::File>& getHDF5File() { return hdf5File; }
 
-      /** Returns the file name of the .ombv.xml file of this separateFile Group
+      /** Returns the file name of the .ombvx file of this separateFile Group
        * including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
 
       std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false) override;
       
-      /** Sets the file name of the .ombv.xml file of this separateFile Group
+      /** Sets the file name of the .ombvx file of this separateFile Group
        * including the absolute or relatvie path */
       void setFileName(const std::string &fn) { fileName=fn; }
       
@@ -104,7 +104,7 @@ namespace OpenMBV {
       /** Read the tree (XML and h5).
        * This function simply calls readXML() and readH5().
        */
-      void read(bool readXMLFile=true, bool readH5File=true);
+      void read();
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.

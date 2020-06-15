@@ -12,8 +12,8 @@
   <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils"/>
 
   <xs:annotation><xs:documentation xml:lang="en" xmlns="">
-    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombv.xml</code>) and a HDF5 file (<code>&lt;filename&gt;.ombv.h5</code>).</p>
-    <p>The root element of the XML file must be <span class="_element">&lt;Group&gt;</span>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombv.xml) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombvx</code>) and a HDF5 file (<code>&lt;filename&gt;.ombvh5</code>).</p>
+    <p>The root element of the XML file must be <span class="_element">&lt;Group&gt;</span>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombvx) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <Group name="TS" expand="1" enable="1" xmlns="http://www.mbsim-env.de/OpenMBV">
   <Group name="Hauptgruppe1" expand="1" enable="1">
     <Cuboid name="Box1" enable="1">
@@ -37,7 +37,7 @@
     </Frame>
   </Group>
 </Group>]]></pre>
-    <p>The according HDF5 file (TS.ombv.h5) must provide two datasets with the following path in the HDF5 file:</p>
+    <p>The according HDF5 file (TS.ombvh5) must provide two datasets with the following path in the HDF5 file:</p>
     <ul>
       <li>"/Hauptgruppe1/Box1/data"</li>
       <li>"/Hauptgruppe1/P1/data"</li>
@@ -60,6 +60,7 @@
     <xs:attribute name="name" type="pv:stringPartialEval" use="required"/>
     <xs:attribute name="enable" type="pv:booleanFullEval" default="1"/>
     <xs:attribute name="boundingBox" type="pv:booleanFullEval" default="0"/>
+    <xs:attribute name="environment" type="pv:booleanFullEval" default="0"/>
   </xs:complexType> 
 
   <xs:element name="Group" substitutionGroup="Object" type="GroupType"/>
@@ -114,9 +115,9 @@
     <xs:complexContent>
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
-          <xs:element name="initialTranslation" type="pv:lengthVector"/>
-          <xs:element name="initialRotation" type="pv:angleVector"/>
-          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
+          <xs:element name="initialTranslation" type="pv:lengthVector" minOccurs="0"/>
+          <xs:element name="initialRotation" type="pv:angleVector" minOccurs="0"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar" minOccurs="0"/>
         </xs:sequence> 
         <xs:attribute name="localFrame" type="pv:booleanFullEval" default="0"/>
         <xs:attribute name="referenceFrame" type="pv:booleanFullEval" default="0"/>

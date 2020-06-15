@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fmatvec/toString.h>
 #include <fmatvec/ast.h>
+#include <regex>
 
 using namespace boost::filesystem;
 using namespace std;
@@ -29,9 +30,7 @@ XMLFlatEval::~XMLFlatEval() = default;
 // virtual functions
 
 Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
-  stringstream str;
-  str<<fmatvec::IndependentVariable();
-  return make_shared<string>(str.str());
+  return make_shared<string>();
 }
 
 void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
@@ -39,15 +38,35 @@ void XMLFlatEval::addImport(const string &code, const DOMElement *e) {
 }
 
 bool XMLFlatEval::valueIsOfType(const Value &value, ValueType type) const {
+  string valueStr=*static_cast<string*>(value.get());
+  boost::trim(valueStr);
   switch(type) {
-    case ScalarType: try { cast<double>(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case VectorType: try { cast<vector<double> >(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case MatrixType: try { cast<vector<vector<double> > >(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case StringType: try { cast<string>(value); return true; } catch(...) { return false; };//mfmfcatch fix
-    case FunctionType: {
-      string valueStr=*static_cast<string*>(value.get());
+    case ScalarType:
+      if(valueStr=="true") return true; // "true" is a scalar
+      if(valueStr=="false") return true; // "false" is a scalar
+      double d;
+      return boost::conversion::try_lexical_convert(valueStr, d); // any value e.g. -6.73 is a scalar
+    case VectorType:
+      if(valueIsOfType(value, ScalarType)) return true;
+      if(valueStr[0]!='[') return false; // if not starting with "[" it NOT a vector
+      // it is starting with "["
+      // remove the valid starting "[" and trailing "]"
+      valueStr=valueStr.substr(1, valueStr.length()-2);
       boost::trim(valueStr);
-      return valueStr[0]=='{';
+      // remove the valid "new row" regex (" *; *")
+      static std::regex re(" *; *");
+      valueStr=regex_replace(valueStr, re, "");
+      // if now some invalid "new col" (" " or ",") is contained than its NOT a vector
+      if(valueStr.find(' ')!=string::npos) return false;
+      if(valueStr.find(',')!=string::npos) return false;
+      return true;
+    case MatrixType:
+      if(valueIsOfType(value, ScalarType)) return true;
+      return valueStr[0]=='['; // everything starting with "[" is s matrix
+    case StringType:
+      return valueStr[0]=='\'' || valueStr[0]=='"'; // everything starting with "'" or with '"' is a string
+    case FunctionType: {
+      return valueStr.substr(0,2)=="f("; // everything starting with "f(" is a function
     }
   }
   return false;
@@ -68,7 +87,10 @@ Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *
 
 double XMLFlatEval::cast_double(const Value &value) const {
   auto *v=static_cast<string*>(value.get());
-  return boost::lexical_cast<double>(boost::algorithm::trim_copy(*v));
+  auto vStr=boost::algorithm::trim_copy(*v);
+  if(vStr=="true") return 1;
+  if(vStr=="false") return 0;
+  return boost::lexical_cast<double>(vStr);
 }
 
 vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
@@ -93,8 +115,11 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
       continue;
     else if(s=="]") // on ] exit
       break;
-    else // else push double to vector
-      v.push_back(boost::lexical_cast<double>(s));
+    else { // else push double to vector
+      if(s=="true") v.push_back(1);
+      else if(s=="false") v.push_back(0);
+      else v.push_back(boost::lexical_cast<double>(s));
+    }
   }
 
   // check end of stream
@@ -131,8 +156,11 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
       continue;
     else if(s=="]") // on ] exit
       break;
-    else // else push double to vector
+    else { // else push double to vector
+      if(s=="true") (--m.end())->push_back(1);
+      else if(s=="false") (--m.end())->push_back(0);
       (--m.end())->push_back(boost::lexical_cast<double>(s));
+    }
   }
 
   // check end of stream
@@ -146,7 +174,8 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
 string XMLFlatEval::cast_string(const Value &value) const {
   string valueStr=*static_cast<string*>(value.get());
   boost::algorithm::trim(valueStr);
-  if(valueStr[0]!='\'' || valueStr[valueStr.size()-1]!='\'')
+  if((valueStr[0]!='\'' && valueStr[0]!='"') ||
+     (valueStr[valueStr.size()-1]!='\'' && valueStr[valueStr.size()-1]!='"'))
     throw runtime_error("Cannot convert to string.");
   return valueStr.substr(1, valueStr.size()-2);
 }
@@ -183,30 +212,15 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<Value>& v) const {
-  string str("[");
-  for(int i=0; i<v.size(); ++i)
-    str+=*static_cast<string*>(v[i].get())+(i!=v.size()-1?";":"");
-  str+="]";
-  return make_shared<string>(str);
+  return make_shared<string>();
 }
 
 Eval::Value XMLFlatEval::createFunctionDep(const vector<vector<Value> >& v) const {
-  string str("[");
-  for(int r=0; r<v.size(); ++r) {
-    for(int c=0; c<v[r].size(); ++c)
-      str+=*static_cast<string*>(v[r][c].get())+(c!=v[r].size()-1?",":"");
-    str+=(r!=v.size()-1?";":"");
-  }
-  str+="]";
-  return make_shared<string>(str);
+  return make_shared<string>();
 }
 
 Eval::Value XMLFlatEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
-  string str("{ "+to_string(indeps.size()));
-  for(int i=0; i<indeps.size(); ++i)
-    str+=" "+*static_cast<string*>(indeps[i].get());
-  str+=" "+*static_cast<string*>(dep.get())+" }";
-  return make_shared<string>(str);
+  return dep;
 }
 
 string XMLFlatEval::serializeFunction(const Value &x) const {

@@ -2,8 +2,7 @@
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
   <mime-type type="application/vnd.mbsim-env.openmbv">
     <comment>MBSim-Env OpenMBV files</comment>
-    <glob pattern="*.ombv.xml"/>
-    <glob pattern="*.ombv.env.xml"/>
+    <glob pattern="*.ombvx"/>
     <sub-class-of type="application/xml"/>
     <icon name="mbsim-env.openmbv"/>
   </mime-type>

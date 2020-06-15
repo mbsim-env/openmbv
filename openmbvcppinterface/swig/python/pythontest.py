@@ -23,7 +23,7 @@ def main():
   group.addObject(ifs)
    
   # create H5 and xml file
-  group.setFileName("MBS_outfile.ombv.xml")
+  group.setFileName("MBS_outfile.ombvx")
   group.write(True, True)
 
   # some action on the returned cube

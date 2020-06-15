@@ -62,7 +62,9 @@ void CompoundRigidBody::createProperties() {
 
   // GUI
   QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", properties);
-  connect(newObject,SIGNAL(triggered()),properties,SLOT(newRigidBodySlot()));
+  connect(newObject,&QAction::triggered,properties,[this](){
+    static_cast<CompoundRigidBody*>(properties->getParentObject())->newRigidBodySlot();
+  });
   properties->addContextAction(newObject);
 
   if(!clone) {
@@ -105,7 +107,7 @@ void CompoundRigidBody::newRigidBodySlot() {
 }
 
 double CompoundRigidBody::update() {
-  if(rigidBody->getRows()==-1) return 0; // do nothing for environement objects
+  if(rigidBody->getRows()==0) return 0; // do nothing for environement objects
 
   // call the normal update for a RigidBody
   double t=RigidBody::update();

@@ -181,7 +181,6 @@ dist_icon_DATA = openmbv.svg \
   h5file.svg \
   unloadfile.svg \
   reloadfile.svg \
-  envfile.svg \
   addfile.svg \
   savefile.svg \
   newfile.svg \
@@ -247,17 +246,24 @@ dist_doc_DATA = guihelp.html
 
 # plugins
 pluginsiconenginesdir = @bindir@/iconengines
-pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
 pluginsplatformsdir = @bindir@/platforms
+pluginsstylesdir = @bindir@/styles
+pluginsplatformthemesdir = @bindir@/platformthemes
+pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
 if COND_WIN32
 pluginsplatforms_DATA = @QT_PLUGINS@/platforms/qwindows.dll
+pluginsstyles_DATA = @QT_PLUGINS@/styles/qwindowsvistastyle.dll
 else
 pluginsplatforms_DATA = @QT_PLUGINS@/platforms/libqxcb.so
+pluginsstyles_DATA = @QT_PLUGINSSTYLES_DATA@
+pluginsplatformthemes_DATA = @QT_PLUGINSPLATFORMTHEMES_DATA@
 pluginsxcbglintegrationsdir = @bindir@/xcbglintegrations
 pluginsxcbglintegrations_DATA = @QT_PLUGINS@/xcbglintegrations/*qxcb*
 endif
 
 # freedesktop.org
 freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org
+windowsdir = @datadir@/mbsim-env/windows
 freedesktoporg_DATA = mbsim-env.de.openmbv.xml mbsim-env.de.openmbv.desktop mimeapps-openmbv.list openmbv.svg
-bin_SCRIPTS = desktopIntegration.sh
+windows_DATA = createLnk.vbs mbsim-env.de.openmbv.source.bat
+bin_SCRIPTS = desktopIntegration.sh desktopIntegration.bat

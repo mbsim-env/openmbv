@@ -181,7 +181,9 @@ void NurbsDisk::createProperties() {
 
   //Add option to move camera with body
   QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
-  connect(moveCameraWith,SIGNAL(triggered()),properties,SLOT(moveCameraWithSlot_Nurbsdisk()));
+  connect(moveCameraWith,&QAction::triggered,properties,[this](){
+    static_cast<NurbsDisk*>(properties->getParentObject())->moveCameraWithSlot();
+  });
   properties->addContextAction(moveCameraWith);
 
   // GUI editors

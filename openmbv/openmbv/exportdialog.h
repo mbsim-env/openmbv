@@ -45,7 +45,7 @@ class ExportDialog : public QDialog {
     bool getTransparent() { return transparentRB.isChecked(); }
     QString getFileName() { return fileName.text(); }
     double getFPS() { return fps.value(); }
-  protected slots:
+  protected:
     void fileBrowser();
 };
 
