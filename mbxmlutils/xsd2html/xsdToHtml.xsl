@@ -250,11 +250,9 @@
       <xsl:sort select="@name"/>
     </xsl:apply-templates>
 
-    <span class="pull-left small"><a href="/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
-    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
-    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
-    Generated on <span class="DATETIME"><xsl:value-of select="$DATETIME"/></span> for <xsl:value-of select="$PROJECT"/> by MBXMLUtils 
-    <a href="/">Home</a>
+    <hr/>
+    <span class="pull-right small">
+      Generated with MBXMLUtils on <span class="DATETIME"><xsl:value-of select="$DATETIME"/></span>
     </span>
     </body></html>
   </xsl:template>

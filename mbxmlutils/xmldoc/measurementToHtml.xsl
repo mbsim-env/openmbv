@@ -320,11 +320,8 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
     </xsl:apply-templates>
 
     <hr/>
-    <span class="pull-left small"><a href="/mbsim/html/impressum_disclaimer_datenschutz.html#impressum">Impressum</a> /
-    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#disclaimer">Disclaimer</a> /
-    <a href="/mbsim/html/impressum_disclaimer_datenschutz.html#datenschutz">Datenschutz</a></span><span class="pull-right small">
-    Generated on <span class="DATETIME"><xsl:value-of select="$DATETIME"/></span> for MBXMLUtils by MBXMLUtils 
-    <a href="/">Home</a>
+    <span class="pull-right small">
+      Generated with MBXMLUtils on <span class="DATETIME"><xsl:value-of select="$DATETIME"/></span>
     </span>
     </body></html>
   </xsl:template>
