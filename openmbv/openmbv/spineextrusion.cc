@@ -199,7 +199,7 @@ QString SpineExtrusion::getInfo() {
 }
 
 double SpineExtrusion::update() {
-  if(spineExtrusion->getRows()==-1) return 0; // do nothing for environement objects
+  if(spineExtrusion->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
