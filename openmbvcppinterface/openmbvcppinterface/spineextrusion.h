@@ -84,6 +84,13 @@ namespace OpenMBV {
         initialRotation=initRot;
       }
 
+      void setStateOffSet(const std::vector<double>& stateOff)
+      {
+        stateOffSet = stateOff;
+      }
+
+      std::vector<double> getStateOffSet( void ) { return stateOffSet; }
+
       /** Get the initial rotation of the body. */
       std::vector<double> getInitialRotation() { return initialRotation; }
 
@@ -120,6 +127,9 @@ namespace OpenMBV {
       
       /** Intial rotation of the body. */
       std::vector<double> initialRotation;
+      
+      /** optional offset for spine vector, may be used as inital position superposed by deflections or as static  */
+      std::vector<double> stateOffSet;
       
       /** Write H5 file for time-dependent data. */
       void createHDF5File() override;
