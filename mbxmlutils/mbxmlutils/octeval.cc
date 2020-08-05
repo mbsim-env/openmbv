@@ -462,8 +462,18 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
       bfs::current_path(chdir);
   }
 
-  // clear octave variables
-  octInit.interpreter->get_symbol_table().current_scope().clear_variables();
+  // clear local octave variables
+  // octInit.interpreter->get_symbol_table().current_scope().clear_variables() seems to be buggy, it sometimes clears
+  // also global variables. Hence, we clear all variables which are not also part of the global variables
+  auto gvn=octInit.interpreter->get_symbol_table().global_variable_names(); // get global and all variable names
+  auto vn=octInit.interpreter->get_symbol_table().variable_names();
+  gvn.sort(); // sort global and all variable names
+  vn.sort();
+  list<string> lvn;
+  set_difference(vn.begin(), vn.end(), gvn.begin(), gvn.end(), inserter(lvn, lvn.begin())); // get local = all - global variable names
+  for(auto &l : lvn) // remove all local variable names
+    octInit.interpreter->get_symbol_table().clear_symbol(l);
+
   // restore current parameters
   for(const auto & i : currentParam)
     octInit.interpreter->get_symbol_table().assign(i.first, *C(i.second));
