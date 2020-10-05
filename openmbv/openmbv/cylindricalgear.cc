@@ -276,7 +276,7 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
         indl[l++] = v*ns+nn+i;
       indl[l++] = v*ns+2*nn+2;
       indl[l++] = (nz-1)*ns+2*nn+4+(v==(nz-1)?0:v+1);
-      indl[l++]=-1;
+      indl[l++] = -1;
       indl[l++] = (nz-1)*ns+2*nn+4+nz+v;
       indl[l++] = v*ns+2*nn+1;
       for(int i=0; i<nf; i++)
@@ -285,19 +285,19 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
         indl[l++] = v*ns+nn+nf+i;
       indl[l++] = v*ns+2*nn+3;
       indl[l++] = (nz-1)*ns+2*nn+4+nz+(v==(nz-1)?0:v+1);
-      indl[l++]=-1;
+      indl[l++] = -1;
       indl[l++] = v*ns+2*nn;
       indl[l++] = v*ns+2*nn+1;
-      indl[l++]=-1;
+      indl[l++] = -1;
       indl[l++] = v*ns+2*nn+2;
       indl[l++] = v*ns+2*nn+3;
-      indl[l++]=-1;
+      indl[l++] = -1;
       indl[l++] = v*ns+nf-1;
       indl[l++] = v*ns+2*nf-1;
-      indl[l++]=-1;
+      indl[l++] = -1;
       indl[l++] = v*ns+nn;
       indl[l++] = v*ns+nn+nf;
-      indl[l++]=-1;
+      indl[l++] = -1;
     }
     line->coordIndex.setValues(0, nl, indl);
   }
