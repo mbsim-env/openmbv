@@ -74,7 +74,7 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
 
   int nii = 4*(nf-1)*5+3*5;
   int ni = nz*nii+25;
-  int indices[ni];
+  int indf[ni];
 
   int l=0;
   for(int v=0; v<nz; v++) {
@@ -96,53 +96,53 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
 
     // left
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+nf+k;
-      indices[l++] = v*ns+nf+k+1;
-      indices[l++] = v*ns+k+1;
-      indices[l++] = v*ns+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+nf+k;
+      indf[l++] = v*ns+nf+k+1;
+      indf[l++] = v*ns+k+1;
+      indf[l++] = v*ns+k;
+      indf[l++] = -1;
     }
     // right
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+3*nf+k;
-      indices[l++] = v*ns+3*nf+k+1;
-      indices[l++] = v*ns+2*nf+k+1;
-      indices[l++] = v*ns+2*nf+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+3*nf+k;
+      indf[l++] = v*ns+3*nf+k+1;
+      indf[l++] = v*ns+2*nf+k+1;
+      indf[l++] = v*ns+2*nf+k;
+      indf[l++] = -1;
     }
     // top
-    indices[l++] = v*ns+3*nf;
-    indices[l++] = v*ns+2*nf;
-    indices[l++] = v*ns+nf-1;
-    indices[l++] = v*ns+2*nf-1;
-    indices[l++] = -1;
+    indf[l++] = v*ns+3*nf;
+    indf[l++] = v*ns+2*nf;
+    indf[l++] = v*ns+nf-1;
+    indf[l++] = v*ns+2*nf-1;
+    indf[l++] = -1;
     // front
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+k;
-      indices[l++] = v*ns+k+1;
-      indices[l++] = v*ns+3*nf-(k+2);
-      indices[l++] = v*ns+3*nf-(k+1);
-      indices[l++] = -1;
+      indf[l++] = v*ns+k;
+      indf[l++] = v*ns+k+1;
+      indf[l++] = v*ns+3*nf-(k+2);
+      indf[l++] = v*ns+3*nf-(k+1);
+      indf[l++] = -1;
     }
     // back
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+2*nf-(k+1);
-      indices[l++] = v*ns+2*nf-(k+2);
-      indices[l++] = v*ns+3*nf+k+1;
-      indices[l++] = v*ns+3*nf+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+2*nf-(k+1);
+      indf[l++] = v*ns+2*nf-(k+2);
+      indf[l++] = v*ns+3*nf+k+1;
+      indf[l++] = v*ns+3*nf+k;
+      indf[l++] = -1;
     }
     //
-    indices[l++] = v*ns+nf;
-    indices[l++] = v*ns;
-    indices[l++] = (nz-1)*ns+2*nn+v;
-    indices[l++] = (nz-1)*ns+2*nn+nz+v;
-    indices[l++] = -1;
-    indices[l++] = v*ns+3*nf-1;
-    indices[l++] = v*ns+4*nf-1;
-    indices[l++] = (nz-1)*ns+2*nn+nz+(v==0?nz+1:v-1);
-    indices[l++] = (nz-1)*ns+2*nn+(v==0?2*nz:v-1);
-    indices[l++] = -1;
+    indf[l++] = v*ns+nf;
+    indf[l++] = v*ns;
+    indf[l++] = (nz-1)*ns+2*nn+v;
+    indf[l++] = (nz-1)*ns+2*nn+nz+v;
+    indf[l++] = -1;
+    indf[l++] = v*ns+3*nf-1;
+    indf[l++] = v*ns+4*nf-1;
+    indf[l++] = (nz-1)*ns+2*nn+nz+(v==0?nz+1:v-1);
+    indf[l++] = (nz-1)*ns+2*nn+(v==0?2*nz:v-1);
+    indf[l++] = -1;
   }
   pts[(nz-1)*ns+2*nn+2*nz][0] = -m*M_PI/2;
   pts[(nz-1)*ns+2*nn+2*nz][1] = -e->getModule();
@@ -162,38 +162,99 @@ Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   pts[(nz-1)*ns+2*nn+2*nz+5][0] = pts[(nz-1)*ns+2*nn+2*nz-1][0];
   pts[(nz-1)*ns+2*nn+2*nz+5][1] = pts[(nz-1)*ns+2*nn+2*nz-1][1]-h;
   pts[(nz-1)*ns+2*nn+2*nz+5][2] = -w/2;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
-  indices[l++] = -1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz-1;
-  indices[l++] = (nz-1)*ns+2*nn+nz-1;
-  indices[l++] = -1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
-  indices[l++] = (nz-1)*ns+2*nn+nz-1;
-  indices[l++] = -1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz-1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
-  indices[l++] = -1;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+2;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+3;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+5;
-  indices[l++] = (nz-1)*ns+2*nn+2*nz+4;
-  indices[l++] = -1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indf[l++] = -1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indf[l++] = (nz-1)*ns+2*nn+nz-1;
+  indf[l++] = -1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indf[l++] = (nz-1)*ns+2*nn+nz-1;
+  indf[l++] = -1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indf[l++] = -1;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indf[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indf[l++] = -1;
+
+  l = 0;
+  const int nl = 26*nz+22;
+  int indl[nl];
+  for(int v=0; v<nz; v++) {
+    indl[l++] = (nz-1)*ns+2*nn+v;
+    indl[l++] = v*ns;
+    indl[l++] = v*ns+nf-1;
+    indl[l++] = v*ns+nn;
+    indl[l++] = v*ns+nn+nf-1;
+    indl[l++] = (nz-1)*ns+2*nn+(v==0?2*nz:v-1);
+    indl[l++] = -1;
+    indl[l++] = (nz-1)*ns+2*nn+nz+v;
+    indl[l++] = v*ns+nf;
+    indl[l++] = v*ns+2*nf-1;
+    indl[l++] = v*ns+nn+nf;
+    indl[l++] = v*ns+nn+2*nf-1;
+    indl[l++] = (nz-1)*ns+2*nn+nz+(v==0?nz+1:v-1);
+    indl[l++] = -1;
+    indl[l++] = v*ns;
+    indl[l++] = v*ns+nf;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nf-1;
+    indl[l++] = v*ns+2*nf-1;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nn;
+    indl[l++] = v*ns+nn+nf;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nn+nf-1;
+    indl[l++] = v*ns+nn+2*nf-1;
+    indl[l++] = -1;
+  }
+  indl[l++] = (nz-1)*ns+2*nn+2*nz;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indl[l++] = (nz-1)*ns+2*nn+nz-1;
+  indl[l++] = -1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indl[l++] = -1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+1;
+  indl[l++] = -1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+2;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+3;
+  indl[l++] = -1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+4;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz+5;
+  indl[l++] = -1;
+  indl[l++] = (nz-1)*ns+2*nn+nz-1;
+  indl[l++] = (nz-1)*ns+2*nn+2*nz-1;
+  indl[l++] = -1;
 
   auto *points = new SoCoordinate3;
-  auto *face = new SoIndexedFaceSet;
   points->point.setValues(0, np, pts);
-  face->coordIndex.setValues(0, ni, indices);
+
+  auto *line = new SoIndexedLineSet;
+  line->coordIndex.setValues(0, nl, indl);
+
+  auto *face = new SoIndexedFaceSet;
+  face->coordIndex.setValues(0, ni, indf);
+
   soSepRigidBody->addChild(points);
   soSepRigidBody->addChild(face);
+  soSepRigidBody->addChild(soOutLineSwitch);
+  soOutLineSep->addChild(line);
 }
  
 void Rack::createProperties() {
