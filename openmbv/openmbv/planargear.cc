@@ -76,7 +76,7 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
 
   int nii = 4*(nf-1)*5+6*5+6*4;
   int ni = nz*nii;
-  int indices[ni];
+  int indf[ni];
 
   int l=0;
   pts[2*((nz-1)*ns+2*nn)+4*nz][0] = 0;
@@ -113,104 +113,150 @@ PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
 
     // left
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+nf+k;
-      indices[l++] = v*ns+nf+k+1;
-      indices[l++] = v*ns+k+1;
-      indices[l++] = v*ns+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+nf+k;
+      indf[l++] = v*ns+nf+k+1;
+      indf[l++] = v*ns+k+1;
+      indf[l++] = v*ns+k;
+      indf[l++] = -1;
     }
     // right
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+3*nf+k;
-      indices[l++] = v*ns+3*nf+k+1;
-      indices[l++] = v*ns+2*nf+k+1;
-      indices[l++] = v*ns+2*nf+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+3*nf+k;
+      indf[l++] = v*ns+3*nf+k+1;
+      indf[l++] = v*ns+2*nf+k+1;
+      indf[l++] = v*ns+2*nf+k;
+      indf[l++] = -1;
     }
     // top
-    indices[l++] = v*ns+3*nf;
-    indices[l++] = v*ns+2*nf;
-    indices[l++] = v*ns+nf-1;
-    indices[l++] = v*ns+2*nf-1;
-    indices[l++] = -1;
+    indf[l++] = v*ns+3*nf;
+    indf[l++] = v*ns+2*nf;
+    indf[l++] = v*ns+nf-1;
+    indf[l++] = v*ns+2*nf-1;
+    indf[l++] = -1;
     // front
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+k;
-      indices[l++] = v*ns+k+1;
-      indices[l++] = v*ns+3*nf-(k+2);
-      indices[l++] = v*ns+3*nf-(k+1);
-      indices[l++] = -1;
+      indf[l++] = v*ns+k;
+      indf[l++] = v*ns+k+1;
+      indf[l++] = v*ns+3*nf-(k+2);
+      indf[l++] = v*ns+3*nf-(k+1);
+      indf[l++] = -1;
     }
     // back
     for(int k=0; k<nf-1; k++) {
-      indices[l++] = v*ns+2*nf-(k+1);
-      indices[l++] = v*ns+2*nf-(k+2);
-      indices[l++] = v*ns+3*nf+k+1;
-      indices[l++] = v*ns+3*nf+k;
-      indices[l++] = -1;
+      indf[l++] = v*ns+2*nf-(k+1);
+      indf[l++] = v*ns+2*nf-(k+2);
+      indf[l++] = v*ns+3*nf+k+1;
+      indf[l++] = v*ns+3*nf+k;
+      indf[l++] = -1;
     }
     //
-    indices[l++] = v*ns+nf;
-    indices[l++] = v*ns;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+v;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+nz+v;
-    indices[l++] = -1;
-    indices[l++] = v*ns+3*nf-1;
-    indices[l++] = v*ns+4*nf-1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+nz+(v==0?nz-1:v-1);
-    indices[l++] = 2*((nz-1)*ns+2*nn)+(v==0?nz-1:v-1);
-    indices[l++] = -1;
+    indf[l++] = v*ns+nf;
+    indf[l++] = v*ns;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+v;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+nz+v;
+    indf[l++] = -1;
+    indf[l++] = v*ns+3*nf-1;
+    indf[l++] = v*ns+4*nf-1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+nz+(v==0?nz-1:v-1);
+    indf[l++] = 2*((nz-1)*ns+2*nn)+(v==0?nz-1:v-1);
+    indf[l++] = -1;
     //
-    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+v;
-    indices[l++] = v*ns;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns;
-    indices[l++] = -1;
-    indices[l++] = v*ns+3*nf-1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns;
-    indices[l++] = v*ns;
-    indices[l++] = -1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+(v==0?nz-1:v-1);
-    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
-    indices[l++] = v*ns+3*nf-1;
-    indices[l++] = -1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+v;
+    indf[l++] = v*ns;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns;
+    indf[l++] = -1;
+    indf[l++] = v*ns+3*nf-1;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns;
+    indf[l++] = v*ns;
+    indf[l++] = -1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+(v==0?nz-1:v-1);
+    indf[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
+    indf[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indf[l++] = v*ns+3*nf-1;
+    indf[l++] = -1;
     //
-    indices[l++] = v*ns+nf;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+nz+v;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
-    indices[l++] = -1;
-    indices[l++] = v*ns+nf;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
-    indices[l++] = v*ns+4*nf-1;
-    indices[l++] = -1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+nz+(v==0?nz-1:v-1);
-    indices[l++] = v*ns+4*nf-1;
-    indices[l++] = -1;
+    indf[l++] = v*ns+nf;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+nz+v;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
+    indf[l++] = -1;
+    indf[l++] = v*ns+nf;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
+    indf[l++] = v*ns+4*nf-1;
+    indf[l++] = -1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+nz+(v==0?nz-1:v-1);
+    indf[l++] = v*ns+4*nf-1;
+    indf[l++] = -1;
     //
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns;
-    indices[l++] = -1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
-    indices[l++] = -1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
-    indices[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
-    indices[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
-    indices[l++] = -1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns;
+    indf[l++] = -1;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
+    indf[l++] = -1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+4*nz+1;
+    indf[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indf[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
+    indf[l++] = -1;
+  }
+
+  l = 0;
+  const int nl = nz*(4*nf+24);
+  int indl[nl];
+  for(int v=0; v<nz; v++) {
+    indl[l++] = 2*((nz-1)*ns+2*nn)+v;
+    for(int i=0; i<nf; i++)
+      indl[l++] = v*ns+i;
+    for(int i=0; i<nf; i++)
+      indl[l++] = v*ns+nn+i;
+    indl[l++] = 2*((nz-1)*ns+2*nn)+(v==0?nz-1:v-1);
+    indl[l++] = -1;
+    for(int i=0; i<nf; i++)
+      indl[l++] = v*ns+nf+i;
+    for(int i=0; i<nf; i++)
+      indl[l++] = v*ns+nn+nf+i;
+    indl[l++] = -1;
+    indl[l++] = 2*((nz-1)*ns+2*nn)+2*nz+(v==0?nz-1:v-1);
+    indl[l++] = (nz-1)*ns+2*nn+v*ns+3*nf-1;
+    indl[l++] = (nz-1)*ns+2*nn+v*ns;
+    indl[l++] = 2*((nz-1)*ns+2*nn)+2*nz+v;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nf;
+    indl[l++] = v*ns+nn+2*nf-1;
+    indl[l++] = -1;
+    indl[l++] = v*ns;
+    indl[l++] = v*ns+nf;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nf-1;
+    indl[l++] = v*ns+2*nf-1;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nn;
+    indl[l++] = v*ns+nn+nf;
+    indl[l++] = -1;
+    indl[l++] = v*ns+nn+nf-1;
+    indl[l++] = v*ns+nn+2*nf-1;
+    indl[l++] = -1;
   }
 
   auto *points = new SoCoordinate3;
-  auto *face = new SoIndexedFaceSet;
   points->point.setValues(0, np, pts);
-  face->coordIndex.setValues(0, ni, indices);
+
+  auto *line = new SoIndexedLineSet;
+  line->coordIndex.setValues(0, nl, indl);
+
+  auto *face = new SoIndexedFaceSet;
+  face->coordIndex.setValues(0, ni, indf);
+
   soSepRigidBody->addChild(points);
   soSepRigidBody->addChild(face);
+  soSepRigidBody->addChild(soOutLineSwitch);
+  soOutLineSep->addChild(line);
 }
+
  
 void PlanarGear::createProperties() {
   RigidBody::createProperties();
