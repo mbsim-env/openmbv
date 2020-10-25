@@ -50,8 +50,22 @@ void CompoundRigidBody::initializeUsingXML(DOMElement *element) {
      (E(element)->getAttribute("expand")=="true" || E(element)->getAttribute("expand")=="1"))
     setExpand(true);
   DOMElement *e;
-  e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  e=e->getNextElementSibling();
+
+  // search last element of RigidBody
+  // TODO/MISSING: initializeUsingXML(...) should return the first unparsed DOMElement!
+  // Then we can avoid such ugly hacks to detect the element here which needs to know all base class definitions.
+         e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"initialTranslation");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"transparency");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"diffuseColor");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"maximalColorValue");
+  if(!e) e=E(element)->getFirstElementChildNamed(OPENMBV%"minimalColorValue");
+  if(e)
+    e=e->getNextElementSibling();
+  else
+    e=element->getFirstElementChild();
+
   while (e) {
     std::shared_ptr<RigidBody> rb = ObjectFactory::create<RigidBody>(e);
     rb->initializeUsingXML(e);
