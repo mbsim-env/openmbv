@@ -38,7 +38,6 @@ namespace OpenMBVGUI {
 
 /*! A filter for QTreeView classes (like QTreeWidget) */
 class DLL_PUBLIC AbstractViewFilter : public QWidget {
-  Q_OBJECT;
   public:
     /*! Creates a filter for QTreeView.
      * \p nameCol_ defines the column against normal regex searches (<regex>) are made (Qt::DisplayRole).
@@ -62,7 +61,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     void setFilter(const QString &filter);
 
     //! Applies the current filter on the view.
-    //! This is automatically done when using setFilter or when pressing enter in the filter QTextEdit.
+    //! This is automatically done when using setFilter.
     void applyFilter();
 
   protected:

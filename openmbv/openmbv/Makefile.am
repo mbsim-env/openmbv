@@ -105,7 +105,6 @@ QT_BUILT_SOURCES = \
   group.moc.cc\
   body.moc.cc\
   dynamiccoloredbody.moc.cc \
-  abstractviewfilter.moc.cc \
   QTripleSlider.moc.cc
 BUILT_SOURCES = $(QT_BUILT_SOURCES)
 

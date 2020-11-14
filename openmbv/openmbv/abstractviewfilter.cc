@@ -41,21 +41,18 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   setLayout(layout);
   QLabel *filterL=new QLabel("Filter:");
   if(typeCol==-2) {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (col. %1).").arg(nameCol));
-    filterL->setStatusTip("Filter name by <regex>");
+    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).").arg(nameCol+1));
+    filterL->setStatusTip("Filter name column by <regex>.");
   }
   else if(typeCol==-1) {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (col. %1),\n"
-                           "or\n"
-                           "when the filter starts with : by the given type of the items or,\n"
-                           "when the filter starts with :: by the given type or derived type of the items.").arg(nameCol));
-    filterL->setStatusTip("Filter name by <regex>, or type by :<type>, or derived type by ::<type>");
+    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).\n"
+                           "Or on the type by :<type> or on a derived type by ::<type>.").arg(nameCol+1));
+    filterL->setStatusTip("Filter name column by <regex>, or by type :<type>, or by derived type ::<type>");
   }
   else {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (col. %1),\n"
-                           "or\n"
-                           "when the filter starts with : by the given type (col. %2) of the items.").arg(nameCol, typeCol));
-    filterL->setStatusTip("Filter name by <regex>, or type by :<type>");
+    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).\n"
+                           "Or on the item type (column %2) if the filter starts with ':'.").arg(nameCol+1).arg(typeCol+1));
+    filterL->setStatusTip("Filter name column by <regex>, or type column by :<regex>");
   }
   layout->addWidget(filterL, 0, 0);
   filterLE=new QLineEdit;
@@ -120,10 +117,11 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
     else {
       if(filter.pattern().startsWith(":")) { // starting with : => direct type search
         const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-        if(typePrefix+filter.pattern().mid(1)==view->model()->data(colIndex, Qt::DisplayRole).value<QString>())
+        QRegExp filter2(filter.pattern().mid(1));
+        if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
-      else { // not starting with : or :: => regex search on the string of column nameCol
+      else { // not starting with : => regex search on the string of column nameCol
         if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
