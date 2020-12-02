@@ -47,12 +47,7 @@
 
 
   <xs:simpleType name="objectReferenceType">
-    <xs:restriction base="pv:stringPartialEval">
-      <!-- pattern value="(\.\./)*(X/)*X" with
-             X=((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)
-      from physicalvariable.xsd name attribute -->
-      <xs:pattern value="(\.\./)*(((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)/)*((([a-zA-Z_]|[a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z_])\{[^\}]+\})+([a-zA-Z_][a-zA-Z0-9_]*)?|[a-zA-Z_][a-zA-Z0-9_]*)"/>
-    </xs:restriction>
+    <xs:restriction base="pv:stringPartialEval"/>
   </xs:simpleType>
 
   <xs:element name="Object" abstract="true" type="ObjectType"/>
