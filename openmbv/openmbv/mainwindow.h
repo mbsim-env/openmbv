@@ -162,7 +162,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void speedWheelReleased();
     void exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
-    void exportSequenceAsPNG();
+    void exportSequenceAsPNG(bool video);
     void exportCurrentAsIV();
     void exportCurrentAsPS();
     void stopSCSlot();

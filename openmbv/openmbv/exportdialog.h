@@ -22,11 +22,13 @@
 
 #include <QDialog>
 #include <QPushButton>
+#include <QButtonGroup>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QGridLayout>
 #include <QRadioButton>
+#include <QTextEdit>
 
 namespace OpenMBVGUI {
 
@@ -37,16 +39,21 @@ class ExportDialog : public QDialog {
     QPushButton fileNameButton, ok, abort;
     QLineEdit fileName;
     QGridLayout dialogLO;
+    QLabel variantL;
+    QButtonGroup colorBG, variantBG;
     QRadioButton transparentRB, colorRB;
-    QLabel scaleL, backgroundL, fileNameL, speedL, speedLText, fpsL, frameRangeL, frameRangeLText;
+    QRadioButton pngSeqenceRB, videoRB;
+    QLabel scaleL, backgroundL, fileNameL, speedL, speedLText, fpsL, frameRangeL, frameRangeLText, videoCmdL, bitRateL;
+    QTextEdit videoCmd;
+    QSpinBox bitRate;
   public:
-    ExportDialog(QWidget *parent, bool sequence);
+    ExportDialog(QWidget *parent, bool sequence, bool video);
     double getScale() { return scale.value(); }
     bool getTransparent() { return transparentRB.isChecked(); }
     QString getFileName() { return fileName.text(); }
     double getFPS() { return fps.value(); }
-  protected:
-    void fileBrowser();
+    int getBitRate() { return bitRate.value(); }
+    QString getVideoCmd() { return videoCmd.toPlainText(); }
 };
 
 }

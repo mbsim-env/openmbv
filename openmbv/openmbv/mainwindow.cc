@@ -39,6 +39,7 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QColorDialog>
 #include <QtCore/QElapsedTimer>
+#include <QtCore/QTemporaryDir>
 #include <QShortcut>
 #include <QMimeData>
 #include <QSettings>
@@ -285,7 +286,11 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, &MainWindow::exportCurrentAsPNG, QKeySequence("Ctrl+P"));
   addAction(act); // must work also if menu bar is invisible
-  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG...", this, &MainWindow::exportSequenceAsPNG, QKeySequence("Ctrl+Shift+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG-sequence...",
+    bind(&MainWindow::exportSequenceAsPNG, this, false), QKeySequence("Ctrl+Shift+P"));
+  addAction(act);
+  act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as Video...",
+    bind(&MainWindow::exportSequenceAsPNG, this, true));
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as IV...", this, &MainWindow::exportCurrentAsIV);
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, &MainWindow::exportCurrentAsPS);
@@ -1494,7 +1499,7 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
 }
 
 void MainWindow::exportCurrentAsPNG() {
-  ExportDialog dialog(this, false);
+  ExportDialog dialog(this, false, false);
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
 
@@ -1511,15 +1516,22 @@ void MainWindow::exportCurrentAsPNG() {
   msg(Info)<<str.toStdString()<<endl;
 }
 
-void MainWindow::exportSequenceAsPNG() {
-  ExportDialog dialog(this, true);
+void MainWindow::exportSequenceAsPNG(bool video) {
+  ExportDialog dialog(this, true, video);
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
   double scale=dialog.getScale();
   bool transparent=dialog.getTransparent();
   QString fileName=dialog.getFileName();
-  if(!fileName.toUpper().endsWith(".PNG")) return;
-  fileName=fileName.remove(fileName.length()-6,6);
+  if(!video && !fileName.toUpper().endsWith(".PNG")) return;
+  QString pngBaseName=fileName;
+  unique_ptr<QTemporaryDir> tmpDir;
+  if(!video)
+    pngBaseName=pngBaseName.remove(pngBaseName.length()-4,4);
+  else {
+    tmpDir.reset(new QTemporaryDir);
+    pngBaseName=tmpDir->filePath("openmbv");
+  }
   double speed=speedSB->value();
   int startFrame=timeSlider->currentMinimum();
   int endFrame=timeSlider->currentMaximum();
@@ -1539,15 +1551,37 @@ void MainWindow::exportSequenceAsPNG() {
   auto lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
-  glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
+  glViewer->font->size.setValue(glViewer->font->size.getValue()*scale);
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
     QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
     frame->setValue(frame_);
-    exportAsPNG(width, height, QString("%1_%2.png").arg(fileName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+    exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
-  glViewer->font->size.setValue(glViewer->font->size.getValue()/dialog.getScale());
+  glViewer->font->size.setValue(glViewer->font->size.getValue()/scale);
+  if(video) {
+    QString str("Encoding video file, please wait!");
+    statusBar()->showMessage(str);
+    msg(Info)<<str.toStdString()<<endl;
+    QString videoCmd=dialog.getVideoCmd();
+    videoCmd.replace("%O", QFileInfo(fileName).absoluteFilePath());
+    videoCmd.replace("%B", QString::number(dialog.getBitRate()*1024));
+    videoCmd.replace("%F", QString::number(fps, 'f', 1));
+    msg(Info)<<"Running command:"<<endl
+             <<videoCmd.toStdString()<<endl
+             <<"in directory "<<tmpDir->path().toStdString()<<endl;
+    QString cwd=QDir::currentPath();
+    QDir::setCurrent(tmpDir->path());
+    int ret=std::system(videoCmd.toStdString().c_str());
+    QDir::setCurrent(cwd);
+    if(ret!=0) {
+      QString str("FAILED. See console output!");
+      statusBar()->showMessage(str, 10000);
+      msg(Info)<<str.toStdString()<<endl;
+      return;
+    }
+  }
   QString str("Done");
   statusBar()->showMessage(str, 10000);
   msg(Info)<<str.toStdString()<<endl;
