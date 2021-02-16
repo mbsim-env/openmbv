@@ -358,6 +358,9 @@ DOMElementWrapper<DOMElementType> E(DOMElementType *me) { return DOMElementWrapp
 template<typename DOMElementType>
 DOMElementWrapper<DOMElementType> E(std::shared_ptr<DOMElementType> me) { return DOMElementWrapper<DOMElementType>(me.get()); }
 
+template<> const xercesc::DOMElement *DOMElementWrapper<      xercesc::DOMElement>::dummyArg;
+template<> const xercesc::DOMElement *DOMElementWrapper<const xercesc::DOMElement>::dummyArg;
+
 //! Helper class for extending DOMAttr (use the function A(...)).
 template<typename DOMAttrType>
 class DOMAttrWrapper {

@@ -727,7 +727,7 @@ const string LocationInfoFilter::lineNumberKey("http://www.mbsim-env.de/dom/MBXM
 
 // START: call protected AbstractDOMParser::getScanner from outside, see above
 struct GETSCANNER { typedef XMLScanner*(AbstractDOMParser::*type)() const; };
-namespace { template class rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
+namespace { template struct rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
 // END: call protected AbstractDOMParser::getScanner from outside, see above
 DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) {
   // store the line number of the element start as user data
