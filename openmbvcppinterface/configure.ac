@@ -46,10 +46,6 @@ AC_ARG_WITH([boost-inc],
   [  --with-boost-inc=PATH  The path Boost include directory.],
   [CPPFLAGS="$CPPFLAGS -I$withval"; DEFINES="$DEFINES -I$withval"])
 
-dnl Check for Boost file locking
-AC_CHECK_HEADER([boost/interprocess/sync/file_lock.hpp],
-  [AC_DEFINE([HAVE_BOOST_FILE_LOCK], [1], [Boost interprocess file lock found]) DEFINES="$DEFINES -DHAVE_BOOST_FILE_LOCK"])
-
 AC_ARG_WITH([boost-system-lib],
   [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])

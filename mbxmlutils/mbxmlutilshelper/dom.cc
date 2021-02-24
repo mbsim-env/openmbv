@@ -5,6 +5,9 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -935,7 +938,12 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
-  shared_ptr<xercesc::DOMDocument> doc(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
+  shared_ptr<xercesc::DOMDocument> doc;
+  {
+    boost::interprocess::file_lock inputSourceLF(inputSource.string().c_str()); // lock the file
+    boost::interprocess::sharable_lock inputSourceLock(inputSourceLF);
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
+  }
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
@@ -969,6 +977,9 @@ namespace {
 
 void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
+  { std::ofstream dummy(outputSource); } // create the file
+  boost::interprocess::file_lock outputSourceLF(outputSource.string().c_str()); // lock the file
+  boost::interprocess::scoped_lock outputSourceLock(outputSourceLF);
   if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
     throw runtime_error("Serializing the document failed.");
 }

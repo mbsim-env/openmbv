@@ -27,9 +27,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#ifdef HAVE_BOOST_FILE_LOCK
-#  include <boost/interprocess/sync/file_lock.hpp>
-#endif
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -223,92 +220,14 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
   // use element name as base filename if fileName was not set
   if(fileName.empty()) fileName=name+".ombvx";
 
-#ifdef HAVE_BOOST_FILE_LOCK
-  size_t size=fileName.find_last_of("/\\");
-  int pos;
-  if(size==string::npos) pos=-1; else pos=static_cast<int>(size);
-  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1)+".lock";
-
-  // try to create file
-  FILE *f=fopen(lockFileName.c_str(), "a");
-  if(f) fclose(f);
-  // try to lock file
-  boost::interprocess::file_lock fileLock;
-  bool isFileLocked=false;
-  try {
-    if(!getenv("OPENMBVCPPINTERFACE_NO_FILE_LOCK")) {
-      boost::interprocess::file_lock fl(lockFileName.c_str());
-      fileLock.swap(fl);
-      isFileLocked=true;
-      fileLock.lock();
-    }
-  }
-  catch(const boost::interprocess::interprocess_exception &ex) {
-    msg(Warn)<<"Unable to lock the file "<<lockFileName<<endl;
-  }
-#endif
-  try {
-    if(writeXMLFile) writeXML();
-    if(writeH5File)  writeH5();
-  }
-  catch(...) {
-#ifdef HAVE_BOOST_FILE_LOCK
-    // unlock file
-    if(isFileLocked)
-      fileLock.unlock();
-#endif
-    throw;
-  }
-#ifdef HAVE_BOOST_FILE_LOCK
-  // unlock file
-  if(isFileLocked)
-    fileLock.unlock();
-#endif
+  if(writeXMLFile) writeXML();
+  if(writeH5File)  writeH5();
 }
 
 void Group::read() {
-#ifdef HAVE_BOOST_FILE_LOCK
-  size_t size=fileName.find_last_of("/\\");
-  int pos;
-  if(size==string::npos) pos=-1; else pos=static_cast<int>(size);
-  string lockFileName=fileName.substr(0, pos+1)+"."+fileName.substr(pos+1)+".lock";
-
-  // try to create file
-  FILE *f=fopen(lockFileName.c_str(), "a");
-  if(f) fclose(f);
-  // try to lock file
-  boost::interprocess::file_lock fileLock;
-  bool isFileLocked=false;
-  try {
-    if(!getenv("OPENMBVCPPINTERFACE_NO_FILE_LOCK")) {
-      boost::interprocess::file_lock fl(lockFileName.c_str());
-      fileLock.swap(fl);
-      isFileLocked=true;
-      fileLock.lock_sharable();
-    }
-  }
-  catch(const boost::interprocess::interprocess_exception &ex) {
-    msg(Warn)<<"Unable to lock the file "<<lockFileName<<endl;
-  }
-#endif
-  try {
-    readXML();
-    if(!getEnvironment())
-      readH5();
-  }
-  catch(...) {
-#ifdef HAVE_BOOST_FILE_LOCK
-    // unlock file
-    if(isFileLocked)
-      fileLock.unlock();
-#endif
-    throw;
-  }
-#ifdef HAVE_BOOST_FILE_LOCK
-  // unlock file
-  if(isFileLocked)
-    fileLock.unlock_sharable();
-#endif
+  readXML();
+  if(!getEnvironment())
+    readH5();
 }
 
 }
