@@ -977,7 +977,7 @@ namespace {
 
 void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
-  { std::ofstream dummy(outputSource); } // create the file
+  { std::ofstream dummy(outputSource.string()); } // create the file
   boost::interprocess::file_lock outputSourceLF(outputSource.string().c_str()); // lock the file
   boost::interprocess::scoped_lock outputSourceLock(outputSourceLF);
   if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
