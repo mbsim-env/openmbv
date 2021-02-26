@@ -879,8 +879,8 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   std::shared_ptr<OpenMBV::Group> rootGroup=OpenMBV::ObjectFactory::create<OpenMBV::Group>();
   rootGroup->setFileName(fileName);
   rootGroup->read();
-  if(rootGroup->getHDF5File())
-    rootGroup->getHDF5File()->refreshAfterWriterFlush();
+//mfmf  if(rootGroup->getHDF5File())
+//mfmf    rootGroup->getHDF5File()->refreshAfterWriterFlush();
 
   // Duplicate OpenMBVCppInterface tree using OpenMBV tree
   Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
@@ -1395,7 +1395,7 @@ void MainWindow::heavyWorkSlot() {
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
     // refresh all files
-    H5::File::refreshAllFilesAfterWriterFlush();
+//mfmf    H5::File::refreshAllFilesAfterWriterFlush();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
     if(deltaTime==0 && currentNumOfRows>=2)
