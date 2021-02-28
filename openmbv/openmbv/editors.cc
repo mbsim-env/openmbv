@@ -24,7 +24,6 @@
 #include <Inventor/fields/SoSFRotation.h>
 
 using namespace std;
-using namespace std::placeholders;
 
 namespace OpenMBVGUI {
 
@@ -197,7 +196,7 @@ void Editor::replaceObject() {
   // save selection and current item and clear selection under obj
   queue<bool> selected;
   queue<bool> current;
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, std::bind(&getSelAndCur, _1, std::ref(selected), std::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, std::bind(&getSelAndCur, placeholders::_1, std::ref(selected), std::ref(current)));
 
   // re-add this object using the same OpenMBVCppInterface::Object
   QTreeWidgetItem *treeWidgetParent=obj->QTreeWidgetItem::parent();
@@ -224,7 +223,7 @@ void Editor::replaceObject() {
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
   // restore selection and current item
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, std::bind(&setSelAndCur, _1, std::ref(selected), std::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, std::bind(&setSelAndCur, placeholders::_1, std::ref(selected), std::ref(current)));
   objectList->scrollToItem(objectList->currentItem());
 }
 

@@ -31,6 +31,8 @@ public class javatest {
     boolean b=cube.getReferenceFrame(); System.out.println(b);
     double d=cube.getLength(); System.out.println(d);
     cube.append(new double[]{0.4, 1, 2, 3, 4, 5, 6, 0.25});
+
+    group.delete();
   }
 
 

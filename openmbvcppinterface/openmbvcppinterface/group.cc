@@ -160,6 +160,7 @@ void Group::writeH5() {
   hdf5Group=hdf5File.get();
   for(auto & i : object)
     i->createHDF5File();
+  hdf5File->enableSWMR();
   hdf5File->flush();
 }
 

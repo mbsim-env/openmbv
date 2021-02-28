@@ -96,7 +96,7 @@ namespace OpenMBV {
        * including the absolute or relatvie path */
       void setFileName(const std::string &fn) { fileName=fn; }
       
-      /** Initialisze/Wrtie the tree (XML and h5).
+      /** Initialize/Write the tree (XML and h5).
        * This function simply calls writeXML() and writeH5().
        */
       void write(bool writeXMLFile=true, bool writeH5File=true);
