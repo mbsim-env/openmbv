@@ -41,6 +41,7 @@ namespace OpenMBV {
       std::string fileName; // the file name of the .ombvx file of this separateFile Group including the absolute or relatvie path
       bool separateFile{false};
       std::shared_ptr<H5::File> hdf5File;
+      std::function<void()> closeRequestCallback;
       void createHDF5File() override;
       void openHDF5File() override;
 
@@ -56,16 +57,6 @@ namespace OpenMBV {
        * Call this function to read an OpenMBV XML file and creating the Object tree.
        */
       void readXML();
-      
-      /** Initialisze/Write the h5 file.
-       * Call this function for the root node of the tree to init the h5 file.
-       * (Only the h5 tree i written, but do data. Use append() to write date to h5 file after calling this function)
-       */
-      void writeH5();
-
-      /** Read/open an existing h5 file. Before calling this function readXML() must be called or simply call read().
-       */
-      void readH5();
 
     public:
       /** Expand this tree node in a view if true (the default) */
@@ -97,14 +88,19 @@ namespace OpenMBV {
       void setFileName(const std::string &fn) { fileName=fn; }
       
       /** Initialize/Write the tree (XML and h5).
-       * This function simply calls writeXML() and writeH5().
+       * Call this function for the root node of the tree to init the h5 file.
+       * (Only the h5 tree is written, but do data. Use append() to write date to h5 file after calling this function)
        */
       void write(bool writeXMLFile=true, bool writeH5File=true);
 
-      /** Read the tree (XML and h5).
-       * This function simply calls readXML() and readH5().
-       */
+      /** Read the tree (XML and h5). */
       void read();
+
+      /** Enable SWMR if a H5 file is written. */
+      void enableSWMR();
+
+      /** Set the callback which is called, by HDF5Serie, if reading this file should be closed (and reopened immediately after) */
+      void setCloseRequestCallback(const std::function<void()> &closeRequestCallback_) { closeRequestCallback=closeRequestCallback_; }
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.

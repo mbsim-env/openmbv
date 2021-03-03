@@ -61,6 +61,8 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
+  connect(this, &Group::reloadFileSignal, this, &Group::reloadFileSlot);
+
   grp=std::static_pointer_cast<OpenMBV::Group>(obj);
   iconFile="group.svg";
   setIcon(0, Utils::QIconCached(iconFile));

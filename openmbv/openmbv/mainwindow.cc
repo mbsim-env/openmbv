@@ -877,16 +877,27 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   // read XML
   std::shared_ptr<OpenMBV::Group> rootGroup=OpenMBV::ObjectFactory::create<OpenMBV::Group>();
   rootGroup->setFileName(fileName);
-  rootGroup->read();
-//mfmf  if(rootGroup->getHDF5File())
-//mfmf    rootGroup->getHDF5File()->refreshAfterWriterFlush();
+  {
+    // lock mutex to avoid that the callback from rootGroup->read(...) is called before the rootGroupOMBV is build
+    std::scoped_lock lock(mutex);
+    std::shared_ptr<Group*> rootGroupOMBV(new Group*);
+    rootGroup->setCloseRequestCallback([this, rootGroupOMBV](){
+      // lock mutex to avoid that this callback tries to acces rootGroupOMBV before it is set
+      std::scoped_lock lock(mutex);
+      (*rootGroupOMBV)->reloadFileSignal();
+    });
+    rootGroup->read();
+//mfmf    if(rootGroup->getHDF5File())
+//mfmf      rootGroup->getHDF5File()->refreshAfterWriterFlush();
 
-  // Duplicate OpenMBVCppInterface tree using OpenMBV tree
-  Object *object=ObjectFactory::create(rootGroup, parentItem, soParent, ind);
-  object->setText(0, fileName.c_str());
-  object->setToolTip(0, QFileInfo(fileName.c_str()).absoluteFilePath());
-  object->getIconFile()="h5file.svg";
-  object->setIcon(0, Utils::QIconCached(object->getIconFile()));
+    // Duplicate OpenMBVCppInterface tree using OpenMBV tree
+    (*rootGroupOMBV)=static_cast<Group*>(ObjectFactory::create(rootGroup, parentItem, soParent, ind));
+    (*rootGroupOMBV)->setText(0, fileName.c_str());
+    (*rootGroupOMBV)->setToolTip(0, QFileInfo(fileName.c_str()).absoluteFilePath());
+    (*rootGroupOMBV)->getIconFile()="h5file.svg";
+    (*rootGroupOMBV)->setIcon(0, Utils::QIconCached((*rootGroupOMBV)->getIconFile()));
+    // the mutex is release now and the callback can deliver rootGroupOMBV->reloadFileSignal() call from now on
+  }
 
   // force a update
   frame->touch();

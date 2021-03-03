@@ -119,15 +119,8 @@ void Group::createHDF5File() {
 void Group::openHDF5File() {
   hdf5Group=nullptr;
   std::shared_ptr<Group> p=parent.lock();
-  if(!p) {
-    try {
-      hdf5File=std::make_shared<H5::File>(getFileName().substr(0,getFileName().length()-6)+".ombvh5", H5::File::read);
-      hdf5Group=hdf5File.get();
-    }
-    catch(...) {
-      msg(Warn)<<"Unable to open the HDF5 File '"<<getFileName().substr(0,getFileName().length()-6)+".ombvh5"<<"'"<<endl;
-    }
-  }
+  if(!p)
+    throw runtime_error("mfmfxxxxa");
   else {
     try {
       if(!getEnvironment())
@@ -152,16 +145,6 @@ void Group::writeXML() {
   for(auto & i : object)
     i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);
-}
-
-void Group::writeH5() {
-  string h5FileName=fileName.substr(0,fileName.length()-6)+".ombvh5";
-  hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
-  hdf5Group=hdf5File.get();
-  for(auto & i : object)
-    i->createHDF5File();
-  hdf5File->enableSWMR();
-  hdf5File->flush();
 }
 
 void Group::terminate() {
@@ -202,10 +185,6 @@ void Group::readXML() {
   initializeUsingXML(doc->getDocumentElement());
 }
 
-void Group::readH5() {
-  openHDF5File();
-}
-
 string dirOfTopLevelFile(Group *grp) {
   // get directory of top level file
   string dir=grp->getTopLevelGroup()->getFileName();
@@ -221,14 +200,71 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
   // use element name as base filename if fileName was not set
   if(fileName.empty()) fileName=name+".ombvx";
 
-  if(writeXMLFile) writeXML();
-  if(writeH5File)  writeH5();
+  if(writeH5File) {
+    string h5FileName=fileName.substr(0,fileName.length()-6)+".ombvh5";
+    // This call will block until the h5 file can we opened for writing.
+    // That is why we call it before calling writeXML.
+    // This way the XML file will always be in sync with the H5 file since both use the same lock when the files are written.
+    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
+  }
+  // now write the XML file (the H5 file is locked currently)
+  if(writeXMLFile)
+    writeXML();
+  // now walk all objects and createw the corresponding groups/datasets in the H5 file
+  if(writeH5File) {
+    hdf5Group=hdf5File.get();
+    for(auto & i : object)
+      i->createHDF5File();
+  }
+  // Creating dataset is finished now and enableSWMR can be called to unblock the H5 file.
+  // This is done explicity by the caller using Group::enableSWMR if wanted.
+}
+
+void Group::enableSWMR() {
+  hdf5File->enableSWMR(); // this will unblock the h5 file
 }
 
 void Group::read() {
+  std::shared_ptr<Group> p=parent.lock();
+  // check if a corresponding H5 file exists, if yes ...
+  string h5FileName(getFileName().substr(0,getFileName().length()-6)+".ombvh5");
+  if(boost::filesystem::exists(h5FileName)) {
+    // ... open the H5 file for reading. This will block the H5 file for writers.
+    hdf5Group=nullptr;
+    if(!p) {
+      try {
+        // this call will block until the h5 file can we opened for reading.
+        // that is why we do it before calling readXML. This way readXML is also not read while a writer is active
+        hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::read, closeRequestCallback);
+        hdf5Group=hdf5File.get();
+      }
+      catch(...) {
+        msg(Warn)<<"Unable to open the HDF5 File '"<<h5FileName<<"'"<<endl;
+      }
+    }
+  }
+
+  // now read the XML file (the H5 file is currently locked for writer)
   readXML();
+
+  if(getEnvironment() && boost::filesystem::exists(h5FileName))
+    throw runtime_error("This XML file is an environment file but a corresponding H5 file exists!");
   if(!getEnvironment())
-    readH5();
+  {
+    // now the structure is read from the XML file and we can open the corresponding H5 groups/datasets
+    if(p) {
+      try {
+        if(!getEnvironment())
+          hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
+      }
+      catch(...) {
+        msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
+      }
+    }
+    if(hdf5Group)
+      for(auto & i : object)
+        i->openHDF5File();
+  }
 }
 
 }

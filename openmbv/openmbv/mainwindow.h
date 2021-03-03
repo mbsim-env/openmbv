@@ -31,6 +31,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QTime>
 #include <string>
+#include <mutex>
 #include "body.h"
 #include "group.h"
 #include "SoSpecial.h"
@@ -86,6 +87,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColorHeavyOverride *olseColor;
     int reloadTimeout;
     SoFieldSensor *frameSensor;
+    std::mutex mutex; // this mutex is temporarily locked during openFile calls
   protected:
     SoSepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
