@@ -43,28 +43,24 @@ DOMElement* Path::writeXMLFile(DOMNode *parent) {
 
 void Path::createHDF5File() {
   Body::createHDF5File();
-  if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(4);
-    vector<string> columns;
-    columns.emplace_back("Time");
-    columns.emplace_back("x");
-    columns.emplace_back("y");
-    columns.emplace_back("z");
-    data->setColumnLabel(columns);
-  }
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(4);
+  vector<string> columns;
+  columns.emplace_back("Time");
+  columns.emplace_back("x");
+  columns.emplace_back("y");
+  columns.emplace_back("z");
+  data->setColumnLabel(columns);
 }
 
 void Path::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 

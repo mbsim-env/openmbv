@@ -165,9 +165,8 @@ namespace OpenMBV {
 
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
 
-      std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false) override;
+      std::string getFullName(bool includingFileName=false) override;
 
-      std::shared_ptr<Group> getSeparateGroup();
       std::shared_ptr<Group> getTopLevelGroup();
   };
 

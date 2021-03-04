@@ -80,7 +80,7 @@ namespace OpenMBV {
       std::string getName() { return name; }
 
       /** Returns the full name (path) of the object */
-      virtual std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false);
+      virtual std::string getFullName(bool includingFileName=false);
 
       /** If set to true than this object is an environment object:
        * a static object which has no time dependent part (does not read anything from the h5 file). */
@@ -92,9 +92,6 @@ namespace OpenMBV {
       virtual void initializeUsingXML(xercesc::DOMElement *element);
 
       virtual xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent);
-
-      /** return the first Group in the tree which is an separateFile */
-      std::shared_ptr<Group> getSeparateGroup();
 
       /** return the top level Group */
       std::shared_ptr<Group> getTopLevelGroup();

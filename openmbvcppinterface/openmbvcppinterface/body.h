@@ -38,22 +38,12 @@ namespace OpenMBV {
       DrawStyle drawMethod{filled};
       double pointSize{0};
       double lineWidth{0};
-      std::shared_ptr<Body> hdf5LinkBody;
-      std::string hdf5LinkStr;
       void createHDF5File() override;
       void openHDF5File() override;
       void terminate() override;
       Body();
       ~Body() override = default;
     public:
-      /** Link this body with dest in the HDF5 file */
-      void setHDF5LinkTarget(const std::shared_ptr<Body> &dest) { hdf5LinkBody=dest; }
-      
-      std::shared_ptr<Body>& getHDF5LinkTarget() { return hdf5LinkBody; }
-
-      /** Returns if this body is linked to another */
-      bool isHDF5Link() { return (hdf5LinkBody || !hdf5LinkStr.empty()); }
-
       /** Draw outline of this object in the viewer if true (the default) */
       void setOutLine(bool ol) { outLineStr=(ol)?"true":"false"; }
 

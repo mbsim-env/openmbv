@@ -29,8 +29,7 @@ using namespace xercesc;
 
 namespace OpenMBV {
 
-Body::Body() :  outLineStr("true"), shilouetteEdgeStr("false"), 
-  hdf5LinkStr("") {
+Body::Body() :  outLineStr("true"), shilouetteEdgeStr("false") {
 }
 
 DOMElement* Body::writeXMLFile(DOMNode *parent) {
@@ -46,27 +45,12 @@ DOMElement* Body::writeXMLFile(DOMNode *parent) {
   E(e)->setAttribute("drawMethod", dm);
   E(e)->setAttribute("pointSize", pointSize);
   E(e)->setAttribute("lineWidth", lineWidth);
-  if(hdf5LinkBody) {
-    DOMDocument *doc=parent->getOwnerDocument();
-    DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
-    e->insertBefore(ee, nullptr);
-    E(ee)->setAttribute("ref", getRelPathTo(hdf5LinkBody));
-  }
-  else if(!hdf5LinkStr.empty()) {
-    DOMDocument *doc=parent->getOwnerDocument();
-    DOMElement *ee = D(doc)->createElement(OPENMBV%"hdf5Link");
-    e->insertBefore(ee, nullptr);
-    E(ee)->setAttribute("ref", hdf5LinkStr);
-  }
   return e;
 }
 
 void Body::createHDF5File() {
   std::shared_ptr<Group> p=parent.lock();
-  if(!hdf5LinkBody)
-    hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
-  else
-    p->hdf5Group->createSoftLink(name, getRelPathTo(hdf5LinkBody));
+  hdf5Group=p->hdf5Group->createChildObject<H5::Group>(name)();
 }
 
 void Body::openHDF5File() {
@@ -102,7 +86,6 @@ void Body::terminate() {
 
 void Body::initializeUsingXML(DOMElement *element) {
   Object::initializeUsingXML(element);
-  DOMElement *e;
   if(E(element)->hasAttribute("outLine") && 
      (E(element)->getAttribute("outLine")=="false" || E(element)->getAttribute("outLine")=="0"))
     setOutLine(false);
@@ -118,8 +101,6 @@ void Body::initializeUsingXML(DOMElement *element) {
    setPointSize(stod(E(element)->getAttribute("pointSize")));
   if(E(element)->hasAttribute("lineWidth"))
    setLineWidth(stod(E(element)->getAttribute("lineWidth")));
-  if((e=E(element)->getFirstElementChildNamed(OPENMBV%"hdf5Link")))
-    hdf5LinkStr=E(e)->getAttribute("ref");
 }
 
 }

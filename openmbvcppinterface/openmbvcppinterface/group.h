@@ -38,8 +38,7 @@ namespace OpenMBV {
     protected:
       std::vector<std::shared_ptr<Object> > object;
       std::string expandStr;
-      std::string fileName; // the file name of the .ombvx file of this separateFile Group including the absolute or relatvie path
-      bool separateFile{false};
+      std::string fileName; // the file name of the .ombvx file including the absolute or relatvie path
       std::shared_ptr<H5::File> hdf5File;
       std::function<void()> closeRequestCallback;
       void createHDF5File() override;
@@ -71,20 +70,14 @@ namespace OpenMBV {
         return object;
       }
       
-      /** Plot a separate xml and h5 file for this group if truee */
-      void setSeparateFile(bool sepFile) { separateFile=sepFile; }
-
-      bool getSeparateFile() { return separateFile; }
       std::shared_ptr<H5::File>& getHDF5File() { return hdf5File; }
 
-      /** Returns the file name of the .ombvx file of this separateFile Group
-       * including the absolute or relatvie path */
+      /** Returns the file name of the .ombvx file including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
 
-      std::string getFullName(bool includingFileName=false, bool stopAtSeparateFile=false) override;
+      std::string getFullName(bool includingFileName=false) override;
       
-      /** Sets the file name of the .ombvx file of this separateFile Group
-       * including the absolute or relatvie path */
+      /** Sets the file name of the .ombvx file including the absolute or relatvie path */
       void setFileName(const std::string &fn) { fileName=fn; }
       
       /** Initialize/Write the tree (XML and h5).
@@ -111,11 +104,6 @@ namespace OpenMBV {
       void initializeUsingXML(xercesc::DOMElement *element) override;
 
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;
-
-      /** return the first Group in the tree which is an separateFile */
-      std::shared_ptr<Group> getSeparateGroup() {
-        return separateFile?shared_from_this():parent.lock()->getSeparateGroup();
-      }
 
       /** return the top level Group */
       std::shared_ptr<Group> getTopLevelGroup() {

@@ -41,32 +41,28 @@ DOMElement* DynamicNurbsSurface::writeXMLFile(DOMNode *parent) {
 
 void DynamicNurbsSurface::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+5*numU*numV);
-    vector<string> columns;
-    columns.emplace_back("Time");
-    for(int i=0;i<numU*numV;i++) {
-      columns.push_back("x"+fmatvec::toString(i));
-      columns.push_back("y"+fmatvec::toString(i));
-      columns.push_back("z"+fmatvec::toString(i));
-      columns.push_back("w"+fmatvec::toString(i));
-      columns.push_back("color"+fmatvec::toString(i));
-    }
-    data->setColumnLabel(columns);
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+5*numU*numV);
+  vector<string> columns;
+  columns.emplace_back("Time");
+  for(int i=0;i<numU*numV;i++) {
+    columns.push_back("x"+fmatvec::toString(i));
+    columns.push_back("y"+fmatvec::toString(i));
+    columns.push_back("z"+fmatvec::toString(i));
+    columns.push_back("w"+fmatvec::toString(i));
+    columns.push_back("color"+fmatvec::toString(i));
   }
+  data->setColumnLabel(columns);
 }
 
 void DynamicNurbsSurface::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 

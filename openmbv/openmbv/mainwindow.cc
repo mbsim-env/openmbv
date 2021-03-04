@@ -1216,7 +1216,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
         cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
         (delta+cameraPosition->vector[0]).getValue(x,y,z);
 
-        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((*(--pickedObject.end()))->object->getFullName(true, true).c_str());
+        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((*(--pickedObject.end()))->object->getFullName(true).c_str());
         statusBar()->showMessage(str);
         msg(Info)<<str.toStdString()<<"\n";
       }
@@ -1235,7 +1235,7 @@ bool MainWindow::soQtEventCB(const SoEvent *const event) {
             int ind=0;
             list<Body*>::iterator it;
             for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-              QAction *action=new QAction((*it)->icon(0),(*it)->object->getFullName(true, true).c_str(),menu);
+              QAction *action=new QAction((*it)->icon(0),(*it)->object->getFullName(true).c_str(),menu);
               action->setData(QVariant(ind++));
               menu->addAction(action);
             }

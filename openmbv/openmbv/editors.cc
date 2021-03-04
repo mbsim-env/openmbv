@@ -149,7 +149,7 @@ void PropertyDialog::updateHeader() {
       QString(obj->metaObject()->className()).replace("OpenMBVGUI::", "")+ // remove the namespace
       " XML Values of</b></big>"), 0, 1);
     // diaplay Object path
-    header->addWidget(new QLabel(("<b>"+obj->getObject()->getFullName(true, true)+"</b>").c_str()), 1, 1);
+    header->addWidget(new QLabel(("<b>"+obj->getObject()->getFullName(true)+"</b>").c_str()), 1, 1);
   }
 }
 
@@ -727,7 +727,7 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
            .arg(me->spinBox[3]->value()*M_PI/180)
            .arg(me->spinBox[4]->value()*M_PI/180)
            .arg(me->spinBox[5]->value()*M_PI/180)
-           .arg(obj->getObject()->getFullName(true, true).c_str());
+           .arg(obj->getObject()->getFullName(true).c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
     me->msg(Info)<<str.toStdString()<<endl;
   }

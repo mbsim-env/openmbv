@@ -65,50 +65,46 @@ DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
 
 void NurbsDisk::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  if(!hdf5LinkBody) {
-    int NodeDofs;
-    NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
-    vector<string> columns;
-    columns.emplace_back("Time");
+  int NodeDofs;
+  NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
+  vector<string> columns;
+  columns.emplace_back("Time");
 
-    //Global position (position of center of gravity)
-    columns.emplace_back("Pos_x");
-    columns.emplace_back("Pos_y");
-    columns.emplace_back("Pos_z");
+  //Global position (position of center of gravity)
+  columns.emplace_back("Pos_x");
+  columns.emplace_back("Pos_y");
+  columns.emplace_back("Pos_z");
 
-    //Global orientation (= Cardan angles for orientation of COG)
-    columns.emplace_back("Rot_alpha");
-    columns.emplace_back("Rot_beta");
-    columns.emplace_back("Rot_gamma");
+  //Global orientation (= Cardan angles for orientation of COG)
+  columns.emplace_back("Rot_alpha");
+  columns.emplace_back("Rot_beta");
+  columns.emplace_back("Rot_gamma");
 
-    //coordinates of control points
-    for(int i=0;i<NodeDofs;i++) {
-      columns.push_back("x"+fmatvec::toString(i));
-      columns.push_back("y"+fmatvec::toString(i));
-      columns.push_back("z"+fmatvec::toString(i));
-    }
-    for(int i=0;i<getElementNumberAzimuthal()*drawDegree*2;i++) {
-      columns.push_back("x"+fmatvec::toString(i+NodeDofs));
-      columns.push_back("y"+fmatvec::toString(i+NodeDofs));
-      columns.push_back("z"+fmatvec::toString(i+NodeDofs));
-    }
-
-    data->setColumnLabel(columns);
+  //coordinates of control points
+  for(int i=0;i<NodeDofs;i++) {
+    columns.push_back("x"+fmatvec::toString(i));
+    columns.push_back("y"+fmatvec::toString(i));
+    columns.push_back("z"+fmatvec::toString(i));
   }
+  for(int i=0;i<getElementNumberAzimuthal()*drawDegree*2;i++) {
+    columns.push_back("x"+fmatvec::toString(i+NodeDofs));
+    columns.push_back("y"+fmatvec::toString(i+NodeDofs));
+    columns.push_back("z"+fmatvec::toString(i+NodeDofs));
+  }
+
+  data->setColumnLabel(columns);
 }
 
 void NurbsDisk::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 

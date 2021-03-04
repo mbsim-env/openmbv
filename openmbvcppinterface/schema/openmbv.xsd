@@ -75,13 +75,6 @@
   <xs:complexType name="BodyType">
     <xs:complexContent>
       <xs:extension base="ObjectType">
-        <xs:sequence>
-          <xs:element name="hdf5Link" minOccurs="0">  
-            <xs:complexType>
-              <xs:attribute name="ref" type="objectReferenceType" use="required"/>
-            </xs:complexType> 
-          </xs:element>
-        </xs:sequence> 
         <xs:attribute name="outLine" type="pv:booleanFullEval" default="1"/>
         <xs:attribute name="shilouetteEdge" type="pv:booleanFullEval" default="0"/>
         <xs:attribute name="drawMethod" type="pv:stringPartialEval" default="filled"/>

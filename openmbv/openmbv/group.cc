@@ -70,14 +70,6 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   // expand or collapse
   setExpanded(grp->getExpand());
 
-  // seperator file? => new sub file
-  if(grp->getSeparateFile()) {
-    iconFile="h5file.svg";
-    setIcon(0, Utils::QIconCached(iconFile));
-    setText(0, grp->getFileName().c_str());
-    setToolTip(0, QFileInfo(grp->getFileName().c_str()).absoluteFilePath());
-    setFlags(flags() & ~Qt::ItemIsEditable);
-  }
   // read XML
   vector<std::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
   for(auto & i : child) {
@@ -108,29 +100,6 @@ void Group::createProperties() {
     static_cast<Group*>(properties->getParentObject())->newObjectSlot();
   });
   properties->addContextAction(newObject);
-
-  if(grp->getSeparateFile()) {
-    QAction *saveFile=new QAction(Utils::QIconCached("savefile.svg"),"Save XML-file", properties);
-    saveFile->setObjectName("Group::saveFile");
-    connect(saveFile,&QAction::triggered,properties,[this](){
-      static_cast<Group*>(properties->getParentObject())->saveFileSlot();
-    });
-    properties->addContextAction(saveFile);
-
-    QAction *unloadFile=new QAction(Utils::QIconCached("unloadfile.svg"),"Unload XML/H5-file", properties);
-    unloadFile->setObjectName("Group::unloadFile");
-    connect(unloadFile,&QAction::triggered,properties,[this](){
-      static_cast<Group*>(properties->getParentObject())->unloadFileSlot();
-    });
-    properties->addContextAction(unloadFile);
-
-    QAction *reloadFile=new QAction(Utils::QIconCached("reloadfile.svg"),"Reload XML/H5-file", properties);
-    reloadFile->setObjectName("Group::reloadFile");
-    connect(reloadFile,&QAction::triggered,properties,[this](){
-      static_cast<Group*>(properties->getParentObject())->reloadFileSlot();
-    });
-    properties->addContextAction(reloadFile);
-  }
 
   if(!clone) {
     properties->updateHeader();

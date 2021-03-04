@@ -176,8 +176,6 @@ void Body::createProperties() {
     FloatEditor *lineWidthEditor=new FloatEditor(properties, Utils::QIconCached("linewidth.svg"), "Define line width");
     lineWidthEditor->setRange(0, DBL_MAX);
     lineWidthEditor->setOpenMBVParameter(body, &OpenMBV::Body::getLineWidth, &OpenMBV::Body::setLineWidth);
-
-    // MISSING: hdf5link
   }
 }
 

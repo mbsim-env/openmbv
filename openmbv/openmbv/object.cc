@@ -157,7 +157,7 @@ void Object::createProperties() {
 }
 
 QString Object::getInfo() {
-  return QString("<b>Path:</b> %1<br/>").arg(object->getFullName(true, true).c_str())+
+  return QString("<b>Path:</b> %1<br/>").arg(object->getFullName(true).c_str())+
          QString(R"(<b>Class:</b> <img src="%1" width="16" height="16"/> %2)").
            arg((Utils::getIconPath()+"/"+getIconFile()).c_str()).
            arg(QString(metaObject()->className()).replace("OpenMBVGUI::", ""));  // remove the namespace

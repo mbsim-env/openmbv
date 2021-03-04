@@ -55,32 +55,28 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
 
 void CoilSpring::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
-    vector<string> columns;
-    columns.emplace_back("Time");
-    columns.emplace_back("fromPoint x");
-    columns.emplace_back("fromPoint y");
-    columns.emplace_back("fromPoint z");
-    columns.emplace_back("toPoint x");
-    columns.emplace_back("toPoint y");
-    columns.emplace_back("toPoint z");
-    columns.emplace_back("color");
-    data->setColumnLabel(columns);
-  }
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
+  vector<string> columns;
+  columns.emplace_back("Time");
+  columns.emplace_back("fromPoint x");
+  columns.emplace_back("fromPoint y");
+  columns.emplace_back("fromPoint z");
+  columns.emplace_back("toPoint x");
+  columns.emplace_back("toPoint y");
+  columns.emplace_back("toPoint z");
+  columns.emplace_back("color");
+  data->setColumnLabel(columns);
 }
 
 void CoilSpring::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 

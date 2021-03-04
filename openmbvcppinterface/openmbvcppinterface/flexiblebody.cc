@@ -36,31 +36,27 @@ DOMElement* FlexibleBody::writeXMLFile(DOMNode *parent) {
 
 void FlexibleBody::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numvp);
-    vector<string> columns;
-    columns.emplace_back("Time");
-    for(int i=0;i<numvp;i++) {
-      columns.push_back("x"+fmatvec::toString(i));
-      columns.push_back("y"+fmatvec::toString(i));
-      columns.push_back("z"+fmatvec::toString(i));
-      columns.push_back("color"+fmatvec::toString(i));
-    }
-    data->setColumnLabel(columns);
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numvp);
+  vector<string> columns;
+  columns.emplace_back("Time");
+  for(int i=0;i<numvp;i++) {
+    columns.push_back("x"+fmatvec::toString(i));
+    columns.push_back("y"+fmatvec::toString(i));
+    columns.push_back("z"+fmatvec::toString(i));
+    columns.push_back("color"+fmatvec::toString(i));
   }
+  data->setColumnLabel(columns);
 }
 
 void FlexibleBody::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 

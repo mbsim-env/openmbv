@@ -41,10 +41,10 @@ Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), I
 
 Object::~Object() = default;
 
-string Object::getFullName(bool includingFileName, bool stopAtSeparateFile) {
+string Object::getFullName(bool includingFileName) {
   std::shared_ptr<Group> p=parent.lock();
   if(p)
-    return p->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+    return p->getFullName(includingFileName)+"/"+name;
   else
     return name;
 }
@@ -85,10 +85,6 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
     e->insertBefore(id, nullptr);
   }
   return e;
-}
-
-std::shared_ptr<Group> Object::getSeparateGroup() {
-  return parent.lock()->getSeparateGroup();
 }
 
 std::shared_ptr<Group> Object::getTopLevelGroup() {

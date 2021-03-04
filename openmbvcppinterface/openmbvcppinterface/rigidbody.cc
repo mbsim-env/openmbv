@@ -52,32 +52,28 @@ DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
 
 void RigidBody::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  if(!hdf5LinkBody) {
-    data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
-    vector<string> columns;
-    columns.emplace_back("Time");
-    columns.emplace_back("x");
-    columns.emplace_back("y");
-    columns.emplace_back("z");
-    columns.emplace_back("alpha");
-    columns.emplace_back("beta");
-    columns.emplace_back("gamma");
-    columns.emplace_back("color");
-    data->setColumnLabel(columns);
-  }
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
+  vector<string> columns;
+  columns.emplace_back("Time");
+  columns.emplace_back("x");
+  columns.emplace_back("y");
+  columns.emplace_back("z");
+  columns.emplace_back("alpha");
+  columns.emplace_back("beta");
+  columns.emplace_back("gamma");
+  columns.emplace_back("color");
+  data->setColumnLabel(columns);
 }
 
 void RigidBody::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
-  if(!hdf5LinkBody) {
-    try {
-      data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
-    }
-    catch(...) {
-      data=nullptr;
-      msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
-    }
+  try {
+    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+  }
+  catch(...) {
+    data=nullptr;
+    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
   }
 }
 
@@ -104,22 +100,17 @@ void RigidBody::initializeUsingXML(DOMElement *element) {
   if(e) setScaleFactor(E(e)->getText<double>());
 }
 
-std::shared_ptr<Group> RigidBody::getSeparateGroup() {
-  std::shared_ptr<CompoundRigidBody> c=compound.lock();
-  return c?c->parent.lock()->getSeparateGroup():parent.lock()->getSeparateGroup();
-}
-
 std::shared_ptr<Group> RigidBody::getTopLevelGroup() {
   std::shared_ptr<CompoundRigidBody> c=compound.lock();
   return c?c->parent.lock()->getTopLevelGroup():parent.lock()->getTopLevelGroup();
 }
 
-string RigidBody::getFullName(bool includingFileName, bool stopAtSeparateFile) {
+string RigidBody::getFullName(bool includingFileName) {
   std::shared_ptr<CompoundRigidBody> c=compound.lock();
   if(c)
-    return c->getFullName(includingFileName, stopAtSeparateFile)+"/"+name;
+    return c->getFullName(includingFileName)+"/"+name;
   else
-    return DynamicColoredBody::getFullName(includingFileName, stopAtSeparateFile);
+    return DynamicColoredBody::getFullName(includingFileName);
 }
 
 }

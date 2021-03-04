@@ -45,7 +45,6 @@ int main() {
 
     shared_ptr<Group> subg=ObjectFactory::create<Group>();
     subg->setName("mysubgrp");
-    subg->setSeparateFile(true);
     g->addObject(subg);
 
       shared_ptr<Cuboid> cX=ObjectFactory::create<Cuboid>();
@@ -56,17 +55,14 @@ int main() {
 
       shared_ptr<Cuboid> c=ObjectFactory::create<Cuboid>();
       c->setName("mycubeaa");
-      c->setHDF5LinkTarget(cX);
       subg->addObject(c);
 
       shared_ptr<Cuboid> cZ=ObjectFactory::create<Cuboid>();
       cZ->setName("mycubeZ");
-      cZ->setHDF5LinkTarget(cX);
       subg->addObject(cZ);
 
     shared_ptr<Cuboid> c3=ObjectFactory::create<Cuboid>();
     c3->setName("mycube3");
-    c3->setHDF5LinkTarget(cX);
     g->addObject(c3);
 
     shared_ptr<Cube> cube=ObjectFactory::create<Cube>();
@@ -161,6 +157,9 @@ int main() {
     c2->append(row);
     iv->append(row);
     cX->append(row);
+    c->append(row);
+    cZ->append(row);
+    c3->append(row);
     cube->append(row);
     frame->append(row);
     arrow->append(row);
