@@ -91,4 +91,13 @@ std::shared_ptr<Group> Object::getTopLevelGroup() {
   return parent.lock()->getTopLevelGroup();
 }
 
+bool Object::getEnvironment() {
+  if(environmentStr=="true")
+    return true;
+  auto p=parent.lock();
+  if(p)
+    return p->getEnvironment();
+  return false;
+}
+
 }

@@ -185,7 +185,7 @@ void Body::frameSensorCB(void *data, SoSensor*) {
   double newTime=time;
   if(me->drawThisPath)
     newTime=me->update();
-  if(newTime!=time) { // only on first time change
+  if(newTime!=time && !me->object->getEnvironment()) { // only on first time change and for environment body's (which have hdf5 data)
     time=newTime;
     MainWindow::getInstance()->setTime(time);
   }

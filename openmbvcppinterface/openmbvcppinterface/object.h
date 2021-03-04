@@ -86,7 +86,8 @@ namespace OpenMBV {
        * a static object which has no time dependent part (does not read anything from the h5 file). */
       void setEnvironment(bool env) { environmentStr=(env)?"true":"false"; }
 
-      bool getEnvironment() { return environmentStr=="true"?true:false; }
+      /** Returns true if this or any parent object is an environment objects */
+      bool getEnvironment();
 
       /** Initializes the time invariant part of the object using a XML node */
       virtual void initializeUsingXML(xercesc::DOMElement *element);
