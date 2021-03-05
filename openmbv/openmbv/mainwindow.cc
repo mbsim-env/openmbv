@@ -1405,7 +1405,7 @@ void MainWindow::heavyWorkSlot() {
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
     // refresh all files
-//mfmf    H5::File::refreshAllFilesAfterWriterFlush();
+    refreshHDF5FilesIfWriterIsActive();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
     if(deltaTime==0 && currentNumOfRows>=2)
@@ -1418,6 +1418,13 @@ void MainWindow::heavyWorkSlot() {
       timeSlider->setCurrentMaximum(currentNumOfRows-2);
       frame->setValue(currentNumOfRows-2);
     }
+  }
+}
+
+void MainWindow::refreshHDF5FilesIfWriterIsActive() {
+  for(int i=0; i<objectList->topLevelItemCount(); ++i) {
+    auto grp=static_cast<Group*>(objectList->topLevelItem(i));
+    grp->refresh();
   }
 }
 
@@ -1610,8 +1617,6 @@ void MainWindow::lastFrameSCSlot() {
     animTimer->stop();
     return;
   }
-
-  openMBVBodyForLastFrame=std::shared_ptr<OpenMBV::Body>();
 
   stopAct->setChecked(false);
   playAct->setChecked(false);

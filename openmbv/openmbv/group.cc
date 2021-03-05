@@ -181,6 +181,7 @@ void Group::saveFileSlot() {
 }
 
 void Group::unloadFileSlot() {
+  MainWindow::getInstance()->openMBVBodyForLastFrame.reset(); // just required if openMBVBodyForLastFrame stores a pointer to the here removed object
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
   delete this;
 }
@@ -212,6 +213,10 @@ void Group::reloadFileSlotIfNewer() {
     h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
     reloadFileSlot();
   }
+}
+
+void Group::refresh() {
+  grp->refresh();
 }
 
 }

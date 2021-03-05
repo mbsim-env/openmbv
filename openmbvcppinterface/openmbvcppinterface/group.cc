@@ -165,6 +165,14 @@ void Group::enableSWMR() {
   hdf5File->enableSWMR(); // this will unblock the h5 file
 }
 
+void Group::flush() {
+  hdf5File->flush();
+}
+
+void Group::refresh() {
+  hdf5File->refresh();
+}
+
 void Group::read() {
   std::shared_ptr<Group> p=parent.lock();
   // check if a corresponding H5 file exists, if yes ...

@@ -157,6 +157,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
     void heavyWorkSlot();
+    void refreshHDF5FilesIfWriterIsActive();
     void restartPlay();
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
     void speedWheelChanged(int value);

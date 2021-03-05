@@ -92,6 +92,12 @@ namespace OpenMBV {
       /** Enable SWMR if a H5 file is written. */
       void enableSWMR();
 
+      /** Flush the H5 file. */
+      void flush();
+
+      /** Refresh the H5 file. */
+      void refresh();
+
       /** Set the callback which is called, by HDF5Serie, if reading this file should be closed (and reopened immediately after) */
       void setCloseRequestCallback(const std::function<void()> &closeRequestCallback_) { closeRequestCallback=closeRequestCallback_; }
 
