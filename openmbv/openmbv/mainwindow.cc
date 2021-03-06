@@ -884,7 +884,14 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
     rootGroup->setCloseRequestCallback([this, rootGroupOMBV](){
       // lock mutex to avoid that this callback tries to acces rootGroupOMBV before it is set
       std::scoped_lock lock(mutex);
+      // only call signals here since this is executed in a different thread
       (*rootGroupOMBV)->reloadFileSignal();
+    });
+    rootGroup->setRefreshCallback([this, rootGroupOMBV](){
+      // lock mutex to avoid that this callback tries to acces rootGroupOMBV before it is set
+      std::scoped_lock lock(mutex);
+      // only call signals here since this is executed in a different thread
+      (*rootGroupOMBV)->refreshFileSlot();
     });
     rootGroup->read();
 //mfmf    if(rootGroup->getHDF5File())
@@ -1405,7 +1412,7 @@ void MainWindow::heavyWorkSlot() {
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
     // refresh all files
-    refreshHDF5FilesIfWriterIsActive();
+    requestHDF5Flush();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
     if(deltaTime==0 && currentNumOfRows>=2)
@@ -1421,10 +1428,10 @@ void MainWindow::heavyWorkSlot() {
   }
 }
 
-void MainWindow::refreshHDF5FilesIfWriterIsActive() {
+void MainWindow::requestHDF5Flush() {
   for(int i=0; i<objectList->topLevelItemCount(); ++i) {
     auto grp=static_cast<Group*>(objectList->topLevelItem(i));
-    grp->refresh();
+    grp->requestFlush();
   }
 }
 

@@ -41,6 +41,7 @@ namespace OpenMBV {
       std::string fileName; // the file name of the .ombvx file including the absolute or relatvie path
       std::shared_ptr<H5::File> hdf5File;
       std::function<void()> closeRequestCallback;
+      std::function<void()> refreshCallback;
       void createHDF5File() override;
       void openHDF5File() override;
 
@@ -92,14 +93,21 @@ namespace OpenMBV {
       /** Enable SWMR if a H5 file is written. */
       void enableSWMR();
 
-      /** Flush the H5 file. */
-      void flush();
+      /** Flush the H5 file if reader has requested a flush. */
+      void flushIfRequested();
 
       /** Refresh the H5 file. */
       void refresh();
 
+      /** Request a flush of the writer */
+      void requestFlush();
+
       /** Set the callback which is called, by HDF5Serie, if reading this file should be closed (and reopened immediately after) */
       void setCloseRequestCallback(const std::function<void()> &closeRequestCallback_) { closeRequestCallback=closeRequestCallback_; }
+
+      /** Set the callback which is called, by HDF5Serie, if, after a writer flush, the writer has finished the flush
+       * and this reader should now refresh the file. */
+      void setRefreshCallback(const std::function<void()> &refreshCallback_) { refreshCallback=refreshCallback_; }
 
       /** terminate the tree.
        * Call this function for the root node of the free after all writing has done.

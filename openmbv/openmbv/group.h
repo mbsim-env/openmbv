@@ -58,10 +58,13 @@ class DLL_PUBLIC Group : public Object {
     void reloadFileSlotIfNewer();
     void reloadFileSlot();
     void unloadFileSlot();
-    void refresh();
+    void refreshFileSlot();
+    void requestFlush();
   Q_SIGNALS:
     // just a signal to call reloadFileSlot from an arbitary thread.
     void reloadFileSignal();
+    // just a signal to call refreshFileSlot from an arbitary thread.
+    void refreshFileSignal();
 };
 
 }

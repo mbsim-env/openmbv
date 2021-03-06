@@ -165,12 +165,16 @@ void Group::enableSWMR() {
   hdf5File->enableSWMR(); // this will unblock the h5 file
 }
 
-void Group::flush() {
-  hdf5File->flush();
+void Group::flushIfRequested() {
+  hdf5File->flushIfRequested();
 }
 
 void Group::refresh() {
   hdf5File->refresh();
+}
+
+void Group::requestFlush() {
+  hdf5File->requestFlush();
 }
 
 void Group::read() {
@@ -184,7 +188,7 @@ void Group::read() {
       try {
         // this call will block until the h5 file can we opened for reading.
         // that is why we do it before calling readXML. This way readXML is also not read while a writer is active
-        hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::read, closeRequestCallback);
+        hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::read, closeRequestCallback, refreshCallback);
         hdf5Group=hdf5File.get();
       }
       catch(...) {

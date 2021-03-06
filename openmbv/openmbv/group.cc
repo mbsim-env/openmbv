@@ -62,6 +62,7 @@ namespace OpenMBVGUI {
 
 Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
   connect(this, &Group::reloadFileSignal, this, &Group::reloadFileSlot);
+  connect(this, &Group::refreshFileSignal, this, &Group::refreshFileSlot);
 
   grp=std::static_pointer_cast<OpenMBV::Group>(obj);
   iconFile="group.svg";
@@ -206,6 +207,10 @@ void Group::reloadFileSlot() {
   MainWindow::getInstance()->fileReloaded();
 }
 
+void Group::refreshFileSlot() {
+  grp->refresh();
+}
+
 void Group::reloadFileSlotIfNewer() {
   if(boost::myfilesystem::last_write_time(text(0).toStdString())>xmlLastModified &&
      boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString())>h5LastModified) {
@@ -215,8 +220,8 @@ void Group::reloadFileSlotIfNewer() {
   }
 }
 
-void Group::refresh() {
-  grp->refresh();
+void Group::requestFlush() {
+  grp->requestFlush();
 }
 
 }
