@@ -109,11 +109,6 @@ namespace OpenMBV {
        * and this reader should now refresh the file. */
       void setRefreshCallback(const std::function<void()> &refreshCallback_) { refreshCallback=refreshCallback_; }
 
-      /** terminate the tree.
-       * Call this function for the root node of the free after all writing has done.
-       */
-      void terminate() override;
-
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
 

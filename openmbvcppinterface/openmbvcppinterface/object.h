@@ -59,7 +59,6 @@ namespace OpenMBV {
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
       H5::GroupBase *hdf5Group{nullptr};
-      virtual void terminate()=0;
 
       Object();
       ~Object() override;

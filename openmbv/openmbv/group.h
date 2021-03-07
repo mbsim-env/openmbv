@@ -22,7 +22,6 @@
 
 #include "object.h"
 #include <string>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
 // Hence we explicitly export ALL symbols.
@@ -47,15 +46,11 @@ class DLL_PUBLIC Group : public Object {
   protected:
     virtual void update() {}
     std::shared_ptr<OpenMBV::Group> grp;
-    QTimer *reloadTimer;
-    boost::posix_time::ptime xmlLastModified, h5LastModified;
     void createProperties() override;
   public:
     Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo() override;
     void newObjectSlot();
-    void saveFileSlot();
-    void reloadFileSlotIfNewer();
     void reloadFileSlot();
     void unloadFileSlot();
     void refreshFileSlot();

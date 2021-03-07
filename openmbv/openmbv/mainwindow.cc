@@ -736,20 +736,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
     arg.erase(i); arg.erase(i2);
   }
 
-  // auto reload
-  reloadTimeout=0;
-  if((i=std::find(arg.begin(), arg.end(), "--autoreload"))!=arg.end()) {
-    i2=i; i2++;
-    char *error;
-    reloadTimeout=strtol(i2->c_str(), &error, 10);
-    if(reloadTimeout<0) reloadTimeout=250;
-    arg.erase(i);
-    if(error && strlen(error)==0)
-      arg.erase(i2);
-    else
-      reloadTimeout=250;
-  }
-
   // maximized
   if((i=std::find(arg.begin(), arg.end(), "--maximized"))!=arg.end())
     showMaximized();
@@ -894,8 +880,6 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
       (*rootGroupOMBV)->refreshFileSlot();
     });
     rootGroup->read();
-//mfmf    if(rootGroup->getHDF5File())
-//mfmf      rootGroup->getHDF5File()->refreshAfterWriterFlush();
 
     // Duplicate OpenMBVCppInterface tree using OpenMBV tree
     (*rootGroupOMBV)=static_cast<Group*>(ObjectFactory::create(rootGroup, parentItem, soParent, ind));
@@ -1396,6 +1380,7 @@ void MainWindow::restartPlay() {
 
 void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
+    //mfmf call requestHDF5Flush regularily and update the sliders end, ...
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     auto dframe=(int)(dT/deltaTime);// frame increment since play click
     unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
@@ -1411,7 +1396,7 @@ void MainWindow::heavyWorkSlot() {
         it++;
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
-    // refresh all files
+    // request a flush of all writers
     requestHDF5Flush();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();

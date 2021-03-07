@@ -81,9 +81,6 @@ std::string Body::getRelPathTo(const std::shared_ptr<Body> &destBody) {
   return reldest;
 }
 
-void Body::terminate() {
-}
-
 void Body::initializeUsingXML(DOMElement *element) {
   Object::initializeUsingXML(element);
   if(E(element)->hasAttribute("outLine") && 

@@ -77,7 +77,7 @@ void Group::openHDF5File() {
   hdf5Group=nullptr;
   std::shared_ptr<Group> p=parent.lock();
   if(!p)
-    throw runtime_error("mfmfxxxxa");
+    throw runtime_error("This Group is not a top level group, something is wrong.");
   else {
     try {
       if(!getEnvironment())
@@ -101,12 +101,6 @@ void Group::writeXML() {
   for(auto & i : object)
     i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), fileName);
-}
-
-void Group::terminate() {
-  for(auto & i : object)
-    i->terminate();
-  hdf5Group=nullptr;
 }
 
 void Group::initializeUsingXML(DOMElement *element) {

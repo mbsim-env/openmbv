@@ -40,7 +40,6 @@ namespace OpenMBV {
       double lineWidth{0};
       void createHDF5File() override;
       void openHDF5File() override;
-      void terminate() override;
       Body();
       ~Body() override = default;
     public:

@@ -85,7 +85,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoMFColor *engDrawingBGColorSaved, *engDrawingFGColorBottomSaved, *engDrawingFGColorTopSaved;
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
-    int reloadTimeout;
     SoFieldSensor *frameSensor;
     std::mutex mutex; // this mutex is temporarily locked during openFile calls
   protected:
@@ -249,7 +248,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
-    int getReloadTimeout() { return reloadTimeout; }
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -266,8 +264,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     /** This signal is emitted whenever a object is double clicked in the 3D view.
      * If this signal is connected to at least one slot the property dialog is no longer shown automatically. */
     void objectDoubleClicked(std::string curID, Object *curPtr);
-    /** This signal is emmited whenever a file has been reloaded */
-    void fileReloaded();
 };
 
 }

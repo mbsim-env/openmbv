@@ -54,7 +54,6 @@
 #include "openmbvcppinterface/planargear.h"
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/group.h"
-#include <mbxmlutilshelper/last_write_time.h>
 
 using namespace std;
 
@@ -76,19 +75,6 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   for(auto & i : child) {
     if(typeid(*i)==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(i))->getObjects().empty()) continue; // a hack for openmbvdeleterows.sh
     ObjectFactory::create(i, this, soSep, -1);
-  }
-
-  // timer for reloading file automatically
-  reloadTimer=nullptr;
-  // if reloading is enabled and this Group is a toplevel file create timer
-  std::shared_ptr<OpenMBV::Group> p=obj->getParent().lock();
-  if(!p && MainWindow::getInstance()->getReloadTimeout()>0) {
-    xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
-
-    reloadTimer=new QTimer(this);
-    connect(reloadTimer,&QTimer::timeout,this,&Group::reloadFileSlotIfNewer);
-    reloadTimer->start(MainWindow::getInstance()->getReloadTimeout());
   }
 }
 
@@ -158,29 +144,6 @@ void Group::newObjectSlot() {
   MainWindow::getInstance()->objectListFilter->applyFilter();
 }
 
-void Group::saveFileSlot() {
-  static QMessageBox *askSave=nullptr;
-  static QCheckBox *showAgain=nullptr;
-  if(!askSave) {
-    askSave=new QMessageBox(QMessageBox::Question, "Save XML-File", QString(
-        "Save current properties in XML-File.\n"
-        "\n"
-        "This will overwrite the following files:\n"
-        "- OpenMBV-XML-file '%1'\n"
-        "- all included OpenMBV-XML-Files"
-      ).arg(grp->getFileName().c_str()),
-      QMessageBox::Cancel | QMessageBox::SaveAll);
-    showAgain=new QCheckBox("Do not show this dialog again");
-    auto *layout=static_cast<QGridLayout*>(askSave->layout());
-    layout->addWidget(showAgain, layout->rowCount(), 0, 1, layout->columnCount());
-  }
-  QMessageBox::StandardButton ret=QMessageBox::SaveAll;
-  if(showAgain->checkState()==Qt::Unchecked)
-    ret=static_cast<QMessageBox::StandardButton>(askSave->exec());
-  if(ret==QMessageBox::SaveAll)
-    grp->write(true, false);
-}
-
 void Group::unloadFileSlot() {
   MainWindow::getInstance()->openMBVBodyForLastFrame.reset(); // just required if openMBVBodyForLastFrame stores a pointer to the here removed object
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
@@ -203,21 +166,10 @@ void Group::reloadFileSlot() {
     MainWindow::getInstance()->objectList->setCurrentItem(parent->child(ind), 0, QItemSelectionModel::NoUpdate);
   else
     MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind), 0, QItemSelectionModel::NoUpdate);
-
-  MainWindow::getInstance()->fileReloaded();
 }
 
 void Group::refreshFileSlot() {
   grp->refresh();
-}
-
-void Group::reloadFileSlotIfNewer() {
-  if(boost::myfilesystem::last_write_time(text(0).toStdString())>xmlLastModified &&
-     boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString())>h5LastModified) {
-    xmlLastModified=boost::myfilesystem::last_write_time(text(0).toStdString());
-    h5LastModified =boost::myfilesystem::last_write_time((text(0).remove(text(0).count()-6, 6)+".ombvh5").toStdString());
-    reloadFileSlot();
-  }
 }
 
 void Group::requestFlush() {
