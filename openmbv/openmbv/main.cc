@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
         <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
         <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
-        <<"               [--transparency 1|2]"<<endl
+        <<"               [--transparency 1|2] [--hdf5RefreshDelta <ms>]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
@@ -98,6 +98,9 @@ int main(int argc, char *argv[])
         <<"                       with similar transparency value."<<endl
         <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
         <<"                       but requires OpenGL extensions by the graphic card."<<endl
+        <<"--hdf5RefreshDelta The time in ms after a HDF5Serie flush/refresh is triggered."<<endl
+        <<"                   This is only done when in stop or play animation mode since"<<endl
+        <<"                   plot last frame mode does a flush/refresh each time a frame is rendered."<<endl
         <<"--maximized        Show window maximized on startup."<<endl
         <<"<dir>              Open/Load all [^.]+\\.ombvx files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl

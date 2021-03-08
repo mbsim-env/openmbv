@@ -570,10 +570,20 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   frameSensor=new SoFieldSensor(frameSensorCB, this);
   frameSensor->attach(frame);
 
+  hdf5RefreshDelta=500;
+  if((i=std::find(arg.begin(), arg.end(), "--hdf5RefreshDelta"))!=arg.end()) {
+    i2=i; i2++;
+    hdf5RefreshDelta=QString(i2->c_str()).toInt();
+    arg.erase(i); arg.erase(i2);
+  }
+
   // animation timer
   animTimer=new QTimer(this);
   connect(animTimer, &QTimer::timeout, this, &MainWindow::heavyWorkSlot);
   time=new QTime();
+  hdf5RefreshTimer=new QTimer(this);
+  connect(hdf5RefreshTimer, &QTimer::timeout, this, &MainWindow::hdf5RefreshSlot);
+  hdf5RefreshTimer->start(hdf5RefreshDelta);// mfmf can be disabled when running in mbsimgui
 
   // react on parameters
 
@@ -1380,7 +1390,6 @@ void MainWindow::restartPlay() {
 
 void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
-    //mfmf call requestHDF5Flush regularily and update the sliders end, ...
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     auto dframe=(int)(dT/deltaTime);// frame increment since play click
     unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
@@ -1389,27 +1398,56 @@ void MainWindow::heavyWorkSlot() {
     //glViewer->render(); // force rendering
   }
   else if(lastFrameAct->isChecked()) {
+    // request a flush of all writers
+    requestHDF5Flush();
     // get number of rows of first none enviroment body
     if(!openMBVBodyForLastFrame) {
       auto it=Body::getBodyMap().begin();
       while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
         it++;
+      if(it==Body::getBodyMap().end())
+        return;
       openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
     }
-    // request a flush of all writers
-    requestHDF5Flush();
     // use number of rows for found first none enviroment body
     int currentNumOfRows=openMBVBodyForLastFrame->getRows();
     if(deltaTime==0 && currentNumOfRows>=2)
       deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
-    if(currentNumOfRows<2) return;
+    if(currentNumOfRows==0) return;
 
     // update if a new row is available
-    if(currentNumOfRows-2!=timeSlider->totalMaximum()) {
-      timeSlider->setTotalMaximum(currentNumOfRows-2);
-      timeSlider->setCurrentMaximum(currentNumOfRows-2);
-      frame->setValue(currentNumOfRows-2);
+    if(currentNumOfRows-1!=timeSlider->totalMaximum() || currentNumOfRows-1!=static_cast<int>(frame->getValue())) {
+      timeSlider->setTotalMaximum(currentNumOfRows-1);
+      timeSlider->setCurrentMaximum(currentNumOfRows-1);
+      frame->setValue(currentNumOfRows-1);
     }
+  }
+}
+
+void MainWindow::hdf5RefreshSlot() {
+  // request a flush of all writers
+  requestHDF5Flush();
+  // get number of rows of first none enviroment body
+  if(!openMBVBodyForLastFrame) {
+    auto it=Body::getBodyMap().begin();
+    while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
+      it++;
+    if(it==Body::getBodyMap().end())
+      return;
+    openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
+  }
+  // use number of rows for found first none enviroment body
+  int currentNumOfRows=openMBVBodyForLastFrame->getRows();
+  if(deltaTime==0 && currentNumOfRows>=2)
+    deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
+  // update if a the number of rows has changed
+  if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
+    timeSlider->setTotalMaximum(currentNumOfRows-1);
+    if(timeSlider->currentMaximum()>currentNumOfRows-1)
+      timeSlider->setCurrentMaximum(currentNumOfRows-1);
+    if(static_cast<int>(frame->getValue())>currentNumOfRows-1)
+      frame->setValue(currentNumOfRows-1);
+    restartPlay();
   }
 }
 
@@ -1597,6 +1635,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
 }
 
 void MainWindow::stopSCSlot() {
+  hdf5RefreshTimer->start(hdf5RefreshDelta);
   animTimer->stop();
   stopAct->setChecked(true);
   lastFrameAct->setChecked(false);
@@ -1604,6 +1643,7 @@ void MainWindow::stopSCSlot() {
 }
 
 void MainWindow::lastFrameSCSlot() {
+  hdf5RefreshTimer->stop();
   if(!lastFrameAct->isChecked()) {
     stopAct->setChecked(true);
     animTimer->stop();
@@ -1619,6 +1659,7 @@ void MainWindow::lastFrameSCSlot() {
 }
 
 void MainWindow::playSCSlot() {
+  hdf5RefreshTimer->start(hdf5RefreshDelta);
   if(!playAct->isChecked()) {
     stopAct->setChecked(true);
     animTimer->stop();

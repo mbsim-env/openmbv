@@ -98,6 +98,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator *sceneRoot;
     SoComplexity *complexity;
     QTimer *animTimer;
+    QTimer *hdf5RefreshTimer;
     QTime *time;
     QDoubleSpinBox *speedSB;
     int animStartFrame;
@@ -119,6 +120,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     static void enableBBoxOfID(Object *obj, const std::string &ID);
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
+    int hdf5RefreshDelta;
   protected:
     void objectListClicked();
     void openFileDialog();
@@ -156,6 +158,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
     void heavyWorkSlot();
+    void hdf5RefreshSlot();
     void requestHDF5Flush();
     void restartPlay();
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
