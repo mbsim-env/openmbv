@@ -583,7 +583,8 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   time=new QTime();
   hdf5RefreshTimer=new QTimer(this);
   connect(hdf5RefreshTimer, &QTimer::timeout, this, &MainWindow::hdf5RefreshSlot);
-  hdf5RefreshTimer->start(hdf5RefreshDelta);// mfmf can be disabled when running in mbsimgui
+  if(hdf5RefreshDelta>0)
+    hdf5RefreshTimer->start(hdf5RefreshDelta);
 
   // react on parameters
 
@@ -866,6 +867,8 @@ MainWindow::~MainWindow() {
 }
 
 bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
+  fmatvec::AdoptCurrentMessageStreamsUntilScopeExit dummy(this);
+
   // default parameter
   if(parentItem==nullptr) parentItem=objectList->invisibleRootItem();
   if(soParent==nullptr) soParent=sceneRoot;
@@ -1635,7 +1638,8 @@ void MainWindow::exportSequenceAsPNG(bool video) {
 }
 
 void MainWindow::stopSCSlot() {
-  hdf5RefreshTimer->start(hdf5RefreshDelta);
+  if(hdf5RefreshDelta>0)
+    hdf5RefreshTimer->start(hdf5RefreshDelta);
   animTimer->stop();
   stopAct->setChecked(true);
   lastFrameAct->setChecked(false);
@@ -1659,7 +1663,8 @@ void MainWindow::lastFrameSCSlot() {
 }
 
 void MainWindow::playSCSlot() {
-  hdf5RefreshTimer->start(hdf5RefreshDelta);
+  if(hdf5RefreshDelta>0)
+    hdf5RefreshTimer->start(hdf5RefreshDelta);
   if(!playAct->isChecked()) {
     stopAct->setChecked(true);
     animTimer->stop();
