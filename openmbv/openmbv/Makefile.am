@@ -5,12 +5,14 @@ if COND_WIN32
   LIBGLU=-lglu32 -lopengl32
 else
   LIBGLU=-lGLU -lGL
+  MAYBE_SIGWATCH_SRC = qt-unix-signals/sigwatch.cpp
+  MAYBE_SIGWATCH_MOC = qt-unix-signals/sigwatch.moc.cc
 endif
 
 lib_LTLIBRARIES = libopenmbv.la
 libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) $(HDF5SERIE_CFLAGS) $(QWT_CFLAGS)
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
-libopenmbv_la_SOURCES = \
+libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   body.cc\
   dynamiccoloredbody.cc\
   cuboid.cc\
@@ -106,7 +108,7 @@ QT_BUILT_SOURCES = \
   body.moc.cc\
   dynamiccoloredbody.moc.cc \
   QTripleSlider.moc.cc
-BUILT_SOURCES = $(QT_BUILT_SOURCES)
+BUILT_SOURCES = $(QT_BUILT_SOURCES) $(MAYBE_SIGWATCH_MOC)
 
 
 
