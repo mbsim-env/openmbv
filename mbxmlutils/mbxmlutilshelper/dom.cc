@@ -940,8 +940,11 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
   errorHandler.resetError();
   shared_ptr<xercesc::DOMDocument> doc;
   {
-    boost::interprocess::file_lock inputSourceLF(inputSource.string().c_str()); // lock the file
-    boost::interprocess::sharable_lock inputSourceLock(inputSourceLF);
+    // at least using wine we cannot use inputSource as lock file itself, its crashing
+    path inputSourceLock(inputSource.parent_path()/("."+inputSource.leaf().string()+".lock"));
+    { std::ofstream dummy(inputSourceLock.string()); } // create the file
+    boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
+    boost::interprocess::sharable_lock lock(inputSourceFileLock);
     doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
   }
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
@@ -977,9 +980,11 @@ namespace {
 
 void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
-  { std::ofstream dummy(outputSource.string()); } // create the file
-  boost::interprocess::file_lock outputSourceLF(outputSource.string().c_str()); // lock the file
-  boost::interprocess::scoped_lock outputSourceLock(outputSourceLF);
+  // at least using wine we cannot use outputSource as lock file itself, its crashing
+  path outputSourceLock(outputSource.parent_path()/("."+outputSource.leaf().string()+".lock"));
+  { std::ofstream dummy(outputSourceLock.string()); } // create the file
+  boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
+  boost::interprocess::scoped_lock lock(outputSourceFileLock);
   if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
     throw runtime_error("Serializing the document failed.");
 }
