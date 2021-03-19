@@ -168,7 +168,8 @@ void Group::refresh() {
 }
 
 void Group::requestFlush() {
-  hdf5File->requestFlush();
+  if(hdf5File)
+    hdf5File->requestFlush();
 }
 
 void Group::read() {
