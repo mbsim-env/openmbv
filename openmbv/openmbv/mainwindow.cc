@@ -890,7 +890,7 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
       // lock mutex to avoid that this callback tries to acces rootGroupOMBV before it is set
       std::scoped_lock lock(mutex);
       // only call signals here since this is executed in a different thread
-      (*rootGroupOMBV)->refreshFileSlot();
+      (*rootGroupOMBV)->refreshFileSignal();
     });
     rootGroup->read();
 
