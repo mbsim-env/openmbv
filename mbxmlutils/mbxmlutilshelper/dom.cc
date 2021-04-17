@@ -942,7 +942,7 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
   // check if file is writeable
   bool writeable=true;
   {
-    std::ofstream dummy(inputSource, ios_base::app);
+    std::ofstream dummy(inputSource.string(), ios_base::app);
     writeable=dummy.is_open();
   }
   // if the file is writable use a lock file, if not writable no locking is needed
