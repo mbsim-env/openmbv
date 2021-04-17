@@ -939,7 +939,14 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   shared_ptr<xercesc::DOMDocument> doc;
+  // check if file is writeable
+  bool writeable=true;
   {
+    std::ofstream dummy(inputSource, ios_base::app);
+    writeable=dummy.is_open();
+  }
+  // if the file is writable use a lock file, if not writable no locking is needed
+  if(writeable) {
     // at least using wine we cannot use inputSource as lock file itself, its crashing
     path inputSourceLock(inputSource.parent_path()/("."+inputSource.leaf().string()+".lock"));
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
@@ -947,6 +954,8 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
     doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
   }
+  else
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
