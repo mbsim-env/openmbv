@@ -72,7 +72,7 @@ namespace MBXMLUtils {
       auto itn=next(it);
       if(itn==args.end())
         throw runtime_error("Invalid argument: "+*it+" "+*itn);
-      fmatvec::Atom::MsgType msgType;
+      reference_wrapper<const fmatvec::MsgType> msgType(fmatvec::Atom::Info);
       if     (itn->substr(0, 5)=="info~"  ) msgType=fmatvec::Atom::Info;
       else if(itn->substr(0, 5)=="warn~"  ) msgType=fmatvec::Atom::Warn;
       else if(itn->substr(0, 6)=="debug~" ) msgType=fmatvec::Atom::Debug;
