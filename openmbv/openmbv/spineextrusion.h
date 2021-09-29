@@ -48,6 +48,9 @@ class SpineExtrusion : public DynamicColoredBody {
     /** info string in spine extrusion pop-up menu */
     QString getInfo() override;
 
+    /** set */
+    void doRotate( bool r = true ) { rotate = r; }
+
   protected:
     /** extrusion body */
     SoVRMLExtrusion *extrusion;
@@ -63,6 +66,9 @@ class SpineExtrusion : public DynamicColoredBody {
 
     /** test for collinear spine points */
     bool collinear;
+
+    /** set to true if rotation of cross section if desired along with spatial shape of spine */
+    bool rotate = true; //false;
 
     /** additional twist because of collinear spine points */
     double additionalTwist;

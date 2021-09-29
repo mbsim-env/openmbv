@@ -162,7 +162,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         collinear=false;
   }
 
-  if(collinear) {
+  if(collinear || true) {
     auto *rotation = new SoRotation; // set rotation matrix 
     rotation->ref();
     std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
@@ -170,6 +170,8 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     SbMatrix Orientation;
     rotation->rotation.getValue().getValue(Orientation);
     additionalTwist = acos(Orientation[2][2]);
+    std::cout << "additionalTwist = " << additionalTwist << "\n";
+
     rotation->unref();
   }
 
@@ -214,6 +216,18 @@ double SpineExtrusion::update() {
   return data[0];
 }
 
+namespace
+{
+  template<typename OT>
+  OT& operator<<(OT& os_, const SbVec3f& v)
+  {
+    os_ << "[" << setw(12) << v[0]
+               << setw(12) << v[1]
+               << setw(12) << v[2] << "]";
+    return os_;
+  }
+}
+
 void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   // set spine
   extrusion->spine.setNum(numberOfSpinePoints);
@@ -224,14 +238,135 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   extrusion->spine.finishEditing();
   extrusion->spine.setDefault(FALSE);
 
-  // set twist
-  extrusion->orientation.setNum(numberOfSpinePoints);
-  SbRotation *tw = extrusion->orientation.startEditing();
-  for(int i=0;i<numberOfSpinePoints;i++) {
-    tw[i] = SbRotation(twistAxis,data[4*i+4]+additionalTwist);
+  if( rotate )
+  {
+    std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
+    SbRotation rot0(Utils::cardan2Rotation(SbVec3f(rotation_parameter[0],rotation_parameter[1],rotation_parameter[2]))); 
+//  rot0.invert(); // invert the rotation
+
+    extrusion->orientation.setNum(numberOfSpinePoints);
+    SbRotation *sr = extrusion->orientation.startEditing();
+    SbVec3f by0;
+    for(int i=0;i<numberOfSpinePoints;i++)
+    {
+      SbVec3f by;
+      SbVec3f z0;
+      SbVec3f z1;
+      if( i == 0)
+      {
+        z0 = sp[1] - sp[0];
+        z1 = sp[2] - sp[1];
+        by = z0;
+         rot0.multVec( by, by0 );
+      }
+      else if( i == numberOfSpinePoints-1)
+      {
+        z0 = sp[numberOfSpinePoints-2] - sp[numberOfSpinePoints-3];
+        z1 = sp[numberOfSpinePoints-1] - sp[numberOfSpinePoints-2];
+        by = z1;
+      }
+      else
+      {
+        z0 = sp[i  ] - sp[i-1];
+        z1 = sp[i+1] - sp[i  ];
+        by = sp[i+1] - sp[i-1];
+      }
+
+      by = by / std::sqrt( by.dot(by) );
+      z0 = z0 / std::sqrt( z0.dot(z0) );
+      z1 = z1 / std::sqrt( z1.dot(z1) );
+
+
+#if 0
+///   SbVec3f bz = z0.cross(z1);
+///   const double bzN  = std::sqrt(bz.dot(bz));
+///   if( std::abs(bzN) < 1.e-12 )
+///   {
+///     if( i == 0 )
+///       bz = SbVec3f(0.,0.,1.);
+///     else
+///       bz = bzPrev;
+///   }
+///   else
+///   {
+///     bz = bz / std::sqrt( bz.dot(bz) );
+///   }
+///   bzPrev = bz;
+
+///   SbVec3f bx = bz.cross(by);
+///   bx = bx / std::sqrt( bx.dot(bx) );
+///   bz = bx.cross(by);
+///   bz = bz / std::sqrt( bz.dot(bz) );
+
+//    SbVec3f bz = z0.cross(z1);
+//    const double sinBZ  = std::asin( std::sqrt(bz.dot(bz)) );
+
+      SbVec3f byTmp;
+      rot0.multVec(by, byTmp);
+
+      sr[i] =
+//        rot0 * // go from global cos back to initialRotation
+//        SbRotation( SbMatrix(  // apply orientation as calculated above in GLOBAL system
+//            bx[0], bx[1], bx[2], 0.0,
+//            by[0], by[1], by[2], 0.0,
+//            bz[0], bz[1], bz[2], 0.0,
+//              0.0,   0.0,   0.0, 1.0
+//          ) ) *
+        SbRotation( SbVec3f(0.,1.,0.), data[4*i+4]+additionalTwist ) *  // twist
+        SbRotation( byTmp, by0 );
+#else
+
+      SbVec3f bz = z0.cross(z1);
+      const double bzN  = std::sqrt(bz.dot(bz));
+
+      const bool print = ( i == 0 ) || ( i == numberOfSpinePoints-1 );
+      if( print )
+      {
+        bz = bz / bzN;
+        std::cout << setw(10) << setw(10) <<  i  << ":           z0 = " <<   z0 << "\n";
+        std::cout << setw(10) << setw(10) << " " << "            z1 = " <<   z1 << "\n";
+        std::cout << setw(10) << setw(10) << " " << ":           by = " <<   by << "\n";
+        std::cout << setw(10) << setw(10) << " " << "            bz = " <<   bz << "\n";
+      }
+
+      SbRotation rot;
+
+      if( std::abs( bzN ) > 1.0e-15 )
+      {
+///     SbVec3f bx = bz.cross(by);
+///     bx = bx / std::sqrt( bx.dot(bx) );
+///     double angZ = std::asin( bz.dot( z0 ) );
+///     rot *= SbRotation(SbVec3f(0.,0.,1.), angZ);
+///     double angX = std::asin( bx.dot( z0 ) );
+///     rot *= SbRotation(SbVec3f(1.,0.,0.), angX);
+
+        double angX =  std::asin( bzN );
+        rot *= SbRotation(SbVec3f(1.,0.,0.), angX);
+
+        if( print )
+        {
+          std::cout << setw(10) <<     " "      << setw(10) << " " << "  has got angX = " << angX << "\n";
+        }
+      }
+
+      rot *= SbRotation(SbVec3f(0.,1.,0.), data[4*i+4]+additionalTwist);
+      sr[i] = rot;
+#endif
+    }
+    extrusion->orientation.finishEditing();
+    extrusion->orientation.setDefault(FALSE);
   }
-  extrusion->orientation.finishEditing();
-  extrusion->orientation.setDefault(FALSE);
+  else
+  {
+    // set twist
+    extrusion->orientation.setNum(numberOfSpinePoints);
+    SbRotation *tw = extrusion->orientation.startEditing();
+    for(int i=0;i<numberOfSpinePoints;i++) {
+      tw[i] = SbRotation(twistAxis,data[4*i+4]+additionalTwist);
+    }
+    extrusion->orientation.finishEditing();
+    extrusion->orientation.setDefault(FALSE);
+  }
 }
 
 }
