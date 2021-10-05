@@ -49,14 +49,23 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
 
 void SpineExtrusion::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
+//data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+(3+3)*numberOfSpinePoints);
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+(3+6)*numberOfSpinePoints);
   vector<string> columns;
   columns.emplace_back("Time");
   for(int i=0;i<numberOfSpinePoints;i++) {
     columns.push_back("x"+fmatvec::toString(i));
     columns.push_back("y"+fmatvec::toString(i));
     columns.push_back("z"+fmatvec::toString(i));
-    columns.push_back("twist"+fmatvec::toString(i));
+//  columns.push_back("a"+fmatvec::toString(i));
+//  columns.push_back("b"+fmatvec::toString(i));
+//  columns.push_back("g"+fmatvec::toString(i));
+    columns.push_back("bX"+fmatvec::toString(i));
+    columns.push_back("bX"+fmatvec::toString(i));
+    columns.push_back("bX"+fmatvec::toString(i));
+    columns.push_back("bY"+fmatvec::toString(i));
+    columns.push_back("bY"+fmatvec::toString(i));
+    columns.push_back("bY"+fmatvec::toString(i));
   }
   data->setColumnLabel(columns);
 }

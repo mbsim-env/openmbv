@@ -102,7 +102,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
+      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+(3+6)*numberOfSpinePoints); }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

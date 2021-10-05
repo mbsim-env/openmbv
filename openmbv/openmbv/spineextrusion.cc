@@ -37,6 +37,27 @@ static float my_normalize(SbVec3f & vec) {
   return len;
 }
 
+static SbVec3f calculate_y_axis(const SbVec3f * spine, const int i, const int numspine, const SbBool closed)
+{
+  SbVec3f Y;
+  if (closed) {
+    if (i > 0) {
+      Y = spine[i+1] - spine[i-1];
+    }
+    else {
+      // use numspine-2, since for closed spines, the last spine point == the first point
+      Y = spine[1] - spine[numspine >= 2 ? numspine-2 : numspine-1];
+    }
+  }
+  else {
+    if (i == 0) Y = spine[1] - spine[0];
+    else if (i == numspine-1) Y = spine[numspine-1] - spine[numspine-2];
+    else Y = spine[i+1] - spine[i-1];
+  }
+  my_normalize(Y);
+  return Y;
+}
+
 static SbVec3f calculate_z_axis(const SbVec3f * spine, const int i, const int numspine, const SbBool closed) {
   SbVec3f z0, z1;
 
@@ -105,11 +126,13 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       data[i+1] = spineExtrusion->getStateOffSet()[i]; // we have == 0.0 due to local init
 
     //xml dataset
-    numberOfSpinePoints = int((spineExtrusion->getStateOffSet().size())/4);
+//  numberOfSpinePoints = int((spineExtrusion->getStateOffSet().size())/(3+3));
+    numberOfSpinePoints = int((spineExtrusion->getStateOffSet().size())/(3+6));
   } else {
     //h5 dataset
     data = spineExtrusion->getRow(0);
-    numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/4);
+//  numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/(3+3));
+    numberOfSpinePoints = int((spineExtrusion->getRow(1).size()-1)/(3+6));
   }
   int rows=spineExtrusion->getRows();
   double dt;
@@ -153,7 +176,8 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
 
   std::vector<SbVec3f> data_coin(numberOfSpinePoints);
   for(int i=0;i<numberOfSpinePoints;i++) {
-    data_coin[i] = SbVec3f(data[4*i+1],data[4*i+2],data[4*i+3]);
+//  data_coin[i] = SbVec3f(data[(3+3)*i+1],data[(3+3)*i+2],data[(3+3)*i+3]);
+    data_coin[i] = SbVec3f(data[(3+6)*i+1],data[(3+6)*i+2],data[(3+6)*i+3]);
   }
 
   for(int i=0;i<numberOfSpinePoints;i++) {
@@ -233,126 +257,134 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   extrusion->spine.setNum(numberOfSpinePoints);
   SbVec3f *sp = extrusion->spine.startEditing();
   for(int i=0;i<numberOfSpinePoints;i++) {
-    sp[i] = SbVec3f(data[4*i+1],data[4*i+2],data[4*i+3]);
+//  sp[i] = SbVec3f(data[(3+3)*i+1],data[(3+3)*i+2],data[(3+3)*i+3]);
+    sp[i] = SbVec3f(data[(3+6)*i+1],data[(3+6)*i+2],data[(3+6)*i+3]);
   }
   extrusion->spine.finishEditing();
   extrusion->spine.setDefault(FALSE);
 
   if( rotate )
   {
-    std::vector<double> rotation_parameter = spineExtrusion->getInitialRotation();
-    SbRotation rot0(Utils::cardan2Rotation(SbVec3f(rotation_parameter[0],rotation_parameter[1],rotation_parameter[2]))); 
-//  rot0.invert(); // invert the rotation
-
     extrusion->orientation.setNum(numberOfSpinePoints);
     SbRotation *sr = extrusion->orientation.startEditing();
-    SbVec3f by0;
-    for(int i=0;i<numberOfSpinePoints;i++)
-    {
-      SbVec3f by;
-      SbVec3f z0;
-      SbVec3f z1;
-      if( i == 0)
-      {
-        z0 = sp[1] - sp[0];
-        z1 = sp[2] - sp[1];
-        by = z0;
-         rot0.multVec( by, by0 );
-      }
-      else if( i == numberOfSpinePoints-1)
-      {
-        z0 = sp[numberOfSpinePoints-2] - sp[numberOfSpinePoints-3];
-        z1 = sp[numberOfSpinePoints-1] - sp[numberOfSpinePoints-2];
-        by = z1;
-      }
-      else
-      {
-        z0 = sp[i  ] - sp[i-1];
-        z1 = sp[i+1] - sp[i  ];
-        by = sp[i+1] - sp[i-1];
-      }
 
-      by = by / std::sqrt( by.dot(by) );
-      z0 = z0 / std::sqrt( z0.dot(z0) );
-      z1 = z1 / std::sqrt( z1.dot(z1) );
+  SbBool colinear = FALSE;
+  // test if spine point are collinear
+  const SbVec3f empty(0.0f, 0.0f, 0.0f);
+  SbVec3f prevY(0.0f, 0.0f, 0.0f);
+  SbVec3f prevZ(0.0f, 0.0f, 0.0f);
+
+  SbVec3f X, Y, Z;
+
+  // find first non-collinear spine segments and calculate the first
+  // valid Y and Z axis
+  for (int i = 0; i < numberOfSpinePoints && (prevY == empty || prevZ == empty); i++) {
+    if (prevY == empty) {
+      Y = calculate_y_axis(sp, i, numberOfSpinePoints, false);
+      if (Y != empty) prevY = Y;
+    }
+    if (prevZ == empty) {
+      Z = calculate_z_axis(sp, i, numberOfSpinePoints, false);
+      if (Z != empty) prevZ = Z;
+    }
+  }
+
+  if (prevY == empty) prevY = SbVec3f(0.0f, 1.0f, 0.0f);
+  if (prevZ == empty) { // all spine segments are colinear, calculate constant Z axis
+    prevZ = SbVec3f(0.0f, 0.0f, 1.0f);
+    if (prevY != SbVec3f(0.0f, 1.0f, 0.0f)) {
+      SbRotation rot(SbVec3f(0.0f, 1.0f, 0.0f), prevY);
+      rot.multVec(prevZ, prevZ);
+    }
+    colinear = TRUE;
+  }
+
+  // loop through all spines
+  for (int i = 0; i < numberOfSpinePoints; i++) {
+    Y = calculate_y_axis(sp, i, numberOfSpinePoints, false);
+    if (colinear) {
+      Z = prevZ;
+    }
+    else {
+      Z = calculate_z_axis(sp, i, numberOfSpinePoints, false);
+      if (Z == empty) Z = prevZ;
+      if (Z.dot(prevZ) < 0) Z = -Z;
+    }
+
+    X = Y.cross(Z);
+    my_normalize(X);
+
+    prevZ = Z;
+
+    SbMatrix matrix;
+    matrix[0][0] = X[0];
+    matrix[0][1] = X[1];
+    matrix[0][2] = X[2];
+    matrix[0][3] = 0.0f;
+
+    matrix[1][0] = Y[0];
+    matrix[1][1] = Y[1];
+    matrix[1][2] = Y[2];
+    matrix[1][3] = 0.0f;
+
+    matrix[2][0] = Z[0];
+    matrix[2][1] = Z[1];
+    matrix[2][2] = Z[2];
+    matrix[2][3] = 0.0f;
+
+    matrix[3][0] = 0.0f;
+    matrix[3][1] = 0.0f;
+    matrix[3][2] = 0.0f;
+    matrix[3][3] = 1.0f;
 
 
-#if 0
-///   SbVec3f bz = z0.cross(z1);
-///   const double bzN  = std::sqrt(bz.dot(bz));
-///   if( std::abs(bzN) < 1.e-12 )
-///   {
-///     if( i == 0 )
-///       bz = SbVec3f(0.,0.,1.);
-///     else
-///       bz = bzPrev;
-///   }
-///   else
-///   {
-///     bz = bz / std::sqrt( bz.dot(bz) );
-///   }
-///   bzPrev = bz;
+    SbRotation I = SbRotation( matrix ).inverse();
 
-///   SbVec3f bx = bz.cross(by);
-///   bx = bx / std::sqrt( bx.dot(bx) );
-///   bz = bx.cross(by);
-///   bz = bz / std::sqrt( bz.dot(bz) );
+#if 1
+    Y = SbVec3f( data[(3+6)*i + 4],  data[(3+6)*i + 5],  data[(3+6)*i + 6]);
+    Z = SbVec3f( data[(3+6)*i + 7],  data[(3+6)*i + 8],  data[(3+6)*i + 9]);
+    X = Y.cross(Z);
+    my_normalize(X);
 
-//    SbVec3f bz = z0.cross(z1);
-//    const double sinBZ  = std::asin( std::sqrt(bz.dot(bz)) );
+    matrix[0][0] = X[0];
+    matrix[0][1] = X[1];
+    matrix[0][2] = X[2];
+    matrix[0][3] = 0.0f;
 
-      SbVec3f byTmp;
-      rot0.multVec(by, byTmp);
+    matrix[1][0] = Y[0];
+    matrix[1][1] = Y[1];
+    matrix[1][2] = Y[2];
+    matrix[1][3] = 0.0f;
 
-      sr[i] =
-//        rot0 * // go from global cos back to initialRotation
-//        SbRotation( SbMatrix(  // apply orientation as calculated above in GLOBAL system
-//            bx[0], bx[1], bx[2], 0.0,
-//            by[0], by[1], by[2], 0.0,
-//            bz[0], bz[1], bz[2], 0.0,
-//              0.0,   0.0,   0.0, 1.0
-//          ) ) *
-        SbRotation( SbVec3f(0.,1.,0.), data[4*i+4]+additionalTwist ) *  // twist
-        SbRotation( byTmp, by0 );
+    matrix[2][0] = Z[0];
+    matrix[2][1] = Z[1];
+    matrix[2][2] = Z[2];
+    matrix[2][3] = 0.0f;
+
+    matrix[3][0] = 0.0f;
+    matrix[3][1] = 0.0f;
+    matrix[3][2] = 0.0f;
+    matrix[3][3] = 1.0f;
 #else
 
-      SbVec3f bz = z0.cross(z1);
-      const double bzN  = std::sqrt(bz.dot(bz));
-
-      const bool print = ( i == 0 ) || ( i == numberOfSpinePoints-1 );
-      if( print )
-      {
-        bz = bz / bzN;
-        std::cout << setw(10) << setw(10) <<  i  << ":           z0 = " <<   z0 << "\n";
-        std::cout << setw(10) << setw(10) << " " << "            z1 = " <<   z1 << "\n";
-        std::cout << setw(10) << setw(10) << " " << ":           by = " <<   by << "\n";
-        std::cout << setw(10) << setw(10) << " " << "            bz = " <<   bz << "\n";
-      }
-
-      SbRotation rot;
-
-      if( std::abs( bzN ) > 1.0e-15 )
-      {
-///     SbVec3f bx = bz.cross(by);
-///     bx = bx / std::sqrt( bx.dot(bx) );
-///     double angZ = std::asin( bz.dot( z0 ) );
-///     rot *= SbRotation(SbVec3f(0.,0.,1.), angZ);
-///     double angX = std::asin( bx.dot( z0 ) );
-///     rot *= SbRotation(SbVec3f(1.,0.,0.), angX);
-
-        double angX =  std::asin( bzN );
-        rot *= SbRotation(SbVec3f(1.,0.,0.), angX);
-
-        if( print )
-        {
-          std::cout << setw(10) <<     " "      << setw(10) << " " << "  has got angX = " << angX << "\n";
-        }
-      }
-
-      rot *= SbRotation(SbVec3f(0.,1.,0.), data[4*i+4]+additionalTwist);
-      sr[i] = rot;
+    SbRotation T = Utils::cardan2Rotation( SbVec3f(
+         data[6*i+4],
+         data[6*i+5],
+         data[6*i+6]
+          ) );
 #endif
+
+    sr[i] = SbRotation( matrix ) * I;
+
+    if( i% 5 == 0 )
+    {
+      std::cout << "   " << data[(3+6)*i+4] << "   " << data[(3+6)*i+5] << "   " << data[(3+6)*i+6] << std::endl;
+      std::cout << "   " << data[(3+6)*i+7] << "   " << data[(3+6)*i+8] << "   " << data[(3+6)*i+9] << std::endl;
     }
+  }
+
+
+
     extrusion->orientation.finishEditing();
     extrusion->orientation.setDefault(FALSE);
   }
@@ -362,7 +394,7 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
     extrusion->orientation.setNum(numberOfSpinePoints);
     SbRotation *tw = extrusion->orientation.startEditing();
     for(int i=0;i<numberOfSpinePoints;i++) {
-      tw[i] = SbRotation(twistAxis,data[4*i+4]+additionalTwist);
+      tw[i] = SbRotation(twistAxis,data[(3+6)*i+6]+additionalTwist);
     }
     extrusion->orientation.finishEditing();
     extrusion->orientation.setDefault(FALSE);
