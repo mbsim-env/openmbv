@@ -52,6 +52,9 @@
 
   <xs:element name="Object" abstract="true" type="ObjectType"/>
   <xs:complexType name="ObjectType">
+    <xs:sequence>
+      <xs:element ref="pv:evaluator" minOccurs="0"/><!-- this should only be allowed for Group or even better for the root Group element-->
+    </xs:sequence>
     <xs:attribute name="name" type="pv:stringPartialEval" use="required"/>
     <xs:attribute name="enable" type="pv:booleanFullEval" default="1"/>
     <xs:attribute name="boundingBox" type="pv:booleanFullEval" default="0"/>

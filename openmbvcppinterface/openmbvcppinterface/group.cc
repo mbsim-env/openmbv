@@ -115,6 +115,10 @@ void Group::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=element->getFirstElementChild();
   while (e) {
+    if(E(e)->getTagName()==PV%"evaluator") { // skip the pv:evaluator element
+      e=e->getNextElementSibling();
+      continue;
+    }
     shared_ptr<Object> obj=ObjectFactory::create<Object>(e);
     obj->initializeUsingXML(e);
     addObject(obj);
