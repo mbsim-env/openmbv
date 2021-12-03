@@ -1,0 +1,8 @@
+This software has the following direct dependencies:
+- boost C++ (https://www.boost.org/) [Boost Software License]
+- fmatvec (https://github.com/mbsim-env/fmatvec) [LGPL]
+- Octave (https://www.gnu.org/software/octave/index) [GPL]
+- python (https://www.python.org/) [PSL]
+- SWIG (http://www.swig.org/) [GPL] <only at build time>
+- xalan-c (https://apache.github.io/xalan-c/) [Apache] <only at build time>
+- Xerces-c (http://xerces.apache.org/xerces-c/) [Apache]

@@ -3,6 +3,9 @@ SUBDIRS = openmbv
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openmbv.pc
 
+licdir = @datadir@/openmbv
+lic_DATA = COPYING NOTICE
+
 
 
 # doc

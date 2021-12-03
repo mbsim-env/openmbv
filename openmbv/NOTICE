@@ -1,0 +1,9 @@
+R"=====(
+This software has the following direct dependencies:
+- boost C++ (https://www.boost.org/) [Boost Software License]
+- Qt (https://www.qt.io/) [LGPL]
+- hdf5serie (https://github.com/mbsim-env/hdf5serie) [LGPL]
+- openmbv (https://github.com/mbsim-env/openmbv) [LGPL]
+- Qwt (https://qwt.sourceforge.io/) [LGPL]
+- Coin3D/SoQt (https://coin3d.github.io/) [BSD]
+)====="

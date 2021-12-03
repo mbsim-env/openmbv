@@ -4,6 +4,9 @@ DIST_SUBDIRS = openmbvcppinterface schema doc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openmbvcppinterface.pc
 
+licdir = @datadir@/openmbvcppinterface
+lic_DATA = COPYING NOTICE
+
 # a hack for auto configure recreating on system updates, see configure.ac
 $(CONFIG_STATUS_DEPENDENCIES):
 

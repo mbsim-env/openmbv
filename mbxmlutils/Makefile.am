@@ -4,6 +4,9 @@ DIST_SUBDIRS = mbxmlutilshelper mbxmlutils xsd2html xmldoc doc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = mbxmlutils.pc mbxmlutilshelper.pc
 
+licdir = @datadir@/mbxmlutils
+lic_DATA = COPYING NOTICE
+
 
 
 # doxygen

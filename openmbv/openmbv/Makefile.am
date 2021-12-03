@@ -9,6 +9,9 @@ else
   MAYBE_SIGWATCH_MOC = qt-unix-signals/sigwatch.moc.cc
 endif
 
+licdir = @datadir@/openmbv/qt-unix-signals
+lic_DATA = qt-unix-signals/LICENCE
+
 lib_LTLIBRARIES = libopenmbv.la
 libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) $(HDF5SERIE_CFLAGS) $(QWT_CFLAGS)
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
