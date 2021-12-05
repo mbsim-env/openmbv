@@ -83,6 +83,9 @@ class ObjectFactory {
       return std::shared_ptr<CreateType>(new CreateType(*t.get()), &deleter<CreateType>);
     }
 
+    static void addErrorMsg(const std::string &msg);
+    static std::string getAndClearErrorMsg();
+
   private:
 
     // a pointer to a function allocating an object
@@ -114,6 +117,7 @@ class ObjectFactory {
     template<class T>
     static void deleter(T *t) { delete t; }
 
+    static std::string errorMsg;
 };
 
 /** Helper function for automatic class registration for ObjectFactory.
@@ -125,22 +129,26 @@ class ObjectFactoryRegisterXMLNameHelper {
   public:
 
     /** ctor registring the new type */
-    ObjectFactoryRegisterXMLNameHelper(const MBXMLUtils::FQN &name) {
-      ObjectFactory::registerXMLName<CreateType>(name);
+    ObjectFactoryRegisterXMLNameHelper(const MBXMLUtils::FQN &name) noexcept {
+      try {
+        ObjectFactory::registerXMLName<CreateType>(name);
+      }
+      catch(std::exception &ex) {
+        ObjectFactory::addErrorMsg(ex.what());
+      }
+      catch(...) {
+        ObjectFactory::addErrorMsg("Unknown error");
+      }
     };
 
 };
 
 }
 
-#define OPENMBV_OBJECTFACTORY_CONCAT1(X, Y) X##Y
-#define OPENMBV_OBJECTFACTORY_CONCAT(X, Y) OPENMBV_OBJECTFACTORY_CONCAT1(X, Y)
-#define OPENMBV_OBJECTFACTORY_APPENDLINE(X) OPENMBV_OBJECTFACTORY_CONCAT(X, __LINE__)
-
 /** Use this macro somewhere at the class definition of ThisType to register it by the ObjectFactory.
  * ThisType must have a public default ctor and a public dtor. */
 #define OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(ThisType, name) \
-  static OpenMBV::ObjectFactoryRegisterXMLNameHelper<ThisType> \
-    OPENMBV_OBJECTFACTORY_APPENDLINE(objectFactoryRegistrationDummyVariable)(name);
+  static OpenMBV::ObjectFactoryRegisterXMLNameHelper<ThisType> BOOST_PP_CAT(objectFactoryRegistrationDummyVariable_, __LINE__)(name);
+
 
 #endif

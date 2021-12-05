@@ -23,6 +23,8 @@
 
 namespace OpenMBV {
 
+std::string ObjectFactory::errorMsg;
+
 ObjectFactory& ObjectFactory::instance() {
   static ObjectFactory of;
   return of;
@@ -37,5 +39,15 @@ void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt all
   // name is not registred with &allocate<CreateType>: register it
   instance().registeredType.insert(std::make_pair(name, alloc));
 }
+
+  void ObjectFactory::addErrorMsg(const std::string &msg) {
+    errorMsg+=msg+"\n";
+  }
+
+  std::string ObjectFactory::getAndClearErrorMsg() {
+    auto ret=errorMsg;
+    errorMsg.clear();
+    return ret;
+  }
 
 }
