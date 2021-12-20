@@ -467,9 +467,11 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   animationTB->addSeparator();
   // speed spin box
   speedSB=new QDoubleSpinBox;
-  speedSB->setRange(1e-30, 1e30);
-  speedSB->setMaximumSize(50, 1000);
-  speedSB->setDecimals(3);
+  speedSB->setMinimum(0);
+  speedSB->setMaximum(1e6);
+  speedSB->setSingleStep(1e-1);
+  speedSB->setMaximumSize(65, 1000);
+  speedSB->setDecimals(6);
   speedSB->setButtonSymbols(QDoubleSpinBox::NoButtons);
   speedSB->setValue(1.0);
   connect(speedSB, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::restartPlay);
@@ -483,11 +485,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   speedLO->addWidget(speedSB, 1, 0);
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(10);
-  speedWheel->setTotalAngle(360*15);
   connect(speedWheel, &QwtWheel::valueChanged, this, &MainWindow::speedWheelChangedD);
   connect(speedWheel, &QwtWheel::wheelPressed, this, &MainWindow::speedWheelPressed);
   connect(speedWheel, &QwtWheel::wheelReleased, this, &MainWindow::speedWheelReleased);
-  speedWheel->setRange(-20000, 20000);
+  speedWheel->setRange(-10000, 10000);
   speedWheel->setOrientation(Qt::Vertical);
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
   animationTB->addWidget(speedWG);
