@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
+@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py > testsymbolic.out
+RET=$?
+
+cat testsymbolic.out
+
+if [ @DEBUGBUILD@ -eq 1 ]; then
+  echo "This is a debug build -> checking output"
+  diff @abs_srcdir@/testsymbolic.ref testsymbolic.out
+  RETDIFF=$?
+  test $RET -ne 0 && exit $RET
+  exit $RETDIFF
+else
+  echo "This is a release build -> NOT checking output"
+  exit $RET
+fi

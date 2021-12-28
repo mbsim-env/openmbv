@@ -7,6 +7,7 @@
 #include <fmatvec/ast.h>
 #include <fmatvec/stream.h>
 #include <sstream>
+#include <boost/math/special_functions/sign.hpp>
 %}
 
 namespace std {
@@ -292,12 +293,54 @@ typedef fmatvec::SymbolicExpression SS;
     octave_value       asin(const octave_value a) { return callBuiltin("asin", a)(0); }
     octave_value       acos(const octave_value a) { return callBuiltin("acos", a)(0); }
     octave_value       atan(const octave_value a) { return callBuiltin("atan", a)(0); }
+
+    SymbolicExpression atan2(const double &y, const SymbolicExpression &x) { return atan2(SS(y),x); }
+    SymbolicExpression atan2(const SymbolicExpression &y, const double &x) { return atan2(y,SS(x)); }
+    octave_value       atan2(const octave_value y, const octave_value x) { return callBuiltin("atan2", octave_value_list(y).append(x))(0); }
+
     octave_value       asinh(const octave_value a) { return callBuiltin("asinh", a)(0); }
     octave_value       acosh(const octave_value a) { return callBuiltin("acosh", a)(0); }
     octave_value       atanh(const octave_value a) { return callBuiltin("atanh", a)(0); }
     octave_value       exp(const octave_value a) { return callBuiltin("exp", a)(0); }
     octave_value       sign(const octave_value a) { return callBuiltin("sign", a)(0); }
     octave_value       abs(const octave_value a) { return callBuiltin("abs", a)(0); }
+
+    octave_value       heaviside(const octave_value a) { return 0.5 * boost::math::sign(a.double_value()) + 0.5; }
+
+    SymbolicExpression min(const double &a, const SymbolicExpression &b) { return min(SS(a),b); }
+    SymbolicExpression min(const SymbolicExpression &a, const double &b) { return min(a,SS(b)); }
+    octave_value       min(const octave_value a, const octave_value b) { return callBuiltin("min", octave_value_list(a).append(b))(0); }
+
+    SymbolicExpression max(const double &a, const SymbolicExpression &b) { return max(SS(a),b); }
+    SymbolicExpression max(const SymbolicExpression &a, const double &b) { return max(a,SS(b)); }
+    octave_value       max(const octave_value a, const octave_value b) { return callBuiltin("max", octave_value_list(a).append(b))(0); }
+
+    SymbolicExpression condition(const double &c, const double &gt, const double &lt) { return c > 0 ? gt : lt; }
+    SymbolicExpression condition(const double &c, const double &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const double &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const IS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const IS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const IS &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const SS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const SS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const double &c, const SS &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const double &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const double &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const double &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const IS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const IS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const IS &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const SS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const SS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const IS &c, const SS &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const double &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const double &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const double &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const IS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const IS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const IS &gt, const SS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const SS &gt, const double &lt) { return condition(SS(c), SS(gt), SS(lt)); }
+    SymbolicExpression condition(const SS &c, const SS &gt, const IS &lt) { return condition(SS(c), SS(gt), SS(lt)); }
 
     SymbolicExpression norm(const IV &a) { return nrm2(a); }
     SymbolicExpression norm(const SV &a) { return nrm2(a); }

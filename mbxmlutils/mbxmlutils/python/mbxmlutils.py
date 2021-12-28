@@ -1,25 +1,33 @@
 import numpy
 import sympy
 import uuid
+import os
 
 
 
+# INTERNAL FUNCTION
+# convert the scalar x to float values if possible
 def _convertScalar(x):
   if hasattr(x, "free_symbols") and len(x.free_symbols)==0:
     return float(x)
   else:
     return x
 
+# INTERNAL FUNCTION
+# convert all elements of the matrix, vector or scalar x to float values if possible
 def _convert(x):
   if hasattr(x, '__len__'):
     return numpy.array([_convert(xi) for xi in x])
   else:
     return _convertScalar(x)
 
+# INTERNAL FUNCTION
+# serialize a symbolic expression to the fmatvec format
 def _serializeFunction(x):
+  # serialize a matrix or vector
   if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix":
     s="["
-    (rows, cols)=x.shape;
+    (rows, cols)=x.shape
     for r in range(0, rows):
       for c in range(0, cols):
         s+=_serializeFunction(x[r,c])
@@ -29,23 +37,68 @@ def _serializeFunction(x):
         s+="; "
     s+="]"
     return s
+  # serialize a scalar
   else:
+    # serialize a scalar (may be called recursively)
     def serializeVertex(x):
+      # serialize a integer
+      if isinstance(x, sympy.Integer) or isinstance(x, int):
+        return str(x)
+      # serialize a float
+      if isinstance(x, sympy.Float) or isinstance(x, sympy.Rational) or isinstance(x, float):
+        return str(x)
+      # serialize a independent variable (all independe variables must be sympy.Dummy classes
       if x.func.__name__=="Dummy":
+        # create a unique UUID for the variable (map the hash to a UUID)
         uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
-        return str(uid)
-      if isinstance(x, sympy.Integer):
-        return str(x)
-      if isinstance(x, sympy.Float) or isinstance(x, sympy.Rational):
-        return str(x)
+        # for debug runs (FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1) map the UUID to a counting int and use it
+        # (to generate equal results on each run)
+        if _serializeFunction.FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID is not None:
+          nr=_serializeFunction.mapUUIDInt.setdefault(uuid, len(_serializeFunction.mapUUIDInt)+1)
+          return "s"+str(nr)
+        # for release runs use the UUID
+        else:
+          return str(uid)
+      # sympy.UnevaluatedExpr are just noops
+      if x.func.__name__=="UnevaluatedExpr":
+        return serializeVertex(x.args[0])
+      # sympy.Piecewise is handled specially
+      if x.func.__name__=="Piecewise":
+        nrArgs=len(x.args)
+        # convert a single piecewise function with multiple arguments to multiple piecwise functions with only one argument (condition)
+        if nrArgs>1 and x.args[1][1]!=True:
+          return serializeVertex(sympy.Piecewise(x.args[0], (sympy.UnevaluatedExpr(sympy.Piecewise(*x.args[1:])), True)))
+        # serialize the piecewise function to the correspoding fmatvec representation
+        else:
+          if nrArgs>2:
+            raise RuntimeError("Internal error in: "+str(x))
+          c=x.args[0][1]
+          gt=x.args[0][0]
+          le=x.args[1][0] if nrArgs==2 else 0
+          if nrArgs==2 and x.args[1][1]!=True:
+            raise RuntimeError("Internal error in: "+str(x))
+          if isinstance(c, sympy.relational.GreaterThan) or isinstance(c, sympy.relational.StrictGreaterThan):
+            return "condition("+serializeVertex(c.lhs-c.rhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
+          elif isinstance(c, sympy.relational.LessThan) or isinstance(c, sympy.relational.StrictLessThan):
+            return "condition("+serializeVertex(c.rhs-c.lhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
+          elif c==True:
+            return serializeVertex(gt)
+          elif c==False:
+            return serializeVertex(le)
+          else:
+            raise RuntimeError("Unknown relation in Piecewise: "+str(x))
+      # handle known function from opMap
       opStr=_serializeFunction.opMap.get(x.func.__name__)
       if opStr is None:
         raise RuntimeError("Unknown operator "+x.func.__name__+": "+str(x))
       nrArgs=len(x.args)
-      if (x.func.__name__=="Add" or x.func.__name__=="Mul") and nrArgs>2:
-        return serializeVertex(x.func(x.args[0], x.func(*x.args[1:]), evaluate=False));
+      # special handling of Add/Mul/Min/Max: convert more than 2 args into multiple function with just 2 args
+      if (x.func.__name__=="Add" or x.func.__name__=="Mul" or x.func.__name__=="Min" or x.func.__name__=="Max") and nrArgs>2:
+        return serializeVertex(x.func(x.args[0], sympy.UnevaluatedExpr(x.func(*x.args[1:]))))
+      # check if the number of arguments match
       if opStr[1]!=nrArgs:
         raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
+      # serailize
       s=opStr[0]+"("
       first=True
       for op in x.args:
@@ -54,33 +107,40 @@ def _serializeFunction(x):
         first=False
       s+=")"
       return s
+    # serialize x to string s (may call serializeVertex recursively)
     s=serializeVertex(x)
     return s
 _serializeFunction.indepMap={}
+_serializeFunction.mapUUIDInt={}
+_serializeFunction.FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=os.getenv("FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID")
 _serializeFunction.opMap={
-  'Add':   ("plus", 2),
-# '':      ("minus", 2),
-  'Mul':   ("mult", 2),
-# '':      ("div", 2),
-  'Pow':   ("pow", 2),
-  'log':   ("log", 1),
-  'sqrt':  ("sqrt", 1),
-# '':      ("neg", 1),
-  'sin':   ("sin", 1),
-  'cos':   ("cos", 1),
-  'tan':   ("tan", 1),
-  'sinh':  ("sinh", 1),
-  'cosh':  ("cosh", 1),
-  'tanh':  ("tanh", 1),
-  'asin':  ("asin", 1),
-  'acos':  ("acos", 1),
-  'atan':  ("atan", 1),
-  'asinh': ("asinh", 1),
-  'acosh': ("acosh", 1),
-  'atanh': ("atanh", 1),
-  'exp':   ("exp", 1),
-  'sign':  ("sign", 1),
-  'Abs':   ("abs", 1),
+  'Add':       ("plus", 2),
+# '':          ("minus", 2),
+  'Mul':       ("mult", 2),
+# '':          ("div", 2),
+  'Pow':       ("pow", 2),
+  'log':       ("log", 1),
+  'sqrt':      ("sqrt", 1),
+# '':          ("neg", 1),
+  'sin':       ("sin", 1),
+  'cos':       ("cos", 1),
+  'tan':       ("tan", 1),
+  'sinh':      ("sinh", 1),
+  'cosh':      ("cosh", 1),
+  'tanh':      ("tanh", 1),
+  'asin':      ("asin", 1),
+  'acos':      ("acos", 1),
+  'atan':      ("atan", 1),
+  'atan2':     ("atan2", 2),
+  'asinh':     ("asinh", 1),
+  'acosh':     ("acosh", 1),
+  'atanh':     ("atanh", 1),
+  'exp':       ("exp", 1),
+  'sign':      ("sign", 1),
+  'Heaviside': ("heaviside", 1),
+  'Abs':       ("abs", 1),
+  'Min':       ("min", 2),
+  'Max':       ("max", 2),
 }
 
 
@@ -119,9 +179,9 @@ def cardan(*argv):
     beta=argv[1]
     gamma=argv[2]
   elif len(argv)==1 and len(argv[0])==3:
-    alpha=argv[0][0];
-    beta=argv[0][1];
-    gamma=argv[0][2];
+    alpha=argv[0][0]
+    beta=argv[0][1]
+    gamma=argv[0][2]
   else:
     raise RuntimError('Must be called with a three scalar arguments or one vector argument of length 3.')
 
