@@ -8,7 +8,7 @@ cat testsymbolic.out
 
 if [ @DEBUGBUILD@ -eq 1 ]; then
   echo "This is a debug build -> checking output"
-  diff @abs_srcdir@/testsymbolic.ref testsymbolic.out
+  diff --strip-trailing-cr @abs_srcdir@/testsymbolic.ref testsymbolic.out
   RETDIFF=$?
   test $RET -ne 0 && exit $RET
   exit $RETDIFF

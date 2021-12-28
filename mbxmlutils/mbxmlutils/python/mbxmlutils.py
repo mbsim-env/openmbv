@@ -2,6 +2,10 @@ import numpy
 import sympy
 import uuid
 import os
+if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
+  sympyRelational=sympy.core.relational
+else:
+  sympyRelational=sympy.relational
 
 
 
@@ -77,9 +81,9 @@ def _serializeFunction(x):
           le=x.args[1][0] if nrArgs==2 else 0
           if nrArgs==2 and x.args[1][1]!=True:
             raise RuntimeError("Internal error in: "+str(x))
-          if isinstance(c, sympy.relational.GreaterThan) or isinstance(c, sympy.relational.StrictGreaterThan):
+          if isinstance(c, sympyRelational.GreaterThan) or isinstance(c, sympyRelational.StrictGreaterThan):
             return "condition("+serializeVertex(c.lhs-c.rhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
-          elif isinstance(c, sympy.relational.LessThan) or isinstance(c, sympy.relational.StrictLessThan):
+          elif isinstance(c, sympyRelational.LessThan) or isinstance(c, sympyRelational.StrictLessThan):
             return "condition("+serializeVertex(c.rhs-c.lhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
           elif c==True:
             return serializeVertex(gt)
@@ -96,12 +100,15 @@ def _serializeFunction(x):
       if (x.func.__name__=="Add" or x.func.__name__=="Mul" or x.func.__name__=="Min" or x.func.__name__=="Max") and nrArgs>2:
         return serializeVertex(x.func(x.args[0], sympy.UnevaluatedExpr(x.func(*x.args[1:]))))
       # check if the number of arguments match
-      if opStr[1]!=nrArgs:
+      if not (
+        opStr[1]==nrArgs or # number of arguments must match OR
+        (x.func.__name__=="Heaviside" and nrArgs==2) # the Heaviside can also have a second default argument
+        ):
         raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
       # serailize
       s=opStr[0]+"("
       first=True
-      for op in x.args:
+      for op in x.args[0:opStr[1]]:
         if not first: s+=","
         s+=serializeVertex(op)
         first=False
