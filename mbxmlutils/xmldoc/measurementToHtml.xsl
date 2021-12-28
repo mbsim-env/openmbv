@@ -49,7 +49,6 @@
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"> </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"> </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.23/moment-timezone-with-data-2012-2022.min.js"> </script>
-    <script src="/mbsim/html/cookiewarning.js"> </script>
     <script>
       $(document).ready(function() {
         $('.DATETIME').each(function() {
@@ -75,8 +74,9 @@
       </li>
       <li><a id="parameters-content" href="#parameters">5 Parameters</a></li>
       <li><a id="evaluator-content" href="#evaluator">6 Expression Evaluator</a></li>
-      <li><a id="embed-content" href="#embed">7 Embeding</a></li>
-      <li><a id="measurements-content" href="#measurements">8 Measurements</a>
+      <li><a id="symbolicFunctions-content" href="#symbolicFunctions">7 Symbolic Functions</a></li>
+      <li><a id="embed-content" href="#embed">8 Embeding</a></li>
+      <li><a id="measurements-content" href="#measurements">9 Measurements</a>
         <ul class="_content">
           <xsl:for-each select="/mm:measurement/mm:measure">
             <xsl:sort select="@name"/>
@@ -210,7 +210,7 @@
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
-    <p>Different expression evaluators can be used. Currently implemented is only octave as evaluator. Hence this section covers only the octave expression evaluator.</p>
+    <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. Hence this section covers mainly the octave expression evaluator, but all other evaluators are similar.</p>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
    <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
@@ -289,7 +289,52 @@ ret=myfunc(m1/2);
   </dd>
 </dl>
 
-    <h1><a id="embed" href="#embed-content">7 Embeding</a></h1>
+    <h1><a id="symbolicFunctions" href="#symbolicFunctions-content">7 Symbolic Functions</a></h1>
+    <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.
+    The following table lists all known fmatvec operators and functions of its symbolic framework and its
+    corresponding operators and functions in octave and python. In octave these are impelmented
+    using SWIG and in python the sympy package is used.</p>
+    <table class="table table-condensed table-striped table-hover">
+      <thead>
+        <tr> <th>fmatvec Operator/Function</th> <th>Octave Operator/Function</th> <th>Python Operator/Function</th> </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>a+b</code></td> <td><code>a+b</code></td> <td><code>a+b</code></td></tr>
+        <tr><td><code>a-b</code></td> <td><code>a-b</code></td> <td><code>a-b</code></td></tr>
+        <tr><td><code>a*b</code></td> <td><code>a*b</code></td> <td><code>a*b</code></td></tr>
+        <tr><td><code>a/b</code></td> <td><code>a/b</code></td> <td><code>a/b</code></td></tr>
+        <tr><td><code>pow(a,b)</code></td> <td><code>pow(a,b)</code></td> <td><code>sympy.Pow(a,b)</code></td></tr>
+        <tr><td><code>log(x)</code></td> <td><code>log(x)</code></td> <td><code>sympy.log(x)</code></td></tr>
+        <tr><td><code>sqrt(x)</code></td> <td><code>sqrt(x)</code></td> <td><code>sympy.sqrt(x)</code></td></tr>
+        <tr><td><code>-x</code></td> <td><code>-x</code></td> <td><code>-x</code></td></tr>
+        <tr><td><code>sin(x)</code></td> <td><code>sin(x)</code></td> <td><code>sympy.sin(x)</code></td></tr>
+        <tr><td><code>cos(x)</code></td> <td><code>cos(x)</code></td> <td><code>sympy.cos(x)</code></td></tr>
+        <tr><td><code>tan(x)</code></td> <td><code>tan(x)</code></td> <td><code>sympy.tan(x)</code></td></tr>
+        <tr><td><code>sinh(x)</code></td> <td><code>sinh(x)</code></td> <td><code>sympy.sinh(x)</code></td></tr>
+        <tr><td><code>cosh(x)</code></td> <td><code>cosh(x)</code></td> <td><code>sympy.cosh(x)</code></td></tr>
+        <tr><td><code>tanh(x)</code></td> <td><code>tanh(x)</code></td> <td><code>sympy.tanh(x)</code></td></tr>
+        <tr><td><code>asin(x)</code></td> <td><code>asin(x)</code></td> <td><code>sympy.asin(x)</code></td></tr>
+        <tr><td><code>acos(x)</code></td> <td><code>acos(x)</code></td> <td><code>sympy.acos(x)</code></td></tr>
+        <tr><td><code>atan(x)</code></td> <td><code>atan(x)</code></td> <td><code>sympy.atan(x)</code></td></tr>
+        <tr><td><code>atan2(y,x)</code></td> <td><code>atan2(y,x)</code></td> <td><code>sympy.atan2(y,x)</code></td></tr>
+        <tr><td><code>asinh(x)</code></td> <td><code>asinh(x)</code></td> <td><code>sympy.asinh(x)</code></td></tr>
+        <tr><td><code>acosh(x)</code></td> <td><code>acosh(x)</code></td> <td><code>sympy.acosh(x)</code></td></tr>
+        <tr><td><code>atanh(x)</code></td> <td><code>atanh(x)</code></td> <td><code>sympy.atanh(x)</code></td></tr>
+        <tr><td><code>exp(x)</code></td> <td><code>exp(x)</code></td> <td><code>sympy.exp(x)</code></td></tr>
+        <tr><td><code>sign(x)</code></td> <td><code>sign(x)</code></td> <td><code>sympy.sign(x)</code></td></tr>
+        <tr><td><code>heaviside(x)</code></td> <td><code>heaviside(x)</code></td> <td><code>sympy.Heaviside(x)</code></td></tr>
+        <tr><td><code>abs(x)</code></td> <td><code>abs(x)</code></td> <td><code>sympy.Abs(x)</code></td></tr>
+        <tr><td><code>min(a,b)</code></td> <td><code>min(a,b)</code></td> <td><code>sympy.Min(a,b)</code> (*)</td></tr>
+        <tr><td><code>max(a,b)</code></td> <td><code>max(a,b)</code></td> <td><code>sympy.Max(a,b)</code> (*)</td></tr>
+        <tr><td><code>condition(c,gt,le)</code></td> <td><code>condition(c,gt,le)</code></td> <td><code>sympy.Piecewise((gt, c>0), (le, True))</code> (*) (**)</td></tr>
+      </tbody>
+    </table>
+    <p>
+      (*) more than two arguments are supported. If so, the function is converted to a corresponding nested set of functions with proper number of arguments.<br/>
+      (**) the condition (<code>c&gt;0</code>) can be <code>True</code>, <code>False</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> or <code>&lt;=</code>. The condition is then converted accordingly. If none of the conditions evaluates to true 0 is used (python returns None in this case).
+    </p>
+
+    <h1><a id="embed" href="#embed-content">8 Embeding</a></h1>
     <p>Using the <span class="_element">&lt;pv:Embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
 <pre>&lt;pv:Embed href="file.xml" count="2+a" counterName="n" onlyif="n!=2"/&gt;</pre>
 <p>or</p>
@@ -310,7 +355,7 @@ The attributes <span class="_attribure">count</span> and <span class="_attribure
 &lt;/pv:Embed&gt;
 </pre>
 
-    <h1><a id="measurements" href="#measurements-content">8 Measurements</a></h1>
+    <h1><a id="measurements" href="#measurements-content">9 Measurements</a></h1>
     <p>The following subsections show all defined measurements.</p>
     <p>The column "Unit Name" in the tables is the name of the unit and the column
       "Conversion to SI Unit" is a expression which converts a value of this unit to the SI unit.</p>
