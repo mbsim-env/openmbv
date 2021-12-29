@@ -293,7 +293,7 @@ ret=myfunc(m1/2);
     <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.
     The following table lists all known fmatvec operators and functions of its symbolic framework and its
     corresponding operators and functions in octave and python. In octave these are impelmented
-    using SWIG and in python the sympy package is used.</p>
+    using SWIG and in python the sympy package is used. Some of the operators and functions can also operate on vector arguments.</p>
     <table class="table table-condensed table-striped table-hover">
       <thead>
         <tr> <th>fmatvec Operator/Function</th> <th>Octave Operator/Function</th> <th>Python Operator/Function</th> </tr>
@@ -303,7 +303,7 @@ ret=myfunc(m1/2);
         <tr><td><code>a-b</code></td> <td><code>a-b</code></td> <td><code>a-b</code></td></tr>
         <tr><td><code>a*b</code></td> <td><code>a*b</code></td> <td><code>a*b</code></td></tr>
         <tr><td><code>a/b</code></td> <td><code>a/b</code></td> <td><code>a/b</code></td></tr>
-        <tr><td><code>pow(a,b)</code></td> <td><code>pow(a,b)</code></td> <td><code>sympy.Pow(a,b)</code></td></tr>
+        <tr><td><code>pow(a,b)</code></td> <td><code>power(a,b)</code></td> <td><code>sympy.Pow(a,b)</code></td></tr>
         <tr><td><code>log(x)</code></td> <td><code>log(x)</code></td> <td><code>sympy.log(x)</code></td></tr>
         <tr><td><code>sqrt(x)</code></td> <td><code>sqrt(x)</code></td> <td><code>sympy.sqrt(x)</code></td></tr>
         <tr><td><code>-x</code></td> <td><code>-x</code></td> <td><code>-x</code></td></tr>
@@ -324,15 +324,18 @@ ret=myfunc(m1/2);
         <tr><td><code>sign(x)</code></td> <td><code>sign(x)</code></td> <td><code>sympy.sign(x)</code></td></tr>
         <tr><td><code>heaviside(x)</code></td> <td><code>heaviside(x)</code></td> <td><code>sympy.Heaviside(x)</code></td></tr>
         <tr><td><code>abs(x)</code></td> <td><code>abs(x)</code></td> <td><code>sympy.Abs(x)</code></td></tr>
-        <tr><td><code>min(a,b)</code></td> <td><code>min(a,b)</code></td> <td><code>sympy.Min(a,b)</code> (*)</td></tr>
-        <tr><td><code>max(a,b)</code></td> <td><code>max(a,b)</code></td> <td><code>sympy.Max(a,b)</code> (*)</td></tr>
-        <tr><td><code>condition(c,gt,le)</code></td> <td><code>condition(c,gt,le)</code></td> <td><code>sympy.Piecewise((gt, c>0), (le, True))</code> (*) (**)</td></tr>
+        <tr><td><code>min(a,b)</code></td> <td><code>min([a;b])</code> <a href="#fn03" role="doc-noteref">[3]</a></td> <td><code>sympy.Min(a,b)</code> <a href="#fn01" role="doc-noteref">[1]</a></td></tr>
+        <tr><td><code>max(a,b)</code></td> <td><code>max([a;b])</code> <a href="#fn03" role="doc-noteref">[3]</a></td> <td><code>sympy.Max(a,b)</code> <a href="#fn01" role="doc-noteref">[1]</a></td></tr>
+        <tr><td><code>condition(c,gt,le)</code></td> <td><code>condition(c,gt,le)</code></td> <td><code>sympy.Piecewise((gt, c>0), (le, True))</code> <a href="#fn01" role="doc-noteref">[1]</a> <a href="#fn02" role="doc-noteref">[2]</a></td></tr>
       </tbody>
     </table>
-    <p>
-      (*) more than two arguments are supported. If so, the function is converted to a corresponding nested set of functions with proper number of arguments.<br/>
-      (**) the condition (<code>c&gt;0</code>) can be <code>True</code>, <code>False</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> or <code>&lt;=</code>. The condition is then converted accordingly. If none of the conditions evaluates to true 0 is used (python returns None in this case).
-    </p>
+    <footer>
+      <ol>
+        <li id="fn01" role="doc-footnote">more than two arguments are supported. If so, the function is converted to a corresponding nested set of functions with proper number of arguments.</li>
+        <li id="fn02" role="doc-footnote">the condition (<code>c&gt;0</code>) can be <code>True</code>, <code>False</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> or <code>&lt;=</code>. The condition is then converted accordingly. If none of the conditions evaluates to True, 0 is used (python uses None in this case).</li>
+        <li id="fn03" role="doc-footnote">the argument is a vector or a scalar. A vector argument is converted to a corresponding nested set of min/max functions with two arguments.</li>
+      </ol>
+    </footer>
 
     <h1><a id="embed" href="#embed-content">8 Embeding</a></h1>
     <p>Using the <span class="_element">&lt;pv:Embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>
