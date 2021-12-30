@@ -324,17 +324,17 @@ ret=myfunc(m1/2);
         <tr><td><code>sign(x)</code></td> <td><code>sign(x)</code></td> <td><code>sympy.sign(x)</code></td></tr>
         <tr><td><code>heaviside(x)</code></td> <td><code>heaviside(x)</code></td> <td><code>sympy.Heaviside(x)</code></td></tr>
         <tr><td><code>abs(x)</code></td> <td><code>abs(x)</code></td> <td><code>sympy.Abs(x)</code></td></tr>
-        <tr><td><code>min(a,b)</code></td> <td><code>min([a;b])</code> <a href="#fn03" role="doc-noteref">[3]</a></td> <td><code>sympy.Min(a,b)</code> <a href="#fn01" role="doc-noteref">[1]</a></td></tr>
-        <tr><td><code>max(a,b)</code></td> <td><code>max([a;b])</code> <a href="#fn03" role="doc-noteref">[3]</a></td> <td><code>sympy.Max(a,b)</code> <a href="#fn01" role="doc-noteref">[1]</a></td></tr>
-        <tr><td><code>condition(c,gt,le)</code></td> <td><code>condition(c,gt,le)</code></td> <td><code>sympy.Piecewise((gt, c>0), (le, True))</code> <a href="#fn01" role="doc-noteref">[1]</a> <a href="#fn02" role="doc-noteref">[2]</a></td></tr>
+        <tr><td><code>min(a,b)</code></td> <td><code>min([a;b])</code> <a href="#fn03">[3]</a></td> <td><code>sympy.Min(a,b)</code> <a href="#fn01">[1]</a></td></tr>
+        <tr><td><code>max(a,b)</code></td> <td><code>max([a;b])</code> <a href="#fn03">[3]</a></td> <td><code>sympy.Max(a,b)</code> <a href="#fn01">[1]</a></td></tr>
+        <tr><td><code>condition(c,gt,le)</code></td> <td><code>condition(c,gt,le)</code></td> <td><code>sympy.Piecewise((gt, c>0), (le, True))</code> <a href="#fn01">[1]</a> <a href="#fn02">[2]</a></td></tr>
       </tbody>
     </table>
     <footer>
-      <ol>
-        <li id="fn01" role="doc-footnote">more than two arguments are supported. If so, the function is converted to a corresponding nested set of functions with proper number of arguments.</li>
-        <li id="fn02" role="doc-footnote">the condition (<code>c&gt;0</code>) can be <code>True</code>, <code>False</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> or <code>&lt;=</code>. The condition is then converted accordingly. If none of the conditions evaluates to True, 0 is used (python uses None in this case).</li>
-        <li id="fn03" role="doc-footnote">the argument is a vector or a scalar. A vector argument is converted to a corresponding nested set of min/max functions with two arguments.</li>
-      </ol>
+      <ul class="list-group">
+        <li id="fn01">[1] more than two arguments are supported. If so, the function is converted to a corresponding nested set of functions with proper number of arguments.</li>
+        <li id="fn02">[2] the condition (<code>c&gt;0</code>) can be <code>True</code>, <code>False</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> or <code>&lt;=</code>. The condition is then converted accordingly. If none of the conditions evaluates to True, 0 is used (python uses None in this case).</li>
+        <li id="fn03">[3] the argument is a vector or a scalar. A vector argument is converted to a corresponding nested set of min/max functions with two arguments.</li>
+      </ul>
     </footer>
 
     <h1><a id="embed" href="#embed-content">8 Embeding</a></h1>
