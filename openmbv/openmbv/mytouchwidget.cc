@@ -448,7 +448,7 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
   // select object
   // if toggle, toggle selection of object
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
-  auto [_, pickedObject]=getObjectsByRay(pos);
+  auto pickedObject=getObjectsByRay(pos).second;
   int size=pickedObject.size();
   if(size>0) {
     int useObjIdx;
@@ -469,7 +469,7 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
   // if object is not selected, select object and show context menu
   // if object is selected, show context menu (for all selected objects)
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
-  auto [_, pickedObject]=getObjectsByRay(pos);
+  auto pickedObject=getObjectsByRay(pos).second;
   size_t size=pickedObject.size();
   if(size>0) {
     size_t useObjIdx;
@@ -493,7 +493,7 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
 
 void MyTouchWidget::seekToPoint(const QPoint &pos) {
   // seeks the focal point of the camera to the point on the shape under the cursor
-  auto [pickedPoints, _]=getObjectsByRay(pos);
+  auto pickedPoints=getObjectsByRay(pos).first;
   if(pickedPoints.getLength()==0 || pickedPoints[0]==nullptr)
     return;
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();

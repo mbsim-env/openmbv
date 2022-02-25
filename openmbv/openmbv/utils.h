@@ -191,7 +191,7 @@ class AppSettings {
     AppSettings();
     ~AppSettings();
     template<class T> T get(AS as) {
-      auto &[str, value]=setting[as];
+      auto &value=setting[as].second;
       return value.value<T>();
     }
     template<class T> void set(AS as, const T& newValue, bool callQSettings=false) {
