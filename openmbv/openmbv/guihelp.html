@@ -10,16 +10,15 @@
     <h2>Keyboard Interaction</h2>
 
     <h3>Global Shortcuts</h3>
+    <p>Many actions in the menus have assigned a keyboard shortcut. The shortcut key is shown on the right side of each menu entry.</p>
+    <p>Beside these also the following keyboard shortcuts exist:</p>
     <dl>
-      <dt><kbd>Right</kbd> or <kbd>J</kbd></dt> <dd>Go one frame up</dd>
-      <dt><kbd>Left</kbd> or <kbd>K</kbd></dt> <dd>Go one frame down</dd>
-      <dt><kbd>Page-Up</kbd></dt> <dd>Increase animation speed by 10%</dd>
-      <dt><kbd>Page-Down</kbd></dt> <dd>Decrease animation speed by 10%</dd>
+      <dt><kbd>Up</kbd> or <kbd>K</kbd></dt> <dd>Go one frame up</dd>
+      <dt><kbd>Down</kbd> or <kbd>J</kbd></dt> <dd>Go one frame down</dd>
+      <dt><kbd>Page-Up</kbd></dt> <dd>Increase animation speed</dd>
+      <dt><kbd>Page-Down</kbd></dt> <dd>Decrease animation speed</dd>
       <dt><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd>, <kbd>5</kbd>, <kbd>6</kbd>, <kbd>7</kbd>, <kbd>8</kbd> or <kbd>9</kbd></dt>
         <dd>Expand object list to depth</dd>
-      <dt><kbd>P</kbd></dt> <dd>Play animation</dd>
-      <dt><kbd>L</kbd></dt> <dd>Show last frame</dd>
-      <dt><kbd>S</kbd></dt> <dd>Stop animation</dd>
     </dl>
 
     <h3>Object List Shortcuts</h3>
@@ -28,36 +27,53 @@
     </dl>
 
     <h2>Mouse Interaction</h2>
-    <p>All GUI elements behave like common GUI elements: try left, right and double-clicks.</p>
+    <p>All GUI elements behave like common GUI elements: try mouse and touch-screen events.</p>
 
     <h3>3D-View</h3>
 
-    <h4>Mouse Move Events</h4>
-    <dl>
-      <dt>Left-Button-Down + Move</dt> <dd>Rotate the entiry scene</dd>
-      <dt>Right-Button-Down + Move</dt> <dd>Translate the entiry scene</dd>
-      <dt>Middle-Button-Down + Move</dt> <dd>Zoom the entiry scene</dd>
-      <dt><kbd>D</kbd>-Down + Left-Button-Down + Move</dt>
-        <dd>Manipulate a dragger. The dragger must be enabled using
-        the property menu of the body before</dd>
-      <dt><kbd>D+Shift</kbd>-Down + Left-Button-Down + Move</dt>
-        <dd>Manipulate a dragger in constraint motion. The dragger must
-        be enabled using the property menu of the body before</dd>
-    </dl>
+    <p>In the 3D view the following mouse and touch screen events exist:</p>
 
     <h4>Mouse Click Events</h4>
     <dl>
-      <dt>Left-Button-Click</dt> <dd>Select the object under the cursor</dd>
-      <dt>Right-Button-Click</dt> <dd>Select the object under the curser and show its the property menu</dd>
+      <dt>Left-Click</dt> <dd>Select the object under the cursor</dd>
+      <dt>Right-Click</dt> <dd>Select the object under the cursor and show its the context menu</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Left-Click</dt> <dd>Toggle the selection of the object under the cursor</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Right-Click</dt> <dd>Show context menu for selected objects</dd>
+      <dt><kbd>Alt</kbd>-Down + Left-Click</dt> <dd>If more then one object is under the cursor show a list of these objects before starting the Left-Click action</dd>
+      <dt><kbd>Alt</kbd>-Down + Right-Click</dt> <dd>if more then one object is under the cursor show a list of these objects before starting the Right-Click action</dd>
+      <dt>Middle-Click</dt> <dd>Seeks the focal point of the camera to the point on the shape under the cursor</dd>
+      <dt>Left-Double-Click</dt> <dd>Open the property dialog of the object under the cursor</dd>
     </dl>
+
+    <h4>Mouse Move Events</h4>
     <dl>
-      <dt><kbd>Ctrl</kbd>-Down + above action</dt> <dd>Toggle the selection of the object under the cursor instead of selecting</dd>
+      <dt>Left-Down + Move</dt> <dd>Rotate the scene around the axis in the screen plane</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Left-Down + Vertical-Move</dt> <dd>Rotate the scene in the screen plane</dd>
+      <dt>Right-Down + Move</dt> <dd>Translate the scene in the screen plane</dd>
+      <dt>Middle-Down + Vertical-Move</dt> <dd>Zoom the scene</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Middle-Down + Vertical-Move</dt> <dd>Change the focal distance of the camera while preserving the zoom (only relevant for perspective cameras)</dd>
+      <dt>Wheel-Up/Down</dt> <dd>Increase/decrease the current frame number</dd>
     </dl>
+
+    <h4>Touch-Screen Tap Events</h4>
     <dl>
-      <dt><kbd>Alt</kbd>-Down + above action</dt> <dd>Shows a menu of all objects under the cursor instead of using the first one</dd>
+      <dt>Tap</dt> <dd>Select the object under the cursor</dd>
+      <dt>Tap-and-Hold</dt> <dd>Select the object under the cursor and show its the context menu</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Tap</dt> <dd>Toggle the selection of the object under the cursor</dd>
+      <dt><kbd>Ctrl</kbd>-Down + Tap-and-Hold</dt> <dd>Show context menu for selected objects</dd>
+      <dt><kbd>Alt</kbd>-Down + Tap</dt> <dd>If more then one object is under the cursor show a list of these objects before starting the Left-Click action</dd>
+      <dt><kbd>Alt</kbd>-Down + Tap-and-Hold</dt> <dd>if more then one object is under the cursor show a list of these objects before starting the Right-Click action</dd>
+      <dt>Double-Tap</dt> <dd>Open the property dialog of the object under the cursor</dd>
     </dl>
+
+    <h4>Touch-Screen Move Events</h4>
     <dl>
-      <dt>Middle-Button-Click</dt> <dd>Seeks the focal point of the camera to the point on the shape under the cursor</dd>
+      <dt>1-Tap-Pan</dt> <dd>Rotate the scene around the axis in the screen plane</dd>
+      <dt>2-Tap-Pan</dt> <dd>Translate the scene in the screen plane</dd>
+      <dt>2-Tap-Pitch</dt> <dd>Zoom the scene</dd>
+      <dt>2-Tap-Rotate</dt> <dd>Rotate the scene in the screen plane (the two taps must rotate a large angle to start this event)</dd>
+      <dt><kbd>Ctrl</kbd>-Down + 2-Tap-Pitch</dt> <dd>Change the focal distance of the camera while preserving the zoom (only relevant for perspective cameras)</dd>
     </dl>
+
   </body>
 </html>

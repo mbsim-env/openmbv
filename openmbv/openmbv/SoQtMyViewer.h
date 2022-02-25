@@ -21,25 +21,26 @@
 #define _OPENMBVGUI_SOQTMYVIEWER_H_
 
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
-#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
+#include <Inventor/Qt/viewers/SoQtViewer.h>
 #include <QtCore/QEvent>
 #include <GL/gl.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/fields/SoMFColor.h>
 #include <Inventor/nodes/SoFont.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoScale.h>
 
 namespace OpenMBVGUI {
 
-class SoQtMyViewer : public SoQtExaminerViewer {
+class SoQtMyViewer : public SoQtViewer {
   public:
     SoQtMyViewer(QWidget *parent, int transparency);
     ~SoQtMyViewer() override;
-    void setSeekMode(SbBool enabled) override { SoQtExaminerViewer::setSeekMode(enabled); } // is protected
-    void seekToPoint(const SbVec3f& scenepos) { SoQtExaminerViewer::seekToPoint(scenepos); } // is protected
-    void myChangeCameraValues(SoCamera *cam) { changeCameraValues(cam); } // is protected
+    void changeCameraValues(SoCamera *cam) { SoQtViewer::changeCameraValues(cam); } // is protected
   protected:
-    SbBool processSoEvent(const SoEvent *event) override;
+    SbBool processSoEvent(const SoEvent *event) { return true; } // disable So events
     void actualRedraw() override;
+
     // for text in viewport
 
     SoSeparator *fgSep, *bgSep;

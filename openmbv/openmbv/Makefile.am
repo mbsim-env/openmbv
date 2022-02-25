@@ -40,6 +40,8 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   rigidbody.cc\
   compoundrigidbody.cc\
   SoQtMyViewer.cc \
+  mytouchwidget.cc\
+  touchtreewidget.cc\
   SoTransposeEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
@@ -149,6 +151,9 @@ libopenmbv_la_HEADERS = mainwindow.h\
   body.h\
   dynamiccoloredbody.h\
   SoQtMyViewer.h \
+  touchwidget.h \
+  mytouchwidget.h \
+  touchtreewidget.h \
   spineextrusion.h \
   coilspring.h \
   nurbsdisk.h \
@@ -175,6 +180,14 @@ libopenmbv_la_HEADERS = mainwindow.h\
 
 icondir = @datadir@/openmbv/icons
 dist_icon_DATA = openmbv.svg \
+  settings.svg \
+  time.svg \
+  mouse.svg \
+  touch.svg \
+  angle.svg \
+  zoom.svg \
+  speed.svg \
+  target.svg \
   cuboid.svg \
   cube.svg \
   coilspring.svg \
@@ -183,9 +196,7 @@ dist_icon_DATA = openmbv.svg \
   frame.svg \
   group.svg \
   h5file.svg \
-  unloadfile.svg \
   addfile.svg \
-  savefile.svg \
   newfile.svg \
   quit.svg \
   viewall.svg \
@@ -240,6 +251,7 @@ dist_icon_DATA = openmbv.svg \
   complexityvalue.svg \
   newobject.svg \
   deleteobject.svg \
+  seektopoint.svg \
   cover.png \
   knurl.png
 

@@ -39,8 +39,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerViewer(parent) {
-  setDecoration(false);
+SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
   switch(transparency) {
     case 2:
       setAlphaChannel(true);
@@ -51,7 +50,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
       setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
       break;
   }
-  setAnimationEnabled(false);
   setSeekTime(1);
   setCameraType(SoOrthographicCamera::getClassTypeId());
 
@@ -118,7 +116,8 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtExaminerView
   auto *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
   QIcon icon=Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str());
-  QImage image=icon.pixmap(100, 100).toImage();
+  QFontInfo fontinfo(parent->font());
+  QImage image=icon.pixmap(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5).toImage();
   int w=image.width();
   int h=image.height();
   // reorder image data
@@ -157,35 +156,16 @@ SoQtMyViewer::~SoQtMyViewer() {
   fgSep->unref();
   bgSep->unref();
 }
-
-SbBool SoQtMyViewer::processSoEvent(const SoEvent *const event) {
-  // if D is down unset viewing
-  if(event->isOfType(SoKeyboardEvent::getClassTypeId())) {
-    auto *e=(SoKeyboardEvent*)event;
-    if(e->getKey()==SoKeyboardEvent::D) {
-      if(e->getState()==SoKeyboardEvent::DOWN)
-        setViewing(false);
-      else if(e->getState()==SoKeyboardEvent::UP)
-        setViewing(true);
-      return true;
-    }
-  }
-  
-  if(MainWindow::getInstance()->soQtEventCB(event))
-    return true;
-  else
-    return SoQtExaminerViewer::processSoEvent(event);
-}
-
+ 
 void SoQtMyViewer::actualRedraw() {
+  glClear(GL_DEPTH_BUFFER_BIT);
   // background
   getGLRenderAction()->apply(bgSep);
 
   // draw scene
-  SoQtExaminerViewer::actualRedraw();
+  SoQtViewer::actualRedraw();
 
   // foreground (time and OpenMBV)
-  glClear(GL_DEPTH_BUFFER_BIT);
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
   float ypos=font->size.getValue()+3;

@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_UTILS_H_
 
 #include <QIcon>
+#include <QDialog>
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoScale.h>
@@ -32,6 +33,7 @@
 #include <GL/glu.h>
 #include <openmbvcppinterface/object.h>
 #include <QTreeWidgetItem>
+#include <QSettings>
 #include <unordered_map>
 
 #ifdef WIN32
@@ -87,6 +89,8 @@ class Utils : virtual public fmatvec::Atom {
     static std::string getXMLDocPath();
     static std::string getDocPath();
 
+    static void enableTouch(QWidget *w);
+
 
     // TESSELATION
     static GLUtesselator *tess;
@@ -136,6 +140,79 @@ void Utils::visitTreeWidgetItems(QTreeWidgetItem *root, std::function<void (T)> 
   if((!onlySelected || root->isSelected()) && dynamic_cast<T>(root))
     func(static_cast<T>(root));
 }
+
+class IgnoreWheelEventFilter : public QObject {
+  public:
+    static IgnoreWheelEventFilter instance;
+  protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+};
+
+class AppSettings {
+  public:
+    enum AS {
+      tapAndHoldTimeout,
+      outlineShilouetteEdgeLineWidth,
+      outlineShilouetteEdgeLineColor,
+      complexityType,
+      complexityValue,
+      topBackgroudColor,
+      bottomBackgroundColor,
+      anglePerKeyPress,
+      speedChangeFactor,
+      shortAniTime,
+      mainwindow_geometry,
+      mainwindow_state,
+      settingsDialog_geometry,
+      exportdialog_resolutionfactor,
+      exportdialog_usescenecolor,
+      exportdialog_fps,
+      exportdialog_filename_png,
+      exportdialog_filename_video,
+      exportdialog_bitrate,
+      exportdialog_videocmd,
+      propertydialog_geometry,
+      mouseLeftMoveAction,
+      mouseRightMoveAction,
+      mouseMidMoveAction,
+      mouseLeftClickAction,
+      mouseRightClickAction,
+      mouseMidClickAction,
+      touchTapAction,
+      touchLongTapAction,
+      touchMove1Action,
+      touchMove2Action,
+      zoomFacPerPixel,
+      rotAnglePerPixel,
+      pickObjectRadius,
+      inScreenRotateSwitch,
+      SIZE,
+    };
+    AppSettings();
+    ~AppSettings();
+    template<class T> T get(AS as) {
+      auto &[str, value]=setting[as];
+      return value.value<T>();
+    }
+    template<class T> void set(AS as, const T& newValue, bool callQSettings=false) {
+      auto &[str, value]=setting[as];
+      value=newValue;
+      if(callQSettings)
+        qSettings.setValue(str, value);
+    }
+  private:
+    QSettings qSettings;
+    std::vector<std::pair<QString, QVariant>> setting;
+};
+
+extern std::unique_ptr<AppSettings> appSettings;
+
+class SettingsDialog : public QDialog {
+  public:
+    SettingsDialog(QWidget *parent);
+    void closeEvent(QCloseEvent *event);
+    void showEvent(QShowEvent *event);
+};
 
 }
 

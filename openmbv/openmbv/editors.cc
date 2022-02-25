@@ -10,7 +10,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QMenu>
-#include <QSettings>
+#include "utils.h"
 #include <cfloat>
 #include <mainwindow.h>
 #include <objectfactory.h>
@@ -37,10 +37,15 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : QDialog(MainWindow::get
   // Variant 1 for small widgets: i,0: Icon; i,1: Label; i,2: Widget
   // Variant 2 for large widgets: i,0: Icon; i,1: Label; i+1,1-2: Widget
   layout=new QGridLayout;
-  mainLayout->addLayout(layout, 1, 0);
   layout->setColumnStretch(0, 0);
   layout->setColumnStretch(1, 0);
   layout->setColumnStretch(2, 1);
+  scrollWidget=new QWidget;
+  scrollWidget->setLayout(layout);
+  scrollArea=new QScrollArea;
+  scrollArea->setWidgetResizable(true);
+  Utils::enableTouch(scrollArea);
+  mainLayout->addWidget(scrollArea, 1, 0);
 
   // set window title
   setWindowTitle("OpenMBV Property Editor");
@@ -68,6 +73,7 @@ PropertyDialog::~PropertyDialog() {
 }
 
 void PropertyDialog::openDialogSlot() {
+  scrollArea->setWidget(scrollWidget); // must be called after all widgets are added to "layout"
   show();
 }
 
@@ -99,7 +105,8 @@ void PropertyDialog::addContextAction(QAction *action) {
 void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget) {
   int row=layout->rowCount();
   QLabel *iconLabel=new QLabel;
-  iconLabel->setPixmap(icon.pixmap(16,16));
+  QFontInfo fontinfo(font());
+  iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel((name+":").c_str()), row, 1);
   layout->addWidget(widget, row, 2);
@@ -108,7 +115,8 @@ void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QWi
 void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QWidget *widget) {
   int row=layout->rowCount();
   QLabel *iconLabel=new QLabel;
-  iconLabel->setPixmap(icon.pixmap(16,16));
+  QFontInfo fontinfo(font());
+  iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel((name+":").c_str()), row, 1, 1, 2);
   layout->addWidget(widget, row+1, 1, 1, 2);
@@ -117,7 +125,8 @@ void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QWi
 void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QLayout *subLayout) {
   int row=layout->rowCount();
   QLabel *iconLabel=new QLabel;
-  iconLabel->setPixmap(icon.pixmap(16,16));
+  QFontInfo fontinfo(font());
+  iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel((name+":").c_str()), row, 1);
   layout->addLayout(subLayout, row, 2);
@@ -126,7 +135,8 @@ void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QLa
 void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QLayout *subLayout) {
   int row=layout->rowCount();
   QLabel *iconLabel=new QLabel;
-  iconLabel->setPixmap(icon.pixmap(16,16));
+  QFontInfo fontinfo(font());
+  iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel((name+":").c_str()), row, 1, 1, 2);
   layout->addLayout(subLayout, row+1, 1, 1, 2);
@@ -142,14 +152,17 @@ void PropertyDialog::updateHeader() {
     header->setColumnStretch(1, 1);
     // display Object icon
     QLabel *objectIcon=new QLabel;
-    objectIcon->setPixmap(static_cast<QTreeWidgetItem*>(obj)->icon(0).pixmap(40,40));
+    QFontInfo fontinfo(font());
+    objectIcon->setPixmap(static_cast<QTreeWidgetItem*>(obj)->icon(0).pixmap(fontinfo.pixelSize()*3,fontinfo.pixelSize()*3));
     header->addWidget(objectIcon, 0, 0, 2, 1);
     // diaplay Object name
     header->addWidget(new QLabel("<big><b>"+
       QString(obj->metaObject()->className()).replace("OpenMBVGUI::", "")+ // remove the namespace
       " XML Values of</b></big>"), 0, 1);
     // diaplay Object path
-    header->addWidget(new QLabel(("<b>"+obj->getObject()->getFullName(true)+"</b>").c_str()), 1, 1);
+    auto *path=new QLabel(("<b>"+obj->getObject()->getFullName(true)+"</b>").c_str());
+    path->setWordWrap(true);
+    header->addWidget(path, 1, 1);
   }
 }
 
@@ -234,6 +247,7 @@ void Editor::replaceObject() {
 BoolEditor::BoolEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, const std::string &qtObjectName,
                        bool replaceObjOnChange_) : Editor(parent_, icon, name),replaceObjOnChange(replaceObjOnChange_) {
   checkbox=new QCheckBox;
+  checkbox->installEventFilter(&IgnoreWheelEventFilter::instance);
   connect(checkbox, &QCheckBox::stateChanged, this, &BoolEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, checkbox);
 
@@ -265,6 +279,7 @@ FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   // add the label and a spinbox for the value
   factor=1;
   spinBox=new QDoubleSpinBox;
+  spinBox->installEventFilter(&IgnoreWheelEventFilter::instance);
   spinBox->setSingleStep(0.01);
   spinBox->setRange(-DBL_MAX, DBL_MAX);
   spinBox->setDecimals(6);
@@ -318,6 +333,7 @@ FloatMatrixEditor::FloatMatrixEditor(PropertyDialog *parent_, const QIcon& icon,
   }
 
   table=new QTableWidget(rows, cols);
+  table->installEventFilter(&IgnoreWheelEventFilter::instance);
   layout->addWidget(table, 1, 0, 1, layoutCols);
 
   dialog->addLargeRow(icon, name, layout);
@@ -327,6 +343,7 @@ void FloatMatrixEditor::addRow() {
   table->setRowCount(table->rowCount()+1);
   for(int c=0; c<table->columnCount(); c++) {
     auto *cell=new QDoubleSpinBox;
+    cell->installEventFilter(&IgnoreWheelEventFilter::instance);
     table->setCellWidget(table->rowCount()-1, c, cell);
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
@@ -350,6 +367,7 @@ void FloatMatrixEditor::addColumn() {
   table->setColumnCount(table->columnCount()+1);
   for(int r=0; r<table->rowCount(); r++) {
     auto *cell=new QDoubleSpinBox;
+    cell->installEventFilter(&IgnoreWheelEventFilter::instance);
     table->setCellWidget(r, table->columnCount()-1, cell);
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
@@ -377,7 +395,7 @@ void FloatMatrixEditor::valueChangedSlot() {
     std::vector<double> vec;
     // get values from Qt
     vec.reserve((cols==1?table->rowCount():table->columnCount()));
-for(int i=0; i<(cols==1?table->rowCount():table->columnCount()); i++)
+    for(int i=0; i<(cols==1?table->rowCount():table->columnCount()); i++)
       vec.push_back(static_cast<QDoubleSpinBox*>(table->cellWidget(cols==1?i:0, cols==1?0:i))->value());
     // set values to OpenMBV
     ombvSetterVector(vec);
@@ -426,6 +444,7 @@ for(int c=0; c<table->columnCount(); c++)
 IntEditor::IntEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
   // add the label and a spinbox for the value
   spinBox=new QSpinBox;
+  spinBox->installEventFilter(&IgnoreWheelEventFilter::instance);
   spinBox->setRange(INT_MIN, INT_MAX);
   spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).width("-888.888888000"));
   connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &IntEditor::valueChangedSlot);
@@ -445,6 +464,7 @@ void IntEditor::valueChangedSlot(int newValue) {
 StringEditor::StringEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
   // add the label and a lineEdit for the value
   lineEdit=new QLineEdit;
+  lineEdit->installEventFilter(&IgnoreWheelEventFilter::instance);
   connect(lineEdit, &QLineEdit::textChanged, this, &StringEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, lineEdit);
 }
@@ -464,6 +484,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
 
   // add the label and a comboBox for the value
   comboBox=new QComboBox;
+  comboBox->installEventFilter(&IgnoreWheelEventFilter::instance);
   for(const auto & i : list)
     comboBox->addItem(get<2>(i), get<1>(i).c_str(), QVariant(get<0>(i)));
   connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ComboBoxEditor::valueChangedSlot);
@@ -509,6 +530,7 @@ Vec3fEditor::Vec3fEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   auto *box=new QHBoxLayout;
   for(auto & i : spinBox) {
     i=new QDoubleSpinBox;
+    i->installEventFilter(&IgnoreWheelEventFilter::instance);
     i->setSingleStep(0.01);
     i->setRange(-DBL_MAX, DBL_MAX);
     i->setDecimals(6);
@@ -585,6 +607,8 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
   for(int i=0; i<3; i++) {
     spinBox[i  ]=new QDoubleSpinBox;
     spinBox[i+3]=new QDoubleSpinBox;
+    spinBox[i  ]->installEventFilter(&IgnoreWheelEventFilter::instance);
+    spinBox[i+3]->installEventFilter(&IgnoreWheelEventFilter::instance);
     spinBox[i  ]->setRange(-DBL_MAX, DBL_MAX);
     spinBox[i+3]->setRange(0, 360); // degree
     spinBox[i  ]->setSingleStep(0.01);
@@ -743,14 +767,12 @@ NotAvailableEditor::NotAvailableEditor(PropertyDialog *parent_, const QIcon &ico
 }
 
 void PropertyDialog::closeEvent(QCloseEvent *event) {
-  QSettings settings;
-  settings.setValue("propertydialog/geometry", saveGeometry());
+  appSettings->set(AppSettings::propertydialog_geometry, saveGeometry());
   QDialog::closeEvent(event);
 }
 
 void PropertyDialog::showEvent(QShowEvent *event) {
-  QSettings settings;
-  restoreGeometry(settings.value("propertydialog/geometry").toByteArray());
+  restoreGeometry(appSettings->get<QByteArray>(AppSettings::propertydialog_geometry));
   QDialog::showEvent(event);
 }
 

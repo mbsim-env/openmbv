@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg9"
+   sodipodi:docname="speed.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata15">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>ic_fluent_top_speed_24_filled</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs13" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="876"
+     inkscape:window-height="480"
+     id="namedview11"
+     showgrid="false"
+     inkscape:zoom="9.8333333"
+     inkscape:cx="13.220339"
+     inkscape:cy="12"
+     inkscape:window-x="154"
+     inkscape:window-y="212"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg9" />
+  <!-- Uploaded to SVGRepo https://www.svgrepo.com -->
+  <title
+     id="title2">ic_fluent_top_speed_24_filled</title>
+  <desc
+     id="desc4">Created with Sketch.</desc>
+  <g
+     id="🔍-Product-Icons"
+     style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
+     transform="matrix(0.76952598,0,0,0.76952598,-1.2694086,-0.83762017)">
+    <g
+       id="ic_fluent_top_speed_24_filled"
+       style="fill:#212121;fill-rule:nonzero">
+      <path
+         d="m 10.049253,15.420857 6.256755,-8.4759215 c 0.207132,-0.2805994 0.590267,-0.3640173 0.895308,-0.1949306 0.274554,0.1521878 0.409204,0.4663893 0.339987,0.7642007 l -0.03071,0.098419 -3.870065,9.7989974 C 13.220532,18.475051 12.017979,18.996656 10.95455,18.57666 10.87108,18.54369 10.78984,18.50533 10.711347,18.461825 9.7110805,17.907369 9.3496805,16.647017 9.904137,15.646752 L 9.97303,15.53145 v 0 l 0.076223,-0.110593 6.256755,-8.4759215 z m 8.560264,-8.0068867 c 0.754551,0.6113115 1.437455,1.3368625 2.02221,2.1719802 0.524503,0.7490665 1.029531,1.6560745 1.319976,2.3983405 0.150936,0.385735 -0.03941,0.820792 -0.425141,0.971728 -0.385734,0.150936 -0.820792,-0.03941 -0.971728,-0.42514 -0.09729,-0.248641 -0.227123,-0.52622 -0.377279,-0.811811 l -2.049504,1.183278 c -0.358719,0.207107 -0.817412,0.0842 -1.024519,-0.274519 -0.189848,-0.328826 -0.102393,-0.741657 0.189807,-0.967704 l 0.08471,-0.05682 2.018253,-1.166877 -0.230426,-0.313711 C 18.841995,9.7001634 18.487666,9.3132945 18.108156,8.9630418 l 0.380162,-0.9642779 c 0.03789,-0.095932 0.06671,-0.1934188 0.08684,-0.2914595 l 0.0237,-0.1473513 z M 15.980948,5.8527152 c -0.149049,0.08656 -0.286417,0.1966469 -0.406572,0.328627 l -0.114213,0.1392175 -0.54096,0.7329366 C 14.21744,6.8095594 13.488676,6.6517272 12.750242,6.5830553 L 12.75,9.2558992 c 0,0.4142136 -0.335786,0.7499998 -0.75,0.7499998 -0.379696,0 -0.693491,-0.2821536 -0.743153,-0.6482292 L 11.25,9.2558992 11.249614,6.5666208 C 9.6529408,6.6801544 8.0655159,7.2142594 6.6588953,8.1991857 5.8429458,8.7705197 5.1315282,9.5214287 4.5401598,10.403888 l 2.082215,1.202084 c 0.3587194,0.207107 0.4816258,0.665799 0.274519,1.024519 -0.1898479,0.328826 -0.5910979,0.459504 -0.9329598,0.319475 L 5.8723748,12.90501 3.7981825,11.708023 C 3.6704134,11.974242 3.5517727,12.248307 3.4425585,12.529294 3.2924981,12.91537 2.8578736,13.106698 2.4717975,12.956638 2.0857214,12.806577 1.8943929,12.371953 2.0444534,11.985877 2.850903,9.9110395 4.1237405,8.1431583 5.7985307,6.9704576 8.8904309,4.8054858 12.732883,4.5119546 15.980948,5.8527152 Z"
+         id="🎨-Color"
+         inkscape:connector-curvature="0" />
+    </g>
+  </g>
+</svg>

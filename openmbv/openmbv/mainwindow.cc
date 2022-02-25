@@ -22,6 +22,7 @@
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 #include "mainwindow.h"
+#include "mytouchwidget.h"
 #include <algorithm>
 #include <Inventor/Qt/SoQt.h>
 #include <QDesktopWidget>
@@ -31,7 +32,6 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QFileDialog>
-#include <QtGui/QMouseEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QToolBar>
@@ -42,21 +42,20 @@
 #include <QtCore/QTemporaryDir>
 #include <QShortcut>
 #include <QMimeData>
-#include <QSettings>
+#include <QScroller>
+#include "utils.h"
 #include <QMetaMethod>
+#include <QTapAndHoldGesture>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
-#include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/nodes/SoShapeHints.h>
-#include <Inventor/events/SoMouseButtonEvent.h>
-#include <Inventor/events/SoLocation2Event.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoComplexity.h>
@@ -75,6 +74,7 @@
 #include <Inventor/SoPickedPoint.h>
 #include "IndexedTesselationFace.h"
 #include "utils.h"
+#include "touchtreewidget.h"
 #include <boost/dll.hpp>
 
 using namespace std;
@@ -91,6 +91,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
+
   // If <local>/lib/dri exists use it as load path for GL DRI drivers.
   // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
   if(boost::filesystem::exists(installPath/"lib"/"dri")) {
@@ -127,6 +128,11 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   engDrawingFGColorBottomSaved=new SoMFColor();
   engDrawingFGColorTopSaved=new SoMFColor();
 
+  shortAniTimer=new QTimer(this);
+  shortAniTimer->setInterval(1000/25);
+  shortAniElapsed=new QElapsedTimer;
+  connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
+
   // main widget
   QWidget *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
@@ -134,7 +140,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
   // gl viewer
-  QWidget *glViewerWG=new QWidget(this);
+  glViewerWG=new MyTouchWidget(this);
   timeString=new SoText2;
   timeString->ref();
   bgColor=new SoMFColor;
@@ -237,13 +243,24 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
-  objectList = new QTreeWidget(objectListDW);
+  objectList = new TouchTreeWidget(objectListDW);
   objectListFilter=new AbstractViewFilter(objectList, 0, -1, "OpenMBVGUI::", &qTreeWidgetItemToQObject);
   objectListLO->addWidget(objectListFilter, 0,0);
   objectListLO->addWidget(objectList, 1,0);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  objectList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  Utils::enableTouch(objectList);
+  objectList->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(objectList,&QTreeWidget::customContextMenuRequested, [this](const QPoint &pos){
+    execPropertyMenu();
+    frame->touch(); // force rendering the scene
+  });
   connect(objectList,&QTreeWidget::pressed, this, &MainWindow::objectListClicked);
+  connect(objectList,&QTreeWidget::itemDoubleClicked, [this](QTreeWidgetItem *item){
+    if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
+      static_cast<Object*>(item)->getProperties()->openDialogSlot();
+  });
   connect(objectList,&QTreeWidget::itemCollapsed, this, &MainWindow::collapseItem);
   connect(objectList,&QTreeWidget::itemExpanded, this, &MainWindow::expandItem);
   connect(objectList,&QTreeWidget::itemSelectionChanged, this, &MainWindow::selectionChanged);
@@ -271,6 +288,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   objectInfoLO->addWidget(objectInfo, 0,0);
   objectInfo->setReadOnly(true);
   objectInfo->setLineWrapMode(QTextEdit::NoWrap);
+  Utils::enableTouch(objectInfo);
   connect(objectList,&QTreeWidget::currentItemChanged,this,&MainWindow::setObjectInfo);
 
   // menu bar
@@ -283,10 +301,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, &MainWindow::openFileDialog);
   fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, &MainWindow::newFileDialog);
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, &MainWindow::exportCurrentAsPNG, QKeySequence("Ctrl+P"));
+  act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, &MainWindow::exportCurrentAsPNG);
   addAction(act); // must work also if menu bar is invisible
   act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG-sequence...",
-    bind(&MainWindow::exportSequenceAsPNG, this, false), QKeySequence("Ctrl+Shift+P"));
+    bind(&MainWindow::exportSequenceAsPNG, this, false));
   addAction(act);
   act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as Video...",
     bind(&MainWindow::exportSequenceAsPNG, this, true));
@@ -295,11 +313,19 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, &MainWindow::exportCurrentAsPS);
   fileMenu->addSeparator();
   fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadWindowState));
-  act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, &MainWindow::saveWindowState, QKeySequence("Ctrl+W"));
+  act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, &MainWindow::saveWindowState);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadCamera));
-  act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, &MainWindow::saveCamera, QKeySequence("Ctrl+C"));
+  act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, &MainWindow::saveCamera);
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  addAction(act); // must work also if menu bar is invisible
+  fileMenu->addSeparator();
+  act=fileMenu->addAction(Utils::QIconCached("settings.svg"), "Settings...", [this](){
+    static QDialog *dialog=nullptr;
+    if(dialog==nullptr)
+      dialog=new SettingsDialog(this);
+    dialog->show();
+  });
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, &QApplication::quit);
@@ -353,43 +379,38 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   QMenu *spaceView=sceneViewMenu->addMenu(Utils::QIconCached("spaceview.svg"),"Space view");
   QAction *isometriViewAct=spaceView->addAction(Utils::QIconCached("isometricview.svg"),"Isometric", this, &MainWindow::viewIsometricSlot);
   QAction *dimetricViewAct=spaceView->addAction(Utils::QIconCached("dimetricview.svg"),"Dimetric", this, &MainWindow::viewDimetricSlot);
-  // QKeySequence("D") is used by SoQtMyViewer for dragger manipulation
   QMenu *rotateView=sceneViewMenu->addMenu(Utils::QIconCached("rotateview.svg"),"Rotate view");
-  act=rotateView->addAction("+10deg About World-X-Axis", this, &MainWindow::viewRotateXpWorld, QKeySequence("X"));
+  act=rotateView->addAction("About World-X-Axis", this, &MainWindow::viewRotateXpWorld, QKeySequence("X"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-X-Axis", this, &MainWindow::viewRotateXmWorld, QKeySequence("Shift+X"));
+  act=rotateView->addAction("About World-X-Axis", this, &MainWindow::viewRotateXmWorld, QKeySequence("Shift+X"));
   addAction(act);
-  act=rotateView->addAction("+10deg About World-Y-Axis", this, &MainWindow::viewRotateYpWorld, QKeySequence("Y"));
+  act=rotateView->addAction("About World-Y-Axis", this, &MainWindow::viewRotateYpWorld, QKeySequence("Y"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-Y-Axis", this, &MainWindow::viewRotateYmWorld, QKeySequence("Shift+Y"));
+  act=rotateView->addAction("About World-Y-Axis", this, &MainWindow::viewRotateYmWorld, QKeySequence("Shift+Y"));
   addAction(act);
-  act=rotateView->addAction("+10deg About World-Z-Axis", this, &MainWindow::viewRotateZpWorld, QKeySequence("Z"));
+  act=rotateView->addAction("About World-Z-Axis", this, &MainWindow::viewRotateZpWorld, QKeySequence("Z"));
   addAction(act);
-  act=rotateView->addAction("-10deg About World-Z-Axis", this, &MainWindow::viewRotateZmWorld, QKeySequence("Shift+Z"));
+  act=rotateView->addAction("About World-Z-Axis", this, &MainWindow::viewRotateZmWorld, QKeySequence("Shift+Z"));
   addAction(act);
   rotateView->addSeparator();
-  act=rotateView->addAction("+10deg About Screen-X-Axis", this, &MainWindow::viewRotateXpScreen, QKeySequence("Ctrl+X"));
+  act=rotateView->addAction("About Screen-X-Axis", this, &MainWindow::viewRotateXpScreen, QKeySequence("Ctrl+X"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-X-Axis", this, &MainWindow::viewRotateXmScreen, QKeySequence("Ctrl+Shift+X"));
+  act=rotateView->addAction("About Screen-X-Axis", this, &MainWindow::viewRotateXmScreen, QKeySequence("Ctrl+Shift+X"));
   addAction(act);
-  act=rotateView->addAction("+10deg About Screen-Y-Axis", this, &MainWindow::viewRotateYpScreen, QKeySequence("Ctrl+Y"));
+  act=rotateView->addAction("About Screen-Y-Axis", this, &MainWindow::viewRotateYpScreen, QKeySequence("Ctrl+Y"));
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-Y-Axis", this, &MainWindow::viewRotateYmScreen, QKeySequence("Ctrl+Shift+Y"));
+  act=rotateView->addAction("About Screen-Y-Axis", this, &MainWindow::viewRotateYmScreen, QKeySequence("Ctrl+Shift+Y"));
   addAction(act);
-  act=rotateView->addAction("+10deg About Screen-Z-Axis", this, &MainWindow::viewRotateZpScreen, QKeySequence("Ctrl+Z"));
+  act=rotateView->addAction("About Screen-Z-Axis", this, &MainWindow::viewRotateZpScreen, QKeySequence("Ctrl+Z"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
-  act=rotateView->addAction("-10deg About Screen-Z-Axis", this, &MainWindow::viewRotateZmScreen, QKeySequence("Ctrl+Shift+Z"));
+  act=rotateView->addAction("About Screen-Z-Axis", this, &MainWindow::viewRotateZmScreen, QKeySequence("Ctrl+Shift+Z"));
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act);
   sceneViewMenu->addSeparator();
   act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, &MainWindow::showWorldFrameSlot, QKeySequence("W"));
   act->setCheckable(true);
-  sceneViewMenu->addAction(Utils::QIconCached("olselinewidth.svg"),"Outline and shilouette edge line width...", this, &MainWindow::olseLineWidthSlot);
-  sceneViewMenu->addAction(Utils::QIconCached("olsecolor.svg"),"Outline and shilouette edge color...", this, &MainWindow::olseColorSlot);
-  sceneViewMenu->addAction(Utils::QIconCached("complexitytype.svg"),"Complexity type...", this, &MainWindow::complexityType);
-  sceneViewMenu->addAction(Utils::QIconCached("complexityvalue.svg"),"Complexity value...", this, &MainWindow::complexityValue);
   sceneViewMenu->addSeparator();
   QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, &MainWindow::toggleCameraTypeSlot, QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
@@ -399,8 +420,6 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
   engDrawingView->setStatusTip(engDrawingView->toolTip());
   engDrawingView->setCheckable(true);
-  topBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Top background color...", this, &MainWindow::topBGColor);
-  bottomBGColorAct=sceneViewMenu->addAction(Utils::QIconCached("bgcolor.svg"),"Bottom background color...", this, &MainWindow::bottomBGColor);
   menuBar()->addMenu(sceneViewMenu);
 
   // gui view menu
@@ -484,7 +503,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   speedLO->addWidget(speedL, 0, 0);
   speedLO->addWidget(speedSB, 1, 0);
   speedWheel=new QwtWheel(this);
-  speedWheel->setWheelWidth(10);
+  speedWheel->setWheelWidth(15);
   connect(speedWheel, &QwtWheel::valueChanged, this, &MainWindow::speedWheelChangedD);
   connect(speedWheel, &QwtWheel::wheelPressed, this, &MainWindow::speedWheelPressed);
   connect(speedWheel, &QwtWheel::wheelReleased, this, &MainWindow::speedWheelReleased);
@@ -511,10 +530,10 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::frameSBSetRange);
   connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::restartPlay);
   connect(timeSlider, &QTripleSlider::currentRangeChanged, this, &MainWindow::frameMinMaxSetValue);
-  connect(new QShortcut(QKeySequence(Qt::Key_Right),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
-  connect(new QShortcut(QKeySequence(Qt::Key_Left),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
-  connect(new QShortcut(QKeySequence(Qt::Key_J),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
-  connect(new QShortcut(QKeySequence(Qt::Key_K),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
+  connect(new QShortcut(QKeySequence(Qt::Key_Up),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
+  connect(new QShortcut(QKeySequence(Qt::Key_Down),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
+  connect(new QShortcut(QKeySequence(Qt::Key_K),this), &QShortcut::activated, frameSB, &QSpinBox::stepUp);
+  connect(new QShortcut(QKeySequence(Qt::Key_J),this), &QShortcut::activated, frameSB, &QSpinBox::stepDown);
   // min frame spin box
   frameMinSB=new QSpinBox;
   frameMinSB->setMinimumSize(55,0);
@@ -594,65 +613,15 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   olseDrawStyle->ref();
   olseDrawStyle->style.setValue(SoDrawStyle::LINES);
   olseDrawStyle->lineWidth.setValue(1);
-  if((i=std::find(arg.begin(), arg.end(), "--olselinewidth"))!=arg.end()) {
-    i2=i; i2++;
-    olseDrawStyle->lineWidth.setValue(QString(i2->c_str()).toDouble());
-    arg.erase(i); arg.erase(i2);
-  }
 
   // complexity
   complexity->type.setValue(SoComplexity::SCREEN_SPACE);
-  if((i=std::find(arg.begin(), arg.end(), "--complexitytype"))!=arg.end()) {
-    i2=i; i2++;
-    if(*i2=="objectspace") complexity->type.setValue(SoComplexity::OBJECT_SPACE);
-    if(*i2=="screenspace") complexity->type.setValue(SoComplexity::SCREEN_SPACE);
-    if(*i2=="boundingbox") complexity->type.setValue(SoComplexity::BOUNDING_BOX);
-    arg.erase(i); arg.erase(i2);
-  }
   complexity->value.setValue(0.2);
-  if((i=std::find(arg.begin(), arg.end(), "--complexityvalue"))!=arg.end()) {
-    i2=i; i2++;
-    complexity->value.setValue(QString(i2->c_str()).toDouble()/100);
-    arg.erase(i); arg.erase(i2);
-  }
 
   // color for outline and shilouette edges
   olseColor=new SoBaseColorHeavyOverride;
   olseColor->ref();
   olseColor->rgb.set1Value(0, 0,0,0);
-  if((i=std::find(arg.begin(), arg.end(), "--olsecolor"))!=arg.end()) {
-    i2=i; i2++;
-    QColor color(i2->c_str());
-    if(color.isValid()) {
-      QRgb rgb=color.rgb();
-      olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-    }
-    arg.erase(i); arg.erase(i2);
-  }
-
-  // background color
-  if((i=std::find(arg.begin(), arg.end(), "--topbgcolor"))!=arg.end()) {
-    i2=i; i2++;
-    QColor color(i2->c_str());
-    if(color.isValid()) {
-      QRgb rgb=color.rgb();
-      bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-    }
-    arg.erase(i); arg.erase(i2);
-  }
-  if((i=std::find(arg.begin(), arg.end(), "--bottombgcolor"))!=arg.end()) {
-    i2=i; i2++;
-    QColor color(i2->c_str());
-    if(color.isValid()) {
-      QRgb rgb=color.rgb();
-      bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-      fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-    }
-    arg.erase(i); arg.erase(i2);
-  }
 
   // close all docks and toolbars
   if((i=std::find(arg.begin(), arg.end(), "--closeall"))!=arg.end()) {
@@ -809,6 +778,45 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
     });
     timer->start(100);
   }
+
+  // apply settings
+  {
+    QTapAndHoldGesture::setTimeout(appSettings->get<int>(AppSettings::tapAndHoldTimeout));
+    olseDrawStyle->lineWidth.setValue(appSettings->get<double>(AppSettings::outlineShilouetteEdgeLineWidth));
+    auto color=appSettings->get<QColor>(AppSettings::outlineShilouetteEdgeLineColor);
+    auto rgb=color.rgb();
+    olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    int complexityType=appSettings->get<int>(AppSettings::complexityType);
+    complexity->type.setValue( complexityType==0 ? SoComplexity::OBJECT_SPACE :
+                              (complexityType==1 ? SoComplexity::SCREEN_SPACE :
+                                                   SoComplexity::BOUNDING_BOX));
+    complexity->value.setValue(appSettings->get<double>(AppSettings::complexityValue));
+    color=appSettings->get<QColor>(AppSettings::topBackgroudColor);
+    rgb=color.rgb();
+    bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    color=appSettings->get<QColor>(AppSettings::bottomBackgroundColor);
+    rgb=color.rgb();
+    bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+
+    glViewerWG->setMouseLeftMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction)));
+    glViewerWG->setMouseRightMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction)));
+    glViewerWG->setMouseMidMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction)));
+    glViewerWG->setMouseLeftClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseLeftClickAction)));
+    glViewerWG->setMouseRightClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseRightClickAction)));
+    glViewerWG->setMouseMidClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseMidClickAction)));
+    glViewerWG->setTouchTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchTapAction)));
+    glViewerWG->setTouchLongTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction)));
+    glViewerWG->setTouchMove1Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action)));
+    glViewerWG->setTouchMove2Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action)));
+    glViewerWG->setZoomFacPerPixel(appSettings->get<double>(AppSettings::zoomFacPerPixel));
+    glViewerWG->setRotAnglePerPixel(appSettings->get<double>(AppSettings::rotAnglePerPixel));
+    glViewerWG->setPickObjectRadius(appSettings->get<double>(AppSettings::pickObjectRadius));
+    glViewerWG->setInScreenRotateSwitch(appSettings->get<double>(AppSettings::inScreenRotateSwitch));
+  }
 }
 
 MainWindow* const MainWindow::getInstance() {
@@ -942,10 +950,16 @@ void MainWindow::toggleAction(Object *current, QAction *currentAct) {
     if(action->objectName()==currentAct->objectName() && currentAct!=action)
       action->trigger();
 }
-void MainWindow::execPropertyMenu() {
+void MainWindow::execPropertyMenu(const std::vector<QAction*> &additionalActions) {
   auto *object=(Object*)objectList->currentItem();
   QMenu* menu=object->getProperties()->getContextMenu();
+  for(auto &a: additionalActions)
+    menu->addAction(a);
   QAction *currentAct=menu->exec(QCursor::pos());
+  for(auto &a: additionalActions) {
+    menu->removeAction(a);
+    delete a;
+  }
   // if action is not NULL and the action has a object name trigger also the actions with
   // the same name of all other selected objects
   if(currentAct && currentAct->objectName()!="")
@@ -953,10 +967,6 @@ void MainWindow::execPropertyMenu() {
 }
 
 void MainWindow::objectListClicked() {
-  if(QApplication::mouseButtons()==Qt::RightButton) {
-    execPropertyMenu();
-    frame->touch(); // force rendering the scene
-  }
   if(!objectList->currentItem()) return;
   objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
                  static_cast<Object*>(objectList->currentItem()));
@@ -972,6 +982,7 @@ void MainWindow::guiHelp() {
     gui->setLayout(layout);
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 0);
+    Utils::enableTouch(text);
     text->setReadOnly(true);
     boost::filesystem::ifstream file(boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"doc"/"guihelp.html");
     string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -996,10 +1007,12 @@ void MainWindow::aboutOpenMBV() {
     about->setLayout(layout);
     QLabel *icon=new QLabel;
     layout->addWidget(icon, 0, 0, Qt::AlignTop);
+    QFontInfo fontinfo(font());
     icon->setPixmap(Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg")
-                    .string().c_str()).pixmap(64,64));
+                    .string().c_str()).pixmap(fontinfo.pixelSize()*3,fontinfo.pixelSize()*3));
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 1);
+    Utils::enableTouch(text);
     text->setReadOnly(true);
     text->setHtml(
       "<h1>OpenMBV - Open Multi Body Viewer</h1>"
@@ -1021,325 +1034,136 @@ void MainWindow::aboutOpenMBV() {
 }
 
 void MainWindow::viewChange(ViewSide side) {
+  auto rotateTo=[this](const SbRotation &cameraOri, bool noAni=false){
+    auto *camera=glViewer->getCamera();
+    auto initialCameraOri=camera->orientation.getValue();
+    SbMatrix oriMatrix;
+    initialCameraOri.getValue(oriMatrix);
+    SbVec3f initialCameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
+    auto initialCameraPos=camera->position.getValue();
+    auto toPoint=initialCameraPos-initialCameraVec*camera->focalDistance.getValue();
+    cameraOri.getValue(oriMatrix);
+    SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
+    auto cameraPos=toPoint+cameraVec*camera->focalDistance.getValue();
+    auto relOri=initialCameraOri.inverse()*cameraOri;
+    SbVec3f axis;
+    float angle;
+    relOri.getValue(axis, angle);
+    startShortAni([camera, initialCameraPos, cameraPos, initialCameraOri, axis, angle](double c){
+      camera->position.setValue(initialCameraPos + (cameraPos-initialCameraPos) * (0.5-0.5*cos(c*M_PI)));
+      SbRotation relOri(axis, angle*(0.5-0.5*cos(c*M_PI)));
+      camera->orientation.setValue(initialCameraOri*relOri);
+    }, noAni);
+  };
   SbRotation r, r2;
   SbVec3f n;
   switch(side) {
     case top:
-      glViewer->getCamera()->position.setValue(0,0,+1);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,1,0));
-      glViewer->viewAll();
+      rotateTo(SbMatrix( 1, 0,0,0,   0,1,0,0,    0, 0, 1,0,   0,0,0,1));
       break;
     case bottom:
-      glViewer->getCamera()->position.setValue(0,0,-1);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,1,0));
-      glViewer->viewAll();
+      rotateTo(SbMatrix(-1, 0,0,0,   0,1,0,0,    0, 0,-1,0,   0,0,0,1));
       break;
     case front:
-      glViewer->getCamera()->position.setValue(0,-1,0);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
-      glViewer->viewAll();
+      rotateTo(SbMatrix( 1, 0,0,0,   0,0,1,0,    0,-1, 0,0,   0,0,0,1));
       break;
     case back:
-      glViewer->getCamera()->position.setValue(0,+1,0);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
-      glViewer->viewAll();
+      rotateTo(SbMatrix(-1, 0,0,0,   0,0,1,0,    0, 1, 0,0,   0,0,0,1));
       break;
     case right:
-      glViewer->getCamera()->position.setValue(+1,0,0);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
-      glViewer->viewAll();
+      rotateTo(SbMatrix( 0, 1,0,0,   0,0,1,0,    1, 0, 0,0,   0,0,0,1));
       break;
     case left:
-      glViewer->getCamera()->position.setValue(-1,0,0);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
-      glViewer->viewAll();
+      rotateTo(SbMatrix( 0,-1,0,0,   0,0,1,0,   -1, 0, 0,0,   0,0,0,1));
       break;
     case isometric:
-      glViewer->getCamera()->position.setValue(1,1,1);
-      glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
-      glViewer->viewAll();
+      //glViewer->getCamera()->position.setValue(1,1,1);
+      //glViewer->getCamera()->pointAt(SbVec3f(0,0,0), SbVec3f(0,0,1));
+      rotateTo(SbMatrix(-0.707107,0.707107,0,0,   -0.408248,-0.408248,0.816497,0,   0.57735,0.57735,0.57735,0,   0,0,0,1));
       break;
     case dimetric:
-      glViewer->getCamera()->orientation.setValue(Utils::cardan2Rotation(SbVec3f(-1.227769277146394,0,1.227393504015536)));
-      glViewer->viewAll();
+      //glViewer->getCamera()->orientation.setValue(Utils::cardan2Rotation(SbVec3f(-1.227769277146394,0,1.227393504015536)));
+      rotateTo(SbMatrix(0.336693,-0.941614,0,0,   0.316702,0.113243,0.941741,0,   -0.886757,-0.317078,0.336339,0,   0,0,0,1));
       break;
     case rotateXpWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(-1,0,0), 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(-1,0,0), appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateXmWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(-1,0,0), -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(-1,0,0), -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateYpWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(0,-1,0), 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(0,-1,0), appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateYmWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(0,-1,0), -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(0,-1,0), -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateZpWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(0,0,-1), 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(0,0,-1), appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateZmWorld:
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(SbVec3f(0,0,-1), -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(SbVec3f(0,0,-1), -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateXpScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(-1,0,0),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateXmScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(-1,0,0),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateYpScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(0,-1,0),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateYmScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(0,-1,0),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateZpScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(0,0,-1),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, 10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
     case rotateZmScreen:
       r2=glViewer->getCamera()->orientation.getValue(); // camera orientation
       r2*=((SoSFRotation*)(cameraOrientation->outRotation[0]))->getValue(); // camera orientation relative to "Move Camera with Body"
       r2.multVec(SbVec3f(0,0,-1),n);
       r=glViewer->getCamera()->orientation.getValue();
-      r*=SbRotation(n, -10*M_PI/180);
-      glViewer->getCamera()->orientation.setValue(r);
+      r*=SbRotation(n, -appSettings->get<double>(AppSettings::anglePerKeyPress)*M_PI/180);
+      rotateTo(r, true);
       break;
   }
-}
-
-static void clearSoEvent(SoEvent *ev) {
-  ev->setShiftDown(false);
-  ev->setCtrlDown(false);
-  ev->setAltDown(false);
-  if(ev->isOfType(SoButtonEvent::getClassTypeId())) {
-    auto *bev=static_cast<SoButtonEvent*>(ev);
-    bev->setState(SoButtonEvent::UNKNOWN);
-  }
-  if(ev->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-    auto *mbev=static_cast<SoMouseButtonEvent*>(ev);
-    mbev->setButton(SoMouseButtonEvent::ANY);
-  }
-  if(ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
-    auto *kev=static_cast<SoKeyboardEvent*>(ev);
-    kev->setKey(SoKeyboardEvent::UNDEFINED);
-  }
-}
-
-bool MainWindow::soQtEventCB(const SoEvent *const event) {
-  static Mode mode=no;
-
-  if(event->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-    auto *ev=const_cast<SoMouseButtonEvent*>(static_cast<const SoMouseButtonEvent*>(event));
-    static QPoint buttonDownPoint;
-    static QElapsedTimer timer;
-    // save point whre button down was pressed
-    if(ev->getState()==SoButtonEvent::DOWN)
-      buttonDownPoint=QCursor::pos();
-    // detect a double click (at mouse up)
-    bool doubleClick=false;
-    if(ev->getState()==SoButtonEvent::UP) {
-      if(timer.isValid() && timer.restart()<QApplication::doubleClickInterval())
-        doubleClick=true;
-      if(!timer.isValid())
-        timer.start();
-    }
-    // button up without move of cursor => treat as button pressed
-    // Do not return inside this code block: the button up event must be processed (to reselect mode, ...)
-    if(ev->getState()==SoButtonEvent::UP && (QCursor::pos()-buttonDownPoint).manhattanLength()<=2) {
-      // get picked points by ray
-      SoRayPickAction pickAction(glViewer->getViewportRegion());
-      pickAction.setPoint(ev->getPosition());
-      pickAction.setRadius(3.0);
-      pickAction.setPickAll(true);
-      pickAction.apply(glViewer->getSceneManager()->getSceneGraph());
-      SoPickedPointList pickedPoints=pickAction.getPickedPointList();
-      // get objects by point/path
-      list<Body*> pickedObject;
-      float x=1e99, y=1e99, z=1e99;
-      msg(Info)<<"Clicked points:\n";
-      for(int i=0; pickedPoints[i]; i++) {
-        SoPath *path=pickedPoints[i]->getPath();
-        bool found=false;
-        for(int j=path->getLength()-1; j>=0; j--) {
-          auto it=Body::getBodyMap().find(path->getNode(j));
-          if(it!=Body::getBodyMap().end()) {
-            if(std::find(pickedObject.begin(), pickedObject.end(), it->second)==pickedObject.end())
-              pickedObject.push_back(it->second);
-            found=true;
-            break;
-          }
-        }
-        if(!found) continue;
-
-        // get picked point and delete the cameraPosition and cameraOrientation values (if camera moves with body)
-        SbVec3f delta;
-        cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
-        (delta+cameraPosition->vector[0]).getValue(x,y,z);
-
-        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((*(--pickedObject.end()))->object->getFullName(true).c_str());
-        statusBar()->showMessage(str);
-        msg(Info)<<str.toStdString()<<"\n";
-      }
-      msg(Info)<<endl;
-      // mid button clicked => seed rotation center to clicked point
-      if(ev->getButton()==SoMouseButtonEvent::BUTTON3 && pickedPoints[0]!=nullptr)
-        glViewer->seekToPoint(pickedPoints[0]->getPoint());
-      // if at least one object was picked
-      if(!pickedObject.empty()) {
-        bool objectClicked=false;
-        // left or right button clicked => select object
-        if(ev->getButton()==SoMouseButtonEvent::BUTTON1 || ev->getButton()==SoMouseButtonEvent::BUTTON2) {
-          // Alt was down => show menu of all objects under the clicked point and select the clicked object of this menu
-          if(ev->wasAltDown()) {
-            auto *menu=new QMenu(this);
-            int ind=0;
-            list<Body*>::iterator it;
-            for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-              QAction *action=new QAction((*it)->icon(0),(*it)->object->getFullName(true).c_str(),menu);
-              action->setData(QVariant(ind++));
-              menu->addAction(action);
-            }
-            QAction *action=menu->exec(QCursor::pos());
-            if(action!=nullptr) {
-              ind=action->data().toInt();
-              it=pickedObject.begin();
-              for(int i=0; i<ind; i++, it++);
-              objectList->setCurrentItem(*it,0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-              objectSelected((*it)->object->getID(), *it);
-              objectClicked=true;
-            }
-            delete menu;
-          }
-          // alt was not down => select the first object under the clicked point
-          else {
-            objectList->setCurrentItem(*pickedObject.begin(),0,ev->wasCtrlDown()?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-            objectSelected((*pickedObject.begin())->object->getID(), *pickedObject.begin());
-            objectClicked=true;
-          }
-          // right button => show context menu of picked object
-          if(ev->getButton()==SoMouseButtonEvent::BUTTON2 && objectClicked)
-            execPropertyMenu();
-        }
-        // left button double clicked (the first click has alread select a object)
-        if(ev->getButton()==SoMouseButtonEvent::BUTTON1 && doubleClick && objectClicked) {
-          // return the current item if existing or the first selected item
-          Object *object=static_cast<Object*>(objectList->currentItem()?objectList->currentItem():objectList->selectedItems().first());
-          // show properties dialog only if objectDoubleClicked is not connected to some other slot
-          if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
-            object->getProperties()->show();
-          objectDoubleClicked(object->object->getID(), object);
-        }
-      }
-    }
-    // on scroll frame up/down
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON4) {
-      frameSB->stepUp();
-      return true;
-    }
-    if(ev->getButton()==SoMouseButtonEvent::BUTTON5) {
-      frameSB->stepDown();
-      return true;
-    }
-    // pass left button to SoQt as left button
-    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON1) {
-      clearSoEvent(ev);
-      ev->setState(SoButtonEvent::DOWN);
-      ev->setButton(SoMouseButtonEvent::BUTTON1);
-      mode=rotate;
-      return false;
-    }
-    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON1) {
-      clearSoEvent(ev);
-      ev->setState(SoButtonEvent::UP);
-      ev->setButton(SoMouseButtonEvent::BUTTON1);
-      mode=no;
-      return false;
-    }
-    // pass right button to SoQt as mid button
-    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON2) {
-      clearSoEvent(ev);
-      ev->setState(SoButtonEvent::DOWN);
-      ev->setButton(SoMouseButtonEvent::BUTTON3);
-      mode=translate;
-      return false;
-    }
-    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON2) {
-      clearSoEvent(ev);
-      ev->setState(SoButtonEvent::UP);
-      ev->setButton(SoMouseButtonEvent::BUTTON3);
-      mode=no;
-      return false;
-    }
-    // pass mid button to SoQt as ctrl+mid button
-    if(ev->getState()==SoButtonEvent::DOWN && ev->getButton()==SoMouseButtonEvent::BUTTON3) {
-      clearSoEvent(ev);
-      ev->setCtrlDown(true);
-      ev->setState(SoButtonEvent::DOWN);
-      ev->setButton(SoMouseButtonEvent::BUTTON3);
-      mode=zoom;
-      return false;
-    }
-    if(ev->getState()==SoButtonEvent::UP && ev->getButton()==SoMouseButtonEvent::BUTTON3) {
-      clearSoEvent(ev);
-      ev->setCtrlDown(false);
-      ev->setState(SoButtonEvent::UP);
-      ev->setButton(SoMouseButtonEvent::BUTTON3);
-      mode=no;
-      return false;
-    }
-  }
-  if(event->isOfType(SoLocation2Event::getClassTypeId())) {
-    auto *ev=const_cast<SoLocation2Event*>(static_cast<const SoLocation2Event*>(event));
-    // if mode==zoom is active pass to SoQt with ctrl down
-    if(mode==zoom) {
-      clearSoEvent(ev);
-      ev->setCtrlDown(true);
-      return false;
-    }
-    // other mode's pass to SoQt
-    if(mode!=no) {
-      clearSoEvent(ev);
-      return false;
-    }
-  }
-  return true;
 }
 
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
@@ -1675,46 +1499,11 @@ void MainWindow::playSCSlot() {
 }
 
 void MainWindow::speedUpSlot() {
-  speedSB->setValue(speedSB->value()*1.1);
+  speedSB->setValue(speedSB->value()*appSettings->get<double>(AppSettings::speedChangeFactor));
 }
 
 void MainWindow::speedDownSlot() {
-  speedSB->setValue(speedSB->value()/1.1);
-}
-
-void MainWindow::topBGColor() {
-  float r,g,b;
-  (*bgColor)[2].getValue(r,g,b);
-  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
-  if(!color.isValid()) return;
-  QRgb rgb=color.rgb();
-  bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-}
-
-void MainWindow::bottomBGColor() {
-  float r,g,b;
-  (*bgColor)[0].getValue(r,g,b);
-  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
-  if(!color.isValid()) return;
-  QRgb rgb=color.rgb();
-  bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-}
-
-void MainWindow::olseColorSlot() {
-  float r,g,b;
-  olseColor->rgb.getValues(0)->getValue(r,g,b);
-  QColor color=QColorDialog::getColor(QColor((int)(r*255),(int)(g*255),(int)(b*255)));
-  if(!color.isValid()) return;
-  QRgb rgb=color.rgb();
-  olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-}
-
-void MainWindow::olseLineWidthSlot() {
-  olseDrawStyle->lineWidth.setValue(QInputDialog::getDouble(this, "Outline and shilouette edge...", "Line width: ", olseDrawStyle->lineWidth.getValue()));
+  speedSB->setValue(speedSB->value()/appSettings->get<double>(AppSettings::speedChangeFactor));
 }
 
 void MainWindow::loadWindowState() {
@@ -1783,11 +1572,11 @@ void MainWindow::loadCamera(string filename) {
   SoBase::read(&input, newCamera, SoCamera::getClassTypeId());
   if(newCamera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     glViewer->setCameraType(SoOrthographicCamera::getClassTypeId());
-    glViewer->myChangeCameraValues((SoCamera*)newCamera);
+    glViewer->changeCameraValues((SoCamera*)newCamera);
   }
   else if(newCamera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
     glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
-    glViewer->myChangeCameraValues((SoCamera*)newCamera);
+    glViewer->changeCameraValues((SoCamera*)newCamera);
   }
   else {
     QString str("Only SoPerspectiveCamera and SoOrthographicCamera are allowed!");
@@ -1909,10 +1698,13 @@ void MainWindow::showWorldFrameSlot() {
 
 void MainWindow::setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge) {
   for(int i=0; i<obj->childCount(); i++) {
-    auto *act=((Object*)obj->child(i))->findChild<QAction*>("Body::outLine");
-    if(act) act->setChecked(enableOutLine);
-    act=((Object*)obj->child(i))->findChild<QAction*>("Body::shilouetteEdge");
-    if(act) act->setChecked(enableShilouetteEdge);
+    auto acts=((Object*)obj->child(i))->getProperties()->getActions();
+    for(auto &act : acts) {
+      if(act->objectName()=="Body::outLine")
+        act->setChecked(enableOutLine);
+      if(act->objectName()=="Body::shilouetteEdge")
+        act->setChecked(enableShilouetteEdge);
+    }
     setOutLineAndShilouetteEdgeRecursive(obj->child(i), enableOutLine, enableShilouetteEdge);
   }
 }
@@ -1932,8 +1724,6 @@ void MainWindow::toggleEngDrawingViewSlot() {
     engDrawing->whichChild.setValue(SO_SWITCH_ALL); // enable engineering drawing
     setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, true); // enable outline and shilouetteEdge
     glViewer->getCamera()->orientation.touch(); // redraw, like for a camera change
-    topBGColorAct->setEnabled(false);
-    bottomBGColorAct->setEnabled(false);
   }
   else {
     *bgColor=*engDrawingBGColorSaved; // restore bg color
@@ -1941,26 +1731,7 @@ void MainWindow::toggleEngDrawingViewSlot() {
     *fgColorTop=*engDrawingFGColorTopSaved;
     engDrawing->whichChild.setValue(SO_SWITCH_NONE); // disable engineering drawing
     setOutLineAndShilouetteEdgeRecursive(objectList->invisibleRootItem(), true, false); // enable outline and disable shilouetteEdge
-    topBGColorAct->setEnabled(true);
-    bottomBGColorAct->setEnabled(true);
   }
-}
-
-void MainWindow::complexityType() {
-  QStringList typeItems;
-  typeItems<<"Object space"<<"Screen space"<<"Bounding box";
-  int current=0;
-  if(complexity->type.getValue()==SoComplexity::OBJECT_SPACE) current=0;
-  if(complexity->type.getValue()==SoComplexity::SCREEN_SPACE) current=1;
-  if(complexity->type.getValue()==SoComplexity::BOUNDING_BOX) current=2;
-  QString typeStr=QInputDialog::getItem(this, "Complexity...", "Type: ", typeItems, current, false);
-  if(typeStr=="Object space") complexity->type.setValue(SoComplexity::OBJECT_SPACE);
-  if(typeStr=="Screen space") complexity->type.setValue(SoComplexity::SCREEN_SPACE);
-  if(typeStr=="Bounding box") complexity->type.setValue(SoComplexity::BOUNDING_BOX);
-}
-
-void MainWindow::complexityValue() {
-  complexity->value.setValue(QInputDialog::getDouble(this, "Complexity...", "Value: ", complexity->value.getValue()*100, 0, 100, 1)/100);
 }
 
 void MainWindow::collapseItem(QTreeWidgetItem* item) {
@@ -2020,17 +1791,39 @@ void MainWindow::dropEvent(QDropEvent *event) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-  QSettings settings;
-  settings.setValue("mainwindow/geometry", saveGeometry());
-  settings.setValue("mainwindow/state", saveState());
+  appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
+  appSettings->set(AppSettings::mainwindow_state, saveState());
   QMainWindow::closeEvent(event);
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
-  QSettings settings;
-  restoreGeometry(settings.value("mainwindow/geometry").toByteArray());
-  restoreState(settings.value("mainwindow/state").toByteArray());
+  restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
+  restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
   QMainWindow::showEvent(event);
+}
+
+void MainWindow::shortAni() {
+  int cur=shortAniElapsed->elapsed();
+  if(cur==shortAniLast)
+    return;
+  shortAniLast=cur;
+  double c=static_cast<double>(cur)/appSettings->get<int>(AppSettings::shortAniTime);
+  if(c>=1) {
+    shortAniTimer->stop();
+    c=1;
+  }
+  if(shortAniFunc)
+    shortAniFunc(c);
+}
+
+void MainWindow::startShortAni(const std::function<void(double)> func, bool noAni) {
+  if(appSettings->get<int>(AppSettings::shortAniTime)==0 || noAni) {
+    func(1);
+    return;
+  }
+  shortAniFunc=func;
+  shortAniElapsed->start();
+  shortAniTimer->start();
 }
 
 }
