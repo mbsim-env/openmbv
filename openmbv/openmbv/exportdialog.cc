@@ -51,7 +51,10 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   if(sequence) {
     setWindowTitle("Export frame sequence as PNG"); // overwrite title
     row++;
-    fpsL.setText("Frames per second:");
+    if(!video)
+      fpsL.setText("Frames per second:");
+    else
+      fpsL.setText("Frames per second (%F):");
     dialogLO.addWidget(&fpsL, row, 0);
     fps.setRange(0,100);
     fps.setSingleStep(1);
@@ -91,7 +94,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   else {
     setWindowTitle("Export frame sequence as video"); // overwrite title
     row++;
-    fileNameL.setText("Video-File:");
+    fileNameL.setText("Video-File (%O):");
     dialogLO.addWidget(&fileNameL, row, 0);
     fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
     dialogLO.addWidget(&fileName, row, 1);
@@ -102,7 +105,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
       fileName.setText(name);
     });
     dialogLO.addWidget(&fileNameButton, row, 2);
-    bitRateL.setText("Bit-Rate [KiBit/s]:");
+    bitRateL.setText("Bit-Rate [KiBit/s] (%B):");
     row++;
     dialogLO.addWidget(&bitRateL, row, 0);
     bitRate.setRange(1,102400);

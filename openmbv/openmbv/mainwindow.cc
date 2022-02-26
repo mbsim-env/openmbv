@@ -1432,6 +1432,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
     QString videoCmd=dialog.getVideoCmd();
+    QFile(QFileInfo(fileName).absoluteFilePath()).remove();
     videoCmd.replace("%O", QFileInfo(fileName).absoluteFilePath());
     videoCmd.replace("%B", QString::number(dialog.getBitRate()*1024));
     videoCmd.replace("%F", QString::number(fps, 'f', 1));
