@@ -20,13 +20,12 @@
 #include "config.h"
 #include "exportdialog.h"
 #include <QFileDialog>
-#include <QSettings>
+#include "utils.h"
 #include "mainwindow.h"
 
 namespace OpenMBVGUI {
 
 ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog(parent) {
-  QSettings settings;
 
   int row=-1;
   setWindowTitle("Export current frame as PNG");
@@ -36,27 +35,30 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   dialogLO.addWidget(&scaleL, row, 0);
   scale.setRange(0.01, 100);
   scale.setSingleStep(0.1);
-  scale.setValue(settings.value("exportdialog/resolutionfactor", 1).toDouble());
+  scale.setValue(appSettings->get<double>(AppSettings::exportdialog_resolutionfactor));
   dialogLO.addWidget(&scale, row, 1, 1, 2);
   backgroundL.setText("Background:");
   row++;
   dialogLO.addWidget(&backgroundL, row, 0);
   colorBG.addButton(&transparentRB);
   transparentRB.setText("Transparent");
-  transparentRB.setChecked(!settings.value("exportdialog/usescenecolor", true).toBool());
+  transparentRB.setChecked(!appSettings->get<bool>(AppSettings::exportdialog_usescenecolor));
   dialogLO.addWidget(&transparentRB, row, 1);
   colorBG.addButton(&colorRB);
   colorRB.setText("Use scene color");
-  colorRB.setChecked(settings.value("exportdialog/usescenecolor", true).toBool());
+  colorRB.setChecked(appSettings->get<bool>(AppSettings::exportdialog_usescenecolor));
   dialogLO.addWidget(&colorRB, row, 2);
   if(sequence) {
     setWindowTitle("Export frame sequence as PNG"); // overwrite title
     row++;
-    fpsL.setText("Frames per second:");
+    if(!video)
+      fpsL.setText("Frames per second:");
+    else
+      fpsL.setText("Frames per second (%F):");
     dialogLO.addWidget(&fpsL, row, 0);
     fps.setRange(0,100);
     fps.setSingleStep(1);
-    fps.setValue(settings.value("exportdialog/fps", 25).toDouble());
+    fps.setValue(appSettings->get<double>(AppSettings::exportdialog_fps));
     fps.setDecimals(1);
     dialogLO.addWidget(&fps, row, 1, 1, 2);
     row++;
@@ -77,7 +79,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
                "appended to the base-file, e.g: openmbv_000341.png");
     fileNameL.setToolTip(tt);
     dialogLO.addWidget(&fileNameL, row, 0);
-    fileName.setText(settings.value("exportdialog/filename/png", "openmbv.png").toString());
+    fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_png));
     fileName.setToolTip(tt);
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
@@ -92,9 +94,9 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   else {
     setWindowTitle("Export frame sequence as video"); // overwrite title
     row++;
-    fileNameL.setText("Video-File:");
+    fileNameL.setText("Video-File (%O):");
     dialogLO.addWidget(&fileNameL, row, 0);
-    fileName.setText(settings.value("exportdialog/filename/video", "openmbv.webm").toString());
+    fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
     connect(&fileNameButton, &QPushButton::clicked, [this](){
@@ -103,12 +105,12 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
       fileName.setText(name);
     });
     dialogLO.addWidget(&fileNameButton, row, 2);
-    bitRateL.setText("Bit-Rate [KiBit/s]:");
+    bitRateL.setText("Bit-Rate [KiBit/s] (%B):");
     row++;
     dialogLO.addWidget(&bitRateL, row, 0);
     bitRate.setRange(1,102400);
     bitRate.setSingleStep(512);
-    bitRate.setValue(settings.value("exportdialog/bitrate", "2048").toInt());
+    bitRate.setValue(appSettings->get<int>(AppSettings::exportdialog_bitrate));
     dialogLO.addWidget(&bitRate, row, 1, 1, 2);
     QString tt("<p>Command to generate the video from a sequence of PNG-files:</p>"
                "<ul>"
@@ -123,9 +125,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     row++;
     dialogLO.addWidget(&videoCmdL, row, 0);
     row++;
-    videoCmd.setText(settings.value("exportdialog/videocmd",
-      "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 1 -f null /dev/null && "
-      "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 2 %O").toString());
+    videoCmd.setText(appSettings->get<QString>(AppSettings::exportdialog_videocmd));
     videoCmd.setToolTip(tt);
     dialogLO.addWidget(&videoCmd, row, 0, 1, 3);
   }
@@ -136,18 +136,17 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   ok.setDefault(true);
   ok.setText("OK");
   connect(&ok, &QPushButton::clicked, [this, sequence, video](){
-    QSettings settings;
-    settings.setValue("exportdialog/resolutionfactor", scale.value());
-    settings.setValue("exportdialog/usescenecolor", colorRB.isChecked());
+    appSettings->set(AppSettings::exportdialog_resolutionfactor, scale.value());
+    appSettings->set(AppSettings::exportdialog_usescenecolor, colorRB.isChecked());
     if(sequence)
-      settings.setValue("exportdialog/fps", fps.value());
+      appSettings->set(AppSettings::exportdialog_fps, fps.value());
     if(!video) {
-      settings.setValue("exportdialog/filename/png", fileName.text());
+      appSettings->set(AppSettings::exportdialog_filename_png, fileName.text());
     }
     else {
-      settings.setValue("exportdialog/filename/video", fileName.text());
-      settings.setValue("exportdialog/bitrate", bitRate.value());
-      settings.setValue("exportdialog/videocmd", videoCmd.toPlainText());
+      appSettings->set(AppSettings::exportdialog_filename_video, fileName.text());
+      appSettings->set(AppSettings::exportdialog_bitrate, bitRate.value());
+      appSettings->set(AppSettings::exportdialog_videocmd, videoCmd.toPlainText());
     }
     accept();
   });

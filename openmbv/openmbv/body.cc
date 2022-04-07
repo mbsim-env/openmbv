@@ -153,7 +153,7 @@ void Body::createProperties() {
 
   // GUI editors
   if(!clone) {
-    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outline");
+    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outLine");
     outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
     properties->addPropertyAction(outLineEditor->getAction());
 

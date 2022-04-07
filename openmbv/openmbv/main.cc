@@ -24,6 +24,7 @@
 #include <QFileInfo>
 #include <QSettings>
 #include "mainwindow.h"
+#include "utils.h"
 #ifdef _WIN32
 #  include <windows.h>
 #else
@@ -72,12 +73,10 @@ int main(int argc, char *argv[])
         <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
-        <<"               [--topbgcolor #XXXXXX] [--bottombgcolor #XXXXXX] [--closeall]"<<endl
+        <<"               [--closeall]"<<endl
         <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
-        <<"               [--headlight <file>] [--olselinewidth <linewidth>]"<<endl
-        <<"               [--complexitytype [objectspace|screenspace|boundingbox]]"<<endl
-        <<"               [--complexityvalue <value>] [--olsecolor #XXXXXX]"<<endl
+        <<"               [--headlight <file>]"<<endl
         <<"               [--transparency 1|2] [--hdf5RefreshDelta <ms>]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -86,9 +85,6 @@ int main(int argc, char *argv[])
         <<"--play             Start animation after loading"<<endl
         <<"--speed            Set the animation speed"<<endl
         <<"--lastframe        View last frame after loading"<<endl
-        <<"--topbgcolor       The color on the top of the background (red, green, blue"<<endl
-        <<"                   value in hex)"<<endl
-        <<"--bottombgcolor    The color on the bottom (see also --topbgcolor)"<<endl
         <<"--closeall         Start with all widgets closed except scene widget"<<endl
         <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
         <<"--geometry         Set the main(window) geometry"<<endl
@@ -99,11 +95,6 @@ int main(int argc, char *argv[])
         <<"--headlight        Load the given head light file (*.iv)"<<endl
         <<"                   (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen       Start in full screen mode"<<endl
-        <<"--olselinewidth    Line width of outlines and shilouette edges"<<endl
-        <<"--olsecolor        Color of outlines and shilouette edges"<<endl
-        <<"--complexitytype   The complexity type (see inventor SoComplexity.type)"<<endl
-        <<"--complexityvalue  The complexity value [0..100] (see inventor"<<endl
-        <<"                   SoComplexity.value)"<<endl
         <<"--transparency     1 = DELAYED_BLEND (default): fast; independent of graphic"<<endl
         <<"                       card; good results with only opaque objects and objects"<<endl
         <<"                       with similar transparency value."<<endl
@@ -133,6 +124,7 @@ int main(int argc, char *argv[])
   moduleName[s]=0; // null terminate
 #endif
   QCoreApplication::setLibraryPaths(QStringList(QFileInfo(moduleName).absolutePath())); // do not load plugins from buildin defaults
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
   QApplication app(argc, argv);
 #ifndef _WIN32
@@ -155,9 +147,11 @@ int main(int argc, char *argv[])
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
 
+
   OpenMBVGUI::MainWindow mainWindow(arg);
   mainWindow.show();
   if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
   mainWindow.updateScene(); // must be called after mainWindow.show()
-  return app.exec();
+  int ret=app.exec();
+  return ret;
 }

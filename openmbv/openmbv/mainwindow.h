@@ -30,6 +30,7 @@
 #include <QStatusBar>
 #include <QtCore/QTimer>
 #include <QtCore/QTime>
+#include <QElapsedTimer>
 #include <string>
 #include <mutex>
 #include "body.h"
@@ -37,7 +38,6 @@
 #include "SoSpecial.h"
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoEventCallback.h>
 #include <Inventor/engines/SoTransformVec3f.h>
 #include "SoTransposeEngine.h"
 #include <Inventor/fields/SoSFRotation.h>
@@ -61,6 +61,8 @@
 class QListWidgetItem;
 
 namespace OpenMBVGUI {
+ 
+class MyTouchWidget;
 
 class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   Q_OBJECT
@@ -68,6 +70,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   friend class Editor;
   friend class Group;
   friend class CompoundRigidBody;
+  friend class MyTouchWidget;
   private:
     static MainWindow *instance;
     enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,
@@ -83,8 +86,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSwitch *worldFrameSwitch;
     SoSwitch *engDrawing;
     SoMFColor *engDrawingBGColorSaved, *engDrawingFGColorBottomSaved, *engDrawingFGColorTopSaved;
-    SoDrawStyle *olseDrawStyle;
-    SoBaseColorHeavyOverride *olseColor;
     SoFieldSensor *frameSensor;
     std::mutex mutex; // this mutex is temporarily locked during openFile calls
   protected:
@@ -96,7 +97,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
     SoSeparator *sceneRoot;
-    SoComplexity *complexity;
     QTimer *animTimer;
     QTimer *hdf5RefreshTimer;
     QTime *time;
@@ -112,10 +112,16 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
     std::shared_ptr<OpenMBV::Body> openMBVBodyForLastFrame;
-    QAction *engDrawingView, *topBGColorAct, *bottomBGColorAct;
-    SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
+    QAction *engDrawingView;
+
+    QTimer *shortAniTimer;
+    QElapsedTimer *shortAniElapsed;
+    int shortAniLast;
+    void shortAni();
+    std::function<void(double)> shortAniFunc;
+
     static void toggleAction(Object *current, QAction *currentAct);
-    void execPropertyMenu();
+    void execPropertyMenu(const std::vector<QAction*> &additionalActions={});
     static void disableBBox(Object *obj);
     static void enableBBoxOfID(Object *obj, const std::string &ID);
     void closeEvent(QCloseEvent *event) override;
@@ -175,10 +181,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void playSCSlot();
     void speedUpSlot();
     void speedDownSlot();
-    void topBGColor();
-    void bottomBGColor();
-    void olseColorSlot();
-    void olseLineWidthSlot();
     void loadWindowState();
     void loadWindowState(std::string filename);
     void saveWindowState();
@@ -217,12 +219,15 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     void toggleEngDrawingViewSlot();
     void setOutLineAndShilouetteEdgeRecursive(QTreeWidgetItem *obj, bool enableOutLine, bool enableShilouetteEdge);
-    void complexityType();
-    void complexityValue();
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
   public:
+    SoDrawStyle *olseDrawStyle;
+    SoBaseColorHeavyOverride *olseColor;
+    SoComplexity *complexity;
+    SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
+    MyTouchWidget *glViewerWG;
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
@@ -230,9 +235,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     MainWindow(std::list<std::string>& arg);
     ~MainWindow() override;
     bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
-    void updateScene() { glViewer->getSceneManager()->render(); }
+    void updateScene() { frame->touch(); }
     static MainWindow* const getInstance();
-    bool soQtEventCB(const SoEvent *event);
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
     SoSepNoPick *getSceneRootBBox() { return sceneRootBBox; }
@@ -251,6 +255,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
+    void startShortAni(const std::function<void(double)> func, bool noAni=false);
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;

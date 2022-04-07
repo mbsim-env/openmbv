@@ -72,14 +72,16 @@ class PropertyDialog : public QDialog {
     QMenu *getContextMenu() { return contextMenu; }
     void addEditor(Editor *child);
     QList<QAction*> getActions();
+    void openDialogSlot();
   protected:
     QMenu *contextMenu;
     QObject* parentObject;
     QGridLayout *layout, *mainLayout;
+    QWidget *scrollWidget;
+    QScrollArea *scrollArea;
     std::vector<Editor*> editor;
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
-    void openDialogSlot();
 };
 
 
