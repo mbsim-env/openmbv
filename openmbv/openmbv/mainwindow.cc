@@ -90,6 +90,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 }
 
 MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+  OpenMBVGUI::appSettings.reset(new OpenMBVGUI::AppSettings);
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
   // If <local>/lib/dri exists use it as load path for GL DRI drivers.
@@ -873,6 +874,7 @@ MainWindow::~MainWindow() {
   SoQt::done();
 
   Utils::deinitialize();
+  OpenMBVGUI::appSettings.reset();
 }
 
 bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {

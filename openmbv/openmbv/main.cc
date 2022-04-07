@@ -148,12 +148,10 @@ int main(int argc, char *argv[])
   setlocale(LC_ALL, "C");
 
 
-  OpenMBVGUI::appSettings.reset(new OpenMBVGUI::AppSettings);
   OpenMBVGUI::MainWindow mainWindow(arg);
   mainWindow.show();
   if(mainWindow.getEnableFullScreen()) mainWindow.showFullScreen(); // must be done afer mainWindow.show()
   mainWindow.updateScene(); // must be called after mainWindow.show()
   int ret=app.exec();
-  OpenMBVGUI::appSettings.reset();
   return ret;
 }
