@@ -538,14 +538,14 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
       throw runtime_error("Value is not of type integer.");
     npy_intp *dims=PyArray_SHAPE(a);
     switch(type) {
-      case NPY_SHORT:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_short*>    (PyArray_GETPTR1(a, i)) += add;
-      case NPY_USHORT:    for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ushort*>   (PyArray_GETPTR1(a, i)) += add;
-      case NPY_INT:       for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_int*>      (PyArray_GETPTR1(a, i)) += add;
-      case NPY_UINT:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_uint*>     (PyArray_GETPTR1(a, i)) += add;
-      case NPY_LONG:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_long*>     (PyArray_GETPTR1(a, i)) += add;
-      case NPY_ULONG:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulong*>    (PyArray_GETPTR1(a, i)) += add;
-      case NPY_LONGLONG:  for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_longlong*> (PyArray_GETPTR1(a, i)) += add;
-      case NPY_ULONGLONG: for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulonglong*>(PyArray_GETPTR1(a, i)) += add;
+      case NPY_SHORT:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_short*>    (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_USHORT:    for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ushort*>   (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_INT:       for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_int*>      (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_UINT:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_uint*>     (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_LONG:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_long*>     (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_ULONG:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulong*>    (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_LONGLONG:  for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_longlong*> (PyArray_GETPTR1(a, i)) += add; break;
+      case NPY_ULONGLONG: for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulonglong*>(PyArray_GETPTR1(a, i)) += add; break;
     }
   }
   else

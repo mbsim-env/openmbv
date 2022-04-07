@@ -280,6 +280,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
   // a XML vector
   ec=E(e)->getFirstElementChildNamed(PV%"xmlVector");
   if(ec) {
+    int add = 0;
+    if(E(e)->isDerivedFrom(PV%"indexVector")) add = 1;
     int i;
     // calculate nubmer for rows
     i=0;
@@ -290,7 +292,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     i=0;
     for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
       if(!function)
-        m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele));
+        m[i]=cast<double>(stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele)) + add;
       else
         M[i]=stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele);
     if(!function)
@@ -302,6 +304,8 @@ Eval::Value Eval::eval(const DOMElement *e) {
   // a XML matrix
   ec=E(e)->getFirstElementChildNamed(PV%"xmlMatrix");
   if(ec) {
+    int add = 0;
+    if(E(e)->isDerivedFrom(PV%"indexMatrix")) add = 1;
     int i, j;
     // calculate nubmer for rows and cols
     i=0;
@@ -316,7 +320,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       j=0;
       for(const DOMElement* col=row->getFirstElementChild(); col!=nullptr; col=col->getNextElementSibling(), j++)
         if(!function)
-          m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col));
+          m[i][j]=cast<double>(stringToValue(X()%E(col)->getFirstTextChild()->getData(), col)) + add;
         else
           M[i][j]=stringToValue(X()%E(col)->getFirstTextChild()->getData(), col);
     }
