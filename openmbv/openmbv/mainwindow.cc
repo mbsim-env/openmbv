@@ -131,7 +131,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
 
   shortAniTimer=new QTimer(this);
   shortAniTimer->setInterval(1000/25);
-  shortAniElapsed=new QElapsedTimer;
+  shortAniElapsed.reset(new QElapsedTimer);
   connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
 
   // main widget

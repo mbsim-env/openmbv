@@ -115,7 +115,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QAction *engDrawingView;
 
     QTimer *shortAniTimer;
-    QElapsedTimer *shortAniElapsed;
+    std::unique_ptr<QElapsedTimer> shortAniElapsed;
     int shortAniLast;
     void shortAni();
     std::function<void(double)> shortAniFunc;
