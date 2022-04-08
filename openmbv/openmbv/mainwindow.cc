@@ -919,6 +919,8 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   // apply object filter
   objectListFilter->applyFilter();
 
+  viewAllSlot();
+
   return true;
 }
 
