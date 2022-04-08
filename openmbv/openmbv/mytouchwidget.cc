@@ -445,6 +445,7 @@ int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
 }
 
 void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuForAll) {
+  MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
   // select object
   // if toggle, toggle selection of object
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
@@ -509,11 +510,14 @@ void MyTouchWidget::seekToPoint(const QPoint &pos) {
 }
 
 void MyTouchWidget::openPropertyDialog(const QPoint &pos) {
-  Object *object=static_cast<Object*>(MainWindow::getInstance()->objectList->currentItem()?
-                                      MainWindow::getInstance()->objectList->currentItem():
-                                      MainWindow::getInstance()->objectList->selectedItems().first());
+  auto *item=MainWindow::getInstance()->objectList->currentItem();
+  if(!item && MainWindow::getInstance()->objectList->selectedItems().size()>0)
+    item=MainWindow::getInstance()->objectList->selectedItems().first();
+  if(!item)
+    return;
+  auto *object=static_cast<Object*>(item);
   // show properties dialog only if objectDoubleClicked is not connected to some other slot
-  if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
+  if(!MainWindow::getInstance()->isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
     object->getProperties()->openDialogSlot();
   MainWindow::getInstance()->objectDoubleClicked(object->getObject()->getID(), object);
 }
