@@ -38,6 +38,7 @@
 #include <Inventor/SoPrimitiveVertex.h>
 #include "utils.h"
 #include "openmbvcppinterface/body.h"
+#include <cfloat>
 
 using namespace std;
 
