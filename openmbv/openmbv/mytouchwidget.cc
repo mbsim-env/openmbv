@@ -32,11 +32,7 @@
 #include <cmath>
 #include <iostream>
 
-#ifdef NDEBUG
 #define DEBUG(x)
-#else
-#define DEBUG(x) x
-#endif
 
 using namespace std;
 
