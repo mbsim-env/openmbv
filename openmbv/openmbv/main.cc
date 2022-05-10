@@ -139,10 +139,10 @@ int main(int argc, char *argv[])
   for (int i=1; i<argc; i++)
     arg.push_back(argv[i]);
 
-  app.setOrganizationName("mbsim-env");
-  app.setApplicationName("openmbv");
-  app.setOrganizationDomain("www.mbsim-env.de");
-  QSettings::setDefaultFormat(QSettings::IniFormat);
+  app.setOrganizationName(OpenMBVGUI::AppSettings::organization);
+  app.setApplicationName(OpenMBVGUI::AppSettings::application);
+  app.setOrganizationDomain(OpenMBVGUI::AppSettings::organizationDomain);
+  QSettings::setDefaultFormat(OpenMBVGUI::AppSettings::format);
   // Only the standard C locale is supported
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");

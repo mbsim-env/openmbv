@@ -48,14 +48,13 @@ bool TouchWidget<Widget>::event(QEvent *event) {
   };
   assert(mouseActions.size()==ButtonCOUNT);
 
-  event->accept();
-
   switch(event->type()) {
 
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonDblClick: {
       if(!handleMouseEvents)
         return Widget::event(event);
+      event->accept();
 
       auto mouseEvent=static_cast<QMouseEvent*>(event);
       if(mouseEvent->source()!=Qt::MouseEventNotSynthesized) {
@@ -88,6 +87,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::MouseMove: {
       if(!handleMouseEvents)
         return Widget::event(event);
+      event->accept();
 
       auto mouseEvent=static_cast<QMouseEvent*>(event);
       if(mouseEvent->source()!=Qt::MouseEventNotSynthesized) {
@@ -118,6 +118,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::MouseButtonRelease: {
       if(!handleMouseEvents)
         return Widget::event(event);
+      event->accept();
 
       auto mouseEvent=static_cast<QMouseEvent*>(event);
       if(mouseEvent->source()!=Qt::MouseEventNotSynthesized) {
@@ -159,6 +160,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::Wheel: {
       if(!handleMouseEvents)
         return Widget::event(event);
+      event->accept();
 
       auto wheelEvent=static_cast<QWheelEvent*>(event);
       if(wheelEvent->source()!=Qt::MouseEventNotSynthesized) {
@@ -173,6 +175,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::TouchBegin: {
       if(!handleTouchEvents)
         return Widget::event(event);
+      event->accept();
 
       auto touchEvent=static_cast<QTouchEvent*>(event);
       if(touchEvent->touchPoints().size()==1) {
@@ -203,6 +206,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::TouchUpdate: {
       if(!handleTouchEvents)
         return Widget::event(event);
+      event->accept();
 
       auto touchEvent=static_cast<QTouchEvent*>(event);
       if(touchEvent->touchPoints().size()==1 && !touchCancel1) {
@@ -243,6 +247,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::TouchEnd: {
       if(!handleTouchEvents)
         return Widget::event(event);
+      event->accept();
 
       auto touchEvent=static_cast<QTouchEvent*>(event);
       touchTapDownTimer1->stop();
@@ -274,6 +279,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     case QEvent::TouchCancel: {
       if(!handleTouchEvents)
         return Widget::event(event);
+      event->accept();
 
       auto touchEvent=static_cast<QTouchEvent*>(event);
       touchTapDownTimer1->stop();

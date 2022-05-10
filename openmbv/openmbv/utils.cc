@@ -323,7 +323,7 @@ bool IgnoreWheelEventFilter::eventFilter(QObject *watched, QEvent *event) {
   return QObject::eventFilter(watched, event);
 }
 
-AppSettings::AppSettings() : setting(AS::SIZE) {
+AppSettings::AppSettings() : qSettings(format, scope, organization, application), setting(AS::SIZE) {
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};

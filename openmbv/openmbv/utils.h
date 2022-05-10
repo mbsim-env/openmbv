@@ -200,6 +200,11 @@ class AppSettings {
       if(callQSettings)
         qSettings.setValue(str, value);
     }
+    static constexpr auto format{QSettings::IniFormat};
+    static constexpr auto scope{QSettings::UserScope};
+    static constexpr auto organization{"mbsim-env"};
+    static constexpr auto application{"openmbv"};
+    static constexpr auto organizationDomain{"www.mbsim-env.de"};
   private:
     QSettings qSettings;
     std::vector<std::pair<QString, QVariant>> setting;

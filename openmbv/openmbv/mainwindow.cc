@@ -89,7 +89,8 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
 }
 
-MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
+  skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings.reset(new OpenMBVGUI::AppSettings);
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
@@ -316,6 +317,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   fileMenu->addAction(Utils::QIconCached("loadwst.svg"), "Load window state...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadWindowState));
   act=fileMenu->addAction(Utils::QIconCached("savewst.svg"), "Save window state...", this, &MainWindow::saveWindowState);
   addAction(act); // must work also if menu bar is invisible
+  act->setShortcut(QKeySequence("Ctrl+W"));
   fileMenu->addAction(Utils::QIconCached("loadcamera.svg"), "Load camera...", this, static_cast<void(MainWindow::*)()>(&MainWindow::loadCamera));
   act=fileMenu->addAction(Utils::QIconCached("savecamera.svg"), "Save camera...", this, &MainWindow::saveCamera);
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -425,7 +427,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
 
   // gui view menu
   QMenu *guiViewMenu=new QMenu("GUI View", menuBar());
-  toggleMenuBar=guiViewMenu->addAction("Menu bar", this, &MainWindow::toggleMenuBarSlot, QKeySequence("F10"));
+  toggleMenuBar=guiViewMenu->addAction("Menu bar", this, &MainWindow::toggleMenuBarSlot, QKeySequence(Qt::Key_F10));
   addAction(toggleMenuBar); // must work also if menu bar is invisible
   toggleMenuBar->setCheckable(true);
   toggleMenuBar->setChecked(true);
@@ -435,7 +437,7 @@ MainWindow::MainWindow(list<string>& arg) :  fpsMax(25), enableFullScreen(false)
   toggleFrameSlider=guiViewMenu->addAction("Frame/Time slider", this, &MainWindow::toggleFrameSliderSlot);
   toggleFrameSlider->setCheckable(true);
   toggleFrameSlider->setChecked(true);
-  QAction *toggleFullScreen=guiViewMenu->addAction("Full screen", this, &MainWindow::toggleFullScreenSlot, QKeySequence("F5"));
+  QAction *toggleFullScreen=guiViewMenu->addAction("Full screen", this, &MainWindow::toggleFullScreenSlot, QKeySequence(Qt::Key_F5));
   addAction(toggleFullScreen); // must work also if menu bar is invisible
   toggleFullScreen->setCheckable(true);
   toggleDecoration=guiViewMenu->addAction("Window decoration", this, &MainWindow::toggleDecorationSlot);
@@ -1797,13 +1799,15 @@ void MainWindow::dropEvent(QDropEvent *event) {
 
 void MainWindow::closeEvent(QCloseEvent *event) {
   appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
-  appSettings->set(AppSettings::mainwindow_state, saveState());
+  if(!skipWindowState)
+    appSettings->set(AppSettings::mainwindow_state, saveState());
   QMainWindow::closeEvent(event);
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
   restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
-  restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
+  if(!skipWindowState)
+    restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
   QMainWindow::showEvent(event);
 }
 

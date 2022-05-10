@@ -88,6 +88,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoMFColor *engDrawingBGColorSaved, *engDrawingFGColorBottomSaved, *engDrawingFGColorTopSaved;
     SoFieldSensor *frameSensor;
     std::mutex mutex; // this mutex is temporarily locked during openFile calls
+    bool skipWindowState{false};
   protected:
     SoSepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
@@ -232,7 +233,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(std::string curID);
-    MainWindow(std::list<std::string>& arg);
+    MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
     bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { frame->touch(); }
