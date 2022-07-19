@@ -255,7 +255,7 @@ Eval::Value OctEval::createFunctionDep(const vector<Value>& v) const {
     else {
       string type=getSwigType(*C(v[i]));
       if(type!="SymbolicExpression" && type!="IndependentVariable")
-        throw runtime_error("Value is not scalar symbolic or independent variable.");
+        throw runtime_error("Value is not scalar symbolic or independent variable (but is " + type + ").");
       (*vec)(i)=*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(*C(v[i])));
     }
   }
@@ -273,7 +273,7 @@ Eval::Value OctEval::createFunctionDep(const vector<vector<Value> >& v) const {
       else {
         string type=getSwigType(*C(v[r][c]));
         if(type!="SymbolicExpression" && type!="IndependentVariable")
-          throw runtime_error("Value is not scalar symbolic or independent variable.");
+          throw runtime_error("Value is not scalar symbolic or independent variable (but is " + type + ").");
         (*mat)(r,c)=*static_cast<fmatvec::SymbolicExpression*>(getSwigPtr(*C(v[r][c])));
       }
   return ret;
@@ -585,9 +585,18 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
   ostringstream err;
   octave_value_list ret;
   {
-    REDIR_STDOUT(out.rdbuf());
-    REDIR_STDERR(err.rdbuf());
-    ret=feval(func, arg, n);
+    try
+    {
+      REDIR_STDOUT(out.rdbuf());
+      REDIR_STDERR(err.rdbuf());
+      ret=feval(func, arg, n);
+    }
+    // ensure not to let pass octave::execution_exception pass by but always throw std::runtime_error;
+    // octave::execution_exception is not derived from std::exception and therefor will usually not be handled later
+    catch(octave::execution_exception &ex)
+    {
+      throw runtime_error( "Caught octave exception " + ex.info() + "\n" +out.str() + "\n" + err.str() );
+    }
   }
   if(error_state!=0) {
     error_state=0;

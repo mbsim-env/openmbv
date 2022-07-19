@@ -167,7 +167,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
 // Rethrow a exception as DOMEvalException with context e, a DOMEvalException is just rethrown unchanged.
 #define RETHROW_AS_DOMEVALEXCEPTION(e) \
   catch(MBXMLUtils::DOMEvalException &ex) { \
-    throw; \
+    throw ex; \
   } \
   catch(const std::exception &ex) { \
     throw DOMEvalException(ex.what(), e); \
