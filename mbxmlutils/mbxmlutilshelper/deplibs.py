@@ -75,7 +75,7 @@ def getDoNotAdd():
     ("rpm", ["-ql"], # rpm (CentOS7)
       ["glibc", "zlib", "libstdc++", "libgcc", # standard libs
        "mesa-dri-drivers", "mesa-libGLU", "mesa-libgbm", "mesa-libglapi", "mesa-libEGL", "mesa-libGL", # mesa
-       "libdrm", "libglvnd", # mesa
+       "libdrm", "libglvnd", "libglvnd-glx", "libglvnd-opengl", # mesa
        "libX11", "libXext", "libxcb", "libXau", # standard X11
       ]),
   ]
