@@ -72,8 +72,12 @@ def getDoNotAdd():
   notAdd=set()
   # for linux
   system=[
-    ("equery", ["-C", "files"], ["glibc", "mesa",]), # portage
-    ("rpm",    ["-ql"],         ["glibc", "mesa-libGL", "mesa-libEGL", "libdrm",]), # rpm
+    ("rpm", ["-ql"], # rpm (CentOS7)
+      ["glibc", "zlib", "libstdc++", "libgcc", # standard libs
+       "mesa-dri-drivers", "mesa-libGLU", "mesa-libgbm", "mesa-libglapi", "mesa-libEGL", "mesa-libGL", # mesa
+       "libdrm", "libglvnd", # mesa
+       "libX11", "libXext", "libxcb", "libXau", # standard X11
+      ]),
   ]
   for s in system:
     for p in s[2]:
@@ -83,6 +87,12 @@ def getDoNotAdd():
             notAdd.add(os.path.realpath(line))
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
+
+  # for linux do not add the (specific to docker image mbsimenv/build)
+  notAdd.update(glob.glob("/osupdate/local/lib64/libglapi.so*")) # mesa
+  notAdd.update(glob.glob("/osupdate/local/lib64/libGLESv1_CM.so*")) # mesa
+  notAdd.update(glob.glob("/osupdate/local/lib64/libGLESv2.so*")) # mesa
+  notAdd.update(glob.glob("/osupdate/local/lib64/libGL.so*")) # mesa
 
   # for windows do not add the Windows system dlls (= fake dlls on wine)
   notAdd.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
