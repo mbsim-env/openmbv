@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
   moduleName[s]=0; // null terminate
 #endif
   QCoreApplication::setLibraryPaths(QStringList(QFileInfo(moduleName).absolutePath())); // do not load plugins from buildin defaults
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
   QApplication app(argc, argv);
 #ifndef _WIN32
