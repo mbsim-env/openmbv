@@ -269,7 +269,8 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
         found=e;
       return X()%E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")->getData();
     }
-    e=e->getParentNode()->getNodeType()==DOMNode::ELEMENT_NODE?static_cast<DOMElement*>(e->getParentNode()):nullptr;
+    auto *p=e->getParentNode();
+    e = p && p->getNodeType()==DOMNode::ELEMENT_NODE ? static_cast<DOMElement*>(e->getParentNode()) : nullptr;
   }
   if(!me)
     throw runtime_error("Invalid call. Null pointer dereference.");

@@ -558,7 +558,7 @@ bool OctEval::valueIsOfType(const Value &value, OctEval::ValueType type) const {
       if(valueIsOfType(value, ScalarType)) return true;
       if(!v->is_string() && v->is_matrix_type() && v->isreal()) {
         Matrix m=v->matrix_value();
-        if(m.cols()==1) return true;
+        if(m.cols()==1 || (m.cols()==0 && m.rows()==0)) return true; // a 0x0 matrix = [] is also treated as a vector (of size 0)
       }
       return false;
 
