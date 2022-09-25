@@ -137,10 +137,11 @@ typedef fmatvec::SymbolicExpression SS;
   octave_value_list callBuiltin(const char* name, const octave_value_list &arg, int n=1) {
 #if SWIG_OCTAVE_PREREQ(4,4,0)
     auto func=octave::interpreter::the_interpreter()->get_symbol_table().builtin_find(name).function_value();
+    return octave::feval(func, arg, n);
 #else
     auto func=symbol_table::builtin_find(name).function_value();
-#endif
     return feval(func, arg, n);
+#endif
   }
 
   fmatvec::SymbolicExpression _minmaxvec(char mM, const fmatvec::Vector<fmatvec::Var, fmatvec::SymbolicExpression> &v) {

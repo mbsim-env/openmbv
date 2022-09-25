@@ -100,7 +100,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator *sceneRoot;
     QTimer *animTimer;
     QTimer *hdf5RefreshTimer;
-    QTime *time;
+    QElapsedTimer *time;
     QDoubleSpinBox *speedSB;
     int animStartFrame;
     QActionGroup *animGroup;
@@ -108,7 +108,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     double deltaTime;
     SoSFUInt32 *frame;
     QLabel *fps;
-    QTime *fpsTime;
+    QElapsedTimer *fpsTime;
     QwtWheel *speedWheel;
     double oldSpeed;
     QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;

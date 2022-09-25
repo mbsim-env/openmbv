@@ -64,7 +64,7 @@
   }
   %typemap(in) std::vector<double>, const std::vector<double>& {
     Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
-    int size=m.length();
+    int size=m.rows();
     static std::vector<double> localVec;
     localVec.resize(size);
     for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
@@ -84,7 +84,7 @@
   }
   %typemap(in) std::vector<int>, const std::vector<int>& {
     Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
-    int size=m.length();
+    int size=m.rows();
     static std::vector<int> localVec;
     localVec.resize(size);
     for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
@@ -104,7 +104,7 @@
   }
   %typemap(in) std::vector<OpenMBV::Index>, const std::vector<OpenMBV::Index>& {
     Matrix m=$input.matrix_value();
-    int size=m.length();
+    int size=m.rows();
     static std::vector<int> localVec;
     localVec.resize(size);
     for(int i=0; i<size; i++)

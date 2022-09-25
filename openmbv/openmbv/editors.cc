@@ -283,7 +283,7 @@ FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   spinBox->setSingleStep(0.01);
   spinBox->setRange(-DBL_MAX, DBL_MAX);
   spinBox->setDecimals(6);
-  spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).width("-888.888888000"));
+  spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).horizontalAdvance("-888.888888000"));
   connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, spinBox);
 }
@@ -348,7 +348,7 @@ void FloatMatrixEditor::addRow() {
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
     cell->setDecimals(6);
-    cell->setMinimumWidth(QFontMetrics(cell->font()).width("-888.888888000"));
+    cell->setMinimumWidth(QFontMetrics(cell->font()).horizontalAdvance("-888.888888000"));
     connect(cell, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatMatrixEditor::valueChangedSlot);
   }
 }
@@ -372,7 +372,7 @@ void FloatMatrixEditor::addColumn() {
     cell->setSingleStep(0.01);
     cell->setRange(-DBL_MAX, DBL_MAX);
     cell->setDecimals(6);
-    cell->setMinimumWidth(QFontMetrics(cell->font()).width("-888.888888000"));
+    cell->setMinimumWidth(QFontMetrics(cell->font()).horizontalAdvance("-888.888888000"));
     connect(cell, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatMatrixEditor::valueChangedSlot);
   }
 }
@@ -446,7 +446,7 @@ IntEditor::IntEditor(PropertyDialog *parent_, const QIcon& icon, const string &n
   spinBox=new QSpinBox;
   spinBox->installEventFilter(&IgnoreWheelEventFilter::instance);
   spinBox->setRange(INT_MIN, INT_MAX);
-  spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).width("-888.888888000"));
+  spinBox->setMinimumWidth(QFontMetrics(spinBox->font()).horizontalAdvance("-888.888888000"));
   connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &IntEditor::valueChangedSlot);
   dialog->addSmallRow(icon, name, spinBox);
 }
@@ -534,7 +534,7 @@ Vec3fEditor::Vec3fEditor(PropertyDialog *parent_, const QIcon& icon, const strin
     i->setSingleStep(0.01);
     i->setRange(-DBL_MAX, DBL_MAX);
     i->setDecimals(6);
-    i->setMinimumWidth(QFontMetrics(i->font()).width("-888.888888000"));
+    i->setMinimumWidth(QFontMetrics(i->font()).horizontalAdvance("-888.888888000"));
     connect(i, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &Vec3fEditor::valueChangedSlot);
     box->addWidget(i);
   }
@@ -615,8 +615,8 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
     spinBox[i+3]->setSingleStep(10);// degree
     spinBox[i  ]->setDecimals(6);
     spinBox[i+3]->setDecimals(6);
-    spinBox[i  ]->setMinimumWidth(QFontMetrics(spinBox[i  ]->font()).width("-888.888888000"));
-    spinBox[i+3]->setMinimumWidth(QFontMetrics(spinBox[i+3]->font()).width("-888.888888000"));
+    spinBox[i  ]->setMinimumWidth(QFontMetrics(spinBox[i  ]->font()).horizontalAdvance("-888.888888000"));
+    spinBox[i+3]->setMinimumWidth(QFontMetrics(spinBox[i+3]->font()).horizontalAdvance("-888.888888000"));
     spinBox[i+3]->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     connect(spinBox[i  ], static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &TransRotEditor::valueChangedSlot);
     connect(spinBox[i+3], static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &TransRotEditor::valueChangedSlot);

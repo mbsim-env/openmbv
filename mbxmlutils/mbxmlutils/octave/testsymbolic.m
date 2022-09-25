@@ -1,6 +1,6 @@
 try
 
-format short e;
+format free;
 
 % constructors
 cs=3.1
