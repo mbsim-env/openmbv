@@ -585,7 +585,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // status bar
   auto *sb=new QStatusBar(this);
   fps=new QLabel("FPS: -");
-  fpsTime=new QTime();
+  fpsTime=new QElapsedTimer();
   sb->addPermanentWidget(fps);
   setStatusBar(sb);
 
@@ -603,7 +603,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // animation timer
   animTimer=new QTimer(this);
   connect(animTimer, &QTimer::timeout, this, &MainWindow::heavyWorkSlot);
-  time=new QTime();
+  time=new QElapsedTimer();
   hdf5RefreshTimer=new QTimer(this);
   connect(hdf5RefreshTimer, &QTimer::timeout, this, &MainWindow::hdf5RefreshSlot);
   if(hdf5RefreshDelta>0)

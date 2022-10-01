@@ -24,6 +24,7 @@
 #include <octave/ovl.h>
 #include <octave/interpreter.h>
 #include <octave/octave.h>
+#include <octave/version.h>
 #include <octave/symtab.h>
 #include <octave/parse.h>
 #include <octave/defaults.h>
@@ -43,12 +44,12 @@ namespace {
 
   // some platform dependent values
 #ifdef _WIN32
-  bfs::path LIBDIR="bin";
+  const bfs::path LIBDIR="bin";
 #else
-  bfs::path LIBDIR="lib";
+  const bfs::path LIBDIR="lib";
 #endif
 
-  bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=nullptr;
+  const bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=nullptr;
 
   // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
   template<int T>
@@ -105,8 +106,8 @@ OctInit::OctInit() {
       static string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::Eval::installPath.string(CODECVT);
       putenv((char*)OCTAVE_HOME.c_str());
     }
-      // init interpreter
-      interpreter.reset(new octave::interpreter());
+    // init interpreter
+    interpreter.reset(new octave::interpreter());
     if(octave_prefix.empty())
       octave_prefix=config::octave_home();
 
@@ -118,25 +119,45 @@ OctInit::OctInit() {
     warnArg.append("error");
     warnArg.append("Octave:divide-by-zero");
     feval("warning", warnArg);
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to disable warnings."); }
 
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
     string dir=(MBXMLUtils::Eval::installPath/LIBDIR).string(CODECVT);
     feval("addpath", octave_value_list(octave_value(dir)));
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: cannot add octave search path."); }
 
     // save initial octave search path
     initialPath=feval("path", octave_value_list(), 1)(0).string_value();
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
 
     // deregister __finish__, see OctEval::~OctEval
     octave_value_list atexitArg;
     atexitArg.append("__finish__");
     atexitArg.append(0);
     feval("atexit", atexitArg);
-    if(error_state!=0) { error_state=0; throw runtime_error("Internal error: unable to get search path."); }
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
+  catch(octave::execution_exception &ex)
+  {
+    // octave::execution_exception is not derived (in older releases) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<ex.
+#if OCTAVE_MAJOR_VERSION >= 6
+      message()
+#else
+      info()
+#endif
+      <<endl;
+    throw;
+  }
+  catch(octave::exit_exception &ex)
+  {
+    // octave::exit_exception is not derived (in older releases) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<"Exit exception"<<endl;
+    throw;
+  }
+  catch(octave::interrupt_exception &ex)
+  {
+    // octave::interrupt_exception is not derived (in older releases) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<"Interrupt exception"<<endl;
+    throw;
+  }
   catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave initialization:"<<endl<<ex.what()<<endl;
     throw;
@@ -149,13 +170,40 @@ OctInit::OctInit() {
 
 OctInit::~OctInit() {
   try {
-    // nothing needed for now (in octave 4.4)
+#if OCTAVE_MAJOR_VERSION >= 6
+    interpreter->shutdown();
+#endif
+    interpreter.reset();
 
     // __finish__.m which is run at exit is deregistered during octave initialzation via atext.
     // This is required to avoid running octave code after octave was alread removed.
     // (atexit is run on library unload at program exit)
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
+  catch(octave::execution_exception &ex)
+  {
+    // octave::execution_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<ex.
+#if OCTAVE_MAJOR_VERSION >= 6
+      message()
+#else
+      info()
+#endif
+      <<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
+  }
+  catch(octave::exit_exception &ex)
+  {
+    // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<"Exit exception"<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
+  }
+  catch(octave::interrupt_exception &ex)
+  {
+    // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<"Interrupt exception"<<endl
+      <<"Continuing but undefined behaviour may occur."<<endl;
+  }
   catch(const exception& ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during octave deinitialization:"<<endl<<ex.what()<<endl
       <<"Continuing but undefined behaviour may occur."<<endl;
@@ -387,35 +435,49 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
       "Unable to set the octave search path "+currentPath);
   }
   // add dir to octave path
-  auto vn1=octInit.interpreter->get_symbol_table().variable_names();
-  //auto gvn1=octInit.interpreter->get_symbol_table().global_variable_names();
-  //auto ufn1=octInit.interpreter->get_symbol_table().user_function_names();
-  //auto tlvn1=octInit.interpreter->get_symbol_table().top_level_variable_names();
+#if OCTAVE_MAJOR_VERSION >= 6
+  auto vnBefore=octInit.interpreter->variable_names();
+  auto gvnBefore=octInit.interpreter->global_variable_names();
+  auto ufnBefore=octInit.interpreter->get_symbol_table().user_function_names();
+  auto tlvnBefore=octInit.interpreter->top_level_variable_names();
+#else
+  auto vnBefore=octInit.interpreter->get_symbol_table().variable_names();
+#endif
   fevalThrow(addpath, octave_value_list(octave_value(absolute(dir).string())), 0,
     "Unable to add octave search path "+absolute(dir).string());
-  auto vn2=octInit.interpreter->get_symbol_table().variable_names();
-  //auto gvn2=octInit.interpreter->get_symbol_table().global_variable_names();
-  //auto ufn2=octInit.interpreter->get_symbol_table().user_function_names();
-  //auto tlvn2=octInit.interpreter->get_symbol_table().top_level_variable_names();
+#if OCTAVE_MAJOR_VERSION >= 6
+  auto vnAfter=octInit.interpreter->variable_names();
+  auto gvnAfter=octInit.interpreter->global_variable_names();
+  auto ufnAfter=octInit.interpreter->get_symbol_table().user_function_names();
+  auto tlvnAfter=octInit.interpreter->top_level_variable_names();
+#else
+  auto vnAfter=octInit.interpreter->get_symbol_table().variable_names();
+#endif
   // get new path and store it in top of stack
   currentPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
 
   // create a list of all variables added by the addPath command and register these as parameter
   // to restore it in any new context with this addPath.
-  auto fillVars=[](const list<string> &l1, const list<string> &l2, map<string, octave_value> &im,
+  auto fillVars=[](const list<string> &listBefore, const list<string> &listAfter, map<string, octave_value> &im,
                       function<octave_value(const string&)> get){
-    set<string> s1(l1.begin(), l1.end());
-    set<string> s2(l2.begin(), l2.end());
+    set<string> setBefore(listBefore.begin(), listBefore.end());
+    set<string> setAfter(listAfter.begin(), listAfter.end());
     set<string> newVars;
-    set_difference(l2.begin(), l2.end(), l1.begin(), l1.end(), inserter(newVars, newVars.begin()));
+    set_difference(setAfter.begin(), setAfter.end(), setBefore.begin(), setBefore.end(), inserter(newVars, newVars.begin()));
     for(auto &n : newVars)
       im[n]=get(n);
   };
-  auto &gst=octInit.interpreter->get_symbol_table();
-  fillVars(vn1  , vn2  , ci->vn  , bind(&symbol_table::varval            , &gst, placeholders::_1));
-//fillVars(gvn1 , gvn2 , ci->gvn , bind(&symbol_table::global_varval     , &gst, placeholders::_1));
-//fillVars(ufn1 , ufn2 , ci->ufn , bind(&symbol_table::find_user_function, &gst, placeholders::_1));
-//fillVars(tlvn1, tlvn2, ci->tlvn, bind(&symbol_table::top_level_varval  , &gst, placeholders::_1));
+#if OCTAVE_MAJOR_VERSION >= 6
+  auto *octIntPtr=octInit.interpreter.get();
+  auto *gstPtr=&octInit.interpreter->get_symbol_table();
+  fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&octave::interpreter::varval          , octIntPtr, placeholders::_1));
+  fillVars(gvnBefore , gvnAfter , ci->gvn , bind(&octave::interpreter::global_varval   , octIntPtr, placeholders::_1));
+  fillVars(ufnBefore , ufnAfter , ci->ufn , bind(&symbol_table::find_user_function     , gstPtr   , placeholders::_1));
+  fillVars(tlvnBefore, tlvnAfter, ci->tlvn, bind(&octave::interpreter::top_level_varval, octIntPtr, placeholders::_1));
+#else
+  auto gstPtr=&octInit.interpreter->get_symbol_table();
+  fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&symbol_table::varval                 , gstPtr   , placeholders::_1));
+#endif
 }
 
 void OctEval::addImport(const string &code, const DOMElement *e) {
@@ -465,18 +527,31 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   // clear local octave variables
   // octInit.interpreter->get_symbol_table().current_scope().clear_variables() seems to be buggy, it sometimes clears
   // also global variables. Hence, we clear all variables which are not also part of the global variables
+#if OCTAVE_MAJOR_VERSION >= 6
+  auto gvn=octInit.interpreter->global_variable_names(); // get global and all variable names
+  auto vn=octInit.interpreter->variable_names();
+#else
   auto gvn=octInit.interpreter->get_symbol_table().global_variable_names(); // get global and all variable names
   auto vn=octInit.interpreter->get_symbol_table().variable_names();
+#endif
   gvn.sort(); // sort global and all variable names
   vn.sort();
   list<string> lvn;
   set_difference(vn.begin(), vn.end(), gvn.begin(), gvn.end(), inserter(lvn, lvn.begin())); // get local = all - global variable names
   for(auto &l : lvn) // remove all local variable names
+#if OCTAVE_MAJOR_VERSION >= 6
+    octInit.interpreter->clear_symbol(l);
+#else
     octInit.interpreter->get_symbol_table().clear_symbol(l);
+#endif
 
   // restore current parameters
   for(const auto & i : currentParam)
+#if OCTAVE_MAJOR_VERSION >= 6
+    octInit.interpreter->assign(i.first, *C(i.second));
+#else
     octInit.interpreter->get_symbol_table().assign(i.first, *C(i.second));
+#endif
 
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=octInit.interpreter->get_symbol_table().find_function("path").function_value(); // get ones a pointer for performance reasons
@@ -496,34 +571,59 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     for(auto &i : im)
       set(i.first, i.second);
   };
-  auto &gst=octInit.interpreter->get_symbol_table();
+#if OCTAVE_MAJOR_VERSION >= 6
+  auto *octIntPtr=octInit.interpreter.get();
+  auto *gstPtr=&octInit.interpreter->get_symbol_table();
+  restoreVars(ci->vn  , bind(&octave::interpreter::assign          , octIntPtr, placeholders::_1, placeholders::_2));
+  restoreVars(ci->gvn , bind(&octave::interpreter::global_assign   , octIntPtr, placeholders::_1, placeholders::_2));
+  restoreVars(ci->ufn , bind(&symbol_table::install_user_function  , gstPtr   , placeholders::_1, placeholders::_2));
+  restoreVars(ci->tlvn, bind(&octave::interpreter::top_level_assign, octIntPtr, placeholders::_1, placeholders::_2));
+#else
+  auto gstPtr=&octInit.interpreter->get_symbol_table();
   using GstFuncType = void(symbol_table::*)(const string&, const octave_value &);
-  restoreVars(ci->vn  , bind<GstFuncType>(&symbol_table::assign               , &gst, std::placeholders::_1, std::placeholders::_2));
-//restoreVars(ci->gvn , bind<GstFuncType>(&symbol_table::global_assign        , &gst, placeholders::_1, placeholders::_2));
-//restoreVars(ci->ufn , bind<GstFuncType>(&symbol_table::install_user_function, &gst, placeholders::_1, placeholders::_2));
-//restoreVars(ci->tlvn, bind<GstFuncType>(&symbol_table::top_level_assign     , &gst, placeholders::_1, placeholders::_2));
+  restoreVars(ci->vn  , bind<GstFuncType>(&symbol_table::assign    , gstPtr   , placeholders::_1, placeholders::_2));
+#endif
 
   ostringstream err;
   ostringstream out;
-  try{
+  try {
     int dummy;
     REDIR_STDOUT(out.rdbuf());
     REDIR_STDERR(err.rdbuf());
     mbxmlutilsStaticDependencies.clear();
+#if OCTAVE_MAJOR_VERSION >= 5
+    octInit.interpreter->eval_string(str, true, dummy, 0); // eval as statement list
+#else
     eval_string(str, true, dummy, 0); // eval as statement list
+#endif
     addStaticDependencies(e);
   }
+  catch(octave::execution_exception &ex)
+  {
+    // octave::execution_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    throw DOMEvalException("Caught octave exception " + ex.
+#if OCTAVE_MAJOR_VERSION >= 6
+      message()
+#else
+      info()
+#endif
+      + "\n" +out.str() + "\n" + err.str(), e);
+  }
+  catch(octave::exit_exception &ex)
+  {
+    // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    throw DOMEvalException("Caught octave exception (Exit exception)\n" +out.str() + "\n" + err.str(), e);
+  }
+  catch(octave::interrupt_exception &ex)
+  {
+    // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+    throw DOMEvalException("Caught octave exception (Interrupt exception)\n" +out.str() + "\n" + err.str(), e);
+  }
   catch(const exception &ex) { // should not happend
-    error_state=0;
     throw DOMEvalException(string(ex.what())+":\n"+out.str()+"\n"+err.str(), e);
   }
   catch(...) { // should not happend
-    error_state=0;
     throw DOMEvalException("Unknwon exception:\n"+out.str()+"\n"+err.str(), e);
-  }
-  if(error_state!=0) { // if error => wrong code => throw error
-    error_state=0;
-    throw DOMEvalException(out.str()+"\n"+err.str()+"Unable to evaluate expression: "+str, e);
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   string strNoSpace=str;
@@ -532,17 +632,30 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   while(!strNoSpace.empty() && (strNoSpace[strNoSpace.size()-1]==' ' || strNoSpace[strNoSpace.size()-1]==';' ||
     strNoSpace[strNoSpace.size()-1]=='\n'))
     strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
+#if OCTAVE_MAJOR_VERSION >= 5
+  if(!octInit.interpreter->is_variable("ret") && !octInit.interpreter->is_variable("ans") && !octInit.interpreter->is_variable(strNoSpace)) {
+#else
   if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret") && !octInit.interpreter->get_symbol_table().current_scope().is_variable("ans") && !octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace)) {
+#endif
     throw DOMEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
       str, e);
   }
   octave_value ret;
+#if OCTAVE_MAJOR_VERSION >= 5
+  if(octInit.interpreter->is_variable(strNoSpace))
+    ret=octInit.interpreter->varval(strNoSpace);
+  else if(!octInit.interpreter->is_variable("ret"))
+    ret=octInit.interpreter->varval("ans");
+  else
+    ret=octInit.interpreter->varval("ret");
+#else
   if(octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace))
     ret=octInit.interpreter->get_symbol_table().varval(strNoSpace);
   else if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret"))
     ret=octInit.interpreter->get_symbol_table().varval("ans");
   else
     ret=octInit.interpreter->get_symbol_table().varval("ret");
+#endif
 
   return C(ret);
 }
@@ -591,16 +704,27 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
       REDIR_STDERR(err.rdbuf());
       ret=feval(func, arg, n);
     }
-    // ensure not to let pass octave::execution_exception pass by but always throw std::runtime_error;
-    // octave::execution_exception is not derived from std::exception and therefor will usually not be handled later
     catch(octave::execution_exception &ex)
     {
-      throw runtime_error( "Caught octave exception " + ex.info() + "\n" +out.str() + "\n" + err.str() );
+      // octave::execution_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+      throw runtime_error( "Caught octave exception " + ex.
+#if OCTAVE_MAJOR_VERSION >= 6
+        message()
+#else
+        info()
+#endif
+        + "\n" +out.str() + "\n" + err.str() );
     }
-  }
-  if(error_state!=0) {
-    error_state=0;
-    throw runtime_error(msg+":\n"+out.str()+"\n"+err.str());
+    catch(octave::exit_exception &ex)
+    {
+      // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+      throw runtime_error( "Caught octave exception (Exit exception)\n" +out.str() + "\n" + err.str() );
+    }
+    catch(octave::interrupt_exception &ex)
+    {
+      // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
+      throw runtime_error( "Caught octave exception (Interrupt exception)\n" +out.str() + "\n" + err.str() );
+    }
   }
   return ret;
 }

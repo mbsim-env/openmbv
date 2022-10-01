@@ -125,7 +125,9 @@ AC_SUBST([OCTAVE_LIBS])
 dnl Check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
   [pythonversion="$withval"],[pythonversion=$(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")])
-PKG_CHECK_MODULES(PYTHON, python-$pythonversion, [pythonfound=yes], [pythonfound=no])
+PKG_CHECK_MODULES(PYTHON, python-$pythonversion-embed, [pythonfound=yes], [
+  PKG_CHECK_MODULES(PYTHON, python-$pythonversion, [pythonfound=yes], [pythonfound=no])
+])
 AM_CONDITIONAL([COND_PYTHON], [test "_$pythonfound" == "_yes"])
 if test "_$pythonfound" == "_yes"; then
   if test "_$PYTHON_BIN" == "_"; then

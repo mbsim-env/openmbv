@@ -201,7 +201,9 @@ AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python 
 AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalutor is ALPHA hence it must be enabled explicitly.])
 AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
 if test "x$enable_python" == "xyes"; then
-  PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
+  PKG_CHECK_MODULES([PYTHON], [python-$pythonversion-embed], [], [
+    PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
+  ])
   if test "_$PYTHON_BIN" == "_"; then
     PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
   fi
