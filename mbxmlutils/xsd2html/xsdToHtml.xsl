@@ -46,13 +46,13 @@
         ul._elementsofclass { list-style-type:none; padding:0; }
         ul._elementchild { list-style-type:none; padding-left:4ex; }
 
-        ul._elementchoice { list-style-type:none; border-left-style:solid; border-left-color:#5e58db;
+        ul._elementchoice { list-style-type:none; border-left-style:solid; border-left-color:#5e58db; /* bootstrap 4 can use var(--info) but not bootstrap 3 */
                             padding:0.1ex; margin-top:0.25ex; margin-bottom:0.25ex; }
-        ul._elementsequence { list-style-type:none; border-left-style:solid; border-left-color:#db5858;
+        ul._elementsequence { list-style-type:none; border-left-style:solid; border-left-color:#db5858; /* bootstrap 4 can use var(--info) but not bootstrap 3 */
                               padding:0.1ex; margin-top:0.25ex; margin-bottom:0.25ex; }
 
-        *._badgechoice { background-color:#5e58db; }
-        *._badgesequence { background-color:#db5858; }
+        *._badgechoice { background-color:#5e58db; } /* bootstrap 4 can use var(--info) but not bootstrap 3 */
+        *._badgesequence { background-color:#db5858; } /* bootstrap 4 can use var(--info) but not bootstrap 3 */
 
         *._elementdocuall { padding-left:3ex; margin:0; margin-bottom:1ex; }
         *._elementdocu { }
