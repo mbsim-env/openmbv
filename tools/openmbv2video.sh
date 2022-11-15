@@ -1,4 +1,7 @@
-#! /bin/sh
+#! /bin/bash
+
+set -e
+set -o pipefail
 
 if test $# -ne 2; then
   echo "Usage: openmbv2video <fps> <fileBaseName>"

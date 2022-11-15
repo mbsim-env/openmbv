@@ -1,6 +1,7 @@
 #!/bin/bash
- 
+
 set -e
+set -o pipefail
 
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 @XC_EXEC_PREFIX@ @prefix@/bin/h5lockserie@EXEEXT@ --remove MBS_outfile.ombvh5 || echo "failed but continuing"

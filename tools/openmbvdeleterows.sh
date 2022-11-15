@@ -1,4 +1,7 @@
-#! /bin/sh
+#! /bin/bash
+
+set -e
+set -o pipefail
 
 if [ $# -ne 4 ]; then
   echo "Usage: $0 <h5-infile> <h5-outfile> <startind> <inc>"

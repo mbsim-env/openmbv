@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
 @XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py > testsymbolic.out
 RET=$?

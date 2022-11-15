@@ -35,7 +35,7 @@ function main()
   cube.getName()
   cube.getReferenceFrame()
   cube.getLength()
-  cube.append([0.4 1 2 3 4 5 6 0.25]);
+  cube.append([0.4;1;2;3;4;5;6;0.25]);
 end
 
 

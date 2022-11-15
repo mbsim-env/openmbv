@@ -1,6 +1,7 @@
 #!/bin/bash
- 
+
 set -e
+set -o pipefail
 
 test -d temp_testdir || mkdir temp_testdir
 cp javatest.class temp_testdir
