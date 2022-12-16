@@ -58,7 +58,7 @@ namespace MBXMLUtils::SharedLibrary {
 #ifndef _WIN32
   using Handle = void *;
 #else
-  using Handle = typedef;
+  using Handle = HMODULE;
 #endif
 
   using InitFuncType = int (*)();
