@@ -322,14 +322,13 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
 }
 
 shared_ptr<xercesc::DOMDocument> Preprocess::preprocessFile(
-  std::vector<path> &dependencies, std::set<boost::filesystem::path> schemas,
+  std::vector<path> &dependencies, const std::variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
   const boost::filesystem::path &mainXML) {
   static const path SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
   // the XML DOM parser
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
-  schemas.insert(SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"mbxmlutils.xsd");
-  shared_ptr<DOMParser> parser=DOMParser::create(schemas);
+  shared_ptr<DOMParser> parser=DOMParser::create(xmlCatalog);
 
   // validate main file and get DOM
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainXML<<endl;

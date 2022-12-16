@@ -29,7 +29,7 @@ class Preprocess : virtual public fmatvec::Atom {
 
     // same as process but reads from mainXML and return preprocessed DOMDocument.
     static std::shared_ptr<xercesc::DOMDocument> preprocessFile(
-      std::vector<boost::filesystem::path> &dependencies, std::set<boost::filesystem::path> schemas,
+      std::vector<boost::filesystem::path> &dependencies, const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog,
       const boost::filesystem::path &mainXML);
 };
 

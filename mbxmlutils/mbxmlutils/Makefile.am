@@ -17,7 +17,7 @@ SUBDIRS = octave $(PYTHON)
 # distribute and install
 mbxmlutilsschemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils
 xmldir = @datadir@/@PACKAGE@/xml
-dist_mbxmlutilsschema_DATA = types.xsd embed.xsd parameter.xsd mbxmlutils.xsd
+dist_mbxmlutilsschema_DATA = types.xsd embed.xsd parameter.xsd mbxmlutils.xsd mbxmlutilsCatalog.xml
 dist_xml_DATA = measurement.xml
 
 

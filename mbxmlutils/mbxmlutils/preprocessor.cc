@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
       cout<<"Usage:"<<endl
           <<"mbxmlutilspp [--dependencies <dep-file-name>]"<<endl
           <<"             [--stdout <msg> [--stdout <msg> ...]] [--stderr <msg> [--stderr <msg> ...]]"<<endl
-          <<"             <schema-file.xsd> [<schema-file.xsd> ...]"<<endl
+          <<"             --xmlCatalog <catalog.xml>"<<endl
           <<"             -o <out-file> <main-file>"<<endl
           <<"             ..."<<endl
           <<""<<endl
@@ -77,14 +77,12 @@ int main(int argc, char *argv[]) {
       args.erase(i); args.erase(i2);
     }
 
-    set<path> schemas;
-    for(auto &arg: args) {
-      if(boost::algorithm::ends_with(arg, ".xsd"))
-        schemas.insert(arg);
-    }
+    auto it=find(args.begin(), args.end(), "--xmlCatalog");
+    it++;
+    path xmlCatalog=*it;
     path mainXML(args.back());
 
-    auto mainXMLDoc=Preprocess::preprocessFile(dependencies, schemas, mainXML);
+    auto mainXMLDoc=Preprocess::preprocessFile(dependencies, xmlCatalog, mainXML);
 
     // save result file
     path mainxmlpp;

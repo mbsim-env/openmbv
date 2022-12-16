@@ -809,8 +809,8 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
 DOMParserUserDataHandler DOMParser::userDataHandler;
 
-shared_ptr<DOMParser> DOMParser::create(const set<path> &schemas) {
-  return shared_ptr<DOMParser>(new DOMParser(schemas));
+shared_ptr<DOMParser> DOMParser::create(const variant<path, DOMElement*> &xmlCatalog) {
+  return shared_ptr<DOMParser>(new DOMParser(xmlCatalog));
 }
 
 InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdentifier) {
@@ -840,7 +840,7 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   return new LocalFileInputSource(X()%file.string());
 }
 
-DOMParser::DOMParser(const set<path> &schemas) {
+DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   // get DOM implementation and create parser
   domImpl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
@@ -860,7 +860,10 @@ DOMParser::DOMParser(const set<path> &schemas) {
   config->setParameter(XMLUni::fgXercesDoXInclude, false);
   //config->setParameter(XMLUni::fgDOMCDATASections, false); // is not implemented by xercesc handle it by DOMParser
   // configure validating parser
-  if(!schemas.empty()) {
+  auto *xmlCatalogFile=std::get_if<path>(&xmlCatalog);
+  auto *xmlCatalogEle=std::get_if<DOMElement*>(&xmlCatalog);
+  if((xmlCatalogFile && !xmlCatalogFile->empty()) ||
+     (xmlCatalogEle && *xmlCatalogEle)) {
     config->setParameter(XMLUni::fgXercesScannerName, XMLUni::fgSGXMLScanner);
     config->setParameter(XMLUni::fgDOMValidate, true);
     config->setParameter(XMLUni::fgXercesSchema, true);
@@ -871,25 +874,37 @@ DOMParser::DOMParser(const set<path> &schemas) {
     typeDerHandler.setParser(this);
     abstractParser->setPSVIHandler(&typeDerHandler);
     shared_ptr<DOMParser> nonValParser=create();
-    for(auto &schema: schemas)
-      registerGrammar(nonValParser, schema);
-    for(auto &schema: schemas)
-      loadGrammar(schema);
+    shared_ptr<xercesc::DOMDocument> doc;
+    DOMElement *root=nullptr;
+    if(xmlCatalogFile) {
+      doc=nonValParser->parse(*xmlCatalogFile);
+      root=doc->getDocumentElement();
+    }
+    else
+      root=*xmlCatalogEle;
+    static const NamespaceURI XMLNAMESPACE("http://www.w3.org/XML/1998/namespace");
+    if(E(root)->hasAttribute(XMLNAMESPACE%"base"))
+      throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
+    for(DOMElement *c=root->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
+      if(E(c)->getTagName()!=XMLCATALOG%"uri")
+        throw runtime_error("This parser only supports <uri> elements in XML catalogs.");
+      if(E(c)->hasAttribute(XMLNAMESPACE%"base"))
+        throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
+      path schemaPath=E(c)->getAttribute("uri");
+      if(!xmlCatalogFile && schemaPath.is_relative())
+        throw runtime_error("Relative path in XML catalogs are only supported when reading the catalog from file.");
+      if(xmlCatalogFile)
+        schemaPath=absolute(schemaPath, xmlCatalogFile->parent_path());
+      registeredGrammar.emplace(E(c)->getAttribute("name"), schemaPath);
+    }
+    for(auto &[_, schemaFilename]: registeredGrammar) {
+      // load grammar
+      errorHandler.resetError();
+      parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
+      if(errorHandler.hasError())
+        throw errorHandler.getError();
+    }
   }
-}
-
-void DOMParser::loadGrammar(const path &schemaFilename) {
-  // load grammar
-  errorHandler.resetError();
-  parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
-  if(errorHandler.hasError())
-    throw errorHandler.getError();
-}
-
-void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const path &schemaFilename) {
-  shared_ptr<xercesc::DOMDocument> doc=nonValParser->parse(schemaFilename);//MISSING use sax parser since we just need to parse one attribute of the root element
-  string ns=E(doc->getDocumentElement())->getAttribute("targetNamespace");
-  registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
 void DOMParser::handleCDATA(DOMElement *e) {
