@@ -897,7 +897,8 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
         schemaPath=absolute(schemaPath, xmlCatalogFile->parent_path());
       registeredGrammar.emplace(E(c)->getAttribute("name"), schemaPath);
     }
-    for(auto &[_, schemaFilename]: registeredGrammar) {
+    for(auto &[ns, schemaFilename]: registeredGrammar) {
+      std::ignore = ns;
       // load grammar
       errorHandler.resetError();
       parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
