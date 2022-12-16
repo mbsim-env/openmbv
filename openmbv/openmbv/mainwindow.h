@@ -232,7 +232,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
     void highlightObject(Object *current);
     /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
-    void highlightObject(std::string curID);
+    void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
     bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
@@ -256,7 +256,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
-    void startShortAni(const std::function<void(double)> func, bool noAni=false);
+    void startShortAni(const std::function<void(double)> &func, bool noAni=false);
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;

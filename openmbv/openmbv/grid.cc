@@ -75,19 +75,19 @@ void Grid::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    FloatEditor *xSizeEditor=new FloatEditor(properties, QIcon(), "Grid x-size");
+    auto *xSizeEditor=new FloatEditor(properties, QIcon(), "Grid x-size");
     xSizeEditor->setRange(0, DBL_MAX);
     xSizeEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getXSize, &OpenMBV::Grid::setXSize);
 
-    FloatEditor *ySizeEditor=new FloatEditor(properties, QIcon(), "Grid y-size");
+    auto *ySizeEditor=new FloatEditor(properties, QIcon(), "Grid y-size");
     ySizeEditor->setRange(0, DBL_MAX);
     ySizeEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYSize, &OpenMBV::Grid::setYSize);
 
-    IntEditor *nxEditor=new IntEditor(properties, QIcon(), "Number of x-grids");
+    auto *nxEditor=new IntEditor(properties, QIcon(), "Number of x-grids");
     nxEditor->setRange(0, INT_MAX);
     nxEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getXNumber, &OpenMBV::Grid::setXNumber);
 
-    IntEditor *nyEditor=new IntEditor(properties, QIcon(), "Number of y-grids");
+    auto *nyEditor=new IntEditor(properties, QIcon(), "Number of y-grids");
     nyEditor->setRange(0, INT_MAX);
     nyEditor->setOpenMBVParameter(g, &OpenMBV::Grid::getYNumber, &OpenMBV::Grid::setYNumber);
   }

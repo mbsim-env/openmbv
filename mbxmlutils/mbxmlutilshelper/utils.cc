@@ -50,11 +50,11 @@ namespace MBXMLUtils {
     // defaults for --stdout and --stderr
     if(find(args.begin(), args.end(), "--stdout")==args.end() &&
        find(args.begin(), args.end(), "--stderr")==args.end()) {
-      args.push_back("--stdout"); args.push_back("info~Info: ~");
-      args.push_back("--stderr"); args.push_back("warn~Warn: ~");
-      args.push_back("--stderr"); args.push_back("error~~");
-      args.push_back("--stderr"); args.push_back("depr~Depr: ~");
-      args.push_back("--stdout"); args.push_back("status~~\r");
+      args.emplace_back("--stdout"); args.emplace_back("info~Info: ~");
+      args.emplace_back("--stderr"); args.emplace_back("warn~Warn: ~");
+      args.emplace_back("--stderr"); args.emplace_back("error~~");
+      args.emplace_back("--stderr"); args.emplace_back("depr~Depr: ~");
+      args.emplace_back("--stdout"); args.emplace_back("status~~\r");
     }
   
     // disable all streams

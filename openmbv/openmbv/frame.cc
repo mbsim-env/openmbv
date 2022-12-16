@@ -46,11 +46,11 @@ void Frame::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    FloatEditor *sizeEditor=new FloatEditor(properties, QIcon(), "Size (length)");
+    auto *sizeEditor=new FloatEditor(properties, QIcon(), "Size (length)");
     sizeEditor->setRange(0, DBL_MAX);
     sizeEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getSize, &OpenMBV::Frame::setSize);
 
-    FloatEditor *offsetEditor=new FloatEditor(properties, QIcon(), "Offset");
+    auto *offsetEditor=new FloatEditor(properties, QIcon(), "Offset");
     offsetEditor->setRange(0, 1);
     offsetEditor->setStep(0.02);
     offsetEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getOffset, &OpenMBV::Frame::setOffset);

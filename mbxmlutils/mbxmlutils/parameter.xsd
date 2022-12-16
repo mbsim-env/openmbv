@@ -5,6 +5,8 @@
   xmlns="http://www.mbsim-env.de/MBXMLUtils"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="types.xsd"/>
+
   <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">

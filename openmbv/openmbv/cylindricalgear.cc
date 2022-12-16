@@ -119,7 +119,7 @@ CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QT
     }
   }
 
-  SoShapeHints *hints = new SoShapeHints;
+  auto *hints = new SoShapeHints;
   hints->vertexOrdering = e->getExternalToothed()?SoShapeHints::COUNTERCLOCKWISE:SoShapeHints::CLOCKWISE;
   hints->shapeType = SoShapeHints::SOLID;
   soSepRigidBody->addChild(hints);
@@ -557,25 +557,25 @@ void CylindricalGear::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
+    auto *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
     numEditor->setRange(5, 100);
     numEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getNumberOfTeeth, &OpenMBV::CylindricalGear::setNumberOfTeeth);
-    FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
+    auto *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
     widthEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getWidth, &OpenMBV::CylindricalGear::setWidth);
-    FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
+    auto *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
     helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getHelixAngle, &OpenMBV::CylindricalGear::setHelixAngle);
-    FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
+    auto *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getModule, &OpenMBV::CylindricalGear::setModule);
-    FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
+    auto *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
     pressureAngleEditor->setRange(0, M_PI/4);
     pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getPressureAngle, &OpenMBV::CylindricalGear::setPressureAngle);
-    FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
+    auto *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
     backlashEditor->setRange(0, 0.005);
     backlashEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getBacklash, &OpenMBV::CylindricalGear::setBacklash);
-    BoolEditor *solidEditor=new BoolEditor(properties, QIcon(), "External thoothed", "CylindricalGear::externalToothed");
+    auto *solidEditor=new BoolEditor(properties, QIcon(), "External thoothed", "CylindricalGear::externalToothed");
     solidEditor->setOpenMBVParameter(e, &OpenMBV::CylindricalGear::getExternalToothed, &OpenMBV::CylindricalGear::setExternalToothed);
   }
 }

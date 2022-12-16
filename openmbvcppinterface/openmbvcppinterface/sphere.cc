@@ -30,9 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Sphere, OPENMBV%"Sphere")
 
-Sphere::Sphere()  
-  {
-}
+Sphere::Sphere() = default;
 
 DOMElement* Sphere::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);

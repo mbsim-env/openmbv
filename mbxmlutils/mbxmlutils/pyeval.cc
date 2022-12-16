@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include "mbxmlutils/eval_static.h"
+#include <memory>
 #include <regex>
 
 using namespace std;
@@ -130,7 +131,7 @@ unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library 
 extern "C"
 int MBXMLUtils_SharedLibrary_init() {
   try {
-    pyInit.reset(new PyInit);
+    pyInit=std::make_unique<PyInit>();
   }
   catch(...) {
     return 1;
@@ -164,7 +165,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
   PyO globals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with current parameters)
-  for(unordered_map<string, Value>::const_iterator i=currentParam.begin(); i!=currentParam.end(); i++)
+  for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // get current python sys.path

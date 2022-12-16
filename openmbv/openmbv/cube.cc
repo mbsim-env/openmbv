@@ -57,7 +57,7 @@ void Cube::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    FloatEditor *lengthEditor=new FloatEditor(properties, QIcon(), "Length");
+    auto *lengthEditor=new FloatEditor(properties, QIcon(), "Length");
     lengthEditor->setRange(0, DBL_MAX);
     lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cube::getLength, &OpenMBV::Cube::setLength);
   }

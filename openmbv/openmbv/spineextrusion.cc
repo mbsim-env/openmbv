@@ -185,10 +185,10 @@ void SpineExtrusion::createProperties() {
   if(!clone) {
     properties->updateHeader();
     // GUI editors
-    FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
+    auto *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
     contourEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getContour, &OpenMBV::SpineExtrusion::setContour);
 
-    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
+    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getScaleFactor, &OpenMBV::SpineExtrusion::setScaleFactor);
   }

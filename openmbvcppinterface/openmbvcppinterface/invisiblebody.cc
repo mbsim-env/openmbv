@@ -30,8 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(InvisibleBody, OPENMBV%"InvisibleBody")
 
-InvisibleBody::InvisibleBody()  {
-}
+InvisibleBody::InvisibleBody() = default;
 
 DOMElement* InvisibleBody::writeXMLFile(DOMNode *parent) {
   RigidBody::writeXMLFile(parent);

@@ -52,7 +52,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
      * to enable filtered coloring the data function of the view-model should directly return the QBrush set using setData.
      * The boolean view-model flag enableRole_ is honored when coloring is done be the filter:
      * If this flag is true normal coloring is done if false "disabled" coloring is done. */
-    AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, const QString &typePrefix_="",
+    AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, QString typePrefix_="",
                        std::function<QObject*(const QModelIndex&)> indexToQObject_=std::function<QObject*(const QModelIndex&)>(),
                        int enableRole_=Qt::UserRole);
 

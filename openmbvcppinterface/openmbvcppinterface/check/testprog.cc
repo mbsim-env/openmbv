@@ -187,13 +187,13 @@ int main() {
 void walkHierarchy(const shared_ptr<Group> &grp) {
   cout<<grp->getFullName()<<endl;
   vector<shared_ptr<Object> > obj=grp->getObjects();
-  for(size_t i=0; i<obj.size(); i++) {
-    shared_ptr<Group> g=dynamic_pointer_cast<Group>(obj[i]);
+  for(auto & o : obj) {
+    shared_ptr<Group> g=dynamic_pointer_cast<Group>(o);
     if(g)
       walkHierarchy(g);
     else {
-      shared_ptr<Body> b=dynamic_pointer_cast<Body>(obj[i]);
-      cout<<obj[i]->getFullName()<<" [rows="<<b->getRows()<<"]"<<endl;
+      shared_ptr<Body> b=dynamic_pointer_cast<Body>(o);
+      cout<<o->getFullName()<<" [rows="<<b->getRows()<<"]"<<endl;
     }
   }
 }

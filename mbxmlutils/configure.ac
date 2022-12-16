@@ -112,21 +112,18 @@ if test "_$mkoctfile" == "_no"; then
 fi
 test "_$mkoctfile" = "_no" && AC_MSG_ERROR([mkoctfile not found])
 # get mkoctfile version
-X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
-AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X], [Octave version])
-AC_SUBST([MBXMLUTILS_OCTAVE_MAJOR_VERSION], [$X])
-X=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
-AC_DEFINE_UNQUOTED([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X], [Octave version])
-AC_SUBST([MBXMLUTILS_OCTAVE_MINOR_VERSION], [$X])
+MBXMLUTILS_OCTAVE_MAJOR_VERSION=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\1/')
+MBXMLUTILS_OCTAVE_MINOR_VERSION=$($XC_EXEC_PREFIX $mkoctfile --version | dos2unix | sed -re 's/.*version ([[0-9]]+)\.([[0-9]]+)\.([[0-9]]+).*/\2/')
 # check octave version
-if test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -gt 4004; then
-  AC_MSG_WARN([Using untested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.
-Use at your own risk.])
-elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004; then
-  AC_MSG_NOTICE([Using tested octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION.])
+if test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004; then
+  AC_MSG_NOTICE([Using tested octave version 4.4.])
+elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 6002; then
+  AC_MSG_NOTICE([Using tested octave version 6.2. (Known issue: still reachable memory leaks on program exit)])
+elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -lt 4004; then
+  AC_MSG_ERROR([octave versions < 4.4 are not working. Please use a newer version. Tested are version 4.4 and 6.2.])
 else
-  AC_MSG_ERROR([octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION is not supported.
-Supported and tested 4.4. Versions > 4.4 are untested, use at your own risk.])
+  AC_MSG_WARN([octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION is not supported/tested.
+Supported and tested are versions 4.4 and 6.2. Use at your own risk.])
 fi
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"

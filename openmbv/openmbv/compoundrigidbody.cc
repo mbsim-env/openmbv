@@ -61,7 +61,7 @@ void CompoundRigidBody::createProperties() {
   RigidBody::createProperties();
 
   // GUI
-  QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", properties);
+  auto *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new RigidBody", properties);
   connect(newObject,&QAction::triggered,properties,[this](){
     static_cast<CompoundRigidBody*>(properties->getParentObject())->newRigidBodySlot();
   });

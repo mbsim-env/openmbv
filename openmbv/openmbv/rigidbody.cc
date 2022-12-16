@@ -122,7 +122,7 @@ void RigidBody::createProperties() {
   DynamicColoredBody::createProperties();
 
   // GUI
-  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
+  auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,&QAction::triggered,properties,[this](){
     static_cast<RigidBody*>(properties->getParentObject())->moveCameraWithSlot();
   });
@@ -130,19 +130,19 @@ void RigidBody::createProperties() {
 
   // GUI editors
   if(!clone) {
-    BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "RigidBody::localFrame");
+    auto *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "RigidBody::localFrame");
     localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
     properties->addPropertyAction(localFrameEditor->getAction());
 
-    BoolEditor *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached("referenceframe.svg"), "Draw reference frame", "RigidBody::referenceFrame");
+    auto *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached("referenceframe.svg"), "Draw reference frame", "RigidBody::referenceFrame");
     referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
     properties->addPropertyAction(referenceFrameEditor->getAction());
 
-    BoolEditor *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"), "Draw path of reference frame", "RigidBody::paht");
+    auto *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"), "Draw path of reference frame", "RigidBody::paht");
     pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
     properties->addPropertyAction(pathEditor->getAction());
 
-    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
+    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
 

@@ -162,7 +162,7 @@ def registerPath(path):
     else:
       registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
   # call the mbxmlutilsPyEvalRegisterPath function in this lib
-  ret=registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
+  registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
 registerPath.dll=None
 
 
@@ -190,7 +190,7 @@ def cardan(*argv):
     beta=argv[0][1]
     gamma=argv[0][2]
   else:
-    raise RuntimError('Must be called with a three scalar arguments or one vector argument of length 3.')
+    raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
 
   return _convert(numpy.array([[sympy.cos(beta)*sympy.cos(gamma),
                               -sympy.cos(beta)*sympy.sin(gamma),
@@ -250,7 +250,7 @@ def rotateAboutZ(phi):
 
 
 def tilde(x):
-                
+
   if len(x)==3 and not hasattr(x[0], '__len__'):
 
     return numpy.array([[    0, -x[2],  x[1]], \

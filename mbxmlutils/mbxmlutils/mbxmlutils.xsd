@@ -1,0 +1,11 @@
+<xs:schema targetNamespace="http://www.mbsim-env.de/MBXMLUtils"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  xmlns="http://www.mbsim-env.de/MBXMLUtils"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="types.xsd"/>
+  <xs:include schemaLocation="parameter.xsd"/>
+  <xs:include schemaLocation="embed.xsd"/>
+
+</xs:schema>

@@ -30,8 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvBody, OPENMBV%"IvBody")
 
-IvBody::IvBody()  {
-}
+IvBody::IvBody() = default;
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);

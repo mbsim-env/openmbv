@@ -159,21 +159,21 @@ void Rotation::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    FloatEditor *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
+    auto *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
     startAngleEditor->setRange(0, 360); // degree
     startAngleEditor->setStep(10); // degree
     startAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     startAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
     startAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getStartAngle, &OpenMBV::Rotation::setStartAngle);
 
-    FloatEditor *endAngleEditor=new FloatEditor(properties, QIcon(), "End angle");
+    auto *endAngleEditor=new FloatEditor(properties, QIcon(), "End angle");
     endAngleEditor->setRange(0, 360); // degree
     endAngleEditor->setStep(10); // degree
     endAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     endAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
     endAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getEndAngle, &OpenMBV::Rotation::setEndAngle);
 
-    FloatMatrixEditor *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
+    auto *contourEditor=new FloatMatrixEditor(properties, QIcon(), "Contour", 0, 3);
     contourEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getContour, &OpenMBV::Rotation::setContour);
   }
 }

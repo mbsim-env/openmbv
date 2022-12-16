@@ -96,7 +96,7 @@ class Utils : virtual public fmatvec::Atom {
     static GLUtesselator *tess;
 
 
-    typedef std::tuple<QIcon, std::string, std::function<std::shared_ptr<OpenMBV::Object>()> > FactoryElement;
+    using FactoryElement = std::tuple<QIcon, std::string, std::function<std::shared_ptr<OpenMBV::Object> ()>>;
     static std::shared_ptr<OpenMBV::Object> createObjectEditor(const std::vector<FactoryElement> &factory,
                                                                  const std::vector<std::string> &existingNames,
                                                                  const std::string &title);
@@ -215,8 +215,8 @@ extern std::unique_ptr<AppSettings> appSettings;
 class SettingsDialog : public QDialog {
   public:
     SettingsDialog(QWidget *parent);
-    void closeEvent(QCloseEvent *event);
-    void showEvent(QShowEvent *event);
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 };
 
 }

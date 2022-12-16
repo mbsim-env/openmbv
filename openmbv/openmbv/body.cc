@@ -154,15 +154,15 @@ void Body::createProperties() {
 
   // GUI editors
   if(!clone) {
-    BoolEditor *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outLine");
+    auto *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outLine");
     outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
     properties->addPropertyAction(outLineEditor->getAction());
 
-    BoolEditor *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
+    auto *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
     shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
     properties->addPropertyAction(shilouetteEdgeEditor->getAction());
 
-    ComboBoxEditor *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style", {
+    auto *drawMethodEditor=new ComboBoxEditor(properties, Utils::QIconCached("lines.svg"), "Draw style", {
       make_tuple(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled"),
       make_tuple(OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines"),
       make_tuple(OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
@@ -170,11 +170,11 @@ void Body::createProperties() {
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
 
-    FloatEditor *pointSizeEditor=new FloatEditor(properties, Utils::QIconCached("pointsize.svg"), "Define point size");
+    auto *pointSizeEditor=new FloatEditor(properties, Utils::QIconCached("pointsize.svg"), "Define point size");
     pointSizeEditor->setRange(0, DBL_MAX);
     pointSizeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getPointSize, &OpenMBV::Body::setPointSize);
 
-    FloatEditor *lineWidthEditor=new FloatEditor(properties, Utils::QIconCached("linewidth.svg"), "Define line width");
+    auto *lineWidthEditor=new FloatEditor(properties, Utils::QIconCached("linewidth.svg"), "Define line width");
     lineWidthEditor->setRange(0, DBL_MAX);
     lineWidthEditor->setOpenMBVParameter(body, &OpenMBV::Body::getLineWidth, &OpenMBV::Body::setLineWidth);
   }

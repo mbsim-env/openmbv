@@ -103,7 +103,7 @@ class X {
 class FQN : public std::pair<std::string, std::string> {
   public:
     //! Empty FQN
-    FQN()  {}
+    FQN()  = default;
     //! Anonymous FQN
     FQN(const std::string &name) : std::pair<std::string, std::string>("", name) {}
     //! Anonymous FQN (required for implicit casting of string literals to anonymous FQNs)
@@ -144,7 +144,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
       xpath=src.xpath;
       return *this;
     }
-    ~EmbedDOMLocator() = default;
+    ~EmbedDOMLocator() override = default;
     EmbedDOMLocator(const EmbedDOMLocator &&src) = delete;
     EmbedDOMLocator& operator=(const EmbedDOMLocator &&src) = delete;
     XMLFileLoc getLineNumber() const override { return row; }

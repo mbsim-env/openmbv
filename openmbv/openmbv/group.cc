@@ -73,7 +73,8 @@ Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   // read XML
   vector<std::shared_ptr<OpenMBV::Object> > child=grp->getObjects();
   for(auto & i : child) {
-    if(typeid(*i)==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(i))->getObjects().empty()) continue; // a hack for openmbvdeleterows.sh
+    auto &iRef=*i;
+    if(typeid(iRef)==typeid(OpenMBV::Group) && (std::static_pointer_cast<OpenMBV::Group>(i))->getObjects().empty()) continue; // a hack for openmbvdeleterows.sh
     ObjectFactory::create(i, this, soSep, -1);
   }
 }
@@ -82,7 +83,7 @@ void Group::createProperties() {
   Object::createProperties();
 
   // GUI
-  QAction *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", properties);
+  auto *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", properties);
   connect(newObject,&QAction::triggered,properties,[this](){
     static_cast<Group*>(properties->getParentObject())->newObjectSlot();
   });

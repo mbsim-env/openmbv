@@ -52,7 +52,7 @@ PropertyDialog::PropertyDialog(QObject *parentObject_) : QDialog(MainWindow::get
 
   contextMenu=new QMenu("Context Menu");
   contextMenu->setSeparatorsCollapsible(false);
-  QAction *dialogAction=new QAction("Properties...", this);
+  auto *dialogAction=new QAction("Properties...", this);
   contextMenu->addAction(dialogAction);
   connect(dialogAction, &QAction::triggered, this, &PropertyDialog::openDialogSlot);
   auto *sep2=new QAction(this);
@@ -104,7 +104,7 @@ void PropertyDialog::addContextAction(QAction *action) {
 
 void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QWidget *widget) {
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   QFontInfo fontinfo(font());
   iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
@@ -114,7 +114,7 @@ void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QWi
 
 void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QWidget *widget) {
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   QFontInfo fontinfo(font());
   iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
@@ -124,7 +124,7 @@ void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QWi
 
 void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QLayout *subLayout) {
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   QFontInfo fontinfo(font());
   iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
@@ -134,7 +134,7 @@ void PropertyDialog::addSmallRow(const QIcon& icon, const std::string& name, QLa
 
 void PropertyDialog::addLargeRow(const QIcon& icon, const std::string& name, QLayout *subLayout) {
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   QFontInfo fontinfo(font());
   iconLabel->setPixmap(icon.pixmap(fontinfo.pixelSize(),fontinfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
@@ -151,7 +151,7 @@ void PropertyDialog::updateHeader() {
     header->setColumnStretch(0, 0);
     header->setColumnStretch(1, 1);
     // display Object icon
-    QLabel *objectIcon=new QLabel;
+    auto *objectIcon=new QLabel;
     QFontInfo fontinfo(font());
     objectIcon->setPixmap(static_cast<QTreeWidgetItem*>(obj)->icon(0).pixmap(fontinfo.pixelSize()*3,fontinfo.pixelSize()*3));
     header->addWidget(objectIcon, 0, 0, 2, 1);
@@ -209,7 +209,7 @@ void Editor::replaceObject() {
   // save selection and current item and clear selection under obj
   queue<bool> selected;
   queue<bool> current;
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, std::bind(&getSelAndCur, placeholders::_1, std::ref(selected), std::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(obj, [&selected, &current](auto && PH1) { return getSelAndCur(std::forward<decltype(PH1)>(PH1), selected, current); });
 
   // re-add this object using the same OpenMBVCppInterface::Object
   QTreeWidgetItem *treeWidgetParent=obj->QTreeWidgetItem::parent();
@@ -236,7 +236,7 @@ void Editor::replaceObject() {
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
   // restore selection and current item
-  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, std::bind(&setSelAndCur, placeholders::_1, std::ref(selected), std::ref(current)));
+  Utils::visitTreeWidgetItems<QTreeWidgetItem*>(newObj, [&selected, &current](auto && PH1) { return setSelAndCur(std::forward<decltype(PH1)>(PH1), selected, current); });
   objectList->scrollToItem(objectList->currentItem());
 }
 
@@ -519,7 +519,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   sep1->setSeparator(name.c_str());
   actionGroup->addAction(sep1);
   for(size_t i=0; i<list.size(); i++) {
-    QAction *action=new QAction(get<2>(list[i]), get<1>(list[i]).c_str(), actionGroup);
+    auto *action=new QAction(get<2>(list[i]), get<1>(list[i]).c_str(), actionGroup);
     action->setObjectName(get<3>(list[i]).c_str());
     action->setData(QVariant(static_cast<int>(i)));
     action->setCheckable(true);
@@ -584,11 +584,11 @@ ColorEditor::ColorEditor(PropertyDialog *parent_, const QIcon& icon, const strin
   colorDialog=new QColorDialog();
   colorDialog->setOption(QColorDialog::NoButtons);
   connect(colorDialog, &QColorDialog::currentColorChanged, this, &ColorEditor::valueChangedSlot);
-  QPushButton *showDL=new QPushButton("Color...");
+  auto *showDL=new QPushButton("Color...");
   connect(showDL, &QPushButton::clicked, this, &ColorEditor::showDialog);
   box->addWidget(showDL);
   if(showResetHueButton) {
-    QPushButton *resetHue=new QPushButton("Reset to hue from HDF5");
+    auto *resetHue=new QPushButton("Reset to hue from HDF5");
     connect(resetHue, &QPushButton::clicked, this, &ColorEditor::resetHue);
     box->addWidget(resetHue);
   }

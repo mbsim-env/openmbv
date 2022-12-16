@@ -267,10 +267,10 @@ std::shared_ptr<OpenMBV::Object> Utils::createObjectEditor(const vector<FactoryE
   layout->addWidget(lineEdit, 1, 1);
   lineEdit->setText(name.c_str());
 
-  QPushButton *cancel=new QPushButton("Cancel");
+  auto *cancel=new QPushButton("Cancel");
   layout->addWidget(cancel, 2, 0);
   QObject::connect(cancel, &QPushButton::released, &dialog, &QDialog::reject);
-  QPushButton *ok=new QPushButton("OK");
+  auto *ok=new QPushButton("OK");
   layout->addWidget(ok, 2, 1);
   ok->setDefault(true);
   QObject::connect(ok, &QPushButton::released, &dialog, &QDialog::accept);
@@ -387,7 +387,7 @@ IntSetting::IntSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& ic
                        const std::function<void(int)> &set, int min, int max) : QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel(name, this), row, 1);
@@ -413,7 +413,7 @@ ChoiceSetting::ChoiceSetting(QGridLayout *layout, AppSettings::AS key, const QIc
                              QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel(name, this), row, 1);
@@ -437,7 +437,7 @@ DoubleSetting::DoubleSetting(QGridLayout *layout, AppSettings::AS key, const QIc
                              QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel(name, this), row, 1);
@@ -463,7 +463,7 @@ ColorSetting::ColorSetting(QGridLayout *layout, AppSettings::AS key, const QIcon
                            const std::function<void(const QColor&)> &set) : QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
-  QLabel *iconLabel=new QLabel;
+  auto *iconLabel=new QLabel;
   iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel(name, this), row, 1);
@@ -475,7 +475,7 @@ ColorSetting::ColorSetting(QGridLayout *layout, AppSettings::AS key, const QIcon
     appSettings->set(key, color);
     if(set) set(color);
   });
-  QPushButton *showDL=new QPushButton("Color...");
+  auto *showDL=new QPushButton("Color...");
   connect(showDL, &QPushButton::clicked, this, [colorDialog](){ colorDialog->show(); });
   layout->addWidget(showDL, row, 2);
 }
@@ -488,13 +488,13 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   mainLayout->setColumnStretch(1, 1);
   setLayout(mainLayout);
   // display settings icon and label
-  QLabel *settingsTitle=new QLabel("Settings");
+  auto *settingsTitle=new QLabel("Settings");
   auto font=settingsTitle->font();
   font.setBold(true);
   font.setPointSize(1.5*font.pointSize());
   settingsTitle->setFont(font);
   QFontInfo fontInfo(font);
-  QLabel *settingsIcon=new QLabel;
+  auto *settingsIcon=new QLabel;
   settingsIcon->setPixmap(Utils::QIconCached("settings.svg").pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   mainLayout->addWidget(settingsIcon, 0, 0);
   mainLayout->addWidget(settingsTitle, 0, 1);

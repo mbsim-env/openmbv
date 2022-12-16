@@ -199,7 +199,7 @@ void Extrusion::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    ComboBoxEditor *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule", {
+    auto *windingRuleEditor=new ComboBoxEditor(properties, QIcon(), "Winding rule", {
       make_tuple(OpenMBV::Extrusion::odd,        "Odd",             QIcon(), "Extrusion::windingRule::odd"),
       make_tuple(OpenMBV::Extrusion::nonzero,    "Nonzero",         QIcon(), "Extrusion::windingRule::nonzero"),
       make_tuple(OpenMBV::Extrusion::positive,   "Positive",        QIcon(), "Extrusion::windingRule::positive"),
@@ -208,7 +208,7 @@ void Extrusion::createProperties() {
     });
     windingRuleEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getWindingRule, &OpenMBV::Extrusion::setWindingRule);
 
-    FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
+    auto *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(e, &OpenMBV::Extrusion::getHeight, &OpenMBV::Extrusion::setHeight);
 

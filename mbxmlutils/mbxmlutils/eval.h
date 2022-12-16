@@ -88,7 +88,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     };
 
     //! Typedef for a shared value
-    typedef std::shared_ptr<void> Value;
+    using Value = std::shared_ptr<void>;
 
     static boost::filesystem::path installPath;
 

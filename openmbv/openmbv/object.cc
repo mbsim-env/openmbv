@@ -135,7 +135,7 @@ void Object::createProperties() {
   properties=new PropertyDialog(this);
 
   //GUI editors
-  QAction *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", properties);
+  auto *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", properties);
   deleteObject->setObjectName("Group::deleteObject");
   connect(deleteObject,&QAction::triggered,properties,[this](){
     static_cast<Object*>(properties->getParentObject())->deleteObjectSlot();
@@ -143,7 +143,7 @@ void Object::createProperties() {
   properties->addContextAction(deleteObject);
 
   if(!clone) {
-    BoolEditor *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw");
+    auto *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw");
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
     properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
 
@@ -172,7 +172,7 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     sa.setSearchingAll(true);
     sa.apply(MainWindow::getInstance()->getSceneRoot());
     SoPath *p=sa.getPath();
-    static SoGetBoundingBoxAction *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
+    static auto *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(p);
     float x1,y1,z1,x2,y2,z2;
     bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);

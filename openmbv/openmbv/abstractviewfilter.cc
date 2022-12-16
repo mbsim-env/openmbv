@@ -31,15 +31,15 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, const QString &typePrefix_,
+AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, QString typePrefix_,
                                        std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
-  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(typePrefix_), indexToQObject(std::move(indexToQObject_)),
+  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(std::move(typePrefix_)), indexToQObject(std::move(indexToQObject_)),
   enableRole(enableRole_) {
 
   auto *layout=new QGridLayout(this);
   layout->setContentsMargins(0,0,0,0);
   setLayout(layout);
-  QLabel *filterL=new QLabel("Filter:");
+  auto *filterL=new QLabel("Filter:");
   if(typeCol==-2) {
     filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).").arg(nameCol+1));
     filterL->setStatusTip("Filter name column by <regex>.");

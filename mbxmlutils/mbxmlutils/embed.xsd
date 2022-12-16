@@ -4,6 +4,8 @@
   xmlns="http://www.mbsim-env.de/MBXMLUtils"
   xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:include schemaLocation="parameter.xsd"/>
+
   <xs:element name="Embed">
     <xs:complexType>
       <xs:sequence>

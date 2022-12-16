@@ -57,7 +57,7 @@ void Path::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    ColorEditor *colorEditor=new ColorEditor(properties, QIcon(), "Color");
+    auto *colorEditor=new ColorEditor(properties, QIcon(), "Color");
     colorEditor->setOpenMBVParameter(path, &OpenMBV::Path::getColor, &OpenMBV::Path::setColor);
   }
 }

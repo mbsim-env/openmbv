@@ -90,7 +90,7 @@ class OctInit {
     OctInit();
     ~OctInit();
     string initialPath;
-    unique_ptr<octave::interpreter> interpreter;
+    octave::interpreter *interpreter { nullptr };
 };
 
 OctInit::OctInit() {
@@ -107,7 +107,7 @@ OctInit::OctInit() {
       putenv((char*)OCTAVE_HOME.c_str());
     }
     // init interpreter
-    interpreter.reset(new octave::interpreter());
+    interpreter=new octave::interpreter();
     if(octave_prefix.empty())
       octave_prefix=config::octave_home();
 
@@ -171,9 +171,13 @@ OctInit::OctInit() {
 OctInit::~OctInit() {
   try {
 #if OCTAVE_MAJOR_VERSION >= 6
-    interpreter->shutdown();
+    // deinit with octave 6.2 causes several invalid read memory access -> disabled deinit for octave 6.2
+    // We need to live with a lot of octave memory leak at exit of the program. But this is not a real problem.
+    //interpreter->shutdown();
+    //delete interpreter;
+#else
+    delete interpreter;
 #endif
-    interpreter.reset();
 
     // __finish__.m which is run at exit is deregistered during octave initialzation via atext.
     // This is required to avoid running octave code after octave was alread removed.
@@ -459,7 +463,7 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
   // create a list of all variables added by the addPath command and register these as parameter
   // to restore it in any new context with this addPath.
   auto fillVars=[](const list<string> &listBefore, const list<string> &listAfter, map<string, octave_value> &im,
-                      function<octave_value(const string&)> get){
+                   const function<octave_value(const string&)> &get){
     set<string> setBefore(listBefore.begin(), listBefore.end());
     set<string> setAfter(listAfter.begin(), listAfter.end());
     set<string> newVars;
@@ -468,12 +472,12 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
       im[n]=get(n);
   };
 #if OCTAVE_MAJOR_VERSION >= 6
-  auto *octIntPtr=octInit.interpreter.get();
+  auto *octIntPtr=octInit.interpreter;
   auto *gstPtr=&octInit.interpreter->get_symbol_table();
-  fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&octave::interpreter::varval          , octIntPtr, placeholders::_1));
-  fillVars(gvnBefore , gvnAfter , ci->gvn , bind(&octave::interpreter::global_varval   , octIntPtr, placeholders::_1));
-  fillVars(ufnBefore , ufnAfter , ci->ufn , bind(&symbol_table::find_user_function     , gstPtr   , placeholders::_1));
-  fillVars(tlvnBefore, tlvnAfter, ci->tlvn, bind(&octave::interpreter::top_level_varval, octIntPtr, placeholders::_1));
+  fillVars(vnBefore  , vnAfter  , ci->vn  , [octIntPtr](auto && name) { return octIntPtr->varval(name); });
+  fillVars(gvnBefore , gvnAfter , ci->gvn , [octIntPtr](auto && name) { return octIntPtr->global_varval(name); });
+  fillVars(ufnBefore , ufnAfter , ci->ufn , [gstPtr]   (auto && name) { return gstPtr->find_user_function(name); });
+  fillVars(tlvnBefore, tlvnAfter, ci->tlvn, [octIntPtr](auto && name) { return octIntPtr->top_level_varval(name); });
 #else
   auto gstPtr=&octInit.interpreter->get_symbol_table();
   fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&symbol_table::varval                 , gstPtr   , placeholders::_1));
@@ -567,17 +571,17 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
   }
 
   // restore variables from import
-  auto restoreVars=[](map<string, octave_value> &im, function<void(const string&, const octave_value &v)> set) {
+  auto restoreVars=[](map<string, octave_value> &im, const function<void(const string&, const octave_value &v)> &set) {
     for(auto &i : im)
       set(i.first, i.second);
   };
 #if OCTAVE_MAJOR_VERSION >= 6
-  auto *octIntPtr=octInit.interpreter.get();
+  auto *octIntPtr=octInit.interpreter;
   auto *gstPtr=&octInit.interpreter->get_symbol_table();
-  restoreVars(ci->vn  , bind(&octave::interpreter::assign          , octIntPtr, placeholders::_1, placeholders::_2));
-  restoreVars(ci->gvn , bind(&octave::interpreter::global_assign   , octIntPtr, placeholders::_1, placeholders::_2));
-  restoreVars(ci->ufn , bind(&symbol_table::install_user_function  , gstPtr   , placeholders::_1, placeholders::_2));
-  restoreVars(ci->tlvn, bind(&octave::interpreter::top_level_assign, octIntPtr, placeholders::_1, placeholders::_2));
+  restoreVars(ci->vn  , [octIntPtr](auto && name, auto && value) { return octIntPtr->assign(name, value); });
+  restoreVars(ci->gvn , [octIntPtr](auto && name, auto && value) { return octIntPtr->global_assign(name, value); });
+  restoreVars(ci->ufn , [gstPtr]   (auto && name, auto && value) { return gstPtr->install_user_function(name, value); });
+  restoreVars(ci->tlvn, [octIntPtr](auto && name, auto && value) { return octIntPtr->top_level_assign(name, value); });
 #else
   auto gstPtr=&octInit.interpreter->get_symbol_table();
   using GstFuncType = void(symbol_table::*)(const string&, const octave_value &);

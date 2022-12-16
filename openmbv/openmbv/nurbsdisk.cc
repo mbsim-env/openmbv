@@ -180,7 +180,7 @@ void NurbsDisk::createProperties() {
   DynamicColoredBody::createProperties();
 
   //Add option to move camera with body
-  QAction *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
+  auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,&QAction::triggered,properties,[this](){
     static_cast<NurbsDisk*>(properties->getParentObject())->moveCameraWithSlot();
   });
@@ -189,46 +189,46 @@ void NurbsDisk::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    BoolEditor *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "NurbsDisk::localFrame");
+    auto *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "NurbsDisk::localFrame");
     localFrameEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getLocalFrame, &OpenMBV::NurbsDisk::setLocalFrame);
     properties->addPropertyAction(localFrameEditor->getAction());
     
-    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
+    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getScaleFactor, &OpenMBV::NurbsDisk::setScaleFactor);
 
-    IntEditor *drawDegreeEditor=new IntEditor(properties, QIcon(), "Draw discretisation");
+    auto *drawDegreeEditor=new IntEditor(properties, QIcon(), "Draw discretisation");
     drawDegreeEditor->setRange(0, INT_MAX);
     drawDegreeEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getDrawDegree, &OpenMBV::NurbsDisk::setDrawDegree);
 
-    FloatEditor *innerRadiusEditor=new FloatEditor(properties, QIcon(), "Inner radius");
+    auto *innerRadiusEditor=new FloatEditor(properties, QIcon(), "Inner radius");
     innerRadiusEditor->setRange(0, DBL_MAX);
     innerRadiusEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getRi, &OpenMBV::NurbsDisk::setRi);
 
-    FloatEditor *outerRadiusEditor=new FloatEditor(properties, QIcon(), "Outer radius");
+    auto *outerRadiusEditor=new FloatEditor(properties, QIcon(), "Outer radius");
     outerRadiusEditor->setRange(0, DBL_MAX);
     outerRadiusEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getRo, &OpenMBV::NurbsDisk::setRo);
 
-    IntEditor *elementNumberAzimuthalEditor=new IntEditor(properties, QIcon(), "Number of azimuthal elements");
+    auto *elementNumberAzimuthalEditor=new IntEditor(properties, QIcon(), "Number of azimuthal elements");
     elementNumberAzimuthalEditor->setRange(0, INT_MAX);
     elementNumberAzimuthalEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getElementNumberAzimuthal, &OpenMBV::NurbsDisk::setElementNumberAzimuthal);
 
-    IntEditor *elementNumberRadialEditor=new IntEditor(properties, QIcon(), "Number of radial elements");
+    auto *elementNumberRadialEditor=new IntEditor(properties, QIcon(), "Number of radial elements");
     elementNumberRadialEditor->setRange(0, INT_MAX);
     elementNumberRadialEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getElementNumberRadial, &OpenMBV::NurbsDisk::setElementNumberRadial);
 
-    IntEditor *interpolationDegreeAzimuthalEditor=new IntEditor(properties, QIcon(), "Azimuthal spline degree");
+    auto *interpolationDegreeAzimuthalEditor=new IntEditor(properties, QIcon(), "Azimuthal spline degree");
     interpolationDegreeAzimuthalEditor->setRange(0, INT_MAX);
     interpolationDegreeAzimuthalEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getInterpolationDegreeAzimuthal, &OpenMBV::NurbsDisk::setInterpolationDegreeAzimuthal);
 
-    IntEditor *interpolationDegreeRadialEditor=new IntEditor(properties, QIcon(), "Radial spline degree");
+    auto *interpolationDegreeRadialEditor=new IntEditor(properties, QIcon(), "Radial spline degree");
     interpolationDegreeRadialEditor->setRange(0, INT_MAX);
     interpolationDegreeRadialEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getInterpolationDegreeRadial, &OpenMBV::NurbsDisk::setInterpolationDegreeRadial);
 
-    FloatMatrixEditor *knotVecAzimuthalEditor=new FloatMatrixEditor(properties, QIcon(), "Azimuthal knot vector", 1, 0);
+    auto *knotVecAzimuthalEditor=new FloatMatrixEditor(properties, QIcon(), "Azimuthal knot vector", 1, 0);
     knotVecAzimuthalEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getKnotVecAzimuthal, &OpenMBV::NurbsDisk::setKnotVecAzimuthal);
 
-    FloatMatrixEditor *knotVecRadialEditor=new FloatMatrixEditor(properties, QIcon(), "Radial knot vector", 1, 0);
+    auto *knotVecRadialEditor=new FloatMatrixEditor(properties, QIcon(), "Radial knot vector", 1, 0);
     knotVecRadialEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getKnotVecRadial, &OpenMBV::NurbsDisk::setKnotVecRadial);
   }
 }

@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
   // regenerate arg: QApplication removes all arguments known by Qt
   arg.clear();
   for (int i=1; i<argc; i++)
-    arg.push_back(argv[i]);
+    arg.emplace_back(argv[i]);
 
   app.setOrganizationName(OpenMBVGUI::AppSettings::organization);
   app.setApplicationName(OpenMBVGUI::AppSettings::application);

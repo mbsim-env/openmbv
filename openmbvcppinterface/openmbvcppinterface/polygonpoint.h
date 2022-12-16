@@ -41,7 +41,7 @@ namespace OpenMBV {
       static void deleter(PolygonPoint *pp) { delete pp; }
     public:
       static std::shared_ptr<PolygonPoint> create(double x_, double y_, int b_) {
-        return std::shared_ptr<PolygonPoint>(new PolygonPoint(x_, y_, b_), &deleter);
+        return {new PolygonPoint(x_, y_, b_), &deleter};
       };
 
       /* GETTER / SETTER */

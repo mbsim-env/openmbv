@@ -30,6 +30,8 @@
 #ifndef _MBXMLUTILSHELPER_THISLINELOCATION_H_
 #define _MBXMLUTILSHELPER_THISLINELOCATION_H_
 
+#include <string>
+
 #ifdef _WIN32
 #  include <windows.h>
 #else

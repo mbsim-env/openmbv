@@ -17,7 +17,6 @@ def getWindowsEnvPath(name):
     return os.environ[name]
   if platform.system()=="Linux":
     value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
-    ret=[]
     cmd=["winepath", "-u"]
     cmd.extend(value.split(';'))
     vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
