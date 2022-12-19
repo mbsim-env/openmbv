@@ -3,6 +3,6 @@
 set -e
 set -o pipefail
 
-@XC_EXEC_PREFIX@ @prefix@/bin/mbxmlutilsvalidate $(@XC_PATH_CONVERT@ @abs_srcdir@/measurement.xsd) $(@XC_PATH_CONVERT@ @prefix@/share/mbxmlutils/xml/measurement.xml)
+@XC_EXEC_PREFIX@ @prefix@/bin/mbxmlutilsvalidate --xmlCatalog $(@XC_PATH_CONVERT@ @abs_srcdir@/measurementCatalog.xml) $(@XC_PATH_CONVERT@ @prefix@/share/mbxmlutils/xml/measurement.xml)
 RET=$?
 exit $RET

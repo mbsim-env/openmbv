@@ -58,7 +58,7 @@ void Cuboid::createProperties() {
   // GUI
   if(!clone) {
     properties->updateHeader();
-    Vec3fEditor *lengthEditor=new Vec3fEditor(properties, QIcon(), "Length (x, y, z)");
+    auto *lengthEditor=new Vec3fEditor(properties, QIcon(), "Length (x, y, z)");
     lengthEditor->setRange(0, DBL_MAX);
     lengthEditor->setOpenMBVParameter(c, &OpenMBV::Cuboid::getLength, &OpenMBV::Cuboid::setLength);
   }

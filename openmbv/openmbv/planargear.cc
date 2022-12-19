@@ -264,25 +264,25 @@ void PlanarGear::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
+    auto *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
     numEditor->setRange(5, 100);
     numEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getNumberOfTeeth, &OpenMBV::PlanarGear::setNumberOfTeeth);
-    FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
+    auto *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getHeight, &OpenMBV::PlanarGear::setHeight);
-    FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
+    auto *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
     widthEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getWidth, &OpenMBV::PlanarGear::setWidth);
-    FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
+    auto *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
     helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getHelixAngle, &OpenMBV::PlanarGear::setHelixAngle);
-    FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
+    auto *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getModule, &OpenMBV::PlanarGear::setModule);
-    FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
+    auto *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
     pressureAngleEditor->setRange(0, M_PI/4);
     pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getPressureAngle, &OpenMBV::PlanarGear::setPressureAngle);
-    FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
+    auto *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
     backlashEditor->setRange(0, 0.005);
     backlashEditor->setOpenMBVParameter(e, &OpenMBV::PlanarGear::getBacklash, &OpenMBV::PlanarGear::setBacklash);
   }

@@ -115,10 +115,10 @@ void Cylinder::createProperties() {
   if(!clone) {
     properties->updateHeader();
     // GUI editors
-    FloatEditor *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
+    auto *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
     radiusEditor->setRange(0, DBL_MAX);
     radiusEditor->setOpenMBVParameter(c, &OpenMBV::Cylinder::getRadius, &OpenMBV::Cylinder::setRadius);
-    FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
+    auto *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(c, &OpenMBV::Cylinder::getHeight, &OpenMBV::Cylinder::setHeight);
   }

@@ -23,9 +23,6 @@
       xmlns:xml="http://www.w3.org/XML/1998/namespace"
       xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-      <xs:include schemaLocation="parameter.xsd"/>
-      <xs:include schemaLocation="embed.xsd"/>
-
       <!-- base type for a XML text element which is fully converted by the evaluator. -->
       <xs:simpleType name="fullEval">
         <xs:restriction base="xs:token"/>

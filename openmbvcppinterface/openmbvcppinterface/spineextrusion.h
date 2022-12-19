@@ -89,7 +89,7 @@ namespace OpenMBV {
         stateOffSet = stateOff;
       }
 
-      std::vector<double> getStateOffSet( void ) { return stateOffSet; }
+      std::vector<double> getStateOffSet() { return stateOffSet; }
 
       /** Get the initial rotation of the body. */
       std::vector<double> getInitialRotation() { return initialRotation; }

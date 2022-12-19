@@ -26,7 +26,7 @@
 #define SIGWATCH_H
 
 #include <QObject>
-#include <signal.h>
+#include <csignal>
 
 class UnixSignalWatcherPrivate;
 
@@ -42,8 +42,8 @@ class UnixSignalWatcher : public QObject
 {
     Q_OBJECT
 public:
-    explicit UnixSignalWatcher(QObject *parent = 0);
-    ~UnixSignalWatcher();
+    explicit UnixSignalWatcher(QObject *parent = nullptr);
+    ~UnixSignalWatcher() override;
 
     void watchForSignal(int signal);
 

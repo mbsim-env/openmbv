@@ -17,7 +17,7 @@ SUBDIRS = octave $(PYTHON)
 # distribute and install
 mbxmlutilsschemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils
 xmldir = @datadir@/@PACKAGE@/xml
-dist_mbxmlutilsschema_DATA = physicalvariable.xsd embed.xsd parameter.xsd
+dist_mbxmlutilsschema_DATA = types.xsd embed.xsd parameter.xsd mbxmlutils.xsd mbxmlutilsCatalog.xml
 dist_xml_DATA = measurement.xml
 
 
@@ -27,9 +27,9 @@ TESTS = measurement.sh
 
 
 
-# generate physicalvariable.xsd
-physicalvariable.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
-	@XALAN@ -o physicalvariable.xsd $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
+# generate types.xsd
+types.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
+	@XALAN@ -o types.xsd $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
 
@@ -87,7 +87,7 @@ mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la
 fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
 	rm -f fmatvec_symbolic_swig_octave.cc
 	$(swig) -octave -MP -MD -Werror -c++ -globals . -o fmatvec_symbolic_swig_octave.cc $(FMATVEC_CFLAGS) $(srcdir)/fmatvec_symbolic_swig_octave.i
-	test @MBXMLUTILS_OCTAVE_MAJOR_VERSION@ -ge 4 -a @MBXMLUTILS_OCTAVE_MINOR_VERSION@ -ge 4 && sed -i -re "s/\<is_object\>/isobject/g" fmatvec_symbolic_swig_octave.cc || exit 0 # WORKAROUND for SWIG bug
+	sed -i -re "s/\<is_object\>/isobject/g" fmatvec_symbolic_swig_octave.cc || exit 0 # WORKAROUND for SWIG bug
 -include $(builddir)/fmatvec_symbolic_swig_octave.d
 
 fmatvec_symbolic_swig_octave_la_SOURCES = fmatvec_symbolic_swig_octave.cc
@@ -97,7 +97,7 @@ fmatvec_symbolic_swig_octave_la_LIBADD = $(MKOCTFILE_LIBS) $(FMATVEC_LIBS)
 
 
 
-CLEANFILES = physicalvariable.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_octave.d
+CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_octave.d
 
 
 

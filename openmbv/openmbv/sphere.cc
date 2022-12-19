@@ -54,7 +54,7 @@ void Sphere::createProperties() {
   if(!clone) {
     properties->updateHeader();
     // GUI editors
-    FloatEditor *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
+    auto *radiusEditor=new FloatEditor(properties, QIcon(), "Radius");
     radiusEditor->setRange(0, DBL_MAX);
     radiusEditor->setOpenMBVParameter(s, &OpenMBV::Sphere::getRadius, &OpenMBV::Sphere::setRadius);
   }

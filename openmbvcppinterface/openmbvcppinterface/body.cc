@@ -74,7 +74,7 @@ std::string Body::getRelPathTo(const std::shared_ptr<Body> &destBody) {
     src=src.substr(src.find('/',1));
   }
   while((signed)src.find('/',1)>=0) {
-    reldest=reldest+"../";
+    reldest+="../";
     src=src.substr(src.find('/',1));
   }
   reldest=reldest+dest.substr(1);

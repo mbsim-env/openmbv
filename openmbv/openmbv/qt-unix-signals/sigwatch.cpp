@@ -24,7 +24,7 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <QMap>
 #include <QSocketNotifier>
 #include <QDebug>
@@ -44,7 +44,7 @@ class UnixSignalWatcherPrivate : public QObject
 
 public:
     UnixSignalWatcherPrivate(UnixSignalWatcher *q);
-    ~UnixSignalWatcherPrivate();
+    ~UnixSignalWatcherPrivate() override;
 
     void watchForSignal(int signal);
     static void signalHandler(int signal);
@@ -99,7 +99,7 @@ void UnixSignalWatcherPrivate::watchForSignal(int signal)
     sigact.sa_flags = 0;
     ::sigemptyset(&sigact.sa_mask);
     sigact.sa_flags |= SA_RESTART;
-    if (::sigaction(signal, &sigact, NULL)) {
+    if (::sigaction(signal, &sigact, nullptr)) {
         qDebug() << "UnixSignalWatcher: sigaction: " << ::strerror(errno);
         return;
     }

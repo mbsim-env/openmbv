@@ -95,71 +95,72 @@ using namespace std;
 namespace OpenMBVGUI {
 
 Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) {
-  if(typeid(*obj)==typeid(OpenMBV::Group))
+  auto &objRef=*obj;
+  if(typeid(objRef)==typeid(OpenMBV::Group))
     return new Group(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Arrow))
+  else if(typeid(objRef)==typeid(OpenMBV::Arrow))
     return new Arrow(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::CoilSpring))
+  else if(typeid(objRef)==typeid(OpenMBV::CoilSpring))
     return new CoilSpring(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::CompoundRigidBody))
+  else if(typeid(objRef)==typeid(OpenMBV::CompoundRigidBody))
     return new CompoundRigidBody(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Cube))
+  else if(typeid(objRef)==typeid(OpenMBV::Cube))
     return new Cube(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Cuboid))
+  else if(typeid(objRef)==typeid(OpenMBV::Cuboid))
     return new Cuboid(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Extrusion))
+  else if(typeid(objRef)==typeid(OpenMBV::Extrusion))
     return new Extrusion(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Rotation))
+  else if(typeid(objRef)==typeid(OpenMBV::Rotation))
     return new Rotation(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Grid))
+  else if(typeid(objRef)==typeid(OpenMBV::Grid))
     return new Grid(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Frame))
+  else if(typeid(objRef)==typeid(OpenMBV::Frame))
     return new Frame(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Frustum))
+  else if(typeid(objRef)==typeid(OpenMBV::Frustum))
     return new Frustum(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::IvBody))
+  else if(typeid(objRef)==typeid(OpenMBV::IvBody))
     return new IvBody(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::InvisibleBody))
+  else if(typeid(objRef)==typeid(OpenMBV::InvisibleBody))
     return new InvisibleBody(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::NurbsDisk))
+  else if(typeid(objRef)==typeid(OpenMBV::NurbsDisk))
     return new NurbsDisk(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::NurbsCurve))
+  else if(typeid(objRef)==typeid(OpenMBV::NurbsCurve))
     return new NurbsCurve(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::NurbsSurface))
+  else if(typeid(objRef)==typeid(OpenMBV::NurbsSurface))
     return new NurbsSurface(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::DynamicNurbsCurve))
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicNurbsCurve))
     return new DynamicNurbsCurve(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::DynamicNurbsSurface))
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicNurbsSurface))
     return new DynamicNurbsSurface(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::PointSet))
+  else if(typeid(objRef)==typeid(OpenMBV::PointSet))
     return new PointSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::IndexedLineSet))
+  else if(typeid(objRef)==typeid(OpenMBV::IndexedLineSet))
     return new IndexedLineSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::IndexedFaceSet))
+  else if(typeid(objRef)==typeid(OpenMBV::IndexedFaceSet))
     return new IndexedFaceSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::DynamicPointSet))
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicPointSet))
     return new DynamicPointSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedLineSet))
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicIndexedLineSet))
     return new DynamicIndexedLineSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::DynamicIndexedFaceSet))
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicIndexedFaceSet))
     return new DynamicIndexedFaceSet(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Path))
+  else if(typeid(objRef)==typeid(OpenMBV::Path))
     return new Path(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Sphere))
+  else if(typeid(objRef)==typeid(OpenMBV::Sphere))
     return new Sphere(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::SpineExtrusion))
+  else if(typeid(objRef)==typeid(OpenMBV::SpineExtrusion))
     return new SpineExtrusion(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::CylindricalGear))
+  else if(typeid(objRef)==typeid(OpenMBV::CylindricalGear))
     return new CylindricalGear(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Cylinder))
+  else if(typeid(objRef)==typeid(OpenMBV::Cylinder))
     return new Cylinder(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::Rack))
+  else if(typeid(objRef)==typeid(OpenMBV::Rack))
     return new Rack(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::BevelGear))
+  else if(typeid(objRef)==typeid(OpenMBV::BevelGear))
     return new BevelGear(obj, parentItem, soParent, ind);
-  else if(typeid(*obj)==typeid(OpenMBV::PlanarGear))
+  else if(typeid(objRef)==typeid(OpenMBV::PlanarGear))
     return new PlanarGear(obj, parentItem, soParent, ind);
-  QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(*obj).name()).c_str());
+  QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(objRef).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;
   return nullptr;

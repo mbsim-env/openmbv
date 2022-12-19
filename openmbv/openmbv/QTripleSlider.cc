@@ -25,8 +25,8 @@ QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) 
 
   // add the Slider and two dummy Frames to the Splitter
   slider=new QSlider(Qt::Vertical);
-  QFrame *topFrame=new QFrame;
-  QFrame *bottomFrame=new QFrame;
+  auto *topFrame=new QFrame;
+  auto *bottomFrame=new QFrame;
   addWidget(topFrame);
   addWidget(slider);
   addWidget(bottomFrame);

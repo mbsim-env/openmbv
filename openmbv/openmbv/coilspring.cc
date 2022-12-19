@@ -158,7 +158,7 @@ void CoilSpring::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    ComboBoxEditor *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type", {
+    auto *typeEditor=new ComboBoxEditor(properties, QIcon(), "Type", {
       make_tuple(OpenMBV::CoilSpring::tube,       "Tube",        QIcon(), "CoilSpring::type::tube"),
       make_tuple(OpenMBV::CoilSpring::scaledTube, "Scaled tube", QIcon(), "CoilSpring::type::scaledTube"),
       make_tuple(OpenMBV::CoilSpring::polyline,   "Polyline",    QIcon(), "CoilSpring::type::polyline")
@@ -166,23 +166,23 @@ void CoilSpring::createProperties() {
     typeEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getType, &OpenMBV::CoilSpring::setType);
     properties->addPropertyActionGroup(typeEditor->getActionGroup());
 
-    FloatEditor *numberOfCoilsEditor=new FloatEditor(properties, QIcon(), "Number of coils");
+    auto *numberOfCoilsEditor=new FloatEditor(properties, QIcon(), "Number of coils");
     numberOfCoilsEditor->setRange(0, DBL_MAX);
     numberOfCoilsEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNumberOfCoils, &OpenMBV::CoilSpring::setNumberOfCoils);
 
-    FloatEditor *springRadiusEditor=new FloatEditor(properties, QIcon(), "Coil spring radius");
+    auto *springRadiusEditor=new FloatEditor(properties, QIcon(), "Coil spring radius");
     springRadiusEditor->setRange(0, DBL_MAX);
     springRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getSpringRadius, &OpenMBV::CoilSpring::setSpringRadius);
 
-    FloatEditor *crossSectionRadiusEditor=new FloatEditor(properties, QIcon(), "Cross section radius");
+    auto *crossSectionRadiusEditor=new FloatEditor(properties, QIcon(), "Cross section radius");
     crossSectionRadiusEditor->setRange(0, DBL_MAX);
     crossSectionRadiusEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getCrossSectionRadius, &OpenMBV::CoilSpring::setCrossSectionRadius);
 
-    FloatEditor *nominalLengthEditor=new FloatEditor(properties, QIcon(), "Nominal length");
+    auto *nominalLengthEditor=new FloatEditor(properties, QIcon(), "Nominal length");
     nominalLengthEditor->setRange(0, DBL_MAX);
     nominalLengthEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNominalLength, &OpenMBV::CoilSpring::setNominalLength);
 
-    FloatEditor *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
+    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
     scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
   }

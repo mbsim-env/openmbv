@@ -85,11 +85,11 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         }
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
-          bind(&DOMElement::release, _1));
+          [](auto && PH1) { PH1->release(); });
       }
       else { // or take the child element (inlineEmbedEle)
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
-          bind(&DOMElement::release, _1));
+          [](auto && PH1) { PH1->release(); });
       }
 
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
@@ -111,7 +111,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       shared_ptr<xercesc::DOMDocument> localparamxmldoc;
       if(inlineParamEle) { // inline parameter
         E(inlineParamEle)->setOriginalFilename();
-        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), bind(&DOMElement::release, _1));
+        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), [](auto && PH1) { PH1->release(); });
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
         Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"));
@@ -126,7 +126,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),
-          bind(&DOMElement::release, _1));
+          [](auto && PH1) { PH1->release(); });
       }
 
       // add/overwrite local parameter to/by param (only handle root level parameters)
@@ -315,21 +315,20 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // pass param and the new parent XPath to preprocess
       DOMElement *n=c->getNextElementSibling();
       if(E(c)->getTagName()==PV%"Embed") embedXPathCount++;
-      preprocess(parser, eval, dependencies, c, std::shared_ptr<ParamSet>(), parentXPath+"/"+thisXPath, embedXPathCount);
+      preprocess(parser, eval, dependencies, c, std::shared_ptr<ParamSet>(), string(parentXPath).append("/").append(thisXPath), embedXPathCount);
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);
 }
 
 shared_ptr<xercesc::DOMDocument> Preprocess::preprocessFile(
-  std::vector<path> &dependencies, std::set<boost::filesystem::path> schemas,
+  std::vector<path> &dependencies, const std::variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
   const boost::filesystem::path &mainXML) {
   static const path SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
   // the XML DOM parser
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
-  schemas.insert(SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils"/"physicalvariable.xsd");
-  shared_ptr<DOMParser> parser=DOMParser::create(schemas);
+  shared_ptr<DOMParser> parser=DOMParser::create(xmlCatalog);
 
   // validate main file and get DOM
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainXML<<endl;

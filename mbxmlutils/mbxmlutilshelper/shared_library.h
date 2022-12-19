@@ -53,16 +53,15 @@ inline std::string getLastError() {
 
 }
 
-namespace MBXMLUtils {
-namespace SharedLibrary {
+namespace MBXMLUtils::SharedLibrary {
 
 #ifndef _WIN32
-  typedef void* Handle;
+  using Handle = void *;
 #else
-  typedef HMODULE Handle;
+  using Handle = HMODULE;
 #endif
 
-  typedef int (*InitFuncType)();
+  using InitFuncType = int (*)();
 
   template<typename T> 
   inline T getSymbol(const std::string &file, const std::string &symbolName, bool throwOnError=true);
@@ -116,7 +115,6 @@ inline T getSymbol(const std::string &file, const std::string &symbolName, bool 
   return reinterpret_cast<T>(reinterpret_cast<size_t>(addr));
 }
 
-}
 }
 
 #endif

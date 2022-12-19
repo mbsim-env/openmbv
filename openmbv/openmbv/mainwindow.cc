@@ -66,6 +66,7 @@
 #include "group.h"
 #include "objectfactory.h"
 #include "compoundrigidbody.h"
+#include <memory>
 #include <string>
 #include <set>
 #include <hdf5serie/file.h>
@@ -91,7 +92,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 
 MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
   skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
-  OpenMBVGUI::appSettings.reset(new OpenMBVGUI::AppSettings);
+  OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
   // If <local>/lib/dri exists use it as load path for GL DRI drivers.
@@ -132,11 +133,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   shortAniTimer=new QTimer(this);
   shortAniTimer->setInterval(1000/25);
-  shortAniElapsed.reset(new QElapsedTimer);
+  shortAniElapsed=std::make_unique<QElapsedTimer>();
   connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
 
   // main widget
-  QWidget *mainWG=new QWidget(this);
+  auto *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
   auto *mainLO=new QGridLayout(mainWG);
   mainLO->setContentsMargins(0,0,0,0);
@@ -238,9 +239,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(timeSlider, &QTripleSlider::sliderMoved, this, &MainWindow::updateFrame);
 
   // object list dock widget
-  QDockWidget *objectListDW=new QDockWidget(tr("Objects"),this);
+  auto *objectListDW=new QDockWidget(tr("Objects"),this);
   objectListDW->setObjectName("MainWindow::objectListDW");
-  QWidget *objectListWG=new QWidget(this);
+  auto *objectListWG=new QWidget(this);
   auto *objectListLO=new QGridLayout(objectListWG);
   objectListWG->setLayout(objectListLO);
   objectListDW->setWidget(objectListWG);
@@ -279,9 +280,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(objectList->itemDelegate(), &QAbstractItemDelegate::closeEditor, this, &MainWindow::editFinishedSlot);
 
   // object info dock widget
-  QDockWidget *objectInfoDW=new QDockWidget(tr("Object Info"),this);
+  auto *objectInfoDW=new QDockWidget(tr("Object Info"),this);
   objectInfoDW->setObjectName("MainWindow::objectInfoDW");
-  QWidget *objectInfoWG=new QWidget;
+  auto *objectInfoWG=new QWidget;
   auto *objectInfoLO=new QGridLayout;
   objectInfoWG->setLayout(objectInfoLO);
   objectInfoDW->setWidget(objectInfoWG);
@@ -299,17 +300,17 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   QAction *act;
   // file menu
-  QMenu *fileMenu=new QMenu("File", menuBar());
+  auto *fileMenu=new QMenu("File", menuBar());
   QAction *addFileAct=fileMenu->addAction(Utils::QIconCached("addfile.svg"), "Add file...", this, &MainWindow::openFileDialog);
   fileMenu->addAction(Utils::QIconCached("newfile.svg"), "New file...", this, &MainWindow::newFileDialog);
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("exportimg.svg"), "Export current frame as PNG...", this, &MainWindow::exportCurrentAsPNG);
   addAction(act); // must work also if menu bar is invisible
   act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as PNG-sequence...",
-    bind(&MainWindow::exportSequenceAsPNG, this, false));
+    [this] { exportSequenceAsPNG(false); });
   addAction(act);
   act=fileMenu->addAction(Utils::QIconCached("exportimgsequence.svg"), "Export frame sequence as Video...",
-    bind(&MainWindow::exportSequenceAsPNG, this, true));
+    [this] { exportSequenceAsPNG(true); });
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as IV...", this, &MainWindow::exportCurrentAsIV);
   fileMenu->addAction(Utils::QIconCached("exportiv.svg"), "Export current frame as PS...", this, &MainWindow::exportCurrentAsPS);
@@ -352,7 +353,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   lastFrameAct->setCheckable(true);
   lastFrameAct->setData(QVariant(lastFrame));
   stopAct->setChecked(true);
-  QMenu *animationMenu=new QMenu("Animation", menuBar());
+  auto *animationMenu=new QMenu("Animation", menuBar());
   animationMenu->addAction(stopAct);
   animationMenu->addAction(lastFrameAct);
   animationMenu->addAction(playAct);
@@ -363,7 +364,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
 
   // scene view menu
-  QMenu *sceneViewMenu=new QMenu("Scene View", menuBar());
+  auto *sceneViewMenu=new QMenu("Scene View", menuBar());
   QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
   QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
@@ -426,7 +427,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   menuBar()->addMenu(sceneViewMenu);
 
   // gui view menu
-  QMenu *guiViewMenu=new QMenu("GUI View", menuBar());
+  auto *guiViewMenu=new QMenu("GUI View", menuBar());
   toggleMenuBar=guiViewMenu->addAction("Menu bar", this, &MainWindow::toggleMenuBarSlot, QKeySequence(Qt::Key_F10));
   addAction(toggleMenuBar); // must work also if menu bar is invisible
   toggleMenuBar->setCheckable(true);
@@ -446,19 +447,19 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   menuBar()->addMenu(guiViewMenu);
 
   // dock menu
-  QMenu *dockMenu=new QMenu("Docks", menuBar());
+  auto *dockMenu=new QMenu("Docks", menuBar());
   dockMenu->addAction(objectListDW->toggleViewAction());
   dockMenu->addAction(objectInfoDW->toggleViewAction());
   menuBar()->addMenu(dockMenu);
 
   // file toolbar
-  QToolBar *fileTB=new QToolBar("FileToolBar", this);
+  auto *fileTB=new QToolBar("FileToolBar", this);
   fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
-  QToolBar *viewTB=new QToolBar("ViewToolBar", this);
+  auto *viewTB=new QToolBar("ViewToolBar", this);
   viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTB->addAction(viewAllAct);
@@ -476,7 +477,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   viewTB->addAction(cameraAct);
 
   // animation toolbar
-  QToolBar *animationTB=new QToolBar("AnimationToolBar", this);
+  auto *animationTB=new QToolBar("AnimationToolBar", this);
   animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
@@ -497,12 +498,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   speedSB->setButtonSymbols(QDoubleSpinBox::NoButtons);
   speedSB->setValue(1.0);
   connect(speedSB, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::restartPlay);
-  QWidget *speedWG=new QWidget(this);
+  auto *speedWG=new QWidget(this);
   auto *speedLO=new QGridLayout(speedWG);
   speedLO->setSpacing(0);
   speedLO->setContentsMargins(0,0,0,0);
   speedWG->setLayout(speedLO);
-  QLabel *speedL=new QLabel("Speed:", this);
+  auto *speedL=new QLabel("Speed:", this);
   speedLO->addWidget(speedL, 0, 0);
   speedLO->addWidget(speedSB, 1, 0);
   speedWheel=new QwtWheel(this);
@@ -520,12 +521,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // frame spin box
   frameSB=new QSpinBox;
   frameSB->setMinimumSize(55,0);
-  QWidget *frameWG=new QWidget(this);
+  auto *frameWG=new QWidget(this);
   auto *frameLO=new QGridLayout(frameWG);
   frameLO->setSpacing(0);
   frameLO->setContentsMargins(0,0,0,0);
   frameWG->setLayout(frameLO);
-  QLabel *frameL=new QLabel("Frame:", this);
+  auto *frameL=new QLabel("Frame:", this);
   frameLO->addWidget(frameL, 0, 0);
   frameLO->addWidget(frameSB, 1, 0);
   animationTB->addWidget(frameWG);
@@ -541,12 +542,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   frameMinSB=new QSpinBox;
   frameMinSB->setMinimumSize(55,0);
   frameMinSB->setRange(0, 0);
-  QWidget *frameMinWG=new QWidget(this);
+  auto *frameMinWG=new QWidget(this);
   auto *frameMinLO=new QGridLayout(frameMinWG);
   frameMinLO->setSpacing(0);
   frameMinLO->setContentsMargins(0,0,0,0);
   frameMinWG->setLayout(frameMinLO);
-  QLabel *frameMinL=new QLabel("Min:", this);
+  auto *frameMinL=new QLabel("Min:", this);
   frameMinLO->addWidget(frameMinL, 0, 0);
   frameMinLO->addWidget(frameMinSB, 1, 0);
   animationTB->addWidget(frameMinWG);
@@ -555,19 +556,19 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   frameMaxSB=new QSpinBox;
   frameMaxSB->setMinimumSize(55,0);
   frameMaxSB->setRange(0, 0);
-  QWidget *frameMaxWG=new QWidget(this);
+  auto *frameMaxWG=new QWidget(this);
   auto *frameMaxLO=new QGridLayout(frameMaxWG);
   frameMaxLO->setSpacing(0);
   frameMaxLO->setContentsMargins(0,0,0,0);
   frameMaxWG->setLayout(frameMaxLO);
-  QLabel *frameMaxL=new QLabel("Max:", this);
+  auto *frameMaxL=new QLabel("Max:", this);
   frameMaxLO->addWidget(frameMaxL, 0, 0);
   frameMaxLO->addWidget(frameMaxSB, 1, 0);
   animationTB->addWidget(frameMaxWG);
   connect(frameMaxSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), timeSlider, &QTripleSlider::setCurrentMaximum);
 
   // tool menu
-  QMenu *toolMenu=new QMenu("Tools", menuBar());
+  auto *toolMenu=new QMenu("Tools", menuBar());
   toolMenu->addAction(fileTB->toggleViewAction());
   toolMenu->addAction(viewTB->toggleViewAction());
   toolMenu->addAction(animationTB->toggleViewAction());
@@ -575,7 +576,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   // help menu
   menuBar()->addSeparator();
-  QMenu *helpMenu=new QMenu("Help", menuBar());
+  auto *helpMenu=new QMenu("Help", menuBar());
   helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, &MainWindow::guiHelp);
   helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, &MainWindow::xmlHelp);
   helpMenu->addAction(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()),
@@ -840,12 +841,12 @@ void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
     return;
   obj->setBoundingBox(true);
 }
-void MainWindow::highlightObject(string curID) {
+void MainWindow::highlightObject(const string &curID) {
   // disable all bbox
   Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
   // enable all curID bbox
   if(!curID.empty())
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), std::bind(&enableBBoxOfID, placeholders::_1, curID));
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [curID](auto && PH1) { return enableBBoxOfID(std::forward<decltype(PH1)>(PH1), curID); });
 }
 
 MainWindow::~MainWindow() {
@@ -969,7 +970,7 @@ void MainWindow::execPropertyMenu(const std::vector<QAction*> &additionalActions
   // if action is not NULL and the action has a object name trigger also the actions with
   // the same name of all other selected objects
   if(currentAct && currentAct->objectName()!="")
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), std::bind(&toggleAction, placeholders::_1, currentAct), true);
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [currentAct](auto && PH1) { return toggleAction(std::forward<decltype(PH1)>(PH1), currentAct); }, true);
 }
 
 void MainWindow::objectListClicked() {
@@ -1011,7 +1012,7 @@ void MainWindow::aboutOpenMBV() {
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 1);
     about->setLayout(layout);
-    QLabel *icon=new QLabel;
+    auto *icon=new QLabel;
     layout->addWidget(icon, 0, 0, Qt::AlignTop);
     QFontInfo fontinfo(font());
     icon->setPixmap(Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg")
@@ -1402,7 +1403,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   if(!video)
     pngBaseName=pngBaseName.remove(pngBaseName.length()-4,4);
   else {
-    tmpDir.reset(new QTemporaryDir);
+    tmpDir=std::make_unique<QTemporaryDir>();
     pngBaseName=tmpDir->filePath("openmbv");
   }
   double speed=speedSB->value();
@@ -1825,7 +1826,7 @@ void MainWindow::shortAni() {
     shortAniFunc(c);
 }
 
-void MainWindow::startShortAni(const std::function<void(double)> func, bool noAni) {
+void MainWindow::startShortAni(const std::function<void(double)> &func, bool noAni) {
   if(appSettings->get<int>(AppSettings::shortAniTime)==0 || noAni) {
     func(1);
     return;

@@ -36,9 +36,9 @@ class SoQtMyViewer : public SoQtViewer {
   public:
     SoQtMyViewer(QWidget *parent, int transparency);
     ~SoQtMyViewer() override;
-    void changeCameraValues(SoCamera *cam) { SoQtViewer::changeCameraValues(cam); } // is protected
+    void changeCameraValues(SoCamera *cam) override { SoQtViewer::changeCameraValues(cam); } // is protected
   protected:
-    SbBool processSoEvent(const SoEvent *event) { return true; } // disable So events
+    SbBool processSoEvent(const SoEvent *event) override { return true; } // disable So events
     void actualRedraw() override;
 
     // for text in viewport

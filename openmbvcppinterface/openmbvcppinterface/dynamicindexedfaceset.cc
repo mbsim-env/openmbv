@@ -41,7 +41,7 @@ DOMElement* DynamicIndexedFaceSet::writeXMLFile(DOMNode *parent) {
 void DynamicIndexedFaceSet::initializeUsingXML(DOMElement *element) {
   FlexibleBody::initializeUsingXML(element);
   auto e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
-  vector<int> indices1based=E(e)->getText<vector<int>>();
+  auto indices1based=E(e)->getText<vector<int>>();
   indices.resize(indices1based.size());
   transform(indices1based.begin(), indices1based.end(), indices.begin(), [](int a){ return a-1; });
 }

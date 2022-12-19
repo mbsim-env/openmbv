@@ -209,23 +209,23 @@ void Frustum::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    FloatEditor *baseRadiusEditor=new FloatEditor(properties, QIcon(), "Base radius");
+    auto *baseRadiusEditor=new FloatEditor(properties, QIcon(), "Base radius");
     baseRadiusEditor->setRange(0, DBL_MAX);
     baseRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getBaseRadius, &OpenMBV::Frustum::setBaseRadius);
 
-    FloatEditor *topRadiusEditor=new FloatEditor(properties, QIcon(), "Top radius");
+    auto *topRadiusEditor=new FloatEditor(properties, QIcon(), "Top radius");
     topRadiusEditor->setRange(0, DBL_MAX);
     topRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getTopRadius, &OpenMBV::Frustum::setTopRadius);
 
-    FloatEditor *heightEditor=new FloatEditor(properties, QIcon(), "Height");
+    auto *heightEditor=new FloatEditor(properties, QIcon(), "Height");
     heightEditor->setRange(0, DBL_MAX);
     heightEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getHeight, &OpenMBV::Frustum::setHeight);
 
-    FloatEditor *innerBaseRadiusEditor=new FloatEditor(properties, QIcon(), "Inner base radius");
+    auto *innerBaseRadiusEditor=new FloatEditor(properties, QIcon(), "Inner base radius");
     innerBaseRadiusEditor->setRange(0, DBL_MAX);
     innerBaseRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getInnerBaseRadius, &OpenMBV::Frustum::setInnerBaseRadius);
 
-    FloatEditor *innerTopRadiusEditor=new FloatEditor(properties, QIcon(), "Inner top radius");
+    auto *innerTopRadiusEditor=new FloatEditor(properties, QIcon(), "Inner top radius");
     innerTopRadiusEditor->setRange(0, DBL_MAX);
     innerTopRadiusEditor->setOpenMBVParameter(f, &OpenMBV::Frustum::getInnerTopRadius, &OpenMBV::Frustum::setInnerTopRadius);
   }

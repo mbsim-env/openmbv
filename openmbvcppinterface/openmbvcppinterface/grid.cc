@@ -31,8 +31,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Grid, OPENMBV%"Grid")
 
-Grid::Grid()  {
-}
+Grid::Grid() = default;
 
 DOMElement* Grid::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);

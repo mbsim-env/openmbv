@@ -6,6 +6,7 @@ mbxmlutils/config.guess
 mbxmlutils/config.h.in
 mbxmlutils/config.sub
 mbxmlutils/configure
+mbxmlutils/compile_commands.json
 mbxmlutils/depcomp
 mbxmlutils/doc/Makefile.in
 mbxmlutils/install-sh
@@ -27,6 +28,7 @@ openmbv/config.guess
 openmbv/config.h.in
 openmbv/config.sub
 openmbv/configure
+openmbv/compile_commands.json
 openmbv/depcomp
 openmbv/install-sh
 openmbv/ltmain.sh
@@ -42,6 +44,7 @@ openmbvcppinterface/config.guess
 openmbvcppinterface/config.h.in
 openmbvcppinterface/config.sub
 openmbvcppinterface/configure
+openmbvcppinterface/compile_commands.json
 openmbvcppinterface/depcomp
 openmbvcppinterface/doc/Makefile.in
 openmbvcppinterface/install-sh

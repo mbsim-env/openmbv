@@ -98,10 +98,10 @@ class PyO {
     constexpr PyO()  = default;
     explicit PyO(PyObject *src, bool srcIsBorrowedRef=false) : p(src) { if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     PyO(const PyO &r) : p(r.p) { Py_XINCREF(p); }
-    PyO(PyO &&r) : p(r.p) { r.p=nullptr; }
+    PyO(PyO &&r)  noexcept : p(r.p) { r.p=nullptr; }
     ~PyO() { Py_XDECREF(p); }
     PyO& operator=(const PyO &r) { Py_XDECREF(p); p=r.p; Py_XINCREF(p); return *this; }
-    PyO& operator=(PyO &&r) { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
+    PyO& operator=(PyO &&r)  noexcept { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
     void reset() { Py_XDECREF(p); p=nullptr; }
     void reset(PyObject *src, bool srcIsBorrowedRef=false) { Py_XDECREF(p); p=src; if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     void swap(PyO &r) { PyObject *temp=p; p=r.p; r.p=temp; }
@@ -151,14 +151,14 @@ inline void checkPythonError() {
 // default: map to the same type
 template<typename T>
 struct MapRetType {
-  typedef T type;
+  using type = T;
   inline static type convert(const T &r) {
     return r;
   }
 };
 // specialization: map PyObject* to PyO
 template<> struct MapRetType<PyObject*> {
-  typedef PyO type;
+  using type = PyO;
   inline static PyO convert(PyObject *r) {
     if(!r)
       throw std::runtime_error("Internal error: Expected python object but got NULL pointer and no python exception is set.");

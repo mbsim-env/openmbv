@@ -125,7 +125,7 @@ namespace {
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
   template<typename Tag>
   struct result {
-    typedef typename Tag::type type;
+    using type = typename Tag::type;
     static type ptr;
   };
   
@@ -425,17 +425,17 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
     }
     // break or continue
     if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
-      xpath="/{"+fqn.first+"}"+fqn.second+"[1]"+xpath; // extend xpath
+      xpath=string("/{").append(fqn.first).append("}").append(fqn.second).append("[1]").append(xpath); // extend xpath
       if(root==e && E(e)->getEmbedXPathCount()>0)
-        xpath="/{"+PV.getNamespaceURI()+"}Embed[1]"+xpath;
+        xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[1]").append(xpath);
       break;
     }
     else {
       if(E(e)->getEmbedXPathCount()>0)
         count=1;
-      xpath="/{"+fqn.first+"}"+fqn.second+"["+to_string(count)+"]"+xpath; // extend xpath
+      xpath=string("/{").append(fqn.first+"}").append(fqn.second).append("[").append(to_string(count)).append("]").append(xpath); // extend xpath
       if(E(e)->getEmbedXPathCount()>0)
-        xpath="/{"+PV.getNamespaceURI()+"}Embed["+to_string(E(e)->getEmbedXPathCount())+"]"+xpath;
+        xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(E(e)->getEmbedXPathCount())).append("]").append(xpath);
     }
     e=static_cast<const DOMElement*>(e->getParentNode());
   }
@@ -527,7 +527,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
   // serialize to memory
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
-  shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
+  shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { PH1->release(); });
   shared_ptr<XMLCh> data(ser->writeToString(me), &X::releaseXMLCh); // serialize to data being UTF-16
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
@@ -541,7 +541,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
-  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), bind(&xercesc::DOMDocument::release, _1));
+  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { PH1->release(); });
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
 
@@ -730,7 +730,7 @@ const char* DOMEvalException::what() const noexcept {
 const string LocationInfoFilter::lineNumberKey("http://www.mbsim-env.de/dom/MBXMLUtils/lineNumber");
 
 // START: call protected AbstractDOMParser::getScanner from outside, see above
-struct GETSCANNER { typedef XMLScanner*(AbstractDOMParser::*type)() const; };
+struct GETSCANNER { using type = XMLScanner *(AbstractDOMParser::*)() const; };
 namespace { template struct rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
 // END: call protected AbstractDOMParser::getScanner from outside, see above
 DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) {
@@ -809,8 +809,8 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
 const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
 DOMParserUserDataHandler DOMParser::userDataHandler;
 
-shared_ptr<DOMParser> DOMParser::create(const set<path> &schemas) {
-  return shared_ptr<DOMParser>(new DOMParser(schemas));
+shared_ptr<DOMParser> DOMParser::create(const variant<path, DOMElement*> &xmlCatalog) {
+  return shared_ptr<DOMParser>(new DOMParser(xmlCatalog));
 }
 
 InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdentifier) {
@@ -826,7 +826,7 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   if(ns==XINCLUDE.getNamespaceURI())
     file=SCHEMADIR/"http___www_w3_org/XInclude.xsd";
   else if(ns==PV.getNamespaceURI())
-    file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils/physicalvariable.xsd";
+    file=SCHEMADIR/"http___www_mbsim-env_de_MBXMLUtils/mbxmlutils.xsd";
   // handle namespaces registered to the parser
   else {
     // search for a registered namespace
@@ -840,11 +840,11 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   return new LocalFileInputSource(X()%file.string());
 }
 
-DOMParser::DOMParser(const set<path> &schemas) {
+DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   // get DOM implementation and create parser
   domImpl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
-    bind(&DOMLSParser::release, _1));
+    [](auto && PH1) { PH1->release(); });
   // convert parser to AbstractDOMParser and store in parser filter
   auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser.get());
   if(!abstractParser)
@@ -860,7 +860,10 @@ DOMParser::DOMParser(const set<path> &schemas) {
   config->setParameter(XMLUni::fgXercesDoXInclude, false);
   //config->setParameter(XMLUni::fgDOMCDATASections, false); // is not implemented by xercesc handle it by DOMParser
   // configure validating parser
-  if(!schemas.empty()) {
+  auto *xmlCatalogFile=std::get_if<path>(&xmlCatalog);
+  auto *xmlCatalogEle=std::get_if<DOMElement*>(&xmlCatalog);
+  if((xmlCatalogFile && !xmlCatalogFile->empty()) ||
+     (xmlCatalogEle && *xmlCatalogEle)) {
     config->setParameter(XMLUni::fgXercesScannerName, XMLUni::fgSGXMLScanner);
     config->setParameter(XMLUni::fgDOMValidate, true);
     config->setParameter(XMLUni::fgXercesSchema, true);
@@ -871,25 +874,38 @@ DOMParser::DOMParser(const set<path> &schemas) {
     typeDerHandler.setParser(this);
     abstractParser->setPSVIHandler(&typeDerHandler);
     shared_ptr<DOMParser> nonValParser=create();
-    for(auto &schema: schemas)
-      registerGrammar(nonValParser, schema);
-    for(auto &schema: schemas)
-      loadGrammar(schema);
+    shared_ptr<xercesc::DOMDocument> doc;
+    DOMElement *root=nullptr;
+    if(xmlCatalogFile) {
+      doc=nonValParser->parse(*xmlCatalogFile);
+      root=doc->getDocumentElement();
+    }
+    else
+      root=*xmlCatalogEle;
+    static const NamespaceURI XMLNAMESPACE("http://www.w3.org/XML/1998/namespace");
+    if(E(root)->hasAttribute(XMLNAMESPACE%"base"))
+      throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
+    for(DOMElement *c=root->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
+      if(E(c)->getTagName()!=XMLCATALOG%"uri")
+        throw runtime_error("This parser only supports <uri> elements in XML catalogs.");
+      if(E(c)->hasAttribute(XMLNAMESPACE%"base"))
+        throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
+      path schemaPath=E(c)->getAttribute("uri");
+      if(!xmlCatalogFile && schemaPath.is_relative())
+        throw runtime_error("Relative path in XML catalogs are only supported when reading the catalog from file.");
+      if(xmlCatalogFile)
+        schemaPath=absolute(schemaPath, xmlCatalogFile->parent_path());
+      registeredGrammar.emplace(E(c)->getAttribute("name"), schemaPath);
+    }
+    for(auto &[ns, schemaFilename]: registeredGrammar) {
+      std::ignore = ns;
+      // load grammar
+      errorHandler.resetError();
+      parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
+      if(errorHandler.hasError())
+        throw errorHandler.getError();
+    }
   }
-}
-
-void DOMParser::loadGrammar(const path &schemaFilename) {
-  // load grammar
-  errorHandler.resetError();
-  parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
-  if(errorHandler.hasError())
-    throw errorHandler.getError();
-}
-
-void DOMParser::registerGrammar(const shared_ptr<DOMParser> &nonValParser, const path &schemaFilename) {
-  shared_ptr<xercesc::DOMDocument> doc=nonValParser->parse(schemaFilename);//MISSING use sax parser since we just need to parse one attribute of the root element
-  string ns=E(doc->getDocumentElement())->getAttribute("targetNamespace");
-  registeredGrammar.insert(make_pair(ns, schemaFilename));
 }
 
 void DOMParser::handleCDATA(DOMElement *e) {
@@ -953,10 +969,10 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { PH1->release(); });
   }
   else
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), bind(&xercesc::DOMDocument::release, _1));
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { PH1->release(); });
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1017,7 +1033,7 @@ namespace {
       n->getOwnerDocument()->normalizeDocument();
 
     DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
-    shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), bind(&DOMLSSerializer::release, _1));
+    shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { PH1->release(); });
     ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
     return ser;
   }
@@ -1029,7 +1045,7 @@ void DOMParser::resetCachedGrammarPool() {
 }
 
 shared_ptr<xercesc::DOMDocument> DOMParser::createDocument() {
-  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), bind(&xercesc::DOMDocument::release, _1));
+  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { PH1->release(); });
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   return doc;
 }

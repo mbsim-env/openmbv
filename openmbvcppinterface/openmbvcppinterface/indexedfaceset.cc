@@ -46,7 +46,7 @@ void IndexedFaceSet::initializeUsingXML(DOMElement *element) {
   DOMElement *e=E(element)->getFirstElementChildNamed(OPENMBV%"vertexPositions");
   setVertexPositions(E(e)->getText<vector<vector<double>>>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"indices");
-  vector<int> indices1based=E(e)->getText<vector<int>>();
+  auto indices1based=E(e)->getText<vector<int>>();
   indices.resize(indices1based.size());
   transform(indices1based.begin(), indices1based.end(), indices.begin(), [](int a){ return a-1; });
 }

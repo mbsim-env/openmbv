@@ -30,9 +30,7 @@ namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Frustum, OPENMBV%"Frustum")
 
-Frustum::Frustum()  
-  {
-}
+Frustum::Frustum() = default;
 
 DOMElement* Frustum::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);

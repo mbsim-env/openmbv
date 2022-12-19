@@ -336,25 +336,25 @@ void BevelGear::createProperties() {
   // GUI editors
   if(!clone) {
     properties->updateHeader();
-    IntEditor *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
+    auto *numEditor=new IntEditor(properties, QIcon(), "Number of teeth");
     numEditor->setRange(5, 100);
     numEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getNumberOfTeeth, &OpenMBV::BevelGear::setNumberOfTeeth);
-    FloatEditor *widthEditor=new FloatEditor(properties, QIcon(), "Width");
+    auto *widthEditor=new FloatEditor(properties, QIcon(), "Width");
     widthEditor->setRange(0, DBL_MAX);
     widthEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getWidth, &OpenMBV::BevelGear::setWidth);
-    FloatEditor *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
+    auto *helixAngleEditor=new FloatEditor(properties, QIcon(), "Helix angle");
     helixAngleEditor->setRange(-M_PI/4, M_PI/4);
     helixAngleEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getHelixAngle, &OpenMBV::BevelGear::setHelixAngle);
-    FloatEditor *pitchAngleEditor=new FloatEditor(properties, QIcon(), "Pitch angle");
+    auto *pitchAngleEditor=new FloatEditor(properties, QIcon(), "Pitch angle");
     pitchAngleEditor->setRange(-M_PI/4, M_PI/4);
     pitchAngleEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getPitchAngle, &OpenMBV::BevelGear::setPitchAngle);
-    FloatEditor *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
+    auto *moduleEditor=new FloatEditor(properties, QIcon(), "Module");
     moduleEditor->setRange(0, DBL_MAX);
     moduleEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getModule, &OpenMBV::BevelGear::setModule);
-    FloatEditor *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
+    auto *pressureAngleEditor=new FloatEditor(properties, QIcon(), "Pressure angle");
     pressureAngleEditor->setRange(0, M_PI/4);
     pressureAngleEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getPressureAngle, &OpenMBV::BevelGear::setPressureAngle);
-    FloatEditor *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
+    auto *backlashEditor=new FloatEditor(properties, QIcon(), "Backlash");
     backlashEditor->setRange(0, 0.005);
     backlashEditor->setOpenMBVParameter(e, &OpenMBV::BevelGear::getBacklash, &OpenMBV::BevelGear::setBacklash);
   }

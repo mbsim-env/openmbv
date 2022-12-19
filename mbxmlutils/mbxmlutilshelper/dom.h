@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <variant>
 #include <boost/filesystem.hpp>
 #include <xercesc/dom/DOMErrorHandler.hpp>
 #include <xercesc/dom/DOMElement.hpp>
@@ -103,7 +104,7 @@ class X {
 class FQN : public std::pair<std::string, std::string> {
   public:
     //! Empty FQN
-    FQN()  {}
+    FQN()  = default;
     //! Anonymous FQN
     FQN(const std::string &name) : std::pair<std::string, std::string>("", name) {}
     //! Anonymous FQN (required for implicit casting of string literals to anonymous FQNs)
@@ -128,6 +129,8 @@ const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
 const NamespaceURI XMLNS("http://www.w3.org/2000/xmlns/");
 //! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
 const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
+//! Declaration of the XML catalog namespace
+const NamespaceURI XMLCATALOG("urn:oasis:names:tc:entity:xmlns:xml:catalog");
 
 //! Helper class for DOMEvalException.
 //! Extension of DOMLocator with a embed count
@@ -144,7 +147,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
       xpath=src.xpath;
       return *this;
     }
-    ~EmbedDOMLocator() = default;
+    ~EmbedDOMLocator() override = default;
     EmbedDOMLocator(const EmbedDOMLocator &&src) = delete;
     EmbedDOMLocator& operator=(const EmbedDOMLocator &&src) = delete;
     XMLFileLoc getLineNumber() const override { return row; }
@@ -468,7 +471,9 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
   template<typename> friend class DOMDocumentWrapper;
   public:
     //! Create DOM parser
-    static std::shared_ptr<DOMParser> create(const std::set<boost::filesystem::path> &schemas={});
+    //! A none validating parser if xmlCatalog is empty or a nullptr.
+    //! A validating parser if xmlCatalog defines a XML catalog file or a root XML element of a catalog
+    static std::shared_ptr<DOMParser> create(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog=nullptr);
     //! Parse a XML document
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.
@@ -489,13 +494,8 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
   private:
     static const std::string domParserKey;
 
-    // Load XML Schema grammar file: is actually loaded (the main XML Schema file of a XML file must be loaded direclty)
-    void loadGrammar(const boost::filesystem::path &schemaFilename);
-    // Register XML Schema grammar file: is loaded on demand if needed by another XML Schema
-    void registerGrammar(const std::shared_ptr<DOMParser> &nonValParser, const boost::filesystem::path &schemaFilename);
-
     xercesc::DOMImplementation *domImpl;
-    DOMParser(const std::set<boost::filesystem::path> &schemas);
+    DOMParser(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog);
     std::shared_ptr<xercesc::DOMLSParser> parser;
     std::map<FQN, xercesc::XSTypeDefinition*> typeMap;
     DOMErrorPrinter errorHandler;

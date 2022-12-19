@@ -58,16 +58,16 @@ void DynamicColoredBody::createProperties() {
 
   // GUI
   if(!clone) {
-    FloatEditor *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
+    auto *minimalColorValueEditor=new FloatEditor(properties, QIcon(), "Minimal color value");
     minimalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMinimalColorValue, &OpenMBV::DynamicColoredBody::setMinimalColorValue);
 
-    FloatEditor *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
+    auto *maximalColorValueEditor=new FloatEditor(properties, QIcon(), "Maximal color value");
     maximalColorValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getMaximalColorValue, &OpenMBV::DynamicColoredBody::setMaximalColorValue);
 
-    ColorEditor *diffuseColorValue=new ColorEditor(properties, QIcon(), "Diffuse color", true);
+    auto *diffuseColorValue=new ColorEditor(properties, QIcon(), "Diffuse color", true);
     diffuseColorValue->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getDiffuseColor, &OpenMBV::DynamicColoredBody::setDiffuseColor);
 
-    FloatEditor *transparencyValueEditor=new FloatEditor(properties, QIcon(), "Transparency value");
+    auto *transparencyValueEditor=new FloatEditor(properties, QIcon(), "Transparency value");
     transparencyValueEditor->setRange(0, 1);
     transparencyValueEditor->setStep(0.1);
     transparencyValueEditor->setOpenMBVParameter(dcb, &OpenMBV::DynamicColoredBody::getTransparency, &OpenMBV::DynamicColoredBody::setTransparency);

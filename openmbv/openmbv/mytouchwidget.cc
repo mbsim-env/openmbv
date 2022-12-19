@@ -430,7 +430,7 @@ int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
   int ind=0;
   vector<Body*>::const_iterator it;
   for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-    QAction *action=new QAction((*it)->icon(0),(*it)->getObject()->getFullName(true).c_str(),&menu);
+    auto *action=new QAction((*it)->icon(0),(*it)->getObject()->getFullName(true).c_str(),&menu);
     action->setData(QVariant(ind++));
     menu.addAction(action);
   }

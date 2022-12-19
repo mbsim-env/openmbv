@@ -9,9 +9,9 @@ namespace MBXMLUtils {
 
 class Preprocess : virtual public fmatvec::Atom {
   protected:
-    typedef std::map<FQN, int> PositionMap;
+    using PositionMap = std::map<FQN, int>;
   public:
-    typedef std::map<std::string, Eval::Value> ParamSet;
+    using ParamSet = std::map<std::string, Eval::Value>;
     static void preprocess(const std::shared_ptr<MBXMLUtils::DOMParser>& parser, // in: parser used to parse XML documents
                            const std::shared_ptr<Eval> &eval, // in: evaluator used for evaluation
                            std::vector<boost::filesystem::path> &dependencies, // out: list of dependent files
@@ -29,7 +29,7 @@ class Preprocess : virtual public fmatvec::Atom {
 
     // same as process but reads from mainXML and return preprocessed DOMDocument.
     static std::shared_ptr<xercesc::DOMDocument> preprocessFile(
-      std::vector<boost::filesystem::path> &dependencies, std::set<boost::filesystem::path> schemas,
+      std::vector<boost::filesystem::path> &dependencies, const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog,
       const boost::filesystem::path &mainXML);
 };
 

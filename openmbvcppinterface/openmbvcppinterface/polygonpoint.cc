@@ -31,7 +31,7 @@ void PolygonPoint::serializePolygonPointContour(DOMElement *parent,
   const shared_ptr<vector<shared_ptr<PolygonPoint> > > &cont) {
   string str;
   str="[ ";
-  for(vector<shared_ptr<PolygonPoint> >::const_iterator j=cont->begin(); j!=cont->end(); j++) {
+  for(auto j=cont->begin(); j!=cont->end(); j++) {
     str+=fmatvec::toString((*j)->getXComponent())+", "+fmatvec::toString((*j)->getYComponent())+", "+fmatvec::toString((*j)->getBorderValue());
     if(j+1!=cont->end()) str+=";    "; else str+=" ]";
   }
@@ -39,7 +39,7 @@ void PolygonPoint::serializePolygonPointContour(DOMElement *parent,
 }
 
 shared_ptr<vector<shared_ptr<PolygonPoint> > > PolygonPoint::initializeUsingXML(DOMElement *element) {
-  vector<vector<double> > matParam=E(element)->getText<vector<vector<double>>>();
+  auto matParam=E(element)->getText<vector<vector<double>>>();
   shared_ptr<vector<shared_ptr<PolygonPoint> > > contour=make_shared<vector<shared_ptr<PolygonPoint> > >();
   for(auto & r : matParam) {
     shared_ptr<PolygonPoint> pp=create(r[0], r[1], (int)(r[2]));

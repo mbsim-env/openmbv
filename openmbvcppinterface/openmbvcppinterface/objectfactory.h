@@ -89,11 +89,11 @@ class ObjectFactory {
   private:
 
     // a pointer to a function allocating an object
-    typedef std::shared_ptr<Object> (*allocateFkt)();
+    using allocateFkt = std::shared_ptr<Object> (*)();
 
     // convinence typedefs
-    typedef std::multimap<MBXMLUtils::FQN, allocateFkt> Map;
-    typedef typename Map::iterator MapIt;
+    using Map = std::multimap<MBXMLUtils::FQN, allocateFkt>;
+    using MapIt = typename Map::iterator;
 
     // private ctor
     ObjectFactory() = default;
