@@ -33,7 +33,7 @@ class Deprecated : virtual public fmatvec::Atom {
   public:
     /*! Print the deprecated message msg to the stream str, if the same message was not printed before to this stream.
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */
-    static void message(std::ostream &str, std::string msg, const xercesc::DOMElement *e=nullptr);
+    static void message(std::ostream &str, const std::string &msg, const xercesc::DOMElement *e=nullptr);
   private:
     static std::set<std::size_t> printedMessages;
 };

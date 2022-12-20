@@ -397,7 +397,7 @@ pair<SoPickedPointList, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoi
   auto &[pickedPoints, pickedObject]=ret;
   // get objects by point/path
   float x=1e99, y=1e99, z=1e99;
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Clicked points:\n";
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Clicked points:"<<endl;
   for(int i=0; pickedPoints[i]; i++) {
     SoPath *path=pickedPoints[i]->getPath();
     bool found=false;
@@ -419,7 +419,7 @@ pair<SoPickedPointList, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoi
 
     QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((pickedObject.back())->getObject()->getFullName(true).c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str);
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<"\n";
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
   }
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<endl;
   return ret;

@@ -32,18 +32,19 @@ namespace MBXMLUtils {
 
   set<size_t> Deprecated::printedMessages;
 
-  void Deprecated::message(ostream &str, string msg, const DOMElement *e) {
+  void Deprecated::message(ostream &str, const string &msg, const DOMElement *e) {
     // create the full deprecated message (including a trace)
+    string msg2;
     if(e)
-      msg+=string("\n")+DOMEvalException("", e).what();
+      msg2=DOMEvalException("", e).what();
     else
       // MISSING get a stacktrace here. e.g. using boost::backtrace if its available
-      msg+="\n(no stack trace available)";
+      msg2="(no stack trace available)";
     // create a hash of the message and ...
     boost::hash<pair<ostream*, string> > messageHash;
-    if(printedMessages.insert(messageHash(make_pair(&str, msg))).second)
+    if(printedMessages.insert(messageHash(make_pair(&str, msg+"\n"+msg2))).second)
       // ... print the message if it is not already printed
-      str<<endl<<"Deprecated feature called:"<<endl<<msg<<endl<<endl;
+      str<<"Deprecated feature called:"<<endl<<msg<<endl<<msg2<<endl;
   }
 
   void setupMessageStreams(std::list<std::string> &args) {
