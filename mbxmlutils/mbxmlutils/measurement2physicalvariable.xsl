@@ -429,6 +429,22 @@
           <xs:group ref="xmlMatrixGroup"/>
         </xs:choice>
       </xs:group>
+      <xs:attributeGroup name="symbolicFunctionXMLAttribute">
+        <xs:annotation>
+          <xs:documentation>
+            A symbolic function has at least one parameter => arg1 is required.
+            argXDim is optional since this is interpreted as "1" (scalar) if missing.
+            arg2 (and higher) are optional to define with this XML element all symbolic functions at ones.
+            If argXNr is not from 1 to N => error.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="arg1" use="optional" type="symbolicFunctionArgNameType"/><!-- MISSING SymbolicFunction depr: switch to "required" -->
+        <xs:attribute name="arg1Dim" use="optional" default="0" type="symbolicFunctionArgDimType"/>
+        <xs:attribute name="arg1Nr" type="xs:integer" fixed="1"/>
+        <xs:attribute name="arg2" use="optional" type="symbolicFunctionArgNameType"/>
+        <xs:attribute name="arg2Dim" use="optional" default="0" type="symbolicFunctionArgDimType"/>
+        <xs:attribute name="arg2Nr" type="xs:integer" fixed="2"/>
+      </xs:attributeGroup>
 
     </xs:schema>
 
