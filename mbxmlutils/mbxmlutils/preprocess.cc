@@ -85,11 +85,11 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         }
         E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
-          [](auto && PH1) { PH1->release(); });
+          [](auto && PH1) { if(PH1) PH1->release(); });
       }
       else { // or take the child element (inlineEmbedEle)
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
-          [](auto && PH1) { PH1->release(); });
+          [](auto && PH1) { if(PH1) PH1->release(); });
       }
 
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
@@ -111,7 +111,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       shared_ptr<xercesc::DOMDocument> localparamxmldoc;
       if(inlineParamEle) { // inline parameter
         E(inlineParamEle)->setOriginalFilename();
-        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), [](auto && PH1) { PH1->release(); });
+        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), [](auto && PH1) { if(PH1) PH1->release(); });
       }
       else if(E(e)->hasAttribute("parameterHref")) { // parameter from parameterHref attribute
         Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"));
@@ -126,7 +126,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),
-          [](auto && PH1) { PH1->release(); });
+          [](auto && PH1) { if(PH1) PH1->release(); });
       }
 
       // add/overwrite local parameter to/by param (only handle root level parameters)

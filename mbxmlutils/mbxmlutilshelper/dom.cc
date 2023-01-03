@@ -527,7 +527,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
 
   // serialize to memory
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
-  shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { PH1->release(); });
+  shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
   shared_ptr<XMLCh> data(ser->writeToString(me), &X::releaseXMLCh); // serialize to data being UTF-16
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
@@ -541,7 +541,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
-  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { PH1->release(); });
+  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
 
@@ -844,7 +844,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   // get DOM implementation and create parser
   domImpl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
-    [](auto && PH1) { PH1->release(); });
+    [](auto && PH1) { if(PH1) PH1->release(); });
   // convert parser to AbstractDOMParser and store in parser filter
   auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser.get());
   if(!abstractParser)
@@ -969,10 +969,10 @@ shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vecto
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { PH1->release(); });
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { if(PH1) PH1->release(); });
   }
   else
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { PH1->release(); });
+    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { if(PH1) PH1->release(); });
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1033,7 +1033,7 @@ namespace {
       n->getOwnerDocument()->normalizeDocument();
 
     DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
-    shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { PH1->release(); });
+    shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
     ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
     return ser;
   }
@@ -1045,7 +1045,7 @@ void DOMParser::resetCachedGrammarPool() {
 }
 
 shared_ptr<xercesc::DOMDocument> DOMParser::createDocument() {
-  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { PH1->release(); });
+  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { if(PH1) PH1->release(); });
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   return doc;
 }
