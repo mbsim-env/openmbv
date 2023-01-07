@@ -676,7 +676,7 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
     embedCount=E(ee)->getEmbedCountNumber();
   }
   else if(n->getNodeType()==DOMNode::DOCUMENT_NODE) {
-    auto *doc=static_cast<const DOMDocument*>(n);
+    auto *doc=static_cast<const xercesc::DOMDocument*>(n);
     xpath="/";
     filename=D(doc)->getDocumentFilename();
     lineNr=0;
