@@ -649,26 +649,44 @@ DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::
     appendContext(n, loc.getLineNumber());
   else if(n->getNodeType()==DOMNode::TEXT_NODE)
     appendContext(n->getParentNode(), loc.getLineNumber());
+  else if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
+    appendContext(n, loc.getLineNumber());
   else
     assert(false && "DOMEvalException can only be called with a DOMLocator of node type element, attribute or text.");
 }
 
-void DOMEvalException::appendContext(const DOMNode *n, int lineNr) {
-  const DOMElement *ee;
-  if(n->getNodeType()==DOMNode::ELEMENT_NODE)
-    ee=static_cast<const DOMElement*>(n);
-  else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
-    ee=static_cast<const DOMAttr*>(n)->getOwnerElement();
+void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
+  string xpath;
+  path filename;
+  int lineNr;
+  int embedCount;
+  const DOMElement *found=nullptr;
+  if(n->getNodeType()==DOMNode::ELEMENT_NODE) {
+    const DOMElement *ee=static_cast<const DOMElement*>(n);
+    xpath=E(ee)->getRootXPathExpression();
+    filename=E(ee)->getOriginalFilename(false, found);
+    lineNr=E(ee)->getLineNumber();
+    embedCount=E(ee)->getEmbedCountNumber();
+  }
+  else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE) {
+    const DOMElement *ee=static_cast<const DOMAttr*>(n)->getOwnerElement();
+    xpath=A(static_cast<const DOMAttr*>(n))->getRootXPathExpression();
+    filename=E(ee)->getOriginalFilename(false, found);
+    lineNr=E(ee)->getLineNumber();
+    embedCount=E(ee)->getEmbedCountNumber();
+  }
+  else if(n->getNodeType()==DOMNode::DOCUMENT_NODE) {
+    auto *doc=static_cast<const DOMDocument*>(n);
+    xpath="/";
+    filename=D(doc)->getDocumentFilename();
+    lineNr=0;
+    embedCount=0;
+  }
   else
     throw runtime_error("DOMEvalException::appendContext can only be called for element and attribute nodes.");
 
-  const DOMElement *found;
-  locationStack.emplace_back(E(ee)->getOriginalFilename(false, found),
-    lineNr>0 ? lineNr : E(ee)->getLineNumber(),
-    E(ee)->getEmbedCountNumber(),
-    n->getNodeType()==DOMNode::ATTRIBUTE_NODE ? A(static_cast<const DOMAttr*>(n))->getRootXPathExpression() :
-                                                E(ee)->getRootXPathExpression());
-  ee=found;
+  locationStack.emplace_back(filename, externLineNr>0 ? externLineNr : lineNr, embedCount, xpath);
+  auto ee=found;
   while(ee) {
     string xpath;
     if(ee->getParentNode())
@@ -797,6 +815,7 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ATTRIBUTE_NODE && dst->getNodeType()==DOMNode::ATTRIBUTE_NODE) ||
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE && dst->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE) ||
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ELEMENT_NODE && dst->getNodeType()==DOMNode::ELEMENT_NODE) ||
+       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::CDATA_SECTION_NODE && dst->getNodeType()==DOMNode::CDATA_SECTION_NODE) ||
        (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::COMMENT_NODE && dst->getNodeType()==DOMNode::COMMENT_NODE))
       return;
   }
