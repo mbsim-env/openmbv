@@ -541,7 +541,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
-  shared_ptr<xercesc::DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
+  shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
 
@@ -563,7 +563,7 @@ template<typename DOMDocumentType>
 shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
   return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
 }
-template shared_ptr<DOMParser> DOMDocumentWrapper<const xercesc::DOMDocument>::getParser() const; // explicit instantiate const variant
+template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
 
 template<typename DOMDocumentType>
 path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
@@ -585,7 +585,7 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   // all other schemas are errors
   throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
 }
-template path DOMDocumentWrapper<const xercesc::DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
+template path DOMDocumentWrapper<const DOMDocument>::getDocumentFilename() const; // explicit instantiate const variant
 
 template<typename DOMDocumentType>
 DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpathExpression, DOMElement* context) {
@@ -628,7 +628,7 @@ DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpa
 }
 
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
-template class DOMDocumentWrapper<xercesc::DOMDocument>;
+template class DOMDocumentWrapper<DOMDocument>;
 
 DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
   // store error message
@@ -893,7 +893,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
     typeDerHandler.setParser(this);
     abstractParser->setPSVIHandler(&typeDerHandler);
     shared_ptr<DOMParser> nonValParser=create();
-    shared_ptr<xercesc::DOMDocument> doc;
+    shared_ptr<DOMDocument> doc;
     DOMElement *root=nullptr;
     if(xmlCatalogFile) {
       doc=nonValParser->parse(*xmlCatalogFile);
@@ -955,7 +955,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
     path incFile=E(e)->convertPath(E(e)->getAttribute("href"));
     if(dependencies)
       dependencies->push_back(incFile);
-    shared_ptr<xercesc::DOMDocument> incDoc=D(e->getOwnerDocument())->getParser()->parse(incFile, dependencies);
+    shared_ptr<DOMDocument> incDoc=D(e->getOwnerDocument())->getParser()->parse(incFile, dependencies);
     E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();
@@ -969,12 +969,12 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
   }
 }
 
-shared_ptr<xercesc::DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
-  shared_ptr<xercesc::DOMDocument> doc;
+  shared_ptr<DOMDocument> doc;
   // check if file is writeable
   bool writeable=true;
   {
@@ -1047,7 +1047,7 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPri
 namespace {
   shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint) {
     if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-      static_cast<xercesc::DOMDocument*>(n)->normalizeDocument();
+      static_cast<DOMDocument*>(n)->normalizeDocument();
     else
       n->getOwnerDocument()->normalizeDocument();
 
@@ -1063,8 +1063,8 @@ void DOMParser::resetCachedGrammarPool() {
   typeMap.clear();
 }
 
-shared_ptr<xercesc::DOMDocument> DOMParser::createDocument() {
-  shared_ptr<xercesc::DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { if(PH1) PH1->release(); });
+shared_ptr<DOMDocument> DOMParser::createDocument() {
+  shared_ptr<DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { if(PH1) PH1->release(); });
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   return doc;
 }

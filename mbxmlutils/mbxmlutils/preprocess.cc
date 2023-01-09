@@ -75,7 +75,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // validate/load if file is given
       if(!file.empty()) {
         eval->msg(Info)<<"Read and validate "<<file<<endl;
-        shared_ptr<xercesc::DOMDocument> newdoc;
+        shared_ptr<DOMDocument> newdoc;
         try {
           newdoc=parser->parse(file, &dependencies, false);
         }
@@ -108,7 +108,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
       // get localParamEle
       shared_ptr<DOMElement> localParamEle;
-      shared_ptr<xercesc::DOMDocument> localparamxmldoc;
+      shared_ptr<DOMDocument> localparamxmldoc;
       if(inlineParamEle) { // inline parameter
         E(inlineParamEle)->setOriginalFilename();
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), [](auto && PH1) { if(PH1) PH1->release(); });
@@ -290,7 +290,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         while(E(e)->getFirstTextChild())
           e->removeChild(E(e)->getFirstTextChild())->release();
         DOMNode *node;
-        xercesc::DOMDocument *doc=e->getOwnerDocument();
+        DOMDocument *doc=e->getOwnerDocument();
         try {
           node=doc->createTextNode(X()%eval->cast<CodeString>(value));
         } RETHROW_AS_DOMEVALEXCEPTION(e)
@@ -321,7 +321,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
   } RETHROW_AS_DOMEVALEXCEPTION(e);
 }
 
-shared_ptr<xercesc::DOMDocument> Preprocess::preprocessFile(
+shared_ptr<DOMDocument> Preprocess::preprocessFile(
   std::vector<path> &dependencies, const std::variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
   const boost::filesystem::path &mainXML) {
   static const path SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
@@ -332,7 +332,7 @@ shared_ptr<xercesc::DOMDocument> Preprocess::preprocessFile(
 
   // validate main file and get DOM
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainXML<<endl;
-  shared_ptr<xercesc::DOMDocument> mainXMLDoc=parser->parse(mainXML, &dependencies, false);
+  shared_ptr<DOMDocument> mainXMLDoc=parser->parse(mainXML, &dependencies, false);
   dependencies.push_back(mainXML);
   DOMElement *mainxmlele=mainXMLDoc->getDocumentElement();
 

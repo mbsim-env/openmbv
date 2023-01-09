@@ -33,6 +33,9 @@
 #include "SoSpecial.h"
 #include <QMenu>
 #include "mainwindow.h"
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN // GL/gl.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
+#endif
 #include <GL/gl.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>

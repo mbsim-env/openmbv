@@ -23,6 +23,9 @@
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/Qt/viewers/SoQtViewer.h>
 #include <QtCore/QEvent>
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN // GL/gl.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
+#endif
 #include <GL/gl.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/fields/SoMFColor.h>

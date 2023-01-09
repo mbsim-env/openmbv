@@ -1,6 +1,9 @@
 #include "config.h"
 #include "IndexedTesselationFace.h"
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN // GL/glu.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
+#endif
 #include <GL/glu.h>
 #include "body.h"
 
