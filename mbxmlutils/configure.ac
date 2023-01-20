@@ -81,10 +81,11 @@ fi
 SWIGVERSION=$($swig -version | sed -rne "s/^SWIG Version (.*)$/\1/p")
 AC_MSG_NOTICE([Using SWIG version $SWIGVERSION])
 SWIGVERSION_=$[[$(echo $SWIGVERSION | sed -re "s/^([0-9]+)\.([0-9]+)\.([0-9]+)$/\1*1000000+\2*1000+\3/")]]
-if test $SWIGVERSION_ -lt $[[4*1000000+0*1000+1]] -a \
-  \( $[[$(cat /etc/debian_version 2> /dev/null | sed -re "s/^([0-9]+)\.([0-9]+)$/\1*1000+\2/")]] -lt 10003 \
-     -o $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]] \); then # debian >= 10.3 patches swig 3.0.12
-  AC_MSG_ERROR([SWIG >= 4.0.1 is needed.])
+if test $SWIGVERSION_ -lt $[[4*1000000+0*1000+1]]; then
+  if test $[[$(cat /etc/debian_version 2> /dev/null | sed -re "s/^([0-9]+)\.([0-9]+)$/\1*1000+\2/")]] -lt 10003 \
+       -o $SWIGVERSION_ -lt $[[3*1000000+0*1000+12]]; then # debian >= 10.3 patches swig 3.0.12
+    AC_MSG_ERROR([SWIG >= 4.0.1 is needed.])
+  fi
 fi
 
 XC_PATH_CONVERT=echo
