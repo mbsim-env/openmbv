@@ -170,7 +170,11 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
   }
   // save the error
   errorSet=true;
-  error=DOMEvalException(type+": "+X()%e.getMessage(), *e.getLocation());
+  auto* loc=e.getLocation();
+  if(loc)
+    error=DOMEvalException(type+": "+X()%e.getMessage(), *loc);
+  else
+    error=DOMEvalException(type+": "+X()%e.getMessage(), nullptr);
   return false; // do not continue parsing
 }
 
@@ -634,7 +638,8 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
   // store error message
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
-  appendContext(n);
+  if(n)
+    appendContext(n);
 }
 
 DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::DOMLocator &loc) {
@@ -643,6 +648,8 @@ DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::
 
   // location with a stack
   const DOMNode *n=loc.getRelatedNode();
+  if(!n)
+    return;
   if(n->getNodeType()==DOMNode::ELEMENT_NODE)
     appendContext(n, loc.getLineNumber());
   else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)

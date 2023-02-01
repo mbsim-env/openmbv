@@ -58,8 +58,6 @@ AC_ARG_WITH([boost-regex-lib],
   [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])
 AC_SUBST([BOOST_REGEX_LIB])
 
-AC_SUBST([DATADIR], ["$(eval echo $(eval echo $datadir))"])
-
 # check for debug build
 DEBUGBUILD=1
 echo $CFLAGS $CXXFLAGS $CPPFLAGS | grep "\-DNDEBUG" > /dev/null && DEBUGBUILD=0
@@ -70,6 +68,11 @@ if test "_$host_os" != "_mingw32"; then
   LIBDL="-ldl"
 fi
 AC_SUBST([LIBDL])
+
+dnl Check for xerces-c
+PKG_CHECK_MODULES(XERCESC, xerces-c,[],[AC_MSG_ERROR([ERROR xerces-c not found])])
+
+PKG_CHECK_MODULES(FMATVEC, fmatvec)
 
 dnl Check for SWIG
 AC_ARG_WITH([swigpath], [  --with-swigpath=PATH  The path to the swig program.],
@@ -128,7 +131,8 @@ Supported and tested are versions 4.4 and 6.2. Use at your own risk.])
 fi
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
-MKOCTFILE_LIBS="$(echo \
+MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g')"
+MKOCTFILE_LIBS="$(echo -L$MKOCTFILE_LIBDIR \
   $(unset RLD_FLAG; $XC_EXEC_PREFIX $mkoctfile -p RLD_FLAG | dos2unix) \
   $(unset LFLAGS; $XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) \
   $(unset LIBOCTINTERP; $XC_EXEC_PREFIX $mkoctfile -p LIBOCTINTERP | dos2unix) \
@@ -139,7 +143,6 @@ MKOCTFILE_LIBS="$(echo \
   $(unset FLIBS; $XC_EXEC_PREFIX $mkoctfile -p FLIBS | dos2unix) \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
   | sed -re 's|\\|/|g')"
-MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) | sed -re 's|\\|/|g')"
 
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
@@ -187,10 +190,6 @@ LIBS=$SAVE_LIBS
 # The prefix for octave m and oct file search path can be changed
 # using the octave envvar OCTAVE_HOME.
 
-DATADIR="$(eval echo $(eval echo $datadir))"
-AC_SUBST([XSLDIR],[$DATADIR/$PACKAGE/xsl])
-AC_SUBST([OCTAVEDIR],[$DATADIR/$PACKAGE/octave])
-AC_SUBST([XMLDIR],[$DATADIR/$PACKAGE/xml])
 AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
 
 # check for python
@@ -237,8 +236,6 @@ if test "x$enable_python" == "xyes"; then
   AC_SUBST([PYTHON_VERSION],[$pythonversion])
 fi
 
-AC_SUBST([SCHEMADIR],[$DATADIR/$PACKAGE/schema])
-
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
   [  --with-doxygenpath=PATH  The path to the 'doxygen' program.],
@@ -247,11 +244,6 @@ AC_PATH_PROG([doxygen],[doxygen],[no],[${doxygenpath:-$PATH}])
 if test $doxygen = "no" ; then
   AC_MSG_RESULT([can not generate API documentation. 'doxygen' is required.])
 fi
-
-dnl Check for xerces-c
-PKG_CHECK_MODULES(XERCESC, xerces-c,[],[AC_MSG_ERROR([ERROR xerces-c not found])])
-
-PKG_CHECK_MODULES(FMATVEC, fmatvec)
 
 CPPFLAGS="$CPPFLAGS -Wall -Werror -Wno-error=sign-compare -Wno-sign-compare -Wno-delete-non-virtual-dtor"
 if test "_$host_os" != "_mingw32"; then

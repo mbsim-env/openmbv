@@ -8,7 +8,7 @@ libmbxmlutilshelper_la_SOURCES = dom.cc utils.cc
 libmbxmlutilshelper_la_HEADERS = dom.h utils.h shared_library.h last_write_time.h thislinelocation.h
 libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
 
-w3cschemadir = @SCHEMADIR@/http___www_w3_org
+w3cschemadir = @datadir@/@PACKAGE@/schema/http___www_w3_org
 dist_w3cschema_DATA = XInclude.xsd
 
 
