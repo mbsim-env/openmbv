@@ -122,12 +122,14 @@ MBXMLUTILS_OCTAVE_MINOR_VERSION=$($XC_EXEC_PREFIX $mkoctfile --version | dos2uni
 if test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 4004; then
   AC_MSG_NOTICE([Using tested octave version 4.4.])
 elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 6002; then
-  AC_MSG_NOTICE([Using tested octave version 6.2. (Known issue: still reachable memory leaks on program exit)])
+  AC_MSG_NOTICE([Using tested octave version 6.2.])
+elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -eq 7003; then
+  AC_MSG_NOTICE([Using tested octave version 7.3.])
 elif test $[[$MBXMLUTILS_OCTAVE_MAJOR_VERSION * 1000 + $MBXMLUTILS_OCTAVE_MINOR_VERSION]] -lt 4004; then
-  AC_MSG_ERROR([octave versions < 4.4 are not working. Please use a newer version. Tested are version 4.4 and 6.2.])
+  AC_MSG_ERROR([octave versions < 4.4 are not working. Please use a newer version. Tested are version 4.4, 6.2 and 7.3.])
 else
   AC_MSG_WARN([octave version $MBXMLUTILS_OCTAVE_MAJOR_VERSION.$MBXMLUTILS_OCTAVE_MINOR_VERSION is not supported/tested.
-Supported and tested are versions 4.4 and 6.2. Use at your own risk.])
+Supported and tested are versions 4.4, 6.2 and 7.3. Use at your own risk.])
 fi
 # get mkoctfile compiler flags
 MKOCTFILE_CFLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
@@ -135,6 +137,7 @@ MKOCTFILE_LIBDIR="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) |
 MKOCTFILE_LIBS="$(echo -L$MKOCTFILE_LIBDIR \
   $(unset RLD_FLAG; $XC_EXEC_PREFIX $mkoctfile -p RLD_FLAG | dos2unix) \
   $(unset LFLAGS; $XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) \
+  $(unset LDFLAGS; $XC_EXEC_PREFIX $mkoctfile -p LDFLAGS | dos2unix) \
   $(unset LIBOCTINTERP; $XC_EXEC_PREFIX $mkoctfile -p LIBOCTINTERP | dos2unix) \
   $(unset LIBOCTAVE; $XC_EXEC_PREFIX $mkoctfile -p LIBOCTAVE | dos2unix) \
   $(unset LIBCRUFT; $XC_EXEC_PREFIX $mkoctfile -p LIBCRUFT | dos2unix) \

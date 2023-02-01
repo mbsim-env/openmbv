@@ -49,12 +49,18 @@ libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) $(NOWARNING)
 libmbxmlutils_eval_octave_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
+if !COND_WIN32
+libmbxmlutils_eval_octave_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
+endif
 libmbxmlutils_eval_octave_la_SOURCES = octeval.cc
 libmbxmlutils_eval_octave_la_HEADERS = octeval.h
 # octave registerPath
 registerPath_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(NOWARNING)
 registerPath_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
 registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
+if !COND_WIN32
+registerPath_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
+endif
 registerPath_la_SOURCES = registerPath.cc
 
 # xmlflat dummy evaluator
@@ -92,6 +98,9 @@ fmatvec_symbolic_swig_octave.cc: $(srcdir)/fmatvec_symbolic_swig_octave.i
 
 fmatvec_symbolic_swig_octave_la_SOURCES = fmatvec_symbolic_swig_octave.cc
 fmatvec_symbolic_swig_octave_la_LDFLAGS = -module -shrext .oct -avoid-version
+if !COND_WIN32
+fmatvec_symbolic_swig_octave_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
+endif
 fmatvec_symbolic_swig_octave_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(FMATVEC_CFLAGS) -Wno-deprecated-declarations -Wno-error=unused-function $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES
 fmatvec_symbolic_swig_octave_la_LIBADD = $(MKOCTFILE_LIBS) $(FMATVEC_LIBS)
 

@@ -48,7 +48,15 @@ namespace PythonCpp {
 // initialize python giving main as program name to python
 inline void initializePython(const std::string &main) {
   static auto mainW=boost::locale::conv::utf_to_utf<wchar_t>(main);
+  #if __GNUC__ >= 11
+    // python >= 3.8 has deprecated this call
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  #endif
   Py_SetProgramName(const_cast<wchar_t*>(mainW.c_str()));
+  #if __GNUC__ >= 11
+    #pragma GCC diagnostic pop
+  #endif
   Py_InitializeEx(0);
 }
 

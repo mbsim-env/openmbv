@@ -94,7 +94,7 @@ fi
 OCTAVEVERSION=$($XC_EXEC_PREFIX mkoctfile --version 2>&1 | dos2unix | sed -rne "s/^mkoctfile, version (.*)$/\1/p")
 AC_MSG_NOTICE([Using octave version $OCTAVEVERSION])
 AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" == "yes" && echo .exe)])
-OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) -L$($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | dos2unix) | sed -re 's|\\|/|g')"
+OCTAVE_LIBS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p LFLAGS | dos2unix) $($XC_EXEC_PREFIX $mkoctfile -p LDFLAGS | dos2unix) -L$($XC_EXEC_PREFIX $mkoctfile -p OCTLIBDIR | dos2unix) $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_LIBS | dos2unix) | sed -re 's|\\|/|g')"
 OCTAVE_FLAGS="$(echo $($XC_EXEC_PREFIX $mkoctfile -p INCFLAGS | dos2unix) | sed -re 's|\\|/|g')"
 if test "$cross_compiling" == "yes"; then
   # convert OCTAVE_FLAGS to unix path if cross compiling

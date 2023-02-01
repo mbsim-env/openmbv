@@ -25,7 +25,7 @@ def getWindowsEnvPath(name):
     return ';'.join(vwin)
   raise RuntimeError('Unknown platform')
 
-def searchWindowsLibrary(libname, libdir):
+def searchWindowsLibrary(libname, libdir, filename):
   searchDir=[] # is search in order
   searchDir.append(libdir)
   searchDir.append(getWindowsEnvPath('WINSYSDIR'))
@@ -36,7 +36,7 @@ def searchWindowsLibrary(libname, libdir):
     for f in glob.glob(d+'/*'):
       if os.path.basename(f.upper())==libname.upper():
         return f
-  raise RuntimeError('Library '+libname+' not found')
+  raise RuntimeError('Library '+libname+' not found (a dependency of '+filename+')')
 
 @lru_cache(maxsize=None)
 def getDependencies(filename):
@@ -48,7 +48,7 @@ def getDependencies(filename):
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
       match=re.search("^\s*(.+)\s=>\snot found$", line)
       if match is not None:
-        raise RuntimeError('Library '+match.expand("\\1")+' not found')
+        raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
       match=re.search("^.*\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
       if match is not None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
         res.add(match.expand("\\1"))
@@ -58,7 +58,7 @@ def getDependencies(filename):
       for line in subprocess.check_output(["objdump", "-p", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
         match=re.search("^\s*DLL Name:\s(.+)$", line)
         if match is not None:
-          absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename))
+          absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename), filename)
           if not os.path.realpath(absfile) in getDoNotAdd():
             res.add(absfile)
       return res
