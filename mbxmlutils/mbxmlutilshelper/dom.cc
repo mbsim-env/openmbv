@@ -420,28 +420,34 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
     // get xpath count
     int count=1;
     for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
-      if(E(ee)->getEmbedXPathCount()>0) {
-        count=E(ee)->getEmbedXPathCount()+1;
+      int eeCount=E(ee)->getEmbedXPathCount();
+      if(eeCount>0) {
+        count=eeCount+1;
         break;
       }
       if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
         count++;
     }
     // break or continue
+    int eCount=E(e)->getEmbedXPathCount();
     if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
       xpath=string("/{").append(fqn.first).append("}").append(fqn.second).append("[1]").append(xpath); // extend xpath
-      if(root==e && E(e)->getEmbedXPathCount()>0)
+      if(root==e && eCount>0)
         xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[1]").append(xpath);
       break;
     }
     else {
-      if(E(e)->getEmbedXPathCount()>0)
+      if(eCount>0)
         count=1;
       xpath=string("/{").append(fqn.first+"}").append(fqn.second).append("[").append(to_string(count)).append("]").append(xpath); // extend xpath
-      if(E(e)->getEmbedXPathCount()>0)
-        xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(E(e)->getEmbedXPathCount())).append("]").append(xpath);
+      if(eCount>0)
+        xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(eCount)).append("]").append(xpath);
     }
     e=static_cast<const DOMElement*>(e->getParentNode());
+    if(!e) { // it may happen that e is nullptr -> we cannot return an xpath in this case since the full abs path is not known
+      xpath="";
+      break;
+    }
   }
   return xpath;
 }
