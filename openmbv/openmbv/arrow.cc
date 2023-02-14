@@ -268,7 +268,15 @@ double Arrow::update() {
 
   // set scene values
   double dx=data[4], dy=data[5], dz=data[6];
-  length=sqrt(dx*dx+dy*dy+dz*dz)*scaleLength;
+  // handle negative scaleLength
+  double sl=scaleLength;
+  if(scaleLength<0) {
+    sl*=-1;
+    dx*=-1;
+    dy*=-1;
+    dz*=-1;
+  }
+  length=sqrt(dx*dx+dy*dy+dz*dz)*sl;
 
   // path
   if(arrow->getPath()) {
@@ -302,7 +310,7 @@ double Arrow::update() {
   if(arrow->getType()==OpenMBV::Arrow::line) {
     if(diffuseColor[0]<0) setColor(data[7]);
     lineCoord->point.set1Value(0, data[1], data[2], data[3]); // to point
-    lineCoord->point.set1Value(1, data[1]-dx*scaleLength, data[2]-dy*scaleLength, data[3]-dz*scaleLength); // from point
+    lineCoord->point.set1Value(1, data[1]-dx*sl, data[2]-dy*sl, data[3]-dz*sl); // from point
     return data[0];
   }
 
@@ -356,7 +364,7 @@ QString Arrow::getInfo() {
          QString("<hr width=\"10000\"/>")+
          QString("<b>To-point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
          QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
-         QString("<b>Length:</b> %1").arg(length/scaleLength);
+         QString("<b>Length:</b> %1").arg(length/abs(scaleLength));
 }
 
 }
