@@ -751,6 +751,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     }
     i++;
   }
+  viewAllSlot();
 
   // arg commands after load all files
   
@@ -922,8 +923,6 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   // apply object filter
   objectListFilter->applyFilter();
 
-  viewAllSlot();
-
   return true;
 }
 
@@ -932,6 +931,7 @@ void MainWindow::openFileDialog() {
     "OpenMBV files (*.ombvx)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
+  viewAllSlot();
 }
 
 void MainWindow::newFileDialog() {
@@ -949,6 +949,7 @@ void MainWindow::newFileDialog() {
   file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
       <<"<Group name=\""<<filename.stem().string()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
   openFile(filename.string());
+  viewAllSlot();
 }
 
 void MainWindow::toggleAction(Object *current, QAction *currentAct) {
@@ -1796,6 +1797,7 @@ void MainWindow::dropEvent(QDropEvent *event) {
         openFile(Fout.fileName().toStdString());
     }
   }
+  viewAllSlot();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
