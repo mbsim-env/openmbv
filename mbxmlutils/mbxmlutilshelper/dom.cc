@@ -719,8 +719,12 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   // get MBXMLUTILS_ERROROUTPUT
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
-  if(format=="GCC")
-    format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
+  if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
+    if((format=="GCC" && isatty(1)) || format=="GCCTTY")
+      format=R"|(\e]8;;file://$+{urifile}\a\e[1m$+{file}\e[0m\e]8;;\a\e[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\e[0m (?{sse}:\e[31;1m)$+{msg}\e[0m)|";
+    else
+      format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
+  }
   else if(format=="HTMLFILELINE")
     format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:) <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
   else if(format=="HTMLXPATH")
@@ -732,12 +736,14 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   string str;
   str+="@msg"+message; // @msg includes a new line at the end
   str+="@file"+X()%loc.getURI();
+  str+="@absfile"+absolute(X()%loc.getURI()).string();
+  str+="@urifile"+absolute(X()%loc.getURI()).string();//mfmf uriencode
   str+="@line"+(loc.getLineNumber()>0?to_string(loc.getLineNumber()):"");
   str+="@xpath"+loc.getRootXPathExpression();
   str+="@ecount"+(loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):"");
   str+="@sse"+(subsequentError?string("x"):"");
   static const boost::regex re(
-    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
+    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
   // apply substitutions
   return boost::regex_replace(str, re, format, boost::regex_constants::format_all);

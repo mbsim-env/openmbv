@@ -205,7 +205,9 @@ class DOMEvalException : public std::exception {
       named sub-expr  | value of the named sub-expression
       --------------- | -------------------------------------------
       msg             | the error message
-      file            | the filename where the error occured
+      file            | the filename where the error occured (may be relative to the current directory)
+      absfile         | same as file but always absolute
+      urifile         | same as absfile but URI encoded
       line            | the line number in the file where the error occured
       xpath           | the XPath expression from the root element of the file to the element in the file where the error occured
       ecount          | the embed count number where the error occured
@@ -215,7 +217,9 @@ class DOMEvalException : public std::exception {
       If the environment variable MBXMLUTILS_ERROROUTPUT is not set then the default GCC is used.
      
       The following values for MBXMLUTILS_ERROROUTPUT are interpreted as an internally defined expression:
-      GCC: use gcc style output
+      GCC: use gcc style output with color and link escape sequences when stdout is a tty
+      GCCTTY use gcc style output always with color and link escape sequences
+      GCCNONE use gcc style output without any escape sequences
       HTMLFILELINE: use HTML like output with a link with filename and line number
       HTMLXPATH: use HTML like output with a link with filename and xpath expression
      */
