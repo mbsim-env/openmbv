@@ -26,6 +26,9 @@
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
 #include <xercesc/internal/XMLScanner.hpp>
@@ -720,7 +723,12 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
   if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
-    if((format=="GCC" && isatty(1)) || format=="GCCTTY")
+#ifdef _WIN32
+    bool stdoutIsTTY=GetFileType(GetStdHandle(STD_OUTPUT_HANDLE))==FILE_TYPE_CHAR;
+#else
+    bool stdoutIsTTY=isatty(1)==1;
+#endif
+    if((format=="GCC" && stdoutIsTTY) || format=="GCCTTY")
       format=R"|(\e]8;;file://$+{urifile}\a\e[1m$+{file}\e[0m\e]8;;\a\e[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\e[0m (?{sse}:\e[31;1m)$+{msg}\e[0m)|";
     else
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
