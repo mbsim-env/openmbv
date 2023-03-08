@@ -49,17 +49,23 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  // environment variables
-  // Disalbe COIN VBO per default (see --help)
-  static char COIN_VBO[11];
-  if(getenv("COIN_VBO")==nullptr) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
-
   list<string> arg;
   for(int i=1; i<argc; i++)
     arg.emplace_back(argv[i]);
 
   // check parameters
   list<string>::iterator i, i2;
+
+  i=find(arg.begin(), arg.end(), "-v");
+  i2=find(arg.begin(), arg.end(), "--verbose");
+  if(i==arg.end() && i2==arg.end())
+    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Info, std::make_shared<bool>(false));
+
+  // environment variables
+  // Disalbe COIN VBO per default (see --help)
+  static char COIN_VBO[11];
+  if(getenv("COIN_VBO")==nullptr) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
+
   // help
   i=find(arg.begin(), arg.end(), "-h");
   i2=find(arg.begin(), arg.end(), "--help");
@@ -73,7 +79,7 @@ int main(int argc, char *argv[])
         <<""<<endl
         <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl
         <<""<<endl
-        <<"Usage: openmbv [-h|--help] [--play|--lastframe] [--speed <factor>]"<<endl
+        <<"Usage: openmbv [-h|--help] [-v|--verbose] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--closeall]"<<endl
         <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
@@ -83,6 +89,7 @@ int main(int argc, char *argv[])
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
         <<"-h|--help          Shows this help"<<endl
+        <<"-v|--verbose       Print informational messages to stdout"<<endl
         <<"--play             Start animation after loading"<<endl
         <<"--speed            Set the animation speed"<<endl
         <<"--lastframe        View last frame after loading"<<endl

@@ -960,6 +960,8 @@ void MainWindow::toggleAction(Object *current, QAction *currentAct) {
 }
 void MainWindow::execPropertyMenu(const std::vector<QAction*> &additionalActions) {
   auto *object=(Object*)objectList->currentItem();
+  if(!object)
+    return;
   QMenu* menu=object->getProperties()->getContextMenu();
   for(auto &a: additionalActions)
     menu->addAction(a);

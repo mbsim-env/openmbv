@@ -386,15 +386,15 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
 
 
 
-pair<SoPickedPointList, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
+pair<SbVec3f, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
   // get picked points by ray
   SoRayPickAction pickAction(MainWindow::getInstance()->glViewer->getViewportRegion());
   pickAction.setPoint(SbVec2s(pos.x(), MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels()[1]-pos.y()));
   pickAction.setRadius(pickObjectRadius);
   pickAction.setPickAll(true);
   pickAction.apply(MainWindow::getInstance()->glViewer->getSceneManager()->getSceneGraph());
-  auto ret=make_pair(pickAction.getPickedPointList(), vector<Body*>());
-  auto &[pickedPoints, pickedObject]=ret;
+  auto pickedPoints=pickAction.getPickedPointList();
+  vector<Body*> pickedObject;
   // get objects by point/path
   float x=1e99, y=1e99, z=1e99;
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Clicked points:"<<endl;
@@ -422,7 +422,10 @@ pair<SoPickedPointList, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoi
     fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
   }
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<endl;
-  return ret;
+  SbVec3f pickedPoint;
+  if(pickedPoints.getLength()!=0 && pickedPoints[0]!=nullptr)
+    pickedPoint=pickedPoints[0]->getPoint();
+  return make_pair(pickedPoint, std::move(pickedObject));
 }
 
 int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
@@ -469,7 +472,7 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
   auto pickedObject=getObjectsByRay(pos).second;
   size_t size=pickedObject.size();
   if(size>0) {
-    size_t useObjIdx;
+    int useObjIdx;
     if(size==1 || !showMenuForAll)
       useObjIdx=0;
     else {
@@ -477,6 +480,8 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
       if(useObjIdx<0)
         return;
     }
+    if(useObjIdx<0)
+      return;
     if(!MainWindow::getInstance()->objectList->selectedItems().contains(pickedObject[useObjIdx]))
       MainWindow::getInstance()->objectList->setCurrentItem(pickedObject[useObjIdx],0, QItemSelectionModel::ClearAndSelect);
     MainWindow::getInstance()->objectSelected((pickedObject[useObjIdx])->getObject()->getID(), pickedObject[useObjIdx]);
@@ -490,16 +495,15 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
 
 void MyTouchWidget::seekToPoint(const QPoint &pos) {
   // seeks the focal point of the camera to the point on the shape under the cursor
-  auto pickedPoints=getObjectsByRay(pos).first;
-  if(pickedPoints.getLength()==0 || pickedPoints[0]==nullptr)
+  auto [pickedPoint, pickedObject]=getObjectsByRay(pos);
+  if(pickedObject.empty())
     return;
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   auto initialCameraPos=camera->position.getValue();
   SbMatrix oriMatrix;
   camera->orientation.getValue().getValue(oriMatrix);
   SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
-  auto toPoint=pickedPoints[0]->getPoint();
-  auto cameraPos=toPoint+cameraVec*camera->focalDistance.getValue();
+  auto cameraPos=pickedPoint+cameraVec*camera->focalDistance.getValue();
   MainWindow::getInstance()->startShortAni([camera, initialCameraPos, cameraPos](double c){
     camera->position.setValue(initialCameraPos + (cameraPos-initialCameraPos) * (0.5-0.5*cos(c*M_PI)));
   });
