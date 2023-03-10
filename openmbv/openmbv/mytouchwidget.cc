@@ -386,7 +386,7 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
 
 
 
-pair<SbVec3f, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
+vector<pair<Body*, vector<SbVec3f>>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
   // get picked points by ray
   SoRayPickAction pickAction(MainWindow::getInstance()->glViewer->getViewportRegion());
   pickAction.setPoint(SbVec2s(pos.x(), MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels()[1]-pos.y()));
@@ -394,38 +394,33 @@ pair<SbVec3f, vector<Body*>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
   pickAction.setPickAll(true);
   pickAction.apply(MainWindow::getInstance()->glViewer->getSceneManager()->getSceneGraph());
   auto pickedPoints=pickAction.getPickedPointList();
-  vector<Body*> pickedObject;
-  // get objects by point/path
-  float x=1e99, y=1e99, z=1e99;
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Clicked points:"<<endl;
+  vector<pair<Body*, vector<SbVec3f>>> ret;
   for(int i=0; pickedPoints[i]; i++) {
     SoPath *path=pickedPoints[i]->getPath();
-    bool found=false;
     for(int j=path->getLength()-1; j>=0; j--) {
       auto it=Body::getBodyMap().find(path->getNode(j));
       if(it!=Body::getBodyMap().end()) {
-        if(std::find(pickedObject.begin(), pickedObject.end(), it->second)==pickedObject.end())
-          pickedObject.push_back(it->second);
-        found=true;
+        auto bodyIt=std::find_if(ret.begin(), ret.end(), [it](auto &bv) { return bv.first==it->second; });
+        auto point=pickedPoints[i]->getPoint();
+        if(bodyIt==ret.end())
+          ret.emplace_back(it->second, vector<SbVec3f>(1, point));
+        else
+          bodyIt->second.emplace_back(point);
+
+        // get picked point and delete the cameraPosition and cameraOrientation values (if camera moves with body)
+        SbVec3f delta;
+        MainWindow::getInstance()->cameraOrientation->inRotation.getValue().multVec(point, delta);
+        float x, y, z;
+        (delta+MainWindow::getInstance()->cameraPosition->vector[0]).getValue(x,y,z);
+        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg(it->second->getObject()->getFullName(true).c_str());
+        MainWindow::getInstance()->statusBar()->showMessage(str);
+        fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
+
         break;
       }
     }
-    if(!found) continue;
-
-    // get picked point and delete the cameraPosition and cameraOrientation values (if camera moves with body)
-    SbVec3f delta;
-    MainWindow::getInstance()->cameraOrientation->inRotation.getValue().multVec(pickedPoints[i]->getPoint(), delta);
-    (delta+MainWindow::getInstance()->cameraPosition->vector[0]).getValue(x,y,z);
-
-    QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg((pickedObject.back())->getObject()->getFullName(true).c_str());
-    MainWindow::getInstance()->statusBar()->showMessage(str);
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
   }
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<endl;
-  SbVec3f pickedPoint;
-  if(pickedPoints.getLength()!=0 && pickedPoints[0]!=nullptr)
-    pickedPoint=pickedPoints[0]->getPoint();
-  return make_pair(pickedPoint, std::move(pickedObject));
+  return ret;
 }
 
 int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
@@ -448,62 +443,72 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
   // select object
   // if toggle, toggle selection of object
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
-  auto pickedObject=getObjectsByRay(pos).second;
-  int size=pickedObject.size();
-  if(size>0) {
-    int useObjIdx;
-    if(size==1 || !showMenuForAll)
-      useObjIdx=0;
-    else {
-      useObjIdx=createObjectListMenu(pickedObject);
-      if(useObjIdx<0)
-        return;
-    }
-    MainWindow::getInstance()->objectList->setCurrentItem(pickedObject[useObjIdx],0,
-      toggle?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
-    MainWindow::getInstance()->objectSelected((pickedObject[useObjIdx])->getObject()->getID(), pickedObject[useObjIdx]);
+  auto picked=getObjectsByRay(pos);
+  if(picked.empty())
+    return;
+  vector<Body*> bodies;
+  transform(picked.begin(), picked.end(), back_inserter(bodies), [](auto &x){ return x.first; });
+  int useObjIdx;
+  if(picked.size()==1 || !showMenuForAll)
+    useObjIdx=0;
+  else {
+    useObjIdx=createObjectListMenu(bodies);
+    if(useObjIdx<0)
+      return;
   }
+  MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0,
+    toggle?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
+  MainWindow::getInstance()->objectSelected((bodies[useObjIdx])->getObject()->getID(), bodies[useObjIdx]);
 }
 
 void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll) {
   // if object is not selected, select object and show context menu
   // if object is selected, show context menu (for all selected objects)
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
-  auto pickedObject=getObjectsByRay(pos).second;
-  size_t size=pickedObject.size();
-  if(size>0) {
-    int useObjIdx;
-    if(size==1 || !showMenuForAll)
-      useObjIdx=0;
-    else {
-      useObjIdx=createObjectListMenu(pickedObject);
-      if(useObjIdx<0)
-        return;
-    }
+  auto picked=getObjectsByRay(pos);
+  if(picked.empty())
+    return;
+  vector<Body*> bodies;
+  transform(picked.begin(), picked.end(), back_inserter(bodies), [](auto &x){ return x.first; });
+  int useObjIdx;
+  if(picked.size()==1 || !showMenuForAll)
+    useObjIdx=0;
+  else {
+    useObjIdx=createObjectListMenu(bodies);
     if(useObjIdx<0)
       return;
-    if(!MainWindow::getInstance()->objectList->selectedItems().contains(pickedObject[useObjIdx]))
-      MainWindow::getInstance()->objectList->setCurrentItem(pickedObject[useObjIdx],0, QItemSelectionModel::ClearAndSelect);
-    MainWindow::getInstance()->objectSelected((pickedObject[useObjIdx])->getObject()->getID(), pickedObject[useObjIdx]);
-    auto *a=new QAction(Utils::QIconCached("seektopoint.svg"), "Seek view to this point");
-    connect(a, &QAction::triggered, [this, pos](){
-      seekToPoint(pos);
-    });
-    MainWindow::getInstance()->execPropertyMenu({a});
   }
+  if(!MainWindow::getInstance()->objectList->selectedItems().contains(bodies[useObjIdx]))
+    MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0, QItemSelectionModel::ClearAndSelect);
+  MainWindow::getInstance()->objectSelected((bodies[useObjIdx])->getObject()->getID(), bodies[useObjIdx]);
+  auto *a=new QAction(Utils::QIconCached("seektopoint.svg"), "Seek view to point on this Body");
+  auto body=bodies[useObjIdx];
+  connect(a, &QAction::triggered, [this, pos, body](){
+    seekToPoint(pos, body);
+  });
+  MainWindow::getInstance()->execPropertyMenu({a});
 }
 
-void MyTouchWidget::seekToPoint(const QPoint &pos) {
+void MyTouchWidget::seekToPoint(const QPoint &pos, Body *body) {
   // seeks the focal point of the camera to the point on the shape under the cursor
-  auto [pickedPoint, pickedObject]=getObjectsByRay(pos);
-  if(pickedObject.empty())
+  auto picked=getObjectsByRay(pos);
+  if(picked.empty())
     return;
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   auto initialCameraPos=camera->position.getValue();
   SbMatrix oriMatrix;
   camera->orientation.getValue().getValue(oriMatrix);
   SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
-  auto cameraPos=pickedPoint+cameraVec*camera->focalDistance.getValue();
+  auto bvIt=picked.begin();
+  if(body)
+    bvIt=find_if(picked.begin(), picked.end(), [body](auto &x){ return x.first==body; });
+  if(bvIt==picked.end())
+    bvIt=picked.begin();
+  SbVec3f midPoint(0,0,0);
+  for(auto &r : bvIt->second)
+    midPoint+=r;
+  midPoint/=bvIt->second.size();
+  auto cameraPos=midPoint+cameraVec*camera->focalDistance.getValue();
   MainWindow::getInstance()->startShortAni([camera, initialCameraPos, cameraPos](double c){
     camera->position.setValue(initialCameraPos + (cameraPos-initialCameraPos) * (0.5-0.5*cos(c*M_PI)));
   });

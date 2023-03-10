@@ -107,12 +107,12 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     SbVec3f initialRotateCameraPos;
     SbVec3f initialRotateCameraToPos;
 
-    std::pair<SbVec3f, std::vector<Body*>> getObjectsByRay(const QPoint &pos);
+    std::vector<std::pair<Body*, std::vector<SbVec3f>>> getObjectsByRay(const QPoint &pos);
     int createObjectListMenu(const std::vector<Body*>& pickedObject);
 
     void selectObject(const QPoint &pos, bool toggle, bool showMenuForAll);
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
-    void seekToPoint(const QPoint &pos);
+    void seekToPoint(const QPoint &pos, Body *body=nullptr);
     void openPropertyDialog(const QPoint &pos);
     void rotateInit();
     void rotateReset();
