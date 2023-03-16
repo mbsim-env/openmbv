@@ -69,7 +69,7 @@ void SpineExtrusion::openHDF5File() {
   }
   catch(...) {
     data=nullptr;
-    msg(Warn)<<"Unable to open the HDF5 Dataset 'data'"<<endl;
+    msg(Info)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
   }
 }
 
