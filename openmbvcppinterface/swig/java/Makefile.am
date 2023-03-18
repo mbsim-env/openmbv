@@ -47,7 +47,7 @@ if COND_CROSSCOMPILE
 else
   TESTS = javatest.sh
 endif
-javatest.sh: javatest.class
+check-local: javatest.class
 javatest.class: $(srcdir)/javatest.java OpenMBV_swig_java.cc
 	@JAVAC@ -cp . -d . $(srcdir)/javatest.java
 
