@@ -255,12 +255,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   objectList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   Utils::enableTouch(objectList);
   objectList->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(objectList,&QTreeWidget::customContextMenuRequested, [this](const QPoint &pos){
+  connect(objectList,&QTreeWidget::customContextMenuRequested,this, [this](const QPoint &pos){
     execPropertyMenu();
     frame->touch(); // force rendering the scene
   });
   connect(objectList,&QTreeWidget::pressed, this, &MainWindow::objectListClicked);
-  connect(objectList,&QTreeWidget::itemDoubleClicked, [this](QTreeWidgetItem *item){
+  connect(objectList,&QTreeWidget::itemDoubleClicked,this, [this](QTreeWidgetItem *item){
     if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
       static_cast<Object*>(item)->getProperties()->openDialogSlot();
   });
@@ -774,7 +774,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // auto exit if everything is finished
   if(std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end()) {
     auto timer=new QTimer(this);
-    connect(timer, &QTimer::timeout, [this, timer](){
+    connect(timer, &QTimer::timeout,this, [this, timer](){
       if(waitFor.empty()) {
         timer->stop();
         if(!close())

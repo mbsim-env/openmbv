@@ -483,7 +483,7 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
   MainWindow::getInstance()->objectSelected((bodies[useObjIdx])->getObject()->getID(), bodies[useObjIdx]);
   auto *a=new QAction(Utils::QIconCached("seektopoint.svg"), "Seek view to point on this Body");
   auto body=bodies[useObjIdx];
-  connect(a, &QAction::triggered, [this, pos, body](){
+  connect(a, &QAction::triggered,this, [this, pos, body](){
     seekToPoint(pos, body);
   });
   MainWindow::getInstance()->execPropertyMenu({a});

@@ -83,7 +83,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     fileName.setToolTip(tt);
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
-    connect(&fileNameButton, &QPushButton::clicked, [this](){
+    connect(&fileNameButton, &QPushButton::clicked, this, [this](){
       QString name=QFileDialog::getSaveFileName(this, "Save PNG sequence to file", fileName.text(), "PNG-image (*.png)");
       if(name.isNull()) return;
       fileName.setText(name);
@@ -99,7 +99,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
-    connect(&fileNameButton, &QPushButton::clicked, [this](){
+    connect(&fileNameButton, &QPushButton::clicked, this, [this](){
       QString name=QFileDialog::getSaveFileName(this, "Save video to file", fileName.text(), "Video (*.*)");
       if(name.isNull()) return;
       fileName.setText(name);
@@ -135,7 +135,7 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   dialogLO.addWidget(&abort, row, 0);
   ok.setDefault(true);
   ok.setText("OK");
-  connect(&ok, &QPushButton::clicked, [this, sequence, video](){
+  connect(&ok, &QPushButton::clicked, this, [this, sequence, video](){
     appSettings->set(AppSettings::exportdialog_resolutionfactor, scale.value());
     appSettings->set(AppSettings::exportdialog_usescenecolor, colorRB.isChecked());
     if(sequence)

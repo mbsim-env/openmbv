@@ -123,7 +123,7 @@ void RigidBody::createProperties() {
 
   // GUI
   auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
-  connect(moveCameraWith,&QAction::triggered,properties,[this](){
+  connect(moveCameraWith,&QAction::triggered,this,[this](){
     static_cast<RigidBody*>(properties->getParentObject())->moveCameraWithSlot();
   });
   properties->addContextAction(moveCameraWith);

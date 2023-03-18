@@ -137,7 +137,7 @@ void Object::createProperties() {
   //GUI editors
   auto *deleteObject=new QAction(Utils::QIconCached("deleteobject.svg"), "Delete Object", properties);
   deleteObject->setObjectName("Group::deleteObject");
-  connect(deleteObject,&QAction::triggered,properties,[this](){
+  connect(deleteObject,&QAction::triggered,this,[this](){
     static_cast<Object*>(properties->getParentObject())->deleteObjectSlot();
   });
   properties->addContextAction(deleteObject);
@@ -150,7 +150,7 @@ void Object::createProperties() {
     boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::boundingBox", false);
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
     properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
-    connect(boundingBoxEditor, &BoolEditor::stateChanged, properties, [this](bool b){
+    connect(boundingBoxEditor, &BoolEditor::stateChanged, this, [this](bool b){
       static_cast<Object*>(properties->getParentObject())->setBoundingBox(b);
     });
   }

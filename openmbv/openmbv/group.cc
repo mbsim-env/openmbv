@@ -84,7 +84,7 @@ void Group::createProperties() {
 
   // GUI
   auto *newObject=new QAction(Utils::QIconCached("newobject.svg"),"Create new Object", properties);
-  connect(newObject,&QAction::triggered,properties,[this](){
+  connect(newObject,&QAction::triggered,this,[this](){
     static_cast<Group*>(properties->getParentObject())->newObjectSlot();
   });
   properties->addContextAction(newObject);
