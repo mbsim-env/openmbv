@@ -60,7 +60,7 @@ void Body::openHDF5File() {
     hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
   }
   catch(...) {
-    msg(Warn)<<"Unable to open the HDF5 Group '"<<name<<"'"<<endl;
+    msg(Info)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
   }
 }
 
