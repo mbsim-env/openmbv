@@ -78,7 +78,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soBBoxSwitch->whichChild.setValue(obj->getBoundingBox()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soBBoxSep=new SoSeparator;
   soBBoxSwitch->addChild(soBBoxSep);
-  soBBoxTrans=new SoTranslation;
+  soBBoxTrans=new SoMatrixTransform;
   soBBoxSep->addChild(soBBoxTrans);
   soBBox=new SoCube;
   soBBoxSep->addChild(soBBox);
@@ -174,14 +174,19 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     SoPath *p=sa.getPath();
     static auto *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
     bboxAction->apply(p);
-    float x1,y1,z1,x2,y2,z2;
-    bboxAction->getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
-    if(x1>x2 || y1>y2 || z1>z2)
-      x1=x2=y1=y2=z1=z2=0;
-    object->soBBox->width.setValue((x2-x1)*1.05);
-    object->soBBox->height.setValue((y2-y1)*1.05);
-    object->soBBox->depth.setValue((z2-z1)*1.05);
-    object->soBBoxTrans->translation.setValue((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
+    auto bbox=bboxAction->getXfBoundingBox();
+    float x,y,z;
+    bbox.getSize(x,y,z);
+    object->soBBox->width.setValue(x*1.05);
+    object->soBBox->height.setValue(y*1.05);
+    object->soBBox->depth.setValue(z*1.05);
+    const SbMatrix &m=bbox.getTransform();
+    SbVec3f t, s;
+    SbRotation r, so;
+    m.getTransform(t,r,s,so);
+    SbMatrix m2;
+    m2.setTransform(bbox.getCenter(),r,s,so);
+    object->soBBoxTrans->matrix.setValue(m2);
   }
 }
 

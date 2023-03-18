@@ -27,7 +27,7 @@
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/sensors/SoSensor.h>
 #include <Inventor/sensors/SoNodeSensor.h>
@@ -54,7 +54,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     bool drawThisPath;
     SoSwitch *soBBoxSwitch;
     SoSeparator *soBBoxSep;
-    SoTranslation *soBBoxTrans;
+    SoMatrixTransform *soBBoxTrans;
     SoCube *soBBox;
     std::string iconFile;
     SoNodeSensor *nodeSensor;
