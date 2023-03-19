@@ -53,7 +53,6 @@ namespace OpenMBV {
       std::string enableStr, boundingBoxStr;
       std::string ID; // Note: the ID is metadata and stored as a processing instruction in XML
       std::string environmentStr;
-      bool selected{false}; // Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI
       std::weak_ptr<Group> parent;
 
       virtual void createHDF5File()=0;
@@ -105,10 +104,6 @@ namespace OpenMBV {
       /** set the ID sting of the Object (Note: the ID is metadata and stored as a processing instruction in XML) */
       void setID(std::string ID_) { ID=std::move(ID_); }
 
-      /** get the selected flag (Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI) */
-      bool getSelected() const { return selected; }
-      /** set the selected flag (Note: the selected flag is metadata and not stored in XML but used by OpenMBVGUI) */
-      void setSelected(bool selected_) { selected=selected_; }
   };
 
 }

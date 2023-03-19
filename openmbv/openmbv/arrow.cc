@@ -303,7 +303,7 @@ double Arrow::update() {
   }
   else {
     soArrowSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    if(object->getBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
+    if(drawBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
   }
 
   // if type==line: draw update line and exit

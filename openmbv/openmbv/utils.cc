@@ -327,6 +327,10 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
+  setting[boundingBoxLineWidth]={"mainwindow/sceneGraph/boundingBoxLineWidth", 2.0};
+  setting[boundingBoxLineColor]={"mainwindow/sceneGraph/boundingBoxLineColor", QColor(0,190,0)};
+  setting[highlightLineWidth]={"mainwindow/sceneGraph/highlightLineWidth", 3.0};
+  setting[highlightLineColor]={"mainwindow/sceneGraph/highlightLineColor", QColor(0,255,255)};
   setting[complexityType]={"mainwindow/sceneGraph/complexityType", 1};
   setting[complexityValue]={"mainwindow/sceneGraph/complexityValue", 0.2};
   setting[topBackgroudColor]={"mainwindow/sceneGraph/topBackgroudColor", QColor(210,210,254)};
@@ -575,6 +579,20 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new ColorSetting(layout, AppSettings::outlineShilouetteEdgeLineColor, Utils::QIconCached("olsecolor.svg"), "Outline line color:", [](const QColor &value){
     auto rgb=value.rgb();
     MainWindow::getInstance()->olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  });
+  new DoubleSetting(layout, AppSettings::boundingBoxLineWidth, Utils::QIconCached("lines.svg"), "Bounding box line width:", "px", [](double value){
+    MainWindow::getInstance()->bboxDrawStyle->lineWidth.setValue(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new ColorSetting(layout, AppSettings::boundingBoxLineColor, Utils::QIconCached("lines.svg"), "Bounding box line color:", [](const QColor &value){
+    auto rgb=value.rgb();
+    MainWindow::getInstance()->bboxColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  });
+  new DoubleSetting(layout, AppSettings::highlightLineWidth, Utils::QIconCached("lines.svg"), "Highlight line width:", "px", [](double value){
+    MainWindow::getInstance()->highlightDrawStyle->lineWidth.setValue(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new ColorSetting(layout, AppSettings::highlightLineColor, Utils::QIconCached("lines.svg"), "Highlight line color:", [](const QColor &value){
+    auto rgb=value.rgb();
+    MainWindow::getInstance()->highlightColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
   });
   new ChoiceSetting(layout, AppSettings::complexityType, Utils::QIconCached("complexitytype.svg"), "Complxity type:",
                     {"Object space", "Screen space", "Bounding box"}, [](int value){

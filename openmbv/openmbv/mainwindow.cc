@@ -228,7 +228,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   auto *drawStyle=new SoDrawStyle;
   worldFrameSep->addChild(drawStyle);
   drawStyle->lineWidth.setValue(2);
-  drawStyle->linePattern.setValue(0xF8F8);
+  drawStyle->linePattern.setValue(0b1111111111100000);
   worldFrameSep->addChild(Utils::soFrame(1,1,false));
   glViewer->setSceneGraph(sceneRoot);
   
@@ -618,6 +618,20 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   olseDrawStyle->style.setValue(SoDrawStyle::LINES);
   olseDrawStyle->lineWidth.setValue(1);
 
+  // boundingbox/highlight color
+  for(auto &[color,colorAS,drawStyle,linewidthAS] : std::array<tuple<SoBaseColor*&, AppSettings::AS, SoDrawStyle*&, AppSettings::AS>,2>{{
+      {bboxColor     , AppSettings::boundingBoxLineColor, bboxDrawStyle     , AppSettings::boundingBoxLineWidth},
+      {highlightColor, AppSettings::highlightLineColor  , highlightDrawStyle, AppSettings::highlightLineWidth}}}) {
+    color=new SoBaseColor;
+    color->ref();
+    auto rgb=appSettings->get<QColor>(colorAS).rgb();
+    color->rgb.setValue(qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    drawStyle=new SoDrawStyle;
+    drawStyle->ref();
+    drawStyle->style.setValue(SoDrawStyle::LINES);
+    drawStyle->lineWidth.setValue(appSettings->get<double>(linewidthAS));
+  }
+
   // complexity
   complexity->type.setValue(SoComplexity::SCREEN_SPACE);
   complexity->value.setValue(0.2);
@@ -828,26 +842,27 @@ MainWindow* const MainWindow::getInstance() {
   return instance;
 }
 
-void MainWindow::disableBBox(Object *obj) {
-  obj->setBoundingBox(false);
-}
 void MainWindow::highlightObject(Object *current) {
-  // disable all bbox
-  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
-  // enable current bbox
-  current->setBoundingBox(true);
+  // disable all highlights
+  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
+    obj->setHighlight(false);
+  });
+  // enable current highlights
+  current->setHighlight(true);
 }
-void MainWindow::enableBBoxOfID(Object *obj, const string &ID) {
-  if(obj->object->getID()!=ID)
-    return;
-  obj->setBoundingBox(true);
-}
+
 void MainWindow::highlightObject(const string &curID) {
-  // disable all bbox
-  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), &disableBBox);
-  // enable all curID bbox
+  // disable all highlight
+  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
+    obj->setHighlight(false);
+  });
+  // enable all curID highlights
   if(!curID.empty())
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [curID](auto && PH1) { return enableBBoxOfID(std::forward<decltype(PH1)>(PH1), curID); });
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [curID](auto && obj) {
+      if(obj->object->getID()!=curID)
+        return;
+      obj->setHighlight(true);
+    });
 }
 
 MainWindow::~MainWindow() {
@@ -860,6 +875,10 @@ MainWindow::~MainWindow() {
   olseColor->unref();
   cameraOrientation->unref();
   olseDrawStyle->unref();
+  bboxColor->unref();
+  bboxDrawStyle->unref();
+  highlightColor->unref();
+  highlightDrawStyle->unref();
   delete fpsTime;
   delete time;
   delete glViewer;
@@ -1778,9 +1797,13 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
 }
 
 void MainWindow::selectionChanged() {
-  QList<QTreeWidgetItem*> list=objectList->selectedItems();
-  for(auto & i : list)
-    static_cast<Object*>(i)->object->setSelected(i->isSelected());
+  if(isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectSelected)))
+    return;
+  for(QTreeWidgetItemIterator it(objectList); *it; ++it) {
+    auto obj=dynamic_cast<Object*>(*it);
+    if(obj)
+      obj->setHighlight((*it)->isSelected());
+  }
 }
 
 

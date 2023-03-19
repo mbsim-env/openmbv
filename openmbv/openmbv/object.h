@@ -20,10 +20,12 @@
 #ifndef _OPENMBVGUI_OBJECT_H_
 #define _OPENMBVGUI_OBJECT_H_
 
+#include "openmbvcppinterface/object.h"
 #include <fmatvec/atom.h>
 #include <QTreeWidgetItem>
 #include <string>
 #include <set>
+#include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>
@@ -31,6 +33,7 @@
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/sensors/SoSensor.h>
 #include <Inventor/sensors/SoNodeSensor.h>
+#include <Inventor/nodes/SoBaseColor.h>
 
 
 namespace OpenMBV {
@@ -62,9 +65,11 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     Object *clone;
     Object *getClone();
     static std::set<Object*> objects;
-    bool getBoundingBox();
     BoolEditor *boundingBoxEditor;
     virtual void createProperties();
+    bool highlight { false };
+    void setHighlight(bool value);
+    bool drawBoundingBox() { return highlight || object->getBoundingBox(); }
   public:
     Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~Object() override;
@@ -75,6 +80,8 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     PropertyDialog *getProperties();
     void deleteObjectSlot();
     void setBoundingBox(bool value);
+  private:
+    void replaceBBoxHighlight();
 };
 
 }

@@ -80,6 +80,8 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soBBoxSwitch->addChild(soBBoxSep);
   soBBoxTrans=new SoMatrixTransform;
   soBBoxSep->addChild(soBBoxTrans);
+  soBBoxSep->addChild(MainWindow::getInstance()->bboxColor);
+  soBBoxSep->addChild(MainWindow::getInstance()->bboxDrawStyle);
   soBBox=new SoCube;
   soBBoxSep->addChild(soBBox);
   // register callback function on node change
@@ -89,9 +91,6 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     nodeSensor->attach(soSep);
   else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
     nodeSensor->attach(crb->soSep);
-
-  // selected flag
-  setSelected(object->getSelected());
 
   setText(0, obj->getName().c_str());
 
@@ -165,7 +164,7 @@ QString Object::getInfo() {
 
 void Object::nodeSensorCB(void *data, SoSensor*) {
   auto *object=(Object*)data;
-  if(object->object->getBoundingBox()) {
+  if(object->drawBoundingBox()) {
     SoSearchAction sa;
     sa.setInterest(SoSearchAction::FIRST);
     sa.setNode(object->soSep);
@@ -203,12 +202,23 @@ void Object::deleteObjectSlot() {
   delete this;
 }
 
-bool Object::getBoundingBox() {
-  return object->getBoundingBox();
+void Object::replaceBBoxHighlight() {
+  soBBoxSwitch->whichChild.setValue(drawBoundingBox()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  if(highlight) {
+    int idx = soBBoxSep->findChild(MainWindow::getInstance()->bboxColor);
+    if(idx>=0) soBBoxSep->replaceChild(idx, MainWindow::getInstance()->highlightColor);
+    idx = soBBoxSep->findChild(MainWindow::getInstance()->bboxDrawStyle);
+    if(idx>=0) soBBoxSep->replaceChild(idx, MainWindow::getInstance()->highlightDrawStyle);
+  }
+  else {
+    int idx = soBBoxSep->findChild(MainWindow::getInstance()->highlightColor);
+    if(idx>=0) soBBoxSep->replaceChild(idx, MainWindow::getInstance()->bboxColor);
+    idx = soBBoxSep->findChild(MainWindow::getInstance()->highlightDrawStyle);
+    if(idx>=0) soBBoxSep->replaceChild(idx, MainWindow::getInstance()->bboxDrawStyle);
+  }
 }
 
 void Object::setBoundingBox(bool value) {
-  soBBoxSwitch->whichChild.setValue(value?SO_SWITCH_ALL:SO_SWITCH_NONE);
   if(properties) {
     boundingBoxEditor->blockSignals(true);
     boundingBoxEditor->getAction()->setChecked(value);
@@ -216,7 +226,16 @@ void Object::setBoundingBox(bool value) {
   }
   else
     object->setBoundingBox(value);
-  // update if true
+  replaceBBoxHighlight();
+  // update boundingbox action if true
+  if(value)
+    nodeSensorCB(this, nullptr);
+}
+
+void Object::setHighlight(bool value) {
+  highlight=value;
+  replaceBBoxHighlight();
+  // update boundingbox action if true
   if(value)
     nodeSensorCB(this, nullptr);
 }

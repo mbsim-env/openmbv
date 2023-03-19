@@ -123,8 +123,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     static void toggleAction(Object *current, QAction *currentAct);
     void execPropertyMenu(const std::vector<QAction*> &additionalActions={});
-    static void disableBBox(Object *obj);
-    static void enableBBoxOfID(Object *obj, const std::string &ID);
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
     int hdf5RefreshDelta;
@@ -226,12 +224,16 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   public:
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
+    SoDrawStyle *bboxDrawStyle;
+    SoBaseColor *bboxColor;
+    SoDrawStyle *highlightDrawStyle;
+    SoBaseColor *highlightColor;
     SoComplexity *complexity;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     MyTouchWidget *glViewerWG;
-    /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
+    /** highlight the given object, de-highlight all others */
     void highlightObject(Object *current);
-    /** highlight the given object by enbled the bbox of this one and disabling the bbox of all others */
+    /** highlight ALL object with ID, de-highlight all others */
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
