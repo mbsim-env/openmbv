@@ -32,10 +32,11 @@ inline MBXMLUtils::Eval::Value C(const PyO &value) {
   return make_shared<PyO>(value);
 }
 
+bool is_scalar_double(const MBXMLUtils::Eval::Value &value);
 bool is_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject** a=nullptr, int *type=nullptr);
 bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject **a=nullptr, int *type=nullptr);
 
-double arrayScalarGetDouble(PyObject *o);
+double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
 }
@@ -221,7 +222,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   PyO v(C(value));
   switch(type) {
-    case ScalarType: return CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v);
+    case ScalarType: return ::is_scalar_double(value);
     case VectorType: return ::is_vector_double(value);
     case MatrixType: return ::is_vector_vector_double(value);
     case StringType: return CALLPY(PyUnicode_Check, v);
@@ -584,7 +585,7 @@ double arrayGetDouble(PyArrayObject *a, int type, int r, int c) {
   throw runtime_error("Value is not of type double (wrong element type).");
 }
 
-double arrayScalarGetDouble(PyObject *o) {
+double arrayScalarGetDouble(PyObject *o, bool *error) {
   double ret;
   PyArray_Descr *descr=PyArray_DescrFromScalar(o);
   if(     descr->typeobj==&PyBoolArrType_Type)        { npy_bool        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
@@ -601,9 +602,28 @@ double arrayScalarGetDouble(PyObject *o) {
   else if(descr->typeobj==&PyFloatArrType_Type)       { npy_float       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyDoubleArrType_Type)      { npy_double      v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyLongDoubleArrType_Type)  { npy_longdouble  v; PyArray_ScalarAsCtype(o, &v); ret=v; }
-  else { Py_DECREF(descr); throw runtime_error("Internal error: unknown type."); }
+  else {
+    Py_DECREF(descr);
+    if(!error)
+      throw runtime_error("Internal error: unknown type.");
+    *error=true;
+    return 0;
+  }
   Py_DECREF(descr);
+  if(error) *error=false;
   return ret;
+}
+
+bool is_scalar_double(const MBXMLUtils::Eval::Value &value) {
+  PyO v(C(value));
+  if(CALLPY(PyFloat_Check, v) || CALLPY(PyLong_Check, v) || CALLPY(PyBool_Check, v))
+    return true;
+  if(PyArray_CheckScalar(v.get())) {
+    bool error;
+    arrayScalarGetDouble(v.get(), &error);
+    return !error;
+  }
+  return false;
 }
 
 bool is_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject** a, int *type) {
