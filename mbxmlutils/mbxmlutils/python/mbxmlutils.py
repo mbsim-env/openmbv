@@ -168,15 +168,7 @@ registerPath.dll=None
 
 
 def load(filename):
-  import csv
-  with open(filename, 'r') as fileObj:
-    reader=csv.reader(fileObj, delimiter=' ')
-    ret=None
-    for row in reader:
-      if ret is None:
-        ret=numpy.zeros((0, len(row)))
-      ret=numpy.append(ret, [list(map(float, row))], 0)
-  return ret
+  return numpy.genfromtxt(filename)
 
 
 
