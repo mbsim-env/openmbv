@@ -167,6 +167,11 @@ registerPath.dll=None
 
 
 
+def installPrefix():
+  return os.path.realpath(os.path.dirname(__file__)+"/../../..")
+
+
+
 def load(filename):
   return numpy.genfromtxt(filename)
 

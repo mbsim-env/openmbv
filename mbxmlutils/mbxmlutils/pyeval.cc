@@ -161,6 +161,28 @@ Eval::Value PyEval::createFunctionIndep(int dim) const {
   return make_shared<PyO>(indep);
 }
 
+namespace {
+  string fixPythonIndentation(const string &str, const DOMElement *e) {
+    // fix python indentation
+    vector<string> lines;
+    boost::split(lines, str, boost::is_any_of("\n")); // split to a vector of lines
+    size_t indent=string::npos;
+    size_t lineNr=0;
+    for(auto it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
+      size_t pos=it->find_first_not_of(' '); // get first none space character
+      if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
+      if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
+      // now we have a line with a python statement
+      if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
+      if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
+        // ... if not its an indentation error
+        throw DOMEvalException("Unexpected indentation at line "+fmatvec::toString(lineNr)+": "+str, e);
+      *it=it->substr(indent); // remove the first indent spaces from the line
+    }
+    return boost::join(lines, "\n"); // join the lines to a single string
+  }
+}
+
 void PyEval::addImport(const string &code, const DOMElement *e) {
   // python globals (fill with builtins)
   PyO globals(CALLPY(PyDict_New));
@@ -196,7 +218,8 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
     mbxmlutilsStaticDependencies.clear();
-    CALLPY(PyRun_StringFlags, code, Py_file_input, globals, locals, &flags);
+    auto codetrim=fixPythonIndentation(code, e);
+    CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
     addStaticDependencies(e);
   }
 
@@ -358,23 +381,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
     try {
       // ... evaluate as statement
 
-      // fix python indentation
-      vector<string> lines;
-      boost::split(lines, str, boost::is_any_of("\n")); // split to a vector of lines
-      size_t indent=string::npos;
-      size_t lineNr=0;
-      for(auto it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
-        size_t pos=it->find_first_not_of(' '); // get first none space character
-        if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
-        if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
-        // now we have a line with a python statement
-        if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
-        if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
-          // ... if not its an indentation error
-          throw DOMEvalException("Unexpected indentation at line "+fmatvec::toString(lineNr)+": "+str, e);
-        *it=it->substr(indent); // remove the first indent spaces from the line
-      }
-      strtrim=boost::join(lines, "\n"); // join the lines to a single string
+      strtrim=fixPythonIndentation(str, e);
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();

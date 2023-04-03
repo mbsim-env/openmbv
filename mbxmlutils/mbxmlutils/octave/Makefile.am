@@ -9,6 +9,7 @@ dist_octave_DATA = cardan.m \
 		   rotateAboutZ.m\
 		   euler.m\
 		   tilde.m\
+		   installPrefix.m\
 		   PKG_ADD
 
 dist_octaveSwigRef_DATA = @swig_ref/horzcat.m\
