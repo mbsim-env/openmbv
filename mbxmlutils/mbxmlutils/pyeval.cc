@@ -217,10 +217,15 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
-    mbxmlutilsStaticDependencies.clear();
-    auto codetrim=fixPythonIndentation(code, e);
-    CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
-    addStaticDependencies(e);
+    try {
+      auto codetrim=fixPythonIndentation(code, e);
+      mbxmlutilsStaticDependencies.clear();
+      CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
+      addStaticDependencies(e);
+    }
+    catch(const exception& ex) { // on failure -> report error
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+code, e);
+    }
   }
 
   // get all locals and add to currentImport
@@ -389,7 +394,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate expression:\n"+str, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str, e);
     }
     try {
       // get 'ret' variable from statement
