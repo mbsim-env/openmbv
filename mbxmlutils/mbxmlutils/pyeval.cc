@@ -13,6 +13,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/scope_exit.hpp>
 #include "mbxmlutils/eval_static.h"
 #include <memory>
 #include <regex>
@@ -23,6 +24,9 @@ using namespace xercesc;
 using namespace PythonCpp;
 
 namespace {
+
+const DOMElement *pythonCurrentElement = nullptr; // the current element for which python code is executed
+vector<string> pythonStringStore; // a string store to keep strings returned from c++ to type in memory until no longer needed (string-lifetime handling)
 
 inline PyO C(const MBXMLUtils::Eval::Value &value) {
   return *static_pointer_cast<PyO>(value);
@@ -220,8 +224,13 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
+      pythonCurrentElement=e;
+      BOOST_SCOPE_EXIT(&pythonCurrentElement) {
+        pythonCurrentElement=nullptr;
+      } BOOST_SCOPE_EXIT_END
       CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
       addStaticDependencies(e);
+      pythonStringStore.clear();
     }
     catch(const exception& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+code, e);
@@ -373,7 +382,15 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   // evaluate as expression (using the trimmed str) and save result in ret
   PyO locals(CALLPY(PyDict_New));
   mbxmlutilsStaticDependencies.clear();
-  PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags);
+  PyObject* pyo;
+  {
+    pythonCurrentElement=e;
+    BOOST_SCOPE_EXIT(&pythonCurrentElement) {
+      pythonCurrentElement=nullptr;
+    } BOOST_SCOPE_EXIT_END
+    pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags);
+    pythonStringStore.clear();
+  }
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
     PythonException dummy("", 0);
@@ -390,8 +407,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
+      pythonCurrentElement=e;
+      BOOST_SCOPE_EXIT(&pythonCurrentElement) {
+        pythonCurrentElement=nullptr;
+      } BOOST_SCOPE_EXIT_END
       CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globals, locals, &flags);
       addStaticDependencies(e);
+      pythonStringStore.clear();
     }
     catch(const exception& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str, e);
@@ -673,7 +695,9 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 }
 
 // called from mbxmlutils.registerPath and adds path to the dependencies of this evaluator
-extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
+extern "C" const char* mbxmlutilsPyEvalRegisterPath(const char *path) {
   mbxmlutilsStaticDependencies.emplace_back(path);
-  return 0;
+  if(pythonCurrentElement)
+    return pythonStringStore.emplace_back(MBXMLUtils::E(pythonCurrentElement)->convertPath(path).string()).data();
+  return "<internal error: no current XML element defined>";
 }
