@@ -161,9 +161,8 @@ def registerPath(path):
       registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
     else:
       registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
-    registerPath.dll.mbxmlutilsPyEvalRegisterPath.restype=ctypes.c_char_p
   # call the mbxmlutilsPyEvalRegisterPath function in this lib
-  return registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8")).decode("utf-8")
+  registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
 registerPath.dll=None
 
 
