@@ -68,6 +68,7 @@
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Object"/>  
           <xs:element ref="xi:include" xmlns:xi="http://www.w3.org/2001/XInclude"/>  
+          <xs:element ref="pv:Embed"/>  
         </xs:choice> 
         <xs:attribute name="expand" type="pv:booleanFullEval" default="1"/>
       </xs:extension>
@@ -256,9 +257,11 @@
   <xs:complexType name="CompoundRigidBodyType">
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
-        <xs:sequence>
-          <xs:element ref="RigidBody" maxOccurs="unbounded"/>
-        </xs:sequence> 
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="RigidBody"/>
+          <xs:element ref="xi:include" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+          <xs:element ref="pv:Embed"/>
+        </xs:choice> 
         <xs:attribute name="expand" type="pv:booleanFullEval" default="0"/>
       </xs:extension>
     </xs:complexContent>
