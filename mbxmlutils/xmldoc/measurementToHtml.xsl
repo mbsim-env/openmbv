@@ -202,18 +202,20 @@
     <p>A example for a parameter file is given below:</p>
 <pre>&lt;Parameter xmlns="http://www.mbsim-env.de/MBXMLUtils"&gt;
   &lt;scalarParameter name="N"&gt;9&lt;/scalarParameter&gt;
-  &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/scalarParameter&gt;
+  &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/vectorParameter&gt;
   &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
-  &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/scalarParameter&gt;
+  &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/matrixParameter&gt;
+&lt;anyAarameter name="p"&gt;{'test', 4, 6.0}&lt;/anyParameter&gt;
 &lt;/Parameter&gt;
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
+    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
     <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. Hence this section covers mainly the octave expression evaluator, but all other evaluators are similar.</p>
     <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
 
-   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
+   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix; any can hold any value). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
 <pre>4
 b
 3+a*8

@@ -378,6 +378,12 @@ Eval::Value Eval::eval(const DOMElement *e) {
     else
       return createFunction(inputs, ret);
   }
+
+  // a anyParameter element
+  if(E(e)->getTagName()==PV%"anyParameter") {
+    Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
+    return ret;
+  }
   
   // rotation about x,y,z
   for(char ch='X'; ch<='Z'; ch++) {

@@ -193,14 +193,14 @@ typedef fmatvec::SymbolicExpression SS;
   SV op_MatrixSym_mul_VectorSym(const SM &a, const SV &b) { return a*b; }
   SM op_MatrixSym_mul_MatrixSym(const SM &a, const SM &b) { return a*b; }
 
-  SM op_IndependentVariable_mul_matrix(const IS &a, const octave_value &b) { return a*toMat(b); }
-  SM op_SymbolicExpression_mul_matrix(const SS &a, const octave_value &b) { return a*toMat(b); }
-  SM op_matrix_mul_IndependentVariable(const octave_value &a, const IS &b) { return toMat(a)*b; }
-  SM op_matrix_mul_SymbolicExpression(const octave_value &a, const SS &b) { return toMat(a)*b; }
-  SV op_matrix_mul_VectorSym(const octave_value &a, const SV &b) { return toMat(a)*b; }
-  SV op_matrix_mul_VectorIndep(const octave_value &a, const IV &b) { return toMat(a)*b; }
-  SM op_matrix_mul_MatrixSym(const octave_value &a, const SM &b) { return toMat(a)*b; }
-  SM op_MatrixSym_mul_matrix(const SM &a, const octave_value &b) { return a*toMat(b); }
+  SM op_IndependentVariable_mul_matrix(const IS &a, const octave_value &b) { return a*static_cast<const fmatvec::MatV&>(toMat(b)); }
+  SM op_SymbolicExpression_mul_matrix(const SS &a, const octave_value &b) { return a*static_cast<const fmatvec::MatV&>(toMat(b)); }
+  SM op_matrix_mul_IndependentVariable(const octave_value &a, const IS &b) { return static_cast<const fmatvec::MatV&>(toMat(a))*b; }
+  SM op_matrix_mul_SymbolicExpression(const octave_value &a, const SS &b) { return static_cast<const fmatvec::MatV&>(toMat(a))*b; }
+  SV op_matrix_mul_VectorSym(const octave_value &a, const SV &b) { return static_cast<const fmatvec::MatV&>(toMat(a))*b; }
+  SV op_matrix_mul_VectorIndep(const octave_value &a, const IV &b) { return static_cast<const fmatvec::MatV&>(toMat(a))*b; }
+  SM op_matrix_mul_MatrixSym(const octave_value &a, const SM &b) { return static_cast<const fmatvec::MatV&>(toMat(a))*b; }
+  SM op_MatrixSym_mul_matrix(const SM &a, const octave_value &b) { return a*static_cast<const fmatvec::MatV&>(toMat(b)); }
 
   /***** operator / *****/
 
@@ -222,8 +222,8 @@ typedef fmatvec::SymbolicExpression SS;
   SV op_VectorSym_div_SymbolicExpression(const SV &a, const SS &b) { return a/b; }
   SM op_MatrixSym_div_SymbolicExpression(const SM &a, const SS &b) { return a/b; }
 
-  SM op_matrix_div_IndependentVariable(const octave_value &a, const IS &b) { return toMat(a)/b; }
-  SM op_matrix_div_SymbolicExpression(const octave_value &a, const SS &b) { return toMat(a)/b; }
+  SM op_matrix_div_IndependentVariable(const octave_value &a, const IS &b) { return static_cast<const fmatvec::MatV&>(toMat(a))/b; }
+  SM op_matrix_div_SymbolicExpression(const octave_value &a, const SS &b) { return static_cast<const fmatvec::MatV&>(toMat(a))/b; }
 
   /***** operator + *****/
  
@@ -241,12 +241,12 @@ typedef fmatvec::SymbolicExpression SS;
   SV op_VectorSym_add_VectorSym(const SV &a, const SV &b) { return a+b; }
   SM op_MatrixSym_add_MatrixSym(const SM &a, const SM &b) { return a+b; }
 
-  SV op_VectorIndep_add_matrix(const IV &a, const octave_value &b) { return a+toVec(b); }
-  SV op_VectorSym_add_matrix(const SV &a, const octave_value &b) { return a+toVec(b); }
-  SV op_matrix_add_VectorIndep(const octave_value &a, const IV &b) { return toVec(a)+b; }
-  SV op_matrix_add_VectorSym(const octave_value &a, const SV &b) { return toVec(a)+b; }
-  SM op_MatrixSym_add_matrix(const SM &a, const octave_value &b) { return a+toMat(b); }
-  SM op_matrix_add_MatrixSym(const octave_value &a, const SM &b) { return toMat(a)+b; }
+  SV op_VectorIndep_add_matrix(const IV &a, const octave_value &b) { return a+static_cast<const fmatvec::VecV&>(toVec(b)); }
+  SV op_VectorSym_add_matrix(const SV &a, const octave_value &b) { return a+static_cast<const fmatvec::VecV&>(toVec(b)); }
+  SV op_matrix_add_VectorIndep(const octave_value &a, const IV &b) { return static_cast<const fmatvec::VecV&>(toVec(a))+b; }
+  SV op_matrix_add_VectorSym(const octave_value &a, const SV &b) { return static_cast<const fmatvec::VecV&>(toVec(a))+b; }
+  SM op_MatrixSym_add_matrix(const SM &a, const octave_value &b) { return a+static_cast<const fmatvec::MatV&>(toMat(b)); }
+  SM op_matrix_add_MatrixSym(const octave_value &a, const SM &b) { return static_cast<const fmatvec::MatV&>(toMat(a))+b; }
 
   /***** operator - *****/
  
@@ -264,12 +264,12 @@ typedef fmatvec::SymbolicExpression SS;
   SV op_VectorSym_sub_VectorSym(const SV &a, const SV &b) { return a-b; }
   SM op_MatrixSym_sub_MatrixSym(const SM &a, const SM &b) { return a-b; }
 
-  SV op_VectorIndep_sub_matrix(const IV &a, const octave_value &b) { return a-toVec(b); }
-  SV op_VectorSym_sub_matrix(const SV &a, const octave_value &b) { return a-toVec(b); }
-  SV op_matrix_sub_VectorIndep(const octave_value &a, const IV &b) { return toVec(a)-b; }
-  SV op_matrix_sub_VectorSym(const octave_value &a, const SV &b) { return toVec(a)-b; }
-  SM op_MatrixSym_sub_matrix(const SM &a, const octave_value &b) { return a-toMat(b); }
-  SM op_matrix_sub_MatrixSym(const octave_value &a, const SM &b) { return toMat(a)-b; }
+  SV op_VectorIndep_sub_matrix(const IV &a, const octave_value &b) { return a-static_cast<const fmatvec::VecV&>(toVec(b)); }
+  SV op_VectorSym_sub_matrix(const SV &a, const octave_value &b) { return a-static_cast<const fmatvec::VecV&>(toVec(b)); }
+  SV op_matrix_sub_VectorIndep(const octave_value &a, const IV &b) { return static_cast<const fmatvec::VecV&>(toVec(a))-b; }
+  SV op_matrix_sub_VectorSym(const octave_value &a, const SV &b) { return static_cast<const fmatvec::VecV&>(toVec(a))-b; }
+  SM op_MatrixSym_sub_matrix(const SM &a, const octave_value &b) { return a-static_cast<const fmatvec::MatV&>(toMat(b)); }
+  SM op_matrix_sub_MatrixSym(const octave_value &a, const SM &b) { return static_cast<const fmatvec::MatV&>(toMat(a))-b; }
 
   /***** operator - *****/
   SS op_IndependentVariable_uminus(const IS &a) { return -a; }
