@@ -20,6 +20,7 @@
 #include "config.h"
 #include "SoQtMyViewer.h"
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -32,6 +33,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QIcon>
+#include <QBitArray>
 #include "mainwindow.h"
 #include <boost/dll.hpp>
 
@@ -51,7 +53,24 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
       break;
   }
   setSeekTime(1);
-  setCameraType(SoOrthographicCamera::getClassTypeId());
+  if(appSettings->get<int>(AppSettings::stereoType)==0)
+    setCameraType(SoOrthographicCamera::getClassTypeId());
+  else
+    setCameraType(SoPerspectiveCamera::getClassTypeId());
+  SoQtViewer::StereoType t;
+  switch(appSettings->get<int>(AppSettings::stereoType)) {
+    case 0: t=SoQtMyViewer::STEREO_NONE; break;
+    case 1: t=SoQtMyViewer::STEREO_ANAGLYPH; break;
+    case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
+    case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
+    case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
+  }
+  setStereoType(t);
+  setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
+  auto mask=appSettings->get<QString>(AppSettings::stereoAnaglyphColorMask);
+  SbBool left[]={mask[0]!='0', mask[1]!='0', mask[2]!='0'};
+  SbBool right[]={mask[3]!='0', mask[4]!='0', mask[5]!='0'};
+  setAnaglyphStereoColorMasks(left, right);
 
   // background
   setClearBeforeRender(false); // clear by my background color

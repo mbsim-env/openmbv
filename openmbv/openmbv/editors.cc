@@ -640,7 +640,7 @@ TransRotEditor::TransRotEditor(PropertyDialog *parent_, const QIcon& icon, const
     spinBox[i  ]->installEventFilter(&IgnoreWheelEventFilter::instance);
     spinBox[i+3]->installEventFilter(&IgnoreWheelEventFilter::instance);
     spinBox[i  ]->setRange(-DBL_MAX, DBL_MAX);
-    spinBox[i+3]->setRange(0, 360); // degree
+    spinBox[i+3]->setRange(-DBL_MAX, DBL_MAX); // degree
     spinBox[i  ]->setSingleStep(0.01);
     spinBox[i+3]->setSingleStep(10);// degree
     spinBox[i  ]->setDecimals(6);

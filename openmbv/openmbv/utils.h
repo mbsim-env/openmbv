@@ -154,6 +154,10 @@ class IgnoreWheelEventFilter : public QObject {
 class AppSettings {
   public:
     enum AS {
+      hdf5RefreshDelta,
+      stereoType,
+      stereoOffset,
+      stereoAnaglyphColorMask,
       tapAndHoldTimeout,
       outlineShilouetteEdgeLineWidth,
       outlineShilouetteEdgeLineColor,

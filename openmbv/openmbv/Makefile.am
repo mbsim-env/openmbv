@@ -260,21 +260,41 @@ docdir = @datadir@/openmbv/doc
 dist_doc_DATA = guihelp.html
 
 # plugins
+
 pluginsiconenginesdir = @bindir@/iconengines
-pluginsplatformsdir = @bindir@/platforms
-pluginsstylesdir = @bindir@/styles
-pluginsplatformthemesdir = @bindir@/platformthemes
 pluginsiconengines_DATA = @QT_PLUGINS@/iconengines/*qsvgicon*
+
+pluginsplatformsdir = @bindir@/platforms
 if COND_WIN32
 pluginsplatforms_DATA = @QT_PLUGINS@/platforms/qwindows.dll
-pluginsstyles_DATA = @QT_PLUGINS@/styles/qwindowsvistastyle.dll
 else
 pluginsplatforms_DATA = @QT_PLUGINS@/platforms/libqxcb.so
+endif
+
+pluginsstylesdir = @bindir@/styles
+if COND_WIN32
+pluginsstyles_DATA = @QT_PLUGINS@/styles/qwindowsvistastyle.dll
+else
 pluginsstyles_DATA = @QT_PLUGINSSTYLES_DATA@
+endif
+
+pluginsplatformthemesdir = @bindir@/platformthemes
+if COND_WIN32
+else
 pluginsplatformthemes_DATA = @QT_PLUGINSPLATFORMTHEMES_DATA@
+endif
+
 pluginsxcbglintegrationsdir = @bindir@/xcbglintegrations
+if COND_WIN32
+else
 pluginsxcbglintegrations_DATA = @QT_PLUGINS@/xcbglintegrations/*qxcb*
 endif
+
+pluginsimageformatsdir = @bindir@/imageformats
+pluginsimageformats_DATA = @QT_PLUGINS@/imageformats/*qgif.* \
+                           @QT_PLUGINS@/imageformats/*qico.* \
+                           @QT_PLUGINS@/imageformats/*qjpeg.* \
+                           @QT_PLUGINS@/imageformats/*qsvg.*
 
 # freedesktop.org
 freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org

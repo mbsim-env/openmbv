@@ -52,6 +52,7 @@
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
@@ -594,12 +595,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   frameSensor=new SoFieldSensor(frameSensorCB, this);
   frameSensor->attach(frame);
 
-  hdf5RefreshDelta=500;
-  if((i=std::find(arg.begin(), arg.end(), "--hdf5RefreshDelta"))!=arg.end()) {
-    i2=i; i2++;
-    hdf5RefreshDelta=QString(i2->c_str()).toInt();
-    arg.erase(i); arg.erase(i2);
-  }
+  hdf5RefreshDelta=appSettings->get<int>(AppSettings::hdf5RefreshDelta);
 
   // animation timer
   animTimer=new QTimer(this);
@@ -727,10 +723,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     SoInput input;
     input.openFile(i2->c_str());
     SoBase *newHeadLight;
-    if(SoBase::read(&input, newHeadLight, SoDirectionalLight::getClassTypeId())) {
-      glViewer->getHeadlight()->on.setValue(((SoDirectionalLight*)newHeadLight)->on.getValue());
-      glViewer->getHeadlight()->intensity.setValue(((SoDirectionalLight*)newHeadLight)->intensity.getValue());
-      glViewer->getHeadlight()->color.setValue(((SoDirectionalLight*)newHeadLight)->color.getValue());
+    if(SoBase::read(&input, newHeadLight, SoVRMLDirectionalLight::getClassTypeId())) {
+      glViewer->getHeadlight()->on.setValue(((SoVRMLDirectionalLight*)newHeadLight)->on.getValue());
+      glViewer->getHeadlight()->intensity.setValue(((SoVRMLDirectionalLight*)newHeadLight)->intensity.getValue());
+      glViewer->getHeadlight()->color.setValue(((SoVRMLDirectionalLight*)newHeadLight)->color.getValue());
+      glViewer->getHeadlight()->direction.setValue(((SoVRMLDirectionalLight*)newHeadLight)->direction.getValue());
     }
     arg.erase(i); arg.erase(i2);
   }

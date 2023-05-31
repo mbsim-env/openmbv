@@ -21,6 +21,7 @@
 #include "utils.h"
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include "mytouchwidget.h"
@@ -34,6 +35,7 @@
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
+#include <QBitArray>
 #include <boost/dll.hpp>
 
 using namespace std;
@@ -324,6 +326,10 @@ bool IgnoreWheelEventFilter::eventFilter(QObject *watched, QEvent *event) {
 }
 
 AppSettings::AppSettings() : qSettings(format, scope, organization, application), setting(AS::SIZE) {
+  setting[hdf5RefreshDelta]={"mainwindow/hdf5/hdf5RefreshDelta", 500};
+  setting[stereoType]={"mainwindow/sceneGraph/stereoType", 0};
+  setting[stereoOffset]={"mainwindow/sceneGraph/stereoOffset", 0.1};
+  setting[stereoAnaglyphColorMask]={"mainwindow/sceneGraph/stereoAnaglyphColorMask", "100011"};
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
@@ -403,6 +409,27 @@ IntSetting::IntSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& ic
   layout->addWidget(spinBox, row, 2);
   spinBox->setValue(appSettings->get<int>(key));
   connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [key, set](int value){
+    appSettings->set(key, value);
+    if(set) set(value);
+  });
+}
+class StringSetting : public QWidget {
+  public:
+    StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
+                  const std::function<void(QString)> &set={});
+};
+StringSetting::StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
+                             const std::function<void(QString)> &set) : QWidget(layout->parentWidget()) {
+  QFontInfo fontInfo(font());
+  int row=layout->rowCount();
+  auto *iconLabel=new QLabel;
+  iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
+  layout->addWidget(iconLabel, row, 0);
+  layout->addWidget(new QLabel(name, this), row, 1);
+  auto textEdit=new QLineEdit(this);
+  layout->addWidget(textEdit, row, 2);
+  textEdit->setText(appSettings->get<QString>(key));
+  connect(textEdit, &QLineEdit::textChanged, [key, set](const QString &value){
     appSettings->set(key, value);
     if(set) set(value);
   });
@@ -513,6 +540,31 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   Utils::enableTouch(scrollArea);
   mainLayout->addWidget(scrollArea, 1, 0, 1, 2);
 
+  new IntSetting(layout, AppSettings::hdf5RefreshDelta, Utils::QIconCached("time.svg"), "HDF5 refresh delta:", "ms", [](int value){
+    MainWindow::getInstance()->setHDF5RefreshDelta(value);
+  });
+  new ChoiceSetting(layout, AppSettings::stereoType, Utils::QIconCached(""), "Stereo view type:",
+                    {"None", "AnaGlyph", "Quad buffer", "Interleaved rows", "Interleaved columns"}, [](int value){
+    SoQtViewer::StereoType t;
+    switch(value) {
+      case 0: t=SoQtMyViewer::STEREO_NONE; break;
+      case 1: t=SoQtMyViewer::STEREO_ANAGLYPH; break;
+      case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
+      case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
+      case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
+    }
+    if(value!=0)
+      MainWindow::getInstance()->glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
+    MainWindow::getInstance()->glViewer->setStereoType(t);
+  });
+  new DoubleSetting(layout, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
+    MainWindow::getInstance()->glViewer->setStereoOffset(value);
+  }, 0, numeric_limits<double>::max(), 0.01);
+  new StringSetting(layout, AppSettings::stereoAnaglyphColorMask, Utils::QIconCached(""), "Stereo view color mask:", [](QString value){
+    SbBool left[]={value[0]!='0', value[1]!='0', value[2]!='0'};
+    SbBool right[]={value[3]!='0', value[4]!='0', value[5]!='0'};
+    MainWindow::getInstance()->glViewer->setAnaglyphStereoColorMasks(left, right);
+  });
   new IntSetting(layout, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
     QTapAndHoldGesture::setTimeout(value);
   });

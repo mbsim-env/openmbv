@@ -95,7 +95,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
-    SoQtMyViewer *glViewer;
     void viewChange(ViewSide side);
     SoSeparator *sceneRoot;
     QTimer *animTimer;
@@ -222,6 +221,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
   public:
+    SoQtMyViewer *glViewer;
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
     SoDrawStyle *bboxDrawStyle;
@@ -259,6 +259,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator* getSceneRoot() { return sceneRoot; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     void startShortAni(const std::function<void(double)> &func, bool noAni=false);
+    void setHDF5RefreshDelta(int d) { hdf5RefreshDelta=d; }
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;
