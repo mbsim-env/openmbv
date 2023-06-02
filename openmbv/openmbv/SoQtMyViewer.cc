@@ -64,6 +64,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
     case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
     case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
     case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
+    default: t=SoQtMyViewer::STEREO_NONE; break;
   }
   setStereoType(t);
   setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));

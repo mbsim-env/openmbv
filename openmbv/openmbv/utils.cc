@@ -552,6 +552,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
       case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
       case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
+      default: t=SoQtMyViewer::STEREO_NONE; break;
     }
     if(value!=0)
       MainWindow::getInstance()->glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());

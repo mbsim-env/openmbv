@@ -655,7 +655,7 @@ void MyTouchWidget::zoomCameraFocalDist(int change) {
   auto cameraPos=toPoint+cameraVec*focalDistance;
   camera->position.setValue(cameraPos);
   if(camera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
-    // nothing needed for rothographic cameras
+    // nothing needed for orthographic cameras
   }
   else if(camera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
     auto* persCamera=static_cast<SoPerspectiveCamera*>(camera);
