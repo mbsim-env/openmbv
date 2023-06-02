@@ -184,6 +184,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         Eval::Value ii=eval->create(static_cast<double>(i));
         eval->convertIndex(ii, false);
         eval->addParam(counterName, ii);
+        eval->addParam(counterName+"_count", eval->create(static_cast<double>(count)));
         if(localParamEle) {
           eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"[inline element]":file)
                            <<" ("<<i<<"/"<<count<<")"<<endl;
