@@ -189,7 +189,6 @@ void SpineExtrusion::createProperties() {
     contourEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getContour, &OpenMBV::SpineExtrusion::setContour);
 
     auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
-    scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(spineExtrusion, &OpenMBV::SpineExtrusion::getScaleFactor, &OpenMBV::SpineExtrusion::setScaleFactor);
   }
 }

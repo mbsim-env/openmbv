@@ -160,14 +160,12 @@ void Rotation::createProperties() {
   if(!clone) {
     properties->updateHeader();
     auto *startAngleEditor=new FloatEditor(properties, QIcon(), "Start angle");
-    startAngleEditor->setRange(0, 360); // degree
     startAngleEditor->setStep(10); // degree
     startAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     startAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor
     startAngleEditor->setOpenMBVParameter(rot, &OpenMBV::Rotation::getStartAngle, &OpenMBV::Rotation::setStartAngle);
 
     auto *endAngleEditor=new FloatEditor(properties, QIcon(), "End angle");
-    endAngleEditor->setRange(0, 360); // degree
     endAngleEditor->setStep(10); // degree
     endAngleEditor->setSuffix(QString::fromUtf8(R"(°)")); // utf8 degree sign
     endAngleEditor->setFactor(M_PI/180); // degree to rad conversion factor

@@ -232,7 +232,6 @@ void Arrow::createProperties() {
     referencePointEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getReferencePoint, &OpenMBV::Arrow::setReferencePoint);
 
     auto *scaleLengthEditor=new FloatEditor(properties, QIcon(), "Scale length");
-    scaleLengthEditor->setRange(0, DBL_MAX);
     scaleLengthEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getScaleLength, &OpenMBV::Arrow::setScaleLength);
   }
 }

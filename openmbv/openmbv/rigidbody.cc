@@ -143,7 +143,6 @@ void RigidBody::createProperties() {
     properties->addPropertyAction(pathEditor->getAction());
 
     auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
-    scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
 
     // initial translation/rotation editor/dragger

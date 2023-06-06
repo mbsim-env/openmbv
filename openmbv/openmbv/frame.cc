@@ -51,7 +51,6 @@ void Frame::createProperties() {
     sizeEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getSize, &OpenMBV::Frame::setSize);
 
     auto *offsetEditor=new FloatEditor(properties, QIcon(), "Offset");
-    offsetEditor->setRange(0, 1);
     offsetEditor->setStep(0.02);
     offsetEditor->setOpenMBVParameter(f, &OpenMBV::Frame::getOffset, &OpenMBV::Frame::setOffset);
   }

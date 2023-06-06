@@ -183,7 +183,6 @@ void CoilSpring::createProperties() {
     nominalLengthEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getNominalLength, &OpenMBV::CoilSpring::setNominalLength);
 
     auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
-    scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(coilSpring, &OpenMBV::CoilSpring::getScaleFactor, &OpenMBV::CoilSpring::setScaleFactor);
   }
 }

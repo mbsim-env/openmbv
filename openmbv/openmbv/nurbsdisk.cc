@@ -194,7 +194,6 @@ void NurbsDisk::createProperties() {
     properties->addPropertyAction(localFrameEditor->getAction());
     
     auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scale factor");
-    scaleFactorEditor->setRange(0, DBL_MAX);
     scaleFactorEditor->setOpenMBVParameter(nurbsDisk, &OpenMBV::NurbsDisk::getScaleFactor, &OpenMBV::NurbsDisk::setScaleFactor);
 
     auto *drawDegreeEditor=new IntEditor(properties, QIcon(), "Draw discretisation");
