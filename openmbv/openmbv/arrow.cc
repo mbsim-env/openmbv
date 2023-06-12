@@ -157,16 +157,30 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     auto *transLO1=new SoTranslation;
     soOutLineSep->addChild(transLO1);
     transLO1->translation.setValue(0, -headLength, 0);
-    auto *cylOL1=new SoCylinder;
+
+    auto outlineCircle = [](double diameter) {
+      int num = 500 * appSettings->get<double>(AppSettings::complexityValue);
+      vector<array<float,3>> pts(num);
+      for(int i=0; i<num; ++i) {
+        double angle = 2.0*M_PI*i/num;
+        pts[i][0] = diameter/2*sin(angle);
+        pts[i][1] = 0;
+        pts[i][2] = diameter/2*cos(angle);
+      }
+      auto *points = new SoCoordinate3;
+      points->point.setValues(0, num, reinterpret_cast<float(*)[3]>(pts.data()));
+      points->point.setValues(num, 1, reinterpret_cast<float(*)[3]>(pts.data()));
+      auto *line = new SoLineSet;
+      line->numVertices.setValue(num+1);
+      auto *cylOL = new SoSeparator;
+      cylOL->addChild(points);
+      cylOL->addChild(line);
+      return cylOL;
+    };
+    auto cylOL1 = outlineCircle(headDiameter);
     soOutLineSep->addChild(cylOL1);
-    cylOL1->height.setValue(0);
-    cylOL1->radius.setValue(headDiameter/2);
-    cylOL1->parts.setValue(SoCylinder::SIDES);
-    auto *cylOL2=new SoCylinder;
+    auto *cylOL2 = outlineCircle(diameter);
     soOutLineSep->addChild(cylOL2);
-    cylOL2->height.setValue(0);
-    cylOL2->radius.setValue(diameter/2);
-    cylOL2->parts.setValue(SoCylinder::SIDES);
     // add the head outline twice for double heads
     if(arrow->getType()==OpenMBV::Arrow::fromDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::toDoubleHead ||
