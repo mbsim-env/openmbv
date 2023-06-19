@@ -20,6 +20,7 @@
 #include "config.h"
 #include "rigidbody.h"
 #include "mainwindow.h"
+#include "compoundrigidbody.h"
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoAntiSquish.h>
@@ -124,7 +125,12 @@ void RigidBody::createProperties() {
   // GUI
   auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,&QAction::triggered,this,[this](){
-    static_cast<RigidBody*>(properties->getParentObject())->moveCameraWithSlot();
+    auto *rigidBody=static_cast<RigidBody*>(properties->getParentObject());
+    CompoundRigidBody *compoundRigidBodyParent;
+    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(rigidBody->QTreeWidgetItem::parent()))!=nullptr) {
+      rigidBody=compoundRigidBodyParent;
+    }
+    rigidBody->moveCameraWithSlot();
   });
   properties->addContextAction(moveCameraWith);
 

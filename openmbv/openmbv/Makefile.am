@@ -252,6 +252,9 @@ dist_icon_DATA = openmbv.svg \
   newobject.svg \
   deleteobject.svg \
   seektopoint.svg \
+  cylinder.svg \
+  linewidth.svg \
+  pointsize.svg \
   cover.png \
   knurl.png
 
