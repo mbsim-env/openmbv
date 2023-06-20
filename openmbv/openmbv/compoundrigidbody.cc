@@ -54,7 +54,7 @@ CompoundRigidBody::CompoundRigidBody(const std::shared_ptr<OpenMBV::Object> &obj
   // read XML
   vector<std::shared_ptr<OpenMBV::RigidBody> > rb=crb->getRigidBodies();
   for(const auto & i : rb)
-    ObjectFactory::create(i, this, soSep, -1);
+    ObjectFactory::create(i, this, soSepRigidBody, -1);
 }
 
 void CompoundRigidBody::createProperties() {
@@ -100,7 +100,7 @@ void CompoundRigidBody::newRigidBodySlot() {
   if(!obj) return;
 
   crb->addRigidBody(std::static_pointer_cast<OpenMBV::RigidBody>(obj));
-  ObjectFactory::create(obj, this, soSep, -1);
+  ObjectFactory::create(obj, this, soSepRigidBody, -1);
 
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
