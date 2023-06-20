@@ -2,6 +2,7 @@ import numpy
 import sympy
 import uuid
 import os
+import colorsys
 if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
   sympyRelational=sympy.core.relational
 else:
@@ -264,3 +265,18 @@ def tilde(x):
 
   else:
     raise RuntimeError('Must be called with with a 3x3 matrix or a column vector of length 3.')
+
+
+
+def rgbColor(*argv):
+  if len(argv)==3:
+    red=argv[0]
+    green=argv[1]
+    blue=argv[2]
+  elif len(argv)==1 and len(argv[0])==3:
+    red=argv[0][0]
+    green=argv[0][1]
+    blue=argv[0][2]
+  else:
+    raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
+  return numpy.array(colorsys.rgb_to_hsv(red, green, blue))

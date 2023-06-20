@@ -169,6 +169,10 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         }
       }
 
+      string inlineElement;
+      if(file.empty())
+        inlineElement="[inline element]:{"+E(inlineEmbedEle)->getTagName().first+"}"+E(inlineEmbedEle)->getTagName().second;
+
       // delete embed element and insert count time the new element
       DOMElement *embed=e;
       DOMNode *p=e->getParentNode();
@@ -186,7 +190,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         eval->addParam(counterName, ii);
         eval->addParam(counterName+"_count", eval->create(static_cast<double>(count)));
         if(localParamEle) {
-          eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?"[inline element]":file)
+          eval->msg(Info)<<"Generate local parameters for "<<(file.empty()?inlineElement:("\""+file.string()+"\""))
                            <<" ("<<i<<"/"<<count<<")"<<endl;
           eval->addParamSet(localParamEle.get());
         }
@@ -197,9 +201,12 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif")))==1); } RETHROW_AS_DOMEVALEXCEPTION(embed)
         if(onlyif) {
           realCount++;
-          eval->msg(Info)<<"Embed "<<(file.empty()?"[inline element]":file)<<" ("<<i<<"/"<<count<<")"<<endl;
+          eval->msg(Info)<<"Embed "<<(file.empty()?inlineElement:("\""+file.string()+"\""))<<" ("<<i<<"/"<<count<<")"<<endl;
           if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
             throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);
+          // this is needed to fix a Embed by href which itself uses a Embed by inline element
+          if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+            E(enew)->setOriginalFilename(E(e)->getOriginalFilename());
           e=static_cast<DOMElement*>(p->insertBefore(enew->cloneNode(true), insertBefore));
           // include a processing instruction with the count number
           E(e)->setEmbedCountNumber(i);
@@ -209,7 +216,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           preprocess(parser, eval, dependencies, e);
         }
         else
-          eval->msg(Info)<<"Skip embeding "<<(file.empty()?"[inline element]":file)<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
+          eval->msg(Info)<<"Skip embeding "<<(file.empty()?inlineElement:("\""+file.string()+"\""))<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
       }
       if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
         throw DOMEvalException("An Embed being the root XML node must expand to exactly one element.", embed);

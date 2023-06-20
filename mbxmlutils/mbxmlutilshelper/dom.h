@@ -302,7 +302,8 @@ class DOMElementWrapper {
     //! Set original filename.
     //! Calls getOriginalFilename on itself and set this value to itself.
     //! This function should/must be called when a element is removed from a tree but still used after that.
-    void setOriginalFilename();
+    //! If orgFileName is given then its different: its just the given filename set as OriginalFileName.
+    void setOriginalFilename(boost::filesystem::path orgFileName=boost::filesystem::path());
     //! Convert the relative path relPath to an aboslute path by prefixing it with the path of this document.
     //! If relPath is a absolute path it is returned as it. (see also getOriginalFilename)
     boost::filesystem::path convertPath(const boost::filesystem::path &relPath) const;
