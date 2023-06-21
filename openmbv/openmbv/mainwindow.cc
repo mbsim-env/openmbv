@@ -845,7 +845,8 @@ void MainWindow::highlightObject(Object *current) {
     obj->setHighlight(false);
   });
   // enable current highlights
-  current->setHighlight(true);
+  if(current)
+    current->setHighlight(true);
 }
 
 void MainWindow::highlightObject(const string &curID) {
@@ -993,9 +994,8 @@ void MainWindow::execPropertyMenu(const std::vector<QAction*> &additionalActions
 }
 
 void MainWindow::objectListClicked() {
-  if(!objectList->currentItem()) return;
-  objectSelected(static_cast<Object*>(objectList->currentItem())->object->getID(), 
-                 static_cast<Object*>(objectList->currentItem()));
+  auto *curObj=static_cast<Object*>(objectList->currentItem());
+  objectSelected(curObj ? curObj->object->getID() : "", curObj);
 }
 
 void MainWindow::guiHelp() {

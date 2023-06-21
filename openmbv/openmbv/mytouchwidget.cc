@@ -444,8 +444,10 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
   // if toggle, toggle selection of object
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
   auto picked=getObjectsByRay(pos);
-  if(picked.empty())
+  if(picked.empty()) {
+    MainWindow::getInstance()->objectSelected("", nullptr);
     return;
+  }
   vector<Body*> bodies;
   transform(picked.begin(), picked.end(), back_inserter(bodies), [](auto &x){ return x.first; });
   int useObjIdx;
@@ -453,8 +455,10 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
     useObjIdx=0;
   else {
     useObjIdx=createObjectListMenu(bodies);
-    if(useObjIdx<0)
+    if(useObjIdx<0) {
+      MainWindow::getInstance()->objectSelected("", nullptr);
       return;
+    }
   }
   MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0,
     toggle?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
@@ -466,8 +470,10 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
   // if object is selected, show context menu (for all selected objects)
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
   auto picked=getObjectsByRay(pos);
-  if(picked.empty())
+  if(picked.empty()) {
+    MainWindow::getInstance()->objectSelected("", nullptr);
     return;
+  }
   vector<Body*> bodies;
   transform(picked.begin(), picked.end(), back_inserter(bodies), [](auto &x){ return x.first; });
   int useObjIdx;
@@ -475,8 +481,10 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
     useObjIdx=0;
   else {
     useObjIdx=createObjectListMenu(bodies);
-    if(useObjIdx<0)
+    if(useObjIdx<0) {
+      MainWindow::getInstance()->objectSelected("", nullptr);
       return;
+    }
   }
   if(!MainWindow::getInstance()->objectList->selectedItems().contains(bodies[useObjIdx]))
     MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0, QItemSelectionModel::ClearAndSelect);

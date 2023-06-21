@@ -271,11 +271,12 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.
-     * Either by selecting it in the objects list or in the 3D view. */
-    void objectSelected(std::string curID, Object *curPtr);
+     * Either by selecting it in the objects list or in the 3D view.
+     * (curPtr may be null if nothing is selected, curID is "" in this case) */
+    void objectSelected(std::string curID, OpenMBVGUI::Object *curPtr); // The OpenMBVGUI namespace prefix is needed to enable Qt signal handling with SIGNAL(...)
     /** This signal is emitted whenever a object is double clicked in the 3D view.
      * If this signal is connected to at least one slot the property dialog is no longer shown automatically. */
-    void objectDoubleClicked(std::string curID, Object *curPtr);
+    void objectDoubleClicked(std::string curID, OpenMBVGUI::Object *curPtr); // The OpenMBVGUI namespace prefix is needed to enable Qt signal handling with SIGNAL(...)
 };
 
 }

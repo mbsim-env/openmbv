@@ -168,6 +168,8 @@ namespace OpenMBV {
       std::string getFullName(bool includingFileName=false) override;
 
       std::shared_ptr<Group> getTopLevelGroup();
+
+      std::weak_ptr<CompoundRigidBody> getCompound() { return compound; }
   };
 
 }
