@@ -13,4 +13,4 @@ function hsv=rgbColor(varargin)
     error('Must be called with a three scalar arguments or one vector argument of length 3.');
   end
 
-  hsv=rgb2hsv([red,green,blue])'
+  hsv=rgb2hsv([red,green,blue])';

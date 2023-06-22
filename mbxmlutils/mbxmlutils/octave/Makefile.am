@@ -10,6 +10,9 @@ dist_octave_DATA = cardan.m \
 		   euler.m\
 		   tilde.m\
 		   installPrefix.m\
+		   rgbColor.m\
+		   invCardan.m\
+		   installPrefix.m\
 		   PKG_ADD
 
 dist_octaveSwigRef_DATA = @swig_ref/horzcat.m\

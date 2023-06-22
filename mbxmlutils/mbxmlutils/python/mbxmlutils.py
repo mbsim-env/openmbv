@@ -202,6 +202,21 @@ def cardan(*argv):
 
 
 
+def invCardan(T):
+  if T[0][2]<-1-1e-12 or T[0][2]>1+1e-12:
+    raise RuntimeError("Argument of invCardan is not a rotation matrix (due to numerical errors)")
+  beta=sympy.asin(sympy.Max(sympy.Min(T[0][2], 1.0), -1.0))
+  nenner=sympy.cos(beta)
+  if sympy.Abs(nenner)>1e-10:
+    alpha=sympy.atan2(-T[1][2],T[2][2])
+    gamma=sympy.atan2(-T[0][1],T[0][0])
+  else:
+    alpha=0
+    gamma=sympy.atan2(T[1][0],T[1][1])
+  return _convert(numpy.array([alpha, beta, gamma]))
+
+
+
 def euler(*argv):
   if len(argv)==3:
     PHI=argv[0]
