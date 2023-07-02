@@ -34,6 +34,8 @@
 #include <QDesktopWidget>
 #include <QIcon>
 #include <QBitArray>
+#include <QSvgRenderer>
+#include <QPainter>
 #include "mainwindow.h"
 #include <boost/dll.hpp>
 
@@ -135,38 +137,24 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   cc->transparency.setValue(0.6);
   auto *ombvLogoTex=new SoTexture2;
   logoSep->addChild(ombvLogoTex);
-  QIcon icon=Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str());
+  QSvgRenderer svg(QString((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()));
   QFontInfo fontinfo(parent->font());
-  QImage image=icon.pixmap(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5).toImage();
-  int w=image.width();
-  int h=image.height();
-  // reorder image data
-  vector<unsigned char> imageData(w*h*4);
-  for(int y=0; y<h; ++y)
-    for(int x=0; x<w; ++x) {
-      QRgb pix=image.pixel(x, y);
-      imageData[h*4*x+4*y+0]=qRed(pix);
-      imageData[h*4*x+4*y+1]=qGreen(pix);
-      imageData[h*4*x+4*y+2]=qBlue(pix);
-      imageData[h*4*x+4*y+3]=qAlpha(pix);
-    }
+  QImage image(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5, QImage::Format_RGBA8888);
+  QPainter painter(&image);
+  svg.render(&painter);
   // set inventor image
-  ombvLogoTex->image.setValue(SbVec2s(w, h), 4, imageData.data());
+  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
   ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
   ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
   auto *ombvCoords=new SoCoordinate3;
   logoSep->addChild(ombvCoords);
   double size=0.15; // the logo filles maximal "size" of the screen
-  ombvCoords->point.set1Value(0, 0, 0, 0);
-  ombvCoords->point.set1Value(1, -size, 0, 0);
-  ombvCoords->point.set1Value(2, -size, size, 0);
-  ombvCoords->point.set1Value(3, 0, size, 0);
+  ombvCoords->point.set1Value(0, -size, 0, 0);    ombvCoords->point.set1Value(1, 0, 0, 0);
+  ombvCoords->point.set1Value(3, -size, size, 0); ombvCoords->point.set1Value(2, 0, size, 0);
   auto *tc=new SoTextureCoordinate2;
   logoSep->addChild(tc);
-  tc->point.set1Value(0, 1, 1);
-  tc->point.set1Value(1, 1, 0);
-  tc->point.set1Value(2, 0, 0);
-  tc->point.set1Value(3, 0, 1);
+  tc->point.set1Value(0, 0, 1); tc->point.set1Value(1, 1, 1);
+  tc->point.set1Value(3, 0, 0); tc->point.set1Value(2, 1, 0);
   auto *ombvLogo=new SoFaceSet;
   logoSep->addChild(ombvLogo);
   ombvLogo->numVertices.set1Value(0, 4);
