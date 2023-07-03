@@ -9,6 +9,7 @@ using namespace std;
 namespace OpenMBVGUI {
 
 QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) {
+  QString iconPath(QUrl::fromLocalFile(Utils::getIconPath().c_str()).toLocalFile());
   // the appearance of the splitter handle
   setStyleSheet(QString(
     "QSplitter::handle {"
@@ -21,7 +22,7 @@ QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) 
     "QSplitter::handle:hover {"
     "  background-color: palette(highlight);"
     "}"
-  ).arg(Utils::getIconPath().c_str()));
+  ).arg(iconPath));
 
   // add the Slider and two dummy Frames to the Splitter
   slider=new QSlider(Qt::Vertical);
@@ -42,7 +43,7 @@ QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) 
     "  background-image: url(%1/cover.png);"
     "  background-position: bottom left;"
     "}"
-  ).arg(Utils::getIconPath().c_str()));
+  ).arg(iconPath));
   bottomFrame->setStyleSheet(QString(
     "QFrame {"
     "  border-width: 1px;"
@@ -53,7 +54,7 @@ QTripleSlider::QTripleSlider(QWidget *parent) : QSplitter(Qt::Vertical, parent) 
     "  background-image: url(%1/cover.png);"
     "  background-position: top left;"
     "}"
-  ).arg(Utils::getIconPath().c_str()));
+  ).arg(iconPath));
   topFrame->setMaximumSize(slider->sizeHint().width(), topFrame->maximumSize().height());
   bottomFrame->setMaximumSize(slider->sizeHint().width(), bottomFrame->maximumSize().height());
 

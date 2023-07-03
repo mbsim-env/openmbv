@@ -509,9 +509,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   speedLO->addWidget(speedSB, 1, 0);
   speedWheel=new QwtWheel(this);
   speedWheel->setWheelWidth(15);
-  connect(speedWheel, &QwtWheel::valueChanged, this, &MainWindow::speedWheelChangedD);
-  connect(speedWheel, &QwtWheel::wheelPressed, this, &MainWindow::speedWheelPressed);
-  connect(speedWheel, &QwtWheel::wheelReleased, this, &MainWindow::speedWheelReleased);
+  connect(speedWheel, SIGNAL(valueChanged(double)), this, SLOT(speedWheelChangedD(double))); // using function pointers is not working on Windows across DLLs
+  connect(speedWheel, SIGNAL(wheelPressed()), this, SLOT(speedWheelPressed())); // using function pointers is not working on Windows across DLLs
+  connect(speedWheel, SIGNAL(wheelReleased()), this, SLOT(speedWheelReleased())); // using function pointers is not working on Windows across DLLs
   speedWheel->setRange(-10000, 10000);
   speedWheel->setOrientation(Qt::Vertical);
   speedLO->addWidget(speedWheel, 0, 1, 2, 1);
