@@ -225,7 +225,7 @@ def cardan(*argv):
     gamma=argv[0][2]
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
-  ms=_MathOrSympy(type(alpha),type(beta),type(gamma))
+  ms=_MathOrSympy(alpha,beta,gamma)
 
   return _convert(numpy.array([[ms.cos(beta)*ms.cos(gamma),
                               -ms.cos(beta)*ms.sin(gamma),
@@ -241,7 +241,7 @@ def cardan(*argv):
 
 def invCardan(T):
   import numpy
-  ms=_MathOrSympy(type(T[0][2]), type(T[1][2]), type(T[2][2]), type(T[0][1]), type(T[0][0]), type(T[1][0]), type(T[1][1]))
+  ms=_MathOrSympy(T[0][2], T[1][2], T[2][2], T[0][1], T[0][0], T[1][0], T[1][1])
   if T[0][2]<-1-1e-12 or T[0][2]>1+1e-12:
     raise RuntimeError("Argument of invCardan is not a rotation matrix (due to numerical errors)")
   beta=ms.asin(ms.Max(ms.Min(T[0][2], 1.0), -1.0))
@@ -268,7 +268,7 @@ def euler(*argv):
     phi=argv[0][2]
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
-  ms=_MathOrSympy(type(PHI),type(theta),type(phi))
+  ms=_MathOrSympy(PHI,theta,phi)
 
   return _convert(numpy.array([[ms.cos(phi)*ms.cos(PHI)-ms.sin(phi)*ms.cos(theta)*ms.sin(PHI),
                               -ms.cos(phi)*ms.cos(theta)*ms.sin(PHI)-ms.sin(phi)*ms.cos(PHI),
@@ -284,7 +284,7 @@ def euler(*argv):
 
 def rotateAboutX(phi):
   import numpy
-  ms=_MathOrSympy(type(phi))
+  ms=_MathOrSympy(phi)
   return _convert(numpy.array([[1,0,0],
                               [0,ms.cos(phi),-ms.sin(phi)],
                               [0,ms.sin(phi),ms.cos(phi)]]))
@@ -293,7 +293,7 @@ def rotateAboutX(phi):
 
 def rotateAboutY(phi):
   import numpy
-  ms=_MathOrSympy(type(phi))
+  ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),0,ms.sin(phi)],
                               [0,1,0],
                               [-ms.sin(phi),0,ms.cos(phi)]]))
@@ -302,7 +302,7 @@ def rotateAboutY(phi):
 
 def rotateAboutZ(phi):
   import numpy
-  ms=_MathOrSympy(type(phi))
+  ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),-ms.sin(phi),0],
                               [ms.sin(phi),ms.cos(phi),0],
                               [0,0,1]]))
