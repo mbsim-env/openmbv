@@ -1,19 +1,43 @@
-import numpy
-import sympy
-import uuid
 import os
-import colorsys
-if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
-  sympyRelational=sympy.core.relational
-else:
-  sympyRelational=sympy.relational
 
 
 
 # INTERNAL FUNCTION
+# wrap math or sympy functions: if all args are int or float use math else use sympy
+# (we try to avoid importing sympy whenever possible since sympy has a quite significant load time)
+class _MathOrSympy:
+  def __init__(self, *t):
+    self.useMath=all(map(lambda x: not hasattr(x, "free_symbols") or (hasattr(x, "free_symbols") and len(x.free_symbols)==0), t))
+  def Min(self, *x):
+    if self.useMath:
+      return min(*x)
+    else:
+      import sympy
+      return sympy.Min
+  def Max(self, *x):
+    if self.useMath:
+      return max(*x)
+    else:
+      import sympy
+      return sympy.Max
+  def Abs(self, *x):
+    if self.useMath:
+      return abs(*x)
+    else:
+      import sympy
+      return sympy.Abs
+  def __getattr__(self, attr):
+    if self.useMath:
+      import math
+      return getattr(math, attr)
+    else:
+      import sympy
+      return getattr(sympy, attr)
+
+# INTERNAL FUNCTION
 # convert the scalar x to float values if possible
 def _convertScalar(x):
-  if hasattr(x, "free_symbols") and len(x.free_symbols)==0:
+  if not hasattr(x, "free_symbols") or (hasattr(x, "free_symbols") and len(x.free_symbols)==0):
     return float(x)
   else:
     return x
@@ -22,6 +46,7 @@ def _convertScalar(x):
 # convert all elements of the matrix, vector or scalar x to float values if possible
 def _convert(x):
   if hasattr(x, '__len__'):
+    import numpy
     return numpy.array([_convert(xi) for xi in x])
   else:
     return _convertScalar(x)
@@ -46,6 +71,8 @@ def _serializeFunction(x):
   else:
     # serialize a scalar (may be called recursively)
     def serializeVertex(x):
+      import numpy
+      import sympy
       # serialize a integer
       if isinstance(x, sympy.Integer) or numpy.issubdtype(type(x), int) or isinstance(x, int):
         return str(x)
@@ -54,6 +81,7 @@ def _serializeFunction(x):
         return str(x)
       # serialize a independent variable (all independe variables must be sympy.Dummy classes
       if x.func.__name__=="Dummy":
+        import uuid
         # create a unique UUID for the variable (map the hash to a UUID)
         uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
         # for debug runs (FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1) map the UUID to a counting int and use it
@@ -82,6 +110,12 @@ def _serializeFunction(x):
           le=x.args[1][0] if nrArgs==2 else 0
           if nrArgs==2 and x.args[1][1]!=True:
             raise RuntimeError("Internal error in: "+str(x))
+
+          if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
+            sympyRelational=sympy.core.relational
+          else:
+            sympyRelational=sympy.relational
+
           if isinstance(c, sympyRelational.GreaterThan) or isinstance(c, sympyRelational.StrictGreaterThan):
             return "condition("+serializeVertex(c.lhs-c.rhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
           elif isinstance(c, sympyRelational.LessThan) or isinstance(c, sympyRelational.StrictLessThan):
@@ -174,11 +208,13 @@ def installPrefix():
 
 
 def load(filename):
+  import numpy
   return numpy.genfromtxt(filename)
 
 
 
 def cardan(*argv):
+  import numpy
   if len(argv)==3:
     alpha=argv[0]
     beta=argv[1]
@@ -189,35 +225,39 @@ def cardan(*argv):
     gamma=argv[0][2]
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
+  ms=_MathOrSympy(type(alpha),type(beta),type(gamma))
 
-  return _convert(numpy.array([[sympy.cos(beta)*sympy.cos(gamma),
-                              -sympy.cos(beta)*sympy.sin(gamma),
-                              sympy.sin(beta)],
-                              [sympy.cos(alpha)*sympy.sin(gamma)+sympy.sin(alpha)*sympy.sin(beta)*sympy.cos(gamma),
-                              sympy.cos(alpha)*sympy.cos(gamma)-sympy.sin(alpha)*sympy.sin(beta)*sympy.sin(gamma),
-                              -sympy.sin(alpha)*sympy.cos(beta)],
-                              [sympy.sin(alpha)*sympy.sin(gamma)-sympy.cos(alpha)*sympy.sin(beta)*sympy.cos(gamma),
-                              sympy.cos(alpha)*sympy.sin(beta)*sympy.sin(gamma)+sympy.sin(alpha)*sympy.cos(gamma),
-                              sympy.cos(alpha)*sympy.cos(beta)]]))
+  return _convert(numpy.array([[ms.cos(beta)*ms.cos(gamma),
+                              -ms.cos(beta)*ms.sin(gamma),
+                              ms.sin(beta)],
+                              [ms.cos(alpha)*ms.sin(gamma)+ms.sin(alpha)*ms.sin(beta)*ms.cos(gamma),
+                              ms.cos(alpha)*ms.cos(gamma)-ms.sin(alpha)*ms.sin(beta)*ms.sin(gamma),
+                              -ms.sin(alpha)*ms.cos(beta)],
+                              [ms.sin(alpha)*ms.sin(gamma)-ms.cos(alpha)*ms.sin(beta)*ms.cos(gamma),
+                              ms.cos(alpha)*ms.sin(beta)*ms.sin(gamma)+ms.sin(alpha)*ms.cos(gamma),
+                              ms.cos(alpha)*ms.cos(beta)]]))
 
 
 
 def invCardan(T):
+  import numpy
+  ms=_MathOrSympy(type(T[0][2]), type(T[1][2]), type(T[2][2]), type(T[0][1]), type(T[0][0]), type(T[1][0]), type(T[1][1]))
   if T[0][2]<-1-1e-12 or T[0][2]>1+1e-12:
     raise RuntimeError("Argument of invCardan is not a rotation matrix (due to numerical errors)")
-  beta=sympy.asin(sympy.Max(sympy.Min(T[0][2], 1.0), -1.0))
-  nenner=sympy.cos(beta)
-  if sympy.Abs(nenner)>1e-10:
-    alpha=sympy.atan2(-T[1][2],T[2][2])
-    gamma=sympy.atan2(-T[0][1],T[0][0])
+  beta=ms.asin(ms.Max(ms.Min(T[0][2], 1.0), -1.0))
+  nenner=ms.cos(beta)
+  if ms.Abs(nenner)>1e-10:
+    alpha=ms.atan2(-T[1][2],T[2][2])
+    gamma=ms.atan2(-T[0][1],T[0][0])
   else:
     alpha=0
-    gamma=sympy.atan2(T[1][0],T[1][1])
+    gamma=ms.atan2(T[1][0],T[1][1])
   return _convert(numpy.array([alpha, beta, gamma]))
 
 
 
 def euler(*argv):
+  import numpy
   if len(argv)==3:
     PHI=argv[0]
     theta=argv[1]
@@ -228,41 +268,49 @@ def euler(*argv):
     phi=argv[0][2]
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
+  ms=_MathOrSympy(type(PHI),type(theta),type(phi))
 
-  return _convert(numpy.array([[sympy.cos(phi)*sympy.cos(PHI)-sympy.sin(phi)*sympy.cos(theta)*sympy.sin(PHI),
-                              -sympy.cos(phi)*sympy.cos(theta)*sympy.sin(PHI)-sympy.sin(phi)*sympy.cos(PHI),
-                              sympy.sin(theta)*sympy.sin(PHI)],
-                              [sympy.cos(phi)*sympy.sin(PHI)+sympy.sin(phi)*sympy.cos(theta)*sympy.cos(PHI),
-                              sympy.cos(phi)*sympy.cos(theta)*sympy.cos(PHI)-sympy.sin(phi)*sympy.sin(PHI),
-                              -sympy.sin(theta)*sympy.cos(PHI)],
-                              [sympy.sin(phi)*sympy.sin(theta),
-                              sympy.cos(phi)*sympy.sin(theta),
-                              sympy.cos(theta)]]))
+  return _convert(numpy.array([[ms.cos(phi)*ms.cos(PHI)-ms.sin(phi)*ms.cos(theta)*ms.sin(PHI),
+                              -ms.cos(phi)*ms.cos(theta)*ms.sin(PHI)-ms.sin(phi)*ms.cos(PHI),
+                              ms.sin(theta)*ms.sin(PHI)],
+                              [ms.cos(phi)*ms.sin(PHI)+ms.sin(phi)*ms.cos(theta)*ms.cos(PHI),
+                              ms.cos(phi)*ms.cos(theta)*ms.cos(PHI)-ms.sin(phi)*ms.sin(PHI),
+                              -ms.sin(theta)*ms.cos(PHI)],
+                              [ms.sin(phi)*ms.sin(theta),
+                              ms.cos(phi)*ms.sin(theta),
+                              ms.cos(theta)]]))
 
 
 
 def rotateAboutX(phi):
+  import numpy
+  ms=_MathOrSympy(type(phi))
   return _convert(numpy.array([[1,0,0],
-                              [0,sympy.cos(phi),-sympy.sin(phi)],
-                              [0,sympy.sin(phi),sympy.cos(phi)]]))
+                              [0,ms.cos(phi),-ms.sin(phi)],
+                              [0,ms.sin(phi),ms.cos(phi)]]))
 
 
 
 def rotateAboutY(phi):
-  return _convert(numpy.array([[sympy.cos(phi),0,sympy.sin(phi)],
+  import numpy
+  ms=_MathOrSympy(type(phi))
+  return _convert(numpy.array([[ms.cos(phi),0,ms.sin(phi)],
                               [0,1,0],
-                              [-sympy.sin(phi),0,sympy.cos(phi)]]))
+                              [-ms.sin(phi),0,ms.cos(phi)]]))
 
 
 
 def rotateAboutZ(phi):
-  return _convert(numpy.array([[sympy.cos(phi),-sympy.sin(phi),0],
-                              [sympy.sin(phi),sympy.cos(phi),0],
+  import numpy
+  ms=_MathOrSympy(type(phi))
+  return _convert(numpy.array([[ms.cos(phi),-ms.sin(phi),0],
+                              [ms.sin(phi),ms.cos(phi),0],
                               [0,0,1]]))
 
 
 
 def tilde(x):
+  import numpy
 
   if len(x)==3 and not hasattr(x[0], '__len__'):
 
@@ -284,6 +332,8 @@ def tilde(x):
 
 
 def rgbColor(*argv):
+  import numpy
+  import colorsys
   if len(argv)==3:
     red=argv[0]
     green=argv[1]

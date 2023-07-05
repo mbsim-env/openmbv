@@ -45,46 +45,59 @@ namespace MBXMLUtils {
 
 MBXMLUTILS_EVAL_REGISTER(PyEval)
 
+class PyOOnDemand {
+  public:
+    PyOOnDemand() = default;
+    PyOOnDemand(const function<PyO()> &create_) : create(create_) {}
+    PyO operator()() {
+      if(!o)
+        o=create();
+      return o;
+    }
+    operator bool() const {
+      return o;
+    }
+  private:
+    function<PyO()> create;
+    PyO o;
+};
+
 // Helper class to init/deinit Python on library load/unload (unload=program end)
 class PyInit {
   public:
     PyInit();
     ~PyInit();
-    PyO mbxmlutils;
+    PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
-    PyO asarray;
-    PyO sympy;
-    PyO dummy;
-    PyO matrix;
-    PyO serializeFunction;
+    PyOOnDemand asarray;
+    PyOOnDemand sympy;
+    PyOOnDemand dummy;
+    PyOOnDemand matrix;
+    PyOOnDemand serializeFunction;
 };
 
 PyInit::PyInit() {
   try {
     initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
-#if !defined(_WIN32) && !defined(NDEBUG)
-    // sympy and numpy generates a overflow during initialization -> dislabe this FPE exception
-    int fpeExcept=fedisableexcept(FE_OVERFLOW | FE_INVALID | FE_OVERFLOW);
-    assert(fpeExcept!=-1);
-#endif
+
     CALLPY(_import_array);
-    sympy=CALLPY(PyImport_ImportModule, "sympy");
-#if !defined(_WIN32) && !defined(NDEBUG)
-    assert(feenableexcept(fpeExcept)!=-1);
-#endif
+
+    sympy=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "sympy"); });
 
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
     PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
 
-    mbxmlutils=CALLPY(PyImport_ImportModule, "mbxmlutils");
+    mbxmlutils=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "mbxmlutils"); });
 
-    PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
-    asarray=CALLPY(PyObject_GetAttrString, numpy, "asarray");
+    asarray=PyOOnDemand([](){
+      PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
+      return CALLPY(PyObject_GetAttrString, numpy, "asarray");
+    });
 
-    dummy=CALLPY(PyObject_GetAttrString, sympy, "Dummy");
-    matrix=CALLPY(PyObject_GetAttrString, sympy, "Matrix");
-    serializeFunction=CALLPY(PyObject_GetAttrString, mbxmlutils, "_serializeFunction");
+    dummy=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Dummy"); });
+    matrix=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Matrix"); });
+    serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -100,13 +113,13 @@ PyInit::PyInit() {
 PyInit::~PyInit() {
   try {
     // clear all Python object before deinit
-    serializeFunction.reset();
-    matrix.reset();
-    dummy.reset();
-    sympy.reset();
-    asarray.reset();
+    if(serializeFunction) serializeFunction().reset();
+    if(matrix) matrix().reset();
+    if(dummy) dummy().reset();
+    if(sympy) sympy().reset();
+    if(asarray) asarray().reset();
     functionValue.clear();
-    mbxmlutils.reset();
+    if(mbxmlutils) mbxmlutils().reset();
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -149,14 +162,14 @@ PyEval::~PyEval() = default;
 Eval::Value PyEval::createFunctionIndep(int dim) const {
   PyO indep;
   if(dim==0)
-    indep=CALLPY(PyObject_CallObject, pyInit->dummy, CALLPY(PyTuple_New, 0));
+    indep=CALLPY(PyObject_CallObject, pyInit->dummy(), CALLPY(PyTuple_New, 0));
   else {
     PyO list(CALLPY(PyList_New, dim));
     for(size_t i=0; i<dim; ++i)
-      CALLPY(PyList_SetItem, list, i, CALLPYB(PyObject_CallObject, pyInit->dummy, CALLPY(PyTuple_New, 0)));
+      CALLPY(PyList_SetItem, list, i, CALLPYB(PyObject_CallObject, pyInit->dummy(), CALLPY(PyTuple_New, 0)));
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, list.incRef());
-    indep=CALLPY(PyObject_CallObject, pyInit->matrix, arg);
+    indep=CALLPY(PyObject_CallObject, pyInit->matrix(), arg);
   }
   return make_shared<PyO>(indep);
 }
@@ -319,7 +332,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
   pair<map<string, PyO>::iterator, bool> f=pyInit->functionValue.insert(make_pair(name, PyO()));
   if(f.second)
-    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit->mbxmlutils), name);
+    f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit->mbxmlutils()), name);
   PyO pyargs(CALLPY(PyTuple_New, args.size()));
   int idx=0;
   for(auto it=args.begin(); it!=args.end(); ++it, ++idx) {
@@ -409,7 +422,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   if(CALLPY(PyList_Check, ret)) {
     PyO args(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
-    return C(CALLPY(PyObject_CallObject, pyInit->asarray, args));
+    return C(CALLPY(PyObject_CallObject, pyInit->asarray(), args));
   }
   // return result
   return C(ret);
@@ -493,7 +506,7 @@ Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {
   for(size_t i=0; i<v.size(); ++i)
     CALLPY(PyList_SetItem, item, i, C(v[i]).incRef());
   CALLPY(PyTuple_SetItem, arg, 0, item.incRef());
-  return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
+  return C(CALLPY(PyObject_CallObject, pyInit->matrix(), arg));
 }
 
 Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
@@ -506,7 +519,7 @@ Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
     CALLPY(PyList_SetItem, rows, r, row.incRef());
   }
   CALLPY(PyTuple_SetItem, arg, 0, rows.incRef());
-  return C(CALLPY(PyObject_CallObject, pyInit->matrix, arg));
+  return C(CALLPY(PyObject_CallObject, pyInit->matrix(), arg));
 }
 
 Eval::Value PyEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
@@ -521,7 +534,7 @@ string PyEval::serializeFunction(const Value &x) const {
   auto serializeFunctionPy=[](PyO& o) {
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, o.incRef());
-    PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction, arg);
+    PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction(), arg);
     return string(CALLPY(PyUnicode_AsUTF8, ser));
   };
 
