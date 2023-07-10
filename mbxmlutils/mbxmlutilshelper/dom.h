@@ -409,6 +409,8 @@ class DOMDocumentWrapper {
     //! create element with the given FQN
     //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
+    //! Just calls normalizeDocument of the DOMDocument but with a workaround for a xerces-c bug, see .cc file.
+    void normalizeDocument();
     //! Get full qualified tag name
     std::shared_ptr<DOMParser> getParser() const;
     //! Get the filename of the document.
