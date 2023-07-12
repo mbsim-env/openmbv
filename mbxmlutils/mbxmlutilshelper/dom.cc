@@ -579,6 +579,7 @@ void DOMDocumentWrapper<DOMDocumentType>::normalizeDocument() {
   // <root xmlns="http://a" xmlns:pre="http://a">
   //   <child xmlns="http://b" xmlns:pre="http://a"/>
   // </root>
+  // See bug report: https://issues.apache.org/jira/browse/XERCESC-2244
   // As a workaround we disable namespace processing during normalization
   bool doNamespaces=static_cast<bool>(me->getDOMConfig()->getParameter(XMLUni::fgDOMNamespaces));
   me->getDOMConfig()->setParameter(XMLUni::fgDOMNamespaces, false);
