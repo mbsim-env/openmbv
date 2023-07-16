@@ -301,7 +301,5 @@ pluginsimageformats_DATA = @QT_PLUGINS@/imageformats/*qgif.* \
 
 # freedesktop.org
 freedesktoporgdir = @datadir@/mbsim-env/freedesktop.org
-windowsdir = @datadir@/mbsim-env/windows
-freedesktoporg_DATA = mbsim-env.de.openmbv.xml mbsim-env.de.openmbv.desktop mimeapps-openmbv.list openmbv.svg
-windows_DATA = createLnk.vbs mbsim-env.de.openmbv.source.bat
-bin_SCRIPTS = desktopIntegration.sh desktopIntegration.bat
+freedesktoporg_DATA = freedesktop.org/mbsim-env.openmbv.xml freedesktop.org/mbsim-env.openmbv.desktop freedesktop.org/mimeapps-openmbv.list openmbv.svg
+bin_SCRIPTS = freedesktop.org/desktopIntegration.sh freedesktop.org/desktopIntegration.bat freedesktop.org/desktopIntegration.py
