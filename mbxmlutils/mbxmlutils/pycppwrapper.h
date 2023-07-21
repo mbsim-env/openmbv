@@ -38,6 +38,7 @@
 #include <sstream>
 #include <memory>
 #include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet
+#include <cfenv>
 
 #if PY_MAJOR_VERSION < 3
   #error "This file can only handle python >= 3"
@@ -197,7 +198,15 @@ inline const char* convertArg(const std::string &o) {
 // Use the macro CALLPY or CALLPYB, see below.
 template<typename PyRet, typename... PyArgs, typename... CallArgs>
 inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet (*func)(PyArgs...), CallArgs&&... args) {
+#if !defined(_WIN32) && !defined(NDEBUG)
+  // sympy/numpy/others may generate FPEs during calls -> disable FPE exceptions during load
+  int fpeExcept=fedisableexcept(FE_OVERFLOW | FE_INVALID | FE_OVERFLOW);
+  assert(fpeExcept!=-1);
+#endif
   PyRet ret=func(convertArg(std::forward<CallArgs>(args))...);
+#if !defined(_WIN32) && !defined(NDEBUG)
+  assert(feenableexcept(fpeExcept)!=-1);
+#endif
   if(PyErr_Occurred())
     throw PythonException(file, line);
   return MapRetType<PyRet>::convert(ret);

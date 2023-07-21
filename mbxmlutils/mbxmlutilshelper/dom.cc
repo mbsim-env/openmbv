@@ -537,7 +537,7 @@ template class DOMAttrWrapper<DOMAttr>;
 template<typename DOMDocumentType>
 void DOMDocumentWrapper<DOMDocumentType>::validate() {
   // normalize document
-  me->normalizeDocument();
+  D(me)->normalizeDocument();
 
   // serialize to memory
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
@@ -571,6 +571,22 @@ xercesc::DOMElement* DOMDocumentWrapper<DOMDocumentType>::createElement(const FQ
     return me->createElement(X()%name.second);
   else
     return me->createElementNS(X()%name.first, X()%name.second);
+}
+
+template<typename DOMDocumentType>
+void DOMDocumentWrapper<DOMDocumentType>::normalizeDocument() {
+  // there is a xerces-c bug which prevents e.g. the following XML code from normalizeDocument:
+  // <root xmlns="http://a" xmlns:pre="http://a">
+  //   <child xmlns="http://b" xmlns:pre="http://a"/>
+  // </root>
+  // See bug report: https://issues.apache.org/jira/browse/XERCESC-2244
+  // As a workaround we disable namespace processing during normalization
+  bool doNamespaces=static_cast<bool>(me->getDOMConfig()->getParameter(XMLUni::fgDOMNamespaces));
+  me->getDOMConfig()->setParameter(XMLUni::fgDOMNamespaces, false);
+  BOOST_SCOPE_EXIT_TPL(me, doNamespaces) {
+    me->getDOMConfig()->setParameter(XMLUni::fgDOMNamespaces, doNamespaces);
+  } BOOST_SCOPE_EXIT_END
+  me->normalizeDocument();
 }
 
 template<typename DOMDocumentType>
@@ -1075,9 +1091,9 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPri
 namespace {
   shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint) {
     if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-      static_cast<DOMDocument*>(n)->normalizeDocument();
+      D(static_cast<DOMDocument*>(n))->normalizeDocument();
     else
-      n->getOwnerDocument()->normalizeDocument();
+      D(n->getOwnerDocument())->normalizeDocument();
 
     DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
     shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });

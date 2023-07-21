@@ -165,10 +165,12 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void hdf5RefreshSlot();
     void requestHDF5Flush();
     void restartPlay();
+  protected Q_SLOTS:
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
     void speedWheelChanged(int value);
     void speedWheelPressed();
     void speedWheelReleased();
+  protected:
     void exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG(bool video);
