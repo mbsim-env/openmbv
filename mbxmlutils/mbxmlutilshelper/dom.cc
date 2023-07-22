@@ -152,7 +152,15 @@ namespace {
     if(!absPath.is_absolute())
       throw runtime_error("First argument of toRelativePath must be a absolute path.");
     path::iterator curIt, absIt;
-    for(curIt=relTo.begin(), absIt=absPath.begin(); curIt!=relTo.end() && *curIt==*absIt; ++curIt, ++absIt);
+    auto toLower=[](std::string p) {
+#ifdef _WIN32 // Windows filesystem is case-insensitive -> compare lower case names
+      transform(p.begin(), p.end(), p.begin(), ::tolower);
+#endif
+      return p;
+    };
+    for(curIt=relTo.begin(), absIt=absPath.begin();
+        curIt!=relTo.end() && toLower(curIt->string())==toLower(absIt->string());
+        ++curIt, ++absIt);
     if(curIt==relTo.end()) {
       path relPathRet;
       for(; absIt!=absPath.end(); ++absIt)
