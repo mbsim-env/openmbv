@@ -584,17 +584,29 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
 namespace {
 
 bool checkNumPyDoubleType(int type) {
-  if(type!=NPY_SHORT    && type!=NPY_USHORT    &&
-     type!=NPY_INT      && type!=NPY_UINT      &&
-     type!=NPY_LONG     && type!=NPY_ULONG     &&
-     type!=NPY_LONGLONG && type!=NPY_ULONGLONG &&
-     type!=NPY_FLOAT    && type!=NPY_DOUBLE    && type!=NPY_LONGDOUBLE)
+  if(type!=NPY_BOOL &&
+     type!=NPY_BYTE &&
+     type!=NPY_UBYTE &&
+     type!=NPY_SHORT &&
+     type!=NPY_USHORT &&
+     type!=NPY_INT &&
+     type!=NPY_UINT &&
+     type!=NPY_LONG &&
+     type!=NPY_ULONG &&
+     type!=NPY_LONGLONG &&
+     type!=NPY_ULONGLONG &&
+     type!=NPY_FLOAT &&
+     type!=NPY_DOUBLE &&
+     type!=NPY_LONGDOUBLE)
     return false;
   return true;
 }
 
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c) {
   switch(type) {
+    case NPY_BOOL:       return *static_cast<npy_bool*>      (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_BYTE:       return *static_cast<npy_byte*>      (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
+    case NPY_UBYTE:      return *static_cast<npy_ubyte*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
     case NPY_SHORT:      return *static_cast<npy_short*>     (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
     case NPY_USHORT:     return *static_cast<npy_ushort*>    (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
     case NPY_INT:        return *static_cast<npy_int*>       (c==-1 ? PyArray_GETPTR1(a, r) : PyArray_GETPTR2(a, r, c));
@@ -615,14 +627,14 @@ double arrayScalarGetDouble(PyObject *o, bool *error) {
   PyArray_Descr *descr=PyArray_DescrFromScalar(o);
   if(     descr->typeobj==&PyBoolArrType_Type)        { npy_bool        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyByteArrType_Type)        { npy_byte        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
-  else if(descr->typeobj==&PyShortArrType_Type)       { npy_short       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
-  else if(descr->typeobj==&PyIntArrType_Type)         { npy_int         v; PyArray_ScalarAsCtype(o, &v); ret=v; }
-  else if(descr->typeobj==&PyLongArrType_Type)        { npy_long        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
-  else if(descr->typeobj==&PyLongLongArrType_Type)    { npy_longlong    v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyUByteArrType_Type)       { npy_ubyte       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyShortArrType_Type)       { npy_short       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyUShortArrType_Type)      { npy_ushort      v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyIntArrType_Type)         { npy_int         v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyUIntArrType_Type)        { npy_uint        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyLongArrType_Type)        { npy_long        v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyULongArrType_Type)       { npy_ulong       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
+  else if(descr->typeobj==&PyLongLongArrType_Type)    { npy_longlong    v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyULongLongArrType_Type)   { npy_ulonglong   v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyFloatArrType_Type)       { npy_float       v; PyArray_ScalarAsCtype(o, &v); ret=v; }
   else if(descr->typeobj==&PyDoubleArrType_Type)      { npy_double      v; PyArray_ScalarAsCtype(o, &v); ret=v; }
