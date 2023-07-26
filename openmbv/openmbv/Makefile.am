@@ -200,7 +200,10 @@ dist_icon_DATA = openmbv.svg \
   newfile.svg \
   quit.svg \
   viewall.svg \
+  fullscreen.svg \
   camera.svg \
+  camerastereo.svg \
+  camerastereodisable.svg \
   camerabody.svg \
   axialview.svg \
   topview.svg \

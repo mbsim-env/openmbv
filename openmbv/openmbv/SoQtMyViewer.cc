@@ -20,7 +20,6 @@
 #include "config.h"
 #include "SoQtMyViewer.h"
 #include <Inventor/nodes/SoOrthographicCamera.h>
-#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -30,10 +29,9 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoAsciiText.h>
 #include <QApplication>
 #include <QDesktopWidget>
-#include <QIcon>
-#include <QBitArray>
 #include <QSvgRenderer>
 #include <QPainter>
 #include "mainwindow.h"
@@ -43,7 +41,12 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
+constexpr float fontScale = 0.0025;
+
 SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
+  setSampleBuffers(4);
+  setAutoClipping(true);
+  setAutoClippingStrategy(CONSTANT_NEAR_PLANE, 0);
   switch(transparency) {
     case 2:
       setAlphaChannel(true);
@@ -55,25 +58,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
       break;
   }
   setSeekTime(1);
-  if(appSettings->get<int>(AppSettings::stereoType)==0)
-    setCameraType(SoOrthographicCamera::getClassTypeId());
-  else
-    setCameraType(SoPerspectiveCamera::getClassTypeId());
-  SoQtViewer::StereoType t;
-  switch(appSettings->get<int>(AppSettings::stereoType)) {
-    case 0: t=SoQtMyViewer::STEREO_NONE; break;
-    case 1: t=SoQtMyViewer::STEREO_ANAGLYPH; break;
-    case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
-    case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
-    case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
-    default: t=SoQtMyViewer::STEREO_NONE; break;
-  }
-  setStereoType(t);
-  setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
-  auto mask=appSettings->get<QString>(AppSettings::stereoAnaglyphColorMask);
-  SbBool left[]={mask[0]!='0', mask[1]!='0', mask[2]!='0'};
-  SbBool right[]={mask[3]!='0', mask[4]!='0', mask[5]!='0'};
-  setAnaglyphStereoColorMasks(left, right);
 
   // background
   setClearBeforeRender(false); // clear by my background color
@@ -103,6 +87,12 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   fgSep->ref();
   // font size
   font=new SoFont;
+  font->size.setValue(15);
+#ifdef _WIN32
+  font->name.setValue("Lucida Sans Typewriter");
+#else
+  font->name.setValue("DejaVu Sans Mono");
+#endif
   fgSep->addChild(font);
   // time (top left)
   auto *timeSep=new SoSeparator;
@@ -110,6 +100,11 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   timeTrans=new SoTranslation;
   timeSep->addChild(timeTrans);
   auto *soFgColorTop=new SoBaseColor;
+  text2Scale=new SoScale;
+  text2Scale->scaleFactor.setValue(fontScale,fontScale,fontScale);
+  ombvLogoScale=new SoScale;
+  timeSep->addChild(text2Scale);
+  timeSep->addChild(ombvLogoScale);
   timeSep->addChild(soFgColorTop);
   soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
   timeSep->addChild(MainWindow::getInstance()->getTimeString());
@@ -118,10 +113,12 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   fgSep->addChild(ombvSep);
   ombvTrans=new SoTranslation;
   ombvSep->addChild(ombvTrans);
-  auto *text2=new SoText2;
+  auto *text2=new SoAsciiText;
   auto *soFgColorBottom=new SoBaseColor;
   ombvSep->addChild(soFgColorBottom);
   soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
+  ombvSep->addChild(text2Scale);
+  ombvSep->addChild(ombvLogoScale);
   ombvSep->addChild(text2);
   text2->string.setValue("OpenMBV [https://www.mbsim-env.de/]");
   // ombvLogo (bottom right)
@@ -129,7 +126,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   fgSep->addChild(logoSep);
   ombvLogoTrans=new SoTranslation;
   logoSep->addChild(ombvLogoTrans);
-  ombvLogoScale=new SoScale;
   logoSep->addChild(ombvLogoScale);
   auto *cc=new SoMaterial;
   logoSep->addChild(cc);
@@ -166,6 +162,11 @@ SoQtMyViewer::~SoQtMyViewer() {
 }
  
 void SoQtMyViewer::actualRedraw() {
+  short x, y;
+  getViewportRegion().getWindowSize().getValue(x, y);
+  if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
+    getCamera()->aspectRatio.setValue(static_cast<float>(x)/y*aspectRatio);
+
   glClear(GL_DEPTH_BUFFER_BIT);
   // background
   getGLRenderAction()->apply(bgSep);
@@ -174,17 +175,28 @@ void SoQtMyViewer::actualRedraw() {
   SoQtViewer::actualRedraw();
 
   // foreground (time and OpenMBV)
-  short x, y;
-  getViewportRegion().getWindowSize().getValue(x, y);
-  float ypos=font->size.getValue()+3;
+  float ypos=400*font->size.getValue()*text2Scale->scaleFactor.getValue().getValue()[1]*ombvLogoScale->scaleFactor.getValue().getValue()[1];
   timeTrans->translation.setValue(-1+2.0/x*3, +1-2.0/y*ypos, 0);
   ombvTrans->translation.setValue(-1+2.0/x*3, -1+2.0/y*3, 0);
   ombvLogoTrans->translation.setValue(+1-2.0/x*3, -1+2.0/y*3, 0);
-  ombvLogoScale->scaleFactor.setValue(x>y?(float)y/x:1,y>x?(float)x/y:1,1);
+  auto ombvLogoScaleX=x>y?(float)y/x:1;
+  auto ombvLogoScaleY=y>x?(float)x/y:1;
+  if(aspectRatio>1)
+    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
+  else
+    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY/aspectRatio,1);
   getGLRenderAction()->apply(fgSep);
 
   // update fps
   MainWindow::getInstance()->fpsCB();
+}
+
+void SoQtMyViewer::setAspectRatio(double r) {
+  aspectRatio=r;
+  if(r>1)
+    text2Scale->scaleFactor.setValue(fontScale/r,fontScale,fontScale);
+  else
+    text2Scale->scaleFactor.setValue(fontScale,fontScale/r,fontScale);
 }
 
 }

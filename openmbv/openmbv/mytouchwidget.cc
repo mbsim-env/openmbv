@@ -39,6 +39,8 @@ using namespace std;
 namespace OpenMBVGUI {
 
 MyTouchWidget::MyTouchWidget(QWidget *parent) : TouchWidget<QWidget>(parent) {
+  setAttribute(Qt::WA_Hover, true);
+  setCursor(Qt::BlankCursor);
   mouseLeftMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction));
   mouseRightMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction));
   mouseMidMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction));
@@ -49,6 +51,50 @@ MyTouchWidget::MyTouchWidget(QWidget *parent) : TouchWidget<QWidget>(parent) {
   touchLongTapAction=static_cast<TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction));
   touchMove1Action=static_cast<TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action));
   touchMove2Action=static_cast<TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action));
+}
+
+void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
+  int x=mousePos.x();
+  int y=mousePos.y();
+  auto size=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
+  if(MainWindow::getInstance()->dialogStereo) {
+    if(MainWindow::getInstance()->glViewerWG==this)
+      x=x/2;
+    else
+      x=(size[0]+x)/2;
+  }
+  SbVec2f pos(static_cast<double>(x)/size[0],1.0-static_cast<double>(y)/size[1]);
+  if(!MainWindow::getInstance()->dialogStereo) {
+    int largeIdx=size[1]>size[0] ? 1 : 0;
+    int smallIdx=size[1]>size[0] ? 0 : 1;
+    auto fac=static_cast<float>(size[largeIdx])/size[smallIdx];
+    pos[largeIdx]=pos[largeIdx]*fac-(fac-1.0)/2.0;
+  }
+  auto vv=MainWindow::getInstance()->glViewer->getCamera()->getViewVolume();
+  SbVec3f near, far;
+  vv.projectPointToLine(SbVec2f(pos[0],pos[1]), near, far);
+  SbVec3f cursorPos;
+  if(MainWindow::getInstance()->glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId())
+    cursorPos=near*(1-0.5)+far*0.5;
+  else
+    cursorPos=near*(1-relCursorZ)+far*relCursorZ;
+  MainWindow::getInstance()->setCursorPos(&cursorPos);
+}
+
+bool MyTouchWidget::event(QEvent *event) {
+  switch(event->type()) {
+    case QEvent::HoverEnter:
+    case QEvent::HoverMove: {
+      auto mouseEvent=static_cast<QHoverEvent*>(event);
+      updateCursorPos(mouseEvent->pos());
+      break;
+    }
+    case QEvent::HoverLeave:
+      MainWindow::getInstance()->setCursorPos();
+      break;
+    default: break;
+  }
+  return TouchWidget<QWidget>::event(event);
 }
 
 
@@ -253,10 +299,18 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
   }
 }
 
-void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle) {
+void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse wheel deltaAngle="<<relAngle<<"°"<<endl;)
-  int steps=lround(relAngle/15);
-  changeFrame(steps);
+  if(modifiers & Qt::ControlModifier) {//mfmf qsetting
+    relCursorZ+=relAngle/15/100;//mfmf qsetting
+    if(relCursorZ<=1e-6) relCursorZ=1e-6;
+    if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+    updateCursorPos(pos);
+  }
+  else {//mfmf qsetting
+    int steps=lround(relAngle/15);
+    changeFrame(steps);
+  }
 }
 
 
@@ -646,7 +700,8 @@ void MyTouchWidget::zoomCameraAngle(int change) {
   }
   else if(camera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
     auto* persCamera=static_cast<SoPerspectiveCamera*>(camera);
-    persCamera->heightAngle.setValue(initialZoomCameraHeightAngle*fac);
+    float angle=initialZoomCameraHeightAngle*fac;
+    persCamera->heightAngle.setValue(angle>M_PI ? M_PI : angle);
   }
 }
 

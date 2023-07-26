@@ -54,13 +54,19 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
 #include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoSphere.h>
+#include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/nodes/SoShapeHints.h>
+#include <Inventor/nodes/SoPointSet.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/annex/HardCopy/SoVectorizePSAction.h>
+#include <Inventor/engines/SoGate.h>
+#include <Inventor/engines/SoCalculator.h>
+#include <Inventor/fields/SoMFRotation.h>
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -89,6 +95,10 @@ MainWindow *MainWindow::instance=nullptr;
 
 QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
+}
+
+namespace {
+  void initGLViewerWG(MyTouchWidget *glViewerWG);
 }
 
 MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
@@ -140,12 +150,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // main widget
   auto *mainWG=new QWidget(this);
   setCentralWidget(mainWG);
-  auto *mainLO=new QGridLayout(mainWG);
+  mainLO=new QGridLayout(mainWG);
   mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
   // gl viewer
   glViewerWG=new MyTouchWidget(this);
-  timeString=new SoText2;
+  timeString=new SoAsciiText;
   timeString->ref();
   bgColor=new SoMFColor;
   bgColor->set1Value(0, 0.35,0.35,0.6);
@@ -156,16 +166,47 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   fgColorTop->set1Value(0, 0,0,0);
   fgColorBottom=new SoMFColor;
   fgColorBottom->set1Value(0, 1,1,1);
-  int transparency=1;
+  transparency=1;
   if((i=std::find(arg.begin(), arg.end(), "--transparency"))!=arg.end()) {
     i2=i; i2++;
     transparency=QString(i2->c_str()).toDouble();
     arg.erase(i); arg.erase(i2);
   }
   glViewer=new SoQtMyViewer(glViewerWG, transparency);
-  mainLO->addWidget(glViewerWG,0,0);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
+
+  // 3D cursor
+  auto *cursorAno=new SoAnnotation;
+  sceneRoot->addChild(cursorAno);
+  auto *cursorSep=new SoSepNoPickNoBBox;
+  cursorAno->addChild(cursorSep);
+  cursorSwitch=new SoSwitch;
+  cursorSep->addChild(cursorSwitch);
+  cursorPos=new SoTranslation;
+  cursorSwitch->addChild(cursorPos);
+  auto *cursorDrawStyle=new SoDrawStyle;
+  cursorSwitch->addChild(cursorDrawStyle);
+  cursorDrawStyle->lineWidth.setValue(3);
+  SoScale *cursorScale, *cursorScale2;
+  cursorScaleE=new SoCalculator;
+  cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
+  cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);
+  auto *cursorDrawStyle2=new SoDrawStyle;
+  cursorSwitch->addChild(cursorDrawStyle2);
+  cursorDrawStyle2->lineWidth.setValue(1);
+  cursorDrawStyle2->pointSize.setValue(4);
+  cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale2));
+  cursorScale2->scaleFactor.connectFrom(&cursorScaleE->oA);
+  auto *cursorPointCoord=new SoCoordinate3;
+  cursorSwitch->addChild(cursorPointCoord);
+  cursorPointCoord->point.setValue(0,0,0);
+  auto cursorPointCol=new SoBaseColor;
+  cursorPointCol->rgb=SbColor(0,0,0);
+  cursorSwitch->addChild(cursorPointCol);
+  auto *cursorPoint=new SoPointSet;
+  cursorSwitch->addChild(cursorPoint);
+
   auto *offset=new SoPolygonOffset; // move all filled polygons in background
   sceneRoot->addChild(offset);
   offset->factor.setValue(0.0);
@@ -417,8 +458,20 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   act=sceneViewMenu->addAction(Utils::QIconCached("frame.svg"),"World frame", this, &MainWindow::showWorldFrameSlot, QKeySequence("W"));
   act->setCheckable(true);
   sceneViewMenu->addSeparator();
-  QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, &MainWindow::toggleCameraTypeSlot, QKeySequence("C"));
+  cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", [this](bool checked){
+    setCameraType(checked ? SoOrthographicCamera::getClassTypeId() : SoPerspectiveCamera::getClassTypeId());
+  }, QKeySequence("C"));
+  cameraAct->setCheckable(true);
+  cameraAct->setChecked(appSettings->get<int>(AppSettings::cameraType)==0);
   addAction(cameraAct); // must work also if menu bar is invisible
+
+  viewStereo=sceneViewMenu->addAction(Utils::QIconCached("camerastereo.svg"),"Stereo view", [this](bool checked){
+    reinit3DView(checked ? StereoType::LeftRight : StereoType::None);
+  }, QKeySequence("V"));
+  viewStereo->setCheckable(true);
+  viewStereo->setChecked(appSettings->get<int>(AppSettings::stereoType)!=static_cast<int>(StereoType::None));
+  addAction(viewStereo); // must work also if menu bar is invisible
+
   sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
   sceneViewMenu->addSeparator();
   engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, &MainWindow::toggleEngDrawingViewSlot);
@@ -454,13 +507,13 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   menuBar()->addMenu(dockMenu);
 
   // file toolbar
-  auto *fileTB=new QToolBar("FileToolBar", this);
+  auto *fileTB=new QToolBar("File toolbar", this);
   fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
-  auto *viewTB=new QToolBar("ViewToolBar", this);
+  auto *viewTB=new QToolBar("View toolbar", this);
   viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
   viewTBActions.emplace_back(viewAllAct);
@@ -483,7 +536,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
       viewTB->addSeparator();
 
   // animation toolbar
-  auto *animationTB=new QToolBar("AnimationToolBar", this);
+  auto *animationTB=new QToolBar("Animation toolbar", this);
   animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
@@ -823,21 +876,163 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
     fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
 
-    glViewerWG->setMouseLeftMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction)));
-    glViewerWG->setMouseRightMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction)));
-    glViewerWG->setMouseMidMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction)));
-    glViewerWG->setMouseLeftClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseLeftClickAction)));
-    glViewerWG->setMouseRightClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseRightClickAction)));
-    glViewerWG->setMouseMidClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseMidClickAction)));
-    glViewerWG->setTouchTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchTapAction)));
-    glViewerWG->setTouchLongTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction)));
-    glViewerWG->setTouchMove1Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action)));
-    glViewerWG->setTouchMove2Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action)));
-    glViewerWG->setZoomFacPerPixel(appSettings->get<double>(AppSettings::zoomFacPerPixel));
-    glViewerWG->setRotAnglePerPixel(appSettings->get<double>(AppSettings::rotAnglePerPixel));
-    glViewerWG->setPickObjectRadius(appSettings->get<double>(AppSettings::pickObjectRadius));
-    glViewerWG->setInScreenRotateSwitch(appSettings->get<double>(AppSettings::inScreenRotateSwitch));
+    initGLViewerWG(glViewerWG);
+
+    setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
   }
+
+  reinit3DView(static_cast<StereoType>(appSettings->get<int>(AppSettings::stereoType)));
+}
+
+class DialogStereo : public QDialog {
+  public:
+    DialogStereo();
+    ~DialogStereo() override;
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+  private:
+    QPushButton *fullScreenButton;
+};
+
+DialogStereo::DialogStereo() {
+  static const boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
+
+  setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+  setWindowTitle("OpenMBV - Stereo View");
+  setWindowIcon(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
+  connect(new QShortcut(QKeySequence("F5"),this), &QShortcut::activated, [this](){
+    if(isFullScreen()) {
+      showNormal();
+      fullScreenButton->show();
+    }
+    else {
+      showFullScreen();
+      fullScreenButton->hide();
+    }
+  });
+  connect(new QShortcut(QKeySequence("ESC"),this), &QShortcut::activated, [this](){
+    showNormal();
+    fullScreenButton->show();
+  });
+  connect(new QShortcut(QKeySequence("V"),this), &QShortcut::activated, [](){
+    MainWindow::getInstance()->reinit3DView(MainWindow::StereoType::None);
+  });
+
+  auto *mw=MainWindow::getInstance();
+
+  auto *dialogStereoLO=new QGridLayout(this);
+  dialogStereoLO->setContentsMargins(0,0,0,0);
+  dialogStereoLO->setSpacing(0);
+  setLayout(dialogStereoLO);
+
+  dialogStereoLO->addWidget(mw->glViewerWG, 0,0);
+  mw->cameraAct->setEnabled(false);
+  mw->cameraAct->setChecked(false);
+  mw->setCameraType(SoPerspectiveCamera::getClassTypeId());
+  mw->glViewer->getCamera()->setStereoMode(SoCamera::LEFT_VIEW);
+  mw->glViewer->getCamera()->viewportMapping.setValue(SoCamera::LEAVE_ALONE);
+  mw->glViewer->setAspectRatio(2.0);
+
+  auto *glViewerWGRight=new MyTouchWidget(this);
+  initGLViewerWG(glViewerWGRight);
+  fullScreenButton=new QPushButton(Utils::QIconCached("fullscreen.svg"), "", this);
+  fullScreenButton->setIconSize(QSize(50,50));
+  fullScreenButton->setFixedSize(QSize(60,60));
+  if(isFullScreen())
+    fullScreenButton->hide();
+  else
+    fullScreenButton->show();
+  connect(fullScreenButton, &QPushButton::clicked, [this](){
+    showFullScreen();
+    fullScreenButton->hide();
+  });
+  mw->glViewerRight=new SoQtMyViewer(glViewerWGRight, mw->transparency);
+  mw->glViewerRight->setSceneGraph(mw->sceneRoot);
+  auto *camera=static_cast<SoPerspectiveCamera*>(mw->glViewer->getCamera());
+  dialogStereoLO->addWidget(glViewerWGRight, 0,1);
+  mw->glViewerRight->setCameraType(SoPerspectiveCamera::getClassTypeId());
+  auto *cameraRight=static_cast<SoPerspectiveCamera*>(mw->glViewerRight->getCamera());
+  cameraRight->setStereoMode(SoCamera::RIGHT_VIEW);
+  mw->glViewerRight->getCamera()->viewportMapping.setValue(SoCamera::LEAVE_ALONE);
+  mw->glViewerRight->setAspectRatio(2.0);
+  mw->glViewerRight->setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
+
+  auto *positionE=new SoGate(SoMFVec3f::getClassTypeId());
+  positionE->enable=true;
+  positionE->input->connectFrom(&camera->position);
+  cameraRight->position.connectFrom(positionE->output);
+  
+  auto *rotationE=new SoGate(SoMFRotation::getClassTypeId());
+  rotationE->enable=true;
+  rotationE->input->connectFrom(&camera->orientation);
+  cameraRight->orientation.connectFrom(rotationE->output);
+  
+  auto *focalDistanceE=new SoGate(SoMFFloat::getClassTypeId());
+  focalDistanceE->enable=true;
+  focalDistanceE->input->connectFrom(&camera->focalDistance);
+  cameraRight->focalDistance.connectFrom(focalDistanceE->output);
+  
+  auto *heightE=new SoGate(SoMFFloat::getClassTypeId());
+  heightE->enable=true;
+  heightE->input->connectFrom(&camera->heightAngle);
+  cameraRight->heightAngle.connectFrom(heightE->output);
+}
+
+DialogStereo::~DialogStereo() {
+  // SoQtViewer does not delete it self if its parent is deleted -> delete it explicitly
+  delete MainWindow::getInstance()->glViewerRight;
+  MainWindow::getInstance()->glViewerRight=nullptr;
+}
+
+void DialogStereo::closeEvent(QCloseEvent *event) {
+  appSettings->set(AppSettings::dialogstereo_geometry, saveGeometry());
+  QDialog::closeEvent(event);
+}
+
+void DialogStereo::showEvent(QShowEvent *event) {
+  auto data=appSettings->get<QByteArray>(AppSettings::dialogstereo_geometry);
+  if(!data.isEmpty())
+    restoreGeometry(data);
+  else
+    setGeometry(50,50,750,550);
+  QDialog::showEvent(event);
+}
+
+void MainWindow::reinit3DView(StereoType stereoType) {
+  appSettings->set(AppSettings::stereoType, static_cast<int>(stereoType));
+  viewStereo->setChecked(stereoType!=StereoType::None);
+  switch(stereoType) {
+    case StereoType::None:
+      mainLO->addWidget(glViewerWG,0,0);
+      if(dialogStereo) dialogStereo->close();
+      delete dialogStereo;
+      dialogStereo=nullptr;
+      cameraAct->setEnabled(true);
+      cameraAct->setChecked(appSettings->get<int>(AppSettings::cameraType)==0);
+      setCameraType(appSettings->get<int>(AppSettings::cameraType)==1 ?
+                    SoPerspectiveCamera::getClassTypeId() : SoOrthographicCamera::getClassTypeId());
+      glViewer->getCamera()->setStereoMode(SoCamera::MONOSCOPIC);
+      glViewer->getCamera()->viewportMapping.setValue(SoCamera::ADJUST_CAMERA);
+      glViewer->setAspectRatio(1.0);
+      break;
+    case StereoType::LeftRight:
+      auto *disableStereo=new QPushButton(Utils::QIconCached("camerastereodisable.svg"), "", this);
+      disableStereo->setIconSize(QSize(100,100));
+      connect(disableStereo, &QPushButton::clicked, [this](){
+        reinit3DView(StereoType::None);
+      });
+      mainLO->addWidget(disableStereo,0,0);
+      if(dialogStereo) dialogStereo->close();
+      delete dialogStereo;
+      dialogStereo=new DialogStereo;
+      dialogStereo->show();
+    break;
+  }
+}
+
+void MainWindow::setStereoOffset(double value) {
+  glViewer->setStereoOffset(value);
+  if(glViewerRight) glViewerRight->setStereoOffset(value);
 }
 
 MainWindow* const MainWindow::getInstance() {
@@ -1600,11 +1795,13 @@ void MainWindow::loadCamera(string filename) {
   SoBase *newCamera;
   SoBase::read(&input, newCamera, SoCamera::getClassTypeId());
   if(newCamera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
-    glViewer->setCameraType(SoOrthographicCamera::getClassTypeId());
+    setCameraType(SoOrthographicCamera::getClassTypeId());
+    appSettings->set(AppSettings::cameraType, 0);
     glViewer->changeCameraValues((SoCamera*)newCamera);
   }
   else if(newCamera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
-    glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
+    setCameraType(SoPerspectiveCamera::getClassTypeId());
+    appSettings->set(AppSettings::cameraType, 1);
     glViewer->changeCameraValues((SoCamera*)newCamera);
   }
   else {
@@ -1828,6 +2025,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
   if(!skipWindowState)
     appSettings->set(AppSettings::mainwindow_state, saveState());
+  if(dialogStereo)
+    dialogStereo->close();
   QMainWindow::closeEvent(event);
 }
 
@@ -1860,6 +2059,46 @@ void MainWindow::startShortAni(const std::function<void(double)> &func, bool noA
   shortAniFunc=func;
   shortAniElapsed->start();
   shortAniTimer->start();
+}
+
+void MainWindow::setCameraType(SoType type) {
+  glViewer->setCameraType(type);
+  appSettings->set(AppSettings::cameraType, type == SoOrthographicCamera::getClassTypeId() ? 0 : 1);
+
+  // 3D cursor scale
+  if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
+    cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20"); // oA=cursorScale->scaleFacto //mfmf qsettings
+  }
+  else {
+    cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/2"); // oA=cursorScale->scaleFactor //mfmf qsettings
+  }
+}
+
+void MainWindow::setCursorPos(const SbVec3f *pos) {
+  cursorSwitch->whichChild.setValue(pos ? SO_SWITCH_ALL : SO_SWITCH_NONE);
+  if(pos)
+    cursorPos->translation.setValue(*pos);
+}
+
+namespace {
+  void initGLViewerWG(MyTouchWidget *glViewerWG) {
+    glViewerWG->setMouseLeftMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction)));
+    glViewerWG->setMouseRightMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction)));
+    glViewerWG->setMouseMidMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction)));
+    glViewerWG->setMouseLeftClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseLeftClickAction)));
+    glViewerWG->setMouseRightClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseRightClickAction)));
+    glViewerWG->setMouseMidClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseMidClickAction)));
+    glViewerWG->setTouchTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchTapAction)));
+    glViewerWG->setTouchLongTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction)));
+    glViewerWG->setTouchMove1Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action)));
+    glViewerWG->setTouchMove2Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action)));
+    glViewerWG->setZoomFacPerPixel(appSettings->get<double>(AppSettings::zoomFacPerPixel));
+    glViewerWG->setRotAnglePerPixel(appSettings->get<double>(AppSettings::rotAnglePerPixel));
+    glViewerWG->setPickObjectRadius(appSettings->get<double>(AppSettings::pickObjectRadius));
+    glViewerWG->setInScreenRotateSwitch(appSettings->get<double>(AppSettings::inScreenRotateSwitch));
+  }
 }
 
 }

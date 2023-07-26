@@ -22,6 +22,7 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include "mytouchwidget.h"
@@ -95,7 +96,8 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
 }
 
 // convenience: create frame so
-SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale) {
+SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale,
+                            const SbColor &xCol, const SbColor &yCol, const SbColor &zCol) {
   SoSeparator *sep;
   if(pickBBoxAble)
     sep=new SoSeparator;
@@ -120,7 +122,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
 
   // x-axis
   col=new SoBaseColor;
-  col->rgb=SbColor(1, 0, 0);
+  col->rgb=xCol;
   sep->addChild(col);
   line=new SoLineSet;
   line->startIndex.setValue(0);
@@ -129,7 +131,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
 
   // y-axis
   col=new SoBaseColor;
-  col->rgb=SbColor(0, 1, 0);
+  col->rgb=yCol;
   sep->addChild(col);
   line=new SoLineSet;
   line->startIndex.setValue(2);
@@ -138,7 +140,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
 
   // z-axis
   col=new SoBaseColor;
-  col->rgb=SbColor(0, 0, 1);
+  col->rgb=zCol;
   sep->addChild(col);
   line=new SoLineSet;
   line->startIndex.setValue(4);
@@ -327,9 +329,9 @@ bool IgnoreWheelEventFilter::eventFilter(QObject *watched, QEvent *event) {
 
 AppSettings::AppSettings() : qSettings(format, scope, organization, application), setting(AS::SIZE) {
   setting[hdf5RefreshDelta]={"mainwindow/hdf5/hdf5RefreshDelta", 500};
+  setting[cameraType]={"mainwindow/sceneGraph/cameraType", 0};
   setting[stereoType]={"mainwindow/sceneGraph/stereoType", 0};
   setting[stereoOffset]={"mainwindow/sceneGraph/stereoOffset", 0.1};
-  setting[stereoAnaglyphColorMask]={"mainwindow/sceneGraph/stereoAnaglyphColorMask", "100011"};
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
@@ -357,6 +359,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
     "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 1 -f null /dev/null && "
     "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 2 %O"};
   setting[propertydialog_geometry]={"propertydialog/geometry", QVariant()};
+  setting[dialogstereo_geometry]={"dialogstereo/geometry", QVariant()};
   using MMA=MyTouchWidget::MouseMoveAction;
   setting[mouseLeftMoveAction]={"mainwindow/manipulate3d/mouseLeftMoveAction", static_cast<int>(MMA::Rotate)};
   setting[mouseRightMoveAction]={"mainwindow/manipulate3d/mouseRightMoveAction", static_cast<int>(MMA::Translate)};
@@ -543,29 +546,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new IntSetting(layout, AppSettings::hdf5RefreshDelta, Utils::QIconCached("time.svg"), "HDF5 refresh delta:", "ms", [](int value){
     MainWindow::getInstance()->setHDF5RefreshDelta(value);
   });
+  new ChoiceSetting(layout, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
+                    {"Orthographic", "Perspective"}, [](int value){
+    MainWindow::getInstance()->setCameraType(value==0 ? SoOrthographicCamera::getClassTypeId() : SoPerspectiveCamera::getClassTypeId());
+  });
   new ChoiceSetting(layout, AppSettings::stereoType, Utils::QIconCached(""), "Stereo view type:",
-                    {"None", "AnaGlyph", "Quad buffer", "Interleaved rows", "Interleaved columns"}, [](int value){
-    SoQtViewer::StereoType t;
-    switch(value) {
-      case 0: t=SoQtMyViewer::STEREO_NONE; break;
-      case 1: t=SoQtMyViewer::STEREO_ANAGLYPH; break;
-      case 2: t=SoQtMyViewer::STEREO_QUADBUFFER; break;
-      case 3: t=SoQtMyViewer::STEREO_INTERLEAVED_ROWS; break;
-      case 4: t=SoQtMyViewer::STEREO_INTERLEAVED_COLUMNS; break;
-      default: t=SoQtMyViewer::STEREO_NONE; break;
-    }
-    if(value!=0)
-      MainWindow::getInstance()->glViewer->setCameraType(SoPerspectiveCamera::getClassTypeId());
-    MainWindow::getInstance()->glViewer->setStereoType(t);
+                    {"None", "Left/Right"}, [](int value){
+    MainWindow::getInstance()->reinit3DView(static_cast<MainWindow::StereoType>(value));
   });
   new DoubleSetting(layout, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
-    MainWindow::getInstance()->glViewer->setStereoOffset(value);
+    MainWindow::getInstance()->setStereoOffset(value);
   }, 0, numeric_limits<double>::max(), 0.01);
-  new StringSetting(layout, AppSettings::stereoAnaglyphColorMask, Utils::QIconCached(""), "Stereo view color mask:", [](QString value){
-    SbBool left[]={value[0]!='0', value[1]!='0', value[2]!='0'};
-    SbBool right[]={value[3]!='0', value[4]!='0', value[5]!='0'};
-    MainWindow::getInstance()->glViewer->setAnaglyphStereoColorMasks(left, right);
-  });
   new IntSetting(layout, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
     QTapAndHoldGesture::setTimeout(value);
   });

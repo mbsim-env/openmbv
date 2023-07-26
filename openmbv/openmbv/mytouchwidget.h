@@ -33,6 +33,7 @@ class Body;
 class MyTouchWidget : public TouchWidget<QWidget> {
   public:
     MyTouchWidget(QWidget *parent);
+    bool event(QEvent *event) override;
 
     enum class MouseClickAction { Select, Context, SeekToPoint };
     enum class MouseMoveAction { Rotate, Translate, Zoom };
@@ -70,7 +71,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) override;
     void mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) override;
     void mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) override;
-    void mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle) override;
+    void mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) override;
     // functions for touch events
     void touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
     void touchDoubleTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
@@ -96,6 +97,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float rotAnglePerPixel;
     float pickObjectRadius;
     float inScreenRotateSwitch;
+    float relCursorZ = 0.5;
 
     double touchMove2RotateInScreenPlane;
     SbVec3f initialTranslateCameraPos;
@@ -126,6 +128,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomCameraAngle(int change);
     void zoomCameraFocalDist(int change);
     void changeFrame(int steps);
+    void updateCursorPos(const QPoint &mousePos);
 };
 
 }

@@ -27,7 +27,6 @@
 #  define WIN32_LEAN_AND_MEAN // GL/gl.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
 #endif
 #include <GL/gl.h>
-#include <Inventor/nodes/SoText2.h>
 #include <Inventor/fields/SoMFColor.h>
 #include <Inventor/nodes/SoFont.h>
 #include <Inventor/nodes/SoTranslation.h>
@@ -39,6 +38,7 @@ class SoQtMyViewer : public SoQtViewer {
   public:
     SoQtMyViewer(QWidget *parent, int transparency);
     ~SoQtMyViewer() override;
+    void setAspectRatio(double r);
     void changeCameraValues(SoCamera *cam) override { SoQtViewer::changeCameraValues(cam); } // is protected
   protected:
     SbBool processSoEvent(const SoEvent *event) override { return true; } // disable So events
@@ -48,8 +48,10 @@ class SoQtMyViewer : public SoQtViewer {
 
     SoSeparator *fgSep, *bgSep;
     SoTranslation *timeTrans, *ombvTrans, *ombvLogoTrans;
+    float aspectRatio { 1.0 };
     SoScale *ombvLogoScale;
     SoFont *font;
+    SoScale *text2Scale;
 
     friend class MainWindow;
 };

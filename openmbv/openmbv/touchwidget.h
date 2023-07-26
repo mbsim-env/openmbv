@@ -65,7 +65,7 @@ class TouchWidget : public Widget {
     virtual void mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {}
     virtual void mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {}
     virtual void mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {}
-    virtual void mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle) {}
+    virtual void mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) {}
 
   private:
     // variables for touch events

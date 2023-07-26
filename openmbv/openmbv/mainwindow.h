@@ -43,6 +43,7 @@
 #include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/fields/SoSFUInt32.h>
 #include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/nodes/SoAsciiText.h>
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
 #include <QDropEvent>
@@ -59,13 +60,16 @@
 #endif
 
 class QListWidgetItem;
+class SoCalculator;
 
 namespace OpenMBVGUI {
  
 class MyTouchWidget;
+class DialogStereo;
 
 class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   Q_OBJECT
+  friend class DialogStereo;
   friend class Body;
   friend class Editor;
   friend class Group;
@@ -78,7 +82,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
                     rotateXpScreen, rotateXmScreen, rotateYpScreen, rotateYmScreen, rotateZpScreen, rotateZmScreen };
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
-    SoText2 *timeString;
+    SoAsciiText *timeString;
     double fpsMax;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
@@ -89,12 +93,20 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoFieldSensor *frameSensor;
     std::mutex mutex; // this mutex is temporarily locked during openFile calls
     bool skipWindowState{false};
+    QGridLayout *mainLO;
+    SoSwitch *cursorSwitch;
+    SoTranslation *cursorPos;
+    SoCalculator *cursorScaleE;
   protected:
     SoSepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
     AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
+    SoQtMyViewer *glViewer;
+    SoQtMyViewer *glViewerRight { nullptr };
+    DialogStereo *dialogStereo { nullptr };
+    int transparency;
     void viewChange(ViewSide side);
     SoSeparator *sceneRoot;
     QTimer *animTimer;
@@ -110,13 +122,14 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QElapsedTimer *fpsTime;
     QwtWheel *speedWheel;
     double oldSpeed;
-    QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration;
+    QAction *stopAct, *lastFrameAct, *playAct, *toggleMenuBar, *toggleStatusBar, *toggleFrameSlider, *toggleFullScreen, *toggleDecoration, *cameraAct;
     std::shared_ptr<OpenMBV::Body> openMBVBodyForLastFrame;
     QAction *engDrawingView;
+    QAction *viewStereo;
 
     QTimer *shortAniTimer;
     std::unique_ptr<QElapsedTimer> shortAniElapsed;
-    int shortAniLast;
+    int shortAniLast { 0 };
     void shortAni();
     std::function<void(double)> shortAniFunc;
 
@@ -135,7 +148,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void xmlHelp();
     void updateFrame(int frame_) { frame->setValue(frame_); }
     void viewAllSlot() { glViewer->viewAll(); }
-    void toggleCameraTypeSlot() { glViewer->toggleCameraType(); }
     void releaseCameraFromBodySlot();
     void showWorldFrameSlot();
 
@@ -224,7 +236,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
   public:
-    SoQtMyViewer *glViewer;
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
     SoDrawStyle *bboxDrawStyle;
@@ -251,7 +262,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     double getSpeed() { return speedSB->value(); }
     SoSFUInt32 *getFrame() { return frame; }
     void setTime(double t) { timeString->string.setValue(QString("Time: %2").arg(t,0,'f',5).toStdString().c_str()); }
-    SoText2 *getTimeString() { return timeString; }
+    SoAsciiText *getTimeString() { return timeString; }
     SoMFColor *getBgColor() { return bgColor; }
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
@@ -263,6 +274,12 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     void startShortAni(const std::function<void(double)> &func, bool noAni=false);
     void setHDF5RefreshDelta(int d) { hdf5RefreshDelta=d; }
+
+    enum class StereoType { None, LeftRight };
+    void reinit3DView(StereoType stereoType);
+    void setStereoOffset(double value);
+    void setCameraType(SoType type);
+    void setCursorPos(const SbVec3f *pos=nullptr);
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;

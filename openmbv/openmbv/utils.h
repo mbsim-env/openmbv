@@ -27,6 +27,7 @@
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>
+#include <Inventor/fields/SoMFColor.h>
 #include <string>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -73,11 +74,14 @@ class Utils : virtual public fmatvec::Atom {
      * to cache the iv-file parsing and scene generation */
     static SoSeparator* SoDBreadAllCached(const std::string &filename);
 
+    static SoMFColor soFrameDefaultColor;
     /** Convenienc function to draw a frame */
-    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale);
+    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale,
+                                const SbColor &xCol=SbColor(1,0,0), const SbColor &yCol=SbColor(0,1,0), const SbColor &zCol=SbColor(0,0,1));
     /** Convenienc function to draw a frame */
-    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble) {
-      SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale);
+    static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble,
+                                const SbColor &xCol=SbColor(1,0,0), const SbColor &yCol=SbColor(0,1,0), const SbColor &zCol=SbColor(0,0,1)) {
+      SoScale *scale; return soFrame(size, offset, pickBBoxAble, scale, xCol,yCol,zCol);
     }
 
     /** Convenienc function to convert cardan angles to a rotation matrix */
@@ -155,9 +159,9 @@ class AppSettings {
   public:
     enum AS {
       hdf5RefreshDelta,
+      cameraType,
       stereoType,
       stereoOffset,
-      stereoAnaglyphColorMask,
       tapAndHoldTimeout,
       outlineShilouetteEdgeLineWidth,
       outlineShilouetteEdgeLineColor,
@@ -183,6 +187,7 @@ class AppSettings {
       exportdialog_bitrate,
       exportdialog_videocmd,
       propertydialog_geometry,
+      dialogstereo_geometry,
       mouseLeftMoveAction,
       mouseRightMoveAction,
       mouseMidMoveAction,
