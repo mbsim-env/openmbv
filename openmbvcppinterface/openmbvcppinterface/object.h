@@ -58,6 +58,7 @@ namespace OpenMBV {
       virtual void createHDF5File()=0;
       virtual void openHDF5File()=0;
       H5::GroupBase *hdf5Group{nullptr};
+      std::string fullName;
 
       Object();
       ~Object() override;
@@ -78,7 +79,7 @@ namespace OpenMBV {
       std::string getName() { return name; }
 
       /** Returns the full name (path) of the object */
-      virtual std::string getFullName(bool includingFileName=false);
+      virtual std::string getFullName();
 
       /** If set to true than this object is an environment object:
        * a static object which has no time dependent part (does not read anything from the h5 file). */

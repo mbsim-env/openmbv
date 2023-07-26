@@ -76,7 +76,7 @@ namespace OpenMBV {
       /** Returns the file name of the .ombvx file including the absolute or relatvie path */
       std::string getFileName() { return fileName; }
 
-      std::string getFullName(bool includingFileName=false) override;
+      std::string getFullName() override;
       
       /** Sets the file name of the .ombvx file including the absolute or relatvie path */
       void setFileName(const std::string &fn) { fileName=fn; }

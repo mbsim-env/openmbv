@@ -63,7 +63,6 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     SoNodeSensor *nodeSensor;
     PropertyDialog *properties;
     Object *clone;
-    Object *getClone();
     static std::set<Object*> objects;
     BoolEditor *boundingBoxEditor;
     virtual void createProperties();
@@ -82,6 +81,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     void setBoundingBox(bool value);
   private:
     void replaceBBoxHighlight();
+    bool isCloneToBeDeleted { false };
 };
 
 }

@@ -105,12 +105,15 @@ std::shared_ptr<Group> RigidBody::getTopLevelGroup() {
   return c?c->parent.lock()->getTopLevelGroup():parent.lock()->getTopLevelGroup();
 }
 
-string RigidBody::getFullName(bool includingFileName) {
-  std::shared_ptr<CompoundRigidBody> c=compound.lock();
-  if(c)
-    return c->getFullName(includingFileName)+"/"+name;
-  else
-    return DynamicColoredBody::getFullName(includingFileName);
+string RigidBody::getFullName() {
+  if(fullName.empty()) {
+    std::shared_ptr<CompoundRigidBody> c=compound.lock();
+    if(c)
+      fullName = c->getFullName()+"/"+name;
+    else
+      fullName = DynamicColoredBody::getFullName();
+  }
+  return fullName;
 }
 
 }

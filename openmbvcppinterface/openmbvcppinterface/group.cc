@@ -50,12 +50,15 @@ void Group::addObject(const shared_ptr<Object>& newObject) {
   newObject->parent=shared_from_this();
 }
 
-string Group::getFullName(bool includingFileName) {
-  std::shared_ptr<Group> p=parent.lock();
-  if(p)
-    return p->getFullName(includingFileName)+"/"+name;
-  else
-    return !includingFileName || fileName.empty() ? name : fileName;
+string Group::getFullName() {
+  if(fullName.empty()) {
+    std::shared_ptr<Group> p=parent.lock();
+    if(p)
+      fullName = p->getFullName()+"/"+name;
+    else
+      fullName = fileName.empty() ? name : fileName;
+  }
+  return fullName;
 }
 
 DOMElement *Group::writeXMLFile(DOMNode *parent) {

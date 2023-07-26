@@ -412,7 +412,7 @@ vector<pair<Body*, vector<SbVec3f>>> MyTouchWidget::getObjectsByRay(const QPoint
         MainWindow::getInstance()->cameraOrientation->inRotation.getValue().multVec(point, delta);
         float x, y, z;
         (delta+MainWindow::getInstance()->cameraPosition->vector[0]).getValue(x,y,z);
-        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg(it->second->getObject()->getFullName(true).c_str());
+        QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg(it->second->getObject()->getFullName().c_str());
         MainWindow::getInstance()->statusBar()->showMessage(str);
         fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
 
@@ -428,7 +428,7 @@ int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
   int ind=0;
   vector<Body*>::const_iterator it;
   for(it=pickedObject.begin(); it!=pickedObject.end(); it++) {
-    auto *action=new QAction((*it)->icon(0),(*it)->getObject()->getFullName(true).c_str(),&menu);
+    auto *action=new QAction((*it)->icon(0),(*it)->getObject()->getFullName().c_str(),&menu);
     action->setData(QVariant(ind++));
     menu.addAction(action);
   }

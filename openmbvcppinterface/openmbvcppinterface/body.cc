@@ -64,23 +64,6 @@ void Body::openHDF5File() {
   }
 }
 
-std::string Body::getRelPathTo(const std::shared_ptr<Body> &destBody) {
-  // create relative path to destination
-  string dest=destBody->getFullName();
-  string src=getFullName();
-  string reldest;
-  while(dest.substr(0,dest.find('/',1))==src.substr(0,src.find('/',1)))  {
-    dest=dest.substr(dest.find('/',1));
-    src=src.substr(src.find('/',1));
-  }
-  while((signed)src.find('/',1)>=0) {
-    reldest+="../";
-    src=src.substr(src.find('/',1));
-  }
-  reldest=reldest+dest.substr(1);
-  return reldest;
-}
-
 void Body::initializeUsingXML(DOMElement *element) {
   Object::initializeUsingXML(element);
   if(E(element)->hasAttribute("outLine") && 

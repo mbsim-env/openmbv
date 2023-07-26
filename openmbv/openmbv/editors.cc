@@ -160,7 +160,7 @@ void PropertyDialog::updateHeader() {
       QString(obj->metaObject()->className()).replace("OpenMBVGUI::", "")+ // remove the namespace
       " XML Values of</b></big>"), 0, 1);
     // diaplay Object path
-    auto *path=new QLabel(("<b>"+obj->getObject()->getFullName(true)+"</b>").c_str());
+    auto *path=new QLabel(("<b>"+obj->getObject()->getFullName()+"</b>").c_str());
     path->setWordWrap(true);
     header->addWidget(path, 1, 1);
   }
@@ -226,9 +226,10 @@ void Editor::replaceObject() {
     parentItem=objectList->invisibleRootItem();
     soParent=MainWindow::getInstance()->getSceneRoot();
   }
-  Object *newObj=ObjectFactory::create(obj->object, parentItem, soParent, ind);
+  Object *newObj=ObjectFactory::create(obj->object, parentItem, soParent, -ind-3); // we mark a clone object in the ctor by using idx=-ind-3 (since idx runs from -1, 0, 1, 2, ...)
   // delete this object (it is replaced by the above newly added)
   // but do not remove the OpenMBVCppInterface::Object
+  obj->isCloneToBeDeleted=true;
   delete obj;
   Utils::visitTreeWidgetItems<Object*>(newObj, &unsetClone);
   // update the scene
@@ -793,7 +794,7 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
            .arg(me->spinBox[3]->value()*M_PI/180)
            .arg(me->spinBox[4]->value()*M_PI/180)
            .arg(me->spinBox[5]->value()*M_PI/180)
-           .arg(obj->getObject()->getFullName(true).c_str());
+           .arg(obj->getObject()->getFullName().c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
     me->msg(Info)<<str.toStdString()<<endl;
   }

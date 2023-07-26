@@ -41,6 +41,11 @@ set<Object*> Object::objects;
 
 Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) :  drawThisPath(true),
                properties(nullptr), clone(nullptr) {
+  bool isClone=false;
+  if(ind<=-2) { // a ind <=-2 means that this is a cloned object
+    isClone=true; // marke this object as a clone
+    ind=-ind-3; // fix the index
+  }
   object=obj;
   objects.insert(this);
   // parent item
@@ -94,7 +99,14 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
 
   setText(0, obj->getName().c_str());
 
-  clone=getClone();
+  clone=nullptr;
+  if(isClone) { // the below code is quite expensive, that's why we do it only if we know that this object is a clone
+    set<Object*>::iterator it;
+    for(it=objects.begin(); it!=objects.end(); it++)
+      if(this!=(*it) && (*it)->object->getFullName()==object->getFullName())
+        break;
+    clone = it==objects.end()?NULL:*it;
+  }
 
   if(clone && clone->properties) {
     properties=clone->properties;
@@ -119,7 +131,7 @@ Object::~Object() {
   // delete the rest
   delete nodeSensor;
   soSwitch->unref();
-  if(!getClone())
+  if(!isCloneToBeDeleted)
     delete properties;
   objects.erase(this);
 }
@@ -156,7 +168,7 @@ void Object::createProperties() {
 }
 
 QString Object::getInfo() {
-  return QString("<b>Path:</b> %1<br/>").arg(object->getFullName(true).c_str())+
+  return QString("<b>Path:</b> %1<br/>").arg(object->getFullName().c_str())+
          QString(R"(<b>Class:</b> <img src="%1" width="16" height="16"/> %2)").
            arg((Utils::getIconPath()+"/"+getIconFile()).c_str()).
            arg(QString(metaObject()->className()).replace("OpenMBVGUI::", ""));  // remove the namespace
@@ -187,14 +199,6 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
     m2.setTransform(bbox.getCenter(),r,s,so);
     object->soBBoxTrans->matrix.setValue(m2);
   }
-}
-
-Object *Object::getClone() {
-  set<Object*>::iterator it;
-  for(it=objects.begin(); it!=objects.end(); it++)
-    if(this!=(*it) && (*it)->object->getFullName(true)==object->getFullName(true))
-      break;
-  return it==objects.end()?NULL:*it;
 }
 
 void Object::deleteObjectSlot() {

@@ -41,12 +41,15 @@ Object::Object() : name("NOTSET"), enableStr("true"), boundingBoxStr("false"), I
 
 Object::~Object() = default;
 
-string Object::getFullName(bool includingFileName) {
-  std::shared_ptr<Group> p=parent.lock();
-  if(p)
-    return p->getFullName(includingFileName)+"/"+name;
-  else
-    return name;
+string Object::getFullName() {
+  if(fullName.empty()) {
+    std::shared_ptr<Group> p=parent.lock();
+    if(p)
+      fullName = p->getFullName()+"/"+name;
+    else
+      fullName = name;
+  }
+  return fullName;
 }
 
 void Object::initializeUsingXML(DOMElement *element) {

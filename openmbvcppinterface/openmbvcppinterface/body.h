@@ -31,8 +31,6 @@ namespace OpenMBV {
   class Body : public Object {
     public:
       enum DrawStyle { filled, lines, points };
-    private:
-      std::string getRelPathTo(const std::shared_ptr<Body> &destBody);
     protected:
       std::string outLineStr, shilouetteEdgeStr;
       DrawStyle drawMethod{filled};
