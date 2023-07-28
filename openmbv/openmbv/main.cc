@@ -25,6 +25,8 @@
 #include <QSettings>
 #include "mainwindow.h"
 #include "utils.h"
+#include <boost/filesystem.hpp>
+#include "set_current_path.h"
 #ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
@@ -52,6 +54,37 @@ int main(int argc, char *argv[])
   list<string> arg;
   for(int i=1; i<argc; i++)
     arg.emplace_back(argv[i]);
+
+  // current directory and adapt paths
+  boost::filesystem::path dirFile;
+  if(!arg.empty())
+    dirFile=*(--arg.end());
+  boost::filesystem::path newCurrentPath;
+  if(auto i=std::find(arg.begin(), arg.end(), "--CC"); !dirFile.empty() && i!=arg.end()) {
+    if(boost::filesystem::is_directory(dirFile))
+      newCurrentPath=dirFile;
+    else
+      newCurrentPath=dirFile.parent_path();
+    arg.erase(i);
+  }
+  if(auto i=std::find(arg.begin(), arg.end(), "-C"); i!=arg.end()) {
+    auto i2=i; i2++;
+    if(boost::filesystem::is_directory(*i2))
+      newCurrentPath=*i2;
+    else
+      newCurrentPath=boost::filesystem::path(*i2).parent_path();
+    arg.erase(i);
+    arg.erase(i2);
+  }
+  SetCurrentPath currentPath(newCurrentPath);
+  for(auto a : {"--wst", "--camera", "--headlight"})
+    if(auto i=std::find(arg.begin(), arg.end(), a); i!=arg.end()) {
+      auto i2=i; i2++;
+      *i2=currentPath.adaptPath(*i2).string();
+    }
+  for(auto i=arg.rbegin(); i!=arg.rend(); ++i)
+    if(currentPath.existsInOrg(*i))
+      *i=currentPath.adaptPath(*i).string();
 
   // check parameters
   list<string>::iterator i, i2;
@@ -84,7 +117,7 @@ int main(int argc, char *argv[])
         <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
         <<"               [--headlight <file>]"<<endl
-        <<"               [--transparency 1|2]"<<endl
+        <<"               [--transparency 1|2] [-C <dir/file>|--CC]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
@@ -108,11 +141,17 @@ int main(int argc, char *argv[])
         <<"                       with similar transparency value."<<endl
         <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
         <<"                       but requires OpenGL extensions by the graphic card."<<endl
+        <<"-C <dir/file>      Change current to dir to <dir>/dir of <file> first."<<endl
+        <<"                   All arguments are still relative to the original current dir."<<endl
+        <<"--CC               Change current dir to dir of last <dir> argument or dir of last <file> argument."<<endl
+        <<"                   All arguments are still relative to the original current dir."<<endl
         <<"--maximized        Show window maximized on startup."<<endl
         <<"<dir>              Open/Load all [^.]+\\.ombvx files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
+        <<"                   <dir> and <file> must be the last arguments."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
         <<"                   are allowd."<<endl
+        <<"                   <dir> and <file> must be the last arguments."<<endl
         <<""<<endl
         <<"Note:"<<endl
         <<"In contrast to Coin3D VBO (Vertex Buffer Object) is disabled per default in"<<endl
@@ -130,18 +169,15 @@ int main(int argc, char *argv[])
 #endif
   QCoreApplication::setLibraryPaths(QStringList(QFileInfo(moduleName).absolutePath())); // do not load plugins from buildin defaults
 
+  auto argSaved=arg; // save arguments (QApplication removes all arguments known by Qt)
   QApplication app(argc, argv);
+  arg=argSaved; // restore arguments
 #ifndef _WIN32
   UnixSignalWatcher sigwatch;
   sigwatch.watchForSignal(SIGINT);
   sigwatch.watchForSignal(SIGTERM);
   QObject::connect(&sigwatch, &UnixSignalWatcher::unixSignal, &app, &QApplication::quit);
 #endif
-
-  // regenerate arg: QApplication removes all arguments known by Qt
-  arg.clear();
-  for (int i=1; i<argc; i++)
-    arg.emplace_back(argv[i]);
 
   app.setOrganizationName(OpenMBVGUI::AppSettings::organization);
   app.setApplicationName(OpenMBVGUI::AppSettings::application);

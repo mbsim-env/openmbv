@@ -1396,7 +1396,8 @@ void MainWindow::exportCurrentAsPNG() {
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
 
-  QString str("Exporting current frame, please wait!");
+  QString str("Exporting current frame to %1, please wait!");
+  str=str.arg(QFileInfo(dialog.getFileName()).absoluteFilePath());
   statusBar()->showMessage(str);
   msg(Info)<<str.toStdString()<<endl;
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
@@ -1404,9 +1405,6 @@ void MainWindow::exportCurrentAsPNG() {
   glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
   glViewer->font->size.setValue(glViewer->font->size.getValue()/dialog.getScale());
-  str="Done";
-  statusBar()->showMessage(str, 10000);
-  msg(Info)<<str.toStdString()<<endl;
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
@@ -1446,7 +1444,8 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   short width, height; size.getValue(width, height);
   glViewer->font->size.setValue(glViewer->font->size.getValue()*scale);
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
-    QString str("Exporting frame sequence, please wait! (%1\%)"); str=str.arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
+    QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
+    str=str.arg(QFileInfo(pngBaseName).absoluteFilePath()).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
     frame->setValue(frame_);
@@ -1454,7 +1453,8 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   }
   glViewer->font->size.setValue(glViewer->font->size.getValue()/scale);
   if(video) {
-    QString str("Encoding video file, please wait!");
+    QString str("Encoding video file to %1, please wait!");
+    str=str.arg(QFileInfo(fileName).absoluteFilePath());
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
     QString videoCmd=dialog.getVideoCmd();
@@ -1476,9 +1476,6 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       return;
     }
   }
-  QString str("Done");
-  statusBar()->showMessage(str, 10000);
-  msg(Info)<<str.toStdString()<<endl;
 }
 
 void MainWindow::stopSCSlot() {
