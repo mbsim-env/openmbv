@@ -651,8 +651,9 @@ void MyTouchWidget::translate(const QPoint &rel) {
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   const auto &cameraOri=camera->orientation.getValue();
   const auto &viewVolume=camera->getViewVolume();
-  auto point3D00=viewVolume.getPlanePoint(camera->focalDistance.getValue(), SbVec2f(0,0));
-  auto point3D11=viewVolume.getPlanePoint(camera->focalDistance.getValue(), SbVec2f(1,1));
+  float z=camera->nearDistance.getValue()*(1-relCursorZ)+camera->farDistance.getValue()*relCursorZ;
+  auto point3D00=viewVolume.getPlanePoint(z, SbVec2f(0,0));
+  auto point3D11=viewVolume.getPlanePoint(z, SbVec2f(1,1));
   auto size3D=point3D11-point3D00;
   cameraOri.inverse().multVec(size3D, size3D);
   const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
