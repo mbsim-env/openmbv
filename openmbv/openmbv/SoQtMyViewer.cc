@@ -166,6 +166,8 @@ void SoQtMyViewer::actualRedraw() {
   getViewportRegion().getWindowSize().getValue(x, y);
   if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
     getCamera()->aspectRatio.setValue(static_cast<float>(x)/y*aspectRatio);
+  else
+    getCamera()->aspectRatio.setValue(1.0);
 
   glClear(GL_DEPTH_BUFFER_BIT);
   // background
