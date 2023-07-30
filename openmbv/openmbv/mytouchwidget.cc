@@ -301,15 +301,16 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
 
 void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse wheel deltaAngle="<<relAngle<<"°"<<endl;)
-  if(modifiers & Qt::ControlModifier) {//mfmf qsetting
-    relCursorZ+=relAngle/15/100;//mfmf qsetting
+  bool ctrlDown=modifiers & Qt::ControlModifier;
+  if(ctrlDown) {
+    relCursorZ+=relAngle/15*relCursorZPerWheel;
     if(relCursorZ<=1e-6) relCursorZ=1e-6;
     if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
     MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
       arg(relCursorZ, 0, 'f', 3), 1000);
     updateCursorPos(pos);
   }
-  else {//mfmf qsetting
+  else {
     int steps=lround(relAngle/15);
     changeFrame(steps);
   }

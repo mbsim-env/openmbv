@@ -75,6 +75,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   friend class Group;
   friend class CompoundRigidBody;
   friend class MyTouchWidget;
+  friend class SettingsDialog;
   private:
     static MainWindow *instance;
     enum ViewSide { top, bottom, front, back, right, left, isometric, dimetric,
@@ -97,6 +98,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSwitch *cursorSwitch;
     SoTranslation *cursorPos;
     SoCalculator *cursorScaleE;
+    SoSFFloat mouseCursorSizeField;
   protected:
     SoSepNoPick *sceneRootBBox;
     QTreeWidget *objectList;

@@ -189,6 +189,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   cursorSwitch->addChild(cursorDrawStyle);
   cursorDrawStyle->lineWidth.setValue(3);
   SoScale *cursorScale, *cursorScale2;
+  mouseCursorSizeField.setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
   cursorScaleE=new SoCalculator;
   cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
   cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);
@@ -2071,12 +2072,14 @@ void MainWindow::setCameraType(SoType type) {
   if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
     cursorScaleE->b.disconnect();
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20"); // oA=cursorScale->scaleFactor //mfmf qsettings for 20
+    cursorScaleE->c.connectFrom(&mouseCursorSizeField);
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*c/100"); // oA=cursorScale->scaleFactor
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
     cursorScaleE->b.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->focalDistance);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20*b"); // oA=cursorScale->scaleFactor //mfmf qsettings for 20
+    cursorScaleE->c.connectFrom(&mouseCursorSizeField);
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*b*c/100"); // oA=cursorScale->scaleFactor
   }
 }
 
@@ -2102,6 +2105,7 @@ namespace {
     glViewerWG->setRotAnglePerPixel(appSettings->get<double>(AppSettings::rotAnglePerPixel));
     glViewerWG->setPickObjectRadius(appSettings->get<double>(AppSettings::pickObjectRadius));
     glViewerWG->setInScreenRotateSwitch(appSettings->get<double>(AppSettings::inScreenRotateSwitch));
+    glViewerWG->setRelCursorZPerWheel(appSettings->get<double>(AppSettings::relCursorZPerWheel));
   }
 }
 

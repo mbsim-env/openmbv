@@ -361,6 +361,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[propertydialog_geometry]={"propertydialog/geometry", QVariant()};
   setting[dialogstereo_geometry]={"dialogstereo/geometry", QVariant()};
   using MMA=MyTouchWidget::MouseMoveAction;
+  setting[mouseCursorSize]={"mainwindow/manipulate3d/mouseCursorSize", 5.0};
   setting[mouseLeftMoveAction]={"mainwindow/manipulate3d/mouseLeftMoveAction", static_cast<int>(MMA::Rotate)};
   setting[mouseRightMoveAction]={"mainwindow/manipulate3d/mouseRightMoveAction", static_cast<int>(MMA::Translate)};
   setting[mouseMidMoveAction]={"mainwindow/manipulate3d/mouseMidMoveAction", static_cast<int>(MMA::Zoom)};
@@ -376,6 +377,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchMove2Action]={"mainwindow/manipulate3d/touchMove2Action", static_cast<int>(TMA::Translate)};
   setting[zoomFacPerPixel]={"mainwindow/manipulate3d/zoomFacPerPixel", 1.005};
   setting[rotAnglePerPixel]={"mainwindow/manipulate3d/rotAnglePerPixel", 0.2};
+  setting[relCursorZPerWheel]={"mainwindow/manipulate3d/relCursorZPerWheel", 0.01};
   setting[pickObjectRadius]={"mainwindow/manipulate3d/pickObjectRadius", 3.0};
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
 
@@ -567,6 +569,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new DoubleSetting(layout, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
   }, numeric_limits<double>::min(), numeric_limits<double>::max(), 0.01);
+  new DoubleSetting(layout, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "", [](double value){
+    MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);
+  }, 0, 1, 0.001);
   new DoubleSetting(layout, AppSettings::pickObjectRadius, Utils::QIconCached("target.svg"), "Pick object radius:", "px", [](double value){
     MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);
   }, 0, numeric_limits<double>::max(), 0.1);
@@ -577,6 +582,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
                     numeric_limits<double>::min(), numeric_limits<double>::max(), 0.5);
   new DoubleSetting(layout, AppSettings::speedChangeFactor, Utils::QIconCached("speed.svg"), "Animation speed factor:", "1/key", {},
                     0, numeric_limits<double>::max(), 0.01);
+  new DoubleSetting(layout, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
+    MainWindow::getInstance()->mouseCursorSizeField.setValue(value);
+  }, 0, 100, 1);
   new ChoiceSetting(layout, AppSettings::mouseLeftClickAction, Utils::QIconCached("mouse.svg"), "Mouse left click:",
                     {"Select object", "Show context menu of object", "Seek scene to point under cursor"}, [](int value){
     MainWindow::getInstance()->glViewerWG->setMouseLeftClickAction(static_cast<MyTouchWidget::MouseClickAction>(value));

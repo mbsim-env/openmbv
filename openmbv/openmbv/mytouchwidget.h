@@ -54,6 +54,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void setRotAnglePerPixel(double value) { rotAnglePerPixel=value; }
     void setPickObjectRadius(double value) { pickObjectRadius=value; }
     void setInScreenRotateSwitch(double value) { inScreenRotateSwitch=value; }
+    void setRelCursorZPerWheel(double value) { relCursorZPerWheel=value; }
   protected:
     // functions for mouse events
     void mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
@@ -98,6 +99,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float pickObjectRadius;
     float inScreenRotateSwitch;
     float relCursorZ = 0.5;
+    float relCursorZPerWheel;
 
     double touchMove2RotateInScreenPlane;
     SbVec3f initialTranslateCameraPos;
