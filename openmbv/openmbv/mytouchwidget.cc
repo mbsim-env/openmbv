@@ -239,16 +239,16 @@ void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint 
       if(!ctrlDown)
         rotateInScreenAxis(rel);
       else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(rel.y());
+        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
       else
-        zoomCameraFocalDist(rel.y());
+        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
       break;
   }
 }
@@ -262,16 +262,16 @@ void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint
       if(!ctrlDown)
         rotateInScreenAxis(rel);
       else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(rel.y());
+        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
       else
-        zoomCameraFocalDist(rel.y());
+        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
       break;
   }
 }
@@ -285,16 +285,16 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
       if(!ctrlDown)
         rotateInScreenAxis(rel);
       else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(rel.y());
+        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
       else
-        zoomCameraFocalDist(rel.y());
+        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
       break;
   }
 }
