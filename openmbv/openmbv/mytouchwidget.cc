@@ -175,7 +175,7 @@ void MyTouchWidget::mouseMidDoubleClick(Qt::KeyboardModifiers modifiers, const Q
   DEBUG(cout<<"DEBUG mouse midDoubleclick abs="<<pos.x()<<" "<<pos.y()<<endl;)
 }
 
-void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers) {
+void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse leftsave"<<endl;)
   switch(mouseLeftMoveAction) {
     case MouseMoveAction::Rotate: rotateInit(); break;
@@ -184,7 +184,7 @@ void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers) {
   }
 }
 
-void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers) {
+void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse rightsave"<<endl;)
   switch(mouseRightMoveAction) {
     case MouseMoveAction::Rotate: rotateInit(); break;
@@ -193,7 +193,7 @@ void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers) {
   }
 }
 
-void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers) {
+void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse midsave"<<endl;)
   switch(mouseMidMoveAction) {
     case MouseMoveAction::Rotate: rotateInit(); break;
@@ -232,69 +232,78 @@ void MyTouchWidget::mouseMidMoveReset(Qt::KeyboardModifiers modifiers) {
 
 void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
   const QPoint rel=pos-initialPos;
+  int initialQuadrant=initialPos.x()<size().width()/2 ?
+    (initialPos.y()<size().height()/2 ? 2 : 3) :
+    (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse leftMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
   bool ctrlDown=modifiers & Qt::ControlModifier;
   switch(mouseLeftMoveAction) {
     case MouseMoveAction::Rotate:
       if(!ctrlDown)
-        rotateInScreenAxis(rel);
+        rotateInScreenAxis(rel, initialQuadrant);
       else
-        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraAngle(rel.y());
       else
-        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraFocalDist(rel.y());
       break;
   }
 }
 
 void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
   const QPoint rel=pos-initialPos;
+  int initialQuadrant=initialPos.x()<size().width()/2 ?
+    (initialPos.y()<size().height()/2 ? 2 : 3) :
+    (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse rightMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
   bool ctrlDown=modifiers & Qt::ControlModifier;
   switch(mouseRightMoveAction) {
     case MouseMoveAction::Rotate:
       if(!ctrlDown)
-        rotateInScreenAxis(rel);
+        rotateInScreenAxis(rel, initialQuadrant);
       else
-        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraAngle(rel.y());
       else
-        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraFocalDist(rel.y());
       break;
   }
 }
 
 void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
   const QPoint rel=pos-initialPos;
+  int initialQuadrant=initialPos.x()<size().width()/2 ?
+    (initialPos.y()<size().height()/2 ? 2 : 3) :
+    (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse midMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
   bool ctrlDown=modifiers & Qt::ControlModifier;
   switch(mouseMidMoveAction) {
     case MouseMoveAction::Rotate:
       if(!ctrlDown)
-        rotateInScreenAxis(rel);
+        rotateInScreenAxis(rel, initialQuadrant);
       else
-        rotateInScreenPlane(sqrt(QPoint::dotProduct(rel, rel))*rotAnglePerPixel*M_PI/180 );
+        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
       break;
     case MouseMoveAction::Translate:
       translate(rel);
       break;
     case MouseMoveAction::Zoom:
       if(!ctrlDown)
-        zoomCameraAngle(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraAngle(rel.y());
       else
-        zoomCameraFocalDist(sqrt(QPoint::dotProduct(rel, rel)));
+        zoomCameraFocalDist(rel.y());
       break;
   }
 }
@@ -359,7 +368,7 @@ void MyTouchWidget::touchLongTap(Qt::KeyboardModifiers modifiers, const QPoint &
   }
 }
 
-void MyTouchWidget::touchMoveSave1(Qt::KeyboardModifiers modifiers) {
+void MyTouchWidget::touchMoveSave1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG touch movesave1"<<endl;)
   switch(touchMove1Action) {
     case TouchMoveAction::Rotate: rotateInit(); break;
@@ -367,7 +376,7 @@ void MyTouchWidget::touchMoveSave1(Qt::KeyboardModifiers modifiers) {
   }
 }
 
-void MyTouchWidget::touchMoveSave2(Qt::KeyboardModifiers modifiers) {
+void MyTouchWidget::touchMoveSave2(Qt::KeyboardModifiers modifiers, const std::array<QPoint, 2> &initialPos) {
   DEBUG(cout<<"DEBUG touch movesave2"<<endl;)
   switch(touchMove2Action) {
     case TouchMoveAction::Rotate: break;
@@ -398,9 +407,12 @@ void MyTouchWidget::touchMoveReset2(Qt::KeyboardModifiers modifiers) {
 
 void MyTouchWidget::touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
   const QPoint rel=pos-initialPos;
+  int initialQuadrant=initialPos.x()<size().width()/2 ?
+    (initialPos.y()<size().height()/2 ? 2 : 3) :
+    (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG touch move1 rel="<<rel.x()<<" "<<rel.y()<<endl;)
   switch(touchMove1Action) {
-    case TouchMoveAction::Rotate: rotateInScreenAxis(rel); break;
+    case TouchMoveAction::Rotate: rotateInScreenAxis(rel, initialQuadrant); break;
     case TouchMoveAction::Translate: translate(rel); break;
   }
 }
@@ -417,10 +429,13 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
   if(touchMove2RotateInScreenPlane==0) {
     bool ctrlDown=modifiers & Qt::ControlModifier;
     auto initialCenter=(initialPos[0]+initialPos[1])/2;
+    int initialQuadrant=initialCenter.x()<size().width()/2 ?
+      (initialCenter.y()<size().height()/2 ? 2 : 3) :
+      (initialCenter.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
     auto center=(pos[0]+pos[1])/2;
     auto centerRel=center-initialCenter;
     switch(touchMove2Action) {
-      case TouchMoveAction::Rotate: rotateInScreenAxis(centerRel); break;
+      case TouchMoveAction::Rotate: rotateInScreenAxis(centerRel, initialQuadrant); break;
       case TouchMoveAction::Translate: translate(centerRel); break;
     }
 
@@ -617,7 +632,7 @@ void MyTouchWidget::rotateReset() {
   camera->position.setValue(initialRotateCameraPos);
 }
 
-void MyTouchWidget::rotateInScreenAxis(const QPoint &rel) {
+void MyTouchWidget::rotateInScreenAxis(const QPoint &rel, int initialQuadrant) {
   // rotate
 //mfmf move dragger if D is pressed
 //mfmf move dragger in constraint mode if Shift-D is pressed

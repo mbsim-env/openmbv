@@ -56,9 +56,9 @@ class TouchWidget : public Widget {
     virtual void mouseLeftDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
     virtual void mouseRightDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
     virtual void mouseMidDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
-    virtual void mouseLeftMoveSave(Qt::KeyboardModifiers modifiers) {}
-    virtual void mouseRightMoveSave(Qt::KeyboardModifiers modifiers) {}
-    virtual void mouseMidMoveSave(Qt::KeyboardModifiers modifiers) {}
+    virtual void mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {}
+    virtual void mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {}
+    virtual void mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {}
     virtual void mouseLeftMoveReset(Qt::KeyboardModifiers modifiers) {}
     virtual void mouseRightMoveReset(Qt::KeyboardModifiers modifiers) {}
     virtual void mouseMidMoveReset(Qt::KeyboardModifiers modifiers) {}
@@ -87,8 +87,8 @@ class TouchWidget : public Widget {
     virtual void touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
     virtual void touchDoubleTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
     virtual void touchLongTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
-    virtual void touchMoveSave1(Qt::KeyboardModifiers modifiers) {}
-    virtual void touchMoveSave2(Qt::KeyboardModifiers modifiers) {}
+    virtual void touchMoveSave1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {}
+    virtual void touchMoveSave2(Qt::KeyboardModifiers modifiers, const std::array<QPoint, 2> &initialPos) {}
     virtual void touchMoveReset1(Qt::KeyboardModifiers modifiers) {}
     virtual void touchMoveReset2(Qt::KeyboardModifiers modifiers) {}
     virtual void touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {}

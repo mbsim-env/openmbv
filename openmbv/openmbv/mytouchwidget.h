@@ -63,9 +63,9 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void mouseLeftDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
     void mouseRightDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
     void mouseMidDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
-    void mouseLeftMoveSave(Qt::KeyboardModifiers modifiers) override;
-    void mouseRightMoveSave(Qt::KeyboardModifiers modifiers) override;
-    void mouseMidMoveSave(Qt::KeyboardModifiers modifiers) override;
+    void mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPoint& initialPos) override;
+    void mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QPoint& initialPos) override;
+    void mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoint& initialPos) override;
     void mouseLeftMoveReset(Qt::KeyboardModifiers modifiers) override;
     void mouseRightMoveReset(Qt::KeyboardModifiers modifiers) override;
     void mouseMidMoveReset(Qt::KeyboardModifiers modifiers) override;
@@ -77,8 +77,8 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
     void touchDoubleTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
     void touchLongTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
-    void touchMoveSave1(Qt::KeyboardModifiers modifiers) override;
-    void touchMoveSave2(Qt::KeyboardModifiers modifiers) override;
+    void touchMoveSave1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) override;
+    void touchMoveSave2(Qt::KeyboardModifiers modifiers, const std::array<QPoint, 2> &initialPos) override;
     void touchMoveReset1(Qt::KeyboardModifiers modifiers) override;
     void touchMoveReset2(Qt::KeyboardModifiers modifiers) override;
     void touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) override;
@@ -120,7 +120,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void openPropertyDialog(const QPoint &pos);
     void rotateInit();
     void rotateReset();
-    void rotateInScreenAxis(const QPoint &rel);
+    void rotateInScreenAxis(const QPoint &rel, int initialQuadrant);
     void rotateInScreenPlane(double relAngle);
     void translateInit();
     void translateReset();

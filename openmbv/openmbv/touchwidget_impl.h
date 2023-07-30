@@ -77,7 +77,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
           mouseButtonLastPos[myButton_]=mouseButtonPressPos[myButton_]=mouseEvent->pos();
           mouseButtonPressTimestamp[myButton_]=mouseEvent->timestamp();
           mouseButtonMaxMoveSqr[myButton_]=0;
-          (this->*init_)(mouseEvent->modifiers());
+          (this->*init_)(mouseEvent->modifiers(), mouseEvent->pos());
           return true;
         }
       }
@@ -189,7 +189,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
         touchCancel2=false;
         touchTapTimestamp1=touchEvent->timestamp();
         touchModifiers1=touchEvent->modifiers();
-        touchMoveSave1(touchEvent->modifiers());
+        touchMoveSave1(touchEvent->modifiers(), touchTapDownPos1);
         touchTapDownTimer1->start();
       }
       if(touchEvent->touchPoints().size()==2) {
@@ -198,7 +198,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
         touchTapDownPos2={touchEvent->touchPoints()[0].pos().toPoint(), touchEvent->touchPoints()[1].pos().toPoint()};
         touchTapDownLastPos1=touchTapDownPos2[0];
         touchTapDownLastPos2=touchTapDownPos2[1];
-        touchMoveSave2(touchEvent->modifiers());
+        touchMoveSave2(touchEvent->modifiers(), touchTapDownPos2);
       }
       if(touchEvent->touchPoints().size()>=3) {
         touchCancel1=true;
@@ -226,7 +226,7 @@ bool TouchWidget<Widget>::event(QEvent *event) {
           touchCancel1=true;
           touchMoveReset1(touchEvent->modifiers());
           touchTapDownPos2={touchEvent->touchPoints()[0].pos().toPoint(), touchEvent->touchPoints()[1].pos().toPoint()};
-          touchMoveSave2(touchEvent->modifiers());
+          touchMoveSave2(touchEvent->modifiers(), touchTapDownPos2);
         }
         if(touchEvent->touchPoints()[0].pos().toPoint()!=touchTapDownLastPos1 ||
            touchEvent->touchPoints()[1].pos().toPoint()!=touchTapDownLastPos2) {
