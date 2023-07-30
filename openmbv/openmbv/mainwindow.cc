@@ -938,10 +938,12 @@ DialogStereo::DialogStereo() {
   fullScreenButton=new QPushButton(Utils::QIconCached("fullscreen.svg"), "", this);
   fullScreenButton->setIconSize(QSize(50,50));
   fullScreenButton->setFixedSize(QSize(60,60));
-  if(isFullScreen())
-    fullScreenButton->hide();
-  else
-    fullScreenButton->show();
+  QTimer::singleShot(0, [this](){ // isFullScreen is not working inside of the ctor (returns always false)
+    if(isFullScreen())
+      fullScreenButton->hide();
+    else
+      fullScreenButton->show();
+  });
   connect(fullScreenButton, &QPushButton::clicked, [this](){
     showFullScreen();
     fullScreenButton->hide();
@@ -2068,11 +2070,13 @@ void MainWindow::setCameraType(SoType type) {
   // 3D cursor scale
   if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20"); // oA=cursorScale->scaleFacto //mfmf qsettings
+    cursorScaleE->b.disconnect();
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20"); // oA=cursorScale->scaleFactor //mfmf qsettings for 20
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/2"); // oA=cursorScale->scaleFactor //mfmf qsettings
+    cursorScaleE->b.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->focalDistance);
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)/20*b"); // oA=cursorScale->scaleFactor //mfmf qsettings for 20
   }
 }
 
