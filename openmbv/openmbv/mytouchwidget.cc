@@ -71,13 +71,13 @@ void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
     pos[largeIdx]=pos[largeIdx]*fac-(fac-1.0)/2.0;
   }
   auto vv=MainWindow::getInstance()->glViewer->getCamera()->getViewVolume();
-  SbVec3f near, far;
-  vv.projectPointToLine(SbVec2f(pos[0],pos[1]), near, far);
+  SbVec3f nearDist, farDist;
+  vv.projectPointToLine(SbVec2f(pos[0],pos[1]), nearDist, farDist);
   SbVec3f cursorPos;
   if(MainWindow::getInstance()->glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId())
-    cursorPos=near*(1-0.5)+far*0.5;
+    cursorPos=nearDist*(1-0.5)+farDist*0.5;
   else
-    cursorPos=near*(1-relCursorZ)+far*relCursorZ;
+    cursorPos=nearDist*(1-relCursorZ)+farDist*relCursorZ;
   MainWindow::getInstance()->setCursorPos(&cursorPos);
 }
 
@@ -305,6 +305,8 @@ void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle,
     relCursorZ+=relAngle/15/100;//mfmf qsetting
     if(relCursorZ<=1e-6) relCursorZ=1e-6;
     if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+    MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+      arg(relCursorZ, 0, 'f', 3), 1000);
     updateCursorPos(pos);
   }
   else {//mfmf qsetting

@@ -166,7 +166,11 @@ bool TouchWidget<Widget>::event(QEvent *event) {
       if(wheelEvent->source()!=Qt::MouseEventNotSynthesized) {
         return false;
       }
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       mouseWheel(wheelEvent->modifiers(), wheelEvent->angleDelta().y()/8.0, wheelEvent->position().toPoint());
+#else
+      mouseWheel(wheelEvent->modifiers(), wheelEvent->angleDelta().y()/8.0, wheelEvent->pos());
+#endif
       return true;
     }
 
