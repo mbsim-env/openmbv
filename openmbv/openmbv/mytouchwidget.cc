@@ -444,8 +444,17 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
 
 vector<pair<Body*, vector<SbVec3f>>> MyTouchWidget::getObjectsByRay(const QPoint &pos) {
   // get picked points by ray
+  int x=pos.x();
+  int y=pos.y();
+  auto size=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
+  if(MainWindow::getInstance()->dialogStereo) {
+    if(MainWindow::getInstance()->glViewerWG==this)
+      x=x/2;
+    else
+      x=(size[0]+x)/2;
+  }
   SoRayPickAction pickAction(MainWindow::getInstance()->glViewer->getViewportRegion());
-  pickAction.setPoint(SbVec2s(pos.x(), MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels()[1]-pos.y()));
+  pickAction.setPoint(SbVec2s(x, size[1]-y));
   pickAction.setRadius(pickObjectRadius);
   pickAction.setPickAll(true);
   pickAction.apply(MainWindow::getInstance()->glViewer->getSceneManager()->getSceneGraph());
@@ -660,6 +669,8 @@ void MyTouchWidget::translate(const QPoint &rel) {
   cameraOri.inverse().multVec(size3D, size3D);
   const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
   float fac=max(size3D[0]/sizePixel[0], size3D[1]/sizePixel[1]);
+  if(MainWindow::getInstance()->dialogStereo)
+    fac/=2.0;
   auto rel3D=SbVec3f(rel.x()*fac,-rel.y()*fac,0);
   cameraOri.multVec(rel3D, rel3D);
   camera->position.setValue(initialTranslateCameraPos-rel3D);
