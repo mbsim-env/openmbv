@@ -89,16 +89,10 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-enum Mode { no, rotate, translate, zoom };
-
 MainWindow *MainWindow::instance=nullptr;
 
 QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
-}
-
-namespace {
-  void initGLViewerWG(MyTouchWidget *glViewerWG);
 }
 
 MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
@@ -877,8 +871,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
     fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
 
-    initGLViewerWG(glViewerWG);
-
     setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
   }
 
@@ -935,7 +927,6 @@ DialogStereo::DialogStereo() {
   mw->glViewer->setAspectRatio(2.0);
 
   auto *glViewerWGRight=new MyTouchWidget(this);
-  initGLViewerWG(glViewerWGRight);
   fullScreenButton=new QPushButton(Utils::QIconCached("fullscreen.svg"), "", this);
   fullScreenButton->setIconSize(QSize(50,50));
   fullScreenButton->setFixedSize(QSize(60,60));
@@ -2087,26 +2078,6 @@ void MainWindow::setCursorPos(const SbVec3f *pos) {
   cursorSwitch->whichChild.setValue(pos ? SO_SWITCH_ALL : SO_SWITCH_NONE);
   if(pos)
     cursorPos->translation.setValue(*pos);
-}
-
-namespace {
-  void initGLViewerWG(MyTouchWidget *glViewerWG) {
-    glViewerWG->setMouseLeftMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction)));
-    glViewerWG->setMouseRightMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction)));
-    glViewerWG->setMouseMidMoveAction(static_cast<MyTouchWidget::MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction)));
-    glViewerWG->setMouseLeftClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseLeftClickAction)));
-    glViewerWG->setMouseRightClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseRightClickAction)));
-    glViewerWG->setMouseMidClickAction(static_cast<MyTouchWidget::MouseClickAction>(appSettings->get<int>(AppSettings::mouseMidClickAction)));
-    glViewerWG->setTouchTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchTapAction)));
-    glViewerWG->setTouchLongTapAction(static_cast<MyTouchWidget::TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction)));
-    glViewerWG->setTouchMove1Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action)));
-    glViewerWG->setTouchMove2Action(static_cast<MyTouchWidget::TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action)));
-    glViewerWG->setZoomFacPerPixel(appSettings->get<double>(AppSettings::zoomFacPerPixel));
-    glViewerWG->setRotAnglePerPixel(appSettings->get<double>(AppSettings::rotAnglePerPixel));
-    glViewerWG->setPickObjectRadius(appSettings->get<double>(AppSettings::pickObjectRadius));
-    glViewerWG->setInScreenRotateSwitch(appSettings->get<double>(AppSettings::inScreenRotateSwitch));
-    glViewerWG->setRelCursorZPerWheel(appSettings->get<double>(AppSettings::relCursorZPerWheel));
-  }
 }
 
 }

@@ -25,6 +25,7 @@
 #include "Inventor/lists/SoPickedPointList.h"
 #include "touchwidget.h"
 #include <QWidget>
+#include <variant>
 
 namespace OpenMBVGUI {
 
@@ -35,21 +36,54 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     MyTouchWidget(QWidget *parent);
     bool event(QEvent *event) override;
 
-    enum class MouseClickAction { Select, Context, SeekToPoint };
-    enum class MouseMoveAction { Rotate, Translate, Zoom };
-    enum class TouchTapAction { Select, Context };
-    enum class TouchMoveAction { Rotate, Translate };
+    enum class Modifier { None, Shift, Ctrl, Alt, ShiftCtrl, ShiftAlt, CtrlAlt, ShiftCtrlAlt, SIZE };
+    template<class T>
+    class ModArray {
+      public:
+        T operator[](Modifier mod) const { return a[static_cast<size_t>(mod)]; }
+        T& operator[](Modifier mod) { return a[static_cast<size_t>(mod)]; }
+      private:
+        std::array<T, static_cast<size_t>(Modifier::SIZE)> a;
+    };
+    enum class ClickTapAction {
+      None,
+      SelectTopObject,
+      ToggleTopObject,
+      SelectAnyObject,
+      ToggleAnyObject,
+      ShowContextMenu,
+      SelectTopObjectAndShowContextMenu,
+      SelectAnyObjectAndShowContextMenu,
+      SeekCameraToPoint,
+    };
+    enum class MoveAction {
+      None,
+      /* 1D */
+      ChangeFrame,
+      Zoom,
+      CameraFocalDistance,
+      CurserSz,
+      RotateAboutSz,
+      /* 2D */
+      Translate,
+      RotateAboutSySx,
+      RotateAboutWxSx,
+      RotateAboutWySx,
+      RotateAboutWzSx,
+    };
 
-    void setMouseLeftMoveAction  (MouseMoveAction  act) { mouseLeftMoveAction  =act; }
-    void setMouseRightMoveAction (MouseMoveAction  act) { mouseRightMoveAction =act; }
-    void setMouseMidMoveAction   (MouseMoveAction  act) { mouseMidMoveAction   =act; }
-    void setMouseLeftClickAction (MouseClickAction act) { mouseLeftClickAction =act; }
-    void setMouseRightClickAction(MouseClickAction act) { mouseRightClickAction=act; }
-    void setMouseMidClickAction  (MouseClickAction act) { mouseMidClickAction  =act; }
-    void setTouchTapAction       (TouchTapAction   act) { touchTapAction       =act; }
-    void setTouchLongTapAction   (TouchTapAction   act) { touchLongTapAction   =act; }
-    void setTouchMove1Action     (TouchMoveAction  act) { touchMove1Action     =act; }
-    void setTouchMove2Action     (TouchMoveAction  act) { touchMove2Action     =act; }
+    void setMouseLeftClickAction (Modifier mod, ClickTapAction act) { mouseLeftClickAction [mod]=act; }
+    void setMouseRightClickAction(Modifier mod, ClickTapAction act) { mouseRightClickAction[mod]=act; }
+    void setMouseMidClickAction  (Modifier mod, ClickTapAction act) { mouseMidClickAction  [mod]=act; }
+    void setMouseLeftMoveAction  (Modifier mod, MoveAction act) { mouseLeftMoveAction [mod]=act; }
+    void setMouseRightMoveAction (Modifier mod, MoveAction act) { mouseRightMoveAction[mod]=act; }
+    void setMouseMidMoveAction   (Modifier mod, MoveAction act) { mouseMidMoveAction  [mod]=act; }
+    void setMouseWheelAction     (Modifier mod, MoveAction act) { mouseWheelAction  [mod]=act; }
+    void setTouchTapAction       (Modifier mod, ClickTapAction act) { touchTapAction    [mod]=act; }
+    void setTouchLongTapAction   (Modifier mod, ClickTapAction act) { touchLongTapAction[mod]=act; }
+    void setTouchMove1Action     (Modifier mod, MoveAction act) { touchMove1Action[mod]=act; }
+    void setTouchMove2Action     (Modifier mod, MoveAction act) { touchMove2Action[mod]=act; }
+    void setTouchMove2ZoomAction (Modifier mod, MoveAction act) { touchMove2ZoomAction[mod]=act; }
     void setZoomFacPerPixel(double value) { zoomFacPerPixel=value; }
     void setRotAnglePerPixel(double value) { rotAnglePerPixel=value; }
     void setPickObjectRadius(double value) { pickObjectRadius=value; }
@@ -84,16 +118,18 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) override;
     void touchMove2(Qt::KeyboardModifiers modifiers, const std::array<QPoint, 2> &initialPos, const std::array<QPoint, 2> &pos) override;
   private:
-    MouseClickAction mouseLeftClickAction;
-    MouseClickAction mouseRightClickAction;
-    MouseClickAction mouseMidClickAction;
-    MouseMoveAction mouseLeftMoveAction;
-    MouseMoveAction mouseRightMoveAction;
-    MouseMoveAction mouseMidMoveAction;
-    TouchTapAction touchTapAction;
-    TouchTapAction touchLongTapAction;
-    TouchMoveAction touchMove1Action;
-    TouchMoveAction touchMove2Action;
+    ModArray<ClickTapAction> mouseLeftClickAction;
+    ModArray<ClickTapAction> mouseRightClickAction;
+    ModArray<ClickTapAction> mouseMidClickAction;
+    ModArray<MoveAction> mouseLeftMoveAction;
+    ModArray<MoveAction> mouseRightMoveAction;
+    ModArray<MoveAction> mouseMidMoveAction;
+    ModArray<MoveAction> mouseWheelAction;
+    ModArray<ClickTapAction> touchTapAction;
+    ModArray<ClickTapAction> touchLongTapAction;
+    ModArray<MoveAction> touchMove1Action;
+    ModArray<MoveAction> touchMove2Action;
+    ModArray<MoveAction> touchMove2ZoomAction;
     float zoomFacPerPixel;
     float rotAnglePerPixel;
     float pickObjectRadius;
@@ -120,7 +156,11 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void openPropertyDialog(const QPoint &pos);
     void rotateInit();
     void rotateReset();
-    void rotateInScreenAxis(const QPoint &rel, int initialQuadrant);
+    void rotateAboutSySx(const QPoint &rel, int initialQuadrant);
+    void rotateAboutWSx(const QPoint &rel, int initialQuadrant, int axisIdx); // used by three belos functions
+    void rotateAboutWxSx(const QPoint &rel, int initialQuadrant);
+    void rotateAboutWySx(const QPoint &rel, int initialQuadrant);
+    void rotateAboutWzSx(const QPoint &rel, int initialQuadrant);
     void rotateInScreenPlane(double relAngle);
     void translateInit();
     void translateReset();

@@ -41,44 +41,124 @@ namespace OpenMBVGUI {
 MyTouchWidget::MyTouchWidget(QWidget *parent) : TouchWidget<QWidget>(parent) {
   setAttribute(Qt::WA_Hover, true);
   setCursor(Qt::BlankCursor);
-  mouseLeftMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseLeftMoveAction));
-  mouseRightMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseRightMoveAction));
-  mouseMidMoveAction=static_cast<MouseMoveAction>(appSettings->get<int>(AppSettings::mouseMidMoveAction));
-  mouseLeftClickAction=static_cast<MouseClickAction>(appSettings->get<int>(AppSettings::mouseLeftClickAction));
-  mouseRightClickAction=static_cast<MouseClickAction>(appSettings->get<int>(AppSettings::mouseRightClickAction));
-  mouseMidClickAction=static_cast<MouseClickAction>(appSettings->get<int>(AppSettings::mouseMidClickAction));
-  touchTapAction=static_cast<TouchTapAction>(appSettings->get<int>(AppSettings::touchTapAction));
-  touchLongTapAction=static_cast<TouchTapAction>(appSettings->get<int>(AppSettings::touchLongTapAction));
-  touchMove1Action=static_cast<TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove1Action));
-  touchMove2Action=static_cast<TouchMoveAction>(appSettings->get<int>(AppSettings::touchMove2Action));
-}
 
-void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
-  int x=mousePos.x();
-  int y=mousePos.y();
-  auto size=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
-  if(MainWindow::getInstance()->dialogStereo) {
-    if(MainWindow::getInstance()->glViewerWG==this)
-      x=x/2;
-    else
-      x=(size[0]+x)/2;
-  }
-  SbVec2f pos(static_cast<double>(x)/size[0],1.0-static_cast<double>(y)/size[1]);
-  if(!MainWindow::getInstance()->dialogStereo) {
-    int largeIdx=size[1]>size[0] ? 1 : 0;
-    int smallIdx=size[1]>size[0] ? 0 : 1;
-    auto fac=static_cast<float>(size[largeIdx])/size[smallIdx];
-    pos[largeIdx]=pos[largeIdx]*fac-(fac-1.0)/2.0;
-  }
-  auto vv=MainWindow::getInstance()->glViewer->getCamera()->getViewVolume();
-  SbVec3f nearDist, farDist;
-  vv.projectPointToLine(SbVec2f(pos[0],pos[1]), nearDist, farDist);
-  SbVec3f cursorPos;
-  if(MainWindow::getInstance()->glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId())
-    cursorPos=nearDist*(1-0.5)+farDist*0.5;
-  else
-    cursorPos=nearDist*(1-relCursorZ)+farDist*relCursorZ;
-  MainWindow::getInstance()->setCursorPos(&cursorPos);
+  auto set=[](auto &action, Modifier mod, AppSettings::AS appSet){
+    action[mod]=static_cast<std::decay_t<decltype(action[mod])>>(appSettings->get<int>(appSet));
+  };
+
+  set(mouseLeftClickAction, Modifier::None , AppSettings::mouseNoneLeftClickAction);
+  set(mouseLeftClickAction, Modifier::Shift, AppSettings::mouseShiftLeftClickAction);
+  set(mouseLeftClickAction, Modifier::Ctrl, AppSettings::mouseCtrlLeftClickAction);
+  set(mouseLeftClickAction, Modifier::Alt, AppSettings::mouseAltLeftClickAction);
+  set(mouseLeftClickAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlLeftClickAction);
+  set(mouseLeftClickAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltLeftClickAction);
+  set(mouseLeftClickAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltLeftClickAction);
+  set(mouseLeftClickAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltLeftClickAction);
+
+  set(mouseRightClickAction, Modifier::None , AppSettings::mouseNoneRightClickAction);
+  set(mouseRightClickAction, Modifier::Shift, AppSettings::mouseShiftRightClickAction);
+  set(mouseRightClickAction, Modifier::Ctrl, AppSettings::mouseCtrlRightClickAction);
+  set(mouseRightClickAction, Modifier::Alt, AppSettings::mouseAltRightClickAction);
+  set(mouseRightClickAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlRightClickAction);
+  set(mouseRightClickAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltRightClickAction);
+  set(mouseRightClickAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltRightClickAction);
+  set(mouseRightClickAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltRightClickAction);
+
+  set(mouseMidClickAction, Modifier::None , AppSettings::mouseNoneMidClickAction);
+  set(mouseMidClickAction, Modifier::Shift, AppSettings::mouseShiftMidClickAction);
+  set(mouseMidClickAction, Modifier::Ctrl, AppSettings::mouseCtrlMidClickAction);
+  set(mouseMidClickAction, Modifier::Alt, AppSettings::mouseAltMidClickAction);
+  set(mouseMidClickAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlMidClickAction);
+  set(mouseMidClickAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltMidClickAction);
+  set(mouseMidClickAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltMidClickAction);
+  set(mouseMidClickAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltMidClickAction);
+
+  set(mouseLeftMoveAction, Modifier::None , AppSettings::mouseNoneLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::Shift, AppSettings::mouseShiftLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::Ctrl, AppSettings::mouseCtrlLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::Alt, AppSettings::mouseAltLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltLeftMoveAction);
+  set(mouseLeftMoveAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltLeftMoveAction);
+
+  set(mouseRightMoveAction, Modifier::None , AppSettings::mouseNoneRightMoveAction);
+  set(mouseRightMoveAction, Modifier::Shift, AppSettings::mouseShiftRightMoveAction);
+  set(mouseRightMoveAction, Modifier::Ctrl, AppSettings::mouseCtrlRightMoveAction);
+  set(mouseRightMoveAction, Modifier::Alt, AppSettings::mouseAltRightMoveAction);
+  set(mouseRightMoveAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlRightMoveAction);
+  set(mouseRightMoveAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltRightMoveAction);
+  set(mouseRightMoveAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltRightMoveAction);
+  set(mouseRightMoveAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltRightMoveAction);
+
+  set(mouseMidMoveAction, Modifier::None , AppSettings::mouseNoneMidMoveAction);
+  set(mouseMidMoveAction, Modifier::Shift, AppSettings::mouseShiftMidMoveAction);
+  set(mouseMidMoveAction, Modifier::Ctrl, AppSettings::mouseCtrlMidMoveAction);
+  set(mouseMidMoveAction, Modifier::Alt, AppSettings::mouseAltMidMoveAction);
+  set(mouseMidMoveAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlMidMoveAction);
+  set(mouseMidMoveAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltMidMoveAction);
+  set(mouseMidMoveAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltMidMoveAction);
+  set(mouseMidMoveAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltMidMoveAction);
+
+  set(mouseWheelAction, Modifier::None , AppSettings::mouseNoneWheelAction);
+  set(mouseWheelAction, Modifier::Shift, AppSettings::mouseShiftWheelAction);
+  set(mouseWheelAction, Modifier::Ctrl, AppSettings::mouseCtrlWheelAction);
+  set(mouseWheelAction, Modifier::Alt, AppSettings::mouseAltWheelAction);
+  set(mouseWheelAction, Modifier::ShiftCtrl, AppSettings::mouseShiftCtrlWheelAction);
+  set(mouseWheelAction, Modifier::ShiftAlt, AppSettings::mouseShiftAltWheelAction);
+  set(mouseWheelAction, Modifier::CtrlAlt, AppSettings::mouseCtrlAltWheelAction);
+  set(mouseWheelAction, Modifier::ShiftCtrlAlt, AppSettings::mouseShiftCtrlAltWheelAction);
+
+  set(touchTapAction, Modifier::None , AppSettings::touchNoneTapAction);
+  set(touchTapAction, Modifier::Shift, AppSettings::touchShiftTapAction);
+  set(touchTapAction, Modifier::Ctrl, AppSettings::touchCtrlTapAction);
+  set(touchTapAction, Modifier::Alt, AppSettings::touchAltTapAction);
+  set(touchTapAction, Modifier::ShiftCtrl, AppSettings::touchShiftCtrlTapAction);
+  set(touchTapAction, Modifier::ShiftAlt, AppSettings::touchShiftAltTapAction);
+  set(touchTapAction, Modifier::CtrlAlt, AppSettings::touchCtrlAltTapAction);
+  set(touchTapAction, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltTapAction);
+
+  set(touchLongTapAction, Modifier::None , AppSettings::touchNoneLongTapAction);
+  set(touchLongTapAction, Modifier::Shift, AppSettings::touchShiftLongTapAction);
+  set(touchLongTapAction, Modifier::Ctrl, AppSettings::touchCtrlLongTapAction);
+  set(touchLongTapAction, Modifier::Alt, AppSettings::touchAltLongTapAction);
+  set(touchLongTapAction, Modifier::ShiftCtrl, AppSettings::touchShiftCtrlLongTapAction);
+  set(touchLongTapAction, Modifier::ShiftAlt, AppSettings::touchShiftAltLongTapAction);
+  set(touchLongTapAction, Modifier::CtrlAlt, AppSettings::touchCtrlAltLongTapAction);
+  set(touchLongTapAction, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltLongTapAction);
+
+  set(touchMove1Action, Modifier::None , AppSettings::touchNoneMove1Action);
+  set(touchMove1Action, Modifier::Shift, AppSettings::touchShiftMove1Action);
+  set(touchMove1Action, Modifier::Ctrl, AppSettings::touchCtrlMove1Action);
+  set(touchMove1Action, Modifier::Alt, AppSettings::touchAltMove1Action);
+  set(touchMove1Action, Modifier::ShiftCtrl, AppSettings::touchShiftCtrlMove1Action);
+  set(touchMove1Action, Modifier::ShiftAlt, AppSettings::touchShiftAltMove1Action);
+  set(touchMove1Action, Modifier::CtrlAlt, AppSettings::touchCtrlAltMove1Action);
+  set(touchMove1Action, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltMove1Action);
+
+  set(touchMove2Action, Modifier::None , AppSettings::touchNoneMove2Action);
+  set(touchMove2Action, Modifier::Shift, AppSettings::touchShiftMove2Action);
+  set(touchMove2Action, Modifier::Ctrl, AppSettings::touchCtrlMove2Action);
+  set(touchMove2Action, Modifier::Alt, AppSettings::touchAltMove2Action);
+  set(touchMove2Action, Modifier::ShiftCtrl, AppSettings::touchShiftCtrlMove2Action);
+  set(touchMove2Action, Modifier::ShiftAlt, AppSettings::touchShiftAltMove2Action);
+  set(touchMove2Action, Modifier::CtrlAlt, AppSettings::touchCtrlAltMove2Action);
+  set(touchMove2Action, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltMove2Action);
+
+  set(touchMove2ZoomAction, Modifier::None , AppSettings::touchNoneMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::Shift, AppSettings::touchShiftMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::Ctrl, AppSettings::touchCtrlMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::Alt, AppSettings::touchAltMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::ShiftCtrl, AppSettings::touchShiftCtrlMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::ShiftAlt, AppSettings::touchShiftAltMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::CtrlAlt, AppSettings::touchCtrlAltMove2ZoomAction);
+  set(touchMove2ZoomAction, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltMove2ZoomAction);
+
+  zoomFacPerPixel=appSettings->get<double>(AppSettings::zoomFacPerPixel);
+  rotAnglePerPixel=appSettings->get<double>(AppSettings::rotAnglePerPixel);
+  pickObjectRadius=appSettings->get<double>(AppSettings::pickObjectRadius);
+  inScreenRotateSwitch=appSettings->get<double>(AppSettings::inScreenRotateSwitch);
+  relCursorZPerWheel=appSettings->get<double>(AppSettings::relCursorZPerWheel);
 }
 
 bool MyTouchWidget::event(QEvent *event) {
@@ -99,66 +179,68 @@ bool MyTouchWidget::event(QEvent *event) {
 
 
 
+namespace {
+  MyTouchWidget::Modifier fromQtMod(Qt::KeyboardModifiers modifieres) {
+    if(modifieres & Qt::ShiftModifier && modifieres & Qt::ControlModifier && modifieres & Qt::AltModifier)
+      return MyTouchWidget::Modifier::ShiftCtrlAlt;
+    if(modifieres & Qt::ShiftModifier && modifieres & Qt::ControlModifier)
+      return MyTouchWidget::Modifier::ShiftCtrl;
+    if(modifieres & Qt::ShiftModifier && modifieres & Qt::AltModifier)
+      return MyTouchWidget::Modifier::ShiftAlt;
+    if(modifieres & Qt::ControlModifier && modifieres & Qt::AltModifier)
+      return MyTouchWidget::Modifier::CtrlAlt;
+    if(modifieres & Qt::ShiftModifier)
+      return MyTouchWidget::Modifier::Shift;
+    if(modifieres & Qt::ControlModifier)
+      return MyTouchWidget::Modifier::Ctrl;
+    if(modifieres & Qt::AltModifier)
+      return MyTouchWidget::Modifier::Alt;
+    return MyTouchWidget::Modifier::None;
+  }
+}
+
 void MyTouchWidget::mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse leftclick abs="<<pos.x()<<" "<<pos.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  bool altDown=modifiers & Qt::AltModifier;
-  switch(mouseLeftClickAction) {
-    case MouseClickAction::Select:
-      selectObject(pos, ctrlDown, altDown);
-      break;
-    case MouseClickAction::Context: 
-      // if Ctrl down, show context menu (for all selected objects)
-      if(ctrlDown)
-        MainWindow::getInstance()->execPropertyMenu();
-      else
-        selectObjectAndShowContextMenu(pos, altDown);
-      break;
-    case MouseClickAction::SeekToPoint:
-      seekToPoint(pos);
-      break;
+  switch(mouseLeftClickAction[fromQtMod(modifiers)]) {
+    case ClickTapAction::None: break;
+    case ClickTapAction::SelectTopObject: selectObject(pos, false, false); break;
+    case ClickTapAction::ToggleTopObject: selectObject(pos, true, false); break;
+    case ClickTapAction::SelectAnyObject: selectObject(pos, false, true); break;
+    case ClickTapAction::ToggleAnyObject: selectObject(pos, true, true); break;
+    case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
+    case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
+    case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
+    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
   }
 }
 
 void MyTouchWidget::mouseRightClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse rightclick abs="<<pos.x()<<" "<<pos.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  bool altDown=modifiers & Qt::AltModifier;
-  switch(mouseRightClickAction) {
-    case MouseClickAction::Select:
-      selectObject(pos, ctrlDown, altDown);
-      break;
-    case MouseClickAction::Context: 
-      // if Ctrl down, show context menu (for all selected objects)
-      if(ctrlDown)
-        MainWindow::getInstance()->execPropertyMenu();
-      else
-        selectObjectAndShowContextMenu(pos, altDown);
-      break;
-    case MouseClickAction::SeekToPoint:
-      seekToPoint(pos);
-      break;
+  switch(mouseRightClickAction[fromQtMod(modifiers)]) {
+    case ClickTapAction::None: break;
+    case ClickTapAction::SelectTopObject: selectObject(pos, false, false); break;
+    case ClickTapAction::ToggleTopObject: selectObject(pos, true, false); break;
+    case ClickTapAction::SelectAnyObject: selectObject(pos, false, true); break;
+    case ClickTapAction::ToggleAnyObject: selectObject(pos, true, true); break;
+    case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
+    case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
+    case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
+    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
   }
 }
 
 void MyTouchWidget::mouseMidClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse midclick abs="<<pos.x()<<" "<<pos.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  bool altDown=modifiers & Qt::AltModifier;
-  switch(mouseMidClickAction) {
-    case MouseClickAction::Select:
-      selectObject(pos, ctrlDown, altDown);
-      break;
-    case MouseClickAction::Context: 
-      // if Ctrl down, show context menu (for all selected objects)
-      if(ctrlDown)
-        MainWindow::getInstance()->execPropertyMenu();
-      else
-        selectObjectAndShowContextMenu(pos, altDown);
-      break;
-    case MouseClickAction::SeekToPoint:
-      seekToPoint(pos);
-      break;
+  switch(mouseMidClickAction[fromQtMod(modifiers)]) {
+    case ClickTapAction::None: break;
+    case ClickTapAction::SelectTopObject: selectObject(pos, false, false); break;
+    case ClickTapAction::ToggleTopObject: selectObject(pos, true, false); break;
+    case ClickTapAction::SelectAnyObject: selectObject(pos, false, true); break;
+    case ClickTapAction::ToggleAnyObject: selectObject(pos, true, true); break;
+    case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
+    case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
+    case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
+    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
   }
 }
 
@@ -177,82 +259,134 @@ void MyTouchWidget::mouseMidDoubleClick(Qt::KeyboardModifiers modifiers, const Q
 
 void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse leftsave"<<endl;)
-  switch(mouseLeftMoveAction) {
-    case MouseMoveAction::Rotate: rotateInit(); break;
-    case MouseMoveAction::Translate: translateInit(); break;
-    case MouseMoveAction::Zoom: zoomInit(); break;
+  switch(mouseLeftMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateInit(); break;
+    case MoveAction::Zoom: zoomInit(); break;
+    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateInit(); break;
+    case MoveAction::RotateAboutWxSx: rotateInit(); break;
+    case MoveAction::RotateAboutWySx: rotateInit(); break;
+    case MoveAction::RotateAboutWzSx: rotateInit(); break;
+    case MoveAction::Translate: translateInit(); break;
   }
 }
 
 void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse rightsave"<<endl;)
-  switch(mouseRightMoveAction) {
-    case MouseMoveAction::Rotate: rotateInit(); break;
-    case MouseMoveAction::Translate: translateInit(); break;
-    case MouseMoveAction::Zoom: zoomInit(); break;
+  switch(mouseRightMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateInit(); break;
+    case MoveAction::Zoom: zoomInit(); break;
+    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateInit(); break;
+    case MoveAction::RotateAboutWxSx: rotateInit(); break;
+    case MoveAction::RotateAboutWySx: rotateInit(); break;
+    case MoveAction::RotateAboutWzSx: rotateInit(); break;
+    case MoveAction::Translate: translateInit(); break;
   }
 }
 
 void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG mouse midsave"<<endl;)
-  switch(mouseMidMoveAction) {
-    case MouseMoveAction::Rotate: rotateInit(); break;
-    case MouseMoveAction::Translate: translateInit(); break;
-    case MouseMoveAction::Zoom: zoomInit(); break;
+  switch(mouseMidMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateInit(); break;
+    case MoveAction::Zoom: zoomInit(); break;
+    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateInit(); break;
+    case MoveAction::RotateAboutWxSx: rotateInit(); break;
+    case MoveAction::RotateAboutWySx: rotateInit(); break;
+    case MoveAction::RotateAboutWzSx: rotateInit(); break;
+    case MoveAction::Translate: translateInit(); break;
   }
 }
 
 void MyTouchWidget::mouseLeftMoveReset(Qt::KeyboardModifiers modifiers) {
   DEBUG(cout<<"DEBUG mouse leftReset"<<endl;)
-  rotateReset();
-  switch(mouseLeftMoveAction) {
-    case MouseMoveAction::Rotate: rotateReset(); break;
-    case MouseMoveAction::Translate: translateReset(); break;
-    case MouseMoveAction::Zoom: zoomReset(); break;
+  //rotateReset();// mfmf is this really needed?????
+  switch(mouseLeftMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateReset(); break;
+    case MoveAction::Zoom: zoomReset(); break;
+    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateReset(); break;
+    case MoveAction::RotateAboutWxSx: rotateReset(); break;
+    case MoveAction::RotateAboutWySx: rotateReset(); break;
+    case MoveAction::RotateAboutWzSx: rotateReset(); break;
+    case MoveAction::Translate: translateReset(); break;
   }
 }
 
 void MyTouchWidget::mouseRightMoveReset(Qt::KeyboardModifiers modifiers) {
   DEBUG(cout<<"DEBUG mouse rightReset"<<endl;)
-  switch(mouseRightMoveAction) {
-    case MouseMoveAction::Rotate: rotateReset(); break;
-    case MouseMoveAction::Translate: translateReset(); break;
-    case MouseMoveAction::Zoom: zoomReset(); break;
+  switch(mouseRightMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateReset(); break;
+    case MoveAction::Zoom: zoomReset(); break;
+    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateReset(); break;
+    case MoveAction::RotateAboutWxSx: rotateReset(); break;
+    case MoveAction::RotateAboutWySx: rotateReset(); break;
+    case MoveAction::RotateAboutWzSx: rotateReset(); break;
+    case MoveAction::Translate: translateReset(); break;
   }
 }
 
 void MyTouchWidget::mouseMidMoveReset(Qt::KeyboardModifiers modifiers) {
   DEBUG(cout<<"DEBUG mouse midReset"<<endl;)
-  switch(mouseMidMoveAction) {
-    case MouseMoveAction::Rotate: rotateReset(); break;
-    case MouseMoveAction::Translate: translateReset(); break;
-    case MouseMoveAction::Zoom: zoomReset(); break;
+  switch(mouseMidMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: rotateReset(); break;
+    case MoveAction::Zoom: zoomReset(); break;
+    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateReset(); break;
+    case MoveAction::RotateAboutWxSx: rotateReset(); break;
+    case MoveAction::RotateAboutWySx: rotateReset(); break;
+    case MoveAction::RotateAboutWzSx: rotateReset(); break;
+    case MoveAction::Translate: translateReset(); break;
   }
 }
 
+int pixelPerStep=5;// mfmf appsettings
+float relCursorZPerPixel=1.0/500; //mfmf appsettings
 void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
   const QPoint rel=pos-initialPos;
   int initialQuadrant=initialPos.x()<size().width()/2 ?
     (initialPos.y()<size().height()/2 ? 2 : 3) :
     (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse leftMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  switch(mouseLeftMoveAction) {
-    case MouseMoveAction::Rotate:
-      if(!ctrlDown)
-        rotateInScreenAxis(rel, initialQuadrant);
-      else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
-      break;
-    case MouseMoveAction::Translate:
-      translate(rel);
-      break;
-    case MouseMoveAction::Zoom:
-      if(!ctrlDown)
-        zoomCameraAngle(rel.y());
-      else
-        zoomCameraFocalDist(rel.y());
-      break;
+  switch(mouseLeftMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
+    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
+    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CurserSz:
+      relCursorZ+=rel.y()*relCursorZPerPixel;
+      if(relCursorZ<=1e-6) relCursorZ=1e-6;
+      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+        arg(relCursorZ, 0, 'f', 3), 1000);
+      updateCursorPos(pos);
+    break;
+    case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWzSx: rotateAboutWzSx(rel, initialQuadrant); break;
+    case MoveAction::Translate: translate(rel); break;
   }
 }
 
@@ -262,23 +396,25 @@ void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint
     (initialPos.y()<size().height()/2 ? 2 : 3) :
     (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse rightMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  switch(mouseRightMoveAction) {
-    case MouseMoveAction::Rotate:
-      if(!ctrlDown)
-        rotateInScreenAxis(rel, initialQuadrant);
-      else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
-      break;
-    case MouseMoveAction::Translate:
-      translate(rel);
-      break;
-    case MouseMoveAction::Zoom:
-      if(!ctrlDown)
-        zoomCameraAngle(rel.y());
-      else
-        zoomCameraFocalDist(rel.y());
-      break;
+  switch(mouseRightMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
+    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
+    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CurserSz:
+      relCursorZ+=rel.y()*relCursorZPerPixel;
+      if(relCursorZ<=1e-6) relCursorZ=1e-6;
+      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+        arg(relCursorZ, 0, 'f', 3), 1000);
+      updateCursorPos(pos);
+    break;
+    case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWzSx: rotateAboutWzSx(rel, initialQuadrant); break;
+    case MoveAction::Translate: translate(rel); break;
   }
 }
 
@@ -288,40 +424,50 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
     (initialPos.y()<size().height()/2 ? 2 : 3) :
     (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG mouse midMove rel="<<rel.x()<<" "<<rel.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  switch(mouseMidMoveAction) {
-    case MouseMoveAction::Rotate:
-      if(!ctrlDown)
-        rotateInScreenAxis(rel, initialQuadrant);
-      else
-        rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 );
-      break;
-    case MouseMoveAction::Translate:
-      translate(rel);
-      break;
-    case MouseMoveAction::Zoom:
-      if(!ctrlDown)
-        zoomCameraAngle(rel.y());
-      else
-        zoomCameraFocalDist(rel.y());
-      break;
+  switch(mouseMidMoveAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
+    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
+    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CurserSz:
+      relCursorZ+=rel.y()*relCursorZPerPixel;
+      if(relCursorZ<=1e-6) relCursorZ=1e-6;
+      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+        arg(relCursorZ, 0, 'f', 3), 1000);
+      updateCursorPos(pos);
+    break;
+    case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWzSx: rotateAboutWzSx(rel, initialQuadrant); break;
+    case MoveAction::Translate: translate(rel); break;
   }
 }
 
+double zoomFacPerAngle=1.005;
 void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse wheel deltaAngle="<<relAngle<<"°"<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  if(ctrlDown) {
-    relCursorZ+=relAngle/15*relCursorZPerWheel;
-    if(relCursorZ<=1e-6) relCursorZ=1e-6;
-    if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-    MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-      arg(relCursorZ, 0, 'f', 3), 1000);
-    updateCursorPos(pos);
-  }
-  else {
-    int steps=lround(relAngle/15);
-    changeFrame(steps);
+  switch(mouseWheelAction[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: changeFrame(lround(relAngle/15)); break;
+    case MoveAction::RotateAboutSz: rotateInScreenPlane(relAngle*M_PI/180); break;
+    case MoveAction::Zoom: zoomCameraAngle(relAngle*zoomFacPerAngle); break;
+    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(relAngle/15*relCursorZPerWheel); break;
+    case MoveAction::CurserSz:
+      relCursorZ+=relAngle/15*relCursorZPerWheel;
+      if(relCursorZ<=1e-6) relCursorZ=1e-6;
+      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+        arg(relCursorZ, 0, 'f', 3), 1000);
+      updateCursorPos(pos);
+    break;
+    case MoveAction::RotateAboutSySx: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::RotateAboutWxSx: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::RotateAboutWySx: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::RotateAboutWzSx: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::Translate: throw runtime_error("Invalid move action for mouse wheel event."); break;
   }
 }
 
@@ -329,19 +475,16 @@ void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle,
 
 void MyTouchWidget::touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG touch tap pos="<<pos.x()<<" "<<pos.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  bool altDown=modifiers & Qt::AltModifier;
-  switch(touchTapAction) {
-    case TouchTapAction::Select:
-      selectObject(pos, ctrlDown, altDown);
-      break;
-    case TouchTapAction::Context:
-      // if Ctrl down, show context menu (for all selected objects)
-      if(ctrlDown)
-        MainWindow::getInstance()->execPropertyMenu();
-      else
-        selectObjectAndShowContextMenu(pos, altDown);
-      break;
+  switch(touchTapAction[fromQtMod(modifiers)]) {
+    case ClickTapAction::None: break;
+    case ClickTapAction::SelectTopObject: selectObject(pos, false, false); break;
+    case ClickTapAction::ToggleTopObject: selectObject(pos, true, false); break;
+    case ClickTapAction::SelectAnyObject: selectObject(pos, false, true); break;
+    case ClickTapAction::ToggleAnyObject: selectObject(pos, true, true); break;
+    case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
+    case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
+    case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
+    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
   }
 }
 
@@ -352,57 +495,90 @@ void MyTouchWidget::touchDoubleTap(Qt::KeyboardModifiers modifiers, const QPoint
 
 void MyTouchWidget::touchLongTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG touch longTap pos="<<pos.x()<<" "<<pos.y()<<endl;)
-  bool ctrlDown=modifiers & Qt::ControlModifier;
-  bool altDown=modifiers & Qt::AltModifier;
-  switch(touchLongTapAction) {
-    case TouchTapAction::Select:
-      selectObject(pos, ctrlDown, altDown);
-      break;
-    case TouchTapAction::Context:
-      // if Ctrl down, show context menu (for all selected objects)
-      if(ctrlDown)
-        MainWindow::getInstance()->execPropertyMenu();
-      else
-        selectObjectAndShowContextMenu(pos, altDown);
-      break;
+  switch(touchLongTapAction[fromQtMod(modifiers)]) {
+    case ClickTapAction::None: break;
+    case ClickTapAction::SelectTopObject: selectObject(pos, false, false); break;
+    case ClickTapAction::ToggleTopObject: selectObject(pos, true, false); break;
+    case ClickTapAction::SelectAnyObject: selectObject(pos, false, true); break;
+    case ClickTapAction::ToggleAnyObject: selectObject(pos, true, true); break;
+    case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
+    case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
+    case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
+    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
   }
 }
 
 void MyTouchWidget::touchMoveSave1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
   DEBUG(cout<<"DEBUG touch movesave1"<<endl;)
-  switch(touchMove1Action) {
-    case TouchMoveAction::Rotate: rotateInit(); break;
-    case TouchMoveAction::Translate: translateInit(); break;
+  switch(touchMove1Action[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateInit(); break;
+    case MoveAction::RotateAboutWxSx: rotateInit(); break;
+    case MoveAction::RotateAboutWySx: rotateInit(); break;
+    case MoveAction::RotateAboutWzSx: rotateInit(); break;
+    case MoveAction::Translate: translateInit(); break;
   }
 }
 
 void MyTouchWidget::touchMoveSave2(Qt::KeyboardModifiers modifiers, const std::array<QPoint, 2> &initialPos) {
   DEBUG(cout<<"DEBUG touch movesave2"<<endl;)
-  switch(touchMove2Action) {
-    case TouchMoveAction::Rotate: break;
-    case TouchMoveAction::Translate: translateInit(); break;
+  switch(touchMove2Action[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
+    case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
+    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateInit(); break;
+    case MoveAction::RotateAboutWxSx: rotateInit(); break;
+    case MoveAction::RotateAboutWySx: rotateInit(); break;
+    case MoveAction::RotateAboutWzSx: rotateInit(); break;
+    case MoveAction::Translate: translateInit(); break;
   }
-  zoomInit();
-  rotateInit();
+//  zoomInit(); mfmf is this needed????
+//  rotateInit(); mfmf is this needed????
   touchMove2RotateInScreenPlane=0;
 }
 
 void MyTouchWidget::touchMoveReset1(Qt::KeyboardModifiers modifiers) {
   DEBUG(cout<<"DEBUG touch movereset1"<<endl;)
-  switch(touchMove1Action) {
-    case TouchMoveAction::Rotate: rotateReset(); break;
-    case TouchMoveAction::Translate: translateReset(); break;
+  switch(touchMove1Action[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateReset(); break;
+    case MoveAction::RotateAboutWxSx: rotateReset(); break;
+    case MoveAction::RotateAboutWySx: rotateReset(); break;
+    case MoveAction::RotateAboutWzSx: rotateReset(); break;
+    case MoveAction::Translate: translateReset(); break;
   }
 }
 
 void MyTouchWidget::touchMoveReset2(Qt::KeyboardModifiers modifiers) {
   DEBUG(cout<<"DEBUG touch movereset2"<<endl;)
-  switch(touchMove2Action) {
-    case TouchMoveAction::Rotate: break;
-    case TouchMoveAction::Translate: translateReset(); break;
+  switch(touchMove2Action[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: break;
+    case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
+    case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
+    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CurserSz: break;
+    case MoveAction::RotateAboutSySx: rotateReset(); break;
+    case MoveAction::RotateAboutWxSx: rotateReset(); break;
+    case MoveAction::RotateAboutWySx: rotateReset(); break;
+    case MoveAction::RotateAboutWzSx: rotateReset(); break;
+    case MoveAction::Translate: translateReset(); break;
   }
-  zoomReset();
-  rotateReset();
+//  zoomReset(); mfmf is this really needed????
+//  rotateReset(); mfmf is this really needed????
 }
 
 void MyTouchWidget::touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &initialPos, const QPoint &pos) {
@@ -411,9 +587,25 @@ void MyTouchWidget::touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &in
     (initialPos.y()<size().height()/2 ? 2 : 3) :
     (initialPos.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
   DEBUG(cout<<"DEBUG touch move1 rel="<<rel.x()<<" "<<rel.y()<<endl;)
-  switch(touchMove1Action) {
-    case TouchMoveAction::Rotate: rotateInScreenAxis(rel, initialQuadrant); break;
-    case TouchMoveAction::Translate: translate(rel); break;
+  switch(touchMove1Action[fromQtMod(modifiers)]) {
+    case MoveAction::None: break;
+    case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
+    case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CurserSz:
+      relCursorZ+=rel.y()*relCursorZPerPixel;
+      if(relCursorZ<=1e-6) relCursorZ=1e-6;
+      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+        arg(relCursorZ, 0, 'f', 3), 1000);
+      updateCursorPos(pos);
+    break;
+    case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
+    case MoveAction::RotateAboutWzSx: rotateAboutWzSx(rel, initialQuadrant); break;
+    case MoveAction::Translate: translate(rel); break;
   }
 }
 
@@ -427,25 +619,49 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
   double angle=atan2(rel.y(), rel.x());
   double relAngle=angle-initialAngle;
   if(touchMove2RotateInScreenPlane==0) {
-    bool ctrlDown=modifiers & Qt::ControlModifier;
     auto initialCenter=(initialPos[0]+initialPos[1])/2;
+    auto center=(pos[0]+pos[1])/2;
+    auto centerRel=center-initialCenter;
     int initialQuadrant=initialCenter.x()<size().width()/2 ?
       (initialCenter.y()<size().height()/2 ? 2 : 3) :
       (initialCenter.y()<size().height()/2 ? 1 : 4); // https://en.wikipedia.org/wiki/Quadrant_(plane_geometry)
-    auto center=(pos[0]+pos[1])/2;
-    auto centerRel=center-initialCenter;
-    switch(touchMove2Action) {
-      case TouchMoveAction::Rotate: rotateInScreenAxis(centerRel, initialQuadrant); break;
-      case TouchMoveAction::Translate: translate(centerRel); break;
+    switch(touchMove2Action[fromQtMod(modifiers)]) {
+      case MoveAction::None: break;
+      case MoveAction::ChangeFrame: changeFrame(lround(float(centerRel.y())/pixelPerStep)); break;
+      case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::CameraFocalDistance: zoomCameraFocalDist(centerRel.y()); break;
+      case MoveAction::CurserSz:
+        relCursorZ+=centerRel.y()*relCursorZPerPixel;
+        if(relCursorZ<=1e-6) relCursorZ=1e-6;
+        if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+        MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+          arg(relCursorZ, 0, 'f', 3), 1000);
+        updateCursorPos(center);
+      break;
+      case MoveAction::RotateAboutSySx: rotateAboutSySx(centerRel, initialQuadrant); break;
+      case MoveAction::RotateAboutWxSx: rotateAboutWxSx(centerRel, initialQuadrant); break;
+      case MoveAction::RotateAboutWySx: rotateAboutWySx(centerRel, initialQuadrant); break;
+      case MoveAction::RotateAboutWzSx: rotateAboutWzSx(centerRel, initialQuadrant); break;
+      case MoveAction::Translate: translate(centerRel); break;
     }
 
     auto initialDist=sqrt(QPoint::dotProduct(initialRel, initialRel));
     auto dist=sqrt(QPoint::dotProduct(rel, rel));
     int zoomValue=lround(dist-initialDist);
-    if(!ctrlDown)
-      zoomCameraAngle(zoomValue);
-    else
-      zoomCameraFocalDist(zoomValue);
+    switch(touchMove2ZoomAction[fromQtMod(modifiers)]) {
+      case MoveAction::None: break;
+      case MoveAction::ChangeFrame: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::Zoom: zoomCameraAngle(zoomValue); break;
+      case MoveAction::CameraFocalDistance: zoomCameraFocalDist(zoomValue); break;
+      case MoveAction::CurserSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::RotateAboutSySx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::RotateAboutWxSx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::RotateAboutWySx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::RotateAboutWzSx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+      case MoveAction::Translate: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
+    }
 
     if(std::abs(relAngle)>inScreenRotateSwitch*M_PI/180) {
       touchMoveReset2(modifiers);
@@ -632,7 +848,7 @@ void MyTouchWidget::rotateReset() {
   camera->position.setValue(initialRotateCameraPos);
 }
 
-void MyTouchWidget::rotateInScreenAxis(const QPoint &rel, int initialQuadrant) {
+void MyTouchWidget::rotateAboutSySx(const QPoint &rel, int initialQuadrant) {
   // rotate
 //mfmf move dragger if D is pressed
 //mfmf move dragger in constraint mode if Shift-D is pressed
@@ -648,6 +864,41 @@ void MyTouchWidget::rotateInScreenAxis(const QPoint &rel, int initialQuadrant) {
   SbVec3f cameraVec1(oriMatrix1[2][0], oriMatrix1[2][1], oriMatrix1[2][2]);
   auto cameraPos=initialRotateCameraToPos+camera->focalDistance.getValue()*cameraVec1;
   camera->position.setValue(cameraPos);
+}
+
+void MyTouchWidget::rotateAboutWSx(const QPoint &rel, int initialQuadrant, int axisIdx) {
+  // rotate
+//mfmf move dragger if D is pressed
+//mfmf move dragger in constraint mode if Shift-D is pressed
+  auto *camera=MainWindow::getInstance()->glViewer->getCamera();
+  // orientation
+  SbVec3f W_xS(1, 0, 0); initialRotateCameraOri.multVec(W_xS, W_xS);
+  SbRotation T12(W_xS, -rel.y()*rotAnglePerPixel*M_PI/180);
+  float v[3]={0,0,0};
+  v[axisIdx]=1;
+  SbVec3f W_zW(v);
+  SbVec3f S_zW;
+  initialRotateCameraOri.inverse().multVec(W_zW, S_zW);
+  SbRotation T23(W_zW, (initialQuadrant<=2?1:-1)*(S_zW.getValue()[2]>0?1:-1)*rel.x()*rotAnglePerPixel*M_PI/180);
+  camera->orientation.setValue(initialRotateCameraOri*T12*T23);
+  // position
+  SbMatrix oriMatrix1;
+  camera->orientation.getValue().getValue(oriMatrix1);
+  SbVec3f cameraVec1(oriMatrix1[2][0], oriMatrix1[2][1], oriMatrix1[2][2]);
+  auto cameraPos=initialRotateCameraToPos+camera->focalDistance.getValue()*cameraVec1;
+  camera->position.setValue(cameraPos);
+}
+
+void MyTouchWidget::rotateAboutWxSx(const QPoint &rel, int initialQuadrant) {
+  rotateAboutWSx(rel, initialQuadrant, 0);
+}
+
+void MyTouchWidget::rotateAboutWySx(const QPoint &rel, int initialQuadrant) {
+  rotateAboutWSx(rel, initialQuadrant, 1);
+}
+
+void MyTouchWidget::rotateAboutWzSx(const QPoint &rel, int initialQuadrant) {
+  rotateAboutWSx(rel, initialQuadrant, 2);
 }
 
 void MyTouchWidget::rotateInScreenPlane(double relAngle) {
@@ -765,6 +1016,34 @@ void MyTouchWidget::changeFrame(int steps) {
   frame->setValue(std::min(MainWindow::getInstance()->frameMaxSB->value(),
                   std::max(MainWindow::getInstance()->frameMinSB->value(),
                   static_cast<int>(frame->getValue())+steps)));
+}
+
+void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
+  int x=mousePos.x();
+  int y=mousePos.y();
+  auto size=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
+  if(MainWindow::getInstance()->dialogStereo) {
+    if(MainWindow::getInstance()->glViewerWG==this)
+      x=x/2;
+    else
+      x=(size[0]+x)/2;
+  }
+  SbVec2f pos(static_cast<double>(x)/size[0],1.0-static_cast<double>(y)/size[1]);
+  if(!MainWindow::getInstance()->dialogStereo) {
+    int largeIdx=size[1]>size[0] ? 1 : 0;
+    int smallIdx=size[1]>size[0] ? 0 : 1;
+    auto fac=static_cast<float>(size[largeIdx])/size[smallIdx];
+    pos[largeIdx]=pos[largeIdx]*fac-(fac-1.0)/2.0;
+  }
+  auto vv=MainWindow::getInstance()->glViewer->getCamera()->getViewVolume();
+  SbVec3f nearDist, farDist;
+  vv.projectPointToLine(SbVec2f(pos[0],pos[1]), nearDist, farDist);
+  SbVec3f cursorPos;
+  if(MainWindow::getInstance()->glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId())
+    cursorPos=nearDist*(1-0.5)+farDist*0.5;
+  else
+    cursorPos=nearDist*(1-relCursorZ)+farDist*relCursorZ;
+  MainWindow::getInstance()->setCursorPos(&cursorPos);
 }
 
 }
