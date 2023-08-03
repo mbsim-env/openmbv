@@ -1277,24 +1277,68 @@ void MainWindow::viewChange(ViewSide side) {
   };
   SbRotation r, r2;
   SbVec3f n;
+  int verticalAxisIdx=glViewerWG->getVerticalAxis();
   switch(side) {
+    //                     x- y- z-axis in screen coordinates
     case top:
-      rotateTo(SbMatrix( 1, 0,0,0,   0,1,0,0,    0, 0, 1,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==1)
+        rotateTo(SbMatrix(+1,+0,+0,  +0,
+                          +0,+1,+0,  +0,
+                          +0,+0,+1,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,-1,+0,  +0,
+                          +1,+0,+0,  +0,
+                          +0,+0,+1,  +0,+0,+0,+0,+1));
       break;
     case bottom:
-      rotateTo(SbMatrix(-1, 0,0,0,   0,1,0,0,    0, 0,-1,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==1)
+        rotateTo(SbMatrix(-1,+0,+0,  +0,
+                          +0,+1,+0,  +0,
+                          +0,+0,-1,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,+1,+0,  +0,
+                          +1,+0,+0,  +0,
+                          +0,+0,-1,  +0,+0,+0,+0,+1));
       break;
     case front:
-      rotateTo(SbMatrix( 1, 0,0,0,   0,0,1,0,    0,-1, 0,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==1)
+        rotateTo(SbMatrix(+1,+0,+0,  +0,
+                          +0,+0,+1,  +0,
+                          +0,-1,+0,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,+0,-1,  +0,
+                          +1,+0,+0,  +0,
+                          +0,-1,+0,  +0,+0,+0,+0,+1));
       break;
     case back:
-      rotateTo(SbMatrix(-1, 0,0,0,   0,0,1,0,    0, 1, 0,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==1)
+        rotateTo(SbMatrix(-1,+0,+0,  +0,
+                          +0,+0,+1,  +0,
+                          +0,+1,+0,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,+0,+1,  +0,
+                          +1,+0,+0,  +0,
+                          +0,+1,+0,  +0,+0,+0,+0,+1));
       break;
     case right:
-      rotateTo(SbMatrix( 0, 1,0,0,   0,0,1,0,    1, 0, 0,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==0)
+        rotateTo(SbMatrix(+0,+1,+0,  +0,
+                          +0,+0,+1,  +0,
+                          +1,+0,+0,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,+0,-1,  +0,
+                          +0,+1,+0,  +0,
+                          +1,+0,+0,  +0,+0,+0,+0,+1));
       break;
     case left:
-      rotateTo(SbMatrix( 0,-1,0,0,   0,0,1,0,   -1, 0, 0,0,   0,0,0,1));
+      if(verticalAxisIdx==2 || verticalAxisIdx==0)
+        rotateTo(SbMatrix(+0,-1,+0,  +0,
+                          +0,+0,+1,  +0,
+                          -1,+0,+0,  +0,+0,+0,+0,+1));
+      else
+        rotateTo(SbMatrix(+0,+0,+1,  +0,
+                          +0,+1,+0,  +0,
+                          -1,+0,+0,  +0,+0,+0,+0,+1));
       break;
     case isometric:
       //glViewer->getCamera()->position.setValue(1,1,1);

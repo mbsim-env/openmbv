@@ -371,7 +371,7 @@ void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint 
   switch(mouseLeftMoveAction[fromQtMod(modifiers)]) {
     case MoveAction::None: break;
     case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
-    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
     case MoveAction::CurserSz:
@@ -399,7 +399,7 @@ void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint
   switch(mouseRightMoveAction[fromQtMod(modifiers)]) {
     case MoveAction::None: break;
     case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
-    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
     case MoveAction::CurserSz:
@@ -427,7 +427,7 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
   switch(mouseMidMoveAction[fromQtMod(modifiers)]) {
     case MoveAction::None: break;
     case MoveAction::ChangeFrame: changeFrame(lround(float(rel.y())/pixelPerStep)); break;
-    case MoveAction::RotateAboutSz: rotateInScreenPlane(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
+    case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
     case MoveAction::CurserSz:
@@ -452,7 +452,7 @@ void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle,
   switch(mouseWheelAction[fromQtMod(modifiers)]) {
     case MoveAction::None: break;
     case MoveAction::ChangeFrame: changeFrame(lround(relAngle/15)); break;
-    case MoveAction::RotateAboutSz: rotateInScreenPlane(relAngle*M_PI/180); break;
+    case MoveAction::RotateAboutSz: rotateAboutSz(relAngle*M_PI/180); break;
     case MoveAction::Zoom: zoomCameraAngle(relAngle*zoomFacPerAngle); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(relAngle/15*relCursorZPerWheel); break;
     case MoveAction::CurserSz:
@@ -669,7 +669,7 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
     }
   }
   else
-    rotateInScreenPlane(relAngle-touchMove2RotateInScreenPlane);
+    rotateAboutSz(relAngle-touchMove2RotateInScreenPlane);
 }
 
 
@@ -901,7 +901,7 @@ void MyTouchWidget::rotateAboutWzSx(const QPoint &rel, int initialQuadrant) {
   rotateAboutWSx(rel, initialQuadrant, 2);
 }
 
-void MyTouchWidget::rotateInScreenPlane(double relAngle) {
+void MyTouchWidget::rotateAboutSz(double relAngle) {
   // if inScreenPlane, rotate in the screen plane
 //mfmf move dragger if D is pressed
 //mfmf move dragger in constraint mode if Shift-D is pressed
@@ -1044,6 +1044,26 @@ void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
   else
     cursorPos=nearDist*(1-relCursorZ)+farDist*relCursorZ;
   MainWindow::getInstance()->setCursorPos(&cursorPos);
+}
+
+void MyTouchWidget::setVerticalAxis(MoveAction act) {
+  if(act==MoveAction::RotateAboutSySx || act==MoveAction::RotateAboutWzSx)
+    verticalAxis=2;
+  else if(act==MoveAction::RotateAboutWxSx)
+    verticalAxis=0;
+  else if(act==MoveAction::RotateAboutWySx)
+    verticalAxis=1;
+  if(act==MoveAction::RotateAboutWxSx || act==MoveAction::RotateAboutWySx || act==MoveAction::RotateAboutWzSx) {
+    SbMatrix cameraOri;
+    MainWindow::getInstance()->glViewer->getCamera()->orientation.getValue().getValue(cameraOri);
+    SbVec3f SverticalAxis(cameraOri.getValue()[0][verticalAxis],
+                          cameraOri.getValue()[1][verticalAxis],
+                          cameraOri.getValue()[2][verticalAxis]);
+    if(abs(SverticalAxis[1])>1e-7)
+      rotateAboutSz(-atan(SverticalAxis[0]/SverticalAxis[1]));
+    else if(abs(SverticalAxis[0])>1e-7)
+      rotateAboutSz(-M_PI/2);
+  }
 }
 
 }

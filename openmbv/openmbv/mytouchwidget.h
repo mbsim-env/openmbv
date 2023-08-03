@@ -72,18 +72,19 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       RotateAboutWzSx,
     };
 
+    int getVerticalAxis() { return verticalAxis; }
     void setMouseLeftClickAction (Modifier mod, ClickTapAction act) { mouseLeftClickAction [mod]=act; }
     void setMouseRightClickAction(Modifier mod, ClickTapAction act) { mouseRightClickAction[mod]=act; }
     void setMouseMidClickAction  (Modifier mod, ClickTapAction act) { mouseMidClickAction  [mod]=act; }
-    void setMouseLeftMoveAction  (Modifier mod, MoveAction act) { mouseLeftMoveAction [mod]=act; }
-    void setMouseRightMoveAction (Modifier mod, MoveAction act) { mouseRightMoveAction[mod]=act; }
-    void setMouseMidMoveAction   (Modifier mod, MoveAction act) { mouseMidMoveAction  [mod]=act; }
-    void setMouseWheelAction     (Modifier mod, MoveAction act) { mouseWheelAction  [mod]=act; }
+    void setMouseLeftMoveAction  (Modifier mod, MoveAction act) { mouseLeftMoveAction [mod]=act; setVerticalAxis(act); }
+    void setMouseRightMoveAction (Modifier mod, MoveAction act) { mouseRightMoveAction[mod]=act; setVerticalAxis(act); }
+    void setMouseMidMoveAction   (Modifier mod, MoveAction act) { mouseMidMoveAction  [mod]=act; setVerticalAxis(act); }
+    void setMouseWheelAction     (Modifier mod, MoveAction act) { mouseWheelAction  [mod]=act; setVerticalAxis(act); }
     void setTouchTapAction       (Modifier mod, ClickTapAction act) { touchTapAction    [mod]=act; }
     void setTouchLongTapAction   (Modifier mod, ClickTapAction act) { touchLongTapAction[mod]=act; }
-    void setTouchMove1Action     (Modifier mod, MoveAction act) { touchMove1Action[mod]=act; }
-    void setTouchMove2Action     (Modifier mod, MoveAction act) { touchMove2Action[mod]=act; }
-    void setTouchMove2ZoomAction (Modifier mod, MoveAction act) { touchMove2ZoomAction[mod]=act; }
+    void setTouchMove1Action     (Modifier mod, MoveAction act) { touchMove1Action[mod]=act; setVerticalAxis(act); }
+    void setTouchMove2Action     (Modifier mod, MoveAction act) { touchMove2Action[mod]=act; setVerticalAxis(act); }
+    void setTouchMove2ZoomAction (Modifier mod, MoveAction act) { touchMove2ZoomAction[mod]=act; setVerticalAxis(act); }
     void setZoomFacPerPixel(double value) { zoomFacPerPixel=value; }
     void setRotAnglePerPixel(double value) { rotAnglePerPixel=value; }
     void setPickObjectRadius(double value) { pickObjectRadius=value; }
@@ -137,6 +138,9 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float relCursorZ = 0.5;
     float relCursorZPerWheel;
 
+    int verticalAxis { 2 };
+    void setVerticalAxis(MoveAction act);
+                                                                                                                        //
     double touchMove2RotateInScreenPlane;
     SbVec3f initialTranslateCameraPos;
     float initialZoomCameraHeight;
@@ -161,7 +165,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void rotateAboutWxSx(const QPoint &rel, int initialQuadrant);
     void rotateAboutWySx(const QPoint &rel, int initialQuadrant);
     void rotateAboutWzSx(const QPoint &rel, int initialQuadrant);
-    void rotateInScreenPlane(double relAngle);
+    void rotateAboutSz(double relAngle);
     void translateInit();
     void translateReset();
     void translate(const QPoint &rel);
