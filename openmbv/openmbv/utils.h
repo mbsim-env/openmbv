@@ -288,6 +288,8 @@ class AppSettings {
       zoomFacPerPixel,
       rotAnglePerPixel,
       relCursorZPerWheel,
+      relCursorZPerPixel,
+      pixelPerFrame,
       pickObjectRadius,
       inScreenRotateSwitch,
       SIZE,

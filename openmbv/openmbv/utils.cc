@@ -30,6 +30,7 @@
 #include <QTapAndHoldGesture>
 #include <QScroller>
 #include <QDialog>
+#include <QTabWidget>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -465,6 +466,8 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[zoomFacPerPixel]={"mainwindow/manipulate3d/zoomFacPerPixel", 1.005};
   setting[rotAnglePerPixel]={"mainwindow/manipulate3d/rotAnglePerPixel", 0.2};
   setting[relCursorZPerWheel]={"mainwindow/manipulate3d/relCursorZPerWheel", 0.01};
+  setting[relCursorZPerPixel]={"mainwindow/manipulate3d/relCursorZPerPixel", 1.0/500};
+  setting[pixelPerFrame]={"mainwindow/manipulate3d/pixelPerFrame", 5};
   setting[pickObjectRadius]={"mainwindow/manipulate3d/pickObjectRadius", 3.0};
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
 
@@ -529,10 +532,10 @@ StringSetting::StringSetting(QGridLayout *layout, AppSettings::AS key, const QIc
 class ChoiceSetting : public QWidget {
   public:
     ChoiceSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
-                  const QStringList &items, const std::function<void(int)> &set={});
+                  const vector<pair<QString, QString>> &items, const std::function<void(int)> &set={});
 };
 ChoiceSetting::ChoiceSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
-                             const QStringList &items, const std::function<void(int)> &set) :
+                             const vector<pair<QString, QString>> &items, const std::function<void(int)> &set) :
                              QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
@@ -541,7 +544,13 @@ ChoiceSetting::ChoiceSetting(QGridLayout *layout, AppSettings::AS key, const QIc
   layout->addWidget(iconLabel, row, 0);
   layout->addWidget(new QLabel(name, this), row, 1);
   auto comboBox=new QComboBox(this);
-  comboBox->addItems(items);
+  int idx=0;
+  for(auto &i : items) {
+    comboBox->insertItem(idx, i.first);
+    if(i.second!="")
+      comboBox->setItemData(idx, i.second, Qt::ToolTipRole);
+    idx++;
+  }
   comboBox->installEventFilter(&IgnoreWheelEventFilter::instance);
   layout->addWidget(comboBox, row, 2);
   comboBox->setCurrentIndex(appSettings->get<int>(key));
@@ -605,85 +614,135 @@ ColorSetting::ColorSetting(QGridLayout *layout, AppSettings::AS key, const QIcon
 
 SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   setWindowTitle("Settings");
-  setMinimumSize(500, 500);
-  auto mainLayout=new QGridLayout;
-  mainLayout->setColumnStretch(0, 0);
-  mainLayout->setColumnStretch(1, 1);
-  setLayout(mainLayout);
-  // display settings icon and label
-  auto *settingsTitle=new QLabel("Settings");
-  auto font=settingsTitle->font();
-  font.setBold(true);
-  font.setPointSize(1.5*font.pointSize());
-  settingsTitle->setFont(font);
-  QFontInfo fontInfo(font);
-  auto *settingsIcon=new QLabel;
-  settingsIcon->setPixmap(Utils::QIconCached("settings.svg").pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
-  mainLayout->addWidget(settingsIcon, 0, 0);
-  mainLayout->addWidget(settingsTitle, 0, 1);
-  auto layout=new QGridLayout;
-  layout->setColumnStretch(0, 0);
-  layout->setColumnStretch(1, 0);
-  layout->setColumnStretch(2, 1);
-  auto scrollWidget=new QWidget;
-  scrollWidget->setLayout(layout);
-  auto scrollArea=new QScrollArea;
-  scrollArea->setWidgetResizable(true);
-  Utils::enableTouch(scrollArea);
-  mainLayout->addWidget(scrollArea, 1, 0, 1, 2);
+  setWindowIcon(Utils::QIconCached("settings.svg"));
+  auto dialogLayout=new QGridLayout(this);
+  setLayout(dialogLayout);
+  auto tabWidget=new QTabWidget(this);
+  dialogLayout->addWidget(tabWidget);
 
-  new IntSetting(layout, AppSettings::hdf5RefreshDelta, Utils::QIconCached("time.svg"), "HDF5 refresh delta:", "ms", [](int value){
-    MainWindow::getInstance()->setHDF5RefreshDelta(value);
+  auto addTab=[tabWidget](const QIcon &icon, const QString &name) {
+    auto tab=new QWidget(tabWidget);
+    tabWidget->addTab(tab, icon, name);
+    auto tabLayout=new QGridLayout(tabWidget);
+    tab->setLayout(tabLayout);
+    return tabLayout;
+  };
+
+  auto boldLabel=[this](const QString &name, double fac) {
+    auto label=new QLabel(name, this);
+    auto font=label->font();
+    font.setBold(true);
+    font.setPointSize(fac*font.pointSize());
+    label->setFont(font);
+    return label;
+  };
+
+  auto addSpace=[](QGridLayout *layout) {
+    int row=layout->rowCount();
+    layout->addWidget(new QWidget, row, 0, 1,layout->columnCount());
+    layout->setRowStretch(row,1);
+  };
+
+  auto scene3D=addTab(Utils::QIconCached("viewall.svg"), "3D scene");
+  scene3D->setColumnStretch(0, 0);
+  scene3D->setColumnStretch(1, 0);
+  scene3D->setColumnStretch(2, 1);
+  new ColorSetting(scene3D, AppSettings::topBackgroudColor, Utils::QIconCached("bgcolor.svg"), "Top background color:", [](const QColor &color){
+    auto rgb=color.rgb();
+    MainWindow::getInstance()->bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    MainWindow::getInstance()->bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    MainWindow::getInstance()->fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    MainWindow::getInstance()->updateScene();
   });
-  new ChoiceSetting(layout, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
-                    {"Orthographic", "Perspective"}, [](int value){
-    MainWindow::getInstance()->setCameraType(value==0 ? SoOrthographicCamera::getClassTypeId() : SoPerspectiveCamera::getClassTypeId());
+  new ColorSetting(scene3D, AppSettings::bottomBackgroundColor, Utils::QIconCached("bgcolor.svg"), "Bottom background color:", [](const QColor &color){
+    auto rgb=color.rgb();
+    MainWindow::getInstance()->bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    MainWindow::getInstance()->bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+    MainWindow::getInstance()->fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
+    MainWindow::getInstance()->updateScene();
   });
-  new ChoiceSetting(layout, AppSettings::stereoType, Utils::QIconCached(""), "Stereo view type:",
-                    {"None", "Left/Right"}, [](int value){
-    MainWindow::getInstance()->reinit3DView(static_cast<MainWindow::StereoType>(value));
-  });
-  new DoubleSetting(layout, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
-    MainWindow::getInstance()->setStereoOffset(value);
-  }, 0, numeric_limits<double>::max(), 0.01);
-  new IntSetting(layout, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
-    QTapAndHoldGesture::setTimeout(value);
-  });
-  new IntSetting(layout, AppSettings::shortAniTime, Utils::QIconCached("time.svg"), "Short animation time:", "ms");
-  new DoubleSetting(layout, AppSettings::zoomFacPerPixel, Utils::QIconCached("zoom.svg"), "Zoom factor:", "1/px", [](double value){
-    MainWindow::getInstance()->glViewerWG->setZoomFacPerPixel(value);
-  }, 0, numeric_limits<double>::max(), 0.0001);
-  new DoubleSetting(layout, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
-    MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
-  }, numeric_limits<double>::min(), numeric_limits<double>::max(), 0.01);
-  new DoubleSetting(layout, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "", [](double value){
-    MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);
-  }, 0, 1, 0.001);
-  new DoubleSetting(layout, AppSettings::pickObjectRadius, Utils::QIconCached("target.svg"), "Pick object radius:", "px", [](double value){
-    MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);
-  }, 0, numeric_limits<double>::max(), 0.1);
-  new DoubleSetting(layout, AppSettings::inScreenRotateSwitch, Utils::QIconCached("angle.svg"), "In screen rotate barrier:", "deg", [](double value){
-    MainWindow::getInstance()->glViewerWG->setInScreenRotateSwitch(value);
-  });
-  new DoubleSetting(layout, AppSettings::anglePerKeyPress, Utils::QIconCached("angle.svg"), "Rotation per keypress:", "deg", {},
-                    numeric_limits<double>::min(), numeric_limits<double>::max(), 0.5);
-  new DoubleSetting(layout, AppSettings::speedChangeFactor, Utils::QIconCached("speed.svg"), "Animation speed factor:", "1/key", {},
-                    0, numeric_limits<double>::max(), 0.01);
-  new DoubleSetting(layout, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
+  new DoubleSetting(scene3D, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
     MainWindow::getInstance()->mouseCursorSizeField.setValue(value);
   }, 0, 100, 1);
+  new DoubleSetting(scene3D, AppSettings::outlineShilouetteEdgeLineWidth, Utils::QIconCached("olselinewidth.svg"), "Outline line width:", "px", [](double value){
+    MainWindow::getInstance()->olseDrawStyle->lineWidth.setValue(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new ColorSetting(scene3D, AppSettings::outlineShilouetteEdgeLineColor, Utils::QIconCached("olsecolor.svg"), "Outline line color:", [](const QColor &value){
+    auto rgb=value.rgb();
+    MainWindow::getInstance()->olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  });
+  new DoubleSetting(scene3D, AppSettings::boundingBoxLineWidth, Utils::QIconCached("lines.svg"), "Bounding box line width:", "px", [](double value){
+    MainWindow::getInstance()->bboxDrawStyle->lineWidth.setValue(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new ColorSetting(scene3D, AppSettings::boundingBoxLineColor, Utils::QIconCached("lines.svg"), "Bounding box line color:", [](const QColor &value){
+    auto rgb=value.rgb();
+    MainWindow::getInstance()->bboxColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  });
+  new DoubleSetting(scene3D, AppSettings::highlightLineWidth, Utils::QIconCached("lines.svg"), "Highlight line width:", "px", [](double value){
+    MainWindow::getInstance()->highlightDrawStyle->lineWidth.setValue(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new ColorSetting(scene3D, AppSettings::highlightLineColor, Utils::QIconCached("lines.svg"), "Highlight line color:", [](const QColor &value){
+    auto rgb=value.rgb();
+    MainWindow::getInstance()->highlightColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
+  });
+  new ChoiceSetting(scene3D, AppSettings::complexityType, Utils::QIconCached("complexitytype.svg"), "Complxity type:",
+                    {{"Object space", ""}, {"Screen space", ""}, {"Bounding box", ""}}, [](int value){
+    MainWindow::getInstance()->complexity->type.setValue( value==0 ? SoComplexity::OBJECT_SPACE :
+                                                         (value==1 ? SoComplexity::SCREEN_SPACE :
+                                                                     SoComplexity::BOUNDING_BOX));
+  });
+  new DoubleSetting(scene3D, AppSettings::complexityValue, Utils::QIconCached("complexityvalue.svg"), "Complexity value:", "", [](double value){
+    MainWindow::getInstance()->complexity->value.setValue(value);
+  }, 0, 1, 0.1);
+  addSpace(scene3D);
+
+  auto mouseClick=addTab(Utils::QIconCached("mouse.svg"), "Mouse click");
+  mouseClick->setRowStretch(0,0);
+  auto mouseClickLeftW=new QWidget(this);
+  mouseClick->addWidget(boldLabel("Left-Button", 1.3), 0, 0);
+  mouseClick->addWidget(mouseClickLeftW, 1, 0);
+  auto mouseClickLeft=new QGridLayout;
+  mouseClickLeft->setRowStretch(0, 0);
+  mouseClickLeft->setColumnStretch(0, 0);
+  mouseClickLeft->setColumnStretch(1, 0);
+  mouseClickLeft->setColumnStretch(2, 1);
+  mouseClickLeftW->setLayout(mouseClickLeft);
+  mouseClickLeft->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseClickLeft->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto mouseClickMidW=new QWidget(this);
+  mouseClick->addWidget(boldLabel("Mid-Button", 1.3), 0, 1);
+  mouseClick->addWidget(mouseClickMidW, 1, 1);
+  auto mouseClickMid=new QGridLayout;
+  mouseClickMid->setRowStretch(0, 0);
+  mouseClickMid->setColumnStretch(0, 0);
+  mouseClickMid->setColumnStretch(1, 0);
+  mouseClickMid->setColumnStretch(2, 1);
+  mouseClickMidW->setLayout(mouseClickMid);
+  mouseClickMid->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseClickMid->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto mouseClickRightW=new QWidget(this);
+  mouseClick->addWidget(boldLabel("Right-Button", 1.3), 0, 2);
+  mouseClick->addWidget(mouseClickRightW, 1, 2);
+  auto mouseClickRight=new QGridLayout;
+  mouseClickRight->setRowStretch(0, 0);
+  mouseClickRight->setColumnStretch(0, 0);
+  mouseClickRight->setColumnStretch(1, 0);
+  mouseClickRight->setColumnStretch(2, 1);
+  mouseClickRightW->setLayout(mouseClickRight);
+  mouseClickRight->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseClickRight->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define MOUSECLICK(mod, button) \
-    new ChoiceSetting(layout, AppSettings::mouse##mod##button##ClickAction, Utils::QIconCached("mouse.svg"), \
-        ("Mouse "+boost::algorithm::to_lower_copy(string(#button))+" click ("+#mod+"-Mod):").c_str(), { \
-        "No action", \
-        "Select top object", \
-        "Toggle top object", \
-        "Select any object", \
-        "Toggle any object", \
-        "Show context menu", \
-        "Select top object and show context menu", \
-        "Select any object and show context menu", \
-        "Seek camera to point", \
+    new ChoiceSetting(mouseClick##button, AppSettings::mouse##mod##button##ClickAction, Utils::QIconCached("mouse.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"                    , "No action."}, \
+        {"Select object"         , "Select the object on top of the cursor position."}, \
+        {"Toggle object"         , "Toggle the selection of the object on top of the cursor position."}, \
+        {"Select any object"     , "Select any object under the cursor position. If more than one object exists a menu is shown."}, \
+        {"Toggle any object"     , "Toggle the selection of any object under the cursor position. If more than one object exists a menu is shown."}, \
+        {"Show ctx menu"         , "Show the context menu for the currently selected objects."}, \
+        {"Sel./show ctx menu"    , "Calls 'Select object' and then 'Show ctx menu'."}, \
+        {"Sel. any/show ctx menu", "Calls 'Select any object' and then 'Show ctx menu'"}, \
+        {"Seek to point"         , "Seeks the camera focal point to the position on the top object of the cursor position."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##ClickAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
@@ -712,20 +771,59 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   MOUSECLICK(ShiftAlt    , Mid);
   MOUSECLICK(CtrlAlt     , Mid);
   MOUSECLICK(ShiftCtrlAlt, Mid);
+  addSpace(mouseClickLeft);
+  addSpace(mouseClickMid);
+  addSpace(mouseClickRight);
+
+  auto mouseMove=addTab(Utils::QIconCached("mouse.svg"), "Mouse move");
+  mouseMove->setRowStretch(0,0);
+  auto mouseMoveLeftW=new QWidget(this);
+  mouseMove->addWidget(boldLabel("Left-Button", 1.3), 0, 0);
+  mouseMove->addWidget(mouseMoveLeftW, 1, 0);
+  auto mouseMoveLeft=new QGridLayout;
+  mouseMoveLeft->setRowStretch(0, 0);
+  mouseMoveLeft->setColumnStretch(0, 0);
+  mouseMoveLeft->setColumnStretch(1, 0);
+  mouseMoveLeft->setColumnStretch(2, 1);
+  mouseMoveLeftW->setLayout(mouseMoveLeft);
+  mouseMoveLeft->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseMoveLeft->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto mouseMoveMidW=new QWidget(this);
+  mouseMove->addWidget(boldLabel("Mid-Button", 1.3), 0, 1);
+  mouseMove->addWidget(mouseMoveMidW, 1, 1);
+  auto mouseMoveMid=new QGridLayout;
+  mouseMoveMid->setRowStretch(0, 0);
+  mouseMoveMid->setColumnStretch(0, 0);
+  mouseMoveMid->setColumnStretch(1, 0);
+  mouseMoveMid->setColumnStretch(2, 1);
+  mouseMoveMidW->setLayout(mouseMoveMid);
+  mouseMoveMid->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseMoveMid->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto mouseMoveRightW=new QWidget(this);
+  mouseMove->addWidget(boldLabel("Right-Button", 1.3), 0, 2);
+  mouseMove->addWidget(mouseMoveRightW, 1, 2);
+  auto mouseMoveRight=new QGridLayout;
+  mouseMoveRight->setRowStretch(0, 0);
+  mouseMoveRight->setColumnStretch(0, 0);
+  mouseMoveRight->setColumnStretch(1, 0);
+  mouseMoveRight->setColumnStretch(2, 1);
+  mouseMoveRightW->setLayout(mouseMoveRight);
+  mouseMoveRight->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseMoveRight->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define MOUSEMOVE(mod, button) \
-    new ChoiceSetting(layout, AppSettings::mouse##mod##button##MoveAction, Utils::QIconCached("mouse.svg"), \
-        ("Mouse "+boost::algorithm::to_lower_copy(string(#button))+" move ("+#mod+"-Mod):").c_str(), { \
-        "No action", \
-        "Change frame", \
-        "Zoom", \
-        "Change camera focal distance", \
-        "Change cursor screen-z position", \
-        "Rotate about screen-z", \
-        "Translate", \
-        "Rotate about screen-y,screen-x", \
-        "Rotate about world-x,screen-x", \
-        "Rotate about world-y,screen-x", \
-        "Rotate about world-z,screen-x", \
+    new ChoiceSetting(mouseMove##button, AppSettings::mouse##mod##button##MoveAction, Utils::QIconCached("mouse.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"            , "No action."}, \
+        {"Change frame"  , "Change the frame number."}, \
+        {"Zoom"          , "Zoom in/out."}, \
+        {"Focal distance", "Change the camera focal distance."}, \
+        {"Cursor S_z"    , "Change the cursor screen z position."}, \
+        {"Rotate S_z"    , "Rotate about the screen z axis."}, \
+        {"Translate"     , "Translate in screen x and y direction."}, \
+        {"Rotate S_y,S_x", "Rotate about the screen y and screen x axis."}, \
+        {"Rotate W_x,S_x", "Rotate about the world x and screen x axis (the world x axis is kept vertical)."}, \
+        {"Rotate W_y,S_x", "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
+        {"Rotate W_z,S_x", "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##MoveAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -754,20 +852,31 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   MOUSEMOVE(ShiftAlt    , Mid);
   MOUSEMOVE(CtrlAlt     , Mid);
   MOUSEMOVE(ShiftCtrlAlt, Mid);
+  addSpace(mouseMoveLeft);
+  addSpace(mouseMoveMid);
+  addSpace(mouseMoveRight);
+
+  auto mouseWheel=addTab(Utils::QIconCached("mouse.svg"), "Mouse wheel");
+  mouseWheel->setRowStretch(0,0);
+  mouseWheel->setColumnStretch(0, 0);
+  mouseWheel->setColumnStretch(1, 0);
+  mouseWheel->setColumnStretch(2, 1);
+  mouseWheel->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  mouseWheel->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define MOUSEWHEEL(mod) \
-    new ChoiceSetting(layout, AppSettings::mouse##mod##WheelAction, Utils::QIconCached("mouse.svg"), \
-        ("Mouse wheel ("+string(#mod)+"-Mod):").c_str(), { \
-        "No action", \
-        "Change frame", \
-        "Zoom", \
-        "Change camera focal distance", \
-        "Change cursor screen-z position", \
-        "Rotate about screen-z", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
+    new ChoiceSetting(mouseWheel, AppSettings::mouse##mod##WheelAction, Utils::QIconCached("mouse.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"            , "No action."}, \
+        {"Change frame"  , "Change the frame number."}, \
+        {"Zoom"          , "Zoom in/out."}, \
+        {"Focal distance", "Change the camera focal distance."}, \
+        {"Cursor S_z"    , "Change the cursor screen z position."}, \
+        {"Rotate S_z"    , "Rotate about the screen z axis."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouseWheelAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -780,18 +889,44 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   MOUSEWHEEL(ShiftAlt    );
   MOUSEWHEEL(CtrlAlt     );
   MOUSEWHEEL(ShiftCtrlAlt);
+  addSpace(mouseWheel);
+
+  auto touchTap=addTab(Utils::QIconCached("touch.svg"), "Touch tap");
+  touchTap->setRowStretch(0,0);
+  auto touchTapTapW=new QWidget(this);
+  touchTap->addWidget(boldLabel("Tap", 1.3), 0, 0);
+  touchTap->addWidget(touchTapTapW, 1, 0);
+  auto touchTapTap=new QGridLayout;
+  touchTapTap->setRowStretch(0, 0);
+  touchTapTap->setColumnStretch(0, 0);
+  touchTapTap->setColumnStretch(1, 0);
+  touchTapTap->setColumnStretch(2, 1);
+  touchTapTapW->setLayout(touchTapTap);
+  touchTapTap->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  touchTapTap->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto touchTapLongTapW=new QWidget(this);
+  touchTap->addWidget(boldLabel("Long-Tap", 1.3), 0, 1);
+  touchTap->addWidget(touchTapLongTapW, 1, 1);
+  auto touchTapLongTap=new QGridLayout;
+  touchTapLongTap->setRowStretch(0, 0);
+  touchTapLongTap->setColumnStretch(0, 0);
+  touchTapLongTap->setColumnStretch(1, 0);
+  touchTapLongTap->setColumnStretch(2, 1);
+  touchTapLongTapW->setLayout(touchTapLongTap);
+  touchTapLongTap->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  touchTapLongTap->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define TOUCHTAP(mod, tap) \
-    new ChoiceSetting(layout, AppSettings::touch##mod##tap##Action, Utils::QIconCached("touch.svg"), \
-        ("Touch "+boost::algorithm::to_lower_copy(string(#tap))+" ("+#mod+"-Mod):").c_str(), { \
-        "No action", \
-        "Select top object", \
-        "Toggle top object", \
-        "Select any object", \
-        "Toggle any object", \
-        "Show context menu", \
-        "Select top object and show context menu", \
-        "Select any object and show context menu", \
-        "Seek camera to point", \
+    new ChoiceSetting(touchTap##tap, AppSettings::touch##mod##tap##Action, Utils::QIconCached("touch.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"                    , "No action."}, \
+        {"Select object"         , "Select the object on top of the cursor position."}, \
+        {"Toggle object"         , "Toggle the selection of the object on top of the cursor position."}, \
+        {"Select any object"     , "Select any object under the cursor position. If more than one object exists a menu is shown."}, \
+        {"Toggle any object"     , "Toggle the selection of any object under the cursor position. If more than one object exists a menu is shown."}, \
+        {"Show ctx menu"         , "Show the context menu for the currently selected objects."}, \
+        {"Sel./show ctx menu"    , "Calls 'Select object' and then 'Show ctx menu'."}, \
+        {"Sel. any/show ctx menu", "Calls 'Select any object' and then 'Show ctx menu'"}, \
+        {"Seek to point"         , "Seeks the camera focal point to the position on the top object of the cursor position."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
@@ -812,20 +947,47 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   TOUCHTAP(ShiftAlt    , LongTap);
   TOUCHTAP(CtrlAlt     , LongTap);
   TOUCHTAP(ShiftCtrlAlt, LongTap);
+  addSpace(touchTapTap);
+  addSpace(touchTapLongTap);
+
+  auto touchPan=addTab(Utils::QIconCached("touch.svg"), "Touch pan");
+  touchPan->setRowStretch(0,0);
+  auto touchPanMove1W=new QWidget(this);
+  touchPan->addWidget(boldLabel("1 Finger Pan", 1.3), 0, 0);
+  touchPan->addWidget(touchPanMove1W, 1, 0);
+  auto touchPanMove1=new QGridLayout;
+  touchPanMove1->setRowStretch(0, 0);
+  touchPanMove1->setColumnStretch(0, 0);
+  touchPanMove1->setColumnStretch(1, 0);
+  touchPanMove1->setColumnStretch(2, 1);
+  touchPanMove1W->setLayout(touchPanMove1);
+  touchPanMove1->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  touchPanMove1->addWidget(boldLabel("Action", 1.1), 0, 2);
+  auto touchPanMove2W=new QWidget(this);
+  touchPan->addWidget(boldLabel("2 Finger Pan", 1.3), 0, 1);
+  touchPan->addWidget(touchPanMove2W, 1, 1);
+  auto touchPanMove2=new QGridLayout;
+  touchPanMove2->setRowStretch(0, 0);
+  touchPanMove2->setColumnStretch(0, 0);
+  touchPanMove2->setColumnStretch(1, 0);
+  touchPanMove2->setColumnStretch(2, 1);
+  touchPanMove2W->setLayout(touchPanMove2);
+  touchPanMove2->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  touchPanMove2->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define TOUCHMOVE(mod, tap) \
-    new ChoiceSetting(layout, AppSettings::touch##mod##tap##Action, Utils::QIconCached("touch.svg"), \
-        ("Touch "+boost::algorithm::to_lower_copy(string(#tap))+" finger ("+#mod+"-Mod):").c_str(), { \
-        "No action", \
-        "Change frame", \
-        "<not available>", \
-        "Change camera focal distance", \
-        "Change cursor screen-z position", \
-        "<not available>", \
-        "Translate", \
-        "Rotate about screen-y,screen-x", \
-        "Rotate about world-x,screen-x", \
-        "Rotate about world-y,screen-x", \
-        "Rotate about world-z,screen-x", \
+    new ChoiceSetting(touchPan##tap, AppSettings::touch##mod##tap##Action, Utils::QIconCached("touch.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"            , "No action."}, \
+        {"Change frame"  , "Change the frame number."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"Focal distance", "Change the camera focal distance."}, \
+        {"Cursor S_z"    , "Change the cursor screen z position."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"Translate"     , "Translate in screen x and y direction."}, \
+        {"Rotate S_y,S_x", "Rotate about the screen y and screen x axis."}, \
+        {"Rotate W_x,S_x", "Rotate about the world x and screen x axis (the world x axis is kept vertical)."}, \
+        {"Rotate W_y,S_x", "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
+        {"Rotate W_z,S_x", "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -846,20 +1008,30 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   TOUCHMOVE(ShiftAlt    , Move2);
   TOUCHMOVE(CtrlAlt     , Move2);
   TOUCHMOVE(ShiftCtrlAlt, Move2);
+  addSpace(touchPanMove1);
+  addSpace(touchPanMove2);
+
+  auto touchPinch=addTab(Utils::QIconCached("touch.svg"), "Touch pinch");
+  touchPinch->setRowStretch(0,0);
+  touchPinch->setColumnStretch(0, 0);
+  touchPinch->setColumnStretch(1, 0);
+  touchPinch->setColumnStretch(2, 1);
+  touchPinch->addWidget(boldLabel("Modifier", 1.1), 0, 1);
+  touchPinch->addWidget(boldLabel("Action", 1.1), 0, 2);
   #define TOUCHMOVEZOOM(mod) \
-    new ChoiceSetting(layout, AppSettings::touch##mod##Move2ZoomAction, Utils::QIconCached("touch.svg"), \
-        ("Touch zoom ("+string(#mod)+"-Mod):").c_str(), { \
-        "No action", \
-        "<not available>", \
-        "Zoom", \
-        "Change camera focal distance", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
-        "<not available>", \
+    new ChoiceSetting(touchPinch, AppSettings::touch##mod##Move2ZoomAction, Utils::QIconCached("touch.svg"), \
+        (string(#mod)+":").c_str(), { \
+        {"No"            , "No action."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"Zoom"          , "Zoom in/out."}, \
+        {"Focal distance", "Change the camera focal distance."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
+        {"<N/A>"         , "Not available."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##Move2ZoomAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -872,52 +1044,69 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   TOUCHMOVEZOOM(ShiftAlt    );
   TOUCHMOVEZOOM(CtrlAlt     );
   TOUCHMOVEZOOM(ShiftCtrlAlt);
-  new DoubleSetting(layout, AppSettings::outlineShilouetteEdgeLineWidth, Utils::QIconCached("olselinewidth.svg"), "Outline line width:", "px", [](double value){
-    MainWindow::getInstance()->olseDrawStyle->lineWidth.setValue(value);
-  }, 0, numeric_limits<double>::max(), 0.1);
-  new ColorSetting(layout, AppSettings::outlineShilouetteEdgeLineColor, Utils::QIconCached("olsecolor.svg"), "Outline line color:", [](const QColor &value){
-    auto rgb=value.rgb();
-    MainWindow::getInstance()->olseColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  });
-  new DoubleSetting(layout, AppSettings::boundingBoxLineWidth, Utils::QIconCached("lines.svg"), "Bounding box line width:", "px", [](double value){
-    MainWindow::getInstance()->bboxDrawStyle->lineWidth.setValue(value);
-  }, 0, numeric_limits<double>::max(), 0.1);
-  new ColorSetting(layout, AppSettings::boundingBoxLineColor, Utils::QIconCached("lines.svg"), "Bounding box line color:", [](const QColor &value){
-    auto rgb=value.rgb();
-    MainWindow::getInstance()->bboxColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  });
-  new DoubleSetting(layout, AppSettings::highlightLineWidth, Utils::QIconCached("lines.svg"), "Highlight line width:", "px", [](double value){
-    MainWindow::getInstance()->highlightDrawStyle->lineWidth.setValue(value);
-  }, 0, numeric_limits<double>::max(), 0.1);
-  new ColorSetting(layout, AppSettings::highlightLineColor, Utils::QIconCached("lines.svg"), "Highlight line color:", [](const QColor &value){
-    auto rgb=value.rgb();
-    MainWindow::getInstance()->highlightColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-  });
-  new ChoiceSetting(layout, AppSettings::complexityType, Utils::QIconCached("complexitytype.svg"), "Complxity type:",
-                    {"Object space", "Screen space", "Bounding box"}, [](int value){
-    MainWindow::getInstance()->complexity->type.setValue( value==0 ? SoComplexity::OBJECT_SPACE :
-                                                         (value==1 ? SoComplexity::SCREEN_SPACE :
-                                                                     SoComplexity::BOUNDING_BOX));
-  });
-  new DoubleSetting(layout, AppSettings::complexityValue, Utils::QIconCached("complexityvalue.svg"), "Complexity value:", "", [](double value){
-    MainWindow::getInstance()->complexity->value.setValue(value);
-  }, 0, 1, 0.1);
-  new ColorSetting(layout, AppSettings::topBackgroudColor, Utils::QIconCached("bgcolor.svg"), "Top background color:", [](const QColor &color){
-    auto rgb=color.rgb();
-    MainWindow::getInstance()->bgColor->set1Value(2, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-    MainWindow::getInstance()->bgColor->set1Value(3, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-    MainWindow::getInstance()->fgColorTop->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-    MainWindow::getInstance()->updateScene();
-  });
-  new ColorSetting(layout, AppSettings::bottomBackgroundColor, Utils::QIconCached("bgcolor.svg"), "Bottom background color:", [](const QColor &color){
-    auto rgb=color.rgb();
-    MainWindow::getInstance()->bgColor->set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-    MainWindow::getInstance()->bgColor->set1Value(1, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
-    MainWindow::getInstance()->fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
-    MainWindow::getInstance()->updateScene();
-  });
+  addSpace(touchPinch);
 
-  scrollArea->setWidget(scrollWidget);
+  auto stereoView=addTab(Utils::QIconCached("camerastereo.svg"), "Stereo view");
+  stereoView->setColumnStretch(0, 0);
+  stereoView->setColumnStretch(1, 0);
+  stereoView->setColumnStretch(2, 1);
+  new ChoiceSetting(stereoView, AppSettings::stereoType, Utils::QIconCached(""), "Stereo view type:",
+                    {{"None", "No stereo view."}, {"Left/Right", "Left/right stereo view for 3D TV screens."}}, [](int value){
+    MainWindow::getInstance()->reinit3DView(static_cast<MainWindow::StereoType>(value));
+  });
+  new DoubleSetting(stereoView, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
+    MainWindow::getInstance()->setStereoOffset(value);
+  }, 0, numeric_limits<double>::max(), 0.01);
+  new ChoiceSetting(stereoView, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
+                    {{"Orthographic", "Orthographic projection, disabled for for stereo view."},
+                     {"Perspective" , "Perspective projection, automatically selected for stereo view."}}, [](int value){
+    MainWindow::getInstance()->setCameraType(value==0 ? SoOrthographicCamera::getClassTypeId() : SoPerspectiveCamera::getClassTypeId());
+  });
+  addSpace(stereoView);
+
+  auto mouseTouchSettings=addTab(Utils::QIconCached("settings.svg"), "Mouse/Touch settings");
+  mouseTouchSettings->setColumnStretch(0, 0);
+  mouseTouchSettings->setColumnStretch(1, 0);
+  mouseTouchSettings->setColumnStretch(2, 1);
+  new DoubleSetting(mouseTouchSettings, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
+    MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
+  }, numeric_limits<double>::min(), numeric_limits<double>::max(), 0.01);
+  new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerPixel, Utils::QIconCached("zoom.svg"), "Zoom factor:", "1/px", [](double value){
+    MainWindow::getInstance()->glViewerWG->setZoomFacPerPixel(value);
+  }, 0, numeric_limits<double>::max(), 0.0001);
+  new DoubleSetting(mouseTouchSettings, AppSettings::pickObjectRadius, Utils::QIconCached("target.svg"), "Pick object radius:", "px", [](double value){
+    MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);
+  }, 0, numeric_limits<double>::max(), 0.1);
+  new IntSetting(mouseTouchSettings, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
+    QTapAndHoldGesture::setTimeout(value);
+  });
+  new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "1/wheel", [](double value){
+    MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);
+  }, 0, 1, 0.001);
+  new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerPixel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per pixel:", "1/pt", [](double value){
+    MainWindow::getInstance()->glViewerWG->setRelCursorZPerPixel(value);
+  }, 0, 1, 0.0001);
+  new IntSetting(mouseTouchSettings, AppSettings::pixelPerFrame, QIcon(), "Pixel per frame:", "pt", [](int value){
+    MainWindow::getInstance()->glViewerWG->setPixelPerFrame(value);
+  });
+  new DoubleSetting(mouseTouchSettings, AppSettings::inScreenRotateSwitch, Utils::QIconCached("angle.svg"), "In screen rotate barrier:", "deg", [](double value){
+    MainWindow::getInstance()->glViewerWG->setInScreenRotateSwitch(value);
+  });
+  new DoubleSetting(mouseTouchSettings, AppSettings::anglePerKeyPress, Utils::QIconCached("angle.svg"), "Rotation per keypress:", "deg/key", {},
+                    numeric_limits<double>::min(), numeric_limits<double>::max(), 0.5);
+  addSpace(mouseTouchSettings);
+
+  auto misc=addTab(Utils::QIconCached("settings.svg"), "Misc");
+  misc->setColumnStretch(0, 0);
+  misc->setColumnStretch(1, 0);
+  misc->setColumnStretch(2, 1);
+  new IntSetting(misc, AppSettings::hdf5RefreshDelta, Utils::QIconCached("time.svg"), "HDF5 refresh delta:", "ms", [](int value){
+    MainWindow::getInstance()->setHDF5RefreshDelta(value);
+  });
+  new IntSetting(misc, AppSettings::shortAniTime, Utils::QIconCached("time.svg"), "Short animation time:", "ms");
+  new DoubleSetting(misc, AppSettings::speedChangeFactor, Utils::QIconCached("speed.svg"), "Animation speed factor:", "1/key", {},
+                    0, numeric_limits<double>::max(), 0.01);
+  addSpace(misc);
 }
 void SettingsDialog::closeEvent(QCloseEvent *event) {
   appSettings->set(AppSettings::settingsDialog_geometry, saveGeometry());
