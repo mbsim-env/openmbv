@@ -464,6 +464,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchCtrlAltMove2ZoomAction]=     {"mainwindow/manipulate3d/touchCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchShiftCtrlAltMove2ZoomAction]={"mainwindow/manipulate3d/touchShiftCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[zoomFacPerPixel]={"mainwindow/manipulate3d/zoomFacPerPixel", 1.005};
+  setting[zoomFacPerAngle]={"mainwindow/manipulate3d/zoomFacPerAngle", 1.005};
   setting[rotAnglePerPixel]={"mainwindow/manipulate3d/rotAnglePerPixel", 0.2};
   setting[relCursorZPerWheel]={"mainwindow/manipulate3d/relCursorZPerWheel", 0.01};
   setting[relCursorZPerPixel]={"mainwindow/manipulate3d/relCursorZPerPixel", 1.0/500};
@@ -1071,8 +1072,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new DoubleSetting(mouseTouchSettings, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
   }, numeric_limits<double>::min(), numeric_limits<double>::max(), 0.01);
-  new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerPixel, Utils::QIconCached("zoom.svg"), "Zoom factor:", "1/px", [](double value){
+  new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerPixel, Utils::QIconCached("zoom.svg"), "Zoom factor per pixel:", "1/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setZoomFacPerPixel(value);
+  }, 0, numeric_limits<double>::max(), 0.0001);
+  new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerAngle, Utils::QIconCached("zoom.svg"), "Zoom factor per wheel:", "1/deg", [](double value){
+    MainWindow::getInstance()->glViewerWG->setZoomFacPerAngle(value);
   }, 0, numeric_limits<double>::max(), 0.0001);
   new DoubleSetting(mouseTouchSettings, AppSettings::pickObjectRadius, Utils::QIconCached("target.svg"), "Pick object radius:", "px", [](double value){
     MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);

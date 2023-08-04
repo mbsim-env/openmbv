@@ -86,6 +86,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void setTouchMove2Action     (Modifier mod, MoveAction act) { touchMove2Action[mod]=act; setVerticalAxis(act); }
     void setTouchMove2ZoomAction (Modifier mod, MoveAction act) { touchMove2ZoomAction[mod]=act; setVerticalAxis(act); }
     void setZoomFacPerPixel(double value) { zoomFacPerPixel=value; }
+    void setZoomFacPerAngle(double value) { zoomFacPerAngle=value; }
     void setRotAnglePerPixel(double value) { rotAnglePerPixel=value; }
     void setPickObjectRadius(double value) { pickObjectRadius=value; }
     void setInScreenRotateSwitch(double value) { inScreenRotateSwitch=value; }
@@ -134,6 +135,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     ModArray<MoveAction> touchMove2Action;
     ModArray<MoveAction> touchMove2ZoomAction;
     float zoomFacPerPixel;
+    float zoomFacPerAngle;
     float rotAnglePerPixel;
     float pickObjectRadius;
     float inScreenRotateSwitch;
@@ -177,6 +179,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomReset();
     void zoomCameraAngle(int change);
     void zoomCameraFocalDist(int change);
+    void cursorSz(int change, const QPoint &pos);
     void changeFrame(int steps);
     void updateCursorPos(const QPoint &mousePos);
 };

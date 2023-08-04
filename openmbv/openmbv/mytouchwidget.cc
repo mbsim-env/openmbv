@@ -155,6 +155,7 @@ MyTouchWidget::MyTouchWidget(QWidget *parent) : TouchWidget<QWidget>(parent) {
   set(touchMove2ZoomAction, Modifier::ShiftCtrlAlt, AppSettings::touchShiftCtrlAltMove2ZoomAction);
 
   zoomFacPerPixel=appSettings->get<double>(AppSettings::zoomFacPerPixel);
+  zoomFacPerAngle=appSettings->get<double>(AppSettings::zoomFacPerAngle);
   rotAnglePerPixel=appSettings->get<double>(AppSettings::rotAnglePerPixel);
   pickObjectRadius=appSettings->get<double>(AppSettings::pickObjectRadius);
   inScreenRotateSwitch=appSettings->get<double>(AppSettings::inScreenRotateSwitch);
@@ -372,14 +373,7 @@ void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint 
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
-    case MoveAction::CurserSz:
-      relCursorZ+=rel.y()*relCursorZPerPixel;
-      if(relCursorZ<=1e-6) relCursorZ=1e-6;
-      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-        arg(relCursorZ, 0, 'f', 3), 1000);
-      updateCursorPos(pos);
-    break;
+    case MoveAction::CurserSz: cursorSz(rel.y(), pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
@@ -400,14 +394,7 @@ void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
-    case MoveAction::CurserSz:
-      relCursorZ+=rel.y()*relCursorZPerPixel;
-      if(relCursorZ<=1e-6) relCursorZ=1e-6;
-      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-        arg(relCursorZ, 0, 'f', 3), 1000);
-      updateCursorPos(pos);
-    break;
+    case MoveAction::CurserSz: cursorSz(rel.y(), pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
@@ -428,14 +415,7 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(rel.y()); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
-    case MoveAction::CurserSz:
-      relCursorZ+=rel.y()*relCursorZPerPixel;
-      if(relCursorZ<=1e-6) relCursorZ=1e-6;
-      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-        arg(relCursorZ, 0, 'f', 3), 1000);
-      updateCursorPos(pos);
-    break;
+    case MoveAction::CurserSz: cursorSz(rel.y(), pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
@@ -444,7 +424,6 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
   }
 }
 
-double zoomFacPerAngle=1.005;
 void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse wheel deltaAngle="<<relAngle<<"°"<<endl;)
   switch(mouseWheelAction[fromQtMod(modifiers)]) {
@@ -591,14 +570,7 @@ void MyTouchWidget::touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &in
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
     case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
-    case MoveAction::CurserSz:
-      relCursorZ+=rel.y()*relCursorZPerPixel;
-      if(relCursorZ<=1e-6) relCursorZ=1e-6;
-      if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-      MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-        arg(relCursorZ, 0, 'f', 3), 1000);
-      updateCursorPos(pos);
-    break;
+    case MoveAction::CurserSz: cursorSz(rel.y(), pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, initialQuadrant); break;
     case MoveAction::RotateAboutWySx: rotateAboutWySx(rel, initialQuadrant); break;
@@ -629,14 +601,7 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
       case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::CameraFocalDistance: zoomCameraFocalDist(centerRel.y()); break;
-      case MoveAction::CurserSz:
-        relCursorZ+=centerRel.y()*relCursorZPerPixel;
-        if(relCursorZ<=1e-6) relCursorZ=1e-6;
-        if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
-        MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-          arg(relCursorZ, 0, 'f', 3), 1000);
-        updateCursorPos(center);
-      break;
+      case MoveAction::CurserSz: cursorSz(rel.y(), centerRel); break;
       case MoveAction::RotateAboutSySx: rotateAboutSySx(centerRel, initialQuadrant); break;
       case MoveAction::RotateAboutWxSx: rotateAboutWxSx(centerRel, initialQuadrant); break;
       case MoveAction::RotateAboutWySx: rotateAboutWySx(centerRel, initialQuadrant); break;
@@ -1006,6 +971,15 @@ void MyTouchWidget::zoomCameraFocalDist(int change) {
     float heightAngle=atan(x/focalDistance)*2;
     persCamera->heightAngle.setValue(heightAngle);
   }
+}
+
+void MyTouchWidget::cursorSz(int change, const QPoint &pos) {
+  relCursorZ+=change*relCursorZPerPixel;
+  if(relCursorZ<=1e-6) relCursorZ=1e-6;
+  if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+  MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
+    arg(relCursorZ, 0, 'f', 3), 1000);
+  updateCursorPos(pos);
 }
 
 void MyTouchWidget::changeFrame(int steps) {

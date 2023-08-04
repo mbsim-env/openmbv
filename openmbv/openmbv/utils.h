@@ -286,6 +286,7 @@ class AppSettings {
       touchCtrlAltMove2ZoomAction,
       touchShiftCtrlAltMove2ZoomAction,
       zoomFacPerPixel,
+      zoomFacPerAngle,
       rotAnglePerPixel,
       relCursorZPerWheel,
       relCursorZPerPixel,
