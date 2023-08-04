@@ -48,6 +48,9 @@ class TouchWidget : public Widget {
     std::array<unsigned long, ButtonCOUNT> mouseButtonPressTimestamp { 0, 0, 0 };
     std::array<int          , ButtonCOUNT> mouseButtonMaxMoveSqr;
     std::array<bool         , ButtonCOUNT> ignoreMouseMoveRelease { false, false, false };
+    bool mouseLeftMoveActive { false }; // DEBUG only
+    bool mouseRightMoveActive { false }; // DEBUG only
+    bool mouseMidMoveActive { false }; // DEBUG only
   protected:
     // functions for mouse events
     virtual void mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
@@ -82,6 +85,8 @@ class TouchWidget : public Widget {
     std::array<QPoint, 2> touchTapDownPos2;
     QPoint touchTapDownLastPos1;
     QPoint touchTapDownLastPos2;
+    bool touchMoveActive1 { false }; // DEBUG only
+    bool touchMoveActive2 { false }; // DEBUG only
   protected:
     // functions for touch events
     virtual void touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {}
