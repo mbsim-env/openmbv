@@ -365,7 +365,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseCursorSize]={"mainwindow/manipulate3d/mouseCursorSize", 5.0};
   using MA=MyTouchWidget::MoveAction;
   setting[mouseNoneLeftMoveAction]=        {"mainwindow/manipulate3d/mouseNoneLeftMoveAction", static_cast<int>(MA::RotateAboutSySx)};
-  setting[mouseShiftLeftMoveAction]=       {"mainwindow/manipulate3d/mouseShiftLeftMoveAction", static_cast<int>(MA::None)};
+  setting[mouseShiftLeftMoveAction]=       {"mainwindow/manipulate3d/mouseShiftLeftMoveAction", static_cast<int>(MA::ChangeFrame)};
   setting[mouseCtrlLeftMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlLeftMoveAction", static_cast<int>(MA::RotateAboutSz)};
   setting[mouseAltLeftMoveAction]=         {"mainwindow/manipulate3d/mouseAltLeftMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlLeftMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlLeftMoveAction", static_cast<int>(MA::None)};
@@ -374,7 +374,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftCtrlAltLeftMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltLeftMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneRightMoveAction]=        {"mainwindow/manipulate3d/mouseNoneRightMoveAction", static_cast<int>(MA::Translate)};
   setting[mouseShiftRightMoveAction]=       {"mainwindow/manipulate3d/mouseShiftRightMoveAction", static_cast<int>(MA::None)};
-  setting[mouseCtrlRightMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlRightMoveAction", static_cast<int>(MA::None)};
+  setting[mouseCtrlRightMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlRightMoveAction", static_cast<int>(MA::CurserSz)};
   setting[mouseAltRightMoveAction]=         {"mainwindow/manipulate3d/mouseAltRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlRightMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftAltRightMoveAction]=    {"mainwindow/manipulate3d/mouseShiftAltRightMoveAction", static_cast<int>(MA::None)};
@@ -389,16 +389,16 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseCtrlAltMidMoveAction]=     {"mainwindow/manipulate3d/mouseCtrlAltMidMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlAltMidMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltMidMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneWheelAction]=        {"mainwindow/manipulate3d/mouseNoneWheelAction", static_cast<int>(MA::ChangeFrame)};
-  setting[mouseShiftWheelAction]=       {"mainwindow/manipulate3d/mouseShiftWheelAction", static_cast<int>(MA::None)};
+  setting[mouseShiftWheelAction]=       {"mainwindow/manipulate3d/mouseShiftWheelAction", static_cast<int>(MA::Zoom)};
   setting[mouseCtrlWheelAction]=        {"mainwindow/manipulate3d/mouseCtrlWheelAction", static_cast<int>(MA::CurserSz)};
-  setting[mouseAltWheelAction]=         {"mainwindow/manipulate3d/mouseAltWheelAction", static_cast<int>(MA::None)};
+  setting[mouseAltWheelAction]=         {"mainwindow/manipulate3d/mouseAltWheelAction", static_cast<int>(MA::RotateAboutSz)};
   setting[mouseShiftCtrlWheelAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlWheelAction", static_cast<int>(MA::None)};
   setting[mouseShiftAltWheelAction]=    {"mainwindow/manipulate3d/mouseShiftAltWheelAction", static_cast<int>(MA::None)};
   setting[mouseCtrlAltWheelAction]=     {"mainwindow/manipulate3d/mouseCtrlAltWheelAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlAltWheelAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltWheelAction", static_cast<int>(MA::None)};
   using CTA=MyTouchWidget::ClickTapAction;
   setting[mouseNoneLeftClickAction]=        {"mainwindow/manipulate3d/mouseNoneLeftClickAction", static_cast<int>(CTA::SelectTopObject)};
-  setting[mouseShiftLeftClickAction]=       {"mainwindow/manipulate3d/mouseShiftLeftClickAction", static_cast<int>(CTA::None)};
+  setting[mouseShiftLeftClickAction]=       {"mainwindow/manipulate3d/mouseShiftLeftClickAction", static_cast<int>(CTA::SeekCameraToPoint)};
   setting[mouseCtrlLeftClickAction]=        {"mainwindow/manipulate3d/mouseCtrlLeftClickAction", static_cast<int>(CTA::ToggleTopObject)};
   setting[mouseAltLeftClickAction]=         {"mainwindow/manipulate3d/mouseAltLeftClickAction", static_cast<int>(CTA::SelectAnyObject)};
   setting[mouseShiftCtrlLeftClickAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlLeftClickAction", static_cast<int>(CTA::None)};
@@ -408,7 +408,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseNoneRightClickAction]=        {"mainwindow/manipulate3d/mouseNoneRightClickAction", static_cast<int>(CTA::SelectTopObjectAndShowContextMenu)};
   setting[mouseShiftRightClickAction]=       {"mainwindow/manipulate3d/mouseShiftRightClickAction", static_cast<int>(CTA::None)};
   setting[mouseCtrlRightClickAction]=        {"mainwindow/manipulate3d/mouseCtrlRightClickAction", static_cast<int>(CTA::ShowContextMenu)};
-  setting[mouseAltRightClickAction]=         {"mainwindow/manipulate3d/mouseAltRightClickAction", static_cast<int>(CTA::ShowContextMenu)};
+  setting[mouseAltRightClickAction]=         {"mainwindow/manipulate3d/mouseAltRightClickAction", static_cast<int>(CTA::SelectAnyObjectAndShowContextMenu)};
   setting[mouseShiftCtrlRightClickAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlRightClickAction", static_cast<int>(CTA::None)};
   setting[mouseShiftAltRightClickAction]=    {"mainwindow/manipulate3d/mouseShiftAltRightClickAction", static_cast<int>(CTA::None)};
   setting[mouseCtrlAltRightClickAction]=     {"mainwindow/manipulate3d/mouseCtrlAltRightClickAction", static_cast<int>(CTA::None)};
@@ -423,7 +423,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftCtrlAltMidClickAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltMidClickAction", static_cast<int>(CTA::None)};
   using CTA=MyTouchWidget::ClickTapAction;
   setting[touchNoneTapAction]=        {"mainwindow/manipulate3d/touchNoneTapAction", static_cast<int>(CTA::SelectTopObject)};
-  setting[touchShiftTapAction]=       {"mainwindow/manipulate3d/touchShiftTapAction", static_cast<int>(CTA::None)};
+  setting[touchShiftTapAction]=       {"mainwindow/manipulate3d/touchShiftTapAction", static_cast<int>(CTA::SeekCameraToPoint)};
   setting[touchCtrlTapAction]=        {"mainwindow/manipulate3d/touchCtrlTapAction", static_cast<int>(CTA::ToggleTopObject)};
   setting[touchAltTapAction]=         {"mainwindow/manipulate3d/touchAltTapAction", static_cast<int>(CTA::SelectAnyObject)};
   setting[touchShiftCtrlTapAction]=   {"mainwindow/manipulate3d/touchShiftCtrlTapAction", static_cast<int>(CTA::None)};
@@ -433,7 +433,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchNoneLongTapAction]=        {"mainwindow/manipulate3d/touchNoneLongTapAction", static_cast<int>(CTA::SelectTopObjectAndShowContextMenu)};
   setting[touchShiftLongTapAction]=       {"mainwindow/manipulate3d/touchShiftLongTapAction", static_cast<int>(CTA::None)};
   setting[touchCtrlLongTapAction]=        {"mainwindow/manipulate3d/touchCtrlLongTapAction", static_cast<int>(CTA::ShowContextMenu)};
-  setting[touchAltLongTapAction]=         {"mainwindow/manipulate3d/touchAltLongTapAction", static_cast<int>(CTA::ShowContextMenu)};
+  setting[touchAltLongTapAction]=         {"mainwindow/manipulate3d/touchAltLongTapAction", static_cast<int>(CTA::SelectAnyObjectAndShowContextMenu)};
   setting[touchShiftCtrlLongTapAction]=   {"mainwindow/manipulate3d/touchShiftCtrlLongTapAction", static_cast<int>(CTA::None)};
   setting[touchShiftAltLongTapAction]=    {"mainwindow/manipulate3d/touchShiftAltLongTapAction", static_cast<int>(CTA::None)};
   setting[touchCtrlAltLongTapAction]=     {"mainwindow/manipulate3d/touchCtrlAltLongTapAction", static_cast<int>(CTA::None)};
@@ -441,15 +441,15 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   using MA=MyTouchWidget::MoveAction;
   setting[touchNoneMove1Action]=        {"mainwindow/manipulate3d/touchNoneMove1Action", static_cast<int>(MA::RotateAboutSySx)};
   setting[touchShiftMove1Action]=       {"mainwindow/manipulate3d/touchShiftMove1Action", static_cast<int>(MA::None)};
-  setting[touchCtrlMove1Action]=        {"mainwindow/manipulate3d/touchCtrlMove1Action", static_cast<int>(MA::None)};
-  setting[touchAltMove1Action]=         {"mainwindow/manipulate3d/touchAltMove1Action", static_cast<int>(MA::None)};
+  setting[touchCtrlMove1Action]=        {"mainwindow/manipulate3d/touchCtrlMove1Action", static_cast<int>(MA::ChangeFrame)};//mfmf not working pan and pinch is connected!!!!!!!!!!!!!
+  setting[touchAltMove1Action]=         {"mainwindow/manipulate3d/touchAltMove1Action", static_cast<int>(MA::CameraFocalDistance)};
   setting[touchShiftCtrlMove1Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove1Action", static_cast<int>(MA::None)};
   setting[touchShiftAltMove1Action]=    {"mainwindow/manipulate3d/touchShiftAltMove1Action", static_cast<int>(MA::None)};
   setting[touchCtrlAltMove1Action]=     {"mainwindow/manipulate3d/touchCtrlAltMove1Action", static_cast<int>(MA::None)};
   setting[touchShiftCtrlAltMove1Action]={"mainwindow/manipulate3d/touchShiftCtrlAltMove1Action", static_cast<int>(MA::None)};
   setting[touchNoneMove2Action]=        {"mainwindow/manipulate3d/touchNoneMove2Action", static_cast<int>(MA::Translate)};
   setting[touchShiftMove2Action]=       {"mainwindow/manipulate3d/touchShiftMove2Action", static_cast<int>(MA::None)};
-  setting[touchCtrlMove2Action]=        {"mainwindow/manipulate3d/touchCtrlMove2Action", static_cast<int>(MA::None)};
+  setting[touchCtrlMove2Action]=        {"mainwindow/manipulate3d/touchCtrlMove2Action", static_cast<int>(MA::CurserSz)};//mfmf not working
   setting[touchAltMove2Action]=         {"mainwindow/manipulate3d/touchAltMove2Action", static_cast<int>(MA::None)};
   setting[touchShiftCtrlMove2Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove2Action", static_cast<int>(MA::None)};
   setting[touchShiftAltMove2Action]=    {"mainwindow/manipulate3d/touchShiftAltMove2Action", static_cast<int>(MA::None)};
@@ -467,8 +467,8 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[zoomFacPerAngle]={"mainwindow/manipulate3d/zoomFacPerAngle", 1.005};
   setting[rotAnglePerPixel]={"mainwindow/manipulate3d/rotAnglePerPixel", 0.2};
   setting[relCursorZPerWheel]={"mainwindow/manipulate3d/relCursorZPerWheel", 0.01};
-  setting[relCursorZPerPixel]={"mainwindow/manipulate3d/relCursorZPerPixel", 1.0/500};
-  setting[pixelPerFrame]={"mainwindow/manipulate3d/pixelPerFrame", 5};
+  setting[relCursorZPerPixel]={"mainwindow/manipulate3d/relCursorZPerPixel", 0.00005};
+  setting[pixelPerFrame]={"mainwindow/manipulate3d/pixelPerFrame", 2};
   setting[pickObjectRadius]={"mainwindow/manipulate3d/pickObjectRadius", 3.0};
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
 
@@ -604,11 +604,19 @@ ColorSetting::ColorSetting(QGridLayout *layout, AppSettings::AS key, const QIcon
   colorDialog->setWindowTitle("Select Color: "+name);
   colorDialog->setOption(QColorDialog::NoButtons);
   colorDialog->setCurrentColor(appSettings->get<QColor>(key));
-  connect(colorDialog, &QColorDialog::currentColorChanged, [key, set](const QColor& color){
+  auto *showDL=new QPushButton("Color...");
+  connect(colorDialog, &QColorDialog::currentColorChanged, [key, set, showDL](const QColor& color){
     appSettings->set(key, color);
     if(set) set(color);
+    QPixmap pixmap(100,100);
+    pixmap.fill(appSettings->get<QColor>(key));
+    QIcon colorIcon(pixmap);
+    showDL->setIcon(colorIcon);
   });
-  auto *showDL=new QPushButton("Color...");
+  QPixmap pixmap(100,100);
+  pixmap.fill(appSettings->get<QColor>(key));
+  QIcon colorIcon(pixmap);
+  showDL->setIcon(colorIcon);
   connect(showDL, &QPushButton::clicked, this, [colorDialog](){ colorDialog->show(); });
   layout->addWidget(showDL, row, 2);
 }
@@ -867,17 +875,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   #define MOUSEWHEEL(mod) \
     new ChoiceSetting(mouseWheel, AppSettings::mouse##mod##WheelAction, Utils::QIconCached("mouse.svg"), \
         (string(#mod)+":").c_str(), { \
-        {"No"            , "No action."}, \
-        {"Change frame"  , "Change the frame number."}, \
-        {"Zoom"          , "Zoom in/out."}, \
-        {"Focal distance", "Change the camera focal distance."}, \
-        {"Cursor S_z"    , "Change the cursor screen z position."}, \
-        {"Rotate S_z"    , "Rotate about the screen z axis."}, \
-        {"<N/A>"         , "Not available."}, \
-        {"<N/A>"         , "Not available."}, \
-        {"<N/A>"         , "Not available."}, \
-        {"<N/A>"         , "Not available."}, \
-        {"<N/A>"         , "Not available."}, \
+        {"No"          , "No action."}, \
+        {"Change frame", "Change the frame number."}, \
+        {"Zoom"        , "Zoom in/out."}, \
+        {"<N/A>"       , "Not available."}, \
+        {"Cursor S_z"  , "Change the cursor screen z position."}, \
+        {"Rotate S_z"  , "Rotate about the screen z axis."}, \
+        {"<N/A>"       , "Not available."}, \
+        {"<N/A>"       , "Not available."}, \
+        {"<N/A>"       , "Not available."}, \
+        {"<N/A>"       , "Not available."}, \
+        {"<N/A>"       , "Not available."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouseWheelAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
