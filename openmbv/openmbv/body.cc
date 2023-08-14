@@ -209,7 +209,7 @@ void Body::resetAnimRange(int numOfRows, double dt) {
         msg(Warn)<<str.toStdString()<<endl;
       }
     }
-    if(MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles) {
+    if(dt!=0 && (MainWindow::getInstance()->getDeltaTime()!=dt || !existFiles)) {
       MainWindow::getInstance()->getDeltaTime()=dt;
       if(existFiles) {
         QString str("dt in HDF5 datas are not the same!");

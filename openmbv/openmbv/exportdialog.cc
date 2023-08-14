@@ -119,7 +119,9 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
                "  <li>The absolute path of the output video file can be accessed using %O\n"
                "  <li>The bit-rate (in unit Bits per second) can be accessed using %B\n"
                "  <li>The frame-rate (a floating point number) can be accessed using %F"
-               "</ul>");
+               "</ul>"
+               "<p>(if using ffmpeg '-c:v libvpx-vp9' (file extension *.webm) is a good codec for web pages and "
+               "'-c:v libx264' (file extension *.mp4) is a good codec for MS-Powerpoint)</p>");
     videoCmdL.setText("Video Command");
     videoCmdL.setToolTip(tt);
     row++;
