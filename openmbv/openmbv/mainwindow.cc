@@ -365,7 +365,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
 
   // scene view menu
-  auto *sceneViewMenu=new QMenu("Scene View", menuBar());
+  sceneViewMenu=new QMenu("Scene View", menuBar());
   QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
   QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
@@ -419,7 +419,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   sceneViewMenu->addSeparator();
   QAction *cameraAct=sceneViewMenu->addAction(Utils::QIconCached("camera.svg"),"Toggle camera type", this, &MainWindow::toggleCameraTypeSlot, QKeySequence("C"));
   addAction(cameraAct); // must work also if menu bar is invisible
-  sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
+  auto *releaseCamera=sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
+  releaseCamera->setObjectName("MainWindow::sceneViewMenu::releaseCamera");
   sceneViewMenu->addSeparator();
   engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, &MainWindow::toggleEngDrawingViewSlot);
   engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
@@ -454,36 +455,31 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   menuBar()->addMenu(dockMenu);
 
   // file toolbar
-  auto *fileTB=new QToolBar("FileToolBar", this);
+  auto *fileTB=new QToolBar("File Toolbar", this);
   fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
-  auto *viewTB=new QToolBar("ViewToolBar", this);
-  viewTB->setObjectName("MainWindow::viewTB");
-  addToolBar(Qt::TopToolBarArea, viewTB);
-  viewTBActions.emplace_back(viewAllAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(topViewAct);
-  viewTBActions.emplace_back(bottomViewAct);
-  viewTBActions.emplace_back(frontViewAct);
-  viewTBActions.emplace_back(backViewAct);
-  viewTBActions.emplace_back(rightViewAct);
-  viewTBActions.emplace_back(leftViewAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(isometriViewAct);
-  viewTBActions.emplace_back(dimetricViewAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(cameraAct);
-  for(auto *a : viewTBActions)
-    if(a)
-      viewTB->addAction(a);
-    else
-      viewTB->addSeparator();
+  sceneViewToolBar=new QToolBar("Scene View Toolbar", this);
+  sceneViewToolBar->setObjectName("MainWindow::viewTB");
+  addToolBar(Qt::TopToolBarArea, sceneViewToolBar);
+  sceneViewToolBar->addAction(viewAllAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(topViewAct);
+  sceneViewToolBar->addAction(bottomViewAct);
+  sceneViewToolBar->addAction(frontViewAct);
+  sceneViewToolBar->addAction(backViewAct);
+  sceneViewToolBar->addAction(rightViewAct);
+  sceneViewToolBar->addAction(leftViewAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(isometriViewAct);
+  sceneViewToolBar->addAction(dimetricViewAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(cameraAct);
 
   // animation toolbar
-  auto *animationTB=new QToolBar("AnimationToolBar", this);
+  auto *animationTB=new QToolBar("Animation Toolbar", this);
   animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
@@ -576,7 +572,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // tool menu
   auto *toolMenu=new QMenu("Tools", menuBar());
   toolMenu->addAction(fileTB->toggleViewAction());
-  toolMenu->addAction(viewTB->toggleViewAction());
+  toolMenu->addAction(sceneViewToolBar->toggleViewAction());
   toolMenu->addAction(animationTB->toggleViewAction());
   menuBar()->addMenu(toolMenu);
 
@@ -647,7 +643,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     objectListDW->close();
     objectInfoDW->close();
     fileTB->close();
-    viewTB->close();
+    sceneViewToolBar->close();
     animationTB->close();
     menuBar()->setVisible(false);
     statusBar()->setVisible(false);
