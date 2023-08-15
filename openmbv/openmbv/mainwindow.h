@@ -125,6 +125,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
     int hdf5RefreshDelta;
+    std::vector<QAction*> viewTBActions;
   protected:
     void objectListClicked();
     void openFileDialog();
@@ -270,6 +271,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QTreeWidget* getObjectList() { return objectList; }
 
     std::set<void*> waitFor;
+
+    const std::vector<QAction*>& getViewTBActions() const { return viewTBActions; }
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.

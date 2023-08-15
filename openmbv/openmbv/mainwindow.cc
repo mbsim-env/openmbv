@@ -463,19 +463,24 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   auto *viewTB=new QToolBar("ViewToolBar", this);
   viewTB->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, viewTB);
-  viewTB->addAction(viewAllAct);
-  viewTB->addSeparator();
-  viewTB->addAction(topViewAct);
-  viewTB->addAction(bottomViewAct);
-  viewTB->addAction(frontViewAct);
-  viewTB->addAction(backViewAct);
-  viewTB->addAction(rightViewAct);
-  viewTB->addAction(leftViewAct);
-  viewTB->addSeparator();
-  viewTB->addAction(isometriViewAct);
-  viewTB->addAction(dimetricViewAct);
-  viewTB->addSeparator();
-  viewTB->addAction(cameraAct);
+  viewTBActions.emplace_back(viewAllAct);
+  viewTBActions.emplace_back(nullptr);
+  viewTBActions.emplace_back(topViewAct);
+  viewTBActions.emplace_back(bottomViewAct);
+  viewTBActions.emplace_back(frontViewAct);
+  viewTBActions.emplace_back(backViewAct);
+  viewTBActions.emplace_back(rightViewAct);
+  viewTBActions.emplace_back(leftViewAct);
+  viewTBActions.emplace_back(nullptr);
+  viewTBActions.emplace_back(isometriViewAct);
+  viewTBActions.emplace_back(dimetricViewAct);
+  viewTBActions.emplace_back(nullptr);
+  viewTBActions.emplace_back(cameraAct);
+  for(auto *a : viewTBActions)
+    if(a)
+      viewTB->addAction(a);
+    else
+      viewTB->addSeparator();
 
   // animation toolbar
   auto *animationTB=new QToolBar("AnimationToolBar", this);
