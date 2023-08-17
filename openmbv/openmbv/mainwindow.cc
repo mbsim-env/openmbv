@@ -38,6 +38,7 @@
 #include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QColorDialog>
+#include <QtWidgets/QProgressDialog>
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QTemporaryDir>
 #include <QShortcut>
@@ -136,6 +137,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   shortAniTimer->setInterval(1000/25);
   shortAniElapsed=std::make_unique<QElapsedTimer>();
   connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
+
+  offScreenRenderer=new SoOffscreenRenderer(SbViewportRegion(10, 10));
 
   // main widget
   auto *mainWG=new QWidget(this);
@@ -878,6 +881,7 @@ MainWindow::~MainWindow() {
   bboxDrawStyle->unref();
   highlightColor->unref();
   highlightDrawStyle->unref();
+  delete offScreenRenderer;
   delete fpsTime;
   delete time;
   delete glViewer;
@@ -1319,12 +1323,11 @@ void MainWindow::speedWheelReleased() {
 }
 
 void MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
-  SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
-  myRenderer.setViewportRegion(SbViewportRegion(width, height));
+  offScreenRenderer->setViewportRegion(SbViewportRegion(width, height));
   if(transparent)
-    myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
+    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
   else
-    myRenderer.setComponents(SoOffscreenRenderer::RGB);
+    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB);
 
   // root separator for export
   auto *root=new SoSeparator;
@@ -1363,7 +1366,7 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   // (the double rendering does not lead to permormance problems)
   glViewer->redraw();
   // render offscreen
-  SbBool ok=myRenderer.render(root);
+  SbBool ok=offScreenRenderer->render(root);
   if(!ok) {
     QMessageBox::warning(this, "PNG export warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
     root->unref();
@@ -1381,10 +1384,10 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
     for(int x=0; x<width; x++) {
       int i=(y*width+x)* (transparent?4:3);
       int o=((height-y-1)*width+x)*4;
-      buf[o+0]=myRenderer.getBuffer()[i+2]; // blue
-      buf[o+1]=myRenderer.getBuffer()[i+1]; // green
-      buf[o+2]=myRenderer.getBuffer()[i+0]; // red
-      buf[o+3]=(transparent?myRenderer.getBuffer()[i+3]:255); // alpha
+      buf[o+0]=offScreenRenderer->getBuffer()[i+2]; // blue
+      buf[o+1]=offScreenRenderer->getBuffer()[i+1]; // green
+      buf[o+2]=offScreenRenderer->getBuffer()[i+0]; // red
+      buf[o+3]=(transparent?offScreenRenderer->getBuffer()[i+3]:255); // alpha
     }
   QImage image(buf, width, height, QImage::Format_ARGB32);
   image.save(fileName.c_str(), "png");
@@ -1444,7 +1447,14 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
   glViewer->font->size.setValue(glViewer->font->size.getValue()*scale);
+
+  QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
+  progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
+  progress.setWindowModality(Qt::WindowModal);
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
+    progress.setValue(videoFrame);
+    if(progress.wasCanceled())
+      break;
     QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
     str=str.arg(QFileInfo(pngBaseName).absoluteFilePath()).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
@@ -1452,6 +1462,9 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     frame->setValue(frame_);
     exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
+  if(progress.wasCanceled())
+    return;
+  progress.setValue(lastVideoFrame);
   glViewer->font->size.setValue(glViewer->font->size.getValue()/scale);
   if(video) {
     QString str("Encoding video file to %1, please wait!");
