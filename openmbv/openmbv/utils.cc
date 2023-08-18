@@ -375,6 +375,8 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[rotAnglePerPixel]={"mainwindow/manipulate3d/rotAnglePerPixel", 0.2};
   setting[pickObjectRadius]={"mainwindow/manipulate3d/pickObjectRadius", 3.0};
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
+  setting[filterType]={"mainwindow/filter/type", 0};
+  setting[filterCaseSensitivity]={"mainwindow/filter/casesensitivity", 0};
 
   for(auto &[str, value]: setting)
     if(qSettings.contains(str))

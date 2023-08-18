@@ -25,41 +25,123 @@
 #include <QTreeView>
 #include <QListView>
 #include <QTableView>
+#include <QMenu>
 #include <utility>
 
 using namespace std;
 
 namespace OpenMBVGUI {
 
+AbstractViewFilter::FilterType AbstractViewFilter::filterType = AbstractViewFilter::FilterType::RegEx;
+bool AbstractViewFilter::caseSensitive = false;
+
+void AbstractViewFilter::setFilterType(FilterType filtertype_) {
+  filterType=filtertype_;
+  staticObject()->optionsChanged();
+}
+
+void AbstractViewFilter::setCaseSensitive(bool cs) {
+  caseSensitive=cs;
+  staticObject()->optionsChanged();
+}
+
+StaticObject* AbstractViewFilter::staticObject() {
+  static auto *so=new StaticObject;
+  return so;
+}
+
 AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, QString typePrefix_,
                                        std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
   QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(std::move(typePrefix_)), indexToQObject(std::move(indexToQObject_)),
   enableRole(enableRole_) {
+  connect(staticObject(), &StaticObject::optionsChanged, [this](){
+    updateTooltip();
+    applyFilter();
+  });
 
   auto *layout=new QGridLayout(this);
   layout->setContentsMargins(0,0,0,0);
   setLayout(layout);
-  auto *filterL=new QLabel("Filter:");
-  if(typeCol==-2) {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).").arg(nameCol+1));
-    filterL->setStatusTip("Filter name column by <regex>.");
-  }
-  else if(typeCol==-1) {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).\n"
-                           "Or on the type by :<type> or on a derived type by ::<type>.").arg(nameCol+1));
-    filterL->setStatusTip("Filter name column by <regex>, or by type :<type>, or by derived type ::<type>");
-  }
-  else {
-    filterL->setToolTip(tr("Filter the view, by applying the given regular expression on the item names (column %1).\n"
-                           "Or on the item type (column %2) if the filter starts with ':'.").arg(nameCol+1).arg(typeCol+1));
-    filterL->setStatusTip("Filter name column by <regex>, or type column by :<regex>");
-  }
-  layout->addWidget(filterL, 0, 0);
+  layout->addWidget(new QLabel("Filter:"), 0, 0);
   filterLE=new QLineEdit;
-  filterLE->setToolTip(filterL->toolTip());
-  filterLE->setStatusTip(filterL->statusTip());
+  updateTooltip();
+  filterLE->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(filterLE, &QAbstractScrollArea::customContextMenuRequested, [this](const QPoint &pt){
+    auto *menu = filterLE->createStandardContextMenu();
+
+    menu->addSeparator()->setText(tr("Filter type"));
+    auto *filterTypeGroup = new QActionGroup(menu);
+    auto *regexAction=new QAction("Regular expression filter", filterTypeGroup);
+    regexAction->setCheckable(true);
+    connect(regexAction, &QAction::triggered, [](){ setFilterType(FilterType::RegEx); });
+    filterTypeGroup->addAction(regexAction);
+    auto *globAction=new QAction("Glob pattern filter", filterTypeGroup);
+    globAction->setCheckable(true);
+    connect(globAction, &QAction::triggered, [](){ setFilterType(FilterType::Glob); });
+    filterTypeGroup->addAction(globAction);
+    if(filterType==FilterType::RegEx)
+      regexAction->setChecked(true);
+    else
+      globAction->setChecked(true);
+    menu->addAction(regexAction);
+    menu->addAction(globAction);
+
+    menu->addSeparator()->setText(tr("Case sensitivity"));
+    auto *caseGroup = new QActionGroup(menu);
+    auto *caseSensAction=new QAction("Case sensitive filter", caseGroup);
+    caseSensAction->setCheckable(true);
+    connect(caseSensAction, &QAction::triggered, [](){ setCaseSensitive(true); });
+    caseGroup->addAction(caseSensAction);
+    auto *caseInsensAction=new QAction("Case insensitive filter", caseGroup);
+    caseInsensAction->setCheckable(true);
+    connect(caseInsensAction, &QAction::triggered, [](){ setCaseSensitive(false); });
+    caseGroup->addAction(caseInsensAction);
+    if(caseSensitive)
+      caseSensAction->setChecked(true);
+    else
+      caseInsensAction->setChecked(true);
+    menu->addAction(caseSensAction);
+    menu->addAction(caseInsensAction);
+
+    menu->exec(filterLE->mapToGlobal(pt));
+    delete menu;
+  });
   layout->addWidget(filterLE, 0, 1);
   connect(filterLE, &QLineEdit::textEdited, this, &AbstractViewFilter::applyFilter);
+  connect(view->model(), &QAbstractItemModel::dataChanged, [this](const QModelIndex &topLeft, const QModelIndex &bottomRight){
+    if(filterLE->text().isEmpty())
+      return;
+    setColor(topLeft);
+  });
+}
+
+void AbstractViewFilter::updateTooltip() {
+  if(typeCol==-2) {
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
+                           "Case sensitivity: %2\n"
+                           "Filter type: %3").arg(nameCol+1)
+                                             .arg(caseSensitive?"case sensitive":"case insensitive")
+                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
+    filterLE->setStatusTip("Filter by name column.");
+  }
+  else if(typeCol==-1) {
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
+                           "Or on the type by :<filter> or on a derived type by ::<filter>.\n"
+                           "Case sensitivity: %2\n"
+                           "Filter type: %3").arg(nameCol+1)
+                                             .arg(caseSensitive?"case sensitive":"case insensitive")
+                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
+    filterLE->setStatusTip("Filter by name column, or by type :<filter>, or by derived type ::<filter>");
+  }
+  else {
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
+                           "Or on the item type (column %2) if the filter starts with ':'.\n"
+                           "Case sensitivity: %3\n"
+                           "Filter type: %4").arg(nameCol+1).arg(typeCol+1)
+                                             .arg(caseSensitive?"case sensitive":"case insensitive")
+                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
+    filterLE->setStatusTip("Filter by name column, or by type column (if the filter starts with '.')");
+  }
 }
 
 void AbstractViewFilter::setFilter(const QString &filter) {
@@ -76,22 +158,32 @@ void AbstractViewFilter::applyFilter() {
     return;
   oldFilterValue=filterLE->text();
 
-  QRegExp filter(filterLE->text());
+  QRegularExpression filter;
+  switch(filterType) {
+    case FilterType::RegEx:
+      filter.setPattern(filterLE->text());
+      break;
+    case FilterType::Glob:
+      auto glob=QRegularExpression::wildcardToRegularExpression(filterLE->text());
+      filter.setPattern(glob.mid(2,glob.count()-4));
+      break;
+  }
+  filter.setPatternOptions(!caseSensitive ? QRegularExpression::CaseInsensitiveOption : QRegularExpression::NoPatternOption);
+  // clear match
+  match.clear();
   // updateMatch will fill the variable match
   updateMatch(view->rootIndex(), filter);
   updateView(view->rootIndex());
-  // clear match (no longer requried)
-  match.clear();
 }
 
-void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &filter) {
+void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegularExpression &filter) {
   // do not update the root index
   if(index!=view->rootIndex()) {
     Match &m=match[index];
     // check for matching items
     if(typeCol==-2) {
       // regex search on string on column nameCol
-      if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
+      if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
         m.me=true;
     }
     else if(typeCol==-1) {
@@ -110,19 +202,19 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
         }
       }
       else { // not starting with : or :: => regex search on the string of column nameCol
-        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
+        if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
           m.me=true;
       }
     }
     else {
       if(filter.pattern().startsWith(":")) { // starting with : => direct type search
         const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-        QRegExp filter2(filter.pattern().mid(1));
-        if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
+        QRegularExpression filter2(filter.pattern().mid(1));
+        if(filter2.match(view->model()->data(colIndex, Qt::DisplayRole).value<QString>()).hasMatch())
           m.me=true;
       }
       else { // not starting with : => regex search on the string of column nameCol
-        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
+        if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
           m.me=true;
       }
     }
@@ -164,23 +256,7 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
     if(setRowHidden2(qobject_cast<QListView*>(view), m, index)) return;
     if(setRowHidden2(qobject_cast<QTableView*>(view), m, index)) return;
     // set the color of the column nameCol
-    bool normalColor=true;
-    if(!view->model()->flags(index).testFlag(Qt::ItemIsEnabled) ||
-       (view->model()->data(index, enableRole).type()==QVariant::Bool && !view->model()->data(index, enableRole).toBool()))
-      normalColor=false;
-    QPalette palette;
-    if(m.me) {
-      if(normalColor)
-        view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
-      else
-        view->model()->setData(index, palette.brush(QPalette::Disabled, QPalette::Text), Qt::ForegroundRole);
-    }
-    else {
-      if(normalColor)
-        view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
-      else
-        view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
-    }
+    setColor(index);
     // set expanded
     auto *tree=qobject_cast<QTreeView*>(view);
     if(tree)
@@ -189,6 +265,27 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
   // recursively walk the view
   for(int i=0; i<view->model()->rowCount(index); i++)
     updateView(view->model()->index(i, nameCol, index));
+}
+
+void AbstractViewFilter::setColor(const QModelIndex &index) {
+  Match &m=match[index];
+  bool normalColor=true;
+  if(!view->model()->flags(index).testFlag(Qt::ItemIsEnabled) ||
+     (view->model()->data(index, enableRole).type()==QVariant::Bool && !view->model()->data(index, enableRole).toBool()))
+    normalColor=false;
+  QPalette palette;
+  if(m.me) {
+    if(normalColor)
+      view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
+    else
+      view->model()->setData(index, palette.brush(QPalette::Disabled, QPalette::Text), Qt::ForegroundRole);
+  }
+  else {
+    if(normalColor)
+      view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
+    else
+      view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
+  }
 }
 
 }

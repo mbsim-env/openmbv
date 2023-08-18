@@ -242,6 +242,14 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   timeSlider->setTotalRange(0, 0);
   connect(timeSlider, &QTripleSlider::sliderMoved, this, &MainWindow::updateFrame);
 
+  // filter settings
+  AbstractViewFilter::setFilterType(static_cast<AbstractViewFilter::FilterType>(appSettings->get<int>(AppSettings::filterType)));
+  AbstractViewFilter::setCaseSensitive(appSettings->get<bool>(AppSettings::filterCaseSensitivity));
+  connect(AbstractViewFilter::staticObject(), &StaticObject::optionsChanged, [](){
+    appSettings->set(AppSettings::filterType, static_cast<int>(AbstractViewFilter::getFilterType()));
+    appSettings->set(AppSettings::filterCaseSensitivity, AbstractViewFilter::getCaseSensitive());
+  });
+
   // object list dock widget
   auto *objectListDW=new QDockWidget(tr("Objects"),this);
   objectListDW->setObjectName("MainWindow::objectListDW");

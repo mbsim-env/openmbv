@@ -197,6 +197,8 @@ class AppSettings {
       rotAnglePerPixel,
       pickObjectRadius,
       inScreenRotateSwitch,
+      filterType,
+      filterCaseSensitivity,
       SIZE,
     };
     AppSettings();
