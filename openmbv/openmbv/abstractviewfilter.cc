@@ -158,17 +158,16 @@ void AbstractViewFilter::applyFilter() {
     return;
   oldFilterValue=filterLE->text();
 
-  QRegularExpression filter;
+  QRegExp filter(filterLE->text());
   switch(filterType) {
     case FilterType::RegEx:
-      filter.setPattern(filterLE->text());
+      filter.setPatternSyntax(QRegExp::RegExp);
       break;
     case FilterType::Glob:
-      auto glob=QRegularExpression::wildcardToRegularExpression(filterLE->text());
-      filter.setPattern(glob.mid(2,glob.count()-4));
+      filter.setPatternSyntax(QRegExp::Wildcard);
       break;
   }
-  filter.setPatternOptions(!caseSensitive ? QRegularExpression::CaseInsensitiveOption : QRegularExpression::NoPatternOption);
+  filter.setCaseSensitivity(!caseSensitive ? Qt::CaseInsensitive : Qt::CaseSensitive);
   // clear match
   match.clear();
   // updateMatch will fill the variable match
@@ -176,14 +175,14 @@ void AbstractViewFilter::applyFilter() {
   updateView(view->rootIndex());
 }
 
-void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegularExpression &filter) {
+void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &filter) {
   // do not update the root index
   if(index!=view->rootIndex()) {
     Match &m=match[index];
     // check for matching items
     if(typeCol==-2) {
       // regex search on string on column nameCol
-      if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
+      if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
         m.me=true;
     }
     else if(typeCol==-1) {
@@ -202,19 +201,19 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegularExp
         }
       }
       else { // not starting with : or :: => regex search on the string of column nameCol
-        if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
+        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
     }
     else {
       if(filter.pattern().startsWith(":")) { // starting with : => direct type search
         const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-        QRegularExpression filter2(filter.pattern().mid(1));
-        if(filter2.match(view->model()->data(colIndex, Qt::DisplayRole).value<QString>()).hasMatch())
+        QRegExp filter2(filter.pattern().mid(1));
+        if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
       else { // not starting with : => regex search on the string of column nameCol
-        if(filter.match(view->model()->data(index, Qt::DisplayRole).value<QString>()).hasMatch())
+        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
     }

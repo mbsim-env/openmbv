@@ -82,7 +82,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     void setColor(const QModelIndex &index);
 
     // update the match varaible
-    void updateMatch(const QModelIndex &index, const QRegularExpression &filter);
+    void updateMatch(const QModelIndex &index, const QRegExp &filter);
     void setChildMatchOfParent(const QModelIndex &index);
     void setParentMatchOfChild(const QModelIndex &index);
 
