@@ -45,8 +45,8 @@ void AbstractViewFilter::setCaseSensitive(bool cs) {
   staticObject()->optionsChanged();
 }
 
-StaticObject* AbstractViewFilter::staticObject() {
-  static auto *so=new StaticObject;
+AbstractViewFilterStatic* AbstractViewFilter::staticObject() {
+  static auto *so=new AbstractViewFilterStatic;
   return so;
 }
 
@@ -54,7 +54,7 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
                                        std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
   QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(std::move(typePrefix_)), indexToQObject(std::move(indexToQObject_)),
   enableRole(enableRole_) {
-  connect(staticObject(), &StaticObject::optionsChanged, [this](){
+  connect(staticObject(), &AbstractViewFilterStatic::optionsChanged, [this](){
     updateTooltip();
     applyFilter();
   });

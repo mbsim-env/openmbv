@@ -245,7 +245,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // filter settings
   AbstractViewFilter::setFilterType(static_cast<AbstractViewFilter::FilterType>(appSettings->get<int>(AppSettings::filterType)));
   AbstractViewFilter::setCaseSensitive(appSettings->get<bool>(AppSettings::filterCaseSensitivity));
-  connect(AbstractViewFilter::staticObject(), &StaticObject::optionsChanged, [](){
+  connect(AbstractViewFilter::staticObject(), &AbstractViewFilterStatic::optionsChanged, [](){
     appSettings->set(AppSettings::filterType, static_cast<int>(AbstractViewFilter::getFilterType()));
     appSettings->set(AppSettings::filterCaseSensitivity, AbstractViewFilter::getCaseSensitive());
   });

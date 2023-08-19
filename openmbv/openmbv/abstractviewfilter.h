@@ -36,7 +36,7 @@
 
 namespace OpenMBVGUI {
 
-class StaticObject : public QObject {
+class DLL_PUBLIC AbstractViewFilterStatic : public QObject {
   Q_OBJECT
   Q_SIGNALS:
     void optionsChanged();
@@ -75,7 +75,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     static void setCaseSensitive(bool cs);
     static FilterType getFilterType() { return filterType; }
     static bool getCaseSensitive() { return caseSensitive; }
-    static StaticObject* staticObject();
+    static AbstractViewFilterStatic* staticObject();
 
   protected:
     void updateTooltip();
