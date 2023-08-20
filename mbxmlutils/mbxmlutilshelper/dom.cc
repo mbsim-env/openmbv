@@ -985,7 +985,13 @@ void DOMParser::handleCDATA(DOMElement *e) {
     if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
       DOMText *replace=static_cast<DOMText*>(e->insertBefore(e->getOwnerDocument()->createTextNode(X()%""), c));
       string data;
-      while(c && (c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE)) {
+      while(c && (c->getNodeType()==DOMNode::TEXT_NODE ||
+                  c->getNodeType()==DOMNode::CDATA_SECTION_NODE ||
+                  c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE)) {
+        if(c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE) {
+          c=c->getNextSibling();
+          continue;
+        }
         data+=X()%static_cast<DOMText*>(c)->getData();
         DOMNode *del=c;
         c=c->getNextSibling();

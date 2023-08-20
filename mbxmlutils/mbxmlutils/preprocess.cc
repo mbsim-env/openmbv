@@ -95,6 +95,11 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
       int pos=++(*position)[E(enew)->getTagName()];
       thisXPath="{"+E(enew)->getTagName().first+"}"+E(enew)->getTagName().second+"["+fmatvec::toString(pos)+"]";
+
+      // check for direct successive Embed elements
+      if(E(enew)->getTagName()==PV%"Embed")
+        eval->msg(Deprecated)<<"Direct successive pv:Embed elements are not allowed: "<<
+          string(parentXPath).append("/").append(thisXPath)<<endl;
     
       // include a processing instruction with the line number of the original element
       E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());

@@ -205,11 +205,12 @@
   &lt;vectorParameter name="a"&gt;[1;2;3]*N&lt;/vectorParameter&gt;
   &lt;scalarParameter name="lO"&gt;0.2*N&lt;/scalarParameter&gt;
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/matrixParameter&gt;
-&lt;anyAarameter name="p"&gt;{'test', 4, 6.0}&lt;/anyParameter&gt;
+  &lt;anyAarameter name="p"&gt;{'test', 4, 6.0}&lt;/anyParameter&gt;
+  &lt;import&gt;'/home/user/octaveScripts'&lt;/import&gt;
 &lt;/Parameter&gt;
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
-    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave.</p>
+    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute: it imports submodules, adds to the search path or something else.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
     <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. Hence this section covers mainly the octave expression evaluator, but all other evaluators are similar.</p>

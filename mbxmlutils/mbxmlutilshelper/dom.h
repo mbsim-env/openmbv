@@ -497,6 +497,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! create a empty document
     std::shared_ptr<xercesc::DOMDocument> createDocument();
     //! handle CDATA sections
+    //! Combine sucessive text nodes and CDATA sections even across processing instructions.
     static void handleCDATA(xercesc::DOMElement *e);
   private:
     static const std::string domParserKey;
