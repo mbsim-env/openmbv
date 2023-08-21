@@ -98,7 +98,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
 
       // check for direct successive Embed elements
       if(E(enew)->getTagName()==PV%"Embed")
-        eval->msg(Deprecated)<<"Direct successive pv:Embed elements are not allowed: "<<
+        eval->msg(Deprecated)<<"Direct successive pv:Embed elements are deprecated: "<<
           string(parentXPath).append("/").append(thisXPath)<<endl;
     
       // include a processing instruction with the line number of the original element
