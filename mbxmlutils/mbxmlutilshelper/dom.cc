@@ -606,6 +606,9 @@ template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser(
 template<typename DOMDocumentType>
 path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   string uri=X()%me->getDocumentURI();
+  // handle in-memory-files
+  if(uri.empty())
+    return {};
   // handle (the original xerces) schema for local files
   static const string fileScheme="file://";
   if(uri.substr(0, fileScheme.length())==fileScheme) {
@@ -1054,10 +1057,12 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
-    auto &l=ex.locationStack.front();
-    EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
-                          l.getEmbedCount(), l.getRootXPathExpression());
-    ex.locationStack.front()=exNew;
+    if(!ex.locationStack.empty()) {
+      auto &l=ex.locationStack.front();
+      EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                            l.getEmbedCount(), l.getRootXPathExpression());
+      ex.locationStack.front()=exNew;
+    }
     throw ex;
   }
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
