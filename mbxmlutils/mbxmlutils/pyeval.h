@@ -25,7 +25,7 @@ class PyEval : public Eval {
   protected:
     Value createFunctionIndep(int dim) const override;
     Value callFunction(const std::string &name, const std::vector<Value>& args) const override;
-    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
+    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const override;
   private:
     double                           cast_double                (const Value &value) const override;
     std::vector<double>              cast_vector_double         (const Value &value) const override;

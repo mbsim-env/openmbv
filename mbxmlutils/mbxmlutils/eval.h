@@ -136,6 +136,10 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! The result of a "partially" evaluation is returned as a string even so it is not really a string.
     Value eval(const xercesc::DOMAttr *a);
 
+    //! Evaluate str using the current parameters.
+    //! if skipRet=true then str is not required to return anything, a empty Value will be returned in this case.
+    Value eval(const std::string &str, const xercesc::DOMElement *e=nullptr, bool skipRet=false);
+
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
      * following table. If a combination is not allowed a exception is thrown.
@@ -282,7 +286,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
     //! evaluate the string str using the current parameters and return the result.
-    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const=0;
+    virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const=0;
 
     //! evaluate str partially and return result as an std::string
     std::string partialStringToString(const std::string &str, const xercesc::DOMElement *e) const;

@@ -67,7 +67,7 @@ class OctEval : public Eval {
     Value createFunctionIndep(int dim) const override;
 
     //! evaluate str fully and return result as an octave variable
-    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e) const override;
+    Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const override;
 
     static octave_value_list fevalThrow(octave_function *func, const octave_value_list &arg, int n=0,
                                         const std::string &msg=std::string());

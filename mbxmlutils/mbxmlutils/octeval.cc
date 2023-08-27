@@ -507,7 +507,7 @@ void OctEval::addImport(const string &code, const DOMElement *e) {
   } RETHROW_AS_DOMEVALEXCEPTION(e)
 }
 
-Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) const {
+Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e, bool skipRet) const {
   // check some common string to avoid time consiming evaluation
   // check true and false
   if(str=="true") return make_shared<octave_value>(1);
@@ -637,13 +637,19 @@ Eval::Value OctEval::fullStringToValue(const string &str, const DOMElement *e) c
     strNoSpace[strNoSpace.size()-1]=='\n'))
     strNoSpace=strNoSpace.substr(0, strNoSpace.size()-1);
 #if OCTAVE_MAJOR_VERSION >= 5
-  if(!octInit.interpreter->is_variable("ret") && !octInit.interpreter->is_variable("ans") && !octInit.interpreter->is_variable(strNoSpace)) {
+  if(!octInit.interpreter->is_variable("ret") &&
+     !octInit.interpreter->is_variable("ans") &&
+     !octInit.interpreter->is_variable(strNoSpace)) {
 #else
-  if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret") && !octInit.interpreter->get_symbol_table().current_scope().is_variable("ans") && !octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace)) {
+  if(!octInit.interpreter->get_symbol_table().current_scope().is_variable("ret") &&
+     !octInit.interpreter->get_symbol_table().current_scope().is_variable("ans") &&
+     !octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace)) {
 #endif
     throw DOMEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
       str, e);
   }
+  if(skipRet)
+    return {};
   octave_value ret;
 #if OCTAVE_MAJOR_VERSION >= 5
   if(octInit.interpreter->is_variable(strNoSpace))
