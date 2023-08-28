@@ -4,10 +4,9 @@ set -e
 set -o pipefail
 
 export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
-@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py > testsymbolic.out
+# "script" is needed to avoid "Py_Initialize: can't initialize sys standard streams" when running with wine
+script -qec "@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py | tee testsymbolic.out" /dev/null
 RET=$?
-
-cat testsymbolic.out
 
 if [ @DEBUGBUILD@ -eq 1 ]; then
   echo "This is a debug build -> checking output"
