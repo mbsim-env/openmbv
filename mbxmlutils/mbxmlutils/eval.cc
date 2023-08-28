@@ -556,6 +556,10 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
   }
 }
 
+Eval::Value Eval::eval(const string &str, const DOMElement *e, bool skipRet) {
+  return fullStringToValue(str, e, skipRet);
+}
+
 Eval::Value Eval::handleUnit(const xercesc::DOMElement *e, const Value &ret) {
   string eqn;
   string unit=E(e)->getAttribute("unit");

@@ -87,6 +87,8 @@ PyInit::PyInit() {
     PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
     PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
     CALLPY(PyList_Append, path, mbxmlutilspath);
+    PyO binpath(CALLPY(PyUnicode_FromString, (Eval::installPath/"bin").string()));
+    CALLPY(PyList_Append, path, binpath);
 
     mbxmlutils=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "mbxmlutils"); });
 
@@ -198,11 +200,11 @@ namespace {
 
 void PyEval::addImport(const string &code, const DOMElement *e) {
   // python globals (fill with builtins)
-  PyO globals(CALLPY(PyDict_New));
-  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
+  PyO globalsLocals(CALLPY(PyDict_New));
+  CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
-    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
+    CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));
 
   // get current python sys.path
   auto getSysPath=[](){
@@ -220,7 +222,6 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     oldPath=getSysPath();
 
   // evaluate as statement with current path set
-  PyO locals(CALLPY(PyDict_New));
   {
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;
@@ -233,7 +234,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
-      CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
+      CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globalsLocals, globalsLocals, &flags);
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
@@ -242,7 +243,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
   }
 
   // get all locals and add to currentImport
-  CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), locals, true);
+  CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), globalsLocals, true);
 
   if(dependencies) {
     // get current python sys.path
@@ -342,7 +343,7 @@ Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) 
   return C(CALLPY(PyObject_CallObject, f.first->second, pyargs));
 }
 
-Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) const {
+Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bool skipRet) const {
   string strtrim=str;
   boost::trim(strtrim);
 
@@ -371,22 +372,21 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
   }
 
   // python globals (fill with builtins)
-  PyO globals(CALLPY(PyDict_New));
-  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
+  PyO globalsLocals(CALLPY(PyDict_New));
+  CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with imports)
-  CALLPY(PyDict_Merge, globals, *static_pointer_cast<PyO>(currentImport), true);
+  CALLPY(PyDict_Merge, globalsLocals, *static_pointer_cast<PyO>(currentImport), true);
   // python globals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
-    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
+    CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));
 
   PyO ret;
   PyCompilerFlags flags;
   flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
 
   // evaluate as expression (using the trimmed str) and save result in ret
-  PyO locals(CALLPY(PyDict_New));
   mbxmlutilsStaticDependencies.clear();
-  PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), locals.get(), &flags);
+  PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globalsLocals.get(), globalsLocals.get(), &flags);
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
     PythonException dummy("", 0);
@@ -395,7 +395,6 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
     addStaticDependencies(e);
   }
   else { // on failure ...
-    PyO locals(CALLPY(PyDict_New));
     try {
       // ... evaluate as statement
 
@@ -403,21 +402,25 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e) co
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
-      CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globals, locals, &flags);
+      CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globalsLocals, globalsLocals, &flags);
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
       throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str, e);
     }
-    try {
-      // get 'ret' variable from statement
-      ret=CALLPYB(PyDict_GetItemString, locals, "ret");
-    }
-    catch(const exception&) {
-      // 'ret' variable not found or invalid expression
-      throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+str, e);
+    if(!skipRet) {
+      try {
+        // get 'ret' variable from statement
+        ret=CALLPYB(PyDict_GetItemString, globalsLocals, "ret");
+      }
+      catch(const exception&) {
+        // 'ret' variable not found or invalid expression
+        throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+str, e);
+      }
     }
   }
+  if(skipRet)
+    return {};
   // convert a list or list of lists to a numpy array
   if(CALLPY(PyList_Check, ret)) {
     PyO args(CALLPY(PyTuple_New, 1));

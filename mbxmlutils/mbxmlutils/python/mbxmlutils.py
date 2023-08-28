@@ -345,3 +345,21 @@ def rgbColor(*argv):
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
   return numpy.array(colorsys.rgb_to_hsv(red, green, blue))
+
+
+
+# returns True if this function was called while a Qt-GUI was running (e.g. mbsimgui)
+def isGUI():
+  try:
+    import PyQt5.QtWidgets
+  except ModuleNotFoundError:
+    return False
+  else:
+    return PyQt5.QtWidgets.QApplication.instance() is not None
+
+
+
+# a simply dictionary on module level to store data.
+# the livetime of data is the livetime of the python evaluator.
+# This can be used to store any data and access it later on (but take care about memory usage when large data is stored)
+staticData=dict()
