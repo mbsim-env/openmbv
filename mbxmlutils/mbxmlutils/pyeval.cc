@@ -78,22 +78,25 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
+    // init python
     initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
 
+    // set sys.path
+    PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
+    // append mbxmlutils module to the python path (the basic Python module for the pyeval)
+    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
+    CALLPY(PyList_Append, sysPath, mbxmlutilspath);
+    // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
+    PyO binpath(CALLPY(PyUnicode_FromString, (Eval::installPath/"bin").string()));
+    CALLPY(PyList_Append, sysPath, binpath);
+    // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
+    PyO mbsimenvsitepackagespath(CALLPY(PyUnicode_FromString, (Eval::installPath.parent_path()/"mbsim-env-python-site-packages").string()));
+    CALLPY(PyList_Insert, sysPath, 0, mbsimenvsitepackagespath);
+
+    // init numpy
     CALLPY(_import_array);
 
     sympy=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "sympy"); });
-
-    PyO path(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
-    // add mbxmlutils module to the python path (the basic Python module for the pyeval)
-    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
-    CALLPY(PyList_Append, path, mbxmlutilspath);
-    // add the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
-    PyO binpath(CALLPY(PyUnicode_FromString, (Eval::installPath/"bin").string()));
-    CALLPY(PyList_Append, path, binpath);
-    // add the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-    PyO mbsimenvsitepackagespath(CALLPY(PyUnicode_FromString, (Eval::installPath.parent_path()/"mbsim-env-python-site-packages").string()));
-    CALLPY(PyList_Append, path, mbsimenvsitepackagespath);
 
     mbxmlutils=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "mbxmlutils"); });
 
