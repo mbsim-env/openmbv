@@ -79,6 +79,7 @@
 #include "utils.h"
 #include "touchtreewidget.h"
 #include <boost/dll.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 using namespace std;
 

@@ -363,7 +363,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   double d;
   char *end;
   d=strtod(strtrim.c_str(), &end);
-  if(end!=strtrim && string(end).empty()) {
+  if(string(end).empty()) {
     int i;
     if(tryDouble2Int(d, i))
       return C(CALLPY(PyLong_FromLong, i));
