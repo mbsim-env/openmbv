@@ -478,7 +478,7 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
   fillVars(tlvnBefore, tlvnAfter, ci->tlvn, [octIntPtr](auto && name) { return octIntPtr->top_level_varval(name); });
 #else
   auto gstPtr=&octInit.interpreter->get_symbol_table();
-  fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&symbol_table::varval                 , gstPtr   , placeholders::_1));
+  fillVars(vnBefore  , vnAfter  , ci->vn  , bind(&octave::symbol_table::varval                 , gstPtr   , std::placeholders::_1));
 #endif
 }
 
@@ -582,8 +582,8 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   restoreVars(ci->tlvn, [octIntPtr](auto && name, auto && value) { return octIntPtr->top_level_assign(name, value); });
 #else
   auto gstPtr=&octInit.interpreter->get_symbol_table();
-  using GstFuncType = void(symbol_table::*)(const std::string&, const octave_value &);
-  restoreVars(ci->vn  , bind<GstFuncType>(&symbol_table::assign    , gstPtr   , placeholders::_1, placeholders::_2));
+  using GstFuncType = void(octave::symbol_table::*)(const std::string&, const octave_value &);
+  restoreVars(ci->vn  , std::bind<GstFuncType>(&octave::symbol_table::assign    , gstPtr   , std::placeholders::_1, std::placeholders::_2));
 #endif
 
   std::ostringstream err;
@@ -596,7 +596,7 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
 #if OCTAVE_MAJOR_VERSION >= 5
     octInit.interpreter->eval_string(str, true, dummy, 0); // eval as statement list
 #else
-    eval_string(str, true, dummy, 0); // eval as statement list
+    octave::eval_string(str, true, dummy, 0); // eval as statement list
 #endif
     addStaticDependencies(e);
   }
