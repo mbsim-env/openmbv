@@ -725,5 +725,7 @@ extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
 
 // called from mbxmlutils.getOriginalFilename and returns the filename of the currently evaluated element
 extern "C" const char* mbxmlutilsPyEvalGetOriginalFilename() {
-  return originalFilename.string().c_str();
+  static string originalFilenameStr;
+  originalFilenameStr = originalFilename.string();
+  return originalFilenameStr.c_str();
 }
