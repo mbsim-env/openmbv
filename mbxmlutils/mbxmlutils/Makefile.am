@@ -64,7 +64,7 @@ endif
 registerPath_la_SOURCES = octave_registerPath.cc
 # octave getOriginalFilename
 getOriginalFilename_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(NOWARNING)
-getOriginalFilename_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
+getOriginalFilename_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 getOriginalFilename_la_LDFLAGS = -module -shrext .oct -avoid-version
 if !COND_WIN32
 getOriginalFilename_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
