@@ -63,6 +63,7 @@ ThisLineLocation loc;
 }
 
 vector<string> mbxmlutilsStaticDependencies;
+boost::filesystem::path originalFilename;
 
 namespace MBXMLUtils {
 

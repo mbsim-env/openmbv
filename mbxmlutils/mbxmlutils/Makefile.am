@@ -34,7 +34,7 @@ types.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
 lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la $(LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA)
-module_LTLIBRARIES = fmatvec_symbolic_swig_octave.la registerPath.la
+module_LTLIBRARIES = fmatvec_symbolic_swig_octave.la registerPath.la getOriginalFilename.la
 moduledir = $(runlibdir)
 
 # utility library
@@ -61,7 +61,15 @@ registerPath_la_LDFLAGS = -module -shrext .oct -avoid-version
 if !COND_WIN32
 registerPath_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
 endif
-registerPath_la_SOURCES = registerPath.cc
+registerPath_la_SOURCES = octave_registerPath.cc
+# octave getOriginalFilename
+getOriginalFilename_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(NOWARNING)
+getOriginalFilename_la_LIBADD = $(MKOCTFILE_LIBS) libmbxmlutils.la
+getOriginalFilename_la_LDFLAGS = -module -shrext .oct -avoid-version
+if !COND_WIN32
+getOriginalFilename_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
+endif
+getOriginalFilename_la_SOURCES = octave_getOriginalFilename.cc
 
 # xmlflat dummy evaluator
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
@@ -110,10 +118,10 @@ CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_oct
 
 
 
-# generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath
+# generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath/getOriginalFilename
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
-	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
+	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
 	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > $$F.deplibs; \

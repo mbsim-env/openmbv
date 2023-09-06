@@ -593,6 +593,10 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
     REDIR_STDOUT(out.rdbuf());
     REDIR_STDERR(err.rdbuf());
     mbxmlutilsStaticDependencies.clear();
+    if(e)
+      originalFilename=E(e)->getOriginalFilename();
+    else
+      originalFilename.clear();
 #if OCTAVE_MAJOR_VERSION >= 5
     octInit.interpreter->eval_string(str, true, dummy, 0); // eval as statement list
 #else

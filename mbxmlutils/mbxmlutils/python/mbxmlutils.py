@@ -187,18 +187,32 @@ _serializeFunction.opMap={
 
 
 
-def registerPath(path):
+def _getDLL():
   # load the libmbxmlutils-eval-global-python.so ones
-  if registerPath.dll is None:
+  if _getDLL.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
     else:
-      registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+  return _getDLL.dll
+_getDLL.dll=None
+
+
+
+def registerPath(path):
   # call the mbxmlutilsPyEvalRegisterPath function in this lib
-  registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
-registerPath.dll=None
+  _getDLL().mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
+
+
+
+# return the (original) filename which contains the currently evaluated element
+def getOriginalFilename():
+  # call the mbxmlutilsPyEvalRegisterPath function in this lib
+  import ctypes
+  _getDLL().mbxmlutilsPyEvalGetOriginalFilename.restype=ctypes.c_char_p
+  return _getDLL().mbxmlutilsPyEvalGetOriginalFilename().decode("utf-8")
 
 
 

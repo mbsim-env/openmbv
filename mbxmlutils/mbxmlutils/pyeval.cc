@@ -242,6 +242,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
+      originalFilename=E(e)->getOriginalFilename();
       CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globalsLocals, globalsLocals, &flags);
       addStaticDependencies(e);
     }
@@ -394,6 +395,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
 
   // evaluate as expression (using the trimmed str) and save result in ret
   mbxmlutilsStaticDependencies.clear();
+  if(e)
+    originalFilename=E(e)->getOriginalFilename();
+  else
+    originalFilename.clear();
   PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globalsLocals.get(), globalsLocals.get(), &flags);
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
@@ -410,6 +415,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
+      if(e)
+        originalFilename=E(e)->getOriginalFilename();
+      else
+        originalFilename.clear();
       CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globalsLocals, globalsLocals, &flags);
       addStaticDependencies(e);
     }
@@ -712,4 +721,9 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
   mbxmlutilsStaticDependencies.emplace_back(path);
   return 0;
+}
+
+// called from mbxmlutils.getOriginalFilename and returns the filename of the currently evaluated element
+extern "C" const char* mbxmlutilsPyEvalGetOriginalFilename() {
+  return originalFilename.string().c_str();
 }
