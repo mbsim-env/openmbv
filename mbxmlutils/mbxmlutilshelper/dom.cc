@@ -350,7 +350,7 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       // the namespace of value has already a prefix -> use this prefix
       setAttribute(name, X()%prefix+":"+value.second);
     else {
-      // the namespace of value has no prefix assignd yet -> create a new xmlns attribute with the mapping
+      // the namespace of value has no prefix assigned yet -> create a new xmlns attribute with the mapping
 
       // get a list of all used prefixed of this element
       set<string> usedPrefix;
