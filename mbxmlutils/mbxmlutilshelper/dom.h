@@ -205,12 +205,12 @@ class DOMEvalException : public std::exception {
       named sub-expr  | value of the named sub-expression
       --------------- | -------------------------------------------
       msg             | the error message
-      file            | the filename where the error occured (may be relative to the current directory)
+      file            | the filename where the error occurred (may be relative to the current directory)
       absfile         | same as file but always absolute
       urifile         | same as absfile but URI encoded
-      line            | the line number in the file where the error occured
-      xpath           | the XPath expression from the root element of the file to the element in the file where the error occured
-      ecount          | the embed count number where the error occured
+      line            | the line number in the file where the error occurred
+      xpath           | the XPath expression from the root element of the file to the element in the file where the error occurred
+      ecount          | the embed count number where the error occurred
       sse             | undefined value but only defined if this is a subsequent error
      
       All these named sub-expressions may not be defined (see "Boost-Extended Format Syntax Syntax" on how to handle this).
@@ -323,7 +323,7 @@ class DOMElementWrapper {
     //! Is store as a processing instruction child node.
     void setEmbedXPathCount(int xPathCount);
     //! Get the XPath from the root element to this element.
-    //! The root element may not be the document itself if embedding has occured.
+    //! The root element may not be the document itself if embedding has occurred.
     std::string getRootXPathExpression() const;
     //! Get the line number of the original element
     int getOriginalElementLineNumber() const;
@@ -379,7 +379,7 @@ class DOMAttrWrapper {
     //! Note DOMTypeInfo::isDerivedFrom is not implemented in xerces-c hence we define our one methode here.
     bool isDerivedFrom(const FQN &baseTypeName) const;
     //! Get the XPath from the root element to this attribute.
-    //! The root element may not be the document itself if embedding has occured.
+    //! The root element may not be the document itself if embedding has occurred.
     std::string getRootXPathExpression() const;
     //! Treat this object as a pointer (like DOMAttr*)
     typename std::conditional<std::is_same<DOMAttrType, const xercesc::DOMAttr>::value,
