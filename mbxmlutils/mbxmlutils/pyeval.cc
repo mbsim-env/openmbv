@@ -439,9 +439,9 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(skipRet)
     return {};
   // convert a list of scalars / list of lists of scalars to a numpy 1D / 2D array, respectively
-  if(CALLPY(PyList_Check, ret)) {
+  if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)>0) {
     PyO ret0(CALLPYB(PyList_GetItem, ret, 0));
-    if(is_scalar_double(C(ret0)) || (CALLPY(PyList_Check, ret0) && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
+    if(is_scalar_double(C(ret0)) || (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
       PyO args(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
       return C(CALLPY(PyObject_CallObject, pyInit->asarray(), args));
