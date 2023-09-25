@@ -990,8 +990,9 @@ void DOMParser::handleCDATA(DOMElement *e) {
       string data;
       while(c && (c->getNodeType()==DOMNode::TEXT_NODE ||
                   c->getNodeType()==DOMNode::CDATA_SECTION_NODE ||
-                  c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE)) {
-        if(c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE) {
+                  c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE ||
+                  c->getNodeType()==DOMNode::COMMENT_NODE)) {
+        if(c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE || c->getNodeType()==DOMNode::COMMENT_NODE) {
           c=c->getNextSibling();
           continue;
         }
