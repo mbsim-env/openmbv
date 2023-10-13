@@ -4,9 +4,15 @@ set -e
 set -o pipefail
 
 export FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1
-@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py > testsymbolic.out
-RET=$?
-
+# "script with  | cat > ..." is needed to avoid "Py_Initialize: can't initialize sys standard streams" when running with wine but fails on Linux :-(
+rm -f testsymbolic.out
+if [ "_@XC_EXEC_PREFIX@" == "_" ]; then
+  @XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py > testsymbolic.out
+  RET=$?
+else
+  script -qec "@XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/testsymbolic.py | cat > testsymbolic.out" /dev/null
+  RET=$?
+fi
 cat testsymbolic.out
 
 if [ @DEBUGBUILD@ -eq 1 ]; then

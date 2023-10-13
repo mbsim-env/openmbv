@@ -140,7 +140,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
     int hdf5RefreshDelta;
-    std::vector<QAction*> viewTBActions;
+    QToolBar* sceneViewToolBar;
+    QMenu* sceneViewMenu;
   protected:
     void objectListClicked();
     void openFileDialog();
@@ -186,6 +187,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void speedWheelPressed();
     void speedWheelReleased();
   protected:
+    SoOffscreenRenderer *offScreenRenderer;
     void exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG(bool video);
@@ -291,7 +293,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     std::set<void*> waitFor;
 
-    const std::vector<QAction*>& getViewTBActions() const { return viewTBActions; }
+    QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }
+    QMenu* getSceneViewMenu() { return sceneViewMenu; }
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.

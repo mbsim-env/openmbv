@@ -71,6 +71,7 @@ nodist_libopenmbv_la_SOURCES=$(QT_BUILT_SOURCES)
 
 # C++ source file to build automatically (e.g. abc.moc.cc by abc.h)
 QT_BUILT_SOURCES = \
+  abstractviewfilter.moc.cc\
   mainwindow.moc.cc\
   exportdialog.moc.cc\
   object.moc.cc\

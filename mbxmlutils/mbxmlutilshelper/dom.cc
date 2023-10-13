@@ -350,7 +350,7 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       // the namespace of value has already a prefix -> use this prefix
       setAttribute(name, X()%prefix+":"+value.second);
     else {
-      // the namespace of value has no prefix assignd yet -> create a new xmlns attribute with the mapping
+      // the namespace of value has no prefix assigned yet -> create a new xmlns attribute with the mapping
 
       // get a list of all used prefixed of this element
       set<string> usedPrefix;
@@ -606,6 +606,9 @@ template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser(
 template<typename DOMDocumentType>
 path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   string uri=X()%me->getDocumentURI();
+  // handle in-memory-files
+  if(uri.empty())
+    return {};
   // handle (the original xerces) schema for local files
   static const string fileScheme="file://";
   if(uri.substr(0, fileScheme.length())==fileScheme) {
@@ -985,7 +988,14 @@ void DOMParser::handleCDATA(DOMElement *e) {
     if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
       DOMText *replace=static_cast<DOMText*>(e->insertBefore(e->getOwnerDocument()->createTextNode(X()%""), c));
       string data;
-      while(c && (c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE)) {
+      while(c && (c->getNodeType()==DOMNode::TEXT_NODE ||
+                  c->getNodeType()==DOMNode::CDATA_SECTION_NODE ||
+                  c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE ||
+                  c->getNodeType()==DOMNode::COMMENT_NODE)) {
+        if(c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE || c->getNodeType()==DOMNode::COMMENT_NODE) {
+          c=c->getNextSibling();
+          continue;
+        }
         data+=X()%static_cast<DOMText*>(c)->getData();
         DOMNode *del=c;
         c=c->getNextSibling();
@@ -1036,7 +1046,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   // if the file is writable use a lock file, if not writable no locking is needed
   if(writeable) {
     // at least using wine we cannot use inputSource as lock file itself, its crashing
-    path inputSourceLock(inputSource.parent_path()/("."+inputSource.leaf().string()+".lock"));
+    path inputSourceLock(inputSource.parent_path()/("."+inputSource.filename().string()+".lock"));
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
@@ -1048,10 +1058,12 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
-    auto &l=ex.locationStack.front();
-    EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
-                          l.getEmbedCount(), l.getRootXPathExpression());
-    ex.locationStack.front()=exNew;
+    if(!ex.locationStack.empty()) {
+      auto &l=ex.locationStack.front();
+      EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                            l.getEmbedCount(), l.getRootXPathExpression());
+      ex.locationStack.front()=exNew;
+    }
     throw ex;
   }
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
@@ -1078,7 +1090,7 @@ namespace {
 void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
   // at least using wine we cannot use outputSource as lock file itself, its crashing
-  path outputSourceLock(outputSource.parent_path()/("."+outputSource.leaf().string()+".lock"));
+  path outputSourceLock(outputSource.parent_path()/("."+outputSource.filename().string()+".lock"));
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
   boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
   boost::interprocess::scoped_lock lock(outputSourceFileLock);

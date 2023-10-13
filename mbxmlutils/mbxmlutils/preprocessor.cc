@@ -8,6 +8,7 @@
 #include <mbxmlutilshelper/utils.h>
 #include <mbxmlutils/eval.h>
 #include <xercesc/dom/DOMDocument.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;

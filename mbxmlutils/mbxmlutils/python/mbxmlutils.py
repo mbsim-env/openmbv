@@ -187,18 +187,32 @@ _serializeFunction.opMap={
 
 
 
-def registerPath(path):
+def _getDLL():
   # load the libmbxmlutils-eval-global-python.so ones
-  if registerPath.dll is None:
+  if _getDLL.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
     else:
-      registerPath.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
-  # call the mbxmlutilsPyEvalRegisterPath function in this lib
-  registerPath.dll.mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
-registerPath.dll=None
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+  return _getDLL.dll
+_getDLL.dll=None
+
+
+
+def registerPath(path):
+  # call the mbxmlutilsPyEvalRegisterPath function from the lib of the _getDLL call
+  _getDLL().mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
+
+
+
+# return the (original) filename which contains the currently evaluated element
+def getOriginalFilename():
+  # call the mbxmlutilsPyEvalGetOriginalFilename function from the lib of the _getDLL call
+  import ctypes
+  _getDLL().mbxmlutilsPyEvalGetOriginalFilename.restype=ctypes.c_char_p
+  return _getDLL().mbxmlutilsPyEvalGetOriginalFilename().decode("utf-8")
 
 
 
@@ -345,3 +359,21 @@ def rgbColor(*argv):
   else:
     raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
   return numpy.array(colorsys.rgb_to_hsv(red, green, blue))
+
+
+
+# returns True if this function was called while a Qt-GUI was running (e.g. mbsimgui)
+def isGUI():
+  try:
+    import PyQt5.QtWidgets
+  except ModuleNotFoundError:
+    return False
+  else:
+    return PyQt5.QtWidgets.QApplication.instance() is not None
+
+
+
+# a simply dictionary on module level to store data.
+# the livetime of data is the livetime of the python evaluator.
+# This can be used to store any data and access it later on (but take care about memory usage when large data is stored)
+staticData=dict()

@@ -81,7 +81,7 @@ Eval::Value XMLFlatEval::callFunction(const string &name, const vector<Value>& a
   throw runtime_error("callFunction not possible.");
 }
 
-Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *e) const {
+Eval::Value XMLFlatEval::fullStringToValue(const string &str, const DOMElement *e, bool skipRet) const {
   return make_shared<string>(str);
 }
 

@@ -38,6 +38,7 @@
 #include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QColorDialog>
+#include <QtWidgets/QProgressDialog>
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QTemporaryDir>
 #include <QShortcut>
@@ -84,6 +85,7 @@
 #include "utils.h"
 #include "touchtreewidget.h"
 #include <boost/dll.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 using namespace std;
 
@@ -140,6 +142,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   shortAniTimer->setInterval(1000/25);
   shortAniElapsed=std::make_unique<QElapsedTimer>();
   connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
+
+  offScreenRenderer=new SoOffscreenRenderer(SbViewportRegion(10, 10));
 
   // main widget
   auto *mainWG=new QWidget(this);
@@ -275,6 +279,14 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   timeSlider->setTotalRange(0, 0);
   connect(timeSlider, &QTripleSlider::sliderMoved, this, &MainWindow::updateFrame);
 
+  // filter settings
+  AbstractViewFilter::setFilterType(static_cast<AbstractViewFilter::FilterType>(appSettings->get<int>(AppSettings::filterType)));
+  AbstractViewFilter::setCaseSensitive(appSettings->get<bool>(AppSettings::filterCaseSensitivity));
+  connect(AbstractViewFilter::staticObject(), &AbstractViewFilterStatic::optionsChanged, [](){
+    appSettings->set(AppSettings::filterType, static_cast<int>(AbstractViewFilter::getFilterType()));
+    appSettings->set(AppSettings::filterCaseSensitivity, AbstractViewFilter::getCaseSensitive());
+  });
+
   // object list dock widget
   auto *objectListDW=new QDockWidget(tr("Objects"),this);
   objectListDW->setObjectName("MainWindow::objectListDW");
@@ -401,7 +413,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
 
   // scene view menu
-  auto *sceneViewMenu=new QMenu("Scene View", menuBar());
+  sceneViewMenu=new QMenu("Scene View", menuBar());
   QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A"));
   addAction(viewAllAct); // must work also if menu bar is invisible
   QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
@@ -467,7 +479,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   viewStereo->setChecked(appSettings->get<int>(AppSettings::stereoType)!=static_cast<int>(StereoType::None));
   addAction(viewStereo); // must work also if menu bar is invisible
 
-  sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
+  auto *releaseCamera=sceneViewMenu->addAction(Utils::QIconCached("camerabody.svg"),"Release camera from move with body", this, &MainWindow::releaseCameraFromBodySlot);
+  releaseCamera->setObjectName("MainWindow::sceneViewMenu::releaseCamera");
   sceneViewMenu->addSeparator();
   engDrawingView=sceneViewMenu->addAction(Utils::QIconCached("engdrawing.svg"),"Engineering drawing", this, &MainWindow::toggleEngDrawingViewSlot);
   engDrawingView->setToolTip("NOTE: If getting unchecked, the outlines of all bodies will be enabled and the shilouette edges are disabled!");
@@ -502,36 +515,31 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   menuBar()->addMenu(dockMenu);
 
   // file toolbar
-  auto *fileTB=new QToolBar("File toolbar", this);
+  auto *fileTB=new QToolBar("File Toolbar", this);
   fileTB->setObjectName("MainWindow::fileTB");
   addToolBar(Qt::TopToolBarArea, fileTB);
   fileTB->addAction(addFileAct);
 
   // view toolbar
-  auto *viewTB=new QToolBar("View toolbar", this);
-  viewTB->setObjectName("MainWindow::viewTB");
-  addToolBar(Qt::TopToolBarArea, viewTB);
-  viewTBActions.emplace_back(viewAllAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(topViewAct);
-  viewTBActions.emplace_back(bottomViewAct);
-  viewTBActions.emplace_back(frontViewAct);
-  viewTBActions.emplace_back(backViewAct);
-  viewTBActions.emplace_back(rightViewAct);
-  viewTBActions.emplace_back(leftViewAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(isometriViewAct);
-  viewTBActions.emplace_back(dimetricViewAct);
-  viewTBActions.emplace_back(nullptr);
-  viewTBActions.emplace_back(cameraAct);
-  for(auto *a : viewTBActions)
-    if(a)
-      viewTB->addAction(a);
-    else
-      viewTB->addSeparator();
+  auto *sceneViewToolBar=new QToolBar("Scene View Toolbar", this);
+  sceneViewToolBar->setObjectName("MainWindow::viewTB");
+  addToolBar(Qt::TopToolBarArea, sceneViewToolBar);
+  sceneViewToolBar->addAction(viewAllAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(topViewAct);
+  sceneViewToolBar->addAction(bottomViewAct);
+  sceneViewToolBar->addAction(frontViewAct);
+  sceneViewToolBar->addAction(backViewAct);
+  sceneViewToolBar->addAction(rightViewAct);
+  sceneViewToolBar->addAction(leftViewAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(isometriViewAct);
+  sceneViewToolBar->addAction(dimetricViewAct);
+  sceneViewToolBar->addSeparator();
+  sceneViewToolBar->addAction(cameraAct);
 
   // animation toolbar
-  auto *animationTB=new QToolBar("Animation toolbar", this);
+  auto *animationTB=new QToolBar("Animation Toolbar", this);
   animationTB->setObjectName("MainWindow::animationTB");
   addToolBar(Qt::TopToolBarArea, animationTB);
   // stop button
@@ -624,7 +632,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // tool menu
   auto *toolMenu=new QMenu("Tools", menuBar());
   toolMenu->addAction(fileTB->toggleViewAction());
-  toolMenu->addAction(viewTB->toggleViewAction());
+  toolMenu->addAction(sceneViewToolBar->toggleViewAction());
   toolMenu->addAction(animationTB->toggleViewAction());
   menuBar()->addMenu(toolMenu);
 
@@ -695,7 +703,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     objectListDW->close();
     objectInfoDW->close();
     fileTB->close();
-    viewTB->close();
+    sceneViewToolBar->close();
     animationTB->close();
     menuBar()->setVisible(false);
     statusBar()->setVisible(false);
@@ -1071,6 +1079,7 @@ MainWindow::~MainWindow() {
   bboxDrawStyle->unref();
   highlightColor->unref();
   highlightDrawStyle->unref();
+  delete offScreenRenderer;
   delete fpsTime;
   delete time;
   delete glViewer;
@@ -1556,12 +1565,11 @@ void MainWindow::speedWheelReleased() {
 }
 
 void MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
-  SoOffscreenRenderer myRenderer(SbViewportRegion(width, height));
-  myRenderer.setViewportRegion(SbViewportRegion(width, height));
+  offScreenRenderer->setViewportRegion(SbViewportRegion(width, height));
   if(transparent)
-    myRenderer.setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
+    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
   else
-    myRenderer.setComponents(SoOffscreenRenderer::RGB);
+    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB);
 
   // root separator for export
   auto *root=new SoSeparator;
@@ -1600,7 +1608,7 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   // (the double rendering does not lead to permormance problems)
   glViewer->redraw();
   // render offscreen
-  SbBool ok=myRenderer.render(root);
+  SbBool ok=offScreenRenderer->render(root);
   if(!ok) {
     QMessageBox::warning(this, "PNG export warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
     root->unref();
@@ -1618,10 +1626,10 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
     for(int x=0; x<width; x++) {
       int i=(y*width+x)* (transparent?4:3);
       int o=((height-y-1)*width+x)*4;
-      buf[o+0]=myRenderer.getBuffer()[i+2]; // blue
-      buf[o+1]=myRenderer.getBuffer()[i+1]; // green
-      buf[o+2]=myRenderer.getBuffer()[i+0]; // red
-      buf[o+3]=(transparent?myRenderer.getBuffer()[i+3]:255); // alpha
+      buf[o+0]=offScreenRenderer->getBuffer()[i+2]; // blue
+      buf[o+1]=offScreenRenderer->getBuffer()[i+1]; // green
+      buf[o+2]=offScreenRenderer->getBuffer()[i+0]; // red
+      buf[o+3]=(transparent?offScreenRenderer->getBuffer()[i+3]:255); // alpha
     }
   QImage image(buf, width, height, QImage::Format_ARGB32);
   image.save(fileName.c_str(), "png");
@@ -1681,7 +1689,14 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
   glViewer->font->size.setValue(glViewer->font->size.getValue()*scale);
+
+  QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
+  progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
+  progress.setWindowModality(Qt::WindowModal);
   for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
+    progress.setValue(videoFrame);
+    if(progress.wasCanceled())
+      break;
     QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
     str=str.arg(QFileInfo(pngBaseName).absoluteFilePath()).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
     statusBar()->showMessage(str);
@@ -1689,6 +1704,9 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     frame->setValue(frame_);
     exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
   }
+  if(progress.wasCanceled())
+    return;
+  progress.setValue(lastVideoFrame);
   glViewer->font->size.setValue(glViewer->font->size.getValue()/scale);
   if(video) {
     QString str("Encoding video file to %1, please wait!");

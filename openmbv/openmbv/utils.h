@@ -293,6 +293,8 @@ class AppSettings {
       pixelPerFrame,
       pickObjectRadius,
       inScreenRotateSwitch,
+      filterType,
+      filterCaseSensitivity,
       SIZE,
     };
     AppSettings();

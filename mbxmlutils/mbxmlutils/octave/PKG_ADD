@@ -1,1 +1,6 @@
 fmatvec_symbolic_swig_octave;
+
+% this is not really needed since every variable can be declared as global in octave
+% but its done here for consistency with pyeval which defined a mbxmlutils.staticData dictionary
+global staticData;
+staticData=struct();

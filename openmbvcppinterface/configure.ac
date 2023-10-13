@@ -135,7 +135,7 @@ if test "_$pythonfound" == "_yes"; then
   fi
   AC_SUBST([PYTHON_BIN])
 fi
-if test "$cross_compiling" == "yes"; then
+if test "$cross_compiling" == "yes" -o "_$host_os" == "_mingw32"; then
   pythonshext=".pyd"
 else
   pythonshext=".so"

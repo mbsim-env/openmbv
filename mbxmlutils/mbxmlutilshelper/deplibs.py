@@ -26,9 +26,15 @@ def getWindowsEnvPath(name):
   raise RuntimeError('Unknown platform')
 
 def searchWindowsLibrary(libname, libdir, filename):
+  # skip some libname's
+  if libname.startswith("api-ms-win-"): return None # windows system libs
+  if libname.startswith("libfltk"): return None # a octave dep of a unused octave module
+  if libname.startswith("libportaudio"): return None # a octave dep of a unused octave module
+
   searchDir=[] # is search in order
   searchDir.append(libdir)
-  searchDir.append(getWindowsEnvPath('WINSYSDIR'))
+  searchDir.append(getWindowsEnvPath('WINDIR')+"/system")
+  searchDir.append(getWindowsEnvPath('WINDIR')+"/system32")
   searchDir.append(getWindowsEnvPath('WINDIR'))
   searchDir.append(os.getcwd())
   searchDir.extend(getWindowsEnvPath('PATH').split(';'))
@@ -59,7 +65,7 @@ def getDependencies(filename):
         match=re.search("^\s*DLL Name:\s(.+)$", line)
         if match is not None:
           absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename), filename)
-          if not os.path.realpath(absfile) in getDoNotAdd():
+          if absfile is not None and not os.path.realpath(absfile) in getDoNotAdd():
             res.add(absfile)
       return res
     except subprocess.CalledProcessError:
