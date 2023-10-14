@@ -108,10 +108,10 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   });
   layout->addWidget(filterLE, 0, 1);
   connect(filterLE, &QLineEdit::textEdited, this, &AbstractViewFilter::applyFilter);
-  connect(view->model(), &QAbstractItemModel::dataChanged, [this](const QModelIndex &topLeft, const QModelIndex &bottomRight){
+  connect(view->model(), &QAbstractItemModel::dataChanged, [this](const QModelIndex &index, const QModelIndex &bottomRight){
     if(filterLE->text().isEmpty())
       return;
-    setColor(topLeft);
+    updateItem(index);
   });
 }
 
@@ -154,8 +154,11 @@ void AbstractViewFilter::applyFilter() {
   if(!view->isVisible())
     return;
   // do not update if no filter string is set and the filter has not changed
-  if(filterLE->text().isEmpty() && oldFilterValue.isEmpty())
+  if(filterLE->text().isEmpty() && oldFilterValue.isEmpty()) {
+    matchAll=true;
     return;
+  }
+  matchAll=false;
   oldFilterValue=filterLE->text();
 
   QRegExp filter(filterLE->text());
@@ -255,7 +258,7 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
     if(setRowHidden2(qobject_cast<QListView*>(view), m, index)) return;
     if(setRowHidden2(qobject_cast<QTableView*>(view), m, index)) return;
     // set the color of the column nameCol
-    setColor(index);
+    updateItem(index);
     // set expanded
     auto *tree=qobject_cast<QTreeView*>(view);
     if(tree)
@@ -266,14 +269,13 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
     updateView(view->model()->index(i, nameCol, index));
 }
 
-void AbstractViewFilter::setColor(const QModelIndex &index) {
-  Match &m=match[index];
+void AbstractViewFilter::updateItem(const QModelIndex &index) {
   bool normalColor=true;
   if(!view->model()->flags(index).testFlag(Qt::ItemIsEnabled) ||
      (view->model()->data(index, enableRole).type()==QVariant::Bool && !view->model()->data(index, enableRole).toBool()))
     normalColor=false;
   QPalette palette;
-  if(m.me) {
+  if(matchAll || match[index].me) {
     if(normalColor)
       view->model()->setData(index, palette.brush(QPalette::Active, QPalette::Text), Qt::ForegroundRole);
     else

@@ -76,10 +76,10 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     static FilterType getFilterType() { return filterType; }
     static bool getCaseSensitive() { return caseSensitive; }
     static AbstractViewFilterStatic* staticObject();
+    void updateItem(const QModelIndex &index);
 
   protected:
     void updateTooltip();
-    void setColor(const QModelIndex &index);
 
     // update the match varaible
     void updateMatch(const QModelIndex &index, const QRegExp &filter);
@@ -95,6 +95,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     QLineEdit *filterLE;
     QString oldFilterValue;
     QAbstractItemView *view;
+    bool matchAll { true };
     int nameCol;
     int typeCol;
     QString typePrefix;
