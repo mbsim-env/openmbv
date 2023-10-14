@@ -5,7 +5,7 @@ c=3.1
 i=sympy.Dummy()
 s=2*i
 
-y=c+i+i*s
+y=sympy.simplify(c+i+i*s)
 print(mbxmlutils._serializeFunction(y))
 
 y=sympy.atan2(c, s)
@@ -14,11 +14,11 @@ print(mbxmlutils._serializeFunction(y))
 y=sympy.Heaviside(s)
 print(mbxmlutils._serializeFunction(y))
 
-y=sympy.Min(c, s, i*i)
+y=sympy.Min(c, s, sympy.simplify(i*i))
 print(mbxmlutils._serializeFunction(y))
 
-y=sympy.Max(c, s, i*i)
+y=sympy.Max(c, s, sympy.simplify(i*i))
 print(mbxmlutils._serializeFunction(y))
 
-y=sympy.Piecewise((s, i>1), (c*c, s<2), (s*i, 2<i))
+y=sympy.Piecewise((s, sympy.simplify(i>1)), (c*c, sympy.simplify(s<2)), (s*i, sympy.simplify(2<i)))
 print(mbxmlutils._serializeFunction(y))
