@@ -147,6 +147,11 @@ MKOCTFILE_LIBS="$(echo -L$MKOCTFILE_LIBDIR \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
   | sed -re 's|\\|/|g')"
 
+MKOCTFILE_OCTAVE_HOME_WIN="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_HOME | dos2unix) | sed -re 's|\\|/|g')"
+MKOCTFILE_OCTAVE_HOME_UNIX="$(cygpath -u $MKOCTFILE_OCTAVE_HOME_WIN 2> /dev/null)"
+AC_DEFINE_UNQUOTED([MKOCTFILE_OCTAVE_HOME_WIN],  ["$MKOCTFILE_OCTAVE_HOME_WIN"], ["octave home windows"])
+AC_DEFINE_UNQUOTED([MKOCTFILE_OCTAVE_HOME_UNIX], ["$MKOCTFILE_OCTAVE_HOME_UNIX"], ["octave home unix"])
+
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
   RERUN=0
