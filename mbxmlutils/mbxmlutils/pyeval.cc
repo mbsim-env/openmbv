@@ -79,6 +79,28 @@ class PyInit {
 PyInit::PyInit() {
   try {
     // init python
+    std::string PYTHONHOME;
+    if(!getenv("PYTHONHOME")) {
+#ifdef _WIN32
+      if(exists(path(PYTHON_PREFIX)/"bin"/"python.exe") || exists(path(PYTHON_PREFIX)/"bin"/"python3.exe") ||
+         exists(path(PYTHON_PREFIX)/"bin"/"python.bat") || exists(path(PYTHON_PREFIX)/"bin"/"python3.bat"))
+#else
+      if(exists(path(PYTHON_PREFIX)/"bin"/"python") || exists(path(PYTHON_PREFIX)/"bin"/"python3"))
+#endif
+        PYTHONHOME=PYTHON_PREFIX;
+#ifdef _WIN32
+      if(exists(Eval::installPath/"bin"/"python.exe") || exists(Eval::installPath/"bin"/"python3.exe") ||
+         exists(Eval::installPath/"bin"/"python.bat") || exists(Eval::installPath/"bin"/"python3.bat"))
+#else
+      if(exists(Eval::installPath/"bin"/"python") || exists(Eval::installPath/"bin"/"python3"))
+#endif
+        PYTHONHOME=Eval::installPath.string();
+      if(!PYTHONHOME.empty()) {
+        // the string for putenv must have program life time
+        static string PYTHONHOME_ENV(std::string("PYTHONHOME=")+PYTHONHOME);
+        putenv((char*)PYTHONHOME_ENV.c_str());
+      }
+    }
     initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
 
     // set sys.path
@@ -94,6 +116,18 @@ PyInit::PyInit() {
     CALLPY(PyList_Insert, sysPath, 0, mbsimenvsitepackagespath);
 
     // init numpy
+    if(!PYTHONHOME.empty()) {
+      PyO os=CALLPY(PyImport_ImportModule, "os");
+      PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
+      PyO arg(CALLPY(PyTuple_New, 1));
+#ifdef _WIN32
+      PyO libdir(CALLPY(PyUnicode_FromString, PYTHONHOME+"/bin"));
+#else
+      PyO libdir(CALLPY(PyUnicode_FromString, PYTHONHOME+"/lib"));
+#endif
+      CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
+      CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
+    }
     CALLPY(_import_array);
 
     sympy=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "sympy"); });

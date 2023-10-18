@@ -212,6 +212,7 @@ if test "x$enable_python" == "xyes"; then
   if test "_$PYTHON_BIN" == "_"; then
     PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
   fi
+  PYTHON_PREFIX="$(pkg-config --variable=exec_prefix python-$pythonversion)"
   PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
   if test "$cross_compiling" == "yes"; then
     PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
@@ -234,6 +235,7 @@ if test "x$enable_python" == "xyes"; then
     AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
   fi
   AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
+  AC_DEFINE_UNQUOTED([PYTHON_PREFIX], ["$PYTHON_PREFIX"], [Python prefix])
   AC_SUBST([PYTHON_BIN], [$PYTHON_BIN])
   AC_SUBST([PYTHON_LIBDIR])
   AC_SUBST([PYTHON_LIBDIR2])
