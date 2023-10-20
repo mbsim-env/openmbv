@@ -79,55 +79,32 @@ class PyInit {
 PyInit::PyInit() {
   try {
     // init python
-    std::string PYTHONHOME;
-    if(!getenv("PYTHONHOME")) {
-#ifdef _WIN32
-      if(exists(path(PYTHON_PREFIX)/"bin"/"python.exe") || exists(path(PYTHON_PREFIX)/"bin"/"python3.exe") ||
-         exists(path(PYTHON_PREFIX)/"bin"/"python.bat") || exists(path(PYTHON_PREFIX)/"bin"/"python3.bat"))
-#else
-      if(exists(path(PYTHON_PREFIX)/"bin"/"python") || exists(path(PYTHON_PREFIX)/"bin"/"python3"))
-#endif
-        PYTHONHOME=PYTHON_PREFIX;
-#ifdef _WIN32
-      if(exists(Eval::installPath/"bin"/"python.exe") || exists(Eval::installPath/"bin"/"python3.exe") ||
-         exists(Eval::installPath/"bin"/"python.bat") || exists(Eval::installPath/"bin"/"python3.bat"))
-#else
-      if(exists(Eval::installPath/"bin"/"python") || exists(Eval::installPath/"bin"/"python3"))
-#endif
-        PYTHONHOME=Eval::installPath.string();
-      if(!PYTHONHOME.empty()) {
-        // the string for putenv must have program life time
-        static string PYTHONHOME_ENV(std::string("PYTHONHOME=")+PYTHONHOME);
-        putenv((char*)PYTHONHOME_ENV.c_str());
-      }
-    }
-    initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
+    auto PYTHONHOME=initializePython(Eval::installPath/"bin"/"mbxmlutilspp", {
+      // append mbxmlutils module to the python path (the basic Python module for the pyeval)
+      Eval::installPath/"share"/"mbxmlutils"/"python",
+      // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
+      Eval::installPath/"bin",
+      // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
+      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
+    }, {
+      boost::filesystem::path(PYTHON_PREFIX),
+      Eval::installPath,
+    });
 
-    // set sys.path
-    PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
-    // append mbxmlutils module to the python path (the basic Python module for the pyeval)
-    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
-    CALLPY(PyList_Append, sysPath, mbxmlutilspath);
-    // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
-    PyO binpath(CALLPY(PyUnicode_FromString, (Eval::installPath/"bin").string()));
-    CALLPY(PyList_Append, sysPath, binpath);
-    // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-    PyO mbsimenvsitepackagespath(CALLPY(PyUnicode_FromString, (Eval::installPath.parent_path()/"mbsim-env-python-site-packages").string()));
-    CALLPY(PyList_Insert, sysPath, 0, mbsimenvsitepackagespath);
-
-    // init numpy
+    // numpy init needs some special handling for library loading
     if(!PYTHONHOME.empty()) {
       PyO os=CALLPY(PyImport_ImportModule, "os");
       PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
       PyO arg(CALLPY(PyTuple_New, 1));
 #ifdef _WIN32
-      PyO libdir(CALLPY(PyUnicode_FromString, PYTHONHOME+"/bin"));
+      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/"bin").string()));
 #else
-      PyO libdir(CALLPY(PyUnicode_FromString, PYTHONHOME+"/lib"));
+      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/"lib").string()));
 #endif
       CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
       CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
     }
+    // init numpy
     CALLPY(_import_array);
 
     sympy=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "sympy"); });
@@ -365,9 +342,10 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
   }
 #if _WIN32
-  // on Windows include the PYTHONSRC/../DLLs directory
-  for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
-    files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
+  // on Windows include the PYTHONSRC/../DLLs directory, if existing
+  if(exists(PYTHONSRC/".."/"DLLs"))
+    for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
+      files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
 #endif
 
   return files;
