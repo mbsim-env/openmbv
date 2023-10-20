@@ -289,15 +289,18 @@ Eval::Value Eval::eval(const DOMElement *e) {
     vector<double> m(i);
     vector<Value> M(i);
     i=0;
-    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++)
+    for(const DOMElement* ele=ec->getFirstElementChild(); ele!=nullptr; ele=ele->getNextElementSibling(), i++) {
+      auto textEle=E(ele)->getFirstTextChild();
+      auto text=textEle ? X()%textEle->getData() : "";
       if(!function) {
-	Value ret=stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele);
+	Value ret=stringToValue(text, ele);
 	 if(E(e)->isDerivedFrom(PV%"indexVector"))
 	   convertIndex(ret, true);
         m[i]=cast<double>(ret);
       }
       else
-        M[i]=stringToValue(X()%E(ele)->getFirstTextChild()->getData(), ele);
+        M[i]=stringToValue(text, ele);
+    }
     if(!function)
       return handleUnit(e, create(m));
     else
@@ -319,15 +322,18 @@ Eval::Value Eval::eval(const DOMElement *e) {
     i=0;
     for(const DOMElement* row=ec->getFirstElementChild(); row!=nullptr; row=row->getNextElementSibling(), i++) {
       j=0;
-      for(const DOMElement* col=row->getFirstElementChild(); col!=nullptr; col=col->getNextElementSibling(), j++)
+      for(const DOMElement* col=row->getFirstElementChild(); col!=nullptr; col=col->getNextElementSibling(), j++) {
+        auto textEle=E(col)->getFirstTextChild();
+        auto text=textEle ? X()%textEle->getData() : "";
         if(!function) {
-	  Value ret=stringToValue(X()%E(col)->getFirstTextChild()->getData(), col);
+	  Value ret=stringToValue(text, col);
 	  if(E(e)->isDerivedFrom(PV%"indexMatrix"))
 	    convertIndex(ret, true);
 	  m[i][j]=cast<double>(ret);
 	}
         else
-          M[i][j]=stringToValue(X()%E(col)->getFirstTextChild()->getData(), col);
+          M[i][j]=stringToValue(text, col);
+      }
     }
     if(!function)
       return handleUnit(e, create(m));
@@ -347,7 +353,9 @@ Eval::Value Eval::eval(const DOMElement *e) {
       E(e)->isDerivedFrom(PV%"indexMatrix") ||
       function)
     ) {
-    Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
+    auto textEle=E(e)->getFirstTextChild();
+    auto text=textEle ? X()%textEle->getData() : "";
+    Value ret=stringToValue(text, e);
      if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
       throw DOMEvalException("Value is not of type scalar", e);
     if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(ret, VectorType))
@@ -382,7 +390,9 @@ Eval::Value Eval::eval(const DOMElement *e) {
 
   // a anyParameter element
   if(E(e)->getTagName()==PV%"anyParameter") {
-    Value ret=stringToValue(X()%E(e)->getFirstTextChild()->getData(), e);
+    auto textEle=E(e)->getFirstTextChild();
+    auto text=textEle ? X()%textEle->getData() : "";
+    Value ret=stringToValue(text, e);
     return ret;
   }
   
