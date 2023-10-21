@@ -41,8 +41,10 @@ double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
 #ifdef _WIN32
 boost::filesystem::path dllDir("bin");
+std::string pathsep(";");
 #else
 boost::filesystem::path dllDir("lib");
+std::string pathsep(":");
 #endif
 
 }
@@ -108,8 +110,9 @@ PyInit::PyInit() {
       CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
 #else
       // the string for putenv must have program life time
-      static std::string PYTHONHOME_ENV(std::string("PYTHONHOME=")+(PYTHONHOME/dllDir).string());
-      putenv((char*)PYTHONHOME_ENV.c_str());
+      std::string PATH_OLD(getenv("PATH"));
+      static std::string PATH_ENV("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string());
+      putenv((char*)PATH_ENV.c_str());
 #endif
     }
     // init numpy
