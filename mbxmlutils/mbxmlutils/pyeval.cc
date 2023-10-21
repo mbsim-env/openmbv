@@ -39,6 +39,12 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
+#ifdef _WIN32
+boost::filesystem::path dllDir("bin");
+#else
+boost::filesystem::path dllDir("lib");
+#endif
+
 }
 
 namespace MBXMLUtils {
@@ -93,16 +99,18 @@ PyInit::PyInit() {
 
     // numpy init needs some special handling for library loading
     if(!PYTHONHOME.empty()) {
+#if PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
       PyO os=CALLPY(PyImport_ImportModule, "os");
       PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
       PyO arg(CALLPY(PyTuple_New, 1));
-#ifdef _WIN32
-      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/"bin").string()));
-#else
-      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/"lib").string()));
-#endif
+      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/dllDir).string()));
       CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
       CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
+#else
+      // the string for putenv must have program life time
+      static std::string PYTHONHOME_ENV(std::string("PYTHONHOME=")+(PYTHONHOME/dllDir).string());
+      putenv((char*)PYTHONHOME_ENV.c_str());
+#endif
     }
     // init numpy
     CALLPY(_import_array);
