@@ -99,7 +99,7 @@ PyInit::PyInit() {
 
     // numpy init needs some special handling for library loading
     if(!PYTHONHOME.empty()) {
-#if PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
+#if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
       PyO os=CALLPY(PyImport_ImportModule, "os");
       PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
       PyO arg(CALLPY(PyTuple_New, 1));
