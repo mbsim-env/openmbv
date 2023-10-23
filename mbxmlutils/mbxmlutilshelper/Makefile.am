@@ -20,4 +20,4 @@ mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILES
 
 
 pythondir = @datadir@/@PACKAGE@/python
-dist_python_DATA = deplibs.py deplibs.mk
+dist_python_DATA = deplibs.py deplibs.mk deplibs.cmake
