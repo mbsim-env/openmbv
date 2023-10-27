@@ -215,22 +215,24 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // All path in sysPathAppend are added to python's sys.path array.
 // If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
 // and if one is found envvar is set and its path is returned (else a empty path is retruned)
-inline boost::filesystem::path initializePython(const boost::filesystem::path &main,
+inline boost::filesystem::path initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
                                                 const std::vector<boost::filesystem::path> &sysPathAppend={},
                                                 const std::vector<boost::filesystem::path> &possiblePrefix={}) {
   boost::filesystem::path PYTHONHOME;
   if(!getenv("PYTHONHOME")) {
     for(auto &p : possiblePrefix) {
+      if(boost::filesystem::is_directory(p/"lib64"/("python"+pythonVersion)/"encodings") ||
+         boost::filesystem::is_directory(p/"lib"/("python"+pythonVersion)/"encodings") ||
 #ifdef _WIN32
-      if(boost::filesystem::exists(p/"bin"/"python.exe") ||
+         boost::filesystem::exists(p/"bin"/"python.exe") ||
          boost::filesystem::exists(p/"bin"/"python3.exe") ||
          boost::filesystem::exists(p/"bin"/"python.bat") ||
-         boost::filesystem::exists(p/"bin"/"python3.bat"))
+         boost::filesystem::exists(p/"bin"/"python3.bat")
 #else
-      if(boost::filesystem::exists(p/"bin"/"python") ||
-         boost::filesystem::exists(p/"bin"/"python3"))
+         boost::filesystem::exists(p/"bin"/"python") ||
+         boost::filesystem::exists(p/"bin"/"python3")
 #endif
-      {
+      ) {
         PYTHONHOME=p;
         break;
       }

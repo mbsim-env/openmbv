@@ -87,7 +87,7 @@ class PyInit {
 PyInit::PyInit() {
   try {
     // init python
-    auto PYTHONHOME=initializePython(Eval::installPath/"bin"/"mbxmlutilspp", {
+    auto PYTHONHOME=initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
       // append mbxmlutils module to the python path (the basic Python module for the pyeval)
       Eval::installPath/"share"/"mbxmlutils"/"python",
       // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
