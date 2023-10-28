@@ -6,13 +6,7 @@ else
   shext = .so
 endif
 
-if COND_PYTHON
-  PYTHON = python
-  LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA = libmbxmlutils-eval-global-python.la
-  RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO = $(runlibdir)/libmbxmlutils-eval-global-python$(shext)
-endif
-
-SUBDIRS = octave $(PYTHON)
+SUBDIRS = octave python
 
 # distribute and install
 mbxmlutilsschemadir = @datadir@/@PACKAGE@/schema/http___www_mbsim-env_de_MBXMLUtils
@@ -33,7 +27,7 @@ types.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
 
-lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la $(LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_LA)
+lib_LTLIBRARIES = libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-global-python.la
 module_LTLIBRARIES = fmatvec_symbolic_swig_octave.la registerPath.la getOriginalFilename.la
 moduledir = $(runlibdir)
 
@@ -121,7 +115,7 @@ CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_oct
 # generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath/getOriginalFilename
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
-	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(RUNLIBDIR_LIBMBXMLUTILS_EVAL_GLOBAL_PYTHON_SO); do \
+	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-global-python$(shext); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
 	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > $$F.deplibs; \

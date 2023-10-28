@@ -123,7 +123,8 @@ vector<double> XMLFlatEval::cast_vector_double(const Value &value) const {
   }
 
   // check end of stream
-  str>>ws;
+  if(!str.eof())
+    str>>ws;
   if(!str.eof())
     throw runtime_error("Input not fully read.");
 
@@ -164,7 +165,8 @@ vector<vector<double> > XMLFlatEval::cast_vector_vector_double(const Value &valu
   }
 
   // check end of stream
-  str>>ws;
+  if(!str.eof())
+    str>>ws;
   if(!str.eof())
     throw runtime_error("Input not fully read.");
 

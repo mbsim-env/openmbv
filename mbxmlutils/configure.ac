@@ -147,6 +147,11 @@ MKOCTFILE_LIBS="$(echo -L$MKOCTFILE_LIBDIR \
   $(unset LIBS; $XC_EXEC_PREFIX $mkoctfile -p LIBS | dos2unix) \
   | sed -re 's|\\|/|g')"
 
+MKOCTFILE_OCTAVE_HOME_WIN="$(echo $($XC_EXEC_PREFIX $mkoctfile -p OCTAVE_HOME | dos2unix) | sed -re 's|\\|/|g')"
+MKOCTFILE_OCTAVE_HOME_UNIX="$(cygpath -u $MKOCTFILE_OCTAVE_HOME_WIN 2> /dev/null)"
+AC_DEFINE_UNQUOTED([MKOCTFILE_OCTAVE_HOME_WIN],  ["$MKOCTFILE_OCTAVE_HOME_WIN"], ["octave home windows"])
+AC_DEFINE_UNQUOTED([MKOCTFILE_OCTAVE_HOME_UNIX], ["$MKOCTFILE_OCTAVE_HOME_UNIX"], ["octave home unix"])
+
 if test "$cross_compiling" == "yes"; then
   # convert MKOCTFILE_CFLAGS to unix path if cross compiling
   RERUN=0
@@ -198,46 +203,44 @@ AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" ==
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
   [pythonversion="$withval"],[pythonversion=$(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")])
-AC_ARG_ENABLE([python], [--enable-python  Build the python evaluator. This evalutor is ALPHA hence it must be enabled explicitly.])
-AM_CONDITIONAL([COND_PYTHON], [test "x$enable_python" == "xyes"])
-if test "x$enable_python" == "xyes"; then
-  PKG_CHECK_MODULES([PYTHON], [python-$pythonversion-embed], [], [
-    PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
-  ])
-  if test "_$PYTHON_BIN" == "_"; then
-    PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
-  fi
-  PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
-  if test "$cross_compiling" == "yes"; then
-    PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
-  fi
-  if test "_$host_os" != "_mingw32"; then
-    PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
-  else
-    PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
-  fi
-  if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
-    PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
-    PYTHON_PACKAGES=site-packages
-  elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
-    PYTHON_LIBDIR=$PYTHON_LIBDIR
-    PYTHON_PACKAGES=site-packages
-  elif test -d /usr/lib/python3/dist-packages/numpy/core/include; then # debian special handling
-    PYTHON_LIBDIR=/usr/lib/python3
-    PYTHON_PACKAGES=dist-packages
-  else
-    AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
-  fi
-  AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
-  AC_SUBST([PYTHON_BIN], [$PYTHON_BIN])
-  AC_SUBST([PYTHON_LIBDIR])
-  AC_SUBST([PYTHON_LIBDIR2])
-  AC_SUBST([PYTHON_PACKAGES])
-  PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
-  AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
-  AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
-  AC_SUBST([PYTHON_VERSION],[$pythonversion])
+PKG_CHECK_MODULES([PYTHON], [python-$pythonversion-embed], [], [
+  PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
+])
+if test "_$PYTHON_BIN" == "_"; then
+  PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
 fi
+PYTHON_PREFIX="$(pkg-config --variable=exec_prefix python-$pythonversion)"
+PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
+if test "$cross_compiling" == "yes"; then
+  PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
+fi
+if test "_$host_os" != "_mingw32"; then
+  PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
+else
+  PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
+fi
+if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
+  PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
+  PYTHON_PACKAGES=site-packages
+elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
+  PYTHON_LIBDIR=$PYTHON_LIBDIR
+  PYTHON_PACKAGES=site-packages
+elif test -d /usr/lib/python3/dist-packages/numpy/core/include; then # debian special handling
+  PYTHON_LIBDIR=/usr/lib/python3
+  PYTHON_PACKAGES=dist-packages
+else
+  AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
+fi
+AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
+AC_DEFINE_UNQUOTED([PYTHON_PREFIX], ["$PYTHON_PREFIX"], [Python prefix])
+AC_SUBST([PYTHON_BIN], [$PYTHON_BIN])
+AC_SUBST([PYTHON_LIBDIR])
+AC_SUBST([PYTHON_LIBDIR2])
+AC_SUBST([PYTHON_PACKAGES])
+PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
+AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
+AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
+AC_SUBST([PYTHON_VERSION],[$pythonversion])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],

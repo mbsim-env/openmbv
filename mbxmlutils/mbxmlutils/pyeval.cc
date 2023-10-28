@@ -39,6 +39,14 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
+#ifdef _WIN32
+boost::filesystem::path dllDir("bin");
+std::string pathsep(";");
+#else
+boost::filesystem::path dllDir("lib");
+std::string pathsep(":");
+#endif
+
 }
 
 namespace MBXMLUtils {
@@ -79,20 +87,34 @@ class PyInit {
 PyInit::PyInit() {
   try {
     // init python
-    initializePython((Eval::installPath/"bin"/"mbxmlutilspp").string());
+    auto PYTHONHOME=initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
+      // append mbxmlutils module to the python path (the basic Python module for the pyeval)
+      Eval::installPath/"share"/"mbxmlutils"/"python",
+      // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
+      Eval::installPath/"bin",
+      // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
+      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
+    }, {
+      Eval::installPath,
+      boost::filesystem::path(PYTHON_PREFIX),
+    });
 
-    // set sys.path
-    PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
-    // append mbxmlutils module to the python path (the basic Python module for the pyeval)
-    PyO mbxmlutilspath(CALLPY(PyUnicode_FromString, (Eval::installPath/"share"/"mbxmlutils"/"python").string()));
-    CALLPY(PyList_Append, sysPath, mbxmlutilspath);
-    // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
-    PyO binpath(CALLPY(PyUnicode_FromString, (Eval::installPath/"bin").string()));
-    CALLPY(PyList_Append, sysPath, binpath);
-    // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-    PyO mbsimenvsitepackagespath(CALLPY(PyUnicode_FromString, (Eval::installPath.parent_path()/"mbsim-env-python-site-packages").string()));
-    CALLPY(PyList_Insert, sysPath, 0, mbsimenvsitepackagespath);
-
+    // numpy init needs some special handling for library loading
+    if(!PYTHONHOME.empty()) {
+#if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
+      PyO os=CALLPY(PyImport_ImportModule, "os");
+      PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
+      PyO arg(CALLPY(PyTuple_New, 1));
+      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/dllDir).string()));
+      CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
+      CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
+#else
+      // the string for putenv must have program life time
+      std::string PATH_OLD(getenv("PATH"));
+      static std::string PATH_ENV("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string());
+      putenv((char*)PATH_ENV.c_str());
+#endif
+    }
     // init numpy
     CALLPY(_import_array);
 
@@ -331,9 +353,10 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
     files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
   }
 #if _WIN32
-  // on Windows include the PYTHONSRC/../DLLs directory
-  for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
-    files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
+  // on Windows include the PYTHONSRC/../DLLs directory, if existing
+  if(exists(PYTHONSRC/".."/"DLLs"))
+    for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
+      files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
 #endif
 
   return files;

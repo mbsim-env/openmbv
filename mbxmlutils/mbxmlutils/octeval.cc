@@ -93,22 +93,22 @@ class OctInit {
 
 OctInit::OctInit() {
   try {
-    // set the OCTAVE_HOME envvar and octave_prefix variable before initializing octave
-    bfs::path octave_prefix;
-    if(getenv("OCTAVE_HOME")) // OCTAVE_HOME set manually -> use this for octave_prefix
-      octave_prefix=getenv("OCTAVE_HOME");
-    else if(getenv("OCTAVE_HOME")==nullptr && bfs::exists(MBXMLUtils::Eval::installPath/"share"/"octave")) {
-      // OCTAVE_HOME not set but octave is available in installation path of MBXMLUtils -> use installation path
-      octave_prefix=MBXMLUtils::Eval::installPath;
-      // the string for putenv must have program life time
-      static std::string OCTAVE_HOME="OCTAVE_HOME="+MBXMLUtils::Eval::installPath.string(CODECVT);
-      putenv((char*)OCTAVE_HOME.c_str());
+    if(!getenv("OCTAVE_HOME")) {
+      std::string OCTAVE_HOME;
+      if(bfs::exists(MBXMLUtils::Eval::installPath/"share"/"octave"))
+        OCTAVE_HOME=MBXMLUtils::Eval::installPath.string(CODECVT);
+      else if(bfs::exists(bfs::path(MKOCTFILE_OCTAVE_HOME_WIN)/"share"/"octave"))
+        OCTAVE_HOME=MKOCTFILE_OCTAVE_HOME_WIN;
+      else if(bfs::exists(bfs::path(MKOCTFILE_OCTAVE_HOME_UNIX)/"share"/"octave"))
+        OCTAVE_HOME=MKOCTFILE_OCTAVE_HOME_UNIX;
+      if(!OCTAVE_HOME.empty()) {
+        // the string for putenv must have program life time
+        static std::string OCTAVE_HOME_ENV=std::string("OCTAVE_HOME=")+OCTAVE_HOME;
+        putenv((char*)OCTAVE_HOME_ENV.c_str());
+      }
     }
-    // init interpreter
-    interpreter=new octave::interpreter();
-    if(octave_prefix.empty())
-      octave_prefix=octave::config::octave_home();
 
+    interpreter=new octave::interpreter();
     if(interpreter->execute()!=0)
       throw std::runtime_error("Cannot execute octave interpreter.");
   
@@ -757,7 +757,7 @@ std::map<bfs::path, std::pair<bfs::path, bool> >& OctEval::requiredFiles() const
   files[installPath/LIBDIR/"fmatvec_symbolic_swig_octave.oct"]=std::make_pair(LIBDIR, true);
   files[installPath/LIBDIR/"registerPath.oct"]=std::make_pair(LIBDIR, true);
 
-  // get octave fcnfiledir without octave_prefix
+  // get octave fcnfiledir
   bfs::path octave_fcnfiledir(octave::config::fcn_file_dir().substr(octave::config::octave_home().length()+1));
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave m-files."<<std::endl;
   bfs::path dir=octave::config::octave_home()/octave_fcnfiledir;
@@ -774,7 +774,7 @@ std::map<bfs::path, std::pair<bfs::path, bool> >& OctEval::requiredFiles() const
     files[srcIt->path()]=std::make_pair(octave_fcnfiledir/dst, false);
   }
 
-  // get octave octfiledir without octave_prefix
+  // get octave octfiledir
   bfs::path octave_octfiledir(octave::config::oct_file_dir().substr(octave::config::octave_home().length()+1));
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for octave oct-files (excluding dependencies)."<<std::endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(octave::config::octave_home()/octave_octfiledir);
