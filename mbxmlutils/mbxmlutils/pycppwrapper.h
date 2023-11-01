@@ -38,6 +38,8 @@
 #include <sstream>
 #include <memory>
 #include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <cfenv>
 
 #if PY_MAJOR_VERSION < 3
@@ -45,21 +47,6 @@
 #endif
 
 namespace PythonCpp {
-
-// initialize python giving main as program name to python
-inline void initializePython(const std::string &main) {
-  static auto mainW=boost::locale::conv::utf_to_utf<wchar_t>(main);
-  #if __GNUC__ >= 11
-    // python >= 3.8 has deprecated this call
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  #endif
-  Py_SetProgramName(const_cast<wchar_t*>(mainW.c_str()));
-  #if __GNUC__ >= 11
-    #pragma GCC diagnostic pop
-  #endif
-  Py_InitializeEx(0);
-}
 
 // make PyRun_String a function
 inline PyObject* PyRun_String_func(const char *str, int start, PyObject *globals, PyObject *locals) { return PyRun_String(str, start, globals, locals); }
@@ -223,6 +210,59 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // Note, if the python function steals a reference of any of this arguments you have to call arg.incRef() on
 // each such arguments.
 #define CALLPYB(...) PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__).incRef()
+
+// Initialize python giving main as program name to python.
+// All path in sysPathAppend are added to python's sys.path array.
+// If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
+// and if one is found envvar is set and its path is returned (else a empty path is retruned)
+inline boost::filesystem::path initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
+                                                const std::vector<boost::filesystem::path> &sysPathAppend={},
+                                                const std::vector<boost::filesystem::path> &possiblePrefix={}) {
+  boost::filesystem::path PYTHONHOME;
+  if(!getenv("PYTHONHOME")) {
+    for(auto &p : possiblePrefix) {
+      if(boost::filesystem::is_directory(p/"lib64"/("python"+pythonVersion)/"encodings") ||
+         boost::filesystem::is_directory(p/"lib"/("python"+pythonVersion)/"encodings") ||
+#ifdef _WIN32
+         boost::filesystem::exists(p/"bin"/"python.exe") ||
+         boost::filesystem::exists(p/"bin"/"python3.exe") ||
+         boost::filesystem::exists(p/"bin"/"python.bat") ||
+         boost::filesystem::exists(p/"bin"/"python3.bat")
+#else
+         boost::filesystem::exists(p/"bin"/"python") ||
+         boost::filesystem::exists(p/"bin"/"python3")
+#endif
+      ) {
+        PYTHONHOME=p;
+        break;
+      }
+    }
+    if(!PYTHONHOME.empty()) {
+      // the string for putenv must have program life time
+      static std::string PYTHONHOME_ENV(std::string("PYTHONHOME=")+PYTHONHOME.string());
+      putenv((char*)PYTHONHOME_ENV.c_str());
+    }
+  }
+
+  static auto mainW=boost::locale::conv::utf_to_utf<wchar_t>(main.string());
+  #if __GNUC__ >= 11
+    // python >= 3.8 has deprecated this call
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  #endif
+  Py_SetProgramName(const_cast<wchar_t*>(mainW.c_str()));
+  #if __GNUC__ >= 11
+    #pragma GCC diagnostic pop
+  #endif
+  Py_InitializeEx(0);
+
+  // add to sys.path
+  PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
+  for(auto &p : sysPathAppend)
+    CALLPY(PyList_Append, sysPath, CALLPY(PyUnicode_FromString, p.string()));
+
+  return PYTHONHOME;
+}
 
 // c++ PythonException exception with the content of a python exception
 PythonException::PythonException(const char *file_, int line_) : file(file_), line(line_) {

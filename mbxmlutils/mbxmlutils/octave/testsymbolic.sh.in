@@ -12,8 +12,20 @@ cat testsymbolic.out
 
 if [ @DEBUGBUILD@ -eq 1 ]; then
   echo "This is a debug build -> checking output"
-  diff @abs_srcdir@/testsymbolic.ref testsymbolic.out
-  RETDIFF=$?
+
+  E1=0
+  E2=0
+  diff @abs_srcdir@/testsymbolic.ref.1 testsymbolic.out &> /dev/null || E1=1
+  diff @abs_srcdir@/testsymbolic.ref.2 testsymbolic.out &> /dev/null || E2=1
+  RETDIFF=0
+  if [ $E1 -ne 0 -a $E2 -ne 0 ]; then
+    echo "Diff with testsymbolic.ref.1"
+    diff @abs_srcdir@/testsymbolic.ref.1 testsymbolic.out
+    echo "Diff with testsymbolic.ref.2"
+    diff @abs_srcdir@/testsymbolic.ref.2 testsymbolic.out
+    RETDIFF=1
+  fi
+
   test $RET -ne 0 && exit $RET
   exit $RETDIFF
 else

@@ -75,10 +75,10 @@ def _serializeFunction(x):
       import sympy
       # serialize a integer
       if isinstance(x, sympy.Integer) or numpy.issubdtype(type(x), int) or isinstance(x, int):
-        return str(x)
+        return str(int(x))
       # serialize a float
       if isinstance(x, sympy.Float) or numpy.issubdtype(type(x), float) or isinstance(x, sympy.Rational) or isinstance(x, float):
-        return str(x)
+        return str(float(x))
       # serialize a independent variable (all independe variables must be sympy.Dummy classes
       if x.func.__name__=="Dummy":
         import uuid
