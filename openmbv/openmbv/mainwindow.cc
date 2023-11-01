@@ -519,7 +519,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   fileTB->addAction(addFileAct);
 
   // view toolbar
-  auto *sceneViewToolBar=new QToolBar("Scene View Toolbar", this);
+  sceneViewToolBar=new QToolBar("Scene View Toolbar", this);
   sceneViewToolBar->setObjectName("MainWindow::viewTB");
   addToolBar(Qt::TopToolBarArea, sceneViewToolBar);
   sceneViewToolBar->addAction(viewAllAct);
