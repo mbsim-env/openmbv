@@ -46,7 +46,6 @@
 #include <QScroller>
 #include "utils.h"
 #include <QMetaMethod>
-#include <QTapAndHoldGesture>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -374,9 +373,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("settings.svg"), "Settings...", [this](){
-    static QDialog *dialog=nullptr;
-    if(dialog==nullptr)
-      dialog=new SettingsDialog(this);
+    auto dialog=new SettingsDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->show();
   });
   addAction(act); // must work also if menu bar is invisible
@@ -858,7 +856,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   // apply settings
   {
-    QTapAndHoldGesture::setTimeout(appSettings->get<int>(AppSettings::tapAndHoldTimeout));
     olseDrawStyle->lineWidth.setValue(appSettings->get<double>(AppSettings::outlineShilouetteEdgeLineWidth));
     auto color=appSettings->get<QColor>(AppSettings::outlineShilouetteEdgeLineColor);
     auto rgb=color.rgb();

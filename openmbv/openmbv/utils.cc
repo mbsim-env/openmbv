@@ -27,7 +27,6 @@
 #include "mainwindow.h"
 #include "mytouchwidget.h"
 #include <iostream>
-#include <QTapAndHoldGesture>
 #include <QScroller>
 #include <QDialog>
 #include <QTabWidget>
@@ -1072,6 +1071,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
                     {{"Orthographic", "Orthographic projection, disabled for for stereo view."},
                      {"Perspective" , "Perspective projection, automatically selected for stereo view."}}, [](int value){
     MainWindow::getInstance()->setCameraType(value==0 ? SoOrthographicCamera::getClassTypeId() : SoPerspectiveCamera::getClassTypeId());
+    MainWindow::getInstance()->cameraAct->setChecked(value==0);
   });
   addSpace(stereoView);
 
@@ -1092,7 +1092,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);
   }, 0, numeric_limits<double>::max(), 0.1);
   new IntSetting(mouseTouchSettings, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
-    QTapAndHoldGesture::setTimeout(value);
+    MainWindow::getInstance()->glViewerWG->setLongTapInterval(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "1/wheel", [](double value){
     MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);

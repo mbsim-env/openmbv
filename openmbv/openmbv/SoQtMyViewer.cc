@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "SoQtMyViewer.h"
+#include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
 #include <Inventor/nodes/SoTranslation.h>
@@ -83,7 +84,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   f->numVertices.setValue(4);
 
   // foreground
-  fgSep=new SoSeparator;
+  fgSep=new SoAnnotation;
   fgSep->ref();
   // font size
   font=new SoFont;

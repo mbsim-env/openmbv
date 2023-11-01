@@ -157,6 +157,8 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     SbVec3f initialRotateCameraPos;
     SbVec3f initialRotateCameraToPos;
     int initialFrame;
+    QPoint lastPos;
+    int xAccumulated;
 
     std::vector<std::pair<Body*, std::vector<SbVec3f>>> getObjectsByRay(const QPoint &pos);
     int createObjectListMenu(const std::vector<Body*>& pickedObject);
@@ -165,13 +167,13 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
     void seekToPoint(const QPoint &pos, Body *body=nullptr);
     void openPropertyDialog(const QPoint &pos);
-    void rotateInit();
+    void rotateInit(const QPoint &initialPos);
     void rotateReset();
-    void rotateAboutSySx(const QPoint &rel, int initialQuadrant);
-    void rotateAboutWSx(const QPoint &rel, int initialQuadrant, int axisIdx); // used by three belos functions
-    void rotateAboutWxSx(const QPoint &rel, int initialQuadrant);
-    void rotateAboutWySx(const QPoint &rel, int initialQuadrant);
-    void rotateAboutWzSx(const QPoint &rel, int initialQuadrant);
+    void rotateAboutSySx(const QPoint &rel, const QPoint &pos);
+    void rotateAboutWSx (const QPoint &rel, const QPoint &pos, int axisIdx); // used by three belos functions
+    void rotateAboutWxSx(const QPoint &rel, const QPoint &pos);
+    void rotateAboutWySx(const QPoint &rel, const QPoint &pos);
+    void rotateAboutWzSx(const QPoint &rel, const QPoint &pos);
     void rotateAboutSz(double relAngle, bool relIoInitial=true);
     void translateInit();
     void translateReset();

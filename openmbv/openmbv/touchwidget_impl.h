@@ -22,7 +22,6 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QApplication>
-#include <QTapAndHoldGesture>
 
 namespace OpenMBVGUI {
 
@@ -32,7 +31,7 @@ TouchWidget<Widget>::TouchWidget(QWidget *parent, bool handleMouseEvents_, bool 
   this->setAttribute(Qt::WA_AcceptTouchEvents);
   touchTapDownTimer1=new QTimer(this);
   touchTapDownTimer1->setSingleShot(true);
-  touchTapDownTimer1->setInterval(QTapAndHoldGesture::timeout());
+  touchTapDownTimer1->setInterval(700);
   this->connect(touchTapDownTimer1, &QTimer::timeout, this, &TouchWidget::touchLongTapTimedOut1);
 }
 
@@ -314,6 +313,11 @@ bool TouchWidget<Widget>::event(QEvent *event) {
     default:
       return Widget::event(event);
   };
+}
+
+template<class Widget>
+void TouchWidget<Widget>::setLongTapInterval(int ms) {
+  touchTapDownTimer1->setInterval(ms);
 }
 
 template<class Widget>
