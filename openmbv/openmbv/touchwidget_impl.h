@@ -60,6 +60,9 @@ bool TouchWidget<Widget>::event(QEvent *event) {
         return false;
       }
       for(auto &[myButton_, qtButton_, click_, doubleClick_, active_, save_, reset_, move_]: mouseActions) {
+        (void)click_;
+        (void)reset_;
+        (void)move_;
         if(mouseEvent->button()==qtButton_) {
           // if the last button press is < QApplication::doubleClickInterval() ago -> reset the last click event and emit a double click event
           // (and ignore the following move and release events on this button)
@@ -91,6 +94,11 @@ bool TouchWidget<Widget>::event(QEvent *event) {
         return false;
       }
       for(auto &[myButton_, qtButton_, click_, doubleClick_, active_, save_, reset_, move_]: mouseActions) {
+        (void)click_;
+        (void)doubleClick_;
+        (void)active_;
+        (void)save_;
+        (void)reset_;
         if(mouseEvent->buttons() & qtButton_) {
           // if ignore is active for this button -> ignore this move
           if(ignoreMouseMoveRelease[myButton_])
@@ -118,6 +126,8 @@ bool TouchWidget<Widget>::event(QEvent *event) {
         return false;
       }
       for(auto &[myButton_, qtButton_, click_, doubleClick_, active_, save_, reset_, move_]: mouseActions) {
+        (void)doubleClick_;
+        (void)save_;
         if(mouseEvent->button()==qtButton_) {
           // if ignore is active for this button -> ignore this release and reset the ignore flag
           if(ignoreMouseMoveRelease[myButton_]) {
