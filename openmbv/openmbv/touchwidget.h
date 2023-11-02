@@ -22,6 +22,7 @@
 
 #include <array>
 #include <QPoint>
+#include <QTimer>
 
 class QMouseEvent;
 class QTouchEvent;
@@ -37,7 +38,7 @@ class TouchWidget : public Widget {
   public:
     TouchWidget(QWidget *parent, bool handleMouseEvents_=true, bool handleTouchEvents_=true);
     bool event(QEvent *event) override;
-    void setLongTapInterval(int ms);
+    void setLongTapInterval(int ms) { touchTapDownTimer1->setInterval(ms); }
   private:
     bool handleMouseEvents;
     bool handleTouchEvents;

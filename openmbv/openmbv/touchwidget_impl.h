@@ -326,11 +326,6 @@ bool TouchWidget<Widget>::event(QEvent *event) {
 }
 
 template<class Widget>
-void TouchWidget<Widget>::setLongTapInterval(int ms) {
-  touchTapDownTimer1->setInterval(ms);
-}
-
-template<class Widget>
 void TouchWidget<Widget>::touchLongTapTimedOut1() {
   if(touchTapMaxMoveSqr1>=QApplication::startDragDistance()*QApplication::startDragDistance() || touchCancel1)
     return;
