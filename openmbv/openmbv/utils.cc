@@ -1093,6 +1093,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   }, 0, numeric_limits<double>::max(), 0.1);
   new IntSetting(mouseTouchSettings, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
     MainWindow::getInstance()->glViewerWG->setLongTapInterval(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->getTouchWidget()->setLongTapInterval(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "1/wheel", [](double value){
     MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);
