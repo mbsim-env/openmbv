@@ -187,7 +187,7 @@ void SoQtMyViewer::actualRedraw() {
   if(aspectRatio>1)
     ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
   else
-    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY/aspectRatio,1);
+    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
   getGLRenderAction()->apply(fgSep);
 
   // update fps
@@ -196,10 +196,6 @@ void SoQtMyViewer::actualRedraw() {
 
 void SoQtMyViewer::setAspectRatio(double r) {
   aspectRatio=r;
-  if(r>1)
-    text2Scale->scaleFactor.setValue(fontScale/r,fontScale,fontScale);
-  else
-    text2Scale->scaleFactor.setValue(fontScale,fontScale/r,fontScale);
 }
 
 }

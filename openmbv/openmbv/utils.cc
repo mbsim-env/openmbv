@@ -333,6 +333,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[cameraType]={"mainwindow/sceneGraph/cameraType", 0};
   setting[stereoType]={"mainwindow/sceneGraph/stereoType", 0};
   setting[stereoOffset]={"mainwindow/sceneGraph/stereoOffset", 0.1};
+  setting[stereoAspectRatio]={"mainwindow/sceneGraph/stereoAspectRatio", 2};
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
@@ -1085,6 +1086,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new DoubleSetting(stereoView, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
     MainWindow::getInstance()->setStereoOffset(value);
   }, 0, numeric_limits<double>::max(), 0.01);
+  new DoubleSetting(stereoView, AppSettings::stereoAspectRatio, Utils::QIconCached(""), "Stereo view aspect ratio:", "", [](double value){
+    MainWindow::getInstance()->glViewer->setAspectRatio(value);
+    if(MainWindow::getInstance()->glViewerRight)
+      MainWindow::getInstance()->glViewerRight->setAspectRatio(value);
+    MainWindow::getInstance()->frame->touch();
+  }, 0, numeric_limits<double>::max(), 0.5);
   new ChoiceSetting(stereoView, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
                     {{"Orthographic", "Orthographic projection, disabled for for stereo view."},
                      {"Perspective" , "Perspective projection, automatically selected for stereo view."}}, [](int value){
