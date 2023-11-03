@@ -979,11 +979,14 @@ void MyTouchWidget::zoomCameraFocalDist(int change) {
 
 
 void MyTouchWidget::cursorSz(float relCursorZInc, const QPoint &pos) {
-  relCursorZ+=relCursorZInc;
-  if(relCursorZ<=1e-6) relCursorZ=1e-6;
-  if(relCursorZ>=1-1e-6) relCursorZ=1-1e-6;
+  // always operate on relCursorZ of the left eye view
+  auto &relCurZ = MainWindow::getInstance()->glViewerWG->relCursorZ;
+
+  relCurZ+=relCursorZInc;
+  if(relCurZ<=1e-6) relCurZ=1e-6;
+  if(relCurZ>=1-1e-6) relCurZ=1-1e-6;
   MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-    arg(relCursorZ, 0, 'f', 3), 1000);
+    arg(relCurZ, 0, 'f', 3), 1000);
   updateCursorPos(pos);
 }
 

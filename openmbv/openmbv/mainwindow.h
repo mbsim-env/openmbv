@@ -72,10 +72,9 @@ class DialogStereo : public QDialog {
     ~DialogStereo() override;
     void closeEvent(QCloseEvent *event) override;
     void showEvent(QShowEvent *event) override;
-    MyTouchWidget *getTouchWidget() { return glViewerWGRight; }
+    MyTouchWidget *glViewerWGRight { nullptr };
   private:
     QPushButton *fullScreenButton;
-    MyTouchWidget *glViewerWGRight { nullptr };
 };
 
 class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
