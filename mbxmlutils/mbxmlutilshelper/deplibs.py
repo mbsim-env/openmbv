@@ -4,7 +4,7 @@ import sys
 import subprocess
 import re
 import os
-import distutils.spawn
+import shutil
 import platform
 import glob
 from functools import lru_cache
@@ -86,7 +86,7 @@ def getDoNotAdd():
   ]
   for s in system:
     for p in s[2]:
-      if distutils.spawn.find_executable(s[0]):
+      if shutil.which(s[0]):
         try:
           for line in subprocess.check_output([s[0]]+s[1]+[p], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
             notAdd.add(os.path.realpath(line))
