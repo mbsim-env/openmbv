@@ -65,7 +65,17 @@ class SoCalculator;
 namespace OpenMBVGUI {
  
 class MyTouchWidget;
-class DialogStereo;
+
+class DialogStereo : public QDialog {
+  public:
+    DialogStereo();
+    ~DialogStereo() override;
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+    MyTouchWidget *glViewerWGRight { nullptr };
+  private:
+    QPushButton *fullScreenButton;
+};
 
 class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   Q_OBJECT

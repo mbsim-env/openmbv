@@ -139,14 +139,14 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float rotAnglePerPixel;
     float pickObjectRadius;
     float inScreenRotateSwitch;
-    float relCursorZ = 0.5;
+    float relCursorZ = 0.5; // only used by the left eye view, the right eye view uses relCursorZ from the left eye view
     float relCursorZPerWheel;
     float relCursorZPerPixel;
     int pixelPerFrame;
 
     int verticalAxis { 2 };
     void setVerticalAxis(MoveAction act);
-                                                                                                                        //
+
     double touchMove2RotateInScreenPlane;
     SbVec3f initialTranslateCameraPos;
     float initialZoomCameraHeight;

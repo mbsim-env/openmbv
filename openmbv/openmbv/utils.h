@@ -162,6 +162,7 @@ class AppSettings {
       cameraType,
       stereoType,
       stereoOffset,
+      stereoAspectRatio,
       tapAndHoldTimeout,
       outlineShilouetteEdgeLineWidth,
       outlineShilouetteEdgeLineColor,

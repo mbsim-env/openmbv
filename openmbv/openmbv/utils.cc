@@ -333,6 +333,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[cameraType]={"mainwindow/sceneGraph/cameraType", 0};
   setting[stereoType]={"mainwindow/sceneGraph/stereoType", 0};
   setting[stereoOffset]={"mainwindow/sceneGraph/stereoOffset", 0.1};
+  setting[stereoAspectRatio]={"mainwindow/sceneGraph/stereoAspectRatio", 2};
   setting[tapAndHoldTimeout]={"mainwindow/manipulate3d/tapAndHoldTimeout", 700};
   setting[outlineShilouetteEdgeLineWidth]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineWidth", 1.0};
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
@@ -756,6 +757,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##ClickAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setMouse##button##ClickAction( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
     })
   MOUSECLICK(None        , Left);
   MOUSECLICK(Shift       , Left);
@@ -837,6 +841,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##MoveAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setMouse##button##MoveAction( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
     })
   MOUSEMOVE(None        , Left);
   MOUSEMOVE(Shift       , Left);
@@ -890,6 +897,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouseWheelAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setMouseWheelAction( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
     })
   MOUSEWHEEL(None        );
   MOUSEWHEEL(Shift       );
@@ -940,6 +950,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setTouch##tap##Action( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::ClickTapAction>(value)); \
     })
   TOUCHTAP(None        , Tap);
   TOUCHTAP(Shift       , Tap);
@@ -1001,6 +1014,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setTouch##tap##Action( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
     })
   TOUCHMOVE(None        , Move1);
   TOUCHMOVE(Shift       , Move1);
@@ -1045,6 +1061,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##Move2ZoomAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
+      if(MainWindow::getInstance()->dialogStereo) \
+        MainWindow::getInstance()->dialogStereo->glViewerWGRight->setTouch##Move2ZoomAction( \
+          MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
     })
   TOUCHMOVEZOOM(None        );
   TOUCHMOVEZOOM(Shift       );
@@ -1067,6 +1086,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new DoubleSetting(stereoView, AppSettings::stereoOffset, Utils::QIconCached(""), "Stereo view eye distance:", "m", [](double value){
     MainWindow::getInstance()->setStereoOffset(value);
   }, 0, numeric_limits<double>::max(), 0.01);
+  new DoubleSetting(stereoView, AppSettings::stereoAspectRatio, Utils::QIconCached(""), "Stereo view aspect ratio:", "", [](double value){
+    MainWindow::getInstance()->glViewer->setAspectRatio(value);
+    if(MainWindow::getInstance()->glViewerRight)
+      MainWindow::getInstance()->glViewerRight->setAspectRatio(value);
+    MainWindow::getInstance()->frame->touch();
+  }, 0, numeric_limits<double>::max(), 0.5);
   new ChoiceSetting(stereoView, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
                     {{"Orthographic", "Orthographic projection, disabled for for stereo view."},
                      {"Perspective" , "Perspective projection, automatically selected for stereo view."}}, [](int value){
@@ -1081,30 +1106,48 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   mouseTouchSettings->setColumnStretch(2, 1);
   new DoubleSetting(mouseTouchSettings, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setRotAnglePerPixel(value);
   }, numeric_limits<double>::min(), numeric_limits<double>::max(), 0.01);
   new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerPixel, Utils::QIconCached("zoom.svg"), "Zoom factor per pixel:", "1/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setZoomFacPerPixel(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setZoomFacPerPixel(value);
   }, 0, numeric_limits<double>::max(), 0.0001);
   new DoubleSetting(mouseTouchSettings, AppSettings::zoomFacPerAngle, Utils::QIconCached("zoom.svg"), "Zoom factor per wheel:", "1/deg", [](double value){
     MainWindow::getInstance()->glViewerWG->setZoomFacPerAngle(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setZoomFacPerAngle(value);
   }, 0, numeric_limits<double>::max(), 0.0001);
   new DoubleSetting(mouseTouchSettings, AppSettings::pickObjectRadius, Utils::QIconCached("target.svg"), "Pick object radius:", "px", [](double value){
     MainWindow::getInstance()->glViewerWG->setPickObjectRadius(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setPickObjectRadius(value);
   }, 0, numeric_limits<double>::max(), 0.1);
   new IntSetting(mouseTouchSettings, AppSettings::tapAndHoldTimeout, Utils::QIconCached("time.svg"), "Tap and hold timeout:", "ms", [](int value){
     MainWindow::getInstance()->glViewerWG->setLongTapInterval(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setLongTapInterval(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerWheel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per wheel:", "1/wheel", [](double value){
     MainWindow::getInstance()->glViewerWG->setRelCursorZPerWheel(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setRelCursorZPerWheel(value);
   }, 0, 1, 0.001);
   new DoubleSetting(mouseTouchSettings, AppSettings::relCursorZPerPixel, Utils::QIconCached("angle.svg"), "Relative cursor-z change per pixel:", "1/pt", [](double value){
     MainWindow::getInstance()->glViewerWG->setRelCursorZPerPixel(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setRelCursorZPerPixel(value);
   }, 0, 1, 0.0001);
   new IntSetting(mouseTouchSettings, AppSettings::pixelPerFrame, QIcon(), "Pixel per frame:", "pt", [](int value){
     MainWindow::getInstance()->glViewerWG->setPixelPerFrame(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setPixelPerFrame(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::inScreenRotateSwitch, Utils::QIconCached("angle.svg"), "In screen rotate barrier:", "deg", [](double value){
     MainWindow::getInstance()->glViewerWG->setInScreenRotateSwitch(value);
+    if(MainWindow::getInstance()->dialogStereo)
+      MainWindow::getInstance()->dialogStereo->glViewerWGRight->setInScreenRotateSwitch(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::anglePerKeyPress, Utils::QIconCached("angle.svg"), "Rotation per keypress:", "deg/key", {},
                     numeric_limits<double>::min(), numeric_limits<double>::max(), 0.5);

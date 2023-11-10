@@ -882,16 +882,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   reinit3DView(static_cast<StereoType>(appSettings->get<int>(AppSettings::stereoType)));
 }
 
-class DialogStereo : public QDialog {
-  public:
-    DialogStereo();
-    ~DialogStereo() override;
-    void closeEvent(QCloseEvent *event) override;
-    void showEvent(QShowEvent *event) override;
-  private:
-    QPushButton *fullScreenButton;
-};
-
 DialogStereo::DialogStereo() {
   static const boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
@@ -929,9 +919,9 @@ DialogStereo::DialogStereo() {
   mw->setCameraType(SoPerspectiveCamera::getClassTypeId());
   mw->glViewer->getCamera()->setStereoMode(SoCamera::LEFT_VIEW);
   mw->glViewer->getCamera()->viewportMapping.setValue(SoCamera::LEAVE_ALONE);
-  mw->glViewer->setAspectRatio(2.0);
+  mw->glViewer->setAspectRatio(appSettings->get<double>(AppSettings::stereoAspectRatio));
 
-  auto *glViewerWGRight=new MyTouchWidget(this);
+  glViewerWGRight=new MyTouchWidget(this);
   fullScreenButton=new QPushButton(Utils::QIconCached("fullscreen.svg"), "", this);
   fullScreenButton->setIconSize(QSize(50,50));
   fullScreenButton->setFixedSize(QSize(60,60));
@@ -953,7 +943,7 @@ DialogStereo::DialogStereo() {
   auto *cameraRight=static_cast<SoPerspectiveCamera*>(mw->glViewerRight->getCamera());
   cameraRight->setStereoMode(SoCamera::RIGHT_VIEW);
   mw->glViewerRight->getCamera()->viewportMapping.setValue(SoCamera::LEAVE_ALONE);
-  mw->glViewerRight->setAspectRatio(2.0);
+  mw->glViewerRight->setAspectRatio(appSettings->get<double>(AppSettings::stereoAspectRatio));
   mw->glViewerRight->setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
 
   auto *positionE=new SoGate(SoMFVec3f::getClassTypeId());
