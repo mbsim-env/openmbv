@@ -39,14 +39,6 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
-#ifdef _WIN32
-boost::filesystem::path dllDir("bin");
-std::string pathsep(";");
-#else
-boost::filesystem::path dllDir("lib");
-std::string pathsep(":");
-#endif
-
 }
 
 namespace MBXMLUtils {
@@ -87,7 +79,7 @@ class PyInit {
 PyInit::PyInit() {
   try {
     // init python
-    auto PYTHONHOME=initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
+    initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
       // append mbxmlutils module to the python path (the basic Python module for the pyeval)
       Eval::installPath/"share"/"mbxmlutils"/"python",
       // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
@@ -99,22 +91,6 @@ PyInit::PyInit() {
       boost::filesystem::path(PYTHON_PREFIX),
     });
 
-    // numpy init needs some special handling for library loading
-    if(!PYTHONHOME.empty()) {
-#if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
-      PyO os=CALLPY(PyImport_ImportModule, "os");
-      PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
-      PyO arg(CALLPY(PyTuple_New, 1));
-      PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/dllDir).string()));
-      CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
-      CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
-#else
-      // the string for putenv must have program life time
-      std::string PATH_OLD(getenv("PATH"));
-      static std::string PATH_ENV("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string());
-      putenv((char*)PATH_ENV.c_str());
-#endif
-    }
     // init numpy
     CALLPY(_import_array);
 

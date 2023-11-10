@@ -214,10 +214,10 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // Initialize python giving main as program name to python.
 // All path in sysPathAppend are added to python's sys.path array.
 // If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
-// and if one is found envvar is set and its path is returned (else a empty path is retruned)
-inline boost::filesystem::path initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
-                                                const std::vector<boost::filesystem::path> &sysPathAppend={},
-                                                const std::vector<boost::filesystem::path> &possiblePrefix={}) {
+// and if one is found envvar is set
+inline void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
+                             const std::vector<boost::filesystem::path> &sysPathAppend={},
+                             const std::vector<boost::filesystem::path> &possiblePrefix={}) {
   boost::filesystem::path PYTHONHOME;
   if(!getenv("PYTHONHOME")) {
     for(auto &p : possiblePrefix) {
@@ -256,12 +256,33 @@ inline boost::filesystem::path initializePython(const boost::filesystem::path &m
   #endif
   Py_InitializeEx(0);
 
+#ifdef _WIN32
+  boost::filesystem::path dllDir("bin");
+  std::string pathsep(";");
+#else
+  boost::filesystem::path dllDir("lib");
+  std::string pathsep(":");
+#endif
+  if(!PYTHONHOME.empty()) {
+#if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
+    PyO os=CALLPY(PyImport_ImportModule, "os");
+    PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
+    PyO arg(CALLPY(PyTuple_New, 1));
+    PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/dllDir).string()));
+    CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
+    CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
+#else
+    // the string for putenv must have program life time
+    std::string PATH_OLD(getenv("PATH"));
+    static std::string PATH_ENV("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string());
+    putenv((char*)PATH_ENV.c_str());
+#endif
+  }
+
   // add to sys.path
   PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
   for(auto &p : sysPathAppend)
     CALLPY(PyList_Append, sysPath, CALLPY(PyUnicode_FromString, p.string()));
-
-  return PYTHONHOME;
 }
 
 // c++ PythonException exception with the content of a python exception
