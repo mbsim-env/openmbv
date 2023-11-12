@@ -11,9 +11,7 @@
       <xs:sequence>
         <xs:element ref="Parameter" minOccurs="0"/>
         <xs:choice minOccurs="0">
-          <!--
-             - This choice enables nested embed-Tags. (Need to be tested)
-             -->
+          <!-- This choice can be removed if the deprecated feature in process.cc is removed -->
           <xs:any namespace="##other" processContents="strict"/>
           <xs:element ref="Embed"/>
         </xs:choice>
@@ -21,7 +19,13 @@
       <xs:attribute name="href" type="filenamePartialEval" use="optional"/>
       <xs:attribute name="parameterHref" type="filenamePartialEval" use="optional"/>
       <xs:attribute name="count" use="optional" type="integerFullEval"/>
-      <xs:attribute name="counterName" use="optional" type="varnamePartialEval"/>
+      <xs:attribute name="counterName" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:token">
+            <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
       <xs:attribute name="onlyif" use="optional" type="booleanFullEval" default="1"/>
     </xs:complexType>
   </xs:element>

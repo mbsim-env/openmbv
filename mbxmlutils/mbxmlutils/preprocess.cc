@@ -69,7 +69,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // counter name
       string counterName="MBXMLUtilsDummyCounterName";
       if(E(e)->hasAttribute("counterName"))
-        try { counterName=eval->cast<string>(eval->eval(E(e)->getAttributeNode("counterName"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        counterName=E(e)->getAttribute("counterName");
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
@@ -98,6 +98,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
 
       // check for direct successive Embed elements
       if(E(enew)->getTagName()==PV%"Embed")
+        // if this deprecated feature is removed also fix embed.xsd
         eval->msg(Deprecated)<<"Direct successive pv:Embed elements are deprecated: "<<
           string(parentXPath).append("/").append(thisXPath)<<endl;
     
