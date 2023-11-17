@@ -150,6 +150,13 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   mainLO=new QGridLayout(mainWG);
   mainLO->setContentsMargins(0,0,0,0);
   mainWG->setLayout(mainLO);
+
+  disableStereo=new QPushButton(Utils::QIconCached("camerastereodisable.svg"), "", this);
+  disableStereo->setIconSize(QSize(100,100));
+  connect(disableStereo, &QPushButton::clicked, [this](){
+    reinit3DView(StereoType::None);
+  });
+
   // gl viewer
   glViewerWG=new MyTouchWidget(this);
   timeString=new SoAsciiText;
@@ -829,8 +836,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   if(!cameraFile.empty()) {
     loadCamera(cameraFile);
   }
-  else
-    glViewer->viewAll();
 
   // play
   if(playArg) playAct->trigger();
@@ -992,6 +997,8 @@ void MainWindow::reinit3DView(StereoType stereoType) {
   viewStereo->setChecked(stereoType!=StereoType::None);
   switch(stereoType) {
     case StereoType::None:
+      disableStereo->setVisible(false);
+      mainLO->removeWidget(disableStereo);
       mainLO->addWidget(glViewerWG,0,0);
       if(dialogStereo) dialogStereo->close();
       delete dialogStereo;
@@ -1005,11 +1012,8 @@ void MainWindow::reinit3DView(StereoType stereoType) {
       glViewer->setAspectRatio(1.0);
       break;
     case StereoType::LeftRight:
-      auto *disableStereo=new QPushButton(Utils::QIconCached("camerastereodisable.svg"), "", this);
-      disableStereo->setIconSize(QSize(100,100));
-      connect(disableStereo, &QPushButton::clicked, [this](){
-        reinit3DView(StereoType::None);
-      });
+      disableStereo->setVisible(true);
+      mainLO->removeWidget(glViewerWG);
       mainLO->addWidget(disableStereo,0,0);
       if(dialogStereo) dialogStereo->close();
       delete dialogStereo;
@@ -1156,7 +1160,6 @@ void MainWindow::newFileDialog() {
   file<<R"(<?xml version="1.0" encoding="UTF-8" ?>)"<<endl
       <<"<Group name=\""<<filename.stem().string()<<R"(" xmlns="http://www.mbsim-env.de/OpenMBV"/>)"<<endl;
   openFile(filename.string());
-  viewAllSlot();
 }
 
 void MainWindow::toggleAction(Object *current, QAction *currentAct) {

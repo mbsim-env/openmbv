@@ -163,10 +163,9 @@ void Group::reloadFileSlot() {
   // load
   MainWindow::getInstance()->openFile(fileName, parent, parent?((Group*)parent)->soSep:nullptr, ind);
   // set new item the current item: this selects and scroll to the new widget
-  if(parent)
-    MainWindow::getInstance()->objectList->setCurrentItem(parent->child(ind), 0, QItemSelectionModel::NoUpdate);
-  else
-    MainWindow::getInstance()->objectList->setCurrentItem(MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind), 0, QItemSelectionModel::NoUpdate);
+  auto grp = parent ? parent->child(ind) : MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind);
+  MainWindow::getInstance()->objectList->setCurrentItem(grp, 0, QItemSelectionModel::NoUpdate);
+  MainWindow::getInstance()->fileReloaded(static_cast<Group*>(grp));
 }
 
 void Group::refreshFileSlot() {

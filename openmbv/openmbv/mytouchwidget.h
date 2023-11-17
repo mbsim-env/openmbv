@@ -157,8 +157,6 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     SbVec3f initialRotateCameraPos;
     SbVec3f initialRotateCameraToPos;
     int initialFrame;
-    QPoint lastPos;
-    int xAccumulated;
 
     std::vector<std::pair<Body*, std::vector<SbVec3f>>> getObjectsByRay(const QPoint &pos);
     int createObjectListMenu(const std::vector<Body*>& pickedObject);
@@ -180,7 +178,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void translate(const QPoint &rel);
     void zoomInit();
     void zoomReset();
-    void zoomCameraAngle(int change);
+    void zoomCameraAngle(float fac);
     void zoomCameraFocalDist(int change);
     void cursorSz(float change, const QPoint &pos);
     void changeFrame(int steps, bool rel=true);
