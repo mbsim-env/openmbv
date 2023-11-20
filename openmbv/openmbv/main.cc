@@ -154,8 +154,12 @@ int main(int argc, char *argv[])
         <<"                   <dir> and <file> must be the last arguments."<<endl
         <<""<<endl
         <<"Note:"<<endl
+        <<""<<endl
         <<"In contrast to Coin3D VBO (Vertex Buffer Object) is disabled per default in"<<endl
-        <<"OpenMBV. You can enable it by setting the environment variable COIN_VBO=1."<<endl;
+        <<"OpenMBV. You can enable it by setting the environment variable COIN_VBO=1."<<endl
+        <<""<<endl
+        <<"If you experience crashes at startup regarding the OpenGL context, try"<<endl
+        <<"setting the envvar OPENMBV_NO_MULTISAMPLING=2."<<endl;
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
     return 0;
   }

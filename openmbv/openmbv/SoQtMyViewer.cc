@@ -45,7 +45,9 @@ namespace OpenMBVGUI {
 constexpr float fontScale = 0.0025;
 
 SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
-  setSampleBuffers(4);
+  static const char* OPENMBV_NO_MULTISAMPLING=getenv("OPENMBV_NO_MULTISAMPLING");
+  if(!OPENMBV_NO_MULTISAMPLING)
+    setSampleBuffers(4);
   setAutoClipping(true);
   setAutoClippingStrategy(CONSTANT_NEAR_PLANE, 0);
   switch(transparency) {
