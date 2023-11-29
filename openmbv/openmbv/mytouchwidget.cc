@@ -223,7 +223,7 @@ void MyTouchWidget::mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint
     case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
     case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
     case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
-    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
+    case ClickTapAction::SetFocalPoint: setFocalPoint(pos); break;
   }
 }
 
@@ -238,7 +238,7 @@ void MyTouchWidget::mouseRightClick(Qt::KeyboardModifiers modifiers, const QPoin
     case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
     case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
     case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
-    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
+    case ClickTapAction::SetFocalPoint: setFocalPoint(pos); break;
   }
 }
 
@@ -253,7 +253,7 @@ void MyTouchWidget::mouseMidClick(Qt::KeyboardModifiers modifiers, const QPoint 
     case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
     case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
     case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
-    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
+    case ClickTapAction::SetFocalPoint: setFocalPoint(pos); break;
   }
 }
 
@@ -277,7 +277,8 @@ void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPo
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateInit(initialPos); break;
     case MoveAction::Zoom: zoomInit(); break;
-    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomInit(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomInit(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateInit(initialPos); break;
     case MoveAction::RotateAboutWxSx: rotateInit(initialPos); break;
@@ -295,7 +296,8 @@ void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QP
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateInit(initialPos); break;
     case MoveAction::Zoom: zoomInit(); break;
-    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomInit(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomInit(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateInit(initialPos); break;
     case MoveAction::RotateAboutWxSx: rotateInit(initialPos); break;
@@ -313,7 +315,8 @@ void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoi
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateInit(initialPos); break;
     case MoveAction::Zoom: zoomInit(); break;
-    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomInit(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomInit(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateInit(initialPos); break;
     case MoveAction::RotateAboutWxSx: rotateInit(initialPos); break;
@@ -332,7 +335,8 @@ void MyTouchWidget::mouseLeftMoveReset(Qt::KeyboardModifiers modifiers) {
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateReset(); break;
     case MoveAction::Zoom: zoomReset(); break;
-    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomReset(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomReset(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateReset(); break;
     case MoveAction::RotateAboutWxSx: rotateReset(); break;
@@ -349,7 +353,8 @@ void MyTouchWidget::mouseRightMoveReset(Qt::KeyboardModifiers modifiers) {
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateReset(); break;
     case MoveAction::Zoom: zoomReset(); break;
-    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomReset(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomReset(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateReset(); break;
     case MoveAction::RotateAboutWxSx: rotateReset(); break;
@@ -366,7 +371,8 @@ void MyTouchWidget::mouseMidMoveReset(Qt::KeyboardModifiers modifiers) {
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: rotateReset(); break;
     case MoveAction::Zoom: zoomReset(); break;
-    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomReset(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomReset(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateReset(); break;
     case MoveAction::RotateAboutWxSx: rotateReset(); break;
@@ -384,7 +390,8 @@ void MyTouchWidget::mouseLeftMove(Qt::KeyboardModifiers modifiers, const QPoint 
     case MoveAction::ChangeFrame: changeFrame(initialFrame-lround(float(rel.y())/pixelPerFrame), false); break;
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(pow(zoomFacPerPixel, -rel.y())); break;
-    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(rel.y()); break;
+    case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(rel.y()); break;
     case MoveAction::CurserSz: cursorSz(rel.y()*relCursorZPerPixel, pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, pos); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, pos); break;
@@ -402,7 +409,8 @@ void MyTouchWidget::mouseRightMove(Qt::KeyboardModifiers modifiers, const QPoint
     case MoveAction::ChangeFrame: changeFrame(initialFrame-lround(float(rel.y())/pixelPerFrame), false); break;
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(pow(zoomFacPerPixel, -rel.y())); break;
-    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(rel.y()); break;
+    case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(rel.y()); break;
     case MoveAction::CurserSz: cursorSz(rel.y()*relCursorZPerPixel, pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, pos); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, pos); break;
@@ -420,7 +428,8 @@ void MyTouchWidget::mouseMidMove(Qt::KeyboardModifiers modifiers, const QPoint &
     case MoveAction::ChangeFrame: changeFrame(initialFrame-lround(float(rel.y())/pixelPerFrame), false); break;
     case MoveAction::RotateAboutSz: rotateAboutSz(rel.y()*rotAnglePerPixel*M_PI/180 ); break;
     case MoveAction::Zoom: zoomCameraAngle(pow(zoomFacPerPixel, -rel.y())); break;
-    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(rel.y()); break;
+    case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(rel.y()); break;
     case MoveAction::CurserSz: cursorSz(rel.y()*relCursorZPerPixel, pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, pos); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, pos); break;
@@ -437,7 +446,8 @@ void MyTouchWidget::mouseWheel(Qt::KeyboardModifiers modifiers, double relAngle,
     case MoveAction::ChangeFrame: changeFrame(lround(relAngle/15)); break;
     case MoveAction::RotateAboutSz: rotateAboutSz(-relAngle*M_PI/180, false); break;
     case MoveAction::Zoom: zoomInit(); zoomCameraAngle(pow(zoomFacPerAngle, relAngle)); break;
-    case MoveAction::CameraFocalDistance: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::CameraDistFromFocalPoint: throw runtime_error("Invalid move action for mouse wheel event."); break;
+    case MoveAction::CameraAndFocalPointSz: throw runtime_error("Invalid move action for mouse wheel event."); break;
     case MoveAction::CurserSz: cursorSz(relAngle/15*relCursorZPerWheel, pos); break;
     case MoveAction::RotateAboutSySx: throw runtime_error("Invalid move action for mouse wheel event."); break;
     case MoveAction::RotateAboutWxSx: throw runtime_error("Invalid move action for mouse wheel event."); break;
@@ -460,7 +470,7 @@ void MyTouchWidget::touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos)
     case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
     case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
     case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
-    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
+    case ClickTapAction::SetFocalPoint: setFocalPoint(pos); break;
   }
 }
 
@@ -480,7 +490,7 @@ void MyTouchWidget::touchLongTap(Qt::KeyboardModifiers modifiers, const QPoint &
     case ClickTapAction::ShowContextMenu: MainWindow::getInstance()->execPropertyMenu(); break;
     case ClickTapAction::SelectTopObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, false); break;
     case ClickTapAction::SelectAnyObjectAndShowContextMenu: selectObjectAndShowContextMenu(pos, true); break;
-    case ClickTapAction::SeekCameraToPoint: seekToPoint(pos); break;
+    case ClickTapAction::SetFocalPoint: setFocalPoint(pos); break;
   }
 }
 
@@ -491,7 +501,8 @@ void MyTouchWidget::touchMoveSave1(Qt::KeyboardModifiers modifiers, const QPoint
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
-    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomInit(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomInit(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateInit(initialPos); break;
     case MoveAction::RotateAboutWxSx: rotateInit(initialPos); break;
@@ -508,7 +519,8 @@ void MyTouchWidget::touchMoveSave2(Qt::KeyboardModifiers modifiers, const std::a
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
-    case MoveAction::CameraFocalDistance: zoomInit(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomInit(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomInit(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateInit((initialPos[0]+initialPos[1])/2); break;
     case MoveAction::RotateAboutWxSx: rotateInit((initialPos[0]+initialPos[1])/2); break;
@@ -528,7 +540,8 @@ void MyTouchWidget::touchMoveReset1(Qt::KeyboardModifiers modifiers) {
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
-    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomReset(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomReset(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateReset(); break;
     case MoveAction::RotateAboutWxSx: rotateReset(); break;
@@ -545,7 +558,8 @@ void MyTouchWidget::touchMoveReset2(Qt::KeyboardModifiers modifiers) {
     case MoveAction::ChangeFrame: break;
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 2 finger event."); break;
-    case MoveAction::CameraFocalDistance: zoomReset(); break;
+    case MoveAction::CameraDistFromFocalPoint: zoomReset(); break;
+    case MoveAction::CameraAndFocalPointSz: zoomReset(); break;
     case MoveAction::CurserSz: break;
     case MoveAction::RotateAboutSySx: rotateReset(); break;
     case MoveAction::RotateAboutWxSx: rotateReset(); break;
@@ -565,7 +579,8 @@ void MyTouchWidget::touchMove1(Qt::KeyboardModifiers modifiers, const QPoint &in
     case MoveAction::ChangeFrame: changeFrame(initialFrame-lround(float(rel.y())/pixelPerFrame), false); break;
     case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
     case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
-    case MoveAction::CameraFocalDistance: zoomCameraFocalDist(rel.y()); break;
+    case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(rel.y()); break;
+    case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(rel.y()); break;
     case MoveAction::CurserSz: cursorSz(rel.y()*relCursorZPerPixel, pos); break;
     case MoveAction::RotateAboutSySx: rotateAboutSySx(rel, pos); break;
     case MoveAction::RotateAboutWxSx: rotateAboutWxSx(rel, pos); break;
@@ -593,7 +608,8 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
       case MoveAction::ChangeFrame: changeFrame(initialFrame-lround(float(rel.y())/pixelPerFrame), false); break;
       case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::Zoom: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
-      case MoveAction::CameraFocalDistance: zoomCameraFocalDist(centerRel.y()); break;
+      case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(centerRel.y()); break;
+      case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(centerRel.y()); break;
       case MoveAction::CurserSz: cursorSz(rel.y()*relCursorZPerPixel, centerRel); break;
       case MoveAction::RotateAboutSySx: rotateAboutSySx(centerRel, center); break;
       case MoveAction::RotateAboutWxSx: rotateAboutWxSx(centerRel, center); break;
@@ -610,7 +626,8 @@ void MyTouchWidget::touchMove2(Qt::KeyboardModifiers modifiers, const array<QPoi
       case MoveAction::ChangeFrame: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::RotateAboutSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::Zoom: zoomCameraAngle(pow(zoomFacPerPixel, -zoomValue)); break;
-      case MoveAction::CameraFocalDistance: zoomCameraFocalDist(zoomValue); break;
+      case MoveAction::CameraDistFromFocalPoint: cameraDistFromFocalPoint(zoomValue); break;
+      case MoveAction::CameraAndFocalPointSz: cameraAndFocalPointSz(zoomValue); break;
       case MoveAction::CurserSz: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::RotateAboutSySx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
       case MoveAction::RotateAboutWxSx: throw runtime_error("Invalid move action for touch move 1 finger event."); break;
@@ -745,12 +762,12 @@ void MyTouchWidget::selectObjectAndShowContextMenu(const QPoint &pos, bool showM
   auto *a=new QAction(Utils::QIconCached("seektopoint.svg"), "Seek view to point on this Body");
   auto body=bodies[useObjIdx];
   connect(a, &QAction::triggered,this, [this, pos, body](){
-    seekToPoint(pos, body);
+    setFocalPoint(pos, body);
   });
   MainWindow::getInstance()->execPropertyMenu({a});
 }
 
-void MyTouchWidget::seekToPoint(const QPoint &pos, Body *body) {
+void MyTouchWidget::setFocalPoint(const QPoint &pos, Body *body) {
   // seeks the focal point of the camera to the point on the shape under the cursor
   auto picked=getObjectsByRay(pos);
   if(picked.empty())
@@ -944,8 +961,8 @@ void MyTouchWidget::zoomCameraAngle(float fac) {
   }
 }
 
-void MyTouchWidget::zoomCameraFocalDist(int change) {
-  // move the camera along the camera line while preserving the zoom (only relevant for perspectivec cameras)
+void MyTouchWidget::cameraDistFromFocalPoint(int change) {
+  // move the camera along the camera line while keeping the focal point (only relevant for perspectivec cameras)
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   float fac=pow(zoomFacPerPixel, -change);
   SbMatrix oriMatrix;
@@ -956,18 +973,19 @@ void MyTouchWidget::zoomCameraFocalDist(int change) {
   auto toPoint=initialZoomCameraPos-cameraVec*initialZoomCameraFocalDistance;
   auto cameraPos=toPoint+cameraVec*focalDistance;
   camera->position.setValue(cameraPos);
-  if(camera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
-    // nothing needed for orthographic cameras
-  }
-  else if(camera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
-    auto* persCamera=static_cast<SoPerspectiveCamera*>(camera);
-    // adapt the heigthAngle to keep the zoom
-    float x=tan(initialZoomCameraHeightAngle/2)*initialZoomCameraFocalDistance;
-    float heightAngle=atan(x/focalDistance)*2;
-    persCamera->heightAngle.setValue(heightAngle);
-  }
 }
 
+void MyTouchWidget::cameraAndFocalPointSz(int change) {
+  // move the camera and the focal point along the camera line (only relevant for perspectivec cameras)
+  auto *camera=MainWindow::getInstance()->glViewer->getCamera();
+  SbMatrix oriMatrix;
+  camera->orientation.getValue().getValue(oriMatrix);
+  SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
+  auto fd=camera->farDistance.getValue();
+  auto nd=camera->nearDistance.getValue();
+  auto cameraPos=initialZoomCameraPos-cameraVec*(fd-nd)/1000*change;
+  camera->position.setValue(cameraPos);
+}
 
 void MyTouchWidget::cursorSz(float relCursorZInc, const QPoint &pos) {
   // always operate on relCursorZ of the left eye view

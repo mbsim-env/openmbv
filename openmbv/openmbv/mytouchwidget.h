@@ -54,22 +54,21 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       ShowContextMenu,
       SelectTopObjectAndShowContextMenu,
       SelectAnyObjectAndShowContextMenu,
-      SeekCameraToPoint,
+      SetFocalPoint,
     };
     enum class MoveAction {
       None,
-      /* 1D */
-      ChangeFrame,
-      Zoom,
-      CameraFocalDistance,
-      CurserSz,
-      RotateAboutSz,
-      /* 2D */
-      Translate,
-      RotateAboutSySx,
-      RotateAboutWxSx,
-      RotateAboutWySx,
-      RotateAboutWzSx,
+      ChangeFrame, // 1D
+      Zoom, // 1D
+      CameraDistFromFocalPoint, // 1D
+      CurserSz, // 1D
+      RotateAboutSz, // 1D
+      Translate, // 2D
+      RotateAboutSySx, // 2D
+      RotateAboutWxSx, // 2D
+      RotateAboutWySx, // 2D
+      RotateAboutWzSx, // 2D
+      CameraAndFocalPointSz, // 1D
     };
 
     int getVerticalAxis() { return verticalAxis; }
@@ -163,7 +162,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
 
     void selectObject(const QPoint &pos, bool toggle, bool showMenuForAll);
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
-    void seekToPoint(const QPoint &pos, Body *body=nullptr);
+    void setFocalPoint(const QPoint &pos, Body *body=nullptr);
     void openPropertyDialog(const QPoint &pos);
     void rotateInit(const QPoint &initialPos);
     void rotateReset();
@@ -179,7 +178,8 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomInit();
     void zoomReset();
     void zoomCameraAngle(float fac);
-    void zoomCameraFocalDist(int change);
+    void cameraDistFromFocalPoint(int change);
+    void cameraAndFocalPointSz(int change);
     void cursorSz(float change, const QPoint &pos);
     void changeFrame(int steps, bool rel=true);
     void updateCursorPos(const QPoint &mousePos);

@@ -49,7 +49,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   if(!OPENMBV_NO_MULTISAMPLING)
     setSampleBuffers(4);
   setAutoClipping(true);
-  setAutoClippingStrategy(CONSTANT_NEAR_PLANE, 0);
+  setAutoClippingStrategy(VARIABLE_NEAR_PLANE, 0);
   switch(transparency) {
     case 2:
       setAlphaChannel(true);
