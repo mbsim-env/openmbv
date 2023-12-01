@@ -2116,13 +2116,13 @@ void MainWindow::setCameraType(SoType type) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
     cursorScaleE->b.disconnect();
     cursorScaleE->c.connectFrom(&mouseCursorSizeField);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*c/100"); // oA=cursorScale->scaleFactor
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*c/100"); // oA = camera->height * cursorSize/100
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
     cursorScaleE->b.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->focalDistance);
     cursorScaleE->c.connectFrom(&mouseCursorSizeField);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*b*c/100"); // oA=cursorScale->scaleFactor
+    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*b*c/100"); // oA = camera->angle * camera-focalDistance * cursorSize/100
   }
 }
 

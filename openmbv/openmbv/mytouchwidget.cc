@@ -953,11 +953,15 @@ void MyTouchWidget::zoomCameraAngle(float fac) {
   if(camera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     auto* orthCamera=static_cast<SoOrthographicCamera*>(camera);
     orthCamera->height.setValue(initialZoomCameraHeight*fac);
+    MainWindow::getInstance()->statusBar()->
+      showMessage(QString("Camera height: %1").arg(initialZoomCameraHeight*fac,0,'f',6), 1000);
   }
   else if(camera->getTypeId()==SoPerspectiveCamera::getClassTypeId()) {
     auto* persCamera=static_cast<SoPerspectiveCamera*>(camera);
     float angle=initialZoomCameraHeightAngle*fac;
     persCamera->heightAngle.setValue(angle>M_PI ? M_PI : angle);
+    MainWindow::getInstance()->statusBar()->
+      showMessage(QString("Camera angle: %1°").arg((angle>M_PI ? M_PI : angle)*180/M_PI,0,'f',2), 1000);
   }
 }
 
@@ -970,6 +974,8 @@ void MyTouchWidget::cameraDistFromFocalPoint(int change) {
   SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
   float focalDistance=initialZoomCameraFocalDistance*fac;
   camera->focalDistance.setValue(focalDistance);
+  MainWindow::getInstance()->statusBar()->
+    showMessage(QString("Camera distance from focal-point: %1").arg(focalDistance,0,'f',6), 1000);
   auto toPoint=initialZoomCameraPos-cameraVec*initialZoomCameraFocalDistance;
   auto cameraPos=toPoint+cameraVec*focalDistance;
   camera->position.setValue(cameraPos);
@@ -983,8 +989,11 @@ void MyTouchWidget::cameraAndFocalPointSz(int change) {
   SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
   auto fd=camera->farDistance.getValue();
   auto nd=camera->nearDistance.getValue();
-  auto cameraPos=initialZoomCameraPos-cameraVec*(fd-nd)/1000*change;
+  auto relChange=(fd-nd)/1000*change;
+  auto cameraPos=initialZoomCameraPos-cameraVec*relChange;
   camera->position.setValue(cameraPos);
+  MainWindow::getInstance()->statusBar()->
+    showMessage(QString("Camera and focal-point relative screen-z move: %1%2").arg(relChange>=0?'+':'-').arg(abs(relChange), 0, 'f', 6), 1000);
 }
 
 void MyTouchWidget::cursorSz(float relCursorZInc, const QPoint &pos) {
