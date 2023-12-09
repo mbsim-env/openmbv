@@ -15,6 +15,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
+#include <xercesc/dom/DOMComment.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMXPathNSResolver.hpp>
 #include <xercesc/parsers/AbstractDOMParser.hpp>
@@ -245,6 +246,25 @@ DOMProcessingInstruction *DOMElementWrapper<DOMElementType>::getFirstProcessingI
       continue;
     if(X()%static_cast<DOMProcessingInstruction*>(ret)->getTarget()==target)
       return static_cast<DOMProcessingInstruction*>(ret);
+  }
+  return nullptr;
+}
+
+template<typename DOMElementType>
+const DOMComment *DOMElementWrapper<DOMElementType>::getFirstCommentChild() const {
+  for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling()) {
+    if(ret->getNodeType()==DOMNode::COMMENT_NODE)
+      return static_cast<DOMComment*>(ret);
+  }
+  return nullptr;
+}
+template const DOMComment *DOMElementWrapper<const DOMElement>::getFirstCommentChild() const; // explicit instantiate const variant
+
+template<typename DOMElementType>
+DOMComment *DOMElementWrapper<DOMElementType>::getFirstCommentChild() {
+  for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling()) {
+    if(ret->getNodeType()==DOMNode::COMMENT_NODE)
+      return static_cast<DOMComment*>(ret);
   }
   return nullptr;
 }

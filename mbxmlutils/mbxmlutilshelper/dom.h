@@ -265,6 +265,10 @@ class DOMElementWrapper {
     const xercesc::DOMProcessingInstruction *getFirstProcessingInstructionChildNamed(const std::string &target) const;
     //! Get first child processing instruction of the specified target
     xercesc::DOMProcessingInstruction *getFirstProcessingInstructionChildNamed(const std::string &target);
+    //! Get first child comment
+    const xercesc::DOMComment *getFirstCommentChild() const;
+    //! Get first child comment
+    xercesc::DOMComment *getFirstCommentChild();
     //! Get first child text
     const xercesc::DOMText *getFirstTextChild() const;
     //! Get first child text
