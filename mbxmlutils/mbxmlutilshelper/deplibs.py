@@ -7,11 +7,11 @@ import os
 import shutil
 import platform
 import glob
-from functools import lru_cache
+import functools
 
 
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def getWindowsEnvPath(name):
   if platform.system()=="Windows":
     return os.environ[name]
@@ -44,11 +44,12 @@ def searchWindowsLibrary(libname, libdir, filename):
         return f
   raise RuntimeError('Library '+libname+' not found (a dependency of '+filename+')')
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def getDependencies(filename):
   res=set()
-  content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
-  if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
+  content=fileL(filename)
+  if platform.system()=="Windows" or \
+     re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     if re.search('statically linked', content) is not None:
       return res # skip static executables
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
@@ -72,7 +73,7 @@ def getDependencies(filename):
       return res
   raise RuntimeError(filename+' unknown executable format')
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def getDoNotAdd():
   notAdd=set()
   # for linux
@@ -107,9 +108,9 @@ def getDoNotAdd():
 
   return notAdd
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def relDir(filename):
-  content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  content=fileL(filename)
   if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     return "lib" # Linux
   elif re.search('PE32\+? executable', content) is not None:
@@ -117,10 +118,14 @@ def relDir(filename):
   else:
     raise RuntimeError(filename+' unknwon executable format')
 
-@lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
+def fileL(filename):
+  return subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+
+@functools.lru_cache(maxsize=None)
 def depLibs(filename):
   ret=set()
-  content=subprocess.check_output(["file", "-L", filename], stderr=open(os.devnull,"w")).decode('utf-8')
+  content=fileL(filename)
   if re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     # on Linux search none recursively using ldd
     ret=getDependencies(filename)
