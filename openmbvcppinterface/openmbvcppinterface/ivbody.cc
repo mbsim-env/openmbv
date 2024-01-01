@@ -37,6 +37,10 @@ DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
   E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
   E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
+  for(auto &name : removeNodesByName)
+    E(e)->addElementText(OPENMBV%"removeNodesByName", "'"+name+"'");
+  for(auto &type : removeNodesByType)
+    E(e)->addElementText(OPENMBV%"removeNodesByType", "'"+type+"'");
   return nullptr;
 }
 
@@ -52,6 +56,16 @@ void IvBody::initializeUsingXML(DOMElement *element) {
   if(e) {
     string str = X()%E(e)->getFirstTextChild()->getData();
     setBoundaryEdges(str=="true" || str=="1");
+  }
+  for(e=E(element)->getFirstElementChildNamed(OPENMBV%"removeNodesByName"); e!=nullptr;
+      e=E(e)->getNextElementSiblingNamed(OPENMBV%"removeNodesByName")) {
+    string str = X()%E(e)->getFirstTextChild()->getData();
+    addRemoveNodesByName(str.substr(1,str.length()-2));
+  }
+  for(e=E(element)->getFirstElementChildNamed(OPENMBV%"removeNodesByType"); e!=nullptr;
+      e=E(e)->getNextElementSiblingNamed(OPENMBV%"removeNodesByType")) {
+    string str = X()%E(e)->getFirstTextChild()->getData();
+    addRemoveNodesByType(str.substr(1,str.length()-2));
   }
 }
 

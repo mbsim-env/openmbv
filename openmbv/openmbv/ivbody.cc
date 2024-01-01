@@ -25,8 +25,10 @@
 #include <Inventor/fields/SoMFColor.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
+#include <Inventor/actions/SoSearchAction.h>
 
 #include <vector>
+#include <boost/container_hash/hash.hpp>
 #include "edgecalculation.h"
 #include "mainwindow.h"
 #include "openmbvcppinterface/ivbody.h"
@@ -53,13 +55,45 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   sep->renderCaching.setValue(SoSeparator::ON);
   sep->boundingBoxCaching.setValue(SoSeparator::ON);
   soSepRigidBody->addChild(sep);
-  SoGroup *soIv=Utils::SoDBreadAllCached(fileName);
+
+  auto hashData = make_tuple(
+    ivb->getRemoveNodesByName(),
+    ivb->getRemoveNodesByType()
+  );
+
+  SoGroup *soIv=Utils::SoDBreadAllCached(fileName, boost::hash<decltype(hashData)>{}(hashData));
   sep->addChild(soIv);
+
+  // search and remove specific nodes
+  auto removeNode=[soIv, &fileName](const function<void(SoSearchAction &sa)> &find){
+    SoSearchAction sa;
+    sa.setInterest(SoSearchAction::ALL);
+    find(sa);
+    sa.apply(soIv);
+    auto pl = sa.getPaths();
+    for(int i=0; i<pl.getLength(); ++i) {
+      cout<<"WARNING: Removing node for IVBody file '"<<fileName<<"' at path:"<<endl;
+      auto *p = pl[i];
+      for(int j=1; j<p->getLength(); ++j) {
+        auto *n = p->getNode(j);
+        cout<<string(2*j, ' ')<<"- Name: '"<<n->getName()<<"'; Type: '"<<n->getTypeId().getName().getString()<<"'"<<endl;
+      }
+      static_cast<SoGroup*>(p->getNodeFromTail(1))->removeChild(p->getIndexFromTail(0));
+    }
+  };
+  // remove nodes by name
+  for(auto &name : ivb->getRemoveNodesByName())
+    removeNode([&name](auto &sa){ sa.setName(name.c_str()); });
+  // remove nodes by type
+  for(auto &type : ivb->getRemoveNodesByType())
+    removeNode([&type](auto &sa){ sa.setType(SoType::fromName(type.c_str())); });
+
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
     ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
     ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
+    sep->renderCaching.setValue(SoSeparator::AUTO);
   }
 
   // scale ref/localFrame

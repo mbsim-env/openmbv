@@ -48,6 +48,16 @@ namespace OpenMBV {
 
       bool getBoundaryEdges() { return boundaryEdges; }
 
+      /** Remove all nodes of the name name from the iv file. */
+      void addRemoveNodesByName(const std::string &name) { removeNodesByName.emplace_back(name); }
+
+      std::vector<std::string> getRemoveNodesByName() { return removeNodesByName; }
+
+      /** Remove all nodes of the type type from the iv file. */
+      void addRemoveNodesByType(const std::string &type) { removeNodesByType.emplace_back(type); }
+
+      std::vector<std::string> getRemoveNodesByType() { return removeNodesByType; }
+
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
 
@@ -59,6 +69,8 @@ namespace OpenMBV {
       std::string ivFileName;
       double creaseAngle{-1};
       bool boundaryEdges{false};
+      std::vector<std::string> removeNodesByName;
+      std::vector<std::string> removeNodesByType;
   };
 
 }

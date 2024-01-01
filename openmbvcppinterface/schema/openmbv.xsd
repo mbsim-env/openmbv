@@ -190,6 +190,8 @@
           <xs:element name="ivFileName" type="pv:filenameFullEval"/>
           <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="boundaryEdges" type="pv:booleanFullEval" minOccurs="0"/>
+          <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0"/>
+          <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

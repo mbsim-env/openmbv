@@ -39,12 +39,13 @@
 #include <QBitArray>
 #include <boost/dll.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/container_hash/hash.hpp>
 
 using namespace std;
 
 namespace OpenMBVGUI {
 
-unordered_map<string, Utils::SoDeleteSeparator> Utils::ivBodyCache;
+unordered_map<size_t, Utils::SoDeleteSeparator> Utils::ivBodyCache;
 unordered_map<string, QIcon> Utils::iconCache;
 bool Utils::initialized=false;
 
@@ -76,8 +77,9 @@ const QIcon& Utils::QIconCached(string filename) {
   return ins.first->second;
 }
 
-SoSeparator* Utils::SoDBreadAllCached(const string &filename) {
-  auto ins=ivBodyCache.emplace(filename, SoDeleteSeparator());
+SoSeparator* Utils::SoDBreadAllCached(const string &filename, size_t hash) {
+  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(filename).string(), hash));
+  auto ins=ivBodyCache.emplace(fullHash, SoDeleteSeparator());
   if(ins.second) {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it

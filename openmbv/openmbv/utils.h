@@ -71,8 +71,9 @@ class Utils : virtual public fmatvec::Atom {
     static const QIcon& QIconCached(std::string filename);
 
     /** Use SoDBreadAllCached(filename) instead of SoDBreadAll(filename) everywhere
-     * to cache the iv-file parsing and scene generation */
-    static SoSeparator* SoDBreadAllCached(const std::string &filename);
+     * to cache the iv-file parsing and scene generation.
+     * hash is, beside filename, part of the key for the cache. */
+    static SoSeparator* SoDBreadAllCached(const std::string &filename, size_t hash=0);
 
     static SoMFColor soFrameDefaultColor;
     /** Convenienc function to draw a frame */
@@ -123,7 +124,7 @@ class Utils : virtual public fmatvec::Atom {
       ~SoDeleteSeparator() { if(s) s->unref(); }
       SoSeparator *s=nullptr;
     };
-    static std::unordered_map<std::string, SoDeleteSeparator> ivBodyCache;
+    static std::unordered_map<size_t, SoDeleteSeparator> ivBodyCache;
     static std::unordered_map<std::string, QIcon> iconCache;
 
     // INITIALIZATION
