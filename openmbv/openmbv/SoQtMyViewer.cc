@@ -48,7 +48,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   static const char* OPENMBV_NO_MULTISAMPLING=getenv("OPENMBV_NO_MULTISAMPLING");
   if(!OPENMBV_NO_MULTISAMPLING)
     setSampleBuffers(4);
-  setAutoClipping(true);
   setAutoClippingStrategy(VARIABLE_NEAR_PLANE, 0);
   switch(transparency) {
     case 2:

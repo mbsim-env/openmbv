@@ -108,7 +108,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSwitch *cursorSwitch;
     SoTranslation *cursorPos;
     SoCalculator *cursorScaleE;
-    SoSFFloat mouseCursorSizeField;
+    SoSFFloat *mouseCursorSizeField;
     QPushButton *disableStereo;
   protected:
     SoSepNoPick *sceneRootBBox;

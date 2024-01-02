@@ -675,7 +675,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->updateScene();
   });
   new DoubleSetting(scene3D, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
-    MainWindow::getInstance()->mouseCursorSizeField.setValue(value);
+    MainWindow::getInstance()->mouseCursorSizeField->setValue(value);
   }, 0, 100, 1);
   new DoubleSetting(scene3D, AppSettings::outlineShilouetteEdgeLineWidth, Utils::QIconCached("olselinewidth.svg"), "Outline line width:", "px", [](double value){
     MainWindow::getInstance()->olseDrawStyle->lineWidth.setValue(value);

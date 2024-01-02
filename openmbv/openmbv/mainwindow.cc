@@ -193,7 +193,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   cursorSwitch->addChild(cursorDrawStyle);
   cursorDrawStyle->lineWidth.setValue(3);
   SoScale *cursorScale, *cursorScale2;
-  mouseCursorSizeField.setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
+  mouseCursorSizeField=new SoSFFloat;
+  mouseCursorSizeField->setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
   cursorScaleE=new SoCalculator;
   cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
   cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);
@@ -1082,6 +1083,7 @@ MainWindow::~MainWindow() {
   delete engDrawingFGColorTopSaved;
   SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
+  delete mouseCursorSizeField;
 
   // delete all globally stored Coin data before deinit Coin/SoQt
   EdgeCalculation::edgeCache.clear();
@@ -2115,13 +2117,13 @@ void MainWindow::setCameraType(SoType type) {
   if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
     cursorScaleE->b.disconnect();
-    cursorScaleE->c.connectFrom(&mouseCursorSizeField);
+    cursorScaleE->c.connectFrom(mouseCursorSizeField);
     cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*c/100"); // oA = camera->height * cursorSize/100
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
     cursorScaleE->b.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->focalDistance);
-    cursorScaleE->c.connectFrom(&mouseCursorSizeField);
+    cursorScaleE->c.connectFrom(mouseCursorSizeField);
     cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*b*c/100"); // oA = camera->angle * camera-focalDistance * cursorSize/100
   }
 }
