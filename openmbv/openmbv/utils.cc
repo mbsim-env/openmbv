@@ -78,7 +78,14 @@ const QIcon& Utils::QIconCached(string filename) {
 }
 
 SoSeparator* Utils::SoDBreadAllCached(const string &filename, size_t hash) {
-  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(filename).string(), hash));
+  boost::filesystem::path fn(filename);
+  if(!boost::filesystem::exists(fn)) {
+    QString str("IV file %1 does not exist."); str=str.arg(filename.c_str());
+    MainWindow::getInstance()->statusBar()->showMessage(str);
+    msgStatic(Warn)<<str.toStdString()<<endl;
+    return new SoSeparator;
+  }
+  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash));
   auto ins=ivBodyCache.emplace(fullHash, SoDeleteSeparator());
   if(ins.second) {
     SoInput in;
@@ -88,7 +95,7 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename, size_t hash) {
       return ins.first->second.s;
     }
     else { // open failed, remove from cache and return a empty IV
-      QString str("Unable to find IV file %1."); str=str.arg(filename.c_str());
+      QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
       MainWindow::getInstance()->statusBar()->showMessage(str);
       msgStatic(Warn)<<str.toStdString()<<endl;
       ivBodyCache.erase(ins.first);
