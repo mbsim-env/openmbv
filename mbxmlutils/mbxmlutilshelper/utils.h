@@ -39,8 +39,9 @@ class Deprecated : virtual public fmatvec::Atom {
 };
 
 // Setup the fmatvec::Atom message streams from command arguments.
-// This removed parsed arguments from args.
-void setupMessageStreams(std::list<std::string> &args);
+// If called from a tty ansi escape codes are used to improve the output, but only if forcePlainOutput is false.
+// This removes parsed arguments from args.
+void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput=false);
 
 }
 

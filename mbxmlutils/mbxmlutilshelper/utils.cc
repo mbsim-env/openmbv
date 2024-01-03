@@ -47,15 +47,29 @@ namespace MBXMLUtils {
       str<<"Deprecated feature called:"<<endl<<msg<<endl<<msg2<<endl;
   }
 
-  void setupMessageStreams(std::list<std::string> &args) {
+  void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput) {
+#ifdef _WIN32
+    bool stdoutIsTTY=GetFileType(GetStdHandle(STD_OUTPUT_HANDLE))==FILE_TYPE_CHAR;
+#else
+    bool stdoutIsTTY=isatty(1)==1;
+#endif
     // defaults for --stdout and --stderr
     if(find(args.begin(), args.end(), "--stdout")==args.end() &&
        find(args.begin(), args.end(), "--stderr")==args.end()) {
-      args.emplace_back("--stdout"); args.emplace_back("info~Info: ~");
-      args.emplace_back("--stderr"); args.emplace_back("warn~Warn: ~");
-      args.emplace_back("--stderr"); args.emplace_back("error~~");
-      args.emplace_back("--stderr"); args.emplace_back("depr~Depr: ~");
-      args.emplace_back("--stdout"); args.emplace_back("status~~\r");
+      if(stdoutIsTTY && !forcePlainOutput) {
+        args.emplace_back("--stdout"); args.emplace_back(  "info~\x1b[KInfo: ~");
+        args.emplace_back("--stderr"); args.emplace_back(  "warn~\x1b[KWarn: ~");
+        args.emplace_back("--stderr"); args.emplace_back( "error~\x1b[K~");
+        args.emplace_back("--stderr"); args.emplace_back(  "depr~\x1b[KDepr: ~");
+        args.emplace_back("--stdout"); args.emplace_back("status~\x1b[K~\r");
+      }
+      else {
+        args.emplace_back("--stdout"); args.emplace_back(  "info~Info: ~");
+        args.emplace_back("--stderr"); args.emplace_back(  "warn~Warn: ~");
+        args.emplace_back("--stderr"); args.emplace_back( "error~~");
+        args.emplace_back("--stderr"); args.emplace_back(  "depr~Depr: ~");
+        args.emplace_back("--stdout"); args.emplace_back("status~~\r");
+      }
     }
   
     // disable all streams
