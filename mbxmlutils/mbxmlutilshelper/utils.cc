@@ -23,6 +23,9 @@
 #include "dom.h"
 #include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
 #include <regex>
+#ifdef _WIN32
+  #include <windows.h>
+#endif
 
 using namespace std;
 using namespace MBXMLUtils;
