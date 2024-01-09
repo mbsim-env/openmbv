@@ -70,6 +70,7 @@ class PyInit {
     PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
     PyOOnDemand asarray;
+    PyOOnDemand zeros;
     PyOOnDemand sympy;
     PyOOnDemand dummy;
     PyOOnDemand matrix;
@@ -103,6 +104,11 @@ PyInit::PyInit() {
       return CALLPY(PyObject_GetAttrString, numpy, "asarray");
     });
 
+    zeros=PyOOnDemand([](){
+      PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
+      return CALLPY(PyObject_GetAttrString, numpy, "zeros");
+    });
+
     dummy=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Dummy"); });
     matrix=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Matrix"); });
     serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
@@ -126,6 +132,7 @@ PyInit::~PyInit() {
     if(dummy) dummy().reset();
     if(sympy) sympy().reset();
     if(asarray) asarray().reset();
+    if(zeros) zeros().reset();
     functionValue.clear();
     if(mbxmlutils) mbxmlutils().reset();
   }
@@ -438,9 +445,19 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(skipRet)
     return {};
   // convert a list of scalars / list of lists of scalars to a numpy 1D / 2D array, respectively
+  // * a list of len==0 is interpreted as a R^0 vector [shape==(0,)]
+  if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)==0) {
+    PyO args(CALLPY(PyTuple_New, 1));
+    CALLPY(PyTuple_SetItem, args, 0, CALLPY(PyLong_FromLong, 0).incRef()); // PyTuple_SetItem steals a reference of ret
+    return C(CALLPY(PyObject_CallObject, pyInit->zeros(), args));
+  }
+  // * note that in python you cannot create R^0xC matrix from a python list
+  // * a list with at least one element is converted using numpy.asarray (if the first element is a scalar, a empty list or a list of doubles)
   if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)>0) {
     PyO ret0(CALLPYB(PyList_GetItem, ret, 0));
-    if(is_scalar_double(C(ret0)) || (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
+    if(is_scalar_double(C(ret0)) ||
+       (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)==0) ||
+       (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
       PyO args(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
       return C(CALLPY(PyObject_CallObject, pyInit->asarray(), args));
