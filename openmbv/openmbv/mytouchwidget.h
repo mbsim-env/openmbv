@@ -60,7 +60,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       None,
       ChangeFrame, // 1D
       Zoom, // 1D
-      CameraDistFromFocalPoint, // 1D
+      CameraAngle, // 1D
       CurserSz, // 1D
       RotateAboutSz, // 1D
       Translate, // 2D
@@ -162,6 +162,9 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     std::vector<std::pair<Body*, std::vector<SbVec3f>>> getObjectsByRay(const QPoint &pos);
     int createObjectListMenu(const std::vector<Body*>& pickedObject);
 
+    static constexpr int NOi { std::numeric_limits<int>::max() };
+    static constexpr float NOf { std::numeric_limits<float>::max() };
+
     void selectObject(const QPoint &pos, bool toggle, bool showMenuForAll);
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
     void setFocalPoint(const QPoint &pos, Body *body=nullptr);
@@ -179,8 +182,9 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void translate(const QPoint &rel);
     void zoomInit();
     void zoomReset();
-    void zoomCameraAngle(float fac);
-    void cameraDistFromFocalPoint(int change);
+    void zoom(int relPixel, float relAngle); // set one of the parameters to NOi/NOf
+    void zoomPerspectiveCameraAngle(int relPixel);
+    void zoomPerspectiveCameraDistance(int relPixel, float relAngle);
     void cameraAndFocalPointSz(const QPoint &rel, const QPoint &pos);
     void cameraNearPlane(const QPoint &rel, const QPoint &pos);
     void cursorSz(float change, const QPoint &pos);
