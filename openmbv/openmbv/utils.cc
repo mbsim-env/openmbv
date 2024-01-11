@@ -833,6 +833,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   mouseMoveRightW->setLayout(mouseMoveRight);
   mouseMoveRight->addWidget(boldLabel("Modifier", 1.1), 0, 1);
   mouseMoveRight->addWidget(boldLabel("Action", 1.1), 0, 2);
+  static bool nearPlaneByDistance=getenv("OPENMBV_NEARPLANEBYDISTANCE")!=nullptr;
+  pair<QString,QString> nearPlane;
+  if(nearPlaneByDistance)
+    nearPlane={"Near clip distance", "The distance of the near clipping plane if calculated to <0."};
+  else
+    nearPlane={"Near clip factor"  , "The normalized (0.1-0.9) near clipping plane factor."};
   #define MOUSEMOVE(mod, button) \
     new ChoiceSetting(mouseMove##button, AppSettings::mouse##mod##button##MoveAction, Utils::QIconCached("mouse.svg"), \
         (string(#mod)+":").c_str(), { \
@@ -848,7 +854,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"Rotate W_y,S_x"    , "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
         {"Rotate W_z,S_x"    , "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
         {"Cam./FP S_z"       , "Move camera and focal point in screen z axis."}, \
-        {"Near clip plane"   , "Move the camera near clipping plane."}, \
+        {nearPlane.first     , nearPlane.second}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##MoveAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -1023,7 +1029,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"Rotate W_y,S_x"    , "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
         {"Rotate W_z,S_x"    , "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
         {"Cam./FP S_z"       , "Move camera and focal point in screen z axis."}, \
-        {"Near clip plane"   , "Move the camera near clipping plane."}, \
+        {nearPlane.first     , nearPlane.second}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \

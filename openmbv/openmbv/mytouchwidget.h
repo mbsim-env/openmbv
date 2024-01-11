@@ -152,7 +152,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float initialZoomCameraHeight;
     float initialZoomCameraHeightAngle;
     SbVec3f initialZoomCameraPos;
-    float initialZoomCameraNearPlane;
+    float initialZoomCameraNearPlaneValue;
     float initialZoomCameraFocalDistance;
     SbRotation initialRotateCameraOri;
     SbVec3f initialRotateCameraPos;

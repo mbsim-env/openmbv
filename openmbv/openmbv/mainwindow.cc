@@ -886,6 +886,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   }
 
   reinit3DView(static_cast<StereoType>(appSettings->get<int>(AppSettings::stereoType)));
+
+  static bool nearPlaneByDistance=getenv("OPENMBV_NEARPLANEBYDISTANCE")!=nullptr;
+  if(nearPlaneByDistance)
+    nearPlaneValue = 0.01;
+  else
+    nearPlaneValue = 0.6;
 }
 
 DialogStereo::DialogStereo() {

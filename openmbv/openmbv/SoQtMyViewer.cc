@@ -163,7 +163,11 @@ SoQtMyViewer::~SoQtMyViewer() {
 }
  
 void SoQtMyViewer::actualRedraw() {
-//mfmf  setAutoClippingStrategy(CONSTANT_NEAR_PLANE, MainWindow::getInstance()->nearPlane);
+  static bool nearPlaneByDistance=getenv("OPENMBV_NEARPLANEBYDISTANCE")!=nullptr;
+  if(nearPlaneByDistance)
+    setAutoClippingStrategy(CONSTANT_NEAR_PLANE, MainWindow::getInstance()->nearPlaneValue);
+  else
+    setAutoClippingStrategy(VARIABLE_NEAR_PLANE, MainWindow::getInstance()->nearPlaneValue);
 
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
