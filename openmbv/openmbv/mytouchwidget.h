@@ -69,6 +69,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       RotateAboutWySx, // 2D
       RotateAboutWzSx, // 2D
       CameraAndFocalPointSz, // 1D
+      CameraNearPlane, // 1D
     };
 
     int getVerticalAxis() { return verticalAxis; }
@@ -151,6 +152,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float initialZoomCameraHeight;
     float initialZoomCameraHeightAngle;
     SbVec3f initialZoomCameraPos;
+    float initialZoomCameraNearPlane;
     float initialZoomCameraFocalDistance;
     SbRotation initialRotateCameraOri;
     SbVec3f initialRotateCameraPos;
@@ -179,7 +181,8 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomReset();
     void zoomCameraAngle(float fac);
     void cameraDistFromFocalPoint(int change);
-    void cameraAndFocalPointSz(int change);
+    void cameraAndFocalPointSz(const QPoint &rel, const QPoint &pos);
+    void cameraNearPlane(const QPoint &rel, const QPoint &pos);
     void cursorSz(float change, const QPoint &pos);
     void changeFrame(int steps, bool rel=true);
     void updateCursorPos(const QPoint &mousePos);

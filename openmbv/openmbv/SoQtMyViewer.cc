@@ -48,7 +48,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(paren
   static const char* OPENMBV_NO_MULTISAMPLING=getenv("OPENMBV_NO_MULTISAMPLING");
   if(!OPENMBV_NO_MULTISAMPLING)
     setSampleBuffers(4);
-  setAutoClippingStrategy(VARIABLE_NEAR_PLANE, 0);
   switch(transparency) {
     case 2:
       setAlphaChannel(true);
@@ -164,6 +163,8 @@ SoQtMyViewer::~SoQtMyViewer() {
 }
  
 void SoQtMyViewer::actualRedraw() {
+  setAutoClippingStrategy(CONSTANT_NEAR_PLANE, MainWindow::getInstance()->nearPlane);
+
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
   if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)

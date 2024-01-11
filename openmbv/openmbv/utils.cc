@@ -390,7 +390,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseCtrlAltRightMoveAction]=     {"mainwindow/manipulate3d/mouseCtrlAltRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlAltRightMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneMidMoveAction]=        {"mainwindow/manipulate3d/mouseNoneMidMoveAction", static_cast<int>(MA::Zoom)};
-  setting[mouseShiftMidMoveAction]=       {"mainwindow/manipulate3d/mouseShiftMidMoveAction", static_cast<int>(MA::None)};
+  setting[mouseShiftMidMoveAction]=       {"mainwindow/manipulate3d/mouseShiftMidMoveAction", static_cast<int>(MA::CameraNearPlane)};
   setting[mouseCtrlMidMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlMidMoveAction", static_cast<int>(MA::CameraDistFromFocalPoint)};
   setting[mouseAltMidMoveAction]=         {"mainwindow/manipulate3d/mouseAltMidMoveAction", static_cast<int>(MA::CameraAndFocalPointSz)};
   setting[mouseShiftCtrlMidMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlMidMoveAction", static_cast<int>(MA::None)};
@@ -454,7 +454,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchAltMove1Action]=         {"mainwindow/manipulate3d/touchAltMove1Action", static_cast<int>(MA::ChangeFrame)};
   setting[touchShiftCtrlMove1Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove1Action", static_cast<int>(MA::CameraDistFromFocalPoint)};
   setting[touchShiftAltMove1Action]=    {"mainwindow/manipulate3d/touchShiftAltMove1Action", static_cast<int>(MA::CameraAndFocalPointSz)};
-  setting[touchCtrlAltMove1Action]=     {"mainwindow/manipulate3d/touchCtrlAltMove1Action", static_cast<int>(MA::None)};
+  setting[touchCtrlAltMove1Action]=     {"mainwindow/manipulate3d/touchCtrlAltMove1Action", static_cast<int>(MA::CameraNearPlane)};
   setting[touchShiftCtrlAltMove1Action]={"mainwindow/manipulate3d/touchShiftCtrlAltMove1Action", static_cast<int>(MA::None)};
   setting[touchNoneMove2Action]=        {"mainwindow/manipulate3d/touchNoneMove2Action", static_cast<int>(MA::Translate)};
   setting[touchShiftMove2Action]=       {"mainwindow/manipulate3d/touchShiftMove2Action", static_cast<int>(MA::None)};
@@ -469,7 +469,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchCtrlMove2ZoomAction]=        {"mainwindow/manipulate3d/touchCtrlMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchAltMove2ZoomAction]=         {"mainwindow/manipulate3d/touchAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchShiftCtrlMove2ZoomAction]=   {"mainwindow/manipulate3d/touchShiftCtrlMove2ZoomAction", static_cast<int>(MA::CameraDistFromFocalPoint)};
-  setting[touchShiftAltMove2ZoomAction]=    {"mainwindow/manipulate3d/touchShiftAltMove2ZoomAction", static_cast<int>(MA::CameraAndFocalPointSz)};
+  setting[touchShiftAltMove2ZoomAction]=    {"mainwindow/manipulate3d/touchShiftAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchCtrlAltMove2ZoomAction]=     {"mainwindow/manipulate3d/touchCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchShiftCtrlAltMove2ZoomAction]={"mainwindow/manipulate3d/touchShiftCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[zoomFacPerPixel]={"mainwindow/manipulate3d/zoomFacPerPixel", 1.005};
@@ -848,6 +848,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"Rotate W_y,S_x"    , "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
         {"Rotate W_z,S_x"    , "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
         {"Cam./FP S_z"       , "Move camera and focal point in screen z axis."}, \
+        {"Near clip plane"   , "Move the camera near clipping plane."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setMouse##button##MoveAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -1022,6 +1023,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"Rotate W_y,S_x"    , "Rotate about the world y and screen x axis (the world y axis is kept vertical)."}, \
         {"Rotate W_z,S_x"    , "Rotate about the world z and screen x axis (the world z axis is kept vertical)."}, \
         {"Cam./FP S_z"       , "Move camera and focal point in screen z axis."}, \
+        {"Near clip plane"   , "Move the camera near clipping plane."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##tap##Action( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
@@ -1069,7 +1071,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"<N/A>"             , "Not available."}, \
         {"<N/A>"             , "Not available."}, \
         {"<N/A>"             , "Not available."}, \
-        {"Cam./FP S_z"       , "Move camera and focal point in screen z axis."}, \
+        {"<N/A>"             , "Not available."}, \
       }, [](int value){ \
       MainWindow::getInstance()->glViewerWG->setTouch##Move2ZoomAction( \
         MyTouchWidget::Modifier::mod, static_cast<MyTouchWidget::MoveAction>(value)); \
