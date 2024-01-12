@@ -35,6 +35,7 @@
 #  define WIN32_LEAN_AND_MEAN // GL/glu.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
 #endif
 #include <GL/glu.h>
+#include <openmbvcppinterface/objectfactory.h>
 #include <openmbvcppinterface/object.h>
 #include <QTreeWidgetItem>
 #include <QSettings>

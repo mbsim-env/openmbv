@@ -23,7 +23,6 @@
 #include <fmatvec/atom.h>
 #include <string>
 #include <sstream>
-#include <openmbvcppinterface/objectfactory.h>
 #include <hdf5serie/group.h>
 #include <mbxmlutilshelper/dom.h>
 #include <utility>

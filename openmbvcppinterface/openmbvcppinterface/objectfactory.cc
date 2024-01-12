@@ -30,14 +30,14 @@ ObjectFactory& ObjectFactory::instance() {
   return of;
 }
 
-void ObjectFactory::registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc) {
-  // check if name was already registred with the same &allocate<CreateType>: if yes return and do not add it twice
-  std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(name);
+void ObjectFactory::registerXMLNamePrivate(const MBXMLUtils::FQN &name, DefaultCTor alloc) {
+  // check if name was already registered with the same &defaultCTor<CreateType>: if yes return and do not add it twice
+  std::pair<MapNameIt, MapNameIt> range=instance().registeredName.equal_range(name);
   for(auto it=range.first; it!=range.second; it++)
     if(it->second==alloc)
       return;
-  // name is not registred with &allocate<CreateType>: register it
-  instance().registeredType.insert(std::make_pair(name, alloc));
+  // name is not registered with &defaultCTor<CreateType>: register it
+  instance().registeredName.emplace(name, alloc);
 }
 
   void ObjectFactory::addErrorMsg(const std::string &msg) {

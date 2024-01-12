@@ -182,6 +182,27 @@ int main() {
   walkHierarchy(g);
   
   }
+
+
+
+  cout<<"COPYCTOR"<<endl;
+  {
+
+  shared_ptr<RigidBody> r1=ObjectFactory::create<Cube>();
+  r1->setName("r1");
+  r1->setScaleFactor(0.11);
+  static_pointer_cast<Cube>(r1)->setLength(22.2);
+
+  shared_ptr<RigidBody> r2=ObjectFactory::create<RigidBody>(r1);
+  shared_ptr<Cube> c=static_pointer_cast<Cube>(r2);
+  cout<<"name "<<r2->getName()<<endl;
+  cout<<"scaleFactor "<<r2->getScaleFactor()<<endl;
+  cout<<"length "<<c->getLength()<<endl;
+  if(r2->getName()!="r1") return  1;
+  if(r2->getScaleFactor()!=0.11) return  1;
+  if(c->getLength()!=22.2) return  1;
+  
+  }
 }
 
 void walkHierarchy(const shared_ptr<Group> &grp) {

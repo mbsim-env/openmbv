@@ -23,6 +23,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <openmbvcppinterface/objectfactory.h>
 #include <openmbvcppinterface/object.h>
 
 namespace OpenMBV {

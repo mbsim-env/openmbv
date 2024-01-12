@@ -23,8 +23,10 @@
 #include <map>
 #include <stdexcept>
 #include <typeinfo>
+#include <typeindex>
 #include <mbxmlutilshelper/dom.h>
 #include <xercesc/dom/DOMElement.hpp>
+#include <openmbvcppinterface/object.h>
 
 namespace OpenMBV {
 
@@ -42,7 +44,8 @@ class ObjectFactory {
      * see also the macro OPENMBV_OBJECTFACTORY_REGISTERXMLNAME.  */
     template<class CreateType>
     static void registerXMLName(const MBXMLUtils::FQN &name) {
-      registerXMLName(name, &allocate<CreateType>);
+      registerXMLNamePrivate(name, &defaultCTor<CreateType>);
+      registerTypePrivate<CreateType>(&copyCTor<CreateType>);
     }
 
     /** Create an object corresponding to the XML element element and return a pointer of type ContainerType.
@@ -54,11 +57,11 @@ class ObjectFactory {
       static_assert(std::is_convertible<ContainerType*, Object*>::value,
         "In OpenMBV::ObjectFactory::create<ContainerType>(...) ContainerType must be derived from Object.");
       // return NULL if no input is supplied
-      if(element==nullptr) return std::shared_ptr<ContainerType>();
-      // loop over all all registred types corresponding to element->ValueStr()
-      std::pair<MapIt, MapIt> range=instance().registeredType.equal_range(MBXMLUtils::E(element)->getTagName());
+      if(element==nullptr) return {};
+      // loop over all all registered types corresponding to element->ValueStr()
+      auto range=instance().registeredName.equal_range(MBXMLUtils::E(element)->getTagName());
       for(auto it=range.first; it!=range.second; it++) {
-        // allocate a new object using the allocate function pointer
+        // allocate a new object using the defaultCTor function pointer
         std::shared_ptr<Object> ele=it->second();
         // try to cast ele up to ContainerType
         std::shared_ptr<ContainerType> ret=std::dynamic_pointer_cast<ContainerType>(ele);
@@ -77,10 +80,21 @@ class ObjectFactory {
       return std::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
     }
 
-    /** Return a copy of t. */
-    template<class CreateType>
-    static std::shared_ptr<CreateType> create(const std::shared_ptr<CreateType> &t) {
-      return std::shared_ptr<CreateType>(new CreateType(*t.get()), &deleter<CreateType>);
+    /** Create a copy object of t and return a pointer of type ContainerType.
+     * Throws if the created object is not of type ContainerType.
+     * This function returns a new object dependent on the registration of the created object. */
+    template<class ContainerType>
+    static std::shared_ptr<ContainerType> create(const std::shared_ptr<ContainerType> &t) {
+      // return NULL if no input is supplied
+      if(t==nullptr) return {};
+      // find item
+      auto &tRef=*t;
+      auto it=instance().registeredType.find(std::type_index(typeid(tRef)));
+      // not found?
+      if(it==instance().registeredType.end())
+        throw std::runtime_error(std::string("No class type ")+typeid(tRef).name()+" found in ObjectFactory.");
+      // allocate a new object using the copyCTor function pointer
+      return std::static_pointer_cast<ContainerType>(it->second(t));
     }
 
     static void addErrorMsg(const std::string &msg);
@@ -89,28 +103,44 @@ class ObjectFactory {
   private:
 
     // a pointer to a function allocating an object
-    using allocateFkt = std::shared_ptr<Object> (*)();
+    using DefaultCTor = std::shared_ptr<Object> (*)();
+    using CopyCTor = std::shared_ptr<Object> (*)(const std::shared_ptr<Object>&);
 
     // convinence typedefs
-    using Map = std::multimap<MBXMLUtils::FQN, allocateFkt>;
-    using MapIt = typename Map::iterator;
+    using MapName = std::multimap<MBXMLUtils::FQN, DefaultCTor>;
+    using MapNameIt = typename MapName::iterator;
+    using MapType = std::map<std::type_index, CopyCTor>;
+    using MapTypeIt = typename MapType::iterator;
 
     // private ctor
     ObjectFactory() = default;
 
-    static void registerXMLName(const MBXMLUtils::FQN &name, allocateFkt alloc);
+    static void registerXMLNamePrivate(const MBXMLUtils::FQN &name, DefaultCTor alloc);
+
+    template<class CreateType>
+    static void registerTypePrivate(CopyCTor alloc) {
+      instance().registeredType.emplace(std::type_index(typeid(CreateType)), alloc);
+    }
 
     // create an singleton instance of the object factory.
     // only declaration here and defition and explicit instantation for all Object in objectfactory.cc (required for Windows)
     static ObjectFactory& instance();
 
     // a multimap of all registered types
-    Map registeredType;
+    MapName registeredName;
+    MapType registeredType;
 
-    // a wrapper to allocate an object of type CreateType: used by create(xercesc::DOMElement *)
+    // a wrapper to allocate an object of type CreateType by the default ctor: used by create(xercesc::DOMElement *)
     template<class CreateType>
-    static std::shared_ptr<Object> allocate() {
+    static std::shared_ptr<Object> defaultCTor() {
       return std::shared_ptr<CreateType>(new CreateType, &deleter<CreateType>);
+    }
+
+    // a wrapper to allocate an object of type CreateType by the copy ctor: used by create(const std::shared_ptr<Object>&)
+    template<class CreateType>
+    static std::shared_ptr<Object> copyCTor(const std::shared_ptr<Object> &t) {
+      auto tCast=std::static_pointer_cast<CreateType>(t);
+      return std::shared_ptr<CreateType>(new CreateType(*tCast), &deleter<CreateType>);
     }
 
     // a wrapper to deallocate an object of type T: all dtors are protected but ObjectFactory is a friend of all classes

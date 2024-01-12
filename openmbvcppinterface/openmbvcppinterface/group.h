@@ -20,6 +20,7 @@
 #ifndef _OPENMBV_GROUP_H_
 #define _OPENMBV_GROUP_H_
 
+#include <openmbvcppinterface/objectfactory.h>
 #include <openmbvcppinterface/object.h>
 #include <vector>
 #include <map>
