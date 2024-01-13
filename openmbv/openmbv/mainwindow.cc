@@ -180,7 +180,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
-  // 3D cursor //mfmf rotates with move camera with!!!!!!!
+  cameraOrientation=new SoTransposeEngine;
+  cameraOrientation->ref();
+  cameraPosition=new SoTransformVec3f;
+  cameraPosition->ref();
+
+  // 3D cursor
   auto *cursorAno=new SoAnnotation;
   sceneRoot->addChild(cursorAno);
   auto *cursorSep=new SoSepNoPickNoBBox;
@@ -189,6 +194,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   cursorSep->addChild(cursorSwitch);
   cursorPos=new SoTranslation;
   cursorSwitch->addChild(cursorPos);
+  auto *cursorOri=new SoRotation;
+  cursorOri->rotation.connectFrom(&cameraOrientation->outRotation);
+  cursorSwitch->addChild(cursorOri);
   auto *cursorDrawStyle=new SoDrawStyle;
   cursorSwitch->addChild(cursorDrawStyle);
   cursorDrawStyle->lineWidth.setValue(3);
@@ -258,14 +266,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // rot
   auto *worldSysRot=new SoRotation;
   sceneRoot->addChild(worldSysRot);
-  cameraOrientation=new SoTransposeEngine;
-  cameraOrientation->ref();
   worldSysRot->rotation.connectFrom(&cameraOrientation->outRotation);
   // trans
   auto *worldSysTrans=new SoTranslation;
   sceneRoot->addChild(worldSysTrans);
-  cameraPosition=new SoTransformVec3f;
-  cameraPosition->ref();
   cameraPosition->matrix.setValue(-1,0,0,0 , 0,-1,0,0 , 0,0,-1,0 , 0,0,0,1);
   worldSysTrans->translation.connectFrom(&cameraPosition->point);
 
