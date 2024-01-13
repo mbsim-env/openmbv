@@ -725,6 +725,24 @@ int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
   return -1;
 }
 
+SbVec3f MyTouchWidget::convertToRel3D(const QPoint &rel) {
+  auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
+
+  auto *camera=MainWindow::getInstance()->glViewer->getCamera();
+  const auto &cameraOri=camera->orientation.getValue();
+  const auto &viewVolume=camera->getViewVolume();
+  float z=camera->nearDistance.getValue()*(1-relCursorZ)+camera->farDistance.getValue()*relCursorZ;
+  auto point3D00=viewVolume.getPlanePoint(z, SbVec2f(0,0));
+  auto point3D11=viewVolume.getPlanePoint(z, SbVec2f(1,1));
+  auto size3D=point3D11-point3D00;
+  cameraOri.inverse().multVec(size3D, size3D);
+  const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
+  float fac=max(size3D[0]/sizePixel[0], size3D[1]/sizePixel[1]);
+  if(MainWindow::getInstance()->dialogStereo)
+    fac/=2.0;
+  return {rel.x()*fac,-rel.y()*fac,0};
+}
+
 void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuForAll) {
   MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
   // select object
@@ -803,9 +821,12 @@ void MyTouchWidget::setFocalPoint(const QPoint &pos, Body *body) {
   for(auto &r : bvIt->second)
     midPoint+=r;
   midPoint/=bvIt->second.size();
-  auto cameraPos=midPoint+cameraVec*camera->focalDistance.getValue();
-  MainWindow::getInstance()->startShortAni([camera, initialCameraPos, cameraPos](double c){
+  auto initialCameraFocalDistance=camera->focalDistance.getValue();
+  auto cameraFocalDistance=(midPoint-initialCameraPos).normalize(); // keep the camera at its screen-z position
+  auto cameraPos=midPoint+cameraVec*cameraFocalDistance;
+  MainWindow::getInstance()->startShortAni([camera, initialCameraPos, cameraPos, initialCameraFocalDistance, cameraFocalDistance](double c){
     camera->position.setValue(initialCameraPos + (cameraPos-initialCameraPos) * (0.5-0.5*cos(c*M_PI)));
+    camera->focalDistance.setValue(initialCameraFocalDistance + (cameraFocalDistance-initialCameraFocalDistance) * (0.5-0.5*cos(c*M_PI)));
   });
 }
 
@@ -919,19 +940,9 @@ void MyTouchWidget::translateReset() {
 
 void MyTouchWidget::translate(const QPoint &rel) {
   // translate
+  auto rel3D=convertToRel3D(rel);
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   const auto &cameraOri=camera->orientation.getValue();
-  const auto &viewVolume=camera->getViewVolume();
-  float z=camera->nearDistance.getValue()*(1-relCursorZ)+camera->farDistance.getValue()*relCursorZ;
-  auto point3D00=viewVolume.getPlanePoint(z, SbVec2f(0,0));
-  auto point3D11=viewVolume.getPlanePoint(z, SbVec2f(1,1));
-  auto size3D=point3D11-point3D00;
-  cameraOri.inverse().multVec(size3D, size3D);
-  const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
-  float fac=max(size3D[0]/sizePixel[0], size3D[1]/sizePixel[1]);
-  if(MainWindow::getInstance()->dialogStereo)
-    fac/=2.0;
-  auto rel3D=SbVec3f(rel.x()*fac,-rel.y()*fac,0);
   cameraOri.multVec(rel3D, rel3D);
   camera->position.setValue(initialTranslateCameraPos-rel3D);
 }
@@ -1007,19 +1018,10 @@ void MyTouchWidget::zoomPerspectiveCameraDistance(int relPixel, float relAngle) 
 }
 
 void MyTouchWidget::cameraAndFocalPointSz(const QPoint &rel, const QPoint &pos) {
+  float x,y,z;
+  convertToRel3D(rel).getValue(x,y,z);
+  auto rel3D=-y;
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
-  const auto &cameraOri=camera->orientation.getValue();
-  const auto &viewVolume=camera->getViewVolume();
-  float z=camera->nearDistance.getValue()*(1-relCursorZ)+camera->farDistance.getValue()*relCursorZ;
-  auto point3D00=viewVolume.getPlanePoint(z, SbVec2f(0,0));
-  auto point3D11=viewVolume.getPlanePoint(z, SbVec2f(1,1));
-  auto size3D=point3D11-point3D00;
-  cameraOri.inverse().multVec(size3D, size3D);
-  const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
-  float fac=max(size3D[0]/sizePixel[0], size3D[1]/sizePixel[1]);
-  if(MainWindow::getInstance()->dialogStereo)
-    fac/=2.0;
-  auto rel3D=rel.y()*fac;
   SbMatrix oriMatrix;
   camera->orientation.getValue().getValue(oriMatrix);
   SbVec3f cameraVec(oriMatrix[2][0], oriMatrix[2][1], oriMatrix[2][2]);
@@ -1036,18 +1038,9 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
 
   static bool nearPlaneByDistance=getenv("OPENMBV_NEARPLANEBYDISTANCE")!=nullptr;
   if(nearPlaneByDistance) {
-    const auto &cameraOri=camera->orientation.getValue();
-    const auto &viewVolume=camera->getViewVolume();
-    float z=camera->nearDistance.getValue()*(1-relCursorZ)+camera->farDistance.getValue()*relCursorZ;
-    auto point3D00=viewVolume.getPlanePoint(z, SbVec2f(0,0));
-    auto point3D11=viewVolume.getPlanePoint(z, SbVec2f(1,1));
-    auto size3D=point3D11-point3D00;
-    cameraOri.inverse().multVec(size3D, size3D);
-    const auto &sizePixel=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();
-    float fac=max(size3D[0]/sizePixel[0], size3D[1]/sizePixel[1]);
-    if(MainWindow::getInstance()->dialogStereo)
-      fac/=2.0;
-    auto rel3D=rel.y()*fac;
+    float x,y,z;
+    convertToRel3D(rel).getValue(x,y,z);
+    auto rel3D=-y;
     float nearPlaneDistance=initialZoomCameraNearPlaneValue-rel3D;
     if(nearPlaneDistance<1e-6)
       nearPlaneDistance=1e-6;
@@ -1073,14 +1066,14 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
 }
 
 void MyTouchWidget::cursorSz(float relCursorZInc, const QPoint &pos) {
-  // always operate on relCursorZ of the left eye view
-  auto &relCurZ = MainWindow::getInstance()->glViewerWG->relCursorZ;
+  auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
 
-  relCurZ+=relCursorZInc;
-  if(relCurZ<=1e-6) relCurZ=1e-6;
-  if(relCurZ>=1-1e-6) relCurZ=1-1e-6;
+  relCursorZ+=relCursorZInc;
+  MainWindow::getInstance()->relCursorZ->setValue(relCursorZ);
+  if(relCursorZ<=0.001) relCursorZ=0.001;
+  if(relCursorZ>=0.999) relCursorZ=0.999;
   MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z: %1 (0.0/1.0=near/far clipping plane)").
-    arg(relCurZ, 0, 'f', 3), 1000);
+    arg(relCursorZ, 0, 'f', 3), 1000);
   updateCursorPos(pos);
 }
 
@@ -1093,6 +1086,8 @@ void MyTouchWidget::changeFrame(int steps, bool rel) {
 }
 
 void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
+  auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
+
   int x=mousePos.x();
   int y=mousePos.y();
   auto size=MainWindow::getInstance()->glViewer->getViewportRegion().getViewportSizePixels();

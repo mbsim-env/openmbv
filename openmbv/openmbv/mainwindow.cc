@@ -195,6 +195,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   SoScale *cursorScale, *cursorScale2;
   mouseCursorSizeField=new SoSFFloat;
   mouseCursorSizeField->setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
+  relCursorZ=new SoSFFloat;
+  relCursorZ->setValue(0.001);
   cursorScaleE=new SoCalculator;
   cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
   cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);
@@ -1090,6 +1092,7 @@ MainWindow::~MainWindow() {
   SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
   delete mouseCursorSizeField;
+  delete relCursorZ;
 
   // delete all globally stored Coin data before deinit Coin/SoQt
   EdgeCalculation::edgeCache.clear();
@@ -2122,15 +2125,32 @@ void MainWindow::setCameraType(SoType type) {
   // 3D cursor scale
   if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
-    cursorScaleE->b.disconnect();
-    cursorScaleE->c.connectFrom(mouseCursorSizeField);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*c/100"); // oA = camera->height * cursorSize/100
+    cursorScaleE->b.connectFrom(mouseCursorSizeField);
+    cursorScaleE->c.disconnect();
+    cursorScaleE->d.disconnect();
+    cursorScaleE->e.disconnect();
+    // a = camera->height
+    // b = cursorSize [in %]
+    // oA = camera->height * cursorSize/100
+    cursorScaleE->expression.setValue("oA=vec3f(1, 1, 1)*a*b/100");
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
-    cursorScaleE->b.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->focalDistance);
-    cursorScaleE->c.connectFrom(mouseCursorSizeField);
-    cursorScaleE->expression.setValue("oA=vec3f(a, a, a)*b*c/100"); // oA = camera->angle * camera-focalDistance * cursorSize/100
+    cursorScaleE->b.connectFrom(mouseCursorSizeField);
+    cursorScaleE->c.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->nearDistance);
+    cursorScaleE->d.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->farDistance);
+    cursorScaleE->e.connectFrom(relCursorZ);
+    // a = camera->heightAngle
+    // b = cursorSize [in %]
+    // c = camera->nearDistance
+    // d = camera->farDistance
+    // e = relCursorZ
+    // D = camera->nearDistance*(1-relCursorZ)+camera->farDistance*relCursorZ;
+    // H = height at cursorDistance = tan(camera->heightAngle/2)*D*2
+    // oA = H * cursorSize/100
+    cursorScaleE->expression.setValue("oA=vec3f(1, 1, 1) * tan(a/2)*(c*(1-e)+d*e)*2 * b/100               ");
+    //                                                     ---------- H ----------- * -- cursorSize/100 --
+    //                                                               ---- D ----
   }
 }
 

@@ -303,6 +303,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     std::set<void*> waitFor;
     float nearPlaneValue;
+    SoSFFloat *relCursorZ;
 
     QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }
     QMenu* getSceneViewMenu() { return sceneViewMenu; }

@@ -139,7 +139,6 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float rotAnglePerPixel;
     float pickObjectRadius;
     float inScreenRotateSwitch;
-    float relCursorZ = 0.5; // only used by the left eye view, the right eye view uses relCursorZ from the left eye view
     float relCursorZPerWheel;
     float relCursorZPerPixel;
     int pixelPerFrame;
@@ -165,6 +164,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     static constexpr int NOi { std::numeric_limits<int>::max() };
     static constexpr float NOf { std::numeric_limits<float>::max() };
 
+    SbVec3f convertToRel3D(const QPoint &rel);
     void selectObject(const QPoint &pos, bool toggle, bool showMenuForAll);
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
     void setFocalPoint(const QPoint &pos, Body *body=nullptr);
