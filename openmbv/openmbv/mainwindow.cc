@@ -180,7 +180,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
-  // 3D cursor
+  // 3D cursor //mfmf rotates with move camera with!!!!!!!
   auto *cursorAno=new SoAnnotation;
   sceneRoot->addChild(cursorAno);
   auto *cursorSep=new SoSepNoPickNoBBox;
@@ -1959,6 +1959,12 @@ void MainWindow::toggleDecorationSlot() {
 }
 
 void MainWindow::releaseCameraFromBodySlot() {
+  glViewer->getCamera()->orientation.setValue(glViewer->getCamera()->orientation.getValue()*cameraOrientation->inRotation.getValue());
+  SbVec3f x=glViewer->getCamera()->position.getValue();
+  SbVec3f y;
+  cameraOrientation->inRotation.getValue().multVec(x,y);
+  SbVec3f xx=(y+cameraPosition->vector[0]);
+  glViewer->getCamera()->position.setValue(xx);
   cameraPosition->vector.disconnect();
   cameraPosition->vector.setValue(0,0,0);
   cameraOrientation->inRotation.disconnect();
@@ -1967,6 +1973,13 @@ void MainWindow::releaseCameraFromBodySlot() {
 }
 
 void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
+  releaseCameraFromBodySlot();
+  glViewer->getCamera()->orientation.setValue(glViewer->getCamera()->orientation.getValue()*rot->getValue().inverse());
+  SbVec3f x=glViewer->getCamera()->position.getValue();
+  SbVec3f xx=(x-pos->getValue());
+  SbVec3f yy;
+  rot->getValue().inverse().multVec(xx,yy);
+  glViewer->getCamera()->position.setValue(yy);
   cameraPosition->vector.connectFrom(pos);
   cameraOrientation->inRotation.connectFrom(rot);
   frame->touch(); // enforce update
