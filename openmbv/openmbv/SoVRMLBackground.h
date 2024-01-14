@@ -51,7 +51,13 @@
 
 class SoVRMLBackground2P;
 
-class COIN_DLL_API SoVRMLBackground2 : public SoNode
+#ifdef _WIN32
+#  define DLL_PUBLIC __declspec(dllexport)
+#else
+#  define DLL_PUBLIC
+#endif
+
+class DLL_PUBLIC SoVRMLBackground2 : public SoNode
 {
   typedef SoNode inherited;
   SO_NODE_HEADER(SoVRMLBackground2);
