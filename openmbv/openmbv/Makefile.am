@@ -64,6 +64,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   planargear.cc \
   editors.cc \
   IndexedTesselationFace.cc \
+  Background.cc \
   abstractviewfilter.cc \
   QTripleSlider.cc
 
@@ -176,6 +177,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   planargear.h \
   editors.h \
   IndexedTesselationFace.h \
+  SoVRMLBackground.h \
   abstractviewfilter.h \
   QTripleSlider.h
 

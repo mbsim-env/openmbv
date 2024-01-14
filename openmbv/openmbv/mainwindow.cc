@@ -63,6 +63,7 @@
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/nodes/SoComplexity.h>
+#include "SoVRMLBackground.h"
 #include <Inventor/annex/HardCopy/SoVectorizePSAction.h>
 #include <Inventor/engines/SoGate.h>
 #include <Inventor/engines/SoCalculator.h>
@@ -124,6 +125,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // init user engines
   SoTransposeEngine::initClass();
   IndexedTesselationFace::initClass();
+  SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
   // init realtime
   SoDB::enableRealTimeSensor(false);
   SoSceneManager::enableRealTimeUpdate(false);
