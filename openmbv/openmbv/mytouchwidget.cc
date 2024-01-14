@@ -958,7 +958,7 @@ void MyTouchWidget::zoomInit() {
     initialZoomCameraHeightAngle=persCamera->heightAngle.getValue();
   }
   initialZoomCameraPos=camera->position.getValue();;
-  initialZoomCameraNearPlaneValue=MainWindow::getInstance()->nearPlaneValue;
+  initialZoomCameraNearPlaneValue=MainWindow::getInstance()->getNearPlaneValue();
   initialZoomCameraFocalDistance=camera->focalDistance.getValue();
 }
 
@@ -973,7 +973,7 @@ void MyTouchWidget::zoomReset() {
     persCamera->heightAngle.setValue(initialZoomCameraHeightAngle);
   }
   camera->position.setValue(initialZoomCameraPos);
-  MainWindow::getInstance()->nearPlaneValue=initialZoomCameraNearPlaneValue;
+  MainWindow::getInstance()->setNearPlaneValue(initialZoomCameraNearPlaneValue);
   camera->focalDistance.setValue(initialZoomCameraFocalDistance);
 }
 
@@ -1046,7 +1046,7 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
       nearPlaneDistance=1e-6;
     if(nearPlaneDistance>camera->farDistance.getValue()*0.999)
       nearPlaneDistance=camera->farDistance.getValue()*0.999;
-    MainWindow::getInstance()->nearPlaneValue=nearPlaneDistance;
+    MainWindow::getInstance()->setNearPlaneValue(nearPlaneDistance);
     MainWindow::getInstance()->frame->touch(); // force rendering the scene
     MainWindow::getInstance()->statusBar()->
       showMessage(QString("Camera near clipping plane at screen-z: %2").arg(nearPlaneDistance, 0, 'f', 6), 1000);
@@ -1058,7 +1058,7 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
       nearPlaneFactor=0.1;
     if(nearPlaneFactor>0.9)
       nearPlaneFactor=0.9;
-    MainWindow::getInstance()->nearPlaneValue=nearPlaneFactor;
+    MainWindow::getInstance()->setNearPlaneValue(nearPlaneFactor);
     MainWindow::getInstance()->frame->touch(); // force rendering the scene
     MainWindow::getInstance()->statusBar()->
       showMessage(QString("Camera near clipping plane normalized factor: %1").arg(nearPlaneFactor, 0, 'f', 6), 1000);

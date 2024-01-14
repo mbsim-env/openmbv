@@ -249,6 +249,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void editFinishedSlot();
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
+    float nearPlaneValue;
   public:
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
@@ -302,7 +303,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QTreeWidget* getObjectList() { return objectList; }
 
     std::set<void*> waitFor;
-    float nearPlaneValue;
+    void setNearPlaneValue(float value);
+    float getNearPlaneValue() { return nearPlaneValue; }
     SoSFFloat *relCursorZ;
 
     QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }

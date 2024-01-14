@@ -225,10 +225,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   auto *cursorPoint=new SoPointSet;
   cursorSwitch->addChild(cursorPoint);
 
-  auto *offset=new SoPolygonOffset; // move all filled polygons in background
+  auto *offset=new SoPolygonOffset; // move lines/points to front
   sceneRoot->addChild(offset);
-  offset->factor.setValue(0.0);
-  offset->units.setValue(1000);
+  offset->styles=SoPolygonOffset::LINES | SoPolygonOffset::LINES;
+  offset->factor.setValue(-1.5);
+  offset->units.setValue(-1.5);
   complexity=new SoComplexity;
   sceneRoot->addChild(complexity);
   // enable backface culling (and one sided lightning) by default
@@ -2177,6 +2178,16 @@ void MainWindow::setCursorPos(const SbVec3f *pos) {
   cursorSwitch->whichChild.setValue(pos ? SO_SWITCH_ALL : SO_SWITCH_NONE);
   if(pos)
     cursorPos->translation.setValue(*pos);
+}
+
+void MainWindow::setNearPlaneValue(float value) {
+  nearPlaneValue=value;
+  static bool nearPlaneByDistance=getenv("OPENMBV_NEARPLANEBYDISTANCE")!=nullptr;
+  if(nearPlaneByDistance)
+    glViewer->setAutoClippingStrategy(SoQtMyViewer::CONSTANT_NEAR_PLANE, nearPlaneValue);
+  else
+    glViewer->setAutoClippingStrategy(SoQtMyViewer::VARIABLE_NEAR_PLANE, nearPlaneValue);
+  frame->touch();
 }
 
 }
