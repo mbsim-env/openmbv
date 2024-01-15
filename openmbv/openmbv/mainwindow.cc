@@ -206,7 +206,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   mouseCursorSizeField=new SoSFFloat;
   mouseCursorSizeField->setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
   relCursorZ=new SoSFFloat;
-  relCursorZ->setValue(0.001);
+  relCursorZ->setValue(0.01);
   cursorScaleE=new SoCalculator;
   cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
   cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);

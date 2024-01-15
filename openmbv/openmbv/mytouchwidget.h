@@ -152,6 +152,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float initialZoomCameraHeightAngle;
     SbVec3f initialZoomCameraPos;
     float initialZoomCameraNearPlaneValue;
+    float initialZoomRelCursorZ;
     float initialZoomCameraFocalDistance;
     SbRotation initialRotateCameraOri;
     SbVec3f initialRotateCameraPos;
@@ -187,7 +188,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomPerspectiveCameraDistance(int relPixel, float relAngle);
     void cameraAndFocalPointSz(const QPoint &rel, const QPoint &pos);
     void cameraNearPlane(const QPoint &rel, const QPoint &pos);
-    void cursorSz(float change, const QPoint &pos);
+    void cursorSz(int relPixel, float relAngle, const QPoint &pos); // set one of the parameters to NOi/NOf
     void changeFrame(int steps, bool rel=true);
     void updateCursorPos(const QPoint &mousePos);
 };
