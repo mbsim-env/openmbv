@@ -61,7 +61,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       ChangeFrame, // 1D
       Zoom, // 1D
       CameraAngle, // 1D
-      CurserSz, // 1D
+      CursorSz, // 1D
       RotateAboutSz, // 1D
       Translate, // 2D
       RotateAboutSySx, // 2D

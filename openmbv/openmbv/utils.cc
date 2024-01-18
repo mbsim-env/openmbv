@@ -383,7 +383,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftCtrlAltLeftMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltLeftMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneRightMoveAction]=        {"mainwindow/manipulate3d/mouseNoneRightMoveAction", static_cast<int>(MA::Translate)};
   setting[mouseShiftRightMoveAction]=       {"mainwindow/manipulate3d/mouseShiftRightMoveAction", static_cast<int>(MA::None)};
-  setting[mouseCtrlRightMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlRightMoveAction", static_cast<int>(MA::CurserSz)};
+  setting[mouseCtrlRightMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlRightMoveAction", static_cast<int>(MA::CursorSz)};
   setting[mouseAltRightMoveAction]=         {"mainwindow/manipulate3d/mouseAltRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlRightMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftAltRightMoveAction]=    {"mainwindow/manipulate3d/mouseShiftAltRightMoveAction", static_cast<int>(MA::None)};
@@ -399,7 +399,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftCtrlAltMidMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltMidMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneWheelAction]=        {"mainwindow/manipulate3d/mouseNoneWheelAction", static_cast<int>(MA::ChangeFrame)};
   setting[mouseShiftWheelAction]=       {"mainwindow/manipulate3d/mouseShiftWheelAction", static_cast<int>(MA::Zoom)};
-  setting[mouseCtrlWheelAction]=        {"mainwindow/manipulate3d/mouseCtrlWheelAction", static_cast<int>(MA::CurserSz)};
+  setting[mouseCtrlWheelAction]=        {"mainwindow/manipulate3d/mouseCtrlWheelAction", static_cast<int>(MA::CursorSz)};
   setting[mouseAltWheelAction]=         {"mainwindow/manipulate3d/mouseAltWheelAction", static_cast<int>(MA::RotateAboutSz)};
   setting[mouseShiftCtrlWheelAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlWheelAction", static_cast<int>(MA::None)};
   setting[mouseShiftAltWheelAction]=    {"mainwindow/manipulate3d/mouseShiftAltWheelAction", static_cast<int>(MA::None)};
@@ -458,7 +458,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchShiftCtrlAltMove1Action]={"mainwindow/manipulate3d/touchShiftCtrlAltMove1Action", static_cast<int>(MA::None)};
   setting[touchNoneMove2Action]=        {"mainwindow/manipulate3d/touchNoneMove2Action", static_cast<int>(MA::Translate)};
   setting[touchShiftMove2Action]=       {"mainwindow/manipulate3d/touchShiftMove2Action", static_cast<int>(MA::None)};
-  setting[touchCtrlMove2Action]=        {"mainwindow/manipulate3d/touchCtrlMove2Action", static_cast<int>(MA::CurserSz)};//mfmf not working
+  setting[touchCtrlMove2Action]=        {"mainwindow/manipulate3d/touchCtrlMove2Action", static_cast<int>(MA::CursorSz)};//mfmf not working
   setting[touchAltMove2Action]=         {"mainwindow/manipulate3d/touchAltMove2Action", static_cast<int>(MA::None)};
   setting[touchShiftCtrlMove2Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove2Action", static_cast<int>(MA::None)};
   setting[touchShiftAltMove2Action]=    {"mainwindow/manipulate3d/touchShiftAltMove2Action", static_cast<int>(MA::None)};
