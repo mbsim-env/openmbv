@@ -309,6 +309,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }
     QMenu* getSceneViewMenu() { return sceneViewMenu; }
     void viewAllSlot() { glViewer->viewAll(); }
+    void showSettingsDialog();
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.

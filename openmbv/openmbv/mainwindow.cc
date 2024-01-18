@@ -383,11 +383,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
-  act=fileMenu->addAction(Utils::QIconCached("settings.svg"), "Settings...", [this](){
-    auto dialog=new SettingsDialog(this);
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->show();
-  });
+  act=fileMenu->addAction(Utils::QIconCached("settings.svg"), "Settings...", this, &MainWindow::showSettingsDialog);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
   act=fileMenu->addAction(Utils::QIconCached("quit.svg"), "Exit", qApp, &QApplication::quit);
@@ -2182,6 +2178,12 @@ void MainWindow::setNearPlaneValue(float value) {
   else
     glViewer->setAutoClippingStrategy(SoQtMyViewer::VARIABLE_NEAR_PLANE, nearPlaneValue);
   frame->touch();
+}
+
+void MainWindow::showSettingsDialog() {
+  auto dialog=new SettingsDialog(this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->show();
 }
 
 }
