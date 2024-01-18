@@ -44,20 +44,11 @@ namespace OpenMBVGUI {
 
 constexpr float fontScale = 0.0025;
 
-SoQtMyViewer::SoQtMyViewer(QWidget *parent, int transparency) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
+SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
   static const char* OPENMBV_NO_MULTISAMPLING=getenv("OPENMBV_NO_MULTISAMPLING");
   if(!OPENMBV_NO_MULTISAMPLING)
     setSampleBuffers(4);
-  switch(transparency) {
-    case 2:
-      setAlphaChannel(true);
-      setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
-      break;
-    case 1:
-    default:
-      setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
-      break;
-  }
+  updateTransperencySetting();
   setSeekTime(1);
 
   // background
@@ -196,6 +187,27 @@ void SoQtMyViewer::actualRedraw() {
 
 void SoQtMyViewer::setAspectRatio(double r) {
   aspectRatio=r;
+}
+
+void SoQtMyViewer::updateTransperencySetting() {
+  switch(appSettings->get<int>(AppSettings::transparency)) {
+    case 0:
+      setTransparencyType(SoGLRenderAction::BLEND);
+      break;
+    case 1:
+      setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
+      break;
+    case 2:
+      setTransparencyType(SoGLRenderAction::SORTED_OBJECT_BLEND);
+      break;
+    case 3:
+      setTransparencyType(SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
+      break;
+    case 4:
+      setAlphaChannel(true);
+      setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+      break;
+  }
 }
 
 }

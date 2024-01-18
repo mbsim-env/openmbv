@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
         <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
         <<"               [--headlight <file>]"<<endl
-        <<"               [--transparency 1|2] [-C <dir/file>|--CC]"<<endl
+        <<"               [-C <dir/file>|--CC]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         <<""<<endl
@@ -136,11 +136,6 @@ int main(int argc, char *argv[])
         <<"--headlight        Load the given head light file (*.iv)"<<endl
         <<"                   (Must be of type DirectionalLight)"<<endl
         <<"--fullscreen       Start in full screen mode"<<endl
-        <<"--transparency     1 = DELAYED_BLEND (default): fast; independent of graphic"<<endl
-        <<"                       card; good results with only opaque objects and objects"<<endl
-        <<"                       with similar transparency value."<<endl
-        <<"                   2 = SORTED_LAYERS_BLEND (Coin extension): best results;"<<endl
-        <<"                       but requires OpenGL extensions by the graphic card."<<endl
         <<"-C <dir/file>      Change current to dir to <dir>/dir of <file> first."<<endl
         <<"                   All arguments are still relative to the original current dir."<<endl
         <<"--CC               Change current dir to dir of last <dir> argument or dir of last <file> argument."<<endl

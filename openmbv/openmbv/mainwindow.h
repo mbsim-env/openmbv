@@ -119,7 +119,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoQtMyViewer *glViewer;
     SoQtMyViewer *glViewerRight { nullptr };
     DialogStereo *dialogStereo { nullptr };
-    int transparency;
     void viewChange(ViewSide side);
     SoSeparator *sceneRoot;
     QTimer *animTimer;

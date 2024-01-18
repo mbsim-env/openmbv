@@ -482,6 +482,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
   setting[filterType]={"mainwindow/filter/type", 0};
   setting[filterCaseSensitivity]={"mainwindow/filter/casesensitivity", 0};
+  setting[transparency]={"mainwindow/sceneGraph/transparency", 0};
 
   for(auto &[str, value]: setting)
     if(qSettings.contains(str))
@@ -714,6 +715,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new DoubleSetting(scene3D, AppSettings::complexityValue, Utils::QIconCached("complexityvalue.svg"), "Complexity value:", "", [](double value){
     MainWindow::getInstance()->complexity->value.setValue(value);
   }, 0, 1, 0.1);
+  new ChoiceSetting(scene3D, AppSettings::transparency, QIcon(), "Transparency type:", {
+    {"Blend"                              , ""},
+    {"Delayed blend"                      , ""},
+    {"Sorted object blend"                , ""},
+    {"Sorted object sorted triangle blend", ""},
+    {"Sorted layers blend"                , ""}
+  }, [](int value){
+    MainWindow::getInstance()->glViewer->updateTransperencySetting();
+    if(MainWindow::getInstance()->glViewerRight)
+      MainWindow::getInstance()->glViewerRight->updateTransperencySetting();
+  });
   addSpace(scene3D);
 
   auto mouseClick=addTab(Utils::QIconCached("mouse.svg"), "Mouse click");

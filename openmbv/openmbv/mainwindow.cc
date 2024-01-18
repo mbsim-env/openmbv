@@ -172,13 +172,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   fgColorTop->set1Value(0, 0,0,0);
   fgColorBottom=new SoMFColor;
   fgColorBottom->set1Value(0, 1,1,1);
-  transparency=1;
-  if((i=std::find(arg.begin(), arg.end(), "--transparency"))!=arg.end()) {
-    i2=i; i2++;
-    transparency=QString(i2->c_str()).toDouble();
-    arg.erase(i); arg.erase(i2);
-  }
-  glViewer=new SoQtMyViewer(glViewerWG, transparency);
+  glViewer=new SoQtMyViewer(glViewerWG);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
@@ -956,7 +950,7 @@ DialogStereo::DialogStereo() {
     showFullScreen();
     fullScreenButton->hide();
   });
-  mw->glViewerRight=new SoQtMyViewer(glViewerWGRight, mw->transparency);
+  mw->glViewerRight=new SoQtMyViewer(glViewerWGRight);
   mw->glViewerRight->setSceneGraph(mw->sceneRoot);
   auto *camera=static_cast<SoPerspectiveCamera*>(mw->glViewer->getCamera());
   dialogStereoLO->addWidget(glViewerWGRight, 0,1);

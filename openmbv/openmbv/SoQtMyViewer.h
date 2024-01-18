@@ -36,10 +36,11 @@ namespace OpenMBVGUI {
 
 class SoQtMyViewer : public SoQtViewer {
   public:
-    SoQtMyViewer(QWidget *parent, int transparency);
+    SoQtMyViewer(QWidget *parent);
     ~SoQtMyViewer() override;
     void setAspectRatio(double r);
     void changeCameraValues(SoCamera *cam) override { SoQtViewer::changeCameraValues(cam); } // is protected
+    void updateTransperencySetting();
   protected:
     SbBool processSoEvent(const SoEvent *event) override { return true; } // disable So events
     void actualRedraw() override;

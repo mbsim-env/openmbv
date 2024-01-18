@@ -298,6 +298,7 @@ class AppSettings {
       inScreenRotateSwitch,
       filterType,
       filterCaseSensitivity,
+      transparency,
       SIZE,
     };
     AppSettings();
