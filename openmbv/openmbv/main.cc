@@ -41,6 +41,10 @@ int main(int argc, char *argv[])
 #ifndef _WIN32
 //MISSING Qt seems to generate some FPE, hence disabled  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
 #endif
+#ifdef _WIN32
+  SetConsoleCP(CP_UTF8);
+  SetConsoleOutputCP(CP_UTF8);
+#endif
 
   // check for errors during ObjectFactory
   string errorMsg(OpenMBV::ObjectFactory::getAndClearErrorMsg());

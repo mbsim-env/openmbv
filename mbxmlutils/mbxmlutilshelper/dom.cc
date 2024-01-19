@@ -27,8 +27,10 @@
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/locale.hpp>
 #ifdef _WIN32
-#include <windows.h>
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
 #endif
 
 // we need some internal xerces classes (here the XMLScanner to get the current line number during parsing)
@@ -1061,6 +1063,14 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     // at least using wine we cannot use inputSource as lock file itself, its crashing
     path inputSourceLock(inputSource.parent_path()/("."+inputSource.filename().string()+".lock"));
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
+#ifdef _WIN32
+    { // make lock file hidden on windows
+      std::wstring filenameU16=boost::locale::conv::utf_to_utf<wchar_t>(inputSourceLock.generic_string());
+      auto attrs = GetFileAttributesW(filenameU16.c_str());
+      if(attrs != INVALID_FILE_ATTRIBUTES)
+        SetFileAttributesW(filenameU16.c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
+    }
+#endif
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
@@ -1105,6 +1115,14 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
   // at least using wine we cannot use outputSource as lock file itself, its crashing
   path outputSourceLock(outputSource.parent_path()/("."+outputSource.filename().string()+".lock"));
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
+#ifdef _WIN32
+  { // make lock file hidden on windows
+    std::wstring filenameU16=boost::locale::conv::utf_to_utf<wchar_t>(outputSourceLock.generic_string());
+    auto attrs = GetFileAttributesW(filenameU16.c_str());
+    if(attrs != INVALID_FILE_ATTRIBUTES)
+      SetFileAttributesW(filenameU16.c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
+  }
+#endif
   boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
   boost::interprocess::scoped_lock lock(outputSourceFileLock);
   if(!ser->writeToURI(n, X()%outputSource.string()))
