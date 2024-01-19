@@ -118,13 +118,6 @@ ThisLineLocation domLoc;
 namespace {
   InitXerces initXerces;
 
-  //TODO not working on Windows
-  //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  //TODO // std::locale::global(locale::generator().generate("UTF8"));
-  //TODO // filesystem::path::imbue(std::locale());
-  //TODO const path::codecvt_type *utf8Facet(&use_facet<path::codecvt_type>(locale::generator().generate("UTF8")));
-  #define CODECVT
-
   // START: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
   template<typename Tag>
@@ -995,7 +988,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
       std::ignore = ns;
       // load grammar
       errorHandler.resetError();
-      parser->loadGrammar(X()%schemaFilename.string(CODECVT), Grammar::SchemaGrammarType, true);
+      parser->loadGrammar(X()%schemaFilename.string(), Grammar::SchemaGrammarType, true);
       if(errorHandler.hasError())
         throw errorHandler.getError();
     }
@@ -1053,7 +1046,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
 
 shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
-    throw runtime_error("XML document "+inputSource.string(CODECVT)+" not found");
+    throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   shared_ptr<DOMDocument> doc;
@@ -1070,10 +1063,10 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { if(PH1) PH1->release(); });
+    doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
   }
   else
-    doc.reset(parser->parseURI(X()%inputSource.string(CODECVT)), [](auto && PH1) { if(PH1) PH1->release(); });
+    doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
   doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1092,7 +1085,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   DOMElement *root=doc->getDocumentElement();
   if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
     DOMProcessingInstruction *filenamePI=doc->createProcessingInstruction(X()%"OriginalFilename",
-      X()%inputSource.string(CODECVT));
+      X()%inputSource.string());
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
@@ -1114,7 +1107,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
   boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
   boost::interprocess::scoped_lock lock(outputSourceFileLock);
-  if(!ser->writeToURI(n, X()%outputSource.string(CODECVT)))
+  if(!ser->writeToURI(n, X()%outputSource.string()))
     throw runtime_error("Serializing the document failed.");
 }
 

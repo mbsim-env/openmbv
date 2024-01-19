@@ -33,12 +33,6 @@ using namespace xercesc;
 namespace bfs=boost::filesystem;
 
 namespace {
-  //TODO not working on Windows
-  //TODO // NOTE: we can skip the use of utf8Facet (see below) and set the facet globally (for bfs::path and others) using:
-  //TODO // std::locale::global(locale::generator().generate("UTF8"));
-  //TODO // filesystem::path::imbue(std::locale());
-  //TODO const bfs::path::codecvt_type *utf8Facet(&use_facet<bfs::path::codecvt_type>(locale::generator().generate("UTF8")));
-  #define CODECVT
 
   // some platform dependent values
 #ifdef _WIN32
@@ -96,7 +90,7 @@ OctInit::OctInit() {
     if(!getenv("OCTAVE_HOME")) {
       std::string OCTAVE_HOME;
       if(bfs::exists(MBXMLUtils::Eval::installPath/"share"/"octave"))
-        OCTAVE_HOME=MBXMLUtils::Eval::installPath.string(CODECVT);
+        OCTAVE_HOME=MBXMLUtils::Eval::installPath.string();
       else if(bfs::exists(bfs::path(MKOCTFILE_OCTAVE_HOME_WIN)/"share"/"octave"))
         OCTAVE_HOME=MKOCTFILE_OCTAVE_HOME_WIN;
       else if(bfs::exists(bfs::path(MKOCTFILE_OCTAVE_HOME_UNIX)/"share"/"octave"))
@@ -119,7 +113,7 @@ OctInit::OctInit() {
     octave::feval("warning", warnArg);
 
     // ... and add .../[bin|lib] to octave search path (their we push all oct files)
-    std::string dir=(MBXMLUtils::Eval::installPath/LIBDIR).string(CODECVT);
+    std::string dir=(MBXMLUtils::Eval::installPath/LIBDIR).string();
     octave::feval("addpath", octave_value_list(octave_value(dir)));
 
     // save initial octave search path

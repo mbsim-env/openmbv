@@ -37,7 +37,7 @@
 #include <memory>
 #include <sstream>
 #include <memory>
-#include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet
+#include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet -> use boost
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <cfenv>
