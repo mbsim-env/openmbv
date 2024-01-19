@@ -54,7 +54,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       ShowContextMenu,
       SelectTopObjectAndShowContextMenu,
       SelectAnyObjectAndShowContextMenu,
-      SetFocalPoint,
+      SetRotationPointAndCursorSz,
     };
     enum class MoveAction {
       None,
@@ -68,7 +68,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       RotateAboutWxSx, // 2D
       RotateAboutWySx, // 2D
       RotateAboutWzSx, // 2D
-      CameraAndFocalPointSz, // 1D
+      CameraAndRotationPointSz, // 1D
       CameraNearPlane, // 1D
     };
 
@@ -168,7 +168,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     SbVec3f convertToRel3D(const QPoint &rel);
     void selectObject(const QPoint &pos, bool toggle, bool showMenuForAll);
     void selectObjectAndShowContextMenu(const QPoint &pos, bool showMenuForAll);
-    void setFocalPoint(const QPoint &pos, Body *body=nullptr);
+    void setRotationPointAndCursorSz(const QPoint &pos, Body *body=nullptr);
     void openPropertyDialog(const QPoint &pos);
     void rotateInit(const QPoint &initialPos);
     void rotateReset();
@@ -186,7 +186,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoom(int relPixel, float relAngle); // set one of the parameters to NOi/NOf
     void zoomPerspectiveCameraAngle(int relPixel);
     void zoomPerspectiveCameraDistance(int relPixel, float relAngle);
-    void cameraAndFocalPointSz(const QPoint &rel, const QPoint &pos);
+    void cameraAndRotationPointSz(const QPoint &rel, const QPoint &pos);
     void cameraNearPlane(const QPoint &rel, const QPoint &pos);
     void cursorSz(int relPixel, float relAngle, const QPoint &pos); // set one of the parameters to NOi/NOf
     void changeFrame(int steps, bool rel=true);
