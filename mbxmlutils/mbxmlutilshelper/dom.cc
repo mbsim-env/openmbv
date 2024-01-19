@@ -27,7 +27,7 @@
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/locale.hpp>
+#include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet -> use boost
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
