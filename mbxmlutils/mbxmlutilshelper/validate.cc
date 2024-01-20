@@ -1,4 +1,5 @@
 #include <config.h>
+#include <clocale>
 #include <cassert>
 #include <cfenv>
 #include <iostream>
@@ -15,12 +16,13 @@ using namespace boost::filesystem;
 using namespace MBXMLUtils;
 
 int main(int argc, char *argv[]) {
-#ifndef _WIN32
-  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
-#endif
 #ifdef _WIN32
   SetConsoleCP(CP_UTF8);
   SetConsoleOutputCP(CP_UTF8);
+  setlocale(LC_ALL, "ACP.UTF-8");
+#else
+  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+  setlocale(LC_ALL, "C");
 #endif
 
   vector<string> args;

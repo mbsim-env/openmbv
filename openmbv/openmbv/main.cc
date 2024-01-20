@@ -18,6 +18,7 @@
 */
 
 #include "config.h"
+#include <clocale>
 #include <cassert>
 #include <cfenv>
 #include <QApplication>
@@ -36,15 +37,16 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
-#ifndef _WIN32
-//MISSING Qt seems to generate some FPE, hence disabled  assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
-#endif
+int main(int argc, char *argv[]) {
 #ifdef _WIN32
   SetConsoleCP(CP_UTF8);
   SetConsoleOutputCP(CP_UTF8);
+  setlocale(LC_ALL, "ACP.UTF-8");
+#else
+  //assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1); // Qt seems to generate some FPE, hence not activated  
+  setlocale(LC_ALL, "C");
 #endif
+  QLocale::setDefault(QLocale::C);
 
   // check for errors during ObjectFactory
   string errorMsg(OpenMBV::ObjectFactory::getAndClearErrorMsg());
@@ -187,8 +189,6 @@ int main(int argc, char *argv[])
   app.setOrganizationDomain(OpenMBVGUI::AppSettings::organizationDomain);
   QSettings::setDefaultFormat(OpenMBVGUI::AppSettings::format);
   // Only the standard C locale is supported
-  QLocale::setDefault(QLocale::C);
-  setlocale(LC_ALL, "C");
 
 
   OpenMBVGUI::MainWindow mainWindow(arg);
