@@ -269,9 +269,15 @@ class DOMElementWrapper {
     const xercesc::DOMComment *getFirstCommentChild() const;
     //! Get first child comment
     xercesc::DOMComment *getFirstCommentChild();
-    //! Get first child text
+    //! Get first none empty child text or CDATA node.
+    //! A empty text node (only spaces, tabs and new-lines) is interpreted as a formatting node not a content node.
+    //! If, however, only empty text or CDATA nodes exist than the last empty text or CDATA node is returned.
+    //! If no text or CDATA node or more then one none empty text or CDATA node exists nullptr is returned.
     const xercesc::DOMText *getFirstTextChild() const;
-    //! Get first child text
+    //! Get first none empty child text or CDATA node.
+    //! A empty text node (only spaces, tabs and new-lines) is interpreted as a formatting node not a content node.
+    //! If, however, only empty text or CDATA nodes exist than the last empty text or CDATA node is returned.
+    //! If no text or CDATA node or more then one none empty text or CDATA node exists nullptr is returned.
     xercesc::DOMText *getFirstTextChild();
     //! Get the child text as type T
     template<class T> T getText(int r=0, int c=0) const {
@@ -500,9 +506,6 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     void resetCachedGrammarPool();
     //! create a empty document
     std::shared_ptr<xercesc::DOMDocument> createDocument();
-    //! handle CDATA sections
-    //! Combine sucessive text nodes and CDATA sections even across processing instructions.
-    static void handleCDATA(xercesc::DOMElement *e);
   private:
     static const std::string domParserKey;
 

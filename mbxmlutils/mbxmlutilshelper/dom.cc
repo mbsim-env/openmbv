@@ -266,19 +266,43 @@ DOMComment *DOMElementWrapper<DOMElementType>::getFirstCommentChild() {
 
 template<typename DOMElementType>
 const DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() const {
-  for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling())
-    if(ret->getNodeType()==DOMNode::TEXT_NODE)
-      return static_cast<DOMText*>(ret);
-  return nullptr;
+  DOMText *validTextNode;
+  DOMText *lastTextNode = nullptr;
+  int noneEmptyTextNodeCount = 0;
+  for(DOMNode *n=me->getFirstChild(); n; n=n->getNextSibling())
+    if(n->getNodeType()==DOMNode::TEXT_NODE || n->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
+      lastTextNode = static_cast<DOMText*>(n);
+      if(!boost::trim_copy(X()%lastTextNode->getData()).empty()) {
+        validTextNode=lastTextNode;
+        noneEmptyTextNodeCount++;
+      }
+    }
+  if(noneEmptyTextNodeCount == 0 && lastTextNode)
+    return lastTextNode;
+  if(noneEmptyTextNodeCount != 1)
+    return nullptr;
+  return validTextNode;
 }
 template const DOMText *DOMElementWrapper<const DOMElement>::getFirstTextChild() const; // explicit instantiate const variant
 
 template<typename DOMElementType>
 DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() {
-  for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling())
-    if(ret->getNodeType()==DOMNode::TEXT_NODE)
-      return static_cast<DOMText*>(ret);
-  return nullptr;
+  DOMText *validTextNode;
+  DOMText *lastTextNode = nullptr;
+  int noneEmptyTextNodeCount = 0;
+  for(DOMNode *n=me->getFirstChild(); n; n=n->getNextSibling())
+    if(n->getNodeType()==DOMNode::TEXT_NODE || n->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
+      lastTextNode = static_cast<DOMText*>(n);
+      if(!boost::trim_copy(X()%lastTextNode->getData()).empty()) {
+        validTextNode=lastTextNode;
+        noneEmptyTextNodeCount++;
+      }
+    }
+  if(noneEmptyTextNodeCount == 0 && lastTextNode)
+    return lastTextNode;
+  if(noneEmptyTextNodeCount != 1)
+    return nullptr;
+  return validTextNode;
 }
 
 template<typename DOMElementType>
@@ -997,35 +1021,6 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   }
 }
 
-void DOMParser::handleCDATA(DOMElement *e) {
-  // combine CDATA and text nodes
-  for(DOMNode *c=e->getFirstChild(); c!=nullptr; c=c->getNextSibling())
-    if(c->getNodeType()==DOMNode::TEXT_NODE || c->getNodeType()==DOMNode::CDATA_SECTION_NODE) {
-      DOMText *replace=static_cast<DOMText*>(e->insertBefore(e->getOwnerDocument()->createTextNode(X()%""), c));
-      string data;
-      while(c && (c->getNodeType()==DOMNode::TEXT_NODE ||
-                  c->getNodeType()==DOMNode::CDATA_SECTION_NODE ||
-                  c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE ||
-                  c->getNodeType()==DOMNode::COMMENT_NODE)) {
-        if(c->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE || c->getNodeType()==DOMNode::COMMENT_NODE) {
-          c=c->getNextSibling();
-          continue;
-        }
-        data+=X()%static_cast<DOMText*>(c)->getData();
-        DOMNode *del=c;
-        c=c->getNextSibling();
-        e->removeChild(del)->release();
-      }
-      replace->setData(X()%data);
-      break;
-    }
-  // walk tree
-  for(DOMElement *c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {
-    handleCDATA(c);
-    if(c==nullptr) break;
-  }
-}
-
 void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
   // handle xinclude
   if(E(e)->getTagName()==XINCLUDE%"include") {
@@ -1099,7 +1094,6 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     root->insertBefore(filenamePI, root->getFirstChild());
   }
   // handle CDATA nodes
-  handleCDATA(root);
   if(doXInclude)
     handleXInclude(root, dependencies);
   // return DOM document
