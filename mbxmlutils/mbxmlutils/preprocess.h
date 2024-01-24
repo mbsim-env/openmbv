@@ -27,10 +27,14 @@ class Preprocess : virtual public fmatvec::Atom {
                            const std::shared_ptr<PositionMap>& position=std::make_shared<PositionMap>()
                           );
 
-    // same as process but reads from mainXML and return preprocessed DOMDocument.
-    static std::shared_ptr<xercesc::DOMDocument> preprocessFile(
+    // parse and validate a file and return the evaluator name
+    static std::pair<std::shared_ptr<xercesc::DOMDocument>, std::string> parseFileAndGetEvaluator(
       std::vector<boost::filesystem::path> &dependencies, const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog,
       const boost::filesystem::path &mainXML);
+
+    // preprocess a XMLDocument and adapt the evaluator XML element.
+    static void preprocessDocument(std::vector<boost::filesystem::path> &dependencies,
+                                   const std::shared_ptr<Eval> &eval, const std::shared_ptr<xercesc::DOMDocument> &mainXMLDoc, const std::shared_ptr<ParamSet>& param=std::shared_ptr<ParamSet>());
 };
 
 }

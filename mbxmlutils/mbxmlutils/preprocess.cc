@@ -135,43 +135,42 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
           [](auto && PH1) { if(PH1) PH1->release(); });
       }
 
-      // add/overwrite local parameter to/by param (only handle root level parameters)
+      // overwrite local parameter to/by param (only handle root level parameters)
       if(localParamEle && param && parentXPath.empty()) {
-        // no parameters exists in param -> output parameters to the caller
-        if(param->empty()) {
-          shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
+
+        // override parameters
+        for(auto & it : *param) {
+          // serach for a parameter named it->first in localParamEle
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
-            Eval::Value parValue;
-            // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
-            try {
-              parValue=plainEval->eval(p);
-              E(e)->removeAttribute("unit");
-              E(e)->removeAttribute("convertUnit");
+            if(E(p)->getAttribute("name")==it.first) {
+              // if found overwrite this parameter
+              p->removeChild(E(p)->getFirstTextChild())->release();
+              Eval::setValue(p, it.second);
             }
-            catch(DOMEvalException &ex) {
-              if(E(p)->getTagName()==PV%"import")
-                eval->msg(Warn)<<"Skipping overwriting of 'pv:import' parameter. Imports cannot be overwritten."<<endl;
-              else
-                eval->msg(Warn)<<"Skipping overwriting of 'pv:"<<E(p)->getTagName().second<<"' named '"
-                               <<E(p)->getAttribute("name")<<"'. This parameter depends on other parameters."<<endl;
-              continue;
-            }
-            if(!param->emplace(E(p)->getAttribute("name"), parValue).second)
-              throw DOMEvalException("Cannot add parameter. A parameter with the same name already exists.", p);
           }
         }
-        // no parameters exists in param -> output parameters to the caller
-        else {
-          for(auto & it : *param) {
-            // serach for a parameter named it->first in localParamEle
-            for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
-              if(E(p)->getAttribute("name")==it.first) {
-                // if found overwrite this parameter
-                p->removeChild(E(p)->getFirstTextChild())->release();
-                Eval::setValue(p, it.second);
-              }
-            }
+
+        // output parameters to the caller
+        param->clear();
+        shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
+        for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
+          Eval::Value parValue;
+          // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
+          try {
+            parValue=plainEval->eval(p);
+            E(e)->removeAttribute("unit");
+            E(e)->removeAttribute("convertUnit");
           }
+          catch(DOMEvalException &ex) {
+            if(E(p)->getTagName()==PV%"import")
+              eval->msg(Warn)<<"Skipping overwriting of 'pv:import' parameter. Imports cannot be overwritten."<<endl;
+            else
+              eval->msg(Warn)<<"Skipping overwriting of 'pv:"<<E(p)->getTagName().second<<"' named '"
+                             <<E(p)->getAttribute("name")<<"'. This parameter depends on other parameters."<<endl;
+            continue;
+          }
+          if(!param->emplace(E(p)->getAttribute("name"), parValue).second)
+            throw DOMEvalException("Cannot add parameter. A parameter with the same name already exists.", p);
         }
       }
 
@@ -329,16 +328,15 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // pass param and the new parent XPath to preprocess
       DOMElement *n=c->getNextElementSibling();
       if(E(c)->getTagName()==PV%"Embed") embedXPathCount++;
-      preprocess(parser, eval, dependencies, c, std::shared_ptr<ParamSet>(), string(parentXPath).append("/").append(thisXPath), embedXPathCount);
+      preprocess(parser, eval, dependencies, c, shared_ptr<ParamSet>(), string(parentXPath).append("/").append(thisXPath), embedXPathCount);
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);
 }
 
-shared_ptr<DOMDocument> Preprocess::preprocessFile(
-  std::vector<path> &dependencies, const std::variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
+pair<shared_ptr<DOMDocument>, string> Preprocess::parseFileAndGetEvaluator(
+  vector<path> &dependencies, const variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
   const boost::filesystem::path &mainXML) {
-  static const path SCHEMADIR=boost::filesystem::path(loc()).parent_path().parent_path()/"share"/"mbxmlutils"/"schema";
 
   // the XML DOM parser
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
@@ -366,13 +364,18 @@ shared_ptr<DOMDocument> Preprocess::preprocessFile(
     evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
   if(evaluator)
     evalName=X()%E(evaluator)->getFirstTextChild()->getData();
-  shared_ptr<Eval> eval=Eval::createEvaluator(evalName, &dependencies);
+  return {mainXMLDoc, evalName};
+}
 
+void Preprocess::preprocessDocument(vector<boost::filesystem::path> &dependencies,
+                                    const shared_ptr<Eval> &eval, const shared_ptr<xercesc::DOMDocument> &mainXMLDoc, const shared_ptr<ParamSet>& param) {
   // embed/validate/unit/eval files
-  Preprocess::preprocess(parser, eval, dependencies, mainxmlele);
+  auto parser = D(mainXMLDoc)->getParser();
+  auto mainxmlele=mainXMLDoc->getDocumentElement();
+  Preprocess::preprocess(parser, eval, dependencies, mainxmlele, param);
 
   // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
-  evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+  auto evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
   if(evaluator)
     E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
   else {
@@ -380,8 +383,6 @@ shared_ptr<DOMDocument> Preprocess::preprocessFile(
     evaluator->appendChild(mainXMLDoc->createTextNode(X()%"xmlflat"));
     mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
   }
-
-  return mainXMLDoc;
 }
 
 }
