@@ -20,6 +20,7 @@
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/container/small_vector.hpp>
 #include <fmatvec/toString.h>
 
 namespace XERCES_CPP_NAMESPACE {
@@ -84,19 +85,19 @@ class X {
       if(str.empty())
         return &xercesc::chNull;
       const XMLCh *unicode=xercesc::TranscodeFromStr(reinterpret_cast<const XMLByte*>(str.c_str()), str.length(), "UTF8").adopt();
-      store.push_back(std::shared_ptr<const XMLCh>(unicode, &releaseXMLCh));
+      store.emplace_back(unicode, &releaseXMLCh);
       return unicode;
     }
     const XMLCh *operator()(const std::string &str) { return operator%(str); }
     std::string operator%(const XMLCh *unicode) {
       if(!unicode || unicode[0]==0)
-        return std::string();
+        return {};
       return reinterpret_cast<const char*>(xercesc::TranscodeToStr(unicode, "UTF8").str());
     }
     std::string operator()(const XMLCh *unicode) { return operator%(unicode); }
     static void releaseXMLCh(const XMLCh *s) { xercesc::XMLPlatformUtils::fgMemoryManager->deallocate(const_cast<XMLCh*>(s)); }
   private:
-    std::vector<std::shared_ptr<const XMLCh> > store;
+    boost::container::small_vector<std::unique_ptr<const XMLCh, decltype(&releaseXMLCh)>, 1> store;
 };
 
 //! Full qualified name.
@@ -117,8 +118,8 @@ class FQN : public std::pair<std::string, std::string> {
 class NamespaceURI {
   public:
     NamespaceURI(std::string nsuri_) : nsuri(std::move(nsuri_)) {}
-    FQN operator%(const std::string &localName) const { return FQN(nsuri, localName); }
-    std::string getNamespaceURI() const { return nsuri; }
+    FQN operator%(const std::string &localName) const { return {nsuri, localName}; }
+    const std::string& getNamespaceURI() const { return nsuri; }
   private:
     std::string nsuri;
 };
@@ -157,7 +158,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
     const XMLCh *getURI() const override { return file; }
     int getEmbedCount() const { return embedCount; }
-    std::string getRootXPathExpression() const { return xpath; }
+    const std::string& getRootXPathExpression() const { return xpath; }
   private:
     X x;
     const XMLCh *file;
