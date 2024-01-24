@@ -117,27 +117,27 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
 
 void AbstractViewFilter::updateTooltip() {
   if(typeCol==-2) {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
-                           "Case sensitivity: %2\n"
-                           "Filter type: %3").arg(nameCol+1)
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
+                           "<dl><dt>Case sensitivity:</dt><dd>%2</dd>"
+                           "<dt>Filter type:</dt><dd>%3</dd></dl>").arg(nameCol+1)
                                              .arg(caseSensitive?"case sensitive":"case insensitive")
                                              .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
     filterLE->setStatusTip("Filter by name column.");
   }
   else if(typeCol==-1) {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
-                           "Or on the type by :<filter> or on a derived type by ::<filter>.\n"
-                           "Case sensitivity: %2\n"
-                           "Filter type: %3").arg(nameCol+1)
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
+                           "Or on the type by :&lt;filter&gt; or on a derived type by ::&lt;filter&gt;."
+                           "<dl><dt>Case sensitivity:</dt><dd>%2</dd>"
+                           "<dt>Filter type:</dt><dd>%3</dd></dl>").arg(nameCol+1)
                                              .arg(caseSensitive?"case sensitive":"case insensitive")
                                              .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
-    filterLE->setStatusTip("Filter by name column, or by type :<filter>, or by derived type ::<filter>");
+    filterLE->setStatusTip("Filter by name column, or by type :&lt;filter&gt;, or by derived type ::&lt;filter&gt;");
   }
   else {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1).\n"
-                           "Or on the item type (column %2) if the filter starts with ':'.\n"
-                           "Case sensitivity: %3\n"
-                           "Filter type: %4").arg(nameCol+1).arg(typeCol+1)
+    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
+                           "Or on the item type (column %2) if the filter starts with ':'."
+                           "<dl><dt>Case sensitivity:</dt><dd>%3</dd>"
+                           "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(nameCol+1).arg(typeCol+1)
                                              .arg(caseSensitive?"case sensitive":"case insensitive")
                                              .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
     filterLE->setStatusTip("Filter by name column, or by type column (if the filter starts with '.')");
