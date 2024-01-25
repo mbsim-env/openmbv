@@ -30,6 +30,13 @@ AC_CHECK_FUNCS([sqrt])
 AC_FUNC_ERROR_AT_LINE
 AC_TYPE_UINT64_T
 
+# windres
+AC_ARG_WITH(windres,
+  [  --with-windres=prog  The windres program (defaults to windres)],
+  [WINDRES="$withval"],
+  [WINDRES="windres"])
+AC_SUBST([WINDRES])
+
 # for compile version
 OLDCXXFLAGS="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS -Wno-error=class-memaccess"

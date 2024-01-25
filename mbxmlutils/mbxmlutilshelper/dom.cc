@@ -27,7 +27,6 @@
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/locale/encoding_utf.hpp> // gcc does not support <codecvt> yet -> use boost
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
@@ -1005,7 +1004,8 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
         throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
       path schemaPath=E(c)->getAttribute("uri");
       if(!xmlCatalogFile && schemaPath.is_relative())
-        throw runtime_error("Relative path in XML catalogs are only supported when reading the catalog from file.");
+        throw runtime_error("Relative path in XML catalogs are only supported when reading the catalog from file ("+
+                            schemaPath.string()+").");
       if(xmlCatalogFile)
         schemaPath=absolute(schemaPath, xmlCatalogFile->parent_path());
       registeredGrammar.emplace(E(c)->getAttribute("name"), schemaPath);
@@ -1060,10 +1060,9 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
 #ifdef _WIN32
     { // make lock file hidden on windows
-      std::wstring filenameU16=boost::locale::conv::utf_to_utf<wchar_t>(inputSourceLock.generic_string());
-      auto attrs = GetFileAttributesW(filenameU16.c_str());
+      auto attrs = GetFileAttributesA(inputSourceLock.string().c_str());
       if(attrs != INVALID_FILE_ATTRIBUTES)
-        SetFileAttributesW(filenameU16.c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
+        SetFileAttributesA(inputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
     }
 #endif
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
@@ -1111,10 +1110,9 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
 #ifdef _WIN32
   { // make lock file hidden on windows
-    std::wstring filenameU16=boost::locale::conv::utf_to_utf<wchar_t>(outputSourceLock.generic_string());
-    auto attrs = GetFileAttributesW(filenameU16.c_str());
+    auto attrs = GetFileAttributesA(outputSourceLock.string().c_str());
     if(attrs != INVALID_FILE_ATTRIBUTES)
-      SetFileAttributesW(filenameU16.c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
+      SetFileAttributesA(outputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
   }
 #endif
   boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file

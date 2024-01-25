@@ -1,10 +1,15 @@
 if COND_WIN32
+  MAYBE_WIN32_mbxmlutilspp_OBJ = mbxmlutilspp.o
   runlibdir = $(bindir)
   shext = .dll
 else
   runlibdir = $(libdir)
   shext = .so
 endif
+
+# windows rc rules
+mbxmlutilspp.o: $(srcdir)/mbxmlutilspp.rc $(srcdir)/mbxmlutilspp.manifest
+	$(WINDRES) $< -o $@
 
 SUBDIRS = octave python
 
@@ -87,7 +92,7 @@ BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(LIBDL)
+mbxmlutilspp_LDADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(LIBDL) $(MAYBE_WIN32_mbxmlutilspp_OBJ)
 
 
 

@@ -1,13 +1,17 @@
 include $(top_srcdir)/qt.mk
 
 if COND_WIN32
-  MAYBE_WIN32_SRC = openmbv.rc
+  MAYBE_WIN32_openmbv_OBJ = openmbv.o
   LIBGLU=-lglu32 -lopengl32
 else
   LIBGLU=-lGLU -lGL
   MAYBE_SIGWATCH_SRC = qt-unix-signals/sigwatch.cpp
   MAYBE_SIGWATCH_MOC = qt-unix-signals/sigwatch.moc.cc
 endif
+
+# windows rc rules
+openmbv.o: $(srcdir)/openmbv.rc $(srcdir)/openmbv.ico $(srcdir)/openmbv.manifest
+	$(WINDRES) $< -o $@
 
 licdir = @datadir@/openmbv/qt-unix-signals
 lic_DATA = qt-unix-signals/LICENCE
@@ -120,10 +124,9 @@ BUILT_SOURCES = $(QT_BUILT_SOURCES) $(MAYBE_SIGWATCH_MOC)
 
 
 bin_PROGRAMS = openmbv
-openmbv_SOURCES = $(MAYBE_WIN32_SRC)\
-  main.cc
+openmbv_SOURCES = main.cc
 openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(QWT_CFLAGS)
-openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(MAYBE_WIN32_openmbv_OBJ)
 
 
 

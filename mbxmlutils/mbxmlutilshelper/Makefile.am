@@ -1,5 +1,13 @@
 lib_LTLIBRARIES = libmbxmlutilshelper.la
 
+if COND_WIN32
+  MAYBE_WIN32_mbxmlutilsvalidate_OBJ = mbxmlutilsvalidate.o
+endif
+
+# windows rc rules
+mbxmlutilsvalidate.o: $(srcdir)/mbxmlutilsvalidate.rc $(srcdir)/mbxmlutilsvalidate.manifest
+	$(WINDRES) $< -o $@
+
 # XML helper functions
 libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS)
@@ -16,7 +24,7 @@ dist_w3cschema_DATA = XInclude.xsd
 bin_PROGRAMS = mbxmlutilsvalidate
 mbxmlutilsvalidate_SOURCES = validate.cc
 mbxmlutilsvalidate_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS)
+mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(MAYBE_WIN32_mbxmlutilsvalidate_OBJ)
 
 
 pythondir = @datadir@/@PACKAGE@/python
