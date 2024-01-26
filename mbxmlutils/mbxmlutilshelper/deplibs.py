@@ -25,11 +25,16 @@ def getWindowsEnvPath(name):
     return ';'.join(vwin)
   raise RuntimeError('Unknown platform')
 
-def searchWindowsLibrary(libname, libdir, filename):
+def skipWindowsLibrary(libname):
   # skip some libname's
-  if libname.startswith("api-ms-win-"): return None # windows system libs
-  if libname.startswith("libfltk"): return None # a octave dep of a unused octave module
-  if libname.startswith("libportaudio"): return None # a octave dep of a unused octave module
+  if libname.startswith("api-ms-win-"): return True # windows system libs
+  if libname.startswith("libfltk"): return True # a octave dep of a unused octave module
+  if libname.startswith("libportaudio"): return True # a octave dep of a unused octave module
+  return False
+
+def searchWindowsLibrary(libname, libdir, filename):
+  if skipWindowsLibrary(libname):
+    return None
 
   searchDir=[] # is search in order
   searchDir.append(libdir)
@@ -54,11 +59,11 @@ def getDependencies(filename):
       return res # skip static executables
     for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
       match=re.search("^\s*(.+)\s=>\snot found$", line)
-      if match is not None:
+      if match is not None and not skipWindowsLibrary(match.expand("\\1")):
         raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
-      match=re.search("^.*\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match is not None and not os.path.realpath(match.expand("\\1")) in getDoNotAdd():
-        res.add(match.expand("\\1"))
+      match=re.search("^\s*(.+)\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
+      if match is not None and not os.path.realpath(match.expand("\\2")) in getDoNotAdd() and not skipWindowsLibrary(match.expand("\\1")):
+        res.add(match.expand("\\2"))
     return res
   elif re.search('PE32\+? executable', content) is not None:
     try:
