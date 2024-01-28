@@ -155,6 +155,6 @@ if __name__=="__main__":
   deps=depLibs(sys.argv[1])
   reldir=relDir(sys.argv[1])
   print('<DependentShFiles>')
-#mfmf  for d in deps:
-#mfmf    print('  <file reldir="%s" orgdir="%s">%s</file>'%(reldir, os.path.dirname(d), os.path.basename(d)))
+  for d in deps:
+    print('  <file reldir="%s" orgdir="%s">%s</file>'%(reldir, os.path.dirname(d), os.path.basename(d)))
   print('</DependentShFiles>')
