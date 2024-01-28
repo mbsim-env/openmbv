@@ -8,6 +8,7 @@ import shutil
 import platform
 import glob
 import functools
+import time
 
 
 
@@ -57,7 +58,27 @@ def getDependencies(filename):
      re.search('ELF [0-9]+-bit LSB.*executable', content) is not None or re.search('ELF [0-9]+-bit LSB.*shared object', content) is not None:
     if re.search('statically linked', content) is not None:
       return res # skip static executables
-    for line in subprocess.check_output(["ldd", filename], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
+    try:
+      lddFilename=filename
+      # on msys2 ldd fails with filenames *.pyd -> copy it temporarily to *.dll
+      if platform.system()=="Windows" and os.path.splitext(filename)[1]==".pyd":
+        lddFilename=os.path.splitext(filename)[0]+".dll"
+        shutil.copyfile(filename, lddFilename)
+      lddOutput=subprocess.check_output(["ldd", lddFilename], stderr=open(os.devnull,"w")).decode('utf-8')
+    finally:
+      if platform.system()=="Windows" and os.path.splitext(filename)[1]==".pyd":
+        ok=False
+        for _ in range(0,30):
+          try:
+            os.remove(lddFilename)
+          except:
+            time.sleep(0.1);
+          else:
+            ok=True
+            break
+        if not ok:
+          raise RuntimeError("cannot delete copied .pyd to .dll file")
+    for line in lddOutput.splitlines():
       match=re.search("^\s*(.+)\s=>\snot found$", line)
       if match is not None and not skipWindowsLibrary(match.expand("\\1")):
         raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
