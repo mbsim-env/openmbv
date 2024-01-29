@@ -141,13 +141,19 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // override parameters
         for(auto & it : *param) {
           // serach for a parameter named it->first in localParamEle
+          bool found=false;
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
             if(E(p)->getAttribute("name")==it.first) {
               // if found overwrite this parameter
               p->removeChild(E(p)->getFirstTextChild())->release();
               Eval::setValue(p, it.second);
+              fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
+              found=true;
+              break;
             }
           }
+          if(!found)
+            fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<"Parameter '"<<it.first<<"' not found and not overwritten"<<endl;
         }
 
         // output parameters to the caller
@@ -162,11 +168,9 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
             E(e)->removeAttribute("convertUnit");
           }
           catch(DOMEvalException &ex) {
-            if(E(p)->getTagName()==PV%"import")
-              eval->msg(Warn)<<"Skipping overwriting of 'pv:import' parameter. Imports cannot be overwritten."<<endl;
-            else
-              eval->msg(Warn)<<"Skipping overwriting of 'pv:"<<E(p)->getTagName().second<<"' named '"
-                             <<E(p)->getAttribute("name")<<"'. This parameter depends on other parameters."<<endl;
+            if(E(p)->getTagName()!=PV%"import")
+              eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
+                             <<E(p)->getAttribute("name")<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
             continue;
           }
           if(!param->emplace(E(p)->getAttribute("name"), parValue).second)

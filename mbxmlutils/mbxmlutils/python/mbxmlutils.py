@@ -203,6 +203,8 @@ _getDLL.dll=None
 
 def registerPath(path):
   # call the mbxmlutilsPyEvalRegisterPath function from the lib of the _getDLL call
+  import ctypes
+  _getDLL().mbxmlutilsPyEvalRegisterPath.argtypes=[ctypes.c_char_p]
   _getDLL().mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
 
 
