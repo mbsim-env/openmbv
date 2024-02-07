@@ -795,7 +795,7 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
     bool stdoutIsTTY=isatty(1)==1;
 #endif
     if((format=="GCC" && stdoutIsTTY) || format=="GCCTTY")
-      format=R"|(\e]8;;file://$+{urifile}\a\e[1m$+{file}\e[0m\e]8;;\a\e[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\e[0m (?{sse}:\e[31;1m)$+{msg}\e[0m)|";
+      format=R"|(\e]8;;file://$+{urifile}\a\e[1m$+{file}\e[0m\e]8;;\a\e[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\e[0m (?{sse}:\e[1;31m)$+{msg}\e[0m)|";
     else
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
   }
