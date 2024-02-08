@@ -161,9 +161,11 @@ void SoQtMyViewer::actualRedraw() {
   else
     getCamera()->aspectRatio.setValue(1.0);
 
-  glClear(GL_DEPTH_BUFFER_BIT);
-  // background
-  getGLRenderAction()->apply(bgSep);
+  if(MainWindow::getInstance()->getBackgroundNeeded()) {
+    glClear(GL_DEPTH_BUFFER_BIT);
+    // background
+    getGLRenderAction()->apply(bgSep);
+  }
 
   // draw scene
   SoQtViewer::actualRedraw();

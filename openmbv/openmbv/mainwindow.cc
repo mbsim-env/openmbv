@@ -18,6 +18,7 @@
 */
 
 #include "config.h"
+#include <Inventor/actions/SoSearchAction.h>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
@@ -1142,6 +1143,8 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   // apply object filter
   objectListFilter->applyFilter();
 
+  updateBackgroundNeeded();
+
   return true;
 }
 
@@ -1576,16 +1579,18 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
   // add background
   if(!transparent) {
-    // do not write to depth buffer
-    auto *db1=new SoDepthBuffer;
-    root->addChild(db1);
-    db1->write.setValue(false);
-    // render background
-    root->addChild(glViewer->bgSep);
-    // write to depth buffer until now
-    auto *db2=new SoDepthBuffer;
-    root->addChild(db2);
-    db2->write.setValue(true);
+    if(backgroundNeeded) {
+      // do not write to depth buffer
+      auto *db1=new SoDepthBuffer;
+      root->addChild(db1);
+      db1->write.setValue(false);
+      // render background
+      root->addChild(glViewer->bgSep);
+      // write to depth buffer until now
+      auto *db2=new SoDepthBuffer;
+      root->addChild(db2);
+      db2->write.setValue(true);
+    }
   }
   // set text color to black
   else {
@@ -2184,6 +2189,16 @@ void MainWindow::showSettingsDialog() {
   auto dialog=new SettingsDialog(this);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
+}
+
+void MainWindow::updateBackgroundNeeded() {
+  backgroundNeeded = true;
+  SoSearchAction sa;
+  sa.setInterest(SoSearchAction::ALL);
+  sa.setType(SoVRMLBackground2::getClassTypeId());
+  sa.apply(sceneRoot);
+  if(sa.getPaths().getLength()>0)
+    backgroundNeeded = false;
 }
 
 }

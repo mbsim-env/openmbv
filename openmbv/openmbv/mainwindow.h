@@ -249,6 +249,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void frameMinMaxSetValue(int,int);
     void selectionChanged();
     float nearPlaneValue;
+    bool backgroundNeeded { true };
   public:
     SoDrawStyle *olseDrawStyle;
     SoBaseColorHeavyOverride *olseColor;
@@ -310,6 +311,10 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QMenu* getSceneViewMenu() { return sceneViewMenu; }
     void viewAllSlot() { glViewer->viewAll(); }
     void showSettingsDialog();
+
+    // update the flag backgroundNeeded which defines if the color gradient background is needed or not (its not needed if a VRMLBackground element exists)
+    void updateBackgroundNeeded();
+    bool getBackgroundNeeded() { return backgroundNeeded; }
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.

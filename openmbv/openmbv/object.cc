@@ -204,6 +204,8 @@ void Object::nodeSensorCB(void *data, SoSensor*) {
 void Object::deleteObjectSlot() {
   // deleting an QTreeWidgetItem will remove the item from the tree (this is safe at any time)
   delete this;
+  
+  MainWindow::getInstance()->updateBackgroundNeeded();
 }
 
 void Object::replaceBBoxHighlight() {
