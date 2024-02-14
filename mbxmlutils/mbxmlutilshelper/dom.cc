@@ -265,7 +265,7 @@ DOMComment *DOMElementWrapper<DOMElementType>::getFirstCommentChild() {
 
 template<typename DOMElementType>
 const DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() const {
-  DOMText *validTextNode;
+  DOMText *validTextNode = nullptr;
   DOMText *lastTextNode = nullptr;
   int noneEmptyTextNodeCount = 0;
   for(DOMNode *n=me->getFirstChild(); n; n=n->getNextSibling())
@@ -286,7 +286,7 @@ template const DOMText *DOMElementWrapper<const DOMElement>::getFirstTextChild()
 
 template<typename DOMElementType>
 DOMText *DOMElementWrapper<DOMElementType>::getFirstTextChild() {
-  DOMText *validTextNode;
+  DOMText *validTextNode = nullptr;
   DOMText *lastTextNode = nullptr;
   int noneEmptyTextNodeCount = 0;
   for(DOMNode *n=me->getFirstChild(); n; n=n->getNextSibling())
