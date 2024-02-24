@@ -83,8 +83,8 @@ libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/site-packages/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
-libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h pycppwrapper.h
+libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc pycppwrapper.cc
+libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h pycppwrapper.h pycppwrapper.cc
 
 BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 
