@@ -27,8 +27,8 @@
  * For more information, please refer to <http://unlicense.org/>
  */
 
-#ifndef _PYCPPWRAPPER_H_
-#define _PYCPPWRAPPER_H_
+#ifndef _MBXMLUTILS_PYCPPWRAPPER_H_
+#define _MBXMLUTILS_PYCPPWRAPPER_H_
 
 #include <Python.h>
 #include <string>
