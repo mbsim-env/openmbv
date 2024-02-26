@@ -347,6 +347,19 @@ def tilde(x):
 
 
 
+# m: added mass
+# I: added inertia w.r.t. own center of mass given in ?!? coordinate system
+# r: 
+# T: optinal argument for rotated ...
+import numpy
+def steinerRule(m, I, r, T = numpy.eye(3)):
+  return  T.T @ I @ T + m * numpy.array([
+        [ r[1] * r[1] + r[2] * r[2] ,      - r[0] * r[1]        ,      - r[0] * r[2]        ],
+        [      - r[0] * r[1]        , r[0] * r[0] + r[2] * r[2] ,      - r[1] * r[2]        ],
+        [      - r[0] * r[2]        ,      - r[1] * r[2]        , r[0] * r[0] + r[1] * r[1] ],
+          ])
+
+
 def rgbColor(*argv):
   import numpy
   import colorsys
