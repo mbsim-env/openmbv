@@ -54,24 +54,56 @@ def _convert(x):
 # INTERNAL FUNCTION
 # serialize a symbolic expression to the fmatvec format
 def _serializeFunction(x):
-  # serialize a matrix or vector
-  if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix":
+  import numpy
+  # serialize a matrix or vector (we allow sympy matrices, numpy array and python lists)
+  if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix" or \
+     type(x)==numpy.ndarray:
     s="["
-    (rows, cols)=x.shape
-    for r in range(0, rows):
-      for c in range(0, cols):
-        s+=_serializeFunction(x[r,c])
-        if c<cols-1:
-          s+=", "
-      if r<rows-1:
-        s+="; "
+    if len(x.shape)==2:
+      (rows, cols)=x.shape
+      for r in range(0, rows):
+        for c in range(0, cols):
+          s+=_serializeFunction(x[r,c])
+          if c<cols-1:
+            s+=", "
+        if r<rows-1:
+          s+="; "
+    elif len(x.shape)==1:
+      rows=x.shape[0]
+      for r in range(0, rows):
+        s+=_serializeFunction(x[r])
+        if r<rows-1:
+          s+="; "
+    else:
+      raise RuntimeError("Internal error: Unknonw shape")
+    s+="]"
+    return s
+  elif type(x)==list:
+    s="["
+    if len(x)>0 and type(x[0])==list:
+      rows=len(x)
+      for r in range(0, rows):
+        cols=len(x[r])
+        for c in range(0, cols):
+          s+=_serializeFunction(x[r][c])
+          if c<cols-1:
+            s+=", "
+        if r<rows-1:
+          s+="; "
+    elif (len(x)>0 and type(x[0])!=list) or len(x)==0:
+      rows=len(x)
+      for r in range(0, rows):
+        s+=_serializeFunction(x[r])
+        if r<rows-1:
+          s+="; "
+    else:
+      raise RuntimeError("Internal error: Unknonw shape")
     s+="]"
     return s
   # serialize a scalar
   else:
     # serialize a scalar (may be called recursively)
     def serializeVertex(x):
-      import numpy
       import sympy
       # serialize a integer
       if isinstance(x, sympy.Integer) or numpy.issubdtype(type(x), int) or isinstance(x, int):

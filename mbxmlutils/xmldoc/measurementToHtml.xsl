@@ -79,7 +79,12 @@
           <li><a id="pythonevaluator-content" href="#pythonevaluator">6.2 Python Expression Evaluator</a></li>
         </ul>
       </li>
-      <li><a id="symbolicFunctions-content" href="#symbolicFunctions">7 Symbolic Functions</a></li>
+      <li><a id="symbolicFunctions-content" href="#symbolicFunctions">7 Symbolic Functions</a>
+        <ul class="_content">
+          <li><a id="octavesymbolicFunctions-content" href="#octavesymbolicFunctions">7.1 Octave Symbolic Functions</a></li>
+          <li><a id="pythonsymbolicFunctions-content" href="#pythonsymbolicFunctions">7.2 Python Symbolic Functions</a></li>
+        </ul>
+      </li>
       <li><a id="embed-content" href="#embed">8 Embeding</a></li>
       <li><a id="measurements-content" href="#measurements">9 Measurements</a>
         <ul class="_content">
@@ -398,6 +403,21 @@ be defined by the evaluation.</p>
         <li id="fn03">[3] the argument is a vector or a scalar. A vector argument is converted to a corresponding nested set of min/max functions with two arguments.</li>
       </ul>
     </footer>
+
+    <h2><a id="octavesymbolicFunctions" href="#octavesymbolicFunctions-content">7.1 Octave Symbolic Functions</a></h2>
+<p>As noted above, symbolic functions are implemented in octave using SWIG. Hence, a symbolic scalar is a octave SWIG object.
+Symbolic vectors and matrices are usual octave vector and matrices with a element data type of octave SWIG object.</p>
+
+    <h2><a id="pythonsymbolicFunctions" href="#pythonsymbolicFunctions-content">7.2 Python Symbolic Functions</a></h2>
+<p>As noted above, symbolic functions are used in the pyhton evaluator using the python sympy module. The full power of sympy
+can be used, however, the resulting symbolic expression passed back to the evaluator can only contain a limited set of symbolic
+functions. See the above table.</p>
+<p>Since the none symbolic part of the python evaluator is based on numpy for vector and matrix representation also symbolic vectors
+and matrices are based on numpy: a symblic input vector/matrix to the evaluator is a 1D/2D numpy array of dtype=object (each element
+contains a scalar sympy expression).
+A vector/matrix output of the evaluator can, however, be of type python list, numpy array or sympy matrix for convenience.
+Please note that the helper functions in the mbxmlutils module also output vector/matrix data as a numpy array: either of dtype=float
+for pure numeric data or of dtype=object (with scalar sympy expressions) for mixed or pure symbolic data.</p>
 
     <h1><a id="embed" href="#embed-content">8 Embeding</a></h1>
     <p>Using the <span class="_element">&lt;pv:Embed&gt;</span> element, where the prefix <code>pv</code> is mapped to the namespace-uri <span class="label label-warning">http://www.mbsim-env.de/MBXMLUtils</span> it is possible to embed a XML element multiple times. The full valid example syntax for this element is:</p>

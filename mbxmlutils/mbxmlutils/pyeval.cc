@@ -69,12 +69,11 @@ class PyInit {
     ~PyInit();
     PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
-    PyOOnDemand asarray;
-    PyOOnDemand zeros;
-    PyOOnDemand sympy;
-    PyOOnDemand dummy;
-    PyOOnDemand matrix;
-    PyOOnDemand serializeFunction;
+    PyOOnDemand numpyAsarray;
+    PyOOnDemand numpyZeros;
+    PyOOnDemand numpyArray;
+    PyOOnDemand sympyDummy;
+    PyOOnDemand mbxmlutils_serializeFunction;
     PyO ioStringIO;
 };
 
@@ -96,23 +95,28 @@ PyInit::PyInit() {
     // init numpy
     CALLPY(_import_array);
 
-    sympy=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "sympy"); });
-
     mbxmlutils=PyOOnDemand([](){ return CALLPY(PyImport_ImportModule, "mbxmlutils"); });
 
-    asarray=PyOOnDemand([](){
+    numpyAsarray=PyOOnDemand([](){
       PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
       return CALLPY(PyObject_GetAttrString, numpy, "asarray");
     });
 
-    zeros=PyOOnDemand([](){
+    numpyZeros=PyOOnDemand([](){
       PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
       return CALLPY(PyObject_GetAttrString, numpy, "zeros");
     });
 
-    dummy=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Dummy"); });
-    matrix=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Matrix"); });
-    serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
+    numpyArray=PyOOnDemand([](){
+      PyO numpy(CALLPY(PyImport_ImportModule, "numpy"));
+      return CALLPY(PyObject_GetAttrString, numpy, "array");
+    });
+
+    sympyDummy=PyOOnDemand([this](){
+      PyO sympy(CALLPY(PyImport_ImportModule, "sympy"));
+      return CALLPY(PyObject_GetAttrString, sympy, "Dummy");
+    });
+    mbxmlutils_serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
 
     PyO io(CALLPY(PyImport_ImportModule, "io"));
     ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
@@ -131,12 +135,11 @@ PyInit::PyInit() {
 PyInit::~PyInit() {
   try {
     // clear all Python object before deinit
-    if(serializeFunction) serializeFunction().reset();
-    if(matrix) matrix().reset();
-    if(dummy) dummy().reset();
-    if(sympy) sympy().reset();
-    if(asarray) asarray().reset();
-    if(zeros) zeros().reset();
+    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
+    if(sympyDummy) sympyDummy().reset();
+    if(numpyAsarray) numpyAsarray().reset();
+    if(numpyZeros) numpyZeros().reset();
+    if(numpyArray) numpyArray().reset();
     functionValue.clear();
     if(mbxmlutils) mbxmlutils().reset();
   }
@@ -205,14 +208,14 @@ PyEval::~PyEval() = default;
 Eval::Value PyEval::createFunctionIndep(int dim) const {
   PyO indep;
   if(dim==0)
-    indep=CALLPY(PyObject_CallObject, pyInit->dummy(), CALLPY(PyTuple_New, 0));
+    indep=CALLPY(PyObject_CallObject, pyInit->sympyDummy(), CALLPY(PyTuple_New, 0));
   else {
     PyO list(CALLPY(PyList_New, dim));
     for(size_t i=0; i<dim; ++i)
-      CALLPY(PyList_SetItem, list, i, CALLPYB(PyObject_CallObject, pyInit->dummy(), CALLPY(PyTuple_New, 0)));
+      CALLPY(PyList_SetItem, list, i, CALLPYB(PyObject_CallObject, pyInit->sympyDummy(), CALLPY(PyTuple_New, 0)));
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, list.incRef());
-    indep=CALLPY(PyObject_CallObject, pyInit->matrix(), arg);
+    indep=CALLPY(PyObject_CallObject, pyInit->numpyArray(), arg);
   }
   return make_shared<PyO>(indep);
 }
@@ -516,7 +519,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)==0) {
     PyO args(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, args, 0, CALLPY(PyLong_FromLong, 0).incRef()); // PyTuple_SetItem steals a reference of ret
-    return C(CALLPY(PyObject_CallObject, pyInit->zeros(), args));
+    return C(CALLPY(PyObject_CallObject, pyInit->numpyZeros(), args));
   }
   // * note that in python you cannot create R^0xC matrix from a python list
   // * a list with at least one element is converted using numpy.asarray (if the first element is a scalar, a empty list or a list of doubles)
@@ -527,7 +530,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
        (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
       PyO args(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
-      return C(CALLPY(PyObject_CallObject, pyInit->asarray(), args));
+      return C(CALLPY(PyObject_CallObject, pyInit->numpyAsarray(), args));
     }
   }
   // return result
@@ -612,7 +615,7 @@ Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {
   for(size_t i=0; i<v.size(); ++i)
     CALLPY(PyList_SetItem, item, i, C(v[i]).incRef());
   CALLPY(PyTuple_SetItem, arg, 0, item.incRef());
-  return C(CALLPY(PyObject_CallObject, pyInit->matrix(), arg));
+  return C(CALLPY(PyObject_CallObject, pyInit->numpyArray(), arg));
 }
 
 Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
@@ -625,7 +628,7 @@ Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
     CALLPY(PyList_SetItem, rows, r, row.incRef());
   }
   CALLPY(PyTuple_SetItem, arg, 0, rows.incRef());
-  return C(CALLPY(PyObject_CallObject, pyInit->matrix(), arg));
+  return C(CALLPY(PyObject_CallObject, pyInit->numpyArray(), arg));
 }
 
 Eval::Value PyEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
@@ -640,7 +643,7 @@ string PyEval::serializeFunction(const Value &x) const {
   auto serializeFunctionPy=[](PyO& o) {
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, o.incRef());
-    PyO ser=CALLPY(PyObject_CallObject, pyInit->serializeFunction(), arg);
+    PyO ser=CALLPY(PyObject_CallObject, pyInit->mbxmlutils_serializeFunction(), arg);
     return string(CALLPY(PyUnicode_AsUTF8, ser));
   };
 
