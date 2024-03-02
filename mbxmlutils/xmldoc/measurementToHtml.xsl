@@ -73,7 +73,12 @@
         </ul>
       </li>
       <li><a id="parameters-content" href="#parameters">5 Parameters</a></li>
-      <li><a id="evaluator-content" href="#evaluator">6 Expression Evaluator</a></li>
+      <li><a id="evaluator-content" href="#evaluator">6 Expression Evaluator</a>
+        <ul class="_content">
+          <li><a id="octaveevaluator-content" href="#octaveevaluator">6.1 Octave Expression Evaluator</a></li>
+          <li><a id="pythonevaluator-content" href="#pythonevaluator">6.2 Python Expression Evaluator</a></li>
+        </ul>
+      </li>
       <li><a id="symbolicFunctions-content" href="#symbolicFunctions">7 Symbolic Functions</a></li>
       <li><a id="embed-content" href="#embed">8 Embeding</a></li>
       <li><a id="measurements-content" href="#measurements">9 Measurements</a>
@@ -213,22 +218,33 @@
     <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute: it imports submodules, adds to the search path or something else.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
-    <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. Hence this section covers mainly the octave expression evaluator, but all other evaluators are similar.</p>
-    <p>A octave expression/program can be arbitary octave code. So it can be a single statement or a statement list.</p>
+    <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. This description of this general section is based on the octave expression evaluator, but all other evaluators are similar. See the sub-sections for details.</p>
+    <p>A octave expression/program can be arbitary octave code. It can be a single statement or a statement list.</p>
 
-   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix; any can hold any value). The following examples shows valid examples for a single octave statement (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
-<pre>4
-b
-3+a*8
-[4;a]*[6,b]
+   <p>If it is a single statement, then the value for the XML element is just the value of the evaluated octave statement. The type of this value must match the type of the XML element (scalar, vector or matrix; any can hold any value). The following examples shows valid examples for a single octave statement, if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
+<pre>4</pre>
+<pre>b</pre>
+<pre>3+a*8</pre>
+<pre>[4;a]*[6,b]</pre>
+
+<p>If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement, if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
+<pre>
+if 1==a
+  ret=4
+else
+  ret=8
+end
 </pre>
-
-<p>If the text is a statement list, then the value for the XML element is the value of the variable 'ret' which must be set by the statement list. The type of the variable 'ret' must match the type of the XML element (scalar, vector or matrix). The following examples shows valid examples for a octave statement list (one per line), if a scalar <a href="#parameters">parameter</a> of name <code>a</code> and <code>b</code> exist:</p>
-<pre>if 1==a; ret=4; else ret=8; end
-myvar=[1;a];myvar2=myvar*2;ret=myvar2*b;dummy=3
+<p>results in 4 if a==1 else results in 8.</p>
+<pre>
+myvar=[1;a]
+myvar2=
+ret=myvar2*b
+dummy=3
 </pre>
+<p>results in a vector of two elements where the first is 2*b and the second is 2*a*b.</p>
 
-<p>A octave expression can also expand over more then one line like below. Note that the characters '&amp;', '&lt;' and '&gt;' are not allowed in XML. So you have to quote them with '&amp;amp;', '&amp;lt;' and '&amp;gt;', or you must enclose the octave code in a CDATA section:</p>
+<p>Note that the characters '&amp;', '&lt;' and '&gt;' are not allowed in XML. So you have to quote them with '&amp;amp;', '&amp;lt;' and '&amp;gt;', or you must enclose the octave code in a CDATA section:</p>
 <pre>&lt;![CDATA[
 function r=myfunc(a)
   r=2*a;
@@ -240,7 +256,7 @@ ret=myfunc(m1/2);
 
 <p>The following m-functions extent the octave functionality being useful for several applications:</p>
 <dl class="dl-horizontal">
-  <dt>\(T=\text{rotateAboutX}(\varphi)\)</dt>
+  <dt>\(\text{rotateAboutX}(\varphi)\)</dt>
   <dd>Returns the transformation matrix by angle \(\varphi\); around the x-axis:
     \[
       \left[\begin{array}{ccc}
@@ -250,7 +266,7 @@ ret=myfunc(m1/2);
       \end{array}\right]
     \]
   </dd>
-  <dt>\(T=\text{rotateAboutY}(\varphi)\)</dt>
+  <dt>\(\text{rotateAboutY}(\varphi)\)</dt>
   <dd>Returns the transformation matrix by angle \(\varphi\); around the y-axis:
     \[
       \left[\begin{array}{ccc}
@@ -260,7 +276,7 @@ ret=myfunc(m1/2);
       \end{array}\right]
     \]
   </dd>
-  <dt>\(T=\text{rotateAboutZ}(\varphi)\)</dt>
+  <dt>\(\text{rotateAboutZ}(\varphi)\)</dt>
   <dd>Returns the transformation matrix by angle \(\varphi\); around the z-axis:
     \[
       \left[\begin{array}{ccc}
@@ -270,7 +286,7 @@ ret=myfunc(m1/2);
       \end{array}\right]
     \]
   </dd>
-  <dt>\(T=\text{cardan}(\alpha,\beta,\gamma)\)</dt>
+  <dt>\(\text{cardan}(\alpha,\beta,\gamma)\)</dt>
   <dd>Returns the cardan transformation matrix:
     \[
       \left[\begin{array}{ccc}
@@ -280,7 +296,7 @@ ret=myfunc(m1/2);
       \end{array}\right]
     \]
   </dd>
-  <dt>\(T=\text{euler}(\Phi,\theta,\varphi)\)</dt>
+  <dt>\(\text{euler}(\Phi,\theta,\varphi)\)</dt>
   <dd>Returns the Euler transformation matrix:
     \[
       \left[\begin{array}{ccc}
@@ -290,7 +306,50 @@ ret=myfunc(m1/2);
       \end{array}\right]
     \]
   </dd>
+  <dt>\(\text{installPrefix}()\)</dt>
+  <dd>Returns the absolute path of the MBSim-Env installation.</dd>
+  <dt>\(\text{invCardan}(T)\)</dt>
+  <dd>Returns the inverse of cardan, see above.</dd>
+  <dt>\(\text{rgbColor}(r,g,b)\)</dt>
+  <dd>Returns the HSV color used by OpenMBV from the given red, green and blue values.</dd>
+  <dt>\(\text{tilde}(x)\)</dt>
+  <dd>If x is a 3 vector returns the screw symmetric 3x3 matrix for cross product calcuation. If x is a 3x3 matrix the inverse function is used.</dd>
+  <dt>\(\text{registerPath}(filename)\)</dt>
+  <dd>Adds filename to the list of file on which the model depends (e.g. used for FMU export).</dd>
+  <dt>\(\text{getOriginalFilename}()\)</dt>
+  <dd>Returns the filename where this statement was defined before the Embeding was done.</dd>
+  <dt>\(\text{load}(filename)\)</dt>
+  <dd>Loads filename as a CSV file and return the date as a matrix. Details depend on the evaluator, octave or python.</dd>
 </dl>
+
+    <h2><a id="octaveevaluator" href="#octaveevaluator-content">6.1 Octave Expression Evaluator</a></h2>
+<p>Each evaluation is done in a clean octave context with:</p>
+<dl class="dl-horizontal">
+  <dt>octave globals:</dt>
+  <dd>being preserved between each call but only inside of one instance of the evaluator.</dd>
+  <dt>octave locals:</dt>
+  <dd>set to the "current parameters"</dd>
+</dl>
+<p>Where "current parameters" are all parameters of the current parameter stack. The result is the value of the variable
+"ret", if given. Else its the value of the variable "ans", if given (note that octave stores the result of expressions
+in a variable named "ans"). Else, if the code was just the name of another variable the result is the value of this variable.</p>
+<p><code>addImport</code>/<code>&lt;import&gt;</code> does a usual evaluation and the resulting string is added to the octave path.</p>
+
+    <h2><a id="pythonevaluator" href="#pythonevaluator-content">6.2 Python Expression Evaluator</a></h2>
+<p>Each evaluation is done in a python context with:</p>
+<dl class="dl-horizontal">
+  <dt>python globals:</dt>
+  <dd>set to python __builtins__ merged with the "imports" and merged with the "current parameters"</dd>
+  <dt>python locals:</dt>
+  <dd>empty</dd>
+</dl>
+<p>Where "imports" is a dictionary with the same lifetime of this class, initially empty, and filled with all
+local variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code>.
+And "current parameters" are all parameters of the current parameter stack.</p>
+<p>If the evaluation is a single expressions, then the result of the evaluation is the result of this expression.
+If the evaluation is not a single expressions, then the result is the value of the local variable named "ret" which must
+be defined by the evaluation.</p>
+<p><code>addImport</code>/<code>&lt;import&gt;</code> adds all local variables defined by the evaluation to the "imports", see above.</p>
 
     <h1><a id="symbolicFunctions" href="#symbolicFunctions-content">7 Symbolic Functions</a></h1>
     <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.

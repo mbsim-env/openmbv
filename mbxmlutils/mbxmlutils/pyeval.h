@@ -6,7 +6,10 @@
 
 namespace MBXMLUtils {
 
-//! A evaluator based on python.
+/*! A evaluator based on python.
+ *
+ * See measurementToHtml.xsl for details.
+ */
 class PyEval : public Eval {
   friend class Eval;
 

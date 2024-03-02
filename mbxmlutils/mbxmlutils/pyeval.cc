@@ -75,6 +75,7 @@ class PyInit {
     PyOOnDemand dummy;
     PyOOnDemand matrix;
     PyOOnDemand serializeFunction;
+    PyO ioStringIO;
 };
 
 PyInit::PyInit() {
@@ -112,6 +113,9 @@ PyInit::PyInit() {
     dummy=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Dummy"); });
     matrix=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, sympy(), "Matrix"); });
     serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
+
+    PyO io(CALLPY(PyImport_ImportModule, "io"));
+    ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -157,10 +161,34 @@ PyInit::~PyInit() {
 // On Windows this is not required, but does not hurt.
 unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
 
+// A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
+template<int T>
+class Block {
+  public:
+    Block(std::ostringstream &strstr_) : strstr(strstr_) {
+      oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
+      curStream=CALLPY(PyObject_CallObject, pyInit->ioStringIO, CALLPY(PyTuple_New, 0));
+      CALLPY(PySys_SetObject, T==1?"stdout":"stderr", curStream);
+    }
+    ~Block() {
+      // we cannot use CALLPY in dtors, no exceptions are allowed
+      assert(PySys_SetObject(T==1?"stdout":"stderr", oldStream.get())==0);
+      PyO getvalue(PyObject_GetAttrString(curStream.get(), "getvalue"));
+      PyO str(PyObject_CallObject(getvalue.get(), PyTuple_New(0)));
+      strstr<<PyUnicode_AsUTF8(str.get());
+    }
+  private:
+    PyO oldStream;
+    PyO curStream;
+    std::ostringstream &strstr;
+};
+#define MBXMLUTILS_REDIR_STDOUT(strstr) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
+#define MBXMLUTILS_REDIR_STDERR(strstr) Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
+
 extern "C"
 int MBXMLUtils_SharedLibrary_init() {
   try {
-    pyInit=std::make_unique<PyInit>();
+    pyInit=make_unique<PyInit>();
   }
   catch(...) {
     return 1;
@@ -213,11 +241,13 @@ namespace {
 
 void PyEval::addImport(const string &code, const DOMElement *e) {
   // python globals (fill with builtins)
-  PyO globalsLocals(CALLPY(PyDict_New));
-  CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
+  PyO globals(CALLPY(PyDict_New));
+  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
+  // python globals (fill with imports)
+  CALLPY(PyDict_Merge, globals, *static_pointer_cast<PyO>(currentImport), true);
   // python globals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
-    CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));
+    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   // get current python sys.path
   auto getSysPath=[](){
@@ -235,6 +265,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     oldPath=getSysPath();
 
   // evaluate as statement with current path set
+  PyO locals(CALLPY(PyDict_New));
   {
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;
@@ -244,20 +275,31 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
+    ostringstream out;
+    ostringstream err;
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
       originalFilename=E(e)->getOriginalFilename();
-      CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globalsLocals, globalsLocals, &flags);
+      {
+        MBXMLUTILS_REDIR_STDOUT(out);
+        MBXMLUTILS_REDIR_STDERR(err);
+        CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globals, locals, &flags);
+      }
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+code, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+code+"\n"+out.str()+"\n"+err.str(), e);
+    }
+    if(!err.str().empty()) {
+      string msg=err.str();
+      trim_right_if(msg, boost::is_any_of(" \n"));
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
     }
   }
 
   // get all locals and add to currentImport
-  CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), globalsLocals, true);
+  CALLPY(PyDict_Merge, *static_pointer_cast<PyO>(currentImport), locals, true);
 
   if(dependencies) {
     // get current python sys.path
@@ -387,13 +429,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   }
 
   // python globals (fill with builtins)
-  PyO globalsLocals(CALLPY(PyDict_New));
-  CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
+  PyO globals(CALLPY(PyDict_New));
+  CALLPY(PyDict_SetItemString, globals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
   // python globals (fill with imports)
-  CALLPY(PyDict_Merge, globalsLocals, *static_pointer_cast<PyO>(currentImport), true);
+  CALLPY(PyDict_Merge, globals, *static_pointer_cast<PyO>(currentImport), true);
   // python globals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
-    CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));
+    CALLPY(PyDict_SetItemString, globals, i->first, C(i->second));
 
   PyO ret;
   PyCompilerFlags flags;
@@ -405,15 +447,31 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     originalFilename=E(e)->getOriginalFilename();
   else
     originalFilename.clear();
-  PyObject* pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globalsLocals.get(), globalsLocals.get(), &flags);
+  PyO dummyLocals(CALLPY(PyDict_New));
+  PyObject *pyo = nullptr;
+  ostringstream out;
+  ostringstream err;
+  {
+    MBXMLUTILS_REDIR_STDOUT(out);
+    MBXMLUTILS_REDIR_STDERR(err);
+    pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globals.get(), dummyLocals.get(), &flags);
+  }
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
     PythonException dummy("", 0);
   if(pyo) { // on success ...
+    if(!err.str().empty()) {
+      string msg=err.str();
+      trim_right_if(msg, boost::is_any_of(" \n"));
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
+    }
     ret=PyO(pyo);
     addStaticDependencies(e);
   }
   else { // on failure ...
+    PyO locals(CALLPY(PyDict_New));
+    ostringstream out;
+    ostringstream err;
     try {
       // ... evaluate as statement
 
@@ -425,16 +483,25 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
         originalFilename=E(e)->getOriginalFilename();
       else
         originalFilename.clear();
-      CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globalsLocals, globalsLocals, &flags);
+      {
+        MBXMLUTILS_REDIR_STDOUT(out);
+        MBXMLUTILS_REDIR_STDERR(err);
+        CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globals, locals, &flags);
+      }
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str, e);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str+"\n"+out.str()+"\n"+err.str(), e);
+    }
+    if(!err.str().empty()) {
+      string msg=err.str();
+      trim_right_if(msg, boost::is_any_of(" \n"));
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
     }
     if(!skipRet) {
       try {
         // get 'ret' variable from statement
-        ret=CALLPYB(PyDict_GetItemString, globalsLocals, "ret");
+        ret=CALLPYB(PyDict_GetItemString, locals, "ret");
       }
       catch(const exception&) {
         // 'ret' variable not found or invalid expression
