@@ -41,35 +41,22 @@ namespace {
   const bfs::path LIBDIR="lib";
 #endif
 
-  const bool deactivateBlock=getenv("MBXMLUTILS_DEACTIVATE_BLOCK")!=nullptr;
-
   // A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
   template<int T>
   class Block {
     public:
-      Block(std::ostream &str_, std::streambuf *buf=nullptr) : str(str_) {
-        if(deactivateBlock) return;
-        if(disableCount==0)
-          orgcxxx=str.rdbuf(buf);
-        disableCount++;
+      Block(std::ostringstream &strstr) {
+        orgcxxx=(T==1?std::cout:std::cerr).rdbuf(strstr.rdbuf());
       }
       ~Block() {
-        if(deactivateBlock) return;
-        disableCount--;
-        if(disableCount==0)
-          str.rdbuf(orgcxxx);
+        (T==1?std::cout:std::cerr).rdbuf(orgcxxx);
       }
     private:
-      std::ostream &str;
-      static std::streambuf *orgcxxx;
-      static int disableCount;
+      std::streambuf *orgcxxx;
   };
-  template<int T> std::streambuf *Block<T>::orgcxxx;
-  template<int T> int Block<T>::disableCount=0;
-  #define BLOCK_STDOUT Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstdout_, __LINE__)(std::cout)
-  #define BLOCK_STDERR Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_blockstderr_, __LINE__)(std::cerr)
-  #define REDIR_STDOUT(buf) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(std::cout, buf)
-  #define REDIR_STDERR(buf) Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(std::cerr, buf)
+  #define MBXMLUTILS_REDIR_STDOUT(strstr) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
+  #define MBXMLUTILS_REDIR_STDERR(strstr) Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
+
 }
 
 namespace MBXMLUtils {
@@ -488,6 +475,8 @@ void OctEval::addImport(const std::string &code, const DOMElement *e) {
     else
       dir=code;
 
+    if(dir.empty())
+      return;
     addImportHelper(dir);
 
     if(!dependencies)
@@ -584,8 +573,8 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   std::ostringstream out;
   try {
     int dummy;
-    REDIR_STDOUT(out.rdbuf());
-    REDIR_STDERR(err.rdbuf());
+    MBXMLUTILS_REDIR_STDOUT(out);
+    MBXMLUTILS_REDIR_STDERR(err);
     mbxmlutilsStaticDependencies.clear();
     if(e)
       originalFilename=E(e)->getOriginalFilename();
@@ -624,6 +613,11 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   }
   catch(...) { // should not happend
     throw DOMEvalException("Unknwon exception:\n"+out.str()+"\n"+err.str(), e);
+  }
+  if(!err.str().empty()) {
+    std::string msg=err.str();
+    trim_right_if(msg, boost::is_any_of(" \n"));
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<std::endl;
   }
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   std::string strNoSpace=str;
@@ -706,8 +700,8 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
   {
     try
     {
-      REDIR_STDOUT(out.rdbuf());
-      REDIR_STDERR(err.rdbuf());
+      MBXMLUTILS_REDIR_STDOUT(out);
+      MBXMLUTILS_REDIR_STDERR(err);
       ret=octave::feval(func, arg, n);
     }
     catch(octave::execution_exception &ex)
@@ -730,6 +724,11 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
     {
       // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
       throw std::runtime_error( "Caught octave exception (Interrupt exception)\n" +out.str() + "\n" + err.str() );
+    }
+    if(!err.str().empty()) {
+      std::string msg=err.str();
+      trim_right_if(msg, boost::is_any_of(" \n"));
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<std::endl;
     }
   }
   return ret;

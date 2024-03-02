@@ -366,8 +366,11 @@ pair<shared_ptr<DOMDocument>, string> Preprocess::parseFileAndGetEvaluator(
   else
     // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
     evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
-  if(evaluator)
-    evalName=X()%E(evaluator)->getFirstTextChild()->getData();
+  if(evaluator) {
+    auto textEle=E(evaluator)->getFirstTextChild();
+    auto text=textEle ? X()%textEle->getData() : "";
+    evalName=text;
+  }
   return {mainXMLDoc, evalName};
 }
 

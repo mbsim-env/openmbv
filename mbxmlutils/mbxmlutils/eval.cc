@@ -218,8 +218,11 @@ void Eval::addParam(const string &paramName, const Value& value) {
 
 void Eval::addParamSet(const DOMElement *e) {
   for(DOMElement *ee=e->getFirstElementChild(); ee!=nullptr; ee=ee->getNextElementSibling()) {
-    if(E(ee)->getTagName()==PV%"import")
-      addImport(X()%E(ee)->getFirstTextChild()->getData(), ee);
+    if(E(ee)->getTagName()==PV%"import") {
+      auto textEle=E(ee)->getFirstTextChild();
+      auto text=textEle ? X()%textEle->getData() : "";
+      addImport(text, ee);
+    }
     else
       addParam(E(ee)->getAttribute("name"), eval(ee));
   }

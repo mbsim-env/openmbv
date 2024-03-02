@@ -389,6 +389,6 @@ def isGUI():
 
 
 # a simply dictionary on module level to store data.
-# the livetime of data is the livetime of the python evaluator.
+# the lifetime of data is the lifetime of the python evaluator.
 # This can be used to store any data and access it later on (but take care about memory usage when large data is stored)
 staticData=dict()

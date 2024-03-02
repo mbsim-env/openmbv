@@ -283,7 +283,9 @@ class DOMElementWrapper {
     //! Get the child text as type T
     template<class T> T getText(int r=0, int c=0) const {
       try {
-        auto ret=boost::lexical_cast<T>(X()%E(me)->getFirstTextChild()->getData());
+        auto textEle=E(me)->getFirstTextChild();
+        auto text=textEle ? X()%textEle->getData() : "";
+        auto ret=boost::lexical_cast<T>(text);
         CheckSize<T>::check(me, ret, r, c);
         return ret;
       }

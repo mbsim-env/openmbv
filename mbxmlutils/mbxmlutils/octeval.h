@@ -22,7 +22,10 @@ Eval::Value C(const octave_value &value);
 
 class OctEval;
 
-/*! Octave expression evaluator and converter. */
+/*! A evaluator based on octave.
+ *
+ * See measurementToHtml.xsl for details.
+ */
 class OctEval : public Eval {
   friend class Eval;
 
