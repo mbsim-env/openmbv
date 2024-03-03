@@ -171,14 +171,29 @@ class Block {
     Block(std::ostringstream &strstr_) : strstr(strstr_) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
       curStream=CALLPY(PyObject_CallObject, pyInit->ioStringIO, CALLPY(PyTuple_New, 0));
-      CALLPY(PySys_SetObject, T==1?"stdout":"stderr", curStream);
+      if(CALLPY(PySys_SetObject, T==1?"stdout":"stderr", curStream)!=0)
+        throw runtime_error("Internal error: setting sys.stdout/stderr to a external buffer failed.");
     }
     ~Block() {
-      // we cannot use CALLPY in dtors, no exceptions are allowed
-      assert(PySys_SetObject(T==1?"stdout":"stderr", oldStream.get())==0);
-      PyO getvalue(PyObject_GetAttrString(curStream.get(), "getvalue"));
-      PyO str(PyObject_CallObject(getvalue.get(), PyTuple_New(0)));
-      strstr<<PyUnicode_AsUTF8(str.get());
+      PyObject *type, *value, *traceback;
+      PyErr_Fetch(&type, &value, &traceback);
+      try {
+        if(CALLPY(PySys_SetObject, T==1?"stdout":"stderr", oldStream)!=0)
+          throw runtime_error("Internal error: resetting sys.stdout/stderr failed.");
+        PyO getvalue(CALLPY(PyObject_GetAttrString, curStream, "getvalue"));
+        PyO str(CALLPY(PyObject_CallObject, getvalue, CALLPY(PyTuple_New, 0)));
+        strstr<<PyUnicode_AsUTF8(str.get());
+      }
+      catch(exception &ex) {
+        cout<<"Internal error: exception in dtor: "<<ex.what()<<endl;
+        exit(1);
+      }
+      catch(...) {
+        cout<<"Internal error: unknown exception in dtor"<<endl;
+        exit(1);
+      }
+      if(!type || !value || !traceback)
+        PyErr_Restore(type, value, traceback);
     }
   private:
     PyO oldStream;
