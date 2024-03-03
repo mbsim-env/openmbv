@@ -84,8 +84,10 @@ OctInit::OctInit() {
         OCTAVE_HOME=MKOCTFILE_OCTAVE_HOME_UNIX;
       if(!OCTAVE_HOME.empty()) {
         // the string for putenv must have program life time
-        static std::string OCTAVE_HOME_ENV=std::string("OCTAVE_HOME=")+OCTAVE_HOME;
-        putenv((char*)OCTAVE_HOME_ENV.c_str());
+        static char OCTAVE_HOME_ENV[2048] { 0 };
+        if(OCTAVE_HOME_ENV[0]==0)
+          strcpy(OCTAVE_HOME_ENV, (std::string("OCTAVE_HOME=")+OCTAVE_HOME).c_str());
+        putenv(OCTAVE_HOME_ENV);
       }
     }
 

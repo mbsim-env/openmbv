@@ -76,8 +76,10 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     }
     if(!PYTHONHOME.empty()) {
       // the string for putenv must have program life time
-      static std::string PYTHONHOME_ENV(std::string("PYTHONHOME=")+PYTHONHOME.string());
-      putenv((char*)PYTHONHOME_ENV.c_str());
+      static char PYTHONHOME_ENV[2048] { 0 };
+      if(PYTHONHOME_ENV[0]==0)
+        strcpy(PYTHONHOME_ENV, (std::string("PYTHONHOME=")+PYTHONHOME.string()).c_str());
+      putenv(PYTHONHOME_ENV);
     }
   }
 
@@ -110,9 +112,12 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
 #else
     // the string for putenv must have program life time
-    std::string PATH_OLD(getenv("PATH"));
-    static std::string PATH_ENV("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string());
-    putenv((char*)PATH_ENV.c_str());
+    static char PATH_ENV[2048] { 0 };
+    if(PATH_ENV[0]==0) {
+      std::string PATH_OLD(getenv("PATH"));
+      strcpy(PATH_ENV, ("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string()).c_str());
+    }
+    putenv(PATH_ENV);
 #endif
   }
 
