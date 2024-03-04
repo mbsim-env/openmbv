@@ -346,15 +346,17 @@ in a variable named "ans"). Else, if the code was just the name of another varia
   <dt>python globals:</dt>
   <dd>set to python __builtins__ merged with the "imports" and merged with the "current parameters"</dd>
   <dt>python locals:</dt>
-  <dd>empty</dd>
+  <dd>is the same dictionary as pyhton globals</dd>
 </dl>
 <p>Where "imports" is a dictionary with the same lifetime of this class, initially empty, and filled with all
-local variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code>.
+new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code>, see below for details.
 And "current parameters" are all parameters of the current parameter stack.</p>
 <p>If the evaluation is a single expressions, then the result of the evaluation is the result of this expression.
-If the evaluation is not a single expressions, then the result is the value of the local variable named "ret" which must
+If the evaluation is not a single expressions, then the result is the value of the variable named "ret" which must
 be defined by the evaluation.</p>
-<p><code>addImport</code>/<code>&lt;import&gt;</code> adds all local variables defined by the evaluation to the "imports", see above.</p>
+<p><code>addImport</code>/<code>&lt;import&gt;</code> adds all new variables defined by the evaluation to the "imports": each variable which is
+in the list of global(=local) variables after the import evaluation, but was not in the list of global(=local) variables before the evaluation, 
+is added to the import list. This import list is then used for all successive evaluations.</p>
 
     <h1><a id="symbolicFunctions" href="#symbolicFunctions-content">7 Symbolic Functions</a></h1>
     <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.
