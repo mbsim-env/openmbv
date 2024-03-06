@@ -1,4 +1,5 @@
 import os
+import numpy
 
 
 
@@ -46,7 +47,6 @@ def _convertScalar(x):
 # convert all elements of the matrix, vector or scalar x to float values if possible
 def _convert(x):
   if hasattr(x, '__len__'):
-    import numpy
     return numpy.array([_convert(xi) for xi in x])
   else:
     return _convertScalar(x)
@@ -54,7 +54,6 @@ def _convert(x):
 # INTERNAL FUNCTION
 # serialize a symbolic expression to the fmatvec format
 def _serializeFunction(x):
-  import numpy
   # serialize a matrix or vector (we allow sympy matrices, numpy array and python lists)
   if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix" or \
      type(x)==numpy.ndarray:
@@ -256,13 +255,11 @@ def installPrefix():
 
 
 def load(filename):
-  import numpy
   return numpy.genfromtxt(filename)
 
 
 
 def cardan(*argv):
-  import numpy
   if len(argv)==3:
     alpha=argv[0]
     beta=argv[1]
@@ -288,7 +285,6 @@ def cardan(*argv):
 
 
 def invCardan(T):
-  import numpy
   ms=_MathOrSympy(T[0][2], T[1][2], T[2][2], T[0][1], T[0][0], T[1][0], T[1][1])
   if T[0][2]<-1-1e-12 or T[0][2]>1+1e-12:
     raise RuntimeError("Argument of invCardan is not a rotation matrix (due to numerical errors)")
@@ -305,7 +301,6 @@ def invCardan(T):
 
 
 def euler(*argv):
-  import numpy
   if len(argv)==3:
     PHI=argv[0]
     theta=argv[1]
@@ -331,7 +326,6 @@ def euler(*argv):
 
 
 def rotateAboutX(phi):
-  import numpy
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[1,0,0],
                               [0,ms.cos(phi),-ms.sin(phi)],
@@ -340,7 +334,6 @@ def rotateAboutX(phi):
 
 
 def rotateAboutY(phi):
-  import numpy
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),0,ms.sin(phi)],
                               [0,1,0],
@@ -349,7 +342,6 @@ def rotateAboutY(phi):
 
 
 def rotateAboutZ(phi):
-  import numpy
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),-ms.sin(phi),0],
                               [ms.sin(phi),ms.cos(phi),0],
@@ -358,7 +350,6 @@ def rotateAboutZ(phi):
 
 
 def tilde(x):
-  import numpy
 
   if len(x)==3 and not hasattr(x[0], '__len__'):
 
@@ -379,21 +370,49 @@ def tilde(x):
 
 
 
-# m: added mass
-# I: added inertia w.r.t. own center of mass given in ?!? coordinate system
-# r: 
-# T: optinal argument for rotated ...
-import numpy
-def steinerRule(m, I, r, T = numpy.eye(3)):
-  return  T.T @ I @ T + m * numpy.array([
-        [ r[1] * r[1] + r[2] * r[2] ,      - r[0] * r[1]        ,      - r[0] * r[2]        ],
-        [      - r[0] * r[1]        , r[0] * r[0] + r[2] * r[2] ,      - r[1] * r[2]        ],
-        [      - r[0] * r[2]        ,      - r[1] * r[2]        , r[0] * r[0] + r[1] * r[1] ],
-          ])
+# Apply the steiner rule on a inertia.
+#
+# If the input "inertia" is a inertia tensor around its center of mass then the
+# output is the corresponding inertia tensor around a point "com" away from the center of mass (note that the sign of "com" does not care: com and -com results in the same).
+# "mass", which must be positive in this case, is the mass of the object.
+#
+# If the input "inertia" is a inertia tensor around a point "com" away from the center of mass then the
+# output is the corresponding inertia tensor around the center of mass (note that the sign of "com" does not care: com and -com results in the same).
+# "mass", which must be negative, in this case, is the negative mass of the object.
+#
+# "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
+# and inertiaOrientation defines the transformation matrix between both (T_LK)
+def steinerRule(mass, inertia, com, inertiaOrientation = None):
+  T_LK = numpy.array(inertiaOrientation) if inertiaOrientation is not None else numpy.eye(3)
+  return  T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
+
+
+
+# Sum up mass values.
+# massValue is a dictionary with the keys
+# - "mass":               the mass of body to add
+# - "inertia":            the inertia tensor of the body to add; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L
+# - "com":                the center of mass of the body to add; the com must be given with respect to a local coordinate system L
+# - "inertiaOrientation": optional, if given, "inertia" is not with respect to the local system L but to a system K and inertiaOrientation defines the transformation matrix between both (T_LK)
+# Returned is a dictionary with the same keys being the summed up mass values of all arguments where
+# - "inertia":            is given around the summed up center of mass and with respect to the local coordinate system L.
+# - "com":                is with respect to the local cooridnate system L.
+# - "inertiaOrientation": is not provided since "inertia" is always returned with respect to the local coordinate system L (T_LK = eye).
+def sumMassValues(*massValue):
+  sum_m = 0
+  sum_inertia_L = numpy.zeros((3,3))
+  sum_mcom = numpy.zeros(3)
+  for mv in massValue:
+    sum_m += mv["mass"]
+    sum_inertia_L += steinerRule(mv["mass"], mv["inertia"], mv["com"], mv.get("inertiaOrientation", numpy.eye(3))) # positive mass -> move from com to none-com
+    sum_mcom += mv["mass"] * numpy.array(mv["com"])
+  sum_com = sum_mcom / sum_m
+  sum_inertia_C = steinerRule(-sum_m, sum_inertia_L, sum_com) # negative mass -> move from none-com to com
+  return { "mass": sum_m, "inertia": sum_inertia_C, "com": sum_com}
+
 
 
 def rgbColor(*argv):
-  import numpy
   import colorsys
   if len(argv)==3:
     red=argv[0]
