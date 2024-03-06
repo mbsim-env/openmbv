@@ -26,6 +26,7 @@
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include "mytouchwidget.h"
+#include "mbxmlutilshelper/last_write_time.h"
 #include <iostream>
 #include <QScroller>
 #include <QDialog>
@@ -87,12 +88,14 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename, size_t hash) {
   }
   size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash));
   auto ins=ivBodyCache.emplace(fullHash, SoDeleteSeparator());
-  if(ins.second) {
+  auto newFileTime = boost::myfilesystem::last_write_time(filename);
+  if(ins.second || newFileTime > ins.first->second.fileTime) {
+    ins.first->second.fileTime = newFileTime;
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
-      ins.first->second.s=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-      ins.first->second.s->ref(); // increment reference count to prevent a delete for cached entries
-      return ins.first->second.s;
+      ins.first->second.sep=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
+      ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+      return ins.first->second.sep;
     }
     else { // open failed, remove from cache and return a empty IV
       QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
@@ -102,7 +105,7 @@ SoSeparator* Utils::SoDBreadAllCached(const string &filename, size_t hash) {
       return new SoSeparator;
     }
   }
-  return ins.first->second.s;
+  return ins.first->second.sep;
 }
 
 // convenience: create frame so

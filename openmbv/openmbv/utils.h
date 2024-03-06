@@ -40,6 +40,7 @@
 #include <QTreeWidgetItem>
 #include <QSettings>
 #include <unordered_map>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #ifdef WIN32
 #  define CALLMETHOD __stdcall
@@ -122,8 +123,9 @@ class Utils : virtual public fmatvec::Atom {
       SoDeleteSeparator(SoDeleteSeparator&& other) = default;
       SoDeleteSeparator& operator=(const SoDeleteSeparator& other) = delete;
       SoDeleteSeparator& operator=(SoDeleteSeparator&& other) = delete;
-      ~SoDeleteSeparator() { if(s) s->unref(); }
-      SoSeparator *s=nullptr;
+      ~SoDeleteSeparator() { if(sep) sep->unref(); }
+      SoSeparator *sep=nullptr;
+      boost::posix_time::ptime fileTime;
     };
     static std::unordered_map<size_t, SoDeleteSeparator> ivBodyCache;
     static std::unordered_map<std::string, QIcon> iconCache;

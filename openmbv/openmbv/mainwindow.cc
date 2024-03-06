@@ -222,7 +222,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   auto *offset=new SoPolygonOffset; // move lines/points to front
   sceneRoot->addChild(offset);
-  offset->styles=SoPolygonOffset::LINES | SoPolygonOffset::LINES;
+  offset->styles=SoPolygonOffset::LINES | SoPolygonOffset::POINTS;
   offset->factor.setValue(-1.5);
   offset->units.setValue(-1.5);
   complexity=new SoComplexity;
