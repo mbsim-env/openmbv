@@ -61,7 +61,11 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     ivb->getRemoveNodesByType()
   );
 
-  SoGroup *soIv=Utils::SoDBreadAllCached(fileName, boost::hash<decltype(hashData)>{}(hashData));
+  SoGroup *soIv;
+  if(!fileName.empty())
+    soIv=Utils::SoDBreadAllFileNameCached(fileName, boost::hash<decltype(hashData)>{}(hashData));
+  else
+    soIv=Utils::SoDBreadAllContentCached(ivb->getIvContent(), boost::hash<decltype(hashData)>{}(hashData));
   sep->addChild(soIv);
 
   // search and remove specific nodes

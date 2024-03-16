@@ -72,10 +72,15 @@ class Utils : virtual public fmatvec::Atom {
      * (at app init) by a factor of 11 in my test case. */
     static const QIcon& QIconCached(std::string filename);
 
-    /** Use SoDBreadAllCached(filename) instead of SoDBreadAll(filename) everywhere
+    /** Use SoDBreadAllFileNameCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-file parsing and scene generation.
      * hash is, beside filename, part of the key for the cache. */
-    static SoSeparator* SoDBreadAllCached(const std::string &filename, size_t hash=0);
+    static SoSeparator* SoDBreadAllFileNameCached(const std::string &filename, size_t hash=0);
+
+    /** Use SoDBreadAllContentCached(filename) instead of SoDB::readAll(filename) everywhere
+     * to cache the iv-content parsing and scene generation.
+     * hash is, beside content, part of the key for the cache. */
+    static SoSeparator* SoDBreadAllContentCached(const std::string &content, size_t hash=0);
 
     static SoMFColor soFrameDefaultColor;
     /** Convenienc function to draw a frame */

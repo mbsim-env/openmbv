@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_MAINWINDOW_H_
 
 #include "abstractviewfilter.h"
+#include <Inventor/nodes/SoAnnotation.h>
 #include <QMainWindow>
 #include <QTreeWidget>
 #include <QTextEdit>
@@ -84,6 +85,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   friend class Editor;
   friend class Group;
   friend class CompoundRigidBody;
+  friend class IvScreenAnnotation;
   friend class MyTouchWidget;
   friend class SettingsDialog;
   private:
@@ -121,6 +123,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     DialogStereo *dialogStereo { nullptr };
     void viewChange(ViewSide side);
     SoSeparator *sceneRoot;
+    SoSeparator *screenAnnotationList;
+    SoScale *screenAnnotationScale1To1;
     QTimer *animTimer;
     QTimer *hdf5RefreshTimer;
     QElapsedTimer *time;
@@ -286,6 +290,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
     SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
+    SoSeparator* getScreenAnnotationList() { return screenAnnotationList; }
+    SoScale* getScreenAnnotationScale1To1() { return screenAnnotationScale1To1; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     void startShortAni(const std::function<void(double)> &func, bool noAni=false);
     void setHDF5RefreshDelta(int d) { hdf5RefreshDelta=d; }

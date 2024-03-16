@@ -34,7 +34,10 @@ IvBody::IvBody() = default;
 
 DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
+  if(!ivFileName.empty())
+    E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
+  else
+    E(e)->addElementText(OPENMBV%"ivContent", "'"+ivContent+"'");
   E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
   E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
   for(auto &name : removeNodesByName)
@@ -48,8 +51,15 @@ void IvBody::initializeUsingXML(DOMElement *element) {
   RigidBody::initializeUsingXML(element);
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ivFileName");
-  string str = X()%E(e)->getFirstTextChild()->getData();
-  setIvFileName(E(e)->convertPath(str.substr(1,str.length()-2)).string());
+  if(e) {
+    string str = X()%E(e)->getFirstTextChild()->getData();
+    setIvFileName(E(e)->convertPath(str.substr(1,str.length()-2)).string());
+  }
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"ivContent");
+  if(e) {
+    string str = X()%E(e)->getFirstTextChild()->getData();
+    setIvContent(str.substr(1,str.length()-2));
+  }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"creaseEdges");
   if(e) setCreaseEdges(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"boundaryEdges");

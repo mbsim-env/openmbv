@@ -42,8 +42,6 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-constexpr float fontScale = 0.0025;
-
 SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, BROWSER, true) {
   static const char* OPENMBV_NO_MULTISAMPLING=getenv("OPENMBV_NO_MULTISAMPLING");
   if(!OPENMBV_NO_MULTISAMPLING)
@@ -74,82 +72,107 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
   bgSep->addChild(f);
   f->numVertices.setValue(4);
 
-  // foreground
-  fgSep=new SoAnnotation;
-  fgSep->ref();
+  // foreground (=screen annotation)
+  screenAnnotationSep=new SoAnnotation;
+  screenAnnotationSep->ref();
+
   // font size
-  font=new SoFont;
-  font->size.setValue(15);
-#ifdef _WIN32
-  font->name.setValue("Lucida Sans Typewriter");
-#else
-  font->name.setValue("DejaVu Sans Mono");
-#endif
-  fgSep->addChild(font);
+  fontStyle=new SoFontStyle;
+  fontStyle->family=SoFontStyle::SANS;
+  screenAnnotationSep->addChild(fontStyle);
+
+  screenAnnotationSep->addChild(MainWindow::getInstance()->getScreenAnnotationList());
+
+  const float textHeight=0.04;
+
   // time (top left)
-  auto *timeSep=new SoSeparator;
-  fgSep->addChild(timeSep);
-  timeTrans=new SoTranslation;
-  timeSep->addChild(timeTrans);
-  auto *soFgColorTop=new SoBaseColor;
-  text2Scale=new SoScale;
-  text2Scale->scaleFactor.setValue(fontScale,fontScale,fontScale);
-  ombvLogoScale=new SoScale;
-  timeSep->addChild(text2Scale);
-  timeSep->addChild(ombvLogoScale);
-  timeSep->addChild(soFgColorTop);
-  soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
-  timeSep->addChild(MainWindow::getInstance()->getTimeString());
-  // ombvText (bottom left)
-  auto *ombvSep=new SoSeparator;
-  fgSep->addChild(ombvSep);
-  ombvTrans=new SoTranslation;
-  ombvSep->addChild(ombvTrans);
-  auto *text2=new SoAsciiText;
-  auto *soFgColorBottom=new SoBaseColor;
-  ombvSep->addChild(soFgColorBottom);
-  soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
-  ombvSep->addChild(text2Scale);
-  ombvSep->addChild(ombvLogoScale);
-  ombvSep->addChild(text2);
-  text2->string.setValue("OpenMBV [https://www.mbsim-env.de/]");
-  // ombvLogo (bottom right)
-  auto *logoSep=new SoSeparator;
-  fgSep->addChild(logoSep);
-  ombvLogoTrans=new SoTranslation;
-  logoSep->addChild(ombvLogoTrans);
-  logoSep->addChild(ombvLogoScale);
-  auto *cc=new SoMaterial;
-  logoSep->addChild(cc);
-  cc->emissiveColor.setValue(1,1,1);
-  cc->transparency.setValue(0.6);
-  auto *ombvLogoTex=new SoTexture2;
-  logoSep->addChild(ombvLogoTex);
-  QSvgRenderer svg(QString((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()));
-  QFontInfo fontinfo(parent->font());
-  QImage image(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5, QImage::Format_RGBA8888);
-  QPainter painter(&image);
-  svg.render(&painter);
-  // set inventor image
-  ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
-  ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
-  ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
-  auto *ombvCoords=new SoCoordinate3;
-  logoSep->addChild(ombvCoords);
-  double size=0.15; // the logo filles maximal "size" of the screen
-  ombvCoords->point.set1Value(0, -size, 0, 0);    ombvCoords->point.set1Value(1, 0, 0, 0);
-  ombvCoords->point.set1Value(3, -size, size, 0); ombvCoords->point.set1Value(2, 0, size, 0);
-  auto *tc=new SoTextureCoordinate2;
-  logoSep->addChild(tc);
-  tc->point.set1Value(0, 0, 1); tc->point.set1Value(1, 1, 1);
-  tc->point.set1Value(3, 0, 0); tc->point.set1Value(2, 1, 0);
-  auto *ombvLogo=new SoFaceSet;
-  logoSep->addChild(ombvLogo);
-  ombvLogo->numVertices.set1Value(0, 4);
+  {
+    auto timeSep = new SoSeparator;
+    screenAnnotationSep->addChild(timeSep);
+    auto trans1 = new SoTranslation;
+    trans1->translation.setValue(-1,1,0);
+    timeSep->addChild(trans1);
+    timeSep->addChild(MainWindow::getInstance()->getScreenAnnotationScale1To1());
+    auto trans3 = new SoTranslation;
+    trans3->translation.setValue(1,-1,0);
+    timeSep->addChild(trans3);
+    auto *soFgColorTop=new SoBaseColor;
+    timeSep->addChild(soFgColorTop);
+    soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
+    auto trans = new SoTranslation;
+    trans->translation.setValue(-0.99,1-0.04,0);
+    timeSep->addChild(trans);
+    auto *fontStyle=new SoFontStyle;
+    const float textHeight=0.04;
+    fontStyle->size.setValue(textHeight);
+    fontStyle->family=SoFontStyle::SANS;
+    timeSep->addChild(fontStyle);
+    timeSep->addChild(MainWindow::getInstance()->getTimeString());
+  }
+
+  {
+    // ombvText (bottom right)
+    auto ombvSep = new SoSeparator;
+    screenAnnotationSep->addChild(ombvSep);
+    auto trans1 = new SoTranslation;
+    trans1->translation.setValue(1,-1,0);
+    ombvSep->addChild(trans1);
+    ombvSep->addChild(MainWindow::getInstance()->getScreenAnnotationScale1To1());
+    auto trans3 = new SoTranslation;
+    trans3->translation.setValue(-1,1,0);
+    ombvSep->addChild(trans3);
+    auto *soFgColorBottom=new SoBaseColor;
+    ombvSep->addChild(soFgColorBottom);
+    soFgColorBottom->rgb.connectFrom(MainWindow::getInstance()->getFgColorBottom());
+    auto *textSep = new SoSeparator;
+    ombvSep->addChild(textSep);
+    auto trans = new SoTranslation;
+    trans->translation.setValue(0.99,-0.99,0);
+    textSep->addChild(trans);
+    auto *fontStyle=new SoFontStyle;
+    fontStyle->size.setValue(textHeight);
+    fontStyle->family=SoFontStyle::SANS;
+    textSep->addChild(fontStyle);
+    auto *text2=new SoAsciiText;
+    textSep->addChild(text2);
+    text2->string.setValue("OpenMBV [https://www.mbsim-env.de/]");
+    text2->justification.setValue(SoAsciiText::RIGHT);
+
+    // ombvLogo (bottom right)
+    auto *logoSep = new SoSeparator;
+    ombvSep->addChild(logoSep);
+    auto *cc=new SoMaterial;
+    logoSep->addChild(cc);
+    cc->emissiveColor.setValue(1,1,1);
+    cc->transparency.setValue(0.6);
+    auto *ombvLogoTex=new SoTexture2;
+    logoSep->addChild(ombvLogoTex);
+    QSvgRenderer svg(QString((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()));
+    QFontInfo fontinfo(parent->font());
+    QImage image(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5, QImage::Format_RGBA8888);
+    QPainter painter(&image);
+    svg.render(&painter);
+    // set inventor image
+    ombvLogoTex->image.setValue(SbVec2s(image.width(), image.height()), 4, image.bits());
+    ombvLogoTex->wrapS.setValue(SoTexture2::CLAMP);
+    ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
+    auto *ombvCoords=new SoCoordinate3;
+    logoSep->addChild(ombvCoords);
+    double size=0.15; // the logo filles maximal "size" of the screen
+    ombvCoords->point.set1Value(0, 1-size, -1+size+1.1*textHeight, 0); ombvCoords->point.set1Value(1, 1, -1+size+1.1*textHeight, 0);
+    ombvCoords->point.set1Value(3, 1-size, -1+1.1*textHeight, 0);      ombvCoords->point.set1Value(2, 1, -1+1.1*textHeight, 0);
+    auto *tc=new SoTextureCoordinate2;
+    logoSep->addChild(tc);
+    tc->point.set1Value(0, 0, 0); tc->point.set1Value(1, 1, 0);
+    tc->point.set1Value(3, 0, 1); tc->point.set1Value(2, 1, 1);
+    auto *ombvLogo=new SoFaceSet;
+    logoSep->addChild(ombvLogo);
+    ombvLogo->numVertices.set1Value(0, 4);
+  }
 }
 
 SoQtMyViewer::~SoQtMyViewer() {
-  fgSep->unref();
+  screenAnnotationSep->unref();
   bgSep->unref();
 }
  
@@ -171,17 +194,13 @@ void SoQtMyViewer::actualRedraw() {
   SoQtViewer::actualRedraw();
 
   // foreground (time and OpenMBV)
-  float ypos=400*font->size.getValue()*text2Scale->scaleFactor.getValue().getValue()[1]*ombvLogoScale->scaleFactor.getValue().getValue()[1];
-  timeTrans->translation.setValue(-1+2.0/x*3, +1-2.0/y*ypos, 0);
-  ombvTrans->translation.setValue(-1+2.0/x*3, -1+2.0/y*3, 0);
-  ombvLogoTrans->translation.setValue(+1-2.0/x*3, -1+2.0/y*3, 0);
   auto ombvLogoScaleX=x>y?(float)y/x:1;
   auto ombvLogoScaleY=y>x?(float)x/y:1;
   if(aspectRatio>1)
-    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
+    MainWindow::getInstance()->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
   else
-    ombvLogoScale->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
-  getGLRenderAction()->apply(fgSep);
+    MainWindow::getInstance()->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
+  getGLRenderAction()->apply(screenAnnotationSep);
 
   // update fps
   MainWindow::getInstance()->fpsCB();

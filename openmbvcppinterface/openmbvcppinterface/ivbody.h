@@ -31,9 +31,11 @@ namespace OpenMBV {
     friend class ObjectFactory;
     public:
       /** The file of the iv file to read */
-      void setIvFileName(std::string ivFileName_) { ivFileName=std::move(ivFileName_); }
-
+      void setIvFileName(std::string ivFileName_) { ivContent=""; ivFileName=std::move(ivFileName_); }
       std::string getIvFileName() { return ivFileName; }
+
+      void setIvContent(std::string ivContent_) { ivFileName=""; ivContent=std::move(ivContent_); }
+      const std::string& getIvContent() { return ivContent; }
 
       /** Set the limit crease angle for the calculation of crease edges. 
        * If less 0 do not calculate crease edges. Default: -1,
@@ -67,6 +69,7 @@ namespace OpenMBV {
       IvBody();
       ~IvBody() override = default;
       std::string ivFileName;
+      std::string ivContent;
       double creaseAngle{-1};
       bool boundaryEdges{false};
       std::vector<std::string> removeNodesByName;

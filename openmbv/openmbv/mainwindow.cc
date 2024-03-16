@@ -110,6 +110,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (installPath/"lib"/"dri").string().c_str()));
   }
 
+  // Enable global search of USE in iv files
+  static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
+  putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
+
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
@@ -159,6 +163,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(disableStereo, &QPushButton::clicked, [this](){
     reinit3DView(StereoType::None);
   });
+
+  screenAnnotationList=new SoAnnotation;
+  screenAnnotationList->ref();
+  screenAnnotationScale1To1=new SoScale;
+  screenAnnotationScale1To1->ref();
 
   // gl viewer
   glViewerWG=new MyTouchWidget(this);
@@ -1068,6 +1077,8 @@ MainWindow::~MainWindow() {
   for(int i=objectList->invisibleRootItem()->childCount()-1; i>=0; i--)
     ((Group*)(objectList->invisibleRootItem()->child(i)))->unloadFileSlot();
   cameraPosition->unref();
+  screenAnnotationScale1To1->unref();
+  screenAnnotationList->unref();
   sceneRoot->unref();
   timeString->unref();
   olseColor->unref();
@@ -1604,7 +1615,7 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   root->addChild(db);
   db->function.setValue(SoDepthBufferElement::ALWAYS);
   // add foreground
-  root->addChild(glViewer->fgSep);
+  root->addChild(glViewer->screenAnnotationSep);
   // update/redraw glViewer: this is required to update e.g. the clipping planes before offscreen rendering
   // (SoOffscreenRenderer does not update the clipping planes but SoQtViewer does so!)
   // (it gives the side effect, that the user sees the current exported frame)
@@ -1651,9 +1662,9 @@ void MainWindow::exportCurrentAsPNG() {
   msg(Info)<<str.toStdString()<<endl;
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
-  glViewer->font->size.setValue(glViewer->font->size.getValue()*dialog.getScale());
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
-  glViewer->font->size.setValue(glViewer->font->size.getValue()/dialog.getScale());
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
@@ -1691,7 +1702,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   auto lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
   short width, height; size.getValue(width, height);
-  glViewer->font->size.setValue(glViewer->font->size.getValue()*scale);
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*scale);
 
   QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
   progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
@@ -1710,7 +1721,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   if(progress.wasCanceled())
     return;
   progress.setValue(lastVideoFrame);
-  glViewer->font->size.setValue(glViewer->font->size.getValue()/scale);
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/scale);
   if(video) {
     QString str("Encoding video file to %1, please wait!");
     str=str.arg(QFileInfo(fileName).absoluteFilePath());
@@ -1914,7 +1925,7 @@ void MainWindow::exportCurrentAsPS() {
   auto *root=new SoSeparator;
   root->ref();
   root->addChild(glViewer->getSceneManager()->getSceneGraph());
-  root->addChild(glViewer->fgSep);
+  root->addChild(glViewer->screenAnnotationSep);
   ps.apply(root);
   ps.endPage();
   out->closeFile();

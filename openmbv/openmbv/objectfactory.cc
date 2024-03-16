@@ -33,6 +33,7 @@
 #include "openmbvcppinterface/group.h"
 #include "openmbvcppinterface/invisiblebody.h"
 #include "openmbvcppinterface/ivbody.h"
+#include "openmbvcppinterface/ivscreenannotation.h"
 #include "openmbvcppinterface/nurbsdisk.h"
 #include "openmbvcppinterface/nurbscurve.h"
 #include "openmbvcppinterface/nurbssurface.h"
@@ -67,6 +68,7 @@
 #include "invisiblebody.h"
 #include "iostream"
 #include "ivbody.h"
+#include "ivscreenannotation.h"
 #include "mainwindow.h"
 #include "nurbsdisk.h"
 #include "nurbscurve.h"
@@ -120,6 +122,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new Frustum(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::IvBody))
     return new IvBody(obj, parentItem, soParent, ind);
+  else if(typeid(objRef)==typeid(OpenMBV::IvScreenAnnotation))
+    return new IvScreenAnnotation(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::InvisibleBody))
     return new InvisibleBody(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::NurbsDisk))

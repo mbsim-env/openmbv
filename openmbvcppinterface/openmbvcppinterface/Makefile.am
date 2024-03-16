@@ -13,6 +13,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   body.cc \
   dynamiccoloredbody.cc \
   group.cc \
+  ivscreenannotation.cc \
   rigidbody.cc \
   compoundrigidbody.cc \
   frame.cc \
@@ -53,6 +54,7 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   body.h \
   dynamiccoloredbody.h \
   group.h \
+  ivscreenannotation.h \
   rigidbody.h \
   rigidbodycos.svg \
   compoundrigidbody.h \

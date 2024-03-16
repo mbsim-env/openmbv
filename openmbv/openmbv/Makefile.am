@@ -30,6 +30,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   invisiblebody.cc\
   frustum.cc\
   ivbody.cc\
+  ivscreenannotation.cc\
   frame.cc\
   grid.cc\
   group.cc\
@@ -113,6 +114,7 @@ QT_BUILT_SOURCES = \
   invisiblebody.moc.cc\
   frustum.moc.cc\
   ivbody.moc.cc\
+  ivscreenannotation.moc.cc\
   frame.moc.cc\
   grid.moc.cc\
   group.moc.cc\
@@ -150,6 +152,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   invisiblebody.h\
   frustum.h\
   ivbody.h\
+  ivscreenannotation.h\
   frame.h\
   grid.h\
   group.h\
@@ -193,6 +196,7 @@ dist_icon_DATA = openmbv.svg \
   angle.svg \
   zoom.svg \
   speed.svg \
+  ivscreenannotation.svg \
   target.svg \
   cuboid.svg \
   cube.svg \

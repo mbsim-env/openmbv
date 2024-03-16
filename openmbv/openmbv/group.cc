@@ -44,6 +44,7 @@
 #include "openmbvcppinterface/grid.h"
 #include "openmbvcppinterface/invisiblebody.h"
 #include "openmbvcppinterface/ivbody.h"
+#include "openmbvcppinterface/ivscreenannotation.h"
 #include "openmbvcppinterface/rotation.h"
 #include "openmbvcppinterface/sphere.h"
 #include "openmbvcppinterface/spineextrusion.h"
@@ -119,6 +120,7 @@ void Group::newObjectSlot() {
     {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "Grid",              Utils::factory<OpenMBV::Grid>())},
     {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "InvisibleBody",     Utils::factory<OpenMBV::InvisibleBody>())},
     {Utils::FactoryElement(Utils::QIconCached("ivbody.svg"),            "IvBody",            Utils::factory<OpenMBV::IvBody>())},
+    {Utils::FactoryElement(Utils::QIconCached("ivscreenannotation.svg"),"ivscreenannotation",Utils::factory<OpenMBV::IvScreenAnnotation>())},
     {Utils::FactoryElement(Utils::QIconCached("rotation.svg"),          "Rotation",          Utils::factory<OpenMBV::Rotation>())},
     {Utils::FactoryElement(Utils::QIconCached("sphere.svg"),            "Sphere",            Utils::factory<OpenMBV::Sphere>())},
     {Utils::FactoryElement(Utils::QIconCached("invisiblebody.svg"),     "SpineExtrusion",    Utils::factory<OpenMBV::SpineExtrusion>())},

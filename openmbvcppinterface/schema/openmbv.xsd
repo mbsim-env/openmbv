@@ -187,11 +187,30 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:element name="ivFileName" type="pv:filenameFullEval"/>
+          <xs:choice maxOccurs="unbounded">
+            <xs:element name="ivFileName" type="pv:filenameFullEval"/>
+            <xs:element name="ivContent" type="pv:stringFullEval"/>
+          </xs:choice>
           <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="boundaryEdges" type="pv:booleanFullEval" minOccurs="0"/>
           <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0"/>
           <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
+  <xs:element name="IvScreenAnnotation" substitutionGroup="Body" type="IvScreenAnnotationType"/>
+  <xs:complexType name="IvScreenAnnotationType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="scale1To1At" type="pv:lengthVector" minOccurs="0"/>
+          <xs:choice maxOccurs="unbounded">
+            <xs:element name="ivFileName" type="pv:filenameFullEval"/>
+            <xs:element name="ivContent" type="pv:stringFullEval"/>
+          </xs:choice>
+          <xs:element name="columnLabel" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

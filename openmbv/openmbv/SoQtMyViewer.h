@@ -28,7 +28,7 @@
 #endif
 #include <GL/gl.h>
 #include <Inventor/fields/SoMFColor.h>
-#include <Inventor/nodes/SoFont.h>
+#include <Inventor/nodes/SoFontStyle.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/nodes/SoScale.h>
 
@@ -47,12 +47,9 @@ class SoQtMyViewer : public SoQtViewer {
 
     // for text in viewport
 
-    SoSeparator *fgSep, *bgSep;
-    SoTranslation *timeTrans, *ombvTrans, *ombvLogoTrans;
+    SoSeparator *screenAnnotationSep, *bgSep;
     float aspectRatio { 1.0 };
-    SoScale *ombvLogoScale;
-    SoFont *font;
-    SoScale *text2Scale;
+    SoFontStyle *fontStyle;
 
     friend class MainWindow;
 };
