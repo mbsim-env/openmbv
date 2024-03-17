@@ -103,13 +103,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
-  // If <local>/lib/dri exists use it as load path for GL DRI drivers.
-  // DRI drivers depend on libstdc++.so. Hence, they must be distributed with the binary distribution.
-  if(boost::filesystem::exists(installPath/"lib"/"dri")) {
-    static char DRI[2048];
-    putenv(strcat(strcpy(DRI, "LIBGL_DRIVERS_PATH="), (installPath/"lib"/"dri").string().c_str()));
-  }
-
   // Enable global search of USE in iv files
   static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
   putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
