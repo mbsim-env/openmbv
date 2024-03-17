@@ -20,7 +20,7 @@
 #ifndef _OPENMBVGUI_IVSCREENANNOTATION_H_
 #define _OPENMBVGUI_IVSCREENANNOTATION_H_
 
-#include <openmbv/body.h>
+#include "body.h"
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
 

@@ -20,7 +20,7 @@
 #ifndef _OPENMBV_IVSCREENANNOTATION_H_
 #define _OPENMBV_IVSCREENANNOTATION_H_
 
-#include <openmbvcppinterface/body.h>
+#include "body.h"
 #include <hdf5serie/vectorserie.h>
 
 namespace OpenMBV {

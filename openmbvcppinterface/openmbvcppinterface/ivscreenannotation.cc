@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "group.h"
-#include <openmbvcppinterface/ivscreenannotation.h>
+#include "ivscreenannotation.h"
 
 using namespace std;
 using namespace MBXMLUtils;
