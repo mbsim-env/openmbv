@@ -994,6 +994,8 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
     }
     else
       root=*xmlCatalogEle;
+    if(E(root)->getTagName()!=XMLCATALOG%"catalog")
+      throw runtime_error("The root element of a XML catalog must be {"+XMLCATALOG.getNamespaceURI()+"}catalog.");
     static const NamespaceURI XMLNAMESPACE("http://www.w3.org/XML/1998/namespace");
     if(E(root)->hasAttribute(XMLNAMESPACE%"base"))
       throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");

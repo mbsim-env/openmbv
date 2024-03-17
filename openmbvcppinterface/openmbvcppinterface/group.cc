@@ -134,6 +134,9 @@ void Group::readXML() {
   shared_ptr<DOMParser> parser=DOMParser::create();
   shared_ptr<DOMDocument> doc=parser->parse(fileName);  
 
+  if(E(doc->getDocumentElement())->getTagName()!=OPENMBV%"Group")
+    throw runtime_error("The root element must be of type {"+OPENMBV.getNamespaceURI()+"}Group");
+
   // read XML using OpenMBVCppInterface
   initializeUsingXML(doc->getDocumentElement());
 }

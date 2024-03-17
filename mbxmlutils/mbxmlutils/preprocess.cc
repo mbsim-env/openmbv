@@ -129,6 +129,8 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         // validate and local parameter file
         eval->msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
         localparamxmldoc=parser->parse(paramFile, &dependencies, false);
+        if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
+          throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
         E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)),
