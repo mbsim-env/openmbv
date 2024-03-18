@@ -34,15 +34,6 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   iconFile="ivscreenannotation.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
-  auto *pathSep=new SoSeparator;
-  pathCoord=new SoCoordinate3;
-  pathCoord->point.setNum(0);
-  pathSep->addChild(pathCoord);
-  pathLine=new SoLineSet;
-  pathLine->numVertices.setNum(0);
-  pathSep->addChild(pathLine);
-  pathMaxFrameRead=-1;
-
   sep = new SoSeparator;
   if(!clone)
     MainWindow::getInstance()->getScreenAnnotationList()->addChild(sep);
@@ -88,7 +79,16 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     auto *pathSepInIv=dynamic_cast<SoSeparator*>(SoNode::getByName("OpenMBVIvScreenAnnotationPathSep"));
     if(!pathSepInIv)
       throw runtime_error("The node named OpenMBVIvScreenAnnotationPathSep must exist and be of type Separator!");
+
+    auto *pathSep=new SoSeparator;
     pathSepInIv->addChild(pathSep);
+    pathCoord=new SoCoordinate3;
+    pathCoord->point.setNum(0);
+    pathSep->addChild(pathCoord);
+    pathLine=new SoLineSet;
+    pathLine->numVertices.setNum(0);
+    pathSep->addChild(pathLine);
+    pathMaxFrameRead=-1;
 
     sa = make_unique<SoSearchAction>();
     sa->setNode(pathNode);
