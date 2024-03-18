@@ -83,7 +83,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
 
   screenAnnotationSep->addChild(MainWindow::getInstance()->getScreenAnnotationList());
 
-  const float textHeight=0.04;
+  const float textHeight=0.03;
 
   // time (top left)
   {
@@ -100,10 +100,9 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
     timeSep->addChild(soFgColorTop);
     soFgColorTop->rgb.connectFrom(MainWindow::getInstance()->getFgColorTop());
     auto trans = new SoTranslation;
-    trans->translation.setValue(-0.99,1-0.04,0);
+    trans->translation.setValue(-0.99,1-textHeight,0);
     timeSep->addChild(trans);
     auto *fontStyle=new SoFontStyle;
-    const float textHeight=0.04;
     fontStyle->size.setValue(textHeight);
     fontStyle->family=SoFontStyle::SANS;
     timeSep->addChild(fontStyle);
@@ -149,7 +148,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
     logoSep->addChild(ombvLogoTex);
     QSvgRenderer svg(QString((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()));
     QFontInfo fontinfo(parent->font());
-    QImage image(fontinfo.pixelSize()*5, fontinfo.pixelSize()*5, QImage::Format_RGBA8888);
+    QImage image(fontinfo.pixelSize()*8, fontinfo.pixelSize()*8, QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&image);
     svg.render(&painter);
     // set inventor image
@@ -158,7 +157,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
     ombvLogoTex->wrapT.setValue(SoTexture2::CLAMP);
     auto *ombvCoords=new SoCoordinate3;
     logoSep->addChild(ombvCoords);
-    double size=0.15; // the logo filles maximal "size" of the screen
+    double size=0.125; // the logo filles maximal "size" of the screen
     ombvCoords->point.set1Value(0, 1-size, -1+size+1.1*textHeight, 0); ombvCoords->point.set1Value(1, 1, -1+size+1.1*textHeight, 0);
     ombvCoords->point.set1Value(3, 1-size, -1+1.1*textHeight, 0);      ombvCoords->point.set1Value(2, 1, -1+1.1*textHeight, 0);
     auto *tc=new SoTextureCoordinate2;
