@@ -187,7 +187,7 @@
     <xs:complexContent>
       <xs:extension base="RigidBodyType">
         <xs:sequence>
-          <xs:choice maxOccurs="unbounded">
+          <xs:choice>
             <xs:element name="ivFileName" type="pv:filenameFullEval"/>
             <xs:element name="ivContent" type="pv:stringFullEval"/>
           </xs:choice>
@@ -206,7 +206,7 @@
       <xs:extension base="BodyType">
         <xs:sequence>
           <xs:element name="scale1To1At" type="pv:lengthVector" minOccurs="0"/>
-          <xs:choice maxOccurs="unbounded">
+          <xs:choice>
             <xs:element name="ivFileName" type="pv:filenameFullEval"/>
             <xs:element name="ivContent" type="pv:stringFullEval"/>
           </xs:choice>
