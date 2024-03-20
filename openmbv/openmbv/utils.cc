@@ -94,16 +94,17 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
       ins.first->second.sep=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-      ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
-      return ins.first->second.sep;
+      if(ins.first->second.sep) {
+        ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+        return ins.first->second.sep;
+      }
     }
-    else { // open failed, remove from cache and return a empty IV
-      QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
-      MainWindow::getInstance()->statusBar()->showMessage(str);
-      msgStatic(Warn)<<str.toStdString()<<endl;
-      ivBodyCache.erase(ins.first);
-      return new SoSeparator;
-    }
+    // error case
+    QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
+    MainWindow::getInstance()->statusBar()->showMessage(str);
+    msgStatic(Warn)<<str.toStdString()<<endl;
+    ivBodyCache.erase(ins.first);
+    return new SoSeparator;
   }
   return ins.first->second.sep;
 }
@@ -115,8 +116,16 @@ SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash)
     SoInput in;
     in.setBuffer(content.data(), content.size());
     ins.first->second.sep=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-    ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
-    return ins.first->second.sep;
+    if(ins.first->second.sep)  {
+      ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+      return ins.first->second.sep;
+    }
+    // error case
+    QString str("Failed to load IV content from string.");
+    MainWindow::getInstance()->statusBar()->showMessage(str);
+    msgStatic(Warn)<<str.toStdString()<<endl;
+    ivBodyCache.erase(ins.first);
+    return new SoSeparator;
   }
   return ins.first->second.sep;
 }
