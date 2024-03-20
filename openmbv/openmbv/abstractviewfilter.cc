@@ -269,7 +269,7 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
     updateView(view->model()->index(i, nameCol, index));
 }
 
-void AbstractViewFilter::updateItem(const QModelIndex &index) {
+void AbstractViewFilter::updateItem(const QModelIndex &index, bool recursive) {
   bool normalColor=true;
   if(!view->model()->flags(index).testFlag(Qt::ItemIsEnabled) ||
      (view->model()->data(index, enableRole).type()==QVariant::Bool && !view->model()->data(index, enableRole).toBool()))
@@ -286,6 +286,10 @@ void AbstractViewFilter::updateItem(const QModelIndex &index) {
       view->model()->setData(index, QBrush(QColor(255,0,0)), Qt::ForegroundRole);
     else
       view->model()->setData(index, QBrush(QColor(128,0,0)), Qt::ForegroundRole);
+  }
+  if(recursive) {
+    for(int i=0; i<view->model()->rowCount(index); i++)
+      updateItem(view->model()->index(i, nameCol, index),recursive);
   }
 }
 

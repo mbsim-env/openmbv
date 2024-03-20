@@ -76,7 +76,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     static FilterType getFilterType() { return filterType; }
     static bool getCaseSensitive() { return caseSensitive; }
     static AbstractViewFilterStatic* staticObject();
-    void updateItem(const QModelIndex &index);
+    void updateItem(const QModelIndex &index, bool recursive=false);
 
   protected:
     void updateTooltip();
