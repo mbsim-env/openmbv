@@ -97,6 +97,15 @@ vector<double> IvScreenAnnotation::getScale1To1At() {
   return scale1To1Center;
 }
 
+void IvScreenAnnotation::setColumnLabels(const std::vector<std::string> &columnLabels_) {
+  columnLabels = columnLabels_;
+  setEnvironment(columnLabels.size()==0);
+}
+
+const std::vector<std::string>& IvScreenAnnotation::getColumnLabels() const {
+  return columnLabels;
+}
+
 void IvScreenAnnotation::createHDF5File() {
   std::shared_ptr<Group> p=parent.lock();
   hdf5Group=p->getHDF5Group()->createChildObject<H5::Group>(name)();
