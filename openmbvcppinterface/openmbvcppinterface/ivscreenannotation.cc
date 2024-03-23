@@ -121,7 +121,7 @@ void IvScreenAnnotation::openHDF5File() {
     hdf5Group=p->getHDF5Group()->openChildObject<H5::Group>(name);
   }
   catch(...) {
-    msg(Info)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
+    msg(Debug)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
   }
 
   if(!hdf5Group) return;
@@ -130,7 +130,7 @@ void IvScreenAnnotation::openHDF5File() {
   }
   catch(...) {
     data=nullptr;
-    msg(Info)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
+    msg(Debug)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
   }
 }
 

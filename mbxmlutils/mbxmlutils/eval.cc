@@ -95,7 +95,7 @@ Eval::Eval(vector<bfs::path> *dependencies_) : dependencies(dependencies_) {
   static bool initialized=false;
   if(!initialized) {
     // get units
-    msg(Info)<<"Build unit list for measurements."<<endl;
+    msg(Debug)<<"Build unit list for measurements."<<endl;
     bfs::path XMLDIR=installPath/"share"/"mbxmlutils"/"xml"; // use rel path if build configuration dose not work
     shared_ptr<DOMDocument> mmdoc=DOMParser::create()->parse(XMLDIR/"measurement.xml", dependencies, false);
     DOMElement *ele, *el2;
@@ -116,7 +116,7 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
     return it->second(dependencies_);
 
   // load the evaluator plugin named evalName
-  msgStatic(Info)<<"Loading evaluator '"<<evalName<<"'."<<endl;
+  msgStatic(Debug)<<"Loading evaluator '"<<evalName<<"'."<<endl;
 
   // check if a library named libmbxmlutils-eval-global-<evalName>.<ext> exists.
   // If it exists we load this library with the RTLD_GLOBAL flag (on Linux).

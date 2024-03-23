@@ -19,11 +19,11 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
                        > parserVariant
                       ) {
   if(const path* xmlCatalogFile = get_if<path>(&parserVariant)) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create a validating XML parser from XML catalog file."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Debug)<<"Create a validating XML parser from XML catalog file."<<endl;
     parserVariant = DOMParser::create(*xmlCatalogFile);
   }
   else if(DOMElement*const* xmlCatalogEle = get_if<DOMElement*>(&parserVariant)) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create a validating XML parser from XML catalog element."<<endl;
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Debug)<<"Create a validating XML parser from XML catalog element."<<endl;
     parserVariant = DOMParser::create(*xmlCatalogEle);
   }
   auto parser = get<shared_ptr<DOMParser>>(parserVariant);
