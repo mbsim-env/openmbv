@@ -1,26 +1,112 @@
 #include <config.h>
 #include "mbxmlutils/preprocess.h"
-#include "mbxmlutils/eval.h"
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMAttr.hpp>
-#include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
-#include <fmatvec/toString.h>
-#include <boost/scope_exit.hpp>
 
 using namespace std;
-using namespace std::placeholders;
 using namespace MBXMLUtils;
 using namespace xercesc;
 using namespace boost::filesystem;
 
-namespace {
-  ThisLineLocation loc;
-}
-
 namespace MBXMLUtils {
 
-void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_ptr<Eval> &eval, vector<path> &dependencies, DOMElement *&e,
+Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used as input OR
+                       variant<
+                         shared_ptr<DOMParser>, // a direct parser OR
+                         DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
+                         path // a filename of a XML catalog file to create a parser
+                       > parserVariant
+                      ) {
+  if(const path* xmlCatalogFile = get_if<path>(&parserVariant)) {
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create a validating XML parser from XML catalog file."<<endl;
+    parserVariant = DOMParser::create(*xmlCatalogFile);
+  }
+  else if(DOMElement*const* xmlCatalogEle = get_if<DOMElement*>(&parserVariant)) {
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create a validating XML parser from XML catalog element."<<endl;
+    parserVariant = DOMParser::create(*xmlCatalogEle);
+  }
+  auto parser = get<shared_ptr<DOMParser>>(parserVariant);
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Load and parse the XML input file to be preprocessed."<<endl;
+  document = parser->parse(inputFile, &dependencies, false);
+  extractEvaluator();
+}
+
+Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc) {
+  document = inputDoc;
+  Atom::msgStatic(Atom::Info)<<"Validate document."<<endl;
+  D(document)->validate();
+  extractEvaluator();
+}
+
+const vector<path>& Preprocess::getDependencies() const {
+  if(!preprocessed)
+    throw DOMEvalException("Preprocess::getDependencies() is only useful after Preprocess::processAndGetDocument!", document->getDocumentElement());
+  return dependencies;
+}
+
+shared_ptr<Eval> Preprocess::getEvaluator() const {
+  return eval;
+}
+
+void Preprocess::setParam(const shared_ptr<ParamSet>& param_) {
+  param = param_;
+}
+
+shared_ptr<Preprocess::ParamSet> Preprocess::getParam() const {
+  return param;
+}
+
+void Preprocess::extractEvaluator() {
+  // create a clean evaluator (get the evaluator name first form the dom)
+
+  string evalName="octave"; // default evaluator
+  DOMElement *evaluator;
+  if(E(document->getDocumentElement())->getTagName()==PV%"Embed") {
+    // if the root element IS A Embed than the <evaluator> element is the first child of the
+    // first (none pv:Parameter) child of the root element
+    auto r=document->getDocumentElement()->getFirstElementChild();
+    if(E(r)->getTagName()==PV%"Parameter")
+      r=r->getNextElementSibling();
+    evaluator=E(r)->getFirstElementChildNamed(PV%"evaluator");
+  }
+  else
+    // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
+    evaluator=E(document->getDocumentElement())->getFirstElementChildNamed(PV%"evaluator");
+  if(evaluator) {
+    auto textEle=E(evaluator)->getFirstTextChild();
+    auto text=textEle ? X()%textEle->getData() : "";
+    evalName=text;
+  }
+
+  eval = Eval::createEvaluator(evalName, &dependencies);
+}
+
+shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
+  if(preprocessed)
+    throw DOMEvalException("Preprocess::processAndGetDocument and only be called ones!", document->getDocumentElement());
+
+  // embed/validate/unit/eval files
+  auto mainxmlele=document->getDocumentElement();
+  if(!param)
+    param = make_shared<ParamSet>();
+  Preprocess::preprocess(mainxmlele, param);
+
+  // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
+  auto evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
+  if(evaluator)
+    E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
+  else {
+    evaluator=D(document)->createElement(PV%"evaluator");
+    evaluator->appendChild(document->createTextNode(X()%"xmlflat"));
+    mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
+  }
+
+  preprocessed = true;
+  return document;
+}
+
+void Preprocess::preprocess(DOMElement *&e,
                             const shared_ptr<ParamSet>& param, const string &parentXPath, int embedXPathCount,
                             const shared_ptr<PositionMap>& position) {
   try {
@@ -77,7 +163,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         eval->msg(Info)<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc;
         try {
-          newdoc=parser->parse(file, &dependencies, false);
+          newdoc=D(document)->getParser()->parse(file, &dependencies, false);
         }
         catch(DOMEvalException& ex) {
           ex.appendContext(e),
@@ -128,7 +214,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
         dependencies.push_back(paramFile);
         // validate and local parameter file
         eval->msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
-        localparamxmldoc=parser->parse(paramFile, &dependencies, false);
+        localparamxmldoc=D(document)->getParser()->parse(paramFile, &dependencies, false);
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
@@ -224,7 +310,7 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       
           // apply embed to new element
           // (do not pass param here since we report only top level parameter sets; parentXPath is also not longer needed)
-          preprocess(parser, eval, dependencies, e);
+          preprocess(e);
         }
         else
           eval->msg(Info)<<"Skip embeding "<<(file.empty()?inlineElement:("\""+file.string()+"\""))<<" ("<<i<<"/"<<count<<"); onlyif attribute is false"<<endl;
@@ -334,64 +420,10 @@ void Preprocess::preprocess(const shared_ptr<DOMParser>& parser, const shared_pt
       // pass param and the new parent XPath to preprocess
       DOMElement *n=c->getNextElementSibling();
       if(E(c)->getTagName()==PV%"Embed") embedXPathCount++;
-      preprocess(parser, eval, dependencies, c, shared_ptr<ParamSet>(), string(parentXPath).append("/").append(thisXPath), embedXPathCount);
+      preprocess(c, shared_ptr<ParamSet>(), string(parentXPath).append("/").append(thisXPath), embedXPathCount);
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);
-}
-
-pair<shared_ptr<DOMDocument>, string> Preprocess::parseFileAndGetEvaluator(
-  vector<path> &dependencies, const variant<boost::filesystem::path, DOMElement*> &xmlCatalog,
-  const boost::filesystem::path &mainXML) {
-
-  // the XML DOM parser
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Create validating XML parser."<<endl;
-  shared_ptr<DOMParser> parser=DOMParser::create(xmlCatalog);
-
-  // validate main file and get DOM
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Read and validate "<<mainXML<<endl;
-  shared_ptr<DOMDocument> mainXMLDoc=parser->parse(mainXML, &dependencies, false);
-  dependencies.push_back(mainXML);
-  DOMElement *mainxmlele=mainXMLDoc->getDocumentElement();
-
-  // create a clean evaluator (get the evaluator name first form the dom)
-  string evalName="octave"; // default evaluator
-  DOMElement *evaluator;
-  if(E(mainxmlele)->getTagName()==PV%"Embed") {
-    // if the root element IS A Embed than the <evaluator> element is the first child of the
-    // first (none pv:Parameter) child of the root element
-    auto r=mainxmlele->getFirstElementChild();
-    if(E(r)->getTagName()==PV%"Parameter")
-      r=r->getNextElementSibling();
-    evaluator=E(r)->getFirstElementChildNamed(PV%"evaluator");
-  }
-  else
-    // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
-    evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
-  if(evaluator) {
-    auto textEle=E(evaluator)->getFirstTextChild();
-    auto text=textEle ? X()%textEle->getData() : "";
-    evalName=text;
-  }
-  return {mainXMLDoc, evalName};
-}
-
-void Preprocess::preprocessDocument(vector<boost::filesystem::path> &dependencies,
-                                    const shared_ptr<Eval> &eval, const shared_ptr<xercesc::DOMDocument> &mainXMLDoc, const shared_ptr<ParamSet>& param) {
-  // embed/validate/unit/eval files
-  auto parser = D(mainXMLDoc)->getParser();
-  auto mainxmlele=mainXMLDoc->getDocumentElement();
-  Preprocess::preprocess(parser, eval, dependencies, mainxmlele, param);
-
-  // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
-  auto evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
-  if(evaluator)
-    E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
-  else {
-    evaluator=D(mainXMLDoc)->createElement(PV%"evaluator");
-    evaluator->appendChild(mainXMLDoc->createTextNode(X()%"xmlflat"));
-    mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
-  }
 }
 
 }
