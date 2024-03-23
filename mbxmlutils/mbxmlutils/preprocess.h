@@ -46,6 +46,12 @@ class Preprocess : virtual public fmatvec::Atom {
 
     bool preprocessed { false };
 
+    std::map<boost::filesystem::path, std::shared_ptr<xercesc::DOMDocument>> parsedFiles;
+    std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
+                                                      const boost::filesystem::path &inputFile,
+                                                      std::vector<boost::filesystem::path> &dependencies,
+                                                      const std::string &msg);
+
     void extractEvaluator();
 
     using PositionMap = std::map<FQN, int>;

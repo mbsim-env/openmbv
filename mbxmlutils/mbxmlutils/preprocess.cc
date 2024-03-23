@@ -27,8 +27,7 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
     parserVariant = DOMParser::create(*xmlCatalogEle);
   }
   auto parser = get<shared_ptr<DOMParser>>(parserVariant);
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Load and parse the XML input file to be preprocessed."<<endl;
-  document = parser->parse(inputFile, &dependencies, false);
+  document = parseCached(parser, inputFile, dependencies, "XML input file.");
   extractEvaluator();
 }
 
@@ -160,10 +159,9 @@ void Preprocess::preprocess(DOMElement *&e,
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
       if(!file.empty()) {
-        eval->msg(Info)<<"Read and validate "<<file<<endl;
         shared_ptr<DOMDocument> newdoc;
         try {
-          newdoc=D(document)->getParser()->parse(file, &dependencies, false);
+          newdoc=parseCached(D(document)->getParser(), file, dependencies, "Embed file.");
         }
         catch(DOMEvalException& ex) {
           ex.appendContext(e),
@@ -200,7 +198,6 @@ void Preprocess::preprocess(DOMElement *&e,
         throw DOMEvalException("Only the parameterHref attribute OR the child element pv:Parameter is allowed in Embed!", e);
       // get localParamEle
       shared_ptr<DOMElement> localParamEle;
-      shared_ptr<DOMDocument> localparamxmldoc;
       if(inlineParamEle) { // inline parameter
         E(inlineParamEle)->setOriginalFilename();
         localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)), [](auto && PH1) { if(PH1) PH1->release(); });
@@ -213,8 +210,7 @@ void Preprocess::preprocess(DOMElement *&e,
         // add local parameter file to dependencies
         dependencies.push_back(paramFile);
         // validate and local parameter file
-        eval->msg(Info)<<"Read and validate local parameter file "<<paramFile<<endl;
-        localparamxmldoc=D(document)->getParser()->parse(paramFile, &dependencies, false);
+        auto localparamxmldoc=parseCached(D(document)->getParser(), paramFile, dependencies, "Local parameter file.");
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
@@ -424,6 +420,17 @@ void Preprocess::preprocess(DOMElement *&e,
       c=n;
     }
   } RETHROW_AS_DOMEVALEXCEPTION(e);
+}
+
+shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &parser, const path &inputFile,
+                                                vector<path> &dependencies, const std::string &msg) {
+  auto [it, insert] = parsedFiles.emplace(absolute(inputFile), shared_ptr<DOMDocument>());
+  if(!insert) {
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Reuse cached file "<<inputFile<<": "<<msg<<endl;
+    return it->second;
+  }
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Load, parse and validate file "<<inputFile<<": "<<msg<<endl;
+  return it->second = parser->parse(inputFile, &dependencies, false);
 }
 
 }
