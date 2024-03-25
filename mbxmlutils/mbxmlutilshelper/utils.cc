@@ -35,7 +35,7 @@ namespace MBXMLUtils {
 
   set<size_t> Deprecated::printedMessages;
 
-  void Deprecated::message(ostream &str, const string &msg, const DOMElement *e) {
+  void Deprecated::message(const fmatvec::Atom *ele, const string &msg, const DOMElement *e) {
     // create the full deprecated message (including a trace)
     string msg2;
     if(e)
@@ -43,6 +43,7 @@ namespace MBXMLUtils {
     else
       // MISSING get a stacktrace here. e.g. using boost::backtrace if its available
       msg2="(no stack trace available)";
+    auto &str = ele ? ele->msgStatic(fmatvec::Atom::Deprecated) : fmatvec::Atom::msgStatic(fmatvec::Atom::Deprecated);
     // create a hash of the message and ...
     boost::hash<pair<ostream*, string> > messageHash;
     if(printedMessages.insert(messageHash(make_pair(&str, msg+"\n"+msg2))).second)

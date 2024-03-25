@@ -185,11 +185,11 @@ class Block {
         strstr<<PyUnicode_AsUTF8(str.get());
       }
       catch(exception &ex) {
-        cout<<"Internal error: exception in dtor: "<<ex.what()<<endl;
+        cerr<<"Internal error: exception in dtor: "<<ex.what()<<endl;
         exit(1);
       }
       catch(...) {
-        cout<<"Internal error: unknown exception in dtor"<<endl;
+        cerr<<"Internal error: unknown exception in dtor"<<endl;
         exit(1);
       }
       if(!type || !value || !traceback)

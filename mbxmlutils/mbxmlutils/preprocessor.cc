@@ -93,9 +93,9 @@ int main(int argc, char *argv[]) {
     path xmlCatalog=*it;
     path mainXML(args.back());
 
-    auto [mainXMLDoc, evalName] = Preprocess::parseFileAndGetEvaluator(dependencies, xmlCatalog, mainXML);
-    auto eval=Eval::createEvaluator(evalName, &dependencies);
-    Preprocess::preprocessDocument(dependencies, eval, mainXMLDoc);
+    Preprocess preprocess(mainXML, xmlCatalog);
+    auto mainXMLDoc = preprocess.processAndGetDocument();
+    dependencies = preprocess.getDependencies();
 
     // save result file
     path mainxmlpp;

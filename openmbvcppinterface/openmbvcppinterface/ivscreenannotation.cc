@@ -97,6 +97,15 @@ vector<double> IvScreenAnnotation::getScale1To1At() {
   return scale1To1Center;
 }
 
+void IvScreenAnnotation::setColumnLabels(const std::vector<std::string> &columnLabels_) {
+  columnLabels = columnLabels_;
+  setEnvironment(columnLabels.size()==0);
+}
+
+const std::vector<std::string>& IvScreenAnnotation::getColumnLabels() const {
+  return columnLabels;
+}
+
 void IvScreenAnnotation::createHDF5File() {
   std::shared_ptr<Group> p=parent.lock();
   hdf5Group=p->getHDF5Group()->createChildObject<H5::Group>(name)();
@@ -112,7 +121,7 @@ void IvScreenAnnotation::openHDF5File() {
     hdf5Group=p->getHDF5Group()->openChildObject<H5::Group>(name);
   }
   catch(...) {
-    msg(Info)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
+    msg(Debug)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
   }
 
   if(!hdf5Group) return;
@@ -121,7 +130,7 @@ void IvScreenAnnotation::openHDF5File() {
   }
   catch(...) {
     data=nullptr;
-    msg(Info)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
+    msg(Debug)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
   }
 }
 

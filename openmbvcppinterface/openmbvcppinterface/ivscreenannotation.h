@@ -71,8 +71,8 @@ namespace OpenMBV {
       std::string getIvFileName() { return ivFileName; }
       void setIvContent(std::string ivContent_) { ivFileName=""; ivContent=std::move(ivContent_); }
       const std::string& getIvContent() { return ivContent; }
-      void setColumnLabels(const std::vector<std::string> &columnLabels_) { columnLabels = columnLabels_; }
-      const std::vector<std::string>& getColumnLabels() { return columnLabels; }
+      void setColumnLabels(const std::vector<std::string> &columnLabels_);
+      const std::vector<std::string>& getColumnLabels() const;
 
       void createHDF5File() override;
       void openHDF5File() override;
