@@ -547,12 +547,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     return C(CALLPY(PyObject_CallObject, pyInit->numpyZeros(), args));
   }
   // * note that in python you cannot create R^0xC matrix from a python list
-  // * a list with at least one element is converted using numpy.asarray (if the first element is a scalar, a empty list or a list of doubles)
+  // * a list with at least one element is converted using numpy.asarray (if the first element is a scalar, a empty list, a list of doubles or a numpy 1D array)
   if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)>0) {
-    PyO ret0(CALLPYB(PyList_GetItem, ret, 0));
-    if(is_scalar_double(C(ret0)) ||
-       (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)==0) ||
-       (CALLPY(PyList_Check, ret0) && CALLPY(PyList_Size, ret0)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, ret0, 0))))) {
+    PyO firstEle(CALLPYB(PyList_GetItem, ret, 0));
+    if(is_scalar_double(C(firstEle)) ||
+       (CALLPY(PyList_Check, firstEle) && CALLPY(PyList_Size, firstEle)==0) ||
+       (CALLPY(PyList_Check, firstEle) && CALLPY(PyList_Size, firstEle)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, firstEle, 0)))) ||
+       is_vector_double(C(firstEle))) {
       PyO args(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
       return C(CALLPY(PyObject_CallObject, pyInit->numpyAsarray(), args));
