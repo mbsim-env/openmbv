@@ -140,7 +140,7 @@ void AbstractViewFilter::updateTooltip() {
                            "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(nameCol+1).arg(typeCol+1)
                                              .arg(caseSensitive?"case sensitive":"case insensitive")
                                              .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
-    filterLE->setStatusTip("Filter by name column, or by type column (if the filter starts with '.')");
+    filterLE->setStatusTip("Filter by name column, or by type column (if the filter starts with ':')");
   }
 }
 
