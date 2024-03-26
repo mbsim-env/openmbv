@@ -60,7 +60,7 @@ void DynamicNurbsCurve::openHDF5File() {
   }
   catch(...) {
     data=nullptr;
-    msg(Info)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
+    msg(Debug)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
   }
 }
 

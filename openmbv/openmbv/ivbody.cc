@@ -69,18 +69,18 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   sep->addChild(soIv);
 
   // search and remove specific nodes
-  auto removeNode=[soIv, &fileName](const function<void(SoSearchAction &sa)> &find){
+  auto removeNode=[soIv, &fileName, this](const function<void(SoSearchAction &sa)> &find){
     SoSearchAction sa;
     sa.setInterest(SoSearchAction::ALL);
     find(sa);
     sa.apply(soIv);
     auto pl = sa.getPaths();
     for(int i=0; i<pl.getLength(); ++i) {
-      cout<<"WARNING: Removing node for IVBody file '"<<fileName<<"' at path:"<<endl;
+      msg(Info)<<"Removing the following node for IVBody from file '"<<fileName<<"':"<<endl;
       auto *p = pl[i];
       for(int j=1; j<p->getLength(); ++j) {
         auto *n = p->getNode(j);
-        cout<<string(2*j, ' ')<<"- Name: '"<<n->getName()<<"'; Type: '"<<n->getTypeId().getName().getString()<<"'"<<endl;
+        msg(Info)<<string(2*j, ' ')<<"- Name: '"<<n->getName()<<"'; Type: '"<<n->getTypeId().getName().getString()<<"'"<<endl;
       }
       static_cast<SoGroup*>(p->getNodeFromTail(1))->removeChild(p->getIndexFromTail(0));
     }

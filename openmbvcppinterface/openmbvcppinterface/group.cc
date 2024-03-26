@@ -87,7 +87,7 @@ void Group::openHDF5File() {
         hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
     }
     catch(...) {
-      msg(Info)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
+      msg(Debug)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
     }
   }
   if(hdf5Group)
@@ -197,7 +197,7 @@ void Group::read() {
         hdf5Group=hdf5File.get();
       }
       catch(...) {
-        msg(Info)<<"Unable to open the HDF5 File '"<<h5FileName<<"'. Using 0 for all data."<<endl;
+        msg(Debug)<<"Unable to open the HDF5 File '"<<h5FileName<<"'. Using 0 for all data."<<endl;
       }
     }
   }
@@ -216,7 +216,7 @@ void Group::read() {
           hdf5Group=p->hdf5Group->openChildObject<H5::Group>(name);
       }
       catch(...) {
-        msg(Info)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
+        msg(Debug)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
       }
     }
     if(hdf5Group)
