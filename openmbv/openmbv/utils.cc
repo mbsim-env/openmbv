@@ -507,7 +507,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[inScreenRotateSwitch]={"mainwindow/manipulate3d/inScreenRotateSwitch", 30.0};
   setting[filterType]={"mainwindow/filter/type", 0};
   setting[filterCaseSensitivity]={"mainwindow/filter/casesensitivity", 0};
-  setting[transparency]={"mainwindow/sceneGraph/transparency", 0};
+  setting[transparency]={"mainwindow/sceneGraph/transparency", 2};
 
   for(auto &[str, value]: setting)
     if(qSettings.contains(str))
