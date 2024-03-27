@@ -56,6 +56,10 @@ struct CheckSize<std::vector<std::vector<T>>> {
 
 namespace MBXMLUtils {
 
+template<class T> struct XercesUniquePtrDeleter { void operator()(T *n) { if(n) n->release(); } };
+//! A std::unique_ptr for xerces objects which calls release() to deallocate the object
+template<class T> using XercesUniquePtr = std::unique_ptr<T, XercesUniquePtrDeleter<T>>;
+
 // forward declaration
 template<typename DOMDocumentType>
 class DOMDocumentWrapper;
