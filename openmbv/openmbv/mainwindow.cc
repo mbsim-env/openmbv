@@ -329,15 +329,20 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(objectList,&QTreeWidget::itemCollapsed, this, &MainWindow::collapseItem);
   connect(objectList,&QTreeWidget::itemExpanded, this, &MainWindow::expandItem);
   connect(objectList,&QTreeWidget::itemSelectionChanged, this, &MainWindow::selectionChanged);
-  connect(new QShortcut(QKeySequence("1"),this), &QShortcut::activated, this, &MainWindow::expandToDepth1);
-  connect(new QShortcut(QKeySequence("2"),this), &QShortcut::activated, this, &MainWindow::expandToDepth2);
-  connect(new QShortcut(QKeySequence("3"),this), &QShortcut::activated, this, &MainWindow::expandToDepth3);
-  connect(new QShortcut(QKeySequence("4"),this), &QShortcut::activated, this, &MainWindow::expandToDepth4);
-  connect(new QShortcut(QKeySequence("5"),this), &QShortcut::activated, this, &MainWindow::expandToDepth5);
-  connect(new QShortcut(QKeySequence("6"),this), &QShortcut::activated, this, &MainWindow::expandToDepth6);
-  connect(new QShortcut(QKeySequence("7"),this), &QShortcut::activated, this, &MainWindow::expandToDepth7);
-  connect(new QShortcut(QKeySequence("8"),this), &QShortcut::activated, this, &MainWindow::expandToDepth8);
-  connect(new QShortcut(QKeySequence("9"),this), &QShortcut::activated, this, &MainWindow::expandToDepth9);
+  array<QShortcut*,9> sc;
+  connect(sc[0]=new QShortcut(QKeySequence("1"),this), &QShortcut::activated, this, &MainWindow::expandToDepth1);
+  connect(sc[1]=new QShortcut(QKeySequence("2"),this), &QShortcut::activated, this, &MainWindow::expandToDepth2);
+  connect(sc[2]=new QShortcut(QKeySequence("3"),this), &QShortcut::activated, this, &MainWindow::expandToDepth3);
+  connect(sc[3]=new QShortcut(QKeySequence("4"),this), &QShortcut::activated, this, &MainWindow::expandToDepth4);
+  connect(sc[4]=new QShortcut(QKeySequence("5"),this), &QShortcut::activated, this, &MainWindow::expandToDepth5);
+  connect(sc[5]=new QShortcut(QKeySequence("6"),this), &QShortcut::activated, this, &MainWindow::expandToDepth6);
+  connect(sc[6]=new QShortcut(QKeySequence("7"),this), &QShortcut::activated, this, &MainWindow::expandToDepth7);
+  connect(sc[7]=new QShortcut(QKeySequence("8"),this), &QShortcut::activated, this, &MainWindow::expandToDepth8);
+  connect(sc[8]=new QShortcut(QKeySequence("9"),this), &QShortcut::activated, this, &MainWindow::expandToDepth9);
+  connect(objectListDW, &QDockWidget::visibilityChanged, [sc](bool visible) {
+    for(auto s: sc)
+      s->setEnabled(visible);
+  });
   objectList->setEditTriggers(QTreeWidget::EditKeyPressed);
   connect(objectList->itemDelegate(), &QAbstractItemDelegate::closeEditor, this, &MainWindow::editFinishedSlot);
 
