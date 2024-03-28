@@ -158,18 +158,25 @@ void Preprocess::preprocess(DOMElement *&e,
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
+      bool fileExists;
       if(!file.empty()) {
-        shared_ptr<DOMDocument> newdoc;
-        try {
-          newdoc=parseCached(D(document)->getParser(), file, dependencies, "Embed file.");
+        fileExists = exists(file);
+        if(fileExists) {
+          shared_ptr<DOMDocument> newdoc;
+          try {
+            newdoc=parseCached(D(document)->getParser(), file, dependencies, "Embed file.");
+          }
+          catch(DOMEvalException& ex) {
+            ex.appendContext(e),
+            throw ex;
+          }
+          E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
+          enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
+            [](auto && PH1) { if(PH1) PH1->release(); });
         }
-        catch(DOMEvalException& ex) {
-          ex.appendContext(e),
-          throw ex;
-        }
-        E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
-        enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
-          [](auto && PH1) { if(PH1) PH1->release(); });
+        else
+          enew.reset(D(e->getOwnerDocument())->createElement(PV%"NoneExistentEmbedHref"),
+            [](auto && PH1) { if(PH1) PH1->release(); });
       }
       else { // or take the child element (inlineEmbedEle)
         enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
@@ -293,6 +300,8 @@ void Preprocess::preprocess(DOMElement *&e,
         if(E(embed)->hasAttribute("onlyif"))
           try { onlyif=(eval->cast<double>(eval->eval(E(embed)->getAttributeNode("onlyif")))==1); } RETHROW_AS_DOMEVALEXCEPTION(embed)
         if(onlyif) {
+          if(!file.empty() && !fileExists)
+            throw DOMEvalException("Embed file \""+file.string()+"\" not found.", embed);
           realCount++;
           eval->msg(Info)<<"Embed "<<(file.empty()?inlineElement:("\""+file.string()+"\""))<<" ("<<i<<"/"<<count<<")"<<endl;
           if(p->getNodeType()==DOMElement::DOCUMENT_NODE && realCount!=1)
