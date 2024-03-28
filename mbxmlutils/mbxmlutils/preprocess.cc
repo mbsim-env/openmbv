@@ -156,7 +156,7 @@ void Preprocess::preprocess(DOMElement *&e,
       if(E(e)->hasAttribute("counterName"))
         counterName=E(e)->getAttribute("counterName");
     
-      shared_ptr<DOMElement> enew;
+      XercesUniquePtr<DOMElement> enew;
       // validate/load if file is given
       bool fileExists = false;
       if(!file.empty()) {
@@ -171,17 +171,13 @@ void Preprocess::preprocess(DOMElement *&e,
             throw ex;
           }
           E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
-          enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)),
-            [](auto && PH1) { if(PH1) PH1->release(); });
+          enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)));
         }
         else
-          enew.reset(D(e->getOwnerDocument())->createElement(PV%"NoneExistentEmbedHref"),
-            [](auto && PH1) { if(PH1) PH1->release(); });
+          enew.reset(D(e->getOwnerDocument())->createElement(PV%"NoneExistentEmbedHref"));
       }
-      else { // or take the child element (inlineEmbedEle)
-        enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)),
-          [](auto && PH1) { if(PH1) PH1->release(); });
-      }
+      else // or take the child element (inlineEmbedEle)
+        enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)));
 
       // set the XPath of this (Embed) element to the name of the target Embed element (including the proper position)
       int pos=++(*position)[E(enew)->getTagName()];

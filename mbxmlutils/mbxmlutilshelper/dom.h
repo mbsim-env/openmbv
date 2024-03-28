@@ -381,7 +381,10 @@ template<typename DOMElementType>
 DOMElementWrapper<DOMElementType> E(DOMElementType *me) { return DOMElementWrapper<DOMElementType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMElementWrapper.
 template<typename DOMElementType>
-DOMElementWrapper<DOMElementType> E(std::shared_ptr<DOMElementType> me) { return DOMElementWrapper<DOMElementType>(me.get()); }
+DOMElementWrapper<DOMElementType> E(const std::shared_ptr<DOMElementType> &me) { return DOMElementWrapper<DOMElementType>(me.get()); }
+//! Helper function, with a very short name, for automatic type deduction for DOMElementWrapper.
+template<typename DOMElementType>
+DOMElementWrapper<DOMElementType> E(const XercesUniquePtr<DOMElementType> &me) { return DOMElementWrapper<DOMElementType>(me.get()); }
 
 template<> const xercesc::DOMElement *DOMElementWrapper<      xercesc::DOMElement>::dummyArg;
 template<> const xercesc::DOMElement *DOMElementWrapper<const xercesc::DOMElement>::dummyArg;
@@ -411,7 +414,10 @@ template<typename DOMAttrType>
 DOMAttrWrapper<DOMAttrType> A(DOMAttrType *me) { return DOMAttrWrapper<DOMAttrType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMAttrWrapper.
 template<typename DOMAttrType>
-DOMAttrWrapper<DOMAttrType> A(std::shared_ptr<DOMAttrType> me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
+DOMAttrWrapper<DOMAttrType> A(const std::shared_ptr<DOMAttrType> &me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
+//! Helper function, with a very short name, for automatic type deduction for DOMAttrWrapper.
+template<typename DOMAttrType>
+DOMAttrWrapper<DOMAttrType> A(const XercesUniquePtr<DOMAttrType> &me) { return DOMAttrWrapper<DOMAttrType>(me.get()); }
 
 class DOMParser;
 
@@ -450,7 +456,10 @@ template<typename DOMDocumentType>
 DOMDocumentWrapper<DOMDocumentType> D(DOMDocumentType *me) { return DOMDocumentWrapper<DOMDocumentType>(me); }
 //! Helper function, with a very short name, for automatic type deduction for DOMDocumentWrapper.
 template<typename DOMDocumentType>
-DOMDocumentWrapper<DOMDocumentType> D(std::shared_ptr<DOMDocumentType> me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
+DOMDocumentWrapper<DOMDocumentType> D(const std::shared_ptr<DOMDocumentType> &me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
+//! Helper function, with a very short name, for automatic type deduction for DOMDocumentWrapper.
+template<typename DOMDocumentType>
+DOMDocumentWrapper<DOMDocumentType> D(const XercesUniquePtr<DOMDocumentType> &me) { return DOMDocumentWrapper<DOMDocumentType>(me.get()); }
 
 class LocationInfoFilter : public xercesc::DOMLSParserFilter {
   public:
