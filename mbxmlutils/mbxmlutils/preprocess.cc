@@ -158,7 +158,7 @@ void Preprocess::preprocess(DOMElement *&e,
     
       shared_ptr<DOMElement> enew;
       // validate/load if file is given
-      bool fileExists;
+      bool fileExists = false;
       if(!file.empty()) {
         fileExists = exists(file);
         if(fileExists) {
