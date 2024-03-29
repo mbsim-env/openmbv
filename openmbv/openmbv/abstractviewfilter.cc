@@ -54,7 +54,7 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
                                        std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
   QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(std::move(typePrefix_)), indexToQObject(std::move(indexToQObject_)),
   enableRole(enableRole_) {
-  connect(staticObject(), &AbstractViewFilterStatic::optionsChanged, [this](){
+  connect(staticObject(), &AbstractViewFilterStatic::optionsChanged, this, [this](){
     updateTooltip();
     applyFilter();
   });
@@ -66,18 +66,18 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   filterLE=new QLineEdit;
   updateTooltip();
   filterLE->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(filterLE, &QAbstractScrollArea::customContextMenuRequested, [this](const QPoint &pt){
+  connect(filterLE, &QAbstractScrollArea::customContextMenuRequested, this, [this](const QPoint &pt){
     auto *menu = filterLE->createStandardContextMenu();
 
     menu->addSeparator()->setText(tr("Filter type"));
     auto *filterTypeGroup = new QActionGroup(menu);
     auto *regexAction=new QAction("Regular expression filter", filterTypeGroup);
     regexAction->setCheckable(true);
-    connect(regexAction, &QAction::triggered, [](){ setFilterType(FilterType::RegEx); });
+    connect(regexAction, &QAction::triggered, this, [](){ setFilterType(FilterType::RegEx); });
     filterTypeGroup->addAction(regexAction);
     auto *globAction=new QAction("Glob pattern filter", filterTypeGroup);
     globAction->setCheckable(true);
-    connect(globAction, &QAction::triggered, [](){ setFilterType(FilterType::Glob); });
+    connect(globAction, &QAction::triggered, this, [](){ setFilterType(FilterType::Glob); });
     filterTypeGroup->addAction(globAction);
     if(filterType==FilterType::RegEx)
       regexAction->setChecked(true);
@@ -90,11 +90,11 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
     auto *caseGroup = new QActionGroup(menu);
     auto *caseSensAction=new QAction("Case sensitive filter", caseGroup);
     caseSensAction->setCheckable(true);
-    connect(caseSensAction, &QAction::triggered, [](){ setCaseSensitive(true); });
+    connect(caseSensAction, &QAction::triggered, this, [](){ setCaseSensitive(true); });
     caseGroup->addAction(caseSensAction);
     auto *caseInsensAction=new QAction("Case insensitive filter", caseGroup);
     caseInsensAction->setCheckable(true);
-    connect(caseInsensAction, &QAction::triggered, [](){ setCaseSensitive(false); });
+    connect(caseInsensAction, &QAction::triggered, this, [](){ setCaseSensitive(false); });
     caseGroup->addAction(caseInsensAction);
     if(caseSensitive)
       caseSensAction->setChecked(true);
@@ -108,7 +108,7 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   });
   layout->addWidget(filterLE, 0, 1);
   connect(filterLE, &QLineEdit::textEdited, this, &AbstractViewFilter::applyFilter);
-  connect(view->model(), &QAbstractItemModel::dataChanged, [this](const QModelIndex &index, const QModelIndex &bottomRight){
+  connect(view->model(), &QAbstractItemModel::dataChanged, this, [this](const QModelIndex &index, const QModelIndex &bottomRight){
     if(filterLE->text().isEmpty())
       return;
     updateItem(index);

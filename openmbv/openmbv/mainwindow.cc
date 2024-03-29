@@ -153,7 +153,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   disableStereo=new QPushButton(Utils::QIconCached("camerastereodisable.svg"), "", this);
   disableStereo->setIconSize(QSize(100,100));
-  connect(disableStereo, &QPushButton::clicked, [this](){
+  connect(disableStereo, &QPushButton::clicked, this, [this](){
     reinit3DView(StereoType::None);
   });
 
@@ -907,7 +907,7 @@ DialogStereo::DialogStereo() {
   setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
   setWindowTitle("OpenMBV - Stereo View");
   setWindowIcon(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
-  connect(new QShortcut(QKeySequence("F5"),this), &QShortcut::activated, [this](){
+  connect(new QShortcut(QKeySequence("F5"),this), &QShortcut::activated, this, [this](){
     if(isFullScreen()) {
       showNormal();
       fullScreenButton->show();
@@ -917,11 +917,11 @@ DialogStereo::DialogStereo() {
       fullScreenButton->hide();
     }
   });
-  connect(new QShortcut(QKeySequence("ESC"),this), &QShortcut::activated, [this](){
+  connect(new QShortcut(QKeySequence("ESC"),this), &QShortcut::activated, this, [this](){
     showNormal();
     fullScreenButton->show();
   });
-  connect(new QShortcut(QKeySequence("V"),this), &QShortcut::activated, [](){
+  connect(new QShortcut(QKeySequence("V"),this), &QShortcut::activated, this, [](){
     MainWindow::getInstance()->reinit3DView(MainWindow::StereoType::None);
   });
 
@@ -950,7 +950,7 @@ DialogStereo::DialogStereo() {
     else
       fullScreenButton->show();
   });
-  connect(fullScreenButton, &QPushButton::clicked, [this](){
+  connect(fullScreenButton, &QPushButton::clicked, this, [this](){
     showFullScreen();
     fullScreenButton->hide();
   });
