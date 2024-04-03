@@ -339,6 +339,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(sc[6]=new QShortcut(QKeySequence("7"),this), &QShortcut::activated, this, &MainWindow::expandToDepth7);
   connect(sc[7]=new QShortcut(QKeySequence("8"),this), &QShortcut::activated, this, &MainWindow::expandToDepth8);
   connect(sc[8]=new QShortcut(QKeySequence("9"),this), &QShortcut::activated, this, &MainWindow::expandToDepth9);
+  for(auto s: sc)
+    s->setEnabled(false); // disabled per default -> will be enabled if objectListDW gets visible the first time
   connect(objectListDW, &QDockWidget::visibilityChanged, [sc](bool visible) {
     for(auto s: sc)
       s->setEnabled(visible);
