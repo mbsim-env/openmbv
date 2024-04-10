@@ -193,8 +193,8 @@
           </xs:choice>
           <xs:element name="creaseEdges" type="pv:angleScalar" minOccurs="0"/>
           <xs:element name="boundaryEdges" type="pv:booleanFullEval" minOccurs="0"/>
-          <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0"/>
-          <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0"/>
+          <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>
