@@ -46,8 +46,16 @@ namespace OpenMBV {
    * named "OpenMBVIvScreenAnnotationPathOrigin" in the IV file. If no such node exists, no path is drawn.
    * If "OpenMBVIvScreenAnnotationPathOrigin" is given than also a node named "OpenMBVIvScreenAnnotationPathSep" of type Separator
    * must exist in the IV file. "OpenMBVIvScreenAnnotationPathSep" MUST NOT be influenced by any translation! However, its position
-   * defines the order in with the path is drawn compared to the other nodes, see above.
-   */
+   * in the scene graph defines the order in with the path is drawn compared to the other nodes, see above.
+   * The path is added as a child of this node.
+   *
+   * This object can also draw more than one path if the nodes are named "OpenMBVIvScreenAnnotationPathOrigin<nr>".
+   * <nr> counts from 1 to N and stops if at the first node name which does not exist.
+   * In this case the path is added as a child of the OpenMBVIvScreenAnnotationPathSep node, see above, or, if this node does not exist,
+   * as a child of the OpenMBVIvScreenAnnotationPathSep<nr> node.
+   *
+   * All named nodes of name OpenMBVIvScreenAnnotation* are remove (during the ctor) from the
+   * node/name mapping. */
   class IvScreenAnnotation : public Body {
     friend class ObjectFactory;
     public:

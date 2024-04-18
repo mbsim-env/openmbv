@@ -341,7 +341,12 @@ class DOMElementWrapper {
     void setEmbedXPathCount(int xPathCount);
     //! Get the XPath from the root element to this element.
     //! The root element may not be the document itself if embedding has occurred.
+    //! Embedding is preserved by this XPath.
+    //! The output is /<root-element-name>[1]/<element-name>[<element-nr>]/<element-name>[<element-nr>] ...
     std::string getRootXPathExpression() const;
+    //! Get a (fast) unique location identified of this element relative to the DOMDocument.
+    //! Use DOMDocumentWrapper::locateElement(...) to get the same element in another document.
+    std::vector<int> getElementLocation() const;
     //! Get the line number of the original element
     int getOriginalElementLineNumber() const;
     //! Set the line number of the original element
@@ -428,7 +433,10 @@ class DOMDocumentWrapper {
     //! Wrap DOMDocument to my special element
     DOMDocumentWrapper(DOMDocumentType *me_) : me(me_) {}
     //! (re)validate the document using the parser this document was created
-    void validate();
+    //! This will renew ALL nodes in the document.
+    //! But the old root DOMElement, including all old childrens, will be returned. If you don't use
+    //! the return value it will be released automatically.
+    XercesUniquePtr<xercesc::DOMElement> validate();
     //! create element with the given FQN
     //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
@@ -441,8 +449,12 @@ class DOMDocumentWrapper {
     boost::filesystem::path getDocumentFilename() const;
     //! Get the node (DOMElement or DOMAttrType) corresponding the given xpathExpression relative to the root.
     //! If context is nullptr than the root element is used.
-    //! Only a very small subset of XPath is supported by this function (just the one returned by getRootXPathExpression)
+    //! Only a very small subset of XPath is supported by this function:
+    //! the output of getRootXPathExpression
     xercesc::DOMNode* evalRootXPathExpression(std::string xpathExpression, xercesc::DOMElement* context=nullptr);
+    //! Get the element in this document which corresponds to the location idx.
+    //! idx is usualy retrieved via DOMElementWrapper::getElementLocation().
+    xercesc::DOMElement* locateElement(const std::vector<int> &idx) const;
     //! Treat this object as a pointer (like DOMDocument*)
     typename std::conditional<std::is_same<DOMDocumentType, const xercesc::DOMDocument>::value,
       const DOMDocumentWrapper*, DOMDocumentWrapper*>::type operator->() {
@@ -511,7 +523,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
-                                                std::vector<boost::filesystem::path> *dependencies=nullptr, bool doXInclude=true);
+                                                std::vector<boost::filesystem::path> *dependencies=nullptr, bool doXInclude=true, bool throwOnError=true);
     //! Serialize a document to a file.
     //! Helper function to write a node. This normalized the document before.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);

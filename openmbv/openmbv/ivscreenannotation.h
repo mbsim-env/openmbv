@@ -44,11 +44,10 @@ class IvScreenAnnotation : public Body {
     std::vector<SoAlphaTest*> columnLabelFields;
     SoSeparator *sep;
 
-    SoCoordinate3 *pathCoord;
-    SoLineSet *pathLine;
+    std::vector<SoCoordinate3*> pathCoord;
+    std::vector<SoLineSet*> pathLine;
     int pathMaxFrameRead;
-    SoPath *pathPath { nullptr };
-    std::unique_ptr<SoSearchAction> sa;
+    std::vector<SoPath*> pathPath;
     std::unique_ptr<SoGetMatrixAction> gma;
 };
 

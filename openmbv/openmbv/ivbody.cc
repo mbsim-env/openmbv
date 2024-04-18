@@ -67,6 +67,8 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   else
     soIv=Utils::SoDBreadAllContentCached(ivb->getIvContent(), boost::hash<decltype(hashData)>{}(hashData));
   sep->addChild(soIv);
+  if(!soIv)
+    return;
 
   // search and remove specific nodes
   auto removeNode=[soIv, &fileName, this](const function<void(SoSearchAction &sa)> &find){
@@ -93,7 +95,7 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     removeNode([&type](auto &sa){ sa.setType(SoType::fromName(type.c_str())); });
 
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
-  SoBase *ref=SoNode::getByName("OpenMBVIvBodyMaterial");
+  SoBase *ref=Utils::getChildNodeByName(soIv, "OpenMBVIvBodyMaterial");
   if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
     ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
     ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);

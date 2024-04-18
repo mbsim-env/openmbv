@@ -26,7 +26,11 @@
 
 namespace OpenMBV {
 
-  /** A body defines by a Open Inventor file or a VRML file */
+  /** A body defined by a Open Inventor file or a VRML file.
+   * If a node named OpenMBVIvBodyMaterial exists and is of type SoMaterial then
+   * the diffuseColor and specularColor field of this node is connected to the dynamic color
+   * of this body. After this connection is done (during the ctor) the name OpenMBVIvBodyMaterial
+   * is removed from the node/name mapping. */
   class IvBody : public RigidBody {
     friend class ObjectFactory;
     public:

@@ -82,6 +82,9 @@ class Utils : virtual public fmatvec::Atom {
      * hash is, beside content, part of the key for the cache. */
     static SoSeparator* SoDBreadAllContentCached(const std::string &content, size_t hash=0);
 
+    /** Get the node named name being a child or grandchild of sep */
+    static SoNode* getChildNodeByName(SoGroup *sep, const SbName &name);
+
     static SoMFColor soFrameDefaultColor;
     /** Convenienc function to draw a frame */
     static SoSeparator* soFrame(double size, double offset, bool pickBBoxAble, SoScale *&scale,

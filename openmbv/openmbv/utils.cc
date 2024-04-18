@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/actions/SoSearchAction.h>
 #include "SoSpecial.h"
 #include "mainwindow.h"
 #include "mytouchwidget.h"
@@ -104,7 +105,7 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     MainWindow::getInstance()->statusBar()->showMessage(str);
     msgStatic(Warn)<<str.toStdString()<<endl;
     ivBodyCache.erase(ins.first);
-    return new SoSeparator;
+    return nullptr;
   }
   return ins.first->second.sep;
 }
@@ -125,9 +126,26 @@ SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash)
     MainWindow::getInstance()->statusBar()->showMessage(str);
     msgStatic(Warn)<<str.toStdString()<<endl;
     ivBodyCache.erase(ins.first);
-    return new SoSeparator;
+    return nullptr;
   }
   return ins.first->second.sep;
+}
+
+SoNode* Utils::getChildNodeByName(SoGroup *sep, const SbName &name) {
+  // get the node by name
+  auto node = SoNode::getByName(name);
+  // if not found return nullptr
+  if(!node)
+    return nullptr;
+  // check if this node is a child of sep
+  SoSearchAction sa;
+  sa.setNode(node);
+  sa.apply(sep);
+  // if so, return the node
+  if(sa.getPath()!=nullptr)
+    return node;
+  // if not return nullptr
+  return nullptr;
 }
 
 // convenience: create frame so

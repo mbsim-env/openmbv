@@ -199,7 +199,9 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
         if(obj) {
           QString str=obj->metaObject()->className();
           str=str.replace(typePrefix, "");
-          if(str==filter.pattern().mid(1))
+          QRegExp filter2(filter);
+          filter2.setPattern(filter.pattern().mid(1));
+          if(filter2.indexIn(str)>=0)
             m.me=true;
         }
       }
@@ -211,7 +213,8 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
     else {
       if(filter.pattern().startsWith(":")) { // starting with : => direct type search
         const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-        QRegExp filter2(filter.pattern().mid(1));
+        QRegExp filter2(filter);
+        filter2.setPattern(filter.pattern().mid(1));
         if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }

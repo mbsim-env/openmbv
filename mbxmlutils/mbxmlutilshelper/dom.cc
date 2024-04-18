@@ -386,7 +386,7 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
     const XMLCh *prefix=me->lookupPrefix(X()%value.first);
     if(prefix)
       // the namespace of value has already a prefix -> use this prefix
-      setAttribute(name, X()%prefix+":"+value.second);
+      setAttribute(name, (X()%prefix).append(":").append(value.second));
     else {
       // the namespace of value has no prefix assigned yet -> create a new xmlns attribute with the mapping
 
@@ -401,12 +401,12 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
       }
       // search an unused prefix
       int unusedPrefixNr=1;
-      while(usedPrefix.find("ns"+fmatvec::toString(unusedPrefixNr))!=usedPrefix.end()) unusedPrefixNr++;
+      while(usedPrefix.find(string("ns").append(fmatvec::toString(unusedPrefixNr)))!=usedPrefix.end()) unusedPrefixNr++;
       // set the unsuded prefix
-      string unusedPrefix("ns"+fmatvec::toString(unusedPrefixNr));
-      setAttribute(XMLNS%("xmlns:"+unusedPrefix), value.first);
+      string unusedPrefix(string("ns").append(fmatvec::toString(unusedPrefixNr)));
+      setAttribute(XMLNS%(string("xmlns:").append(unusedPrefix)), value.first);
 
-      setAttribute(name, unusedPrefix+":"+value.second);
+      setAttribute(name, unusedPrefix.append(":").append(value.second));
     }
   }
 }
@@ -489,7 +489,7 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
     else {
       if(eCount>0)
         count=1;
-      xpath=string("/{").append(fqn.first+"}").append(fqn.second).append("[").append(to_string(count)).append("]").append(xpath); // extend xpath
+      xpath=string("/{").append(fqn.first.append("}")).append(fqn.second).append("[").append(to_string(count)).append("]").append(xpath); // extend xpath
       if(eCount>0)
         xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(eCount)).append("]").append(xpath);
     }
@@ -502,6 +502,24 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
   return xpath;
 }
 template string DOMElementWrapper<const DOMElement>::getRootXPathExpression() const; // explicit instantiate const variant
+                                                                                     //
+template<typename DOMElementType>
+vector<int> DOMElementWrapper<DOMElementType>::getElementLocation() const {
+  vector<int> idx;
+  const DOMElement *e = me;
+  while(true) {
+    auto p = e->getParentNode();
+    if(p->getNodeType() == DOMNode::DOCUMENT_NODE)
+      break;
+    int count=1;
+    for(auto c=static_cast<DOMElement*>(p)->getFirstElementChild(); c!=nullptr && c!=e; c=c->getNextElementSibling())
+      count++;
+    idx.emplace_back(count);
+    e = static_cast<DOMElement*>(p);
+  }
+  return idx;
+}
+template vector<int> DOMElementWrapper<const DOMElement>::getElementLocation() const; // explicit instantiate const variant
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
@@ -573,7 +591,7 @@ template bool DOMAttrWrapper<const DOMAttr>::isDerivedFrom(const FQN &baseTypeNa
 
 template<typename DOMAttrType>
 string DOMAttrWrapper<DOMAttrType>::getRootXPathExpression() const {
-  return E(me->getOwnerElement())->getRootXPathExpression()+"/@"+X()%me->getNodeName();
+  return E(me->getOwnerElement())->getRootXPathExpression().append("/@").append(X()%me->getNodeName());
 }
 template string DOMAttrWrapper<const DOMAttr>::getRootXPathExpression() const; // explicit instantiate const variant
 
@@ -581,7 +599,7 @@ template string DOMAttrWrapper<const DOMAttr>::getRootXPathExpression() const; /
 template class DOMAttrWrapper<DOMAttr>;
 
 template<typename DOMDocumentType>
-void DOMDocumentWrapper<DOMDocumentType>::validate() {
+XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
   // normalize document
   D(me)->normalizeDocument();
 
@@ -608,7 +626,7 @@ void DOMDocumentWrapper<DOMDocumentType>::validate() {
   // replace old document element with new one
   E(newDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
   DOMNode *newRoot=me->importNode(newDoc->getDocumentElement(), true);
-  me->replaceChild(newRoot, me->getDocumentElement())->release();
+  return XercesUniquePtr<DOMElement>(static_cast<DOMElement*>(me->replaceChild(newRoot, me->getDocumentElement())));
 }
 
 template<typename DOMDocumentType>
@@ -706,6 +724,17 @@ DOMNode* DOMDocumentWrapper<DOMDocumentType>::evalRootXPathExpression(string xpa
   throw runtime_error("No matching node found for XPath expression.");
 }
 
+template<typename DOMDocumentType>
+DOMElement* DOMDocumentWrapper<DOMDocumentType>::locateElement(const vector<int> &idx) const {
+  DOMElement *e = me->getDocumentElement();
+  for(auto it = idx.rbegin(); it != idx.rend(); ++it) {
+    e = e->getFirstElementChild();
+    for(auto i = 1; i < *it; ++i)
+      e = e->getNextElementSibling();
+  }
+  return e;
+}
+
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMDocumentWrapper<DOMDocument>;
 
@@ -772,8 +801,8 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
   while(ee) {
     string xpath;
     if(ee->getParentNode())
-      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression()+"/{"+PV.getNamespaceURI()+"}Embed["+
-        to_string(E(ee)->getEmbedXPathCount())+"]";
+      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression().append("/{").
+        append(PV.getNamespaceURI()).append("}Embed[").append(to_string(E(ee)->getEmbedXPathCount())).append("]");
     else
       xpath="[no xpath available]";
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
@@ -808,14 +837,14 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
   // string and regex to generate it implicitly.
   string str;
-  str+="@msg"+message; // @msg includes a new line at the end
-  str+="@file"+X()%loc.getURI();
-  str+="@absfile"+absolute(X()%loc.getURI()).string();
-  str+="@urifile"+absolute(X()%loc.getURI()).string();//mfmf uriencode
-  str+="@line"+(loc.getLineNumber()>0?to_string(loc.getLineNumber()):"");
-  str+="@xpath"+loc.getRootXPathExpression();
-  str+="@ecount"+(loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):"");
-  str+="@sse"+(subsequentError?string("x"):"");
+  str.append("@msg").append(message); // @msg includes a new line at the end
+  str.append("@file").append(X()%loc.getURI());
+  str.append("@absfile").append(absolute(X()%loc.getURI()).string());
+  str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode
+  str.append("@line").append((loc.getLineNumber()>0?to_string(loc.getLineNumber()):""));
+  str.append("@xpath").append(loc.getRootXPathExpression());
+  str.append("@ecount").append((loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):""));
+  str.append("@sse").append((subsequentError?string("x"):""));
   static const boost::regex re(
     R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
@@ -1043,7 +1072,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude, bool throwOnError) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
@@ -1058,7 +1087,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   // if the file is writable use a lock file, if not writable no locking is needed
   if(writeable) {
     // at least using wine we cannot use inputSource as lock file itself, its crashing
-    path inputSourceLock(inputSource.parent_path()/("."+inputSource.filename().string()+".lock"));
+    path inputSourceLock(inputSource.parent_path()/(string(".").append(inputSource.filename().string()).append(".lock")));
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
 #ifdef _WIN32
     { // make lock file hidden on windows
@@ -1073,17 +1102,21 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   else
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
-  doc->setDocumentURI(X()%("mbxmlutilsfile://"+inputSource.string()));
+  doc->setDocumentURI(X()%(string("mbxmlutilsfile://").append(inputSource.string())));
   if(errorHandler.hasError()) {
-    // fix the filename
-    DOMEvalException ex(errorHandler.getError());
-    if(!ex.locationStack.empty()) {
-      auto &l=ex.locationStack.front();
-      EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
-                            l.getEmbedCount(), l.getRootXPathExpression());
-      ex.locationStack.front()=exNew;
+    if(throwOnError) {
+      // fix the filename
+      DOMEvalException ex(errorHandler.getError());
+      if(!ex.locationStack.empty()) {
+        auto &l=ex.locationStack.front();
+        EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                              l.getEmbedCount(), l.getRootXPathExpression());
+        ex.locationStack.front()=exNew;
+      }
+      throw ex;
     }
-    throw ex;
+    else
+      return {};
   }
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
@@ -1108,7 +1141,7 @@ namespace {
 void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
   // at least using wine we cannot use outputSource as lock file itself, its crashing
-  path outputSourceLock(outputSource.parent_path()/("."+outputSource.filename().string()+".lock"));
+  path outputSourceLock(outputSource.parent_path()/(string(".").append(outputSource.filename().string()).append(".lock")));
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
 #ifdef _WIN32
   { // make lock file hidden on windows

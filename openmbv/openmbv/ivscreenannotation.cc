@@ -66,40 +66,83 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     columnLabelFields[i]->setName(ivsa->getColumnLabels()[i].c_str());
   }
 
+  // load the IV content using a cache
   string fileName=ivsa->getIvFileName();
-  SoSeparator *ivSep;
+  struct SoUnref  { void operator()(SoSeparator *s) { if(s) s->unref(); } };
+  unique_ptr<SoSeparator, SoUnref> ivSep;
   if(!fileName.empty())
-    ivSep = Utils::SoDBreadAllFileNameCached(fileName);
+    ivSep.reset(Utils::SoDBreadAllFileNameCached(fileName));
   else
-    ivSep = Utils::SoDBreadAllContentCached(ivsa->getIvContent());
-  sep->addChild(ivSep);
+    ivSep.reset(Utils::SoDBreadAllContentCached(ivsa->getIvContent()));
+  if(!ivSep)
+    return;
+  ivSep->ref();
 
-  auto *pathNode=SoNode::getByName("OpenMBVIvScreenAnnotationPathOrigin");
+  // search for a OpenMBVIvScreenAnnotationPathOrigin or OpenMBVIvScreenAnnotationPathOrigin1 node
+  auto getPathNode = [](SoSeparator *ivSep) {
+    auto *pathNode=Utils::getChildNodeByName(ivSep, "OpenMBVIvScreenAnnotationPathOrigin");
+    if(!pathNode)
+      pathNode=Utils::getChildNodeByName(ivSep, "OpenMBVIvScreenAnnotationPathOrigin1");
+    return pathNode;
+  };
+  auto pathNode = getPathNode(ivSep.get());
+  // if such a node exists we cannot use the cached content -> use a copy and search pathNode again in the copy
   if(pathNode) {
-    auto *pathSepInIv=dynamic_cast<SoSeparator*>(SoNode::getByName("OpenMBVIvScreenAnnotationPathSep"));
-    if(!pathSepInIv)
-      throw runtime_error("The node named OpenMBVIvScreenAnnotationPathSep must exist and be of type Separator!");
+    ivSep.reset(static_cast<SoSeparator*>(ivSep->copy(true)));
+    ivSep->ref();
+    pathNode = getPathNode(ivSep.get());
+  }
 
+  // add the cached IV content or the copied content to the scene graph
+  auto ivSepPtr = ivSep.release();
+  sep->addChild(ivSepPtr);
+
+  // now search for the pathSep node without the number (only done one, not inside of the loop)
+  SoSeparator *pathSepNoNumber = nullptr, *pathSepInIv;
+  if(pathNode)
+    pathSepNoNumber=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSepPtr, "OpenMBVIvScreenAnnotationPathSep"));
+
+  // loop over all pathNode's
+  int i=1;
+  while(pathNode) {
+    // if a pathSep node without a number exists, use it, if not search a pathSep node with the corresponding number
+    if(pathSepNoNumber)
+      pathSepInIv=pathSepNoNumber;
+    else
+      pathSepInIv=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSepPtr, ("OpenMBVIvScreenAnnotationPathSep"+to_string(i)).c_str()));
+    // stop if not such node was found
+    if(!pathSepInIv) {
+      cerr<<"A node named OpenMBVIvScreenAnnotationPathSep[<nr>] must exist and be of type Separator!"<<endl;
+      break;
+    }
+
+    // create the nodes needed for the path
     auto *pathSep=new SoSeparator;
     pathSepInIv->addChild(pathSep);
-    pathCoord=new SoCoordinate3;
-    pathCoord->point.setNum(0);
-    pathSep->addChild(pathCoord);
-    pathLine=new SoLineSet;
-    pathLine->numVertices.setNum(0);
-    pathSep->addChild(pathLine);
-    pathMaxFrameRead=-1;
+    pathCoord.emplace_back(new SoCoordinate3);
+    pathCoord.back()->point.setNum(0);
+    pathSep->addChild(pathCoord.back());
+    pathLine.emplace_back(new SoLineSet);
+    pathLine.back()->numVertices.setNum(0);
+    pathSep->addChild(pathLine.back());
 
-    sa = make_unique<SoSearchAction>();
-    sa->setNode(pathNode);
-    sa->apply(ivSep);
-    pathPath = sa->getPath();
+    SoSearchAction sa;
+    sa.setNode(pathNode);
+    sa.apply(ivSepPtr);
+    pathPath.emplace_back(sa.getPath());
+    pathPath.back()->ref();
     gma = make_unique<SoGetMatrixAction>(SbViewportRegion());
+
+    i++;
+    pathNode=Utils::getChildNodeByName(ivSepPtr, ("OpenMBVIvScreenAnnotationPathOrigin"+to_string(i)).c_str());
   }
+  pathMaxFrameRead=-1;
 }
 
 IvScreenAnnotation::~IvScreenAnnotation() {
   MainWindow::getInstance()->getScreenAnnotationList()->removeChild(sep);
+  for(auto pp : pathPath)
+    pp->unref();
 }
 
 double IvScreenAnnotation::update() {
@@ -116,23 +159,23 @@ double IvScreenAnnotation::update() {
   setColumnLabelFields(data);
 
   // path
-  if(pathPath) {
-    for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> data=ivsa->getRow(i);
-      setColumnLabelFields(data);
-
+  for(int i=pathMaxFrameRead+1; i<=frame; i++) {
+    vector<double> data=ivsa->getRow(i);
+    setColumnLabelFields(data);
+    for(size_t idx=0; idx<pathPath.size(); ++idx) {
       gma->setViewportRegion(MainWindow::getInstance()->glViewer->getViewportRegion());
-      gma->apply(pathPath);
+      gma->apply(pathPath[idx]);
       SbVec3f translation;
       SbRotation rotation;
       SbVec3f scalevector;
       SbRotation scaleorientation;
       gma->getMatrix().getTransform(translation, rotation, scalevector, scaleorientation);
-      pathCoord->point.set1Value(i, translation.getValue());
+      pathCoord[idx]->point.set1Value(i, translation.getValue());
     }
-    pathMaxFrameRead=frame;
-    pathLine->numVertices.setValue(1+frame);
   }
+  for(size_t idx=0; idx<pathPath.size(); ++idx)
+    pathLine[idx]->numVertices.setValue(1+frame);
+  pathMaxFrameRead=frame;
 
   return std::numeric_limits<double>::quiet_NaN();
 }

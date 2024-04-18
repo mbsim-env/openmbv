@@ -38,11 +38,18 @@ class Preprocess : virtual public fmatvec::Atom {
     //! Start preprocessing and return the preprocessed DOMDocument
     std::shared_ptr<xercesc::DOMDocument> processAndGetDocument();
 
+    //! Get the DOMDocument.
+    //! This may be the unprocessed DOMDocument if called before processAndGetDocument or the
+    //! processed DOMDocument if called after processAndGetDocument.
+    std::shared_ptr<xercesc::DOMDocument> getDOMDocument() { return document; }
+
   private:
     std::shared_ptr<xercesc::DOMDocument> document;
     std::vector<boost::filesystem::path> dependencies;
     std::shared_ptr<Eval> eval;
     std::shared_ptr<ParamSet> param;
+    std::shared_ptr<DOMParser> noneValidatingParser;
+    static const FQN embedFileNotFound;
 
     bool preprocessed { false };
 
@@ -50,21 +57,17 @@ class Preprocess : virtual public fmatvec::Atom {
     std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
                                                       const boost::filesystem::path &inputFile,
                                                       std::vector<boost::filesystem::path> &dependencies,
-                                                      const std::string &msg);
+                                                      const std::string &msg, bool allowUnvalidated=false);
 
     void extractEvaluator();
 
     using PositionMap = std::map<FQN, int>;
-    void preprocess(xercesc::DOMElement *&e, // in: element to process; out: e changes only if e is itself a Embed element
+    bool preprocess(xercesc::DOMElement *&e, // in: element to process; out: e changes only if e is itself a Embed element
                     // in: root level parameters to overwrite; out: root level parameters
                     const std::shared_ptr<ParamSet>& param=std::shared_ptr<ParamSet>(),
 
                     // internal: XPath expression of parent element
-                    const std::string &parentXPath="",
-                    // internal: XPath expression of parent element
-                    int embedXPathCount=1,
-                    // internal: XPath position count of the element e
-                    const std::shared_ptr<PositionMap>& position=std::make_shared<PositionMap>()
+                    int embedXPathCount=1
                    );
 };
 

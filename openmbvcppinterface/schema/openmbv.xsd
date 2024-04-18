@@ -210,7 +210,10 @@
             <xs:element name="ivFileName" type="pv:filenameFullEval"/>
             <xs:element name="ivContent" type="pv:stringFullEval"/>
           </xs:choice>
-          <xs:element name="columnLabel" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="columnLabel" type="pv:stringFullEval"/>
+            <xs:element ref="pv:Embed"/>
+          </xs:choice> 
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

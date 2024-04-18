@@ -10,11 +10,11 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Parameter" minOccurs="0"/>
-        <xs:choice minOccurs="0">
-          <!-- This choice can be removed if the deprecated feature in process.cc is removed -->
-          <xs:any namespace="##other" processContents="strict"/>
-          <xs:element ref="Embed"/>
-        </xs:choice>
+        <!-- we allow Embed also for local elements
+             -> no validation is possible in this case (processContents=strict is not possible).
+                But after Embed is replaced with this any-element another validation happens.
+                To avoid this additional validation we use processContents=lax if its not a local element -->
+        <xs:any minOccurs="0" namespace="##other" processContents="lax"/>
       </xs:sequence>
       <xs:attribute name="href" type="filenamePartialEval" use="optional"/>
       <xs:attribute name="parameterHref" type="filenamePartialEval" use="optional"/>
