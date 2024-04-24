@@ -210,6 +210,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     template<typename T>
     T cast(const Value &value) const;
 
+    //! Returns a evaluator specific string representation of x. This is only useful for display to the user.
+    virtual std::string getStringRepresentation(const Value &x) const;
+
     //! check whether value is of type type.
     //! Note that true is only returned if the value is really of type type. If value can be casted
     //! to type type but is not of this type then false is returned.

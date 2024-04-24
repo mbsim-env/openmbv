@@ -25,6 +25,7 @@ class PyEval : public Eval {
     bool valueIsOfType(const Value &value, ValueType type) const override;
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
     void convertIndex(Value &v, bool evalTo1Base) override;
+    std::string getStringRepresentation(const Value &x) const override;
   protected:
     Value createFunctionIndep(int dim) const override;
     Value callFunction(const std::string &name, const std::vector<Value>& args) const override;

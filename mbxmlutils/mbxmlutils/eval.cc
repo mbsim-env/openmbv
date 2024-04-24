@@ -688,7 +688,7 @@ CodeString Eval::cast_CodeString(const Value &value) const {
     return serializeFunction(value);
   }
   else
-    throw runtime_error("Cannot cast this value to a evaluator code string.");
+    return getStringRepresentation(value);
 }
 
 int Eval::cast_int(const Value &value) const {
@@ -697,6 +697,10 @@ int Eval::cast_int(const Value &value) const {
   if(!tryDouble2Int(d, i))
     throw runtime_error("Cannot cast this value to int.");
   return i;
+}
+
+string Eval::getStringRepresentation(const Value &x) const {
+  throw runtime_error("Cannot cast this value to a evaluator specific string representation.");
 }
 
 void Eval::addStaticDependencies(const DOMElement *e) const {

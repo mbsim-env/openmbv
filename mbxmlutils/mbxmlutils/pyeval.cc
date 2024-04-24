@@ -74,6 +74,7 @@ class PyInit {
     PyOOnDemand numpyArray;
     PyOOnDemand sympyDummy;
     PyOOnDemand mbxmlutils_serializeFunction;
+    PyOOnDemand pprintPformat;
     PyO ioStringIO;
 };
 
@@ -112,11 +113,17 @@ PyInit::PyInit() {
       return CALLPY(PyObject_GetAttrString, numpy, "array");
     });
 
-    sympyDummy=PyOOnDemand([this](){
+    sympyDummy=PyOOnDemand([](){
       PyO sympy(CALLPY(PyImport_ImportModule, "sympy"));
       return CALLPY(PyObject_GetAttrString, sympy, "Dummy");
     });
+
     mbxmlutils_serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
+
+    pprintPformat=PyOOnDemand([](){
+      auto pprint = CALLPY(PyImport_ImportModule, "pprint");
+      return CALLPY(PyObject_GetAttrString, pprint, "pformat");
+    });
 
     PyO io(CALLPY(PyImport_ImportModule, "io"));
     ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
@@ -712,6 +719,14 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
   }
   else
     throw runtime_error("Only scalars and vectors can be handled as indices.");
+}
+
+string PyEval::getStringRepresentation(const Value &x) const {
+  PyO args(CALLPY(PyTuple_New, 3));
+  CALLPY(PyTuple_SetItem, args, 0, C(x).incRef()); // PyTuple_SetItem steals a reference of v
+  CALLPY(PyTuple_SetItem, args, 1, CALLPY(PyLong_FromLong, 4).incRef()); // indent=4
+  CALLPY(PyTuple_SetItem, args, 2, CALLPY(PyLong_FromLong, 1).incRef()); // width=1
+  return PyUnicode_AsUTF8(CALLPY(PyObject_CallObject, pyInit->pprintPformat(), args).get());
 }
 
 }
