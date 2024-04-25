@@ -316,13 +316,11 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+code+"\n"+out.str()+"\n"+err.str(), e);
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+err.str(), e);
     }
-    if(!err.str().empty()) {
-      string msg=err.str();
-      trim_right_if(msg, boost::is_any_of(" \n"));
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
-    }
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    printEvaluatorMsg(err, fmatvec::Atom::Warn);
   }
 
   // remove all already existing keys from globalsLocals (addImport should only add newly created variables to the global import list)
@@ -496,11 +494,8 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(PyErr_Occurred())
     PythonException dummy("", 0);
   if(pyo) { // on success ...
-    if(!err.str().empty()) {
-      string msg=err.str();
-      trim_right_if(msg, boost::is_any_of(" \n"));
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
-    }
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    printEvaluatorMsg(err, fmatvec::Atom::Warn);
     ret=PyO(pyo);
     addStaticDependencies(e);
   }
@@ -526,13 +521,11 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+str+"\n"+out.str()+"\n"+err.str(), e);
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
+      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+err.str(), e);
     }
-    if(!err.str().empty()) {
-      string msg=err.str();
-      trim_right_if(msg, boost::is_any_of(" \n"));
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<endl;
-    }
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    printEvaluatorMsg(err, fmatvec::Atom::Warn);
     if(!skipRet) {
       try {
         // get 'ret' variable from statement

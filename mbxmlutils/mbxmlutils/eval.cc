@@ -15,6 +15,7 @@
 #include <boost/spirit/include/qi_char_.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -714,6 +715,14 @@ void Eval::addStaticDependencies(const DOMElement *e) const {
 
 void Eval::setValue(DOMElement *e, const Value &v) {
   e->setUserData(X()%evalValueKey, new Value(v), &valueUserDataHandler);
+}
+
+void Eval::printEvaluatorMsg(const std::ostringstream &str, MsgType msgType) {
+  if(!str.str().empty()) {
+      std::string msg=str.str();
+    trim_right_if(msg, boost::is_any_of(" \n"));
+    fmatvec::Atom::msgStatic(msgType)<<"Evaluator output: "<<msg<<std::endl;
+  }
 }
 
 } // end namespace MBXMLUtils

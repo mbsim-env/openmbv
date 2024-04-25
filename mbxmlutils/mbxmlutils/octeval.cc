@@ -583,14 +583,15 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
     else
       originalFilename.clear();
 #if OCTAVE_MAJOR_VERSION >= 5
-    octInit.interpreter->eval_string(str, true, dummy, 0); // eval as statement list
+    octInit.interpreter->eval_string(str+";", true, dummy, 0); // eval as statement list
 #else
-    octave::eval_string(str, true, dummy, 0); // eval as statement list
+    octave::eval_string(str+";", true, dummy, 0); // eval as statement list
 #endif
     addStaticDependencies(e);
   }
   catch(octave::execution_exception &ex)
   {
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
     // octave::execution_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
     throw DOMEvalException("Caught octave exception " + ex.
 #if OCTAVE_MAJOR_VERSION >= 6
@@ -598,29 +599,30 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
 #else
       info()
 #endif
-      + "\n" +out.str() + "\n" + err.str(), e);
+      + "\n" + err.str(), e);
   }
   catch(octave::exit_exception &ex)
   {
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
     // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-    throw DOMEvalException("Caught octave exception (Exit exception)\n" +out.str() + "\n" + err.str(), e);
+    throw DOMEvalException("Caught octave exception (Exit exception)\n" + err.str(), e);
   }
   catch(octave::interrupt_exception &ex)
   {
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
     // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-    throw DOMEvalException("Caught octave exception (Interrupt exception)\n" +out.str() + "\n" + err.str(), e);
+    throw DOMEvalException("Caught octave exception (Interrupt exception)\n" + err.str(), e);
   }
   catch(const std::exception &ex) { // should not happend
-    throw DOMEvalException(std::string(ex.what())+":\n"+out.str()+"\n"+err.str(), e);
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    throw DOMEvalException(std::string(ex.what())+":\n"+err.str(), e);
   }
   catch(...) { // should not happend
-    throw DOMEvalException("Unknwon exception:\n"+out.str()+"\n"+err.str(), e);
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    throw DOMEvalException("Unknwon exception:\n"+err.str(), e);
   }
-  if(!err.str().empty()) {
-    std::string msg=err.str();
-    trim_right_if(msg, boost::is_any_of(" \n"));
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<std::endl;
-  }
+  printEvaluatorMsg(out, fmatvec::Atom::Info);
+  printEvaluatorMsg(err, fmatvec::Atom::Warn);
   // generate a strNoSpace from str by removing leading/trailing spaces as well as trailing ';'.
   std::string strNoSpace=str;
   while(!strNoSpace.empty() && (strNoSpace[0]==' ' || strNoSpace[0]=='\n'))
@@ -708,6 +710,7 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
     }
     catch(octave::execution_exception &ex)
     {
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
       // octave::execution_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
       throw std::runtime_error( "Caught octave exception " + ex.
 #if OCTAVE_MAJOR_VERSION >= 6
@@ -715,23 +718,30 @@ octave_value_list OctEval::fevalThrow(octave_function *func, const octave_value_
 #else
         info()
 #endif
-        + "\n" +out.str() + "\n" + err.str() );
+        + "\n" + err.str() );
     }
     catch(octave::exit_exception &ex)
     {
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
       // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-      throw std::runtime_error( "Caught octave exception (Exit exception)\n" +out.str() + "\n" + err.str() );
+      throw std::runtime_error( "Caught octave exception (Exit exception)\n" + err.str() );
     }
     catch(octave::interrupt_exception &ex)
     {
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
       // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-      throw std::runtime_error( "Caught octave exception (Interrupt exception)\n" +out.str() + "\n" + err.str() );
+      throw std::runtime_error( "Caught octave exception (Interrupt exception)\n" + err.str() );
     }
-    if(!err.str().empty()) {
-      std::string msg=err.str();
-      trim_right_if(msg, boost::is_any_of(" \n"));
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Warn)<<msg<<std::endl;
+    catch(const std::exception &ex) { // should not happend
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
+      throw DOMEvalException(std::string(ex.what())+":\n"+err.str(), nullptr);
     }
+    catch(...) { // should not happend
+      printEvaluatorMsg(out, fmatvec::Atom::Info);
+      throw DOMEvalException("Unknwon exception:\n"+err.str(), nullptr);
+    }
+    printEvaluatorMsg(out, fmatvec::Atom::Info);
+    printEvaluatorMsg(err, fmatvec::Atom::Warn);
   }
   return ret;
 }

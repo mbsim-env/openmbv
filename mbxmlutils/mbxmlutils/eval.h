@@ -301,6 +301,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     void addStaticDependencies(const xercesc::DOMElement *e) const;
 
+    static void printEvaluatorMsg(const std::ostringstream &str, MsgType msgType);
+
   private:
     // virtual spezialization of cast(const Value &value)
     virtual double                            cast_double              (const Value &value) const=0;
