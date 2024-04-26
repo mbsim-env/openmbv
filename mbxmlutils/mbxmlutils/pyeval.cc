@@ -311,7 +311,10 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        CALLPY(PyRun_StringFlags, codetrim, Py_file_input, globalsLocals, globalsLocals, &flags);
+        auto [it, created] = byteCodeMap.emplace(hash<string>{}(codetrim), PyO());
+        if(created)
+          it->second = CALLPY(Py_CompileStringExFlags, codetrim, "", Py_file_input, &flags, 2);
+        CALLPY(PyEval_EvalCode, it->second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
     }
@@ -488,7 +491,11 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   {
     MBXMLUTILS_REDIR_STDOUT(out);
     MBXMLUTILS_REDIR_STDERR(err);
-    pyo=PyRun_StringFlags(strtrim.c_str(), Py_eval_input, globalsLocals.get(), globalsLocals.get(), &flags);
+    auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), PyO());
+    if(created)
+      it->second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_eval_input, &flags, 2));
+    if(it->second)
+      pyo=PyEval_EvalCode(it->second.get(), globalsLocals.get(), globalsLocals.get());
   }
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
@@ -516,7 +523,10 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        CALLPY(PyRun_StringFlags, strtrim, Py_file_input, globalsLocals, globalsLocals, &flags);
+        auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), PyO());
+        if(created)
+          it->second = CALLPY(Py_CompileStringExFlags, strtrim, "", Py_file_input, &flags, 2);
+        CALLPY(PyEval_EvalCode, it->second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
     }

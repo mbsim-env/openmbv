@@ -45,6 +45,7 @@ class PyEval : public Eval {
     Value          createFunction(const std::vector<Value> &indeps, const Value &dep) const override;
 
     std::string serializeFunction(const Value &x) const override;
+    mutable std::map<size_t, PythonCpp::PyO> byteCodeMap;
 };
 
 }
