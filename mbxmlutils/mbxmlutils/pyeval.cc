@@ -311,10 +311,17 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(hash<string>{}(codetrim), PyO());
-        if(created)
-          it->second = CALLPY(Py_CompileStringExFlags, codetrim, "", Py_file_input, &flags, 2);
-        CALLPY(PyEval_EvalCode, it->second, globalsLocals, globalsLocals);
+        auto [it, created] = byteCodeMap.emplace(hash<string>{}(codetrim), make_pair(Py_file_input, PyO()));
+        if(created) {
+          it->second.second = PyO(Py_CompileStringExFlags(codetrim.c_str(), "", Py_file_input, &flags, 2));
+          if(!it->second.second) {
+            byteCodeMap.erase(it);
+            throw PythonException(__FILE__, __LINE__);
+          }
+        }
+        else if(it->second.first!=Py_file_input)
+          throw PythonException(__FILE__, __LINE__);
+        CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
     }
@@ -485,25 +492,33 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     originalFilename=E(e)->getOriginalFilename();
   else
     originalFilename.clear();
-  PyObject *pyo = nullptr;
+  PyO exprResult;
   ostringstream out;
   ostringstream err;
   {
     MBXMLUTILS_REDIR_STDOUT(out);
     MBXMLUTILS_REDIR_STDERR(err);
-    auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), PyO());
-    if(created)
-      it->second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_eval_input, &flags, 2));
-    if(it->second)
-      pyo=PyEval_EvalCode(it->second.get(), globalsLocals.get(), globalsLocals.get());
+    auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), make_pair(Py_eval_input, PyO()));
+    bool error=false;
+    if(created) {
+      it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_eval_input, &flags, 2));
+      if(!it->second.second) {
+        byteCodeMap.erase(it);
+        error=true;
+      }
+    }
+    else if(it->second.first!=Py_eval_input)
+      error=true;
+    if(!error)
+      exprResult=PyO(PyEval_EvalCode(it->second.second.get(), globalsLocals.get(), globalsLocals.get()));
   }
   // clear the python exception in case of errors (done by creating a dummy PythonException object)
   if(PyErr_Occurred())
     PythonException dummy("", 0);
-  if(pyo) { // on success ...
+  if(exprResult) { // on success ...
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
-    ret=PyO(pyo);
+    ret=exprResult;
     addStaticDependencies(e);
   }
   else { // on failure ...
@@ -523,10 +538,17 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), PyO());
-        if(created)
-          it->second = CALLPY(Py_CompileStringExFlags, strtrim, "", Py_file_input, &flags, 2);
-        CALLPY(PyEval_EvalCode, it->second, globalsLocals, globalsLocals);
+        auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), make_pair(Py_file_input, PyO()));
+        if(created) {
+          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_file_input, &flags, 2));
+          if(!it->second.second) {
+            byteCodeMap.erase(it);
+            throw PythonException(__FILE__, __LINE__);
+          }
+        }
+        else if(it->second.first!=Py_file_input)
+          throw PythonException(__FILE__, __LINE__);
+        CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
     }
