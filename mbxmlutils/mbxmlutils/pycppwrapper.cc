@@ -186,8 +186,10 @@ const char* PythonException::what() const noexcept {
   Py_DECREF(pybufstr);
   std::stringstream strstr;
   strstr<<"Python exception";
-  if(!file.empty())
+#ifndef NDEBUG
+  if(line>0)
     strstr<<" at "<<file<<":"<<line;
+#endif
   strstr<<":"<<std::endl<<str;
   msg=strstr.str();
   return msg.c_str();
