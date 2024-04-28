@@ -4,7 +4,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMTypeInfo.hpp>
-#include <boost/chrono/chrono.hpp>
+#include <chrono>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -89,7 +89,7 @@ void Preprocess::extractEvaluator() {
 
 shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   msgStatic(Info)<<"Start XML preprocessing."<<endl;
-  auto start = chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
   if(preprocessed)
     throw DOMEvalException("Preprocess::processAndGetDocument and only be called ones!", document->getDocumentElement());
 
@@ -113,8 +113,8 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   }
 
   preprocessed = true;
-  auto end = chrono::high_resolution_clock::now();
-  msgStatic(Info)<<"Finished XML preprocessing in "<<chrono::duration<double>(end-start).count()<<" seconds."<<endl;
+  auto end = std::chrono::high_resolution_clock::now();
+  msgStatic(Info)<<"Finished XML preprocessing in "<<std::chrono::duration<double>(end-start).count()<<" seconds."<<endl;
 
 #ifndef NDEBUG
   // in debug build check if Embed elements are still left, if so, its a programming bug!
