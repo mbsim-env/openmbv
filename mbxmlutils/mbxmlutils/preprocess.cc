@@ -4,6 +4,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMTypeInfo.hpp>
+#include <boost/chrono/chrono.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
