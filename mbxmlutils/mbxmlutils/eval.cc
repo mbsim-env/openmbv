@@ -68,7 +68,7 @@ boost::filesystem::path originalFilename;
 
 namespace MBXMLUtils {
 
-boost::filesystem::path Eval::installPath(boost::filesystem::path(loc()).parent_path().parent_path());
+boost::filesystem::path Eval::installPath(boost::filesystem::canonical(loc()).parent_path().parent_path());
 
 bool tryDouble2Int(double d, int &i) {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);

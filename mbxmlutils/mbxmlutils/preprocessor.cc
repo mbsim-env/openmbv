@@ -12,7 +12,6 @@
 #include <cfenv>
 #include <regex>
 #include "mbxmlutils/preprocess.h"
-#include <mbxmlutilshelper/thislinelocation.h>
 #include <mbxmlutilshelper/utils.h>
 #include <mbxmlutils/eval.h>
 #include <xercesc/dom/DOMDocument.hpp>

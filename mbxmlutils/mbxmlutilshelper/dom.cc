@@ -932,7 +932,7 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
   // handle schema import -> map namespace to local file
   string ns=X()%resourceIdentifier->getNameSpace();
   path file;
-  static boost::filesystem::path installPath(boost::filesystem::path(domLoc()).parent_path().parent_path());
+  static boost::filesystem::path installPath(boost::filesystem::canonical(domLoc()).parent_path().parent_path());
   path SCHEMADIR=installPath/"share"/"mbxmlutils"/"schema";
   // handle namespaces known by MBXMLUtils
   if(ns==XINCLUDE.getNamespaceURI())
