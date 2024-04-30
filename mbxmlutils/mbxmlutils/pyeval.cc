@@ -82,12 +82,13 @@ PyInit::PyInit() {
   try {
     // init python
     initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
+      // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
+      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
+    }, {
       // append mbxmlutils module to the python path (the basic Python module for the pyeval)
       Eval::installPath/"share"/"mbxmlutils"/"python",
       // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
       Eval::installPath/"bin",
-      // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
     }, {
       Eval::installPath,
       boost::filesystem::path(PYTHON_PREFIX),

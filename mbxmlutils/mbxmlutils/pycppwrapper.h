@@ -211,6 +211,7 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
 // and if one is found envvar is set
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
+                      const std::vector<boost::filesystem::path> &sysPathPrepend={},
                       const std::vector<boost::filesystem::path> &sysPathAppend={},
                       const std::vector<boost::filesystem::path> &possiblePrefix={});
 

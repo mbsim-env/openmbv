@@ -31,6 +31,7 @@
 #define _MBXMLUTILSHELPER_THISLINELOCATION_H_
 
 #include <string>
+#include <filesystem>
 
 #ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN
@@ -72,6 +73,7 @@ class ThisLineLocation {
       std::string name(info.dli_fname);
       p=name[0]=='/'?name:curDir+"/"+name;
 #endif
+      p=std::filesystem::canonical(p);
     }
     std::string operator()() { return p; }
   private:
