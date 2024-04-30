@@ -506,7 +506,7 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! Create DOM parser
     //! A none validating parser if xmlCatalog is empty or a nullptr.
     //! A validating parser if xmlCatalog defines a XML catalog file or a root XML element of a catalog
-    static std::shared_ptr<DOMParser> create(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog=nullptr);
+    static std::shared_ptr<DOMParser> create(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog=static_cast<xercesc::DOMElement*>(nullptr));
     //! Parse a XML document
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.

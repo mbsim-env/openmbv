@@ -318,7 +318,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
     }
     catch(const exception& ex) { // on failure -> report error
       printEvaluatorMsg(out, fmatvec::Atom::Info);
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+err.str(), e);
+      throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
     }
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
@@ -523,7 +523,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     }
     catch(const exception& ex) { // on failure -> report error
       printEvaluatorMsg(out, fmatvec::Atom::Info);
-      throw DOMEvalException(string(ex.what())+"Unable to evaluate Python code:\n"+err.str(), e);
+      throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
     }
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
