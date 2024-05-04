@@ -24,6 +24,7 @@
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
@@ -119,6 +120,11 @@ ThisLineLocation domLoc;
 namespace {
   InitXerces initXerces;
 
+  string domParserKeyStr("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
+  const XMLCh *domParserKey(TranscodeFromStr(reinterpret_cast<const XMLByte*>(domParserKeyStr.c_str()), domParserKeyStr.length(), "UTF8").adopt());
+  string embedDataKeyStr("http://www.mbsim-env.de/dom/MBXMLUtils/embedData");
+  const XMLCh *embedDataKey(TranscodeFromStr(reinterpret_cast<const XMLByte*>(embedDataKeyStr.c_str()), embedDataKeyStr.length(), "UTF8").adopt());
+
   // START: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
   template<typename Tag>
@@ -163,6 +169,92 @@ namespace {
       return relPathRet;
     }
     return absPath;
+  }
+
+  class TemporarilyConvertEmbedDataToEmbedPI {
+    public:
+      TemporarilyConvertEmbedDataToEmbedPI(DOMNode *n_);
+      ~TemporarilyConvertEmbedDataToEmbedPI();
+    private:
+      DOMNode *n;
+      vector<DOMNode*> addedPIs;
+  };
+  TemporarilyConvertEmbedDataToEmbedPI::TemporarilyConvertEmbedDataToEmbedPI(DOMNode *n_) : n(n_) {
+    assert(n->getNodeType()==DOMNode::DOCUMENT_NODE || n->getNodeType()==DOMNode::ELEMENT_NODE);
+    auto doc = n->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(n) : n->getOwnerDocument();
+    shared_ptr<DOMParser> parser=D(doc)->getParser();
+    function<void(DOMElement*)> walk;
+    walk=[&walk, &doc, &parser, this](DOMElement *e) {
+      auto pi=static_cast<map<string, string>*>(e->getUserData(embedDataKey));
+      if(pi) {
+        for(auto &[k,v] : *pi) {
+          auto piEle = doc->createProcessingInstruction(X()%k, X()%v);
+          addedPIs.emplace_back(e->getParentNode()->insertBefore(piEle, e));
+        }
+      }
+
+      // remove empty text nodes for validating parsers for complex content elements of types empty and element
+      // (if the element has not type information stored skip it)
+      if(parser->getTypeMap().size()>0) {
+        const auto *type = static_cast<const DOMElement*>(e)->getSchemaTypeInfo();
+        FQN typeName(X()%type->getTypeNamespace(), X()%type->getTypeName());
+        if(!typeName.first.empty() && !typeName.second.empty()) {
+          auto it=parser->getTypeMap().find(typeName);
+          if(it==parser->getTypeMap().end())
+            throw runtime_error("Internal error: Type {"+typeName.first+"}"+typeName.second+" not found on element {"+E(e)->getTagName().first+"}"+E(e)->getTagName().second+".");
+          bool removeEmptyText = false;
+          if(it->second->getTypeCategory()==XSTypeDefinition::COMPLEX_TYPE) {
+            auto ct=static_cast<XSComplexTypeDefinition*>(it->second)->getContentType();
+            if(ct == XSComplexTypeDefinition::CONTENTTYPE_EMPTY || ct == XSComplexTypeDefinition::CONTENTTYPE_ELEMENT)
+              removeEmptyText=true;
+          }
+          if(removeEmptyText) {
+            auto c=e->getFirstChild();
+            while(c!=nullptr) {
+              if(c->getNodeType()!=DOMNode::TEXT_NODE) {
+                c=c->getNextSibling();
+                continue;
+              }
+              auto t=static_cast<DOMText*>(c);
+              c=c->getNextSibling();
+              if(boost::trim_copy(X()%t->getData()).empty())
+                t->getParentNode()->removeChild(t)->release();
+            }
+          }
+        }
+      }
+
+      for(auto c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling())
+        walk(c);
+    };
+    walk(n->getNodeType()==DOMNode::DOCUMENT_NODE ? static_cast<DOMDocument*>(n)->getDocumentElement() :
+                                                    static_cast<DOMElement*>(n));
+  }
+  TemporarilyConvertEmbedDataToEmbedPI::~TemporarilyConvertEmbedDataToEmbedPI() {
+    for(auto pi : addedPIs)
+      pi->getParentNode()->removeChild(pi)->release();
+  }
+
+  void convertEmbedPIToEmbedData(DOMElement *ee) {
+    function<void(DOMElement*)> walk;
+    walk=[&walk](DOMElement *e) {
+      auto prev=e->getPreviousSibling();
+      while(prev!=nullptr) {
+        if(prev->getNodeType()!=DOMNode::PROCESSING_INSTRUCTION_NODE) {
+          prev=prev->getPreviousSibling();
+          continue;
+        }
+        auto pi = static_cast<DOMProcessingInstruction*>(prev);
+        prev=prev->getPreviousSibling();
+        if((X()%pi->getTarget()).substr(0,11)!="MBXMLUtils_")
+          continue;
+        E(e)->addEmbedData(X()%pi->getTarget(), X()%pi->getData());
+        pi->getParentNode()->removeChild(pi)->release();
+      }
+      for(auto c=e->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling())
+        walk(c);
+    };
+    walk(ee);
   }
 }
 
@@ -245,6 +337,34 @@ DOMProcessingInstruction *DOMElementWrapper<DOMElementType>::getFirstProcessingI
 }
 
 template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::addProcessingInstructionChildNamed(const string &target, const string &data) {
+  auto pi = me->getOwnerDocument()->createProcessingInstruction(X()%target, X()%data);
+  me->insertBefore(pi, me->getFirstChild());
+}
+
+template<typename DOMElementType>
+string DOMElementWrapper<DOMElementType>::getEmbedData(const string &name) const {
+  auto *pi = static_cast<map<string, string>*>(me->getUserData(embedDataKey));
+  if(!pi)
+    return {};
+  auto it = pi->find(name);
+  if(it != pi->end())
+    return it->second;
+  return {};
+}
+template string DOMElementWrapper<const DOMElement>::getEmbedData(const string &name) const; // explicit instantiate const variant
+                                                                                                                //
+template<typename DOMElementType>
+void DOMElementWrapper<DOMElementType>::addEmbedData(const std::string &name, const std::string &data) {
+  auto *pi = static_cast<map<string, string>*>(me->getUserData(embedDataKey));
+  if(!pi) {
+    pi = new map<string, string>();
+    me->setUserData(embedDataKey, pi, &userDataHandler);
+  }
+  (*pi)[name] = data;
+}
+
+template<typename DOMElementType>
 const DOMComment *DOMElementWrapper<DOMElementType>::getFirstCommentChild() const {
   for(DOMNode *ret=me->getFirstChild(); ret; ret=ret->getNextSibling()) {
     if(ret->getNodeType()==DOMNode::COMMENT_NODE)
@@ -317,10 +437,10 @@ path DOMElementWrapper<DOMElementType>::getOriginalFilename(bool skipThis, const
   else
     e=me;
   while(e) {
-    if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
+    if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty()) {
       if(e->getOwnerDocument()->getDocumentElement()!=e)
         found=e;
-      return X()%E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")->getData();
+      return E(e)->getEmbedData("MBXMLUtils_OriginalFilename");
     }
     auto *p=e->getParentNode();
     e = p && p->getNodeType()==DOMNode::ELEMENT_NODE ? static_cast<DOMElement*>(e->getParentNode()) : nullptr;
@@ -335,9 +455,7 @@ template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::setOriginalFilename(path orgFileName) {
   if(orgFileName.empty())
     orgFileName=E(me)->getOriginalFilename();
-  DOMProcessingInstruction *filenamePI=me->getOwnerDocument()->createProcessingInstruction(X()%"OriginalFilename",
-    X()%orgFileName.string());
-  me->insertBefore(filenamePI, me->getFirstChild());
+  addEmbedData("MBXMLUtils_OriginalFilename", orgFileName.string());
 }
 
 template<typename DOMElementType>
@@ -413,9 +531,9 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getLineNumber() const {
-  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("LineNr");
-  if(pi)
-    return boost::lexical_cast<int>((X()%pi->getData()));
+  auto pi=getEmbedData("MBXMLUtils_LineNr");
+  if(!pi.empty())
+    return boost::lexical_cast<int>(pi);
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getLineNumber() const; // explicit instantiate const variant
@@ -427,9 +545,9 @@ void DOMElementWrapper<DOMElementType>::removeAttribute(const FQN &name) {
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getEmbedCountNumber() const {
-  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedCountNr");
-  if(pi)
-    return boost::lexical_cast<int>((X()%pi->getData()));
+  auto pi=getEmbedData("MBXMLUtils_EmbedCountNr");
+  if(!pi.empty())
+    return boost::lexical_cast<int>(pi);
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getEmbedCountNumber() const; // explicit instantiate const variant
@@ -438,15 +556,14 @@ template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::setEmbedCountNumber(int embedCount) {
   stringstream str;
   str<<embedCount;
-  DOMProcessingInstruction *embedCountPI=me->getOwnerDocument()->createProcessingInstruction(X()%"EmbedCountNr", X()%str.str());
-  me->insertBefore(embedCountPI, me->getFirstChild());
+  addEmbedData("MBXMLUtils_EmbedCountNr", str.str());
 }
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getEmbedXPathCount() const {
-  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("EmbedXPathCount");
-  if(pi)
-    return boost::lexical_cast<int>((X()%pi->getData()));
+  auto pi=getEmbedData("MBXMLUtils_EmbedXPathCount");
+  if(!pi.empty())
+    return boost::lexical_cast<int>(pi);
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getEmbedXPathCount() const; // explicit instantiate const variant
@@ -455,8 +572,7 @@ template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::setEmbedXPathCount(int xPathCount) {
   stringstream str;
   str<<xPathCount;
-  DOMProcessingInstruction *embedXPathCountPI=me->getOwnerDocument()->createProcessingInstruction(X()%"EmbedXPathCount", X()%str.str());
-  me->insertBefore(embedXPathCountPI, me->getFirstChild());
+  addEmbedData("MBXMLUtils_EmbedXPathCount", str.str());
 }
 
 template<typename DOMElementType>
@@ -475,12 +591,12 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
         count=eeCount+1;
         break;
       }
-      if(E(ee)->getTagName()==fqn && !E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+      if(E(ee)->getTagName()==fqn && E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
         count++;
     }
     // break or continue
     int eCount=E(e)->getEmbedXPathCount();
-    if(root==e || E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
+    if(root==e || !E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty()) {
       xpath=string("/{").append(fqn.first).append("}").append(fqn.second).append("[1]").append(xpath); // extend xpath
       if(root==e && eCount>0)
         xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[1]").append(xpath);
@@ -523,9 +639,9 @@ template vector<int> DOMElementWrapper<const DOMElement>::getElementLocation() c
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getOriginalElementLineNumber() const {
-  const DOMProcessingInstruction *pi=getFirstProcessingInstructionChildNamed("OriginalElementLineNr");
-  if(pi)
-    return boost::lexical_cast<int>((X()%pi->getData()));
+  auto pi=getEmbedData("MBXMLUtils_OriginalElementLineNr");
+  if(!pi.empty())
+    return boost::lexical_cast<int>(pi);
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getOriginalElementLineNumber() const; // explicit instantiate const variant
@@ -534,22 +650,7 @@ template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::setOriginalElementLineNumber(int lineNr) {
   stringstream str;
   str<<lineNr;
-  DOMProcessingInstruction *embedCountPI=me->getOwnerDocument()->createProcessingInstruction(X()%"OriginalElementLineNr", X()%str.str());
-  me->insertBefore(embedCountPI, me->getFirstChild());
-}
-
-template<typename DOMElementType>
-void DOMElementWrapper<DOMElementType>::workaroundDefaultAttributesOnImportNode() {
-  // rest all default attributes to the default value exlicitly: this removed the default "flag"
-  DOMNamedNodeMap *attr=me->getAttributes();
-  for(int i=0; i<attr->getLength(); i++) {
-    auto *a=static_cast<DOMAttr*>(attr->item(i));
-    if(!a->getSpecified())
-      a->setValue(X()%(X()%a->getValue()));
-  }
-  // loop over all child elements recursively
-  for(DOMElement *c=me->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling())
-    E(c)->workaroundDefaultAttributesOnImportNode();
+  addEmbedData("MBXMLUtils_OriginalElementLineNr", str.str());
 }
 
 template<typename DOMElementType>
@@ -559,7 +660,7 @@ bool DOMElementWrapper<DOMElementType>::hasAttribute(const FQN &name) const {
 template bool DOMElementWrapper<const DOMElement>::hasAttribute(const FQN &name) const; // explicit instantiate const variant
 
 bool isDerivedFrom(const DOMNode *me, const FQN &baseTypeName) {
-  shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(me->getOwnerDocument()->getUserData(X()%DOMParser::domParserKey));
+  shared_ptr<DOMParser> parser=D(me->getOwnerDocument())->getParser();
 
   const DOMTypeInfo *type;
   if(me->getNodeType()==DOMNode::ELEMENT_NODE)
@@ -568,8 +669,8 @@ bool isDerivedFrom(const DOMNode *me, const FQN &baseTypeName) {
     type=static_cast<const DOMAttr*>(me)->getSchemaTypeInfo();
   FQN typeName(X()%type->getTypeNamespace(), X()%type->getTypeName());
 
-  auto it=parser->typeMap.find(typeName);
-  if(it==parser->typeMap.end())
+  auto it=parser->getTypeMap().find(typeName);
+  if(it==parser->getTypeMap().end())
     throw runtime_error("Internal error: Type {"+typeName.first+"}"+typeName.second+" not found.");
   return it->second->derivedFrom(X()%baseTypeName.first, X()%baseTypeName.second);
 }
@@ -600,13 +701,16 @@ template class DOMAttrWrapper<DOMAttr>;
 
 template<typename DOMDocumentType>
 XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
-  // normalize document
-  D(me)->normalizeDocument();
-
   // serialize to memory
   DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
   shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
-  shared_ptr<XMLCh> data(ser->writeToString(me), &X::releaseXMLCh); // serialize to data being UTF-16
+  ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+  ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTXercesPrettyPrint, false);
+  shared_ptr<XMLCh> data;
+  {
+    TemporarilyConvertEmbedDataToEmbedPI addedPi(me);
+    data.reset(ser->writeToString(me), &X::releaseXMLCh); // serialize to data being UTF-16
+  }
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
   // count number of words (16bit blocks); UTF-16 multi word characters are counted as 2 words
@@ -615,16 +719,17 @@ XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
   dataByteLen*=2; // a word has 2 bytes
 
   // parse from memory
-  shared_ptr<DOMParser> parser=*static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
+  shared_ptr<DOMParser> parser=getParser();
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
+  if(newDoc->getDocumentElement())
+    convertEmbedPIToEmbedData(newDoc->getDocumentElement());
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
 
   // replace old document element with new one
-  E(newDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
   DOMNode *newRoot=me->importNode(newDoc->getDocumentElement(), true);
   return XercesUniquePtr<DOMElement>(static_cast<DOMElement*>(me->replaceChild(newRoot, me->getDocumentElement())));
 }
@@ -638,24 +743,8 @@ xercesc::DOMElement* DOMDocumentWrapper<DOMDocumentType>::createElement(const FQ
 }
 
 template<typename DOMDocumentType>
-void DOMDocumentWrapper<DOMDocumentType>::normalizeDocument() {
-  // there is a xerces-c bug which prevents e.g. the following XML code from normalizeDocument:
-  // <root xmlns="http://a" xmlns:pre="http://a">
-  //   <child xmlns="http://b" xmlns:pre="http://a"/>
-  // </root>
-  // See bug report: https://issues.apache.org/jira/browse/XERCESC-2244
-  // As a workaround we disable namespace processing during normalization
-  bool doNamespaces=static_cast<bool>(me->getDOMConfig()->getParameter(XMLUni::fgDOMNamespaces));
-  me->getDOMConfig()->setParameter(XMLUni::fgDOMNamespaces, false);
-  BOOST_SCOPE_EXIT_TPL(me, doNamespaces) {
-    me->getDOMConfig()->setParameter(XMLUni::fgDOMNamespaces, doNamespaces);
-  } BOOST_SCOPE_EXIT_END
-  me->normalizeDocument();
-}
-
-template<typename DOMDocumentType>
 shared_ptr<DOMParser> DOMDocumentWrapper<DOMDocumentType>::getParser() const {
-  return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(X()%DOMParser::domParserKey));
+  return *static_cast<shared_ptr<DOMParser>*>(me->getUserData(domParserKey));
 }
 template shared_ptr<DOMParser> DOMDocumentWrapper<const DOMDocument>::getParser() const; // explicit instantiate const variant
 
@@ -867,8 +956,6 @@ const char* DOMEvalException::what() const noexcept {
   return whatStr.c_str();
 }
 
-const string LocationInfoFilter::lineNumberKey("http://www.mbsim-env.de/dom/MBXMLUtils/lineNumber");
-
 // START: call protected AbstractDOMParser::getScanner from outside, see above
 struct GETSCANNER { using type = XMLScanner *(AbstractDOMParser::*)() const; };
 namespace { template struct rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
@@ -877,24 +964,11 @@ DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) 
   // store the line number of the element start as user data
   auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser->parser.get());
   int lineNr=(abstractParser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber();
-  e->setUserData(X()%lineNumberKey, new int(lineNr), nullptr);
+  E(e)->addEmbedData("MBXMLUtils_LineNr", to_string(lineNr));
   return FILTER_ACCEPT;
 }
 
 DOMLSParserFilter::FilterAction LocationInfoFilter::acceptNode(DOMNode *n) {
-  auto* e=static_cast<DOMElement*>(n);
-  // get the line number of the element start from user data and reset user data
-  shared_ptr<int> lineNrPtr(static_cast<int*>(e->getUserData(X()%lineNumberKey)));
-  e->setUserData(X()%lineNumberKey, nullptr, nullptr);
-  // if no LineNr processing instruction exists create it using the line number from user data
-  DOMProcessingInstruction *pi=E(e)->getFirstProcessingInstructionChildNamed("LineNr");
-  if(!pi) {
-    stringstream str;
-    str<<*lineNrPtr;
-    DOMProcessingInstruction *lineNrPI=e->getOwnerDocument()->createProcessingInstruction(X()%"LineNr", X()%str.str());
-    e->insertBefore(lineNrPI, e->getFirstChild());
-  }
-  // return (lineNrPtr is deleted implicitly)
   return FILTER_ACCEPT;
 }
 
@@ -925,21 +999,36 @@ void TypeDerivativeHandler::handleAttributesPSVI(const XMLCh *const localName, c
   }
 }
 
-void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
+void UserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
   void *data, const DOMNode *src, DOMNode *dst) {
-  if(X()%key==DOMParser::domParserKey) {
+  if(X()%key==X()%domParserKey) {
     if(operation==NODE_DELETED) {
       delete static_cast<shared_ptr<DOMParser>*>(data);
       return;
     }
-    // handle xerces bugs!?
-    if((operation==NODE_IMPORTED && src->getNodeType()==DOMNode::TEXT_NODE && dst->getNodeType()==DOMNode::TEXT_NODE) ||
-       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ATTRIBUTE_NODE && dst->getNodeType()==DOMNode::ATTRIBUTE_NODE) ||
-       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE && dst->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE) ||
-       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::ELEMENT_NODE && dst->getNodeType()==DOMNode::ELEMENT_NODE) ||
-       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::CDATA_SECTION_NODE && dst->getNodeType()==DOMNode::CDATA_SECTION_NODE) ||
-       (operation==NODE_IMPORTED && src->getNodeType()==DOMNode::COMMENT_NODE && dst->getNodeType()==DOMNode::COMMENT_NODE))
+    if(operation==NODE_CLONED && src->getNodeType()==DOMNode::DOCUMENT_NODE) {
+      auto srcData = static_cast<shared_ptr<DOMParser>*>(src->getUserData(key));
+      if(!srcData)
+        return;
+      dst->setUserData(domParserKey, new shared_ptr<DOMParser>(*srcData), &userDataHandler);
       return;
+    }
+      return;
+    if(operation==NODE_IMPORTED) // importNode is called on DOMDocument but domParserKey must not be handled for node import
+      return;
+  }
+  if(X()%key==X()%embedDataKey) {
+    if(operation==NODE_DELETED) {
+      delete static_cast<map<string, string>*>(data);
+      return;
+    }
+    if(operation==NODE_CLONED || operation==NODE_IMPORTED) {
+      auto srcData = static_cast<map<string, string>*>(src->getUserData(key));
+      if(!srcData)
+        return;
+      dst->setUserData(embedDataKey, new map<string,string>(*srcData), &userDataHandler);
+      return;
+    }
   }
   throw runtime_error("Internal error: Unknown user data handling: op="+fmatvec::toString(operation)+", key="+X()%key+
                       ", src="+fmatvec::toString(src!=nullptr)+", dst="+fmatvec::toString(dst!=nullptr)+
@@ -947,8 +1036,7 @@ void DOMParserUserDataHandler::handle(DOMUserDataHandler::DOMOperationType opera
                       (dst ? ", dstType="+fmatvec::toString(dst->getNodeType()) : ""));
 }
 
-const string DOMParser::domParserKey("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
-DOMParserUserDataHandler DOMParser::userDataHandler;
+UserDataHandler userDataHandler;
 
 shared_ptr<DOMParser> DOMParser::create(const variant<path, DOMElement*> &xmlCatalog) {
   return shared_ptr<DOMParser>(new DOMParser(xmlCatalog));
@@ -1009,6 +1097,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
     config->setParameter(XMLUni::fgDOMValidate, true);
     config->setParameter(XMLUni::fgXercesSchema, true);
     config->setParameter(XMLUni::fgXercesUseCachedGrammarInParse, true);
+    config->setParameter(XMLUni::fgXercesCacheGrammarFromParse, true);
     config->setParameter(XMLUni::fgXercesDOMHasPSVIInfo, true);
     entityResolver.setParser(this);
     config->setParameter(XMLUni::fgXercesEntityResolver, &entityResolver);
@@ -1059,7 +1148,6 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
     if(dependencies)
       dependencies->push_back(incFile);
     shared_ptr<DOMDocument> incDoc=D(e->getOwnerDocument())->getParser()->parse(incFile, dependencies);
-    E(incDoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
     DOMNode *incNode=e->getOwnerDocument()->importNode(incDoc->getDocumentElement(), true);
     e->getParentNode()->replaceChild(incNode, e)->release();
     e=static_cast<DOMElement*>(incNode);
@@ -1102,6 +1190,8 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   else
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
+  if(doc->getDocumentElement())
+    convertEmbedPIToEmbedData(doc->getDocumentElement());
   doc->setDocumentURI(X()%(string("mbxmlutilsfile://").append(inputSource.string())));
   if(errorHandler.hasError()) {
     if(throwOnError) {
@@ -1119,15 +1209,12 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
       return {};
   }
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  doc->setUserData(domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  doc->setUserData(embedDataKey,new map<string,string>(),&userDataHandler);
   // set file name
   DOMElement *root=doc->getDocumentElement();
-  if(!E(root)->getFirstProcessingInstructionChildNamed("OriginalFilename")) {
-    DOMProcessingInstruction *filenamePI=doc->createProcessingInstruction(X()%"OriginalFilename",
-      X()%inputSource.string());
-    root->insertBefore(filenamePI, root->getFirstChild());
-  }
-  // handle CDATA nodes
+  if(E(root)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
+    E(root)->addEmbedData("MBXMLUtils_OriginalFilename", inputSource.string());
   if(doXInclude)
     handleXInclude(root, dependencies);
   // return DOM document
@@ -1135,11 +1222,11 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
 }
 
 namespace {
-  shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint);
+  shared_ptr<DOMLSSerializer> serializeHelper();
 }
 
-void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint) {
-  shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
+void DOMParser::serialize(DOMNode *n, const path &outputSource) {
+  shared_ptr<DOMLSSerializer> ser=serializeHelper();
   // at least using wine we cannot use outputSource as lock file itself, its crashing
   path outputSourceLock(outputSource.parent_path()/(string(".").append(outputSource.filename().string()).append(".lock")));
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
@@ -1152,30 +1239,33 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool prettyPrint
 #endif
   boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
   boost::interprocess::scoped_lock lock(outputSourceFileLock);
-  if(!ser->writeToURI(n, X()%outputSource.string()))
-    throw runtime_error("Serializing the document failed.");
+  {
+    TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
+    if(!ser->writeToURI(n, X()%outputSource.string()))
+      throw runtime_error("Serializing the document failed.");
+  }
 }
 
-void DOMParser::serializeToString(DOMNode *n, string &outputData, bool prettyPrint) {
-  shared_ptr<DOMLSSerializer> ser=serializeHelper(n, prettyPrint);
+void DOMParser::serializeToString(DOMNode *n, string &outputData) {
+  shared_ptr<DOMLSSerializer> ser=serializeHelper();
   // disable the XML declaration which will be UTF-16 but we convert ti later to UTF-8
   ser->getDomConfig()->setParameter(XMLUni::fgDOMXMLDeclaration, false);
-  shared_ptr<XMLCh> data(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
+  shared_ptr<XMLCh> data;
+  {
+    TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
+    data.reset(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
+  }
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
   outputData=X()%data.get();
 }
 
 namespace {
-  shared_ptr<DOMLSSerializer> serializeHelper(DOMNode *n, bool prettyPrint) {
-    if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-      D(static_cast<DOMDocument*>(n))->normalizeDocument();
-    else
-      D(n->getOwnerDocument())->normalizeDocument();
-
+  shared_ptr<DOMLSSerializer> serializeHelper() {
     DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
     shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
-    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, prettyPrint);
+    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTXercesPrettyPrint, false);
     return ser;
   }
 }
@@ -1187,7 +1277,8 @@ void DOMParser::resetCachedGrammarPool() {
 
 shared_ptr<DOMDocument> DOMParser::createDocument() {
   shared_ptr<DOMDocument> doc(domImpl->createDocument(), [](auto && PH1) { if(PH1) PH1->release(); });
-  doc->setUserData(X()%domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  doc->setUserData(domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  doc->setUserData(embedDataKey,new map<string,string>(),&userDataHandler);
   return doc;
 }
 

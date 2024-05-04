@@ -113,6 +113,9 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   }
 
   preprocessed = true;
+  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Validate preprocessed file"<<endl;
+  D(document)->validate();
+
   auto end = std::chrono::high_resolution_clock::now();
   msgStatic(Info)<<"Finished XML preprocessing in "<<std::chrono::duration<double>(end-start).count()<<" seconds."<<endl;
 
@@ -193,7 +196,6 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
           ex.appendContext(e),
           throw ex;
         }
-        E(newdoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)));
       }
       else
@@ -204,7 +206,7 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
       enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)));
 
     // add the OriginalFilename if not already added
-    if(E(e)->getFirstProcessingInstructionChildNamed("OriginalFilename"))
+    if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
       E(enew)->setOriginalFilename(E(e)->getOriginalFilename());
     // include a processing instruction with the line number of the original element
     E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
@@ -258,7 +260,6 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
-        E(localparamxmldoc->getDocumentElement())->workaroundDefaultAttributesOnImportNode();// workaround
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)));
       }
       else
@@ -488,9 +489,8 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
       // eval element: for PV%"script" a string containing all parameters in xmlflateval notation is returned.
       Eval::Value value=eval->eval(e);
       // add processing instruction <?ScriptParameter ...?>
-      DOMProcessingInstruction *scriptPar=e->getOwnerDocument()->createProcessingInstruction(X()%"ScriptParameter",
-        X()%eval->cast<string>(value));
-      e->insertBefore(scriptPar, e->getFirstChild());
+      // add processing instruction <?ScriptParameter ...?>
+      E(e)->addProcessingInstructionChildNamed("ScriptParameter", eval->cast<string>(value));
     }
   }
   

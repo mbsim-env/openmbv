@@ -265,12 +265,11 @@ Eval::Value Eval::eval(const DOMElement *e) {
       if(!A(a)->isDerivedFrom(PV%"symbolicFunctionArgNameType"))
         continue;
       string base=X()%a->getName();
-      if(!E(e)->hasAttribute(base+"Dim"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Dim", e);
-      if(!E(e)->hasAttribute(base+"Nr"))
-        throw DOMEvalException("Internal error: their must also be a attribute named "+base+"Nr", e);
-      auto nr=boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr"));
-      auto dim=boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim"));
+      if(base.substr(0, 3)!="arg")
+        throw DOMEvalException("Internal error: a symbolicFunctionArgNameType must start with 'arg'", e);
+      int baseNr = boost::lexical_cast<int>(base.substr(3));
+      auto dim = E(e)->hasAttribute(base+"Dim") ? boost::lexical_cast<int>(E(e)->getAttribute(base+"Dim")) : 0;
+      auto nr = E(e)->hasAttribute(base+"Nr") ? boost::lexical_cast<int>(E(e)->getAttribute(base+"Nr")) : baseNr;
 
       inputs.resize(max(nr, static_cast<int>(inputs.size()))); // fill new elements with default ctor
       inputs[nr-1]=createFunctionIndep(dim);

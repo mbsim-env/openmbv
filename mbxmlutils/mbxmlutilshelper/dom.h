@@ -270,6 +270,13 @@ class DOMElementWrapper {
     const xercesc::DOMProcessingInstruction *getFirstProcessingInstructionChildNamed(const std::string &target) const;
     //! Get first child processing instruction of the specified target
     xercesc::DOMProcessingInstruction *getFirstProcessingInstructionChildNamed(const std::string &target);
+    //! Add a processing instruction child of the specified target
+    void addProcessingInstructionChildNamed(const std::string &target, const std::string &data);
+    //! Get the embed data named name from the current element. Returns "" if not such data exists.
+    std::string getEmbedData(const std::string &name) const;
+    //! Add a embed data named name to the current element holding data.
+    //! If the element has already such a name embedData it is overwritten with data
+    void addEmbedData(const std::string &name, const std::string &data);
     //! Get first child comment
     const xercesc::DOMComment *getFirstCommentChild() const;
     //! Get first child comment
@@ -370,8 +377,6 @@ class DOMElementWrapper {
     bool hasAttribute(const FQN &name) const;
     //! remove from this element the attibute named name.
     void removeAttribute(const FQN &name);
-    //! Workaround: convert default attributes to normal attributes (must be used before importNode to also import default attributes)
-    void workaroundDefaultAttributesOnImportNode();
     //! Treat this object as a pointer (like DOMElement*)
     typename std::conditional<std::is_same<DOMElementType, const xercesc::DOMElement>::value,
       const DOMElementWrapper*, DOMElementWrapper*>::type operator->() {
@@ -440,8 +445,6 @@ class DOMDocumentWrapper {
     //! create element with the given FQN
     //! Note: a empty namespace (name.first.empty()==true) as no namespace
     xercesc::DOMElement* createElement(const FQN &name);
-    //! Just calls normalizeDocument of the DOMDocument but with a workaround for a xerces-c bug, see .cc file.
-    void normalizeDocument();
     //! Get full qualified tag name
     std::shared_ptr<DOMParser> getParser() const;
     //! Get the filename of the document.
@@ -481,7 +484,6 @@ class LocationInfoFilter : public xercesc::DOMLSParserFilter {
     xercesc::DOMNodeFilter::ShowType getWhatToShow() const override;
   private:
     DOMParser *parser;
-    static const std::string lineNumberKey;
 };
 
 class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatvec::Atom {
@@ -493,10 +495,12 @@ class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatve
     DOMParser *parser;
 };
 
-class DOMParserUserDataHandler : public xercesc::DOMUserDataHandler {
+class UserDataHandler : public xercesc::DOMUserDataHandler {
   public:
     void handle(DOMOperationType operation, const XMLCh* key, void *data, const xercesc::DOMNode *src, xercesc::DOMNode *dst) override;
 };
+
+extern UserDataHandler userDataHandler;
 
 class EntityResolver : public xercesc::XMLEntityResolver {
   public:
@@ -508,11 +512,12 @@ class EntityResolver : public xercesc::XMLEntityResolver {
 
 //! A XML DOM parser.
 class DOMParser : public std::enable_shared_from_this<DOMParser> {
-  friend bool isDerivedFrom(const xercesc::DOMNode *me, const FQN &baseTypeName);
   friend class TypeDerivativeHandler;
   friend class LocationInfoFilter;
-  friend class DOMParserUserDataHandler;
+  friend class UserDataHandler;
   friend class EntityResolver;
+  friend class DOMElementWrapper<xercesc::DOMElement>;
+  friend class DOMElementWrapper<const xercesc::DOMElement>;
   template<typename> friend class DOMDocumentWrapper;
   public:
     //! Create DOM parser
@@ -525,18 +530,18 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
                                                 std::vector<boost::filesystem::path> *dependencies=nullptr, bool doXInclude=true, bool throwOnError=true);
     //! Serialize a document to a file.
-    //! Helper function to write a node. This normalized the document before.
-    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool prettyPrint=true);
+    //! Helper function to write a node.
+    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource);
     //! Serialize a document to a memory (std::string).
-    //! Helper function to write a node. This normalized the document before.
-    static void serializeToString(xercesc::DOMNode *n, std::string &outputData, bool prettyPrint=true);
+    //! Helper function to write a node.
+    static void serializeToString(xercesc::DOMNode *n, std::string &outputData);
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
     std::shared_ptr<xercesc::DOMDocument> createDocument();
+    
+    const std::map<FQN, xercesc::XSTypeDefinition*>& getTypeMap() const { return typeMap; }
   private:
-    static const std::string domParserKey;
-
     xercesc::DOMImplementation *domImpl;
     DOMParser(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog);
     std::shared_ptr<xercesc::DOMLSParser> parser;
@@ -545,7 +550,6 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     LocationInfoFilter locationFilter;
     TypeDerivativeHandler typeDerHandler;
     EntityResolver entityResolver;
-    static DOMParserUserDataHandler userDataHandler;
     std::map<std::string, boost::filesystem::path> registeredGrammar;
 
     static void handleXInclude(xercesc::DOMElement *&e, std::vector<boost::filesystem::path> *dependencies);

@@ -106,9 +106,7 @@ int main(int argc, char *argv[]) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Save preprocessed file "<<mainXML<<" as "<<mainxmlpp<<endl;
     DOMElement *mainxmlele=mainXMLDoc->getDocumentElement();
     E(mainxmlele)->setOriginalFilename();
-    DOMParser::serialize(mainXMLDoc.get(), mainxmlpp, false);
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Validate preprocessed file"<<endl;
-    D(mainXMLDoc)->getParser()->parse(mainxmlpp, nullptr, false); // = D(mainXMLDoc)->validate() (serialization is already done)
+    DOMParser::serialize(mainXMLDoc.get(), mainxmlpp);
 
     // output dependencies?
     if(!depFileName.empty()) {
