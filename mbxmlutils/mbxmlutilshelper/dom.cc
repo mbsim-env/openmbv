@@ -236,6 +236,8 @@ namespace {
   }
 
   void convertEmbedPIToEmbedData(DOMElement *ee) {
+    if(!ee)
+      return;
     function<void(DOMElement*)> walk;
     walk=[&walk](DOMElement *e) {
       auto prev=e->getPreviousSibling();
@@ -724,10 +726,9 @@ XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
-  if(newDoc->getDocumentElement())
-    convertEmbedPIToEmbedData(newDoc->getDocumentElement());
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
+  convertEmbedPIToEmbedData(newDoc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
 
   // replace old document element with new one
   DOMNode *newRoot=me->importNode(newDoc->getDocumentElement(), true);
@@ -831,24 +832,49 @@ DOMEvalException::DOMEvalException(const string &errorMsg_, const DOMNode *n) {
   // store error message
   errorMsg=errorMsg_;
   // create a DOMLocator stack (by using embed elements (OriginalFilename processing instructions))
-  if(n)
+  if(n) {
+    nodeType = n->getNodeType();
     appendContext(n);
+  }
 }
 
 DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::DOMLocator &loc) {
+  // This ctor gets only called when a parser error occurs.
+  // At this time convertEmbedPIToEmbedData is not called yet.
+  // Hence we call it here to enable appendContext to append the context using the embedData from PI
+
   // store error message
   errorMsg=errorMsg_;
 
   // location with a stack
-  const DOMNode *n=loc.getRelatedNode();
+  auto n=loc.getRelatedNode();
   if(!n)
     return;
+  if(n)
+    nodeType = n->getNodeType();
+
+  convertEmbedPIToEmbedData(n->getNodeType()==DOMNode::DOCUMENT_NODE ?
+                            static_cast<const DOMDocument*>(n)->getDocumentElement() :
+                            n->getOwnerDocument()->getDocumentElement());
+
   if(n->getNodeType()==DOMNode::ELEMENT_NODE)
     appendContext(n, loc.getLineNumber());
   else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
     appendContext(n, loc.getLineNumber());
-  else if(n->getNodeType()==DOMNode::TEXT_NODE)
-    appendContext(n->getParentNode(), loc.getLineNumber());
+  else if(n->getNodeType()==DOMNode::TEXT_NODE) {
+    // use the first previous element n as appendContext ...
+    auto nn=n->getPreviousSibling();
+    while(nn) {
+      if(nn->getNodeType()==DOMNode::ELEMENT_NODE) {
+        appendContext(nn, loc.getLineNumber()==0 ? 0 : loc.getLineNumber());
+        break;
+      }
+      nn=nn->getPreviousSibling();
+    }
+    // ... if not found use the parent element n as appendContext
+    if(!nn)
+      appendContext(n->getParentNode(), loc.getLineNumber());
+  }
   else if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
     appendContext(n, loc.getLineNumber());
   else
@@ -885,7 +911,7 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
   else
     throw runtime_error("DOMEvalException::appendContext can only be called for element and attribute nodes.");
 
-  locationStack.emplace_back(filename, externLineNr>0 ? externLineNr : lineNr, embedCount, xpath);
+  locationStack.emplace_back(filename, lineNr>0 ? lineNr : externLineNr, embedCount, xpath);
   auto ee=found;
   while(ee) {
     string xpath;
@@ -1160,7 +1186,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
   }
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude, bool throwOnError) {
+shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
   if(!exists(inputSource))
     throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
@@ -1190,24 +1216,19 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   else
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
-  if(doc->getDocumentElement())
-    convertEmbedPIToEmbedData(doc->getDocumentElement());
   doc->setDocumentURI(X()%(string("mbxmlutilsfile://").append(inputSource.string())));
   if(errorHandler.hasError()) {
-    if(throwOnError) {
-      // fix the filename
-      DOMEvalException ex(errorHandler.getError());
-      if(!ex.locationStack.empty()) {
-        auto &l=ex.locationStack.front();
-        EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
-                              l.getEmbedCount(), l.getRootXPathExpression());
-        ex.locationStack.front()=exNew;
-      }
-      throw ex;
+    // fix the filename
+    DOMEvalException ex(errorHandler.getError());
+    if(!ex.locationStack.empty()) {
+      auto &l=ex.locationStack.front();
+      EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
+                            l.getEmbedCount(), l.getRootXPathExpression());
+      ex.locationStack.front()=exNew;
     }
-    else
-      return {};
+    throw ex;
   }
+  convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
   doc->setUserData(embedDataKey,new map<string,string>(),&userDataHandler);

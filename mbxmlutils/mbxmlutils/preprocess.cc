@@ -216,6 +216,7 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
     if(E(enew)->getTagName()!=embedFileNotFound && !enew->getSchemaTypeInfo()->getTypeName()) {
       nodesInvalidated = true;
       // Validate enew! only needed if enew does not have any type information yet.
+      // (a unvalidated parse may happend when the root element was not known; mainly since the root element is a local element)
       //
       // The any-child element of the Embed element is of processContents="skip" but we need the type information
       // of all element in enew. We do this by:
@@ -525,20 +526,30 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
 }
 
 shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &parser, const path &inputFile,
-                                                vector<path> &dependencies, const string &msg, bool allowUnvalidated) {
+                                                vector<path> &dependencies, const string &msg, bool allowUnknownRootElement) {
   auto [it, insert] = parsedFiles.emplace(absolute(inputFile), shared_ptr<DOMDocument>());
   if(!insert) {
     msgStatic(Info)<<"Reuse cached file "<<inputFile<<": "<<msg<<endl;
     return it->second;
   }
   msgStatic(Info)<<"Load, parse and validate file "<<inputFile<<": "<<msg<<endl;
-  auto doc = parser->parse(inputFile, &dependencies, false, !allowUnvalidated);
-  if(!doc) {
-    // on error parse without validation
-    if(!noneValidatingParser)
-      noneValidatingParser = DOMParser::create();
-    doc = noneValidatingParser->parse(inputFile, &dependencies, false);
+  shared_ptr<DOMDocument> doc;
+  if(allowUnknownRootElement) {
+    try {
+      doc = parser->parse(inputFile, &dependencies, false);
+    }
+    catch(const DOMEvalException &ex) {
+      if(ex.getNodeType()!=DOMNode::DOCUMENT_NODE) // if anything except the root element caused the error -> throw
+                                                   // else return a unvalidated document
+        throw ex;
+      // on error parse without validation
+      if(!noneValidatingParser)
+        noneValidatingParser = DOMParser::create();
+      doc = noneValidatingParser->parse(inputFile, &dependencies, false);
+    }
   }
+  else
+    doc = parser->parse(inputFile, &dependencies, false);
   return it->second = doc;
 }
 

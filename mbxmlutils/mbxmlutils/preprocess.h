@@ -57,7 +57,7 @@ class Preprocess : virtual public fmatvec::Atom {
     std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
                                                       const boost::filesystem::path &inputFile,
                                                       std::vector<boost::filesystem::path> &dependencies,
-                                                      const std::string &msg, bool allowUnvalidated=false);
+                                                      const std::string &msg, bool allowUnknownRootElement=false);
 
     void extractEvaluator();
 

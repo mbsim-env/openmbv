@@ -431,11 +431,16 @@ def rgbColor(*argv):
 # returns True if this function was called while a Qt-GUI was running (e.g. mbsimgui)
 def isGUI():
   try:
-    import PyQt5.QtWidgets
+    import PySide2.QtWidgets
   except ModuleNotFoundError:
-    return False
+    try:
+      import PyQt5.QtWidgets
+    except ModuleNotFoundError:
+      return False
+    else:
+      return PyQt5.QtWidgets.QApplication.instance() is not None
   else:
-    return PyQt5.QtWidgets.QApplication.instance() is not None
+    return PySide2.QtWidgets.QApplication.instance() is not None
 
 
 
