@@ -53,6 +53,7 @@ void checkPythonError() {
 }
 
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
+                      const std::vector<boost::filesystem::path> &sysPathPrepend,
                       const std::vector<boost::filesystem::path> &sysPathAppend,
                       const std::vector<boost::filesystem::path> &possiblePrefix) {
   boost::filesystem::path PYTHONHOME;
@@ -123,6 +124,8 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
 
   // add to sys.path
   PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
+  for(auto it = sysPathPrepend.rbegin(); it != sysPathPrepend.rend(); ++it)
+    CALLPY(PyList_Insert, sysPath, 0, CALLPY(PyUnicode_FromString, it->string()));
   for(auto &p : sysPathAppend)
     CALLPY(PyList_Append, sysPath, CALLPY(PyUnicode_FromString, p.string()));
 }
