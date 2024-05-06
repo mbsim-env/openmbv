@@ -3,6 +3,7 @@
 
 #include "eval.h"
 #include "pycppwrapper.h"
+#include <boost/uuid/name_generator.hpp>
 
 namespace MBXMLUtils {
 
@@ -45,7 +46,8 @@ class PyEval : public Eval {
     Value          createFunction(const std::vector<Value> &indeps, const Value &dep) const override;
 
     std::string serializeFunction(const Value &x) const override;
-    mutable std::map<size_t, std::pair<int, PythonCpp::PyO>> byteCodeMap;
+    static boost::uuids::name_generator uuidGen;
+    mutable std::map<boost::uuids::uuid, std::pair<int, PythonCpp::PyO>> byteCodeMap;
 };
 
 }

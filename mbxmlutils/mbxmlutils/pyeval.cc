@@ -13,6 +13,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/uuid/random_generator.hpp>
 #include "mbxmlutils/eval_static.h"
 #include <memory>
 #include <regex>
@@ -222,6 +223,8 @@ int MBXMLUtils_SharedLibrary_init() {
   return 0;
 }
 
+boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}()); // initialize a uuid name generator with a random namespace
+
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   currentImport=make_shared<PyO>(CALLPY(PyDict_New));
 }
@@ -312,7 +315,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(hash<string>{}(codetrim), make_pair(Py_file_input, PyO()));
+        auto [it, created] = byteCodeMap.emplace(uuidGen(codetrim), make_pair(Py_file_input, PyO()));
         if(created) {
           it->second.second = PyO(Py_CompileStringExFlags(codetrim.c_str(), "", Py_file_input, &flags, 2));
           if(!it->second.second) {
@@ -321,7 +324,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
           }
         }
         else if(it->second.first!=Py_file_input)
-          throw PythonException(__FILE__, __LINE__);
+          throw runtime_error("Internal error: in addImport a Python bytecode was cached with the wrong input tag.");
         CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
@@ -499,23 +502,21 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   {
     MBXMLUTILS_REDIR_STDOUT(out);
     MBXMLUTILS_REDIR_STDERR(err);
-    auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), make_pair(Py_eval_input, PyO()));
+    auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_eval_input, PyO()));
     bool error=false;
     if(created) {
       it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_eval_input, &flags, 2));
       if(!it->second.second) {
         byteCodeMap.erase(it);
+        PythonException dummy("", 0); // clear the python error
         error=true;
       }
     }
     else if(it->second.first!=Py_eval_input)
       error=true;
     if(!error)
-      exprResult=PyO(PyEval_EvalCode(it->second.second.get(), globalsLocals.get(), globalsLocals.get()));
+      exprResult=CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
   }
-  // clear the python exception in case of errors (done by creating a dummy PythonException object)
-  if(PyErr_Occurred())
-    PythonException dummy("", 0);
   if(exprResult) { // on success ...
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
@@ -539,7 +540,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(hash<string>{}(strtrim), make_pair(Py_file_input, PyO()));
+        auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_file_input, PyO()));
         if(created) {
           it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_file_input, &flags, 2));
           if(!it->second.second) {
@@ -548,7 +549,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
           }
         }
         else if(it->second.first!=Py_file_input)
-          throw PythonException(__FILE__, __LINE__);
+          throw runtime_error("Internal error: in fullStringToValue(2) a Python bytecode was cached with the wrong input tag.");
         CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       addStaticDependencies(e);
