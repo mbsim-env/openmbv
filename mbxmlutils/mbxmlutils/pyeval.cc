@@ -515,7 +515,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     else if(it->second.first!=Py_eval_input)
       error=true;
     if(!error)
-      exprResult=CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
+      try {
+        exprResult=CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
+      }
+      catch(const exception& ex) { // on failure -> report error
+        printEvaluatorMsg(out, fmatvec::Atom::Info);
+        throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
+      }
   }
   if(exprResult) { // on success ...
     printEvaluatorMsg(out, fmatvec::Atom::Info);
