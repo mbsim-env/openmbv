@@ -56,9 +56,9 @@
       <xs:element ref="pv:evaluator" minOccurs="0"/><!-- this should only be allowed for Group or even better for the root Group element-->
     </xs:sequence>
     <xs:attribute name="name" type="pv:stringPartialEval" use="required"/>
-    <xs:attribute name="enable" type="pv:booleanFullEval" default="1"/>
-    <xs:attribute name="boundingBox" type="pv:booleanFullEval" default="0"/>
-    <xs:attribute name="environment" type="pv:booleanFullEval" default="0"/>
+    <xs:attribute name="enable" type="pv:booleanFullEval"/>
+    <xs:attribute name="boundingBox" type="pv:booleanFullEval"/>
+    <xs:attribute name="environment" type="pv:booleanFullEval"/>
   </xs:complexType> 
 
   <xs:element name="Group" substitutionGroup="Object" type="GroupType"/>
@@ -70,7 +70,7 @@
           <xs:element ref="xi:include" xmlns:xi="http://www.w3.org/2001/XInclude"/>  
           <xs:element ref="pv:Embed"/>  
         </xs:choice> 
-        <xs:attribute name="expand" type="pv:booleanFullEval" default="1"/>
+        <xs:attribute name="expand" type="pv:booleanFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -79,11 +79,11 @@
   <xs:complexType name="BodyType">
     <xs:complexContent>
       <xs:extension base="ObjectType">
-        <xs:attribute name="outLine" type="pv:booleanFullEval" default="1"/>
-        <xs:attribute name="shilouetteEdge" type="pv:booleanFullEval" default="0"/>
-        <xs:attribute name="drawMethod" type="pv:stringPartialEval" default="filled"/>
-        <xs:attribute name="pointSize" type="pv:floatFullEval" default="0"/>
-        <xs:attribute name="lineWidth" type="pv:floatFullEval" default="0"/>
+        <xs:attribute name="outLine" type="pv:booleanFullEval"/>
+        <xs:attribute name="shilouetteEdge" type="pv:booleanFullEval"/>
+        <xs:attribute name="drawMethod" type="pv:stringPartialEval"/>
+        <xs:attribute name="pointSize" type="pv:floatFullEval"/>
+        <xs:attribute name="lineWidth" type="pv:floatFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -111,10 +111,10 @@
           <xs:element name="initialRotation" type="pv:angleVector" minOccurs="0"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar" minOccurs="0"/>
         </xs:sequence> 
-        <xs:attribute name="localFrame" type="pv:booleanFullEval" default="0"/>
-        <xs:attribute name="referenceFrame" type="pv:booleanFullEval" default="0"/>
-        <xs:attribute name="path" type="pv:booleanFullEval" default="0"/>
-        <xs:attribute name="dragger" type="pv:booleanFullEval" default="0"/>
+        <xs:attribute name="localFrame" type="pv:booleanFullEval"/>
+        <xs:attribute name="referenceFrame" type="pv:booleanFullEval"/>
+        <xs:attribute name="path" type="pv:booleanFullEval"/>
+        <xs:attribute name="dragger" type="pv:booleanFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -286,7 +286,7 @@
           <xs:element ref="xi:include" xmlns:xi="http://www.w3.org/2001/XInclude"/>
           <xs:element ref="pv:Embed"/>
         </xs:choice> 
-        <xs:attribute name="expand" type="pv:booleanFullEval" default="0"/>
+        <xs:attribute name="expand" type="pv:booleanFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -303,7 +303,7 @@
           <xs:element name="referencePoint" minOccurs="0" type="pv:stringFullEval"/>
           <xs:element name="scaleLength" type="pv:nounitScalar"/>
         </xs:sequence> 
-        <xs:attribute name="path" type="pv:booleanFullEval" default="0"/>
+        <xs:attribute name="path" type="pv:booleanFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>   
@@ -351,7 +351,7 @@
           <xs:element name="knotVecAzimuthal" type="pv:nounitVector"/>
           <xs:element name="knotVecRadial" type="pv:lengthVector"/>
         </xs:sequence> 
-        <xs:attribute name="localFrame" type="pv:booleanFullEval" default="0"/>
+        <xs:attribute name="localFrame" type="pv:booleanFullEval"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
