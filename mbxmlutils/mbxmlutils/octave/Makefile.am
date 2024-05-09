@@ -11,6 +11,7 @@ dist_octave_DATA = cardan.m \
 		   tilde.m\
 		   installPrefix.m\
 		   rgbColor.m\
+		   namedColor.m\
 		   invCardan.m\
 		   PKG_ADD
 
