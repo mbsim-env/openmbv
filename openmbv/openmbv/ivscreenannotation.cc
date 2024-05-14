@@ -70,10 +70,34 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   string fileName=ivsa->getIvFileName();
   struct SoUnref  { void operator()(SoSeparator *s) { if(s) s->unref(); } };
   unique_ptr<SoSeparator, SoUnref> ivSep;
-  if(!fileName.empty())
-    ivSep.reset(Utils::SoDBreadAllFileNameCached(fileName));
-  else
-    ivSep.reset(Utils::SoDBreadAllContentCached(ivsa->getIvContent()));
+  if(!fileName.empty()) {
+    boost::filesystem::path fn(fileName);
+    if(!boost::filesystem::exists(fn)) {
+      QString str("IV file %1 does not exist."); str=str.arg(fileName.c_str());
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+    }
+    else {
+      SoInput in;
+      if(in.openFile(fileName.c_str(), true)) // if file can be opened, read it
+        ivSep.reset(SoDB::readAll(&in));
+      if(!ivSep) { // error case
+        QString str("Failed to load IV file %1."); str=str.arg(fileName.c_str());
+        MainWindow::getInstance()->statusBar()->showMessage(str);
+        msgStatic(Warn)<<str.toStdString()<<endl;
+      }
+    }
+  }
+  else {
+    SoInput in;
+    in.setBuffer(ivsa->getIvContent().data(), ivsa->getIvContent().size());
+    ivSep.reset(SoDB::readAll(&in));
+    if(!ivSep) { // error case
+      QString str("Failed to load IV content from string.");
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+    }
+  }
   if(!ivSep)
     return;
   ivSep->ref();
@@ -86,12 +110,6 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     return pathNode;
   };
   auto pathNode = getPathNode(ivSep.get());
-  // if such a node exists we cannot use the cached content -> use a copy and search pathNode again in the copy
-  if(pathNode) {
-    ivSep.reset(static_cast<SoSeparator*>(ivSep->copy(true)));
-    ivSep->ref();
-    pathNode = getPathNode(ivSep.get());
-  }
 
   // add the cached IV content or the copied content to the scene graph
   auto ivSepPtr = ivSep.release();
