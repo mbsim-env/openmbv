@@ -732,22 +732,24 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
     v=create_double(cast_double(v)+add);
   else if(valueIsOfType(v, VectorType)) {
     PyArrayObject *a=reinterpret_cast<PyArrayObject*>(C(v).get());
-    int type=PyArray_TYPE(a);
-    if(type!=NPY_SHORT    && type!=NPY_USHORT    &&
-       type!=NPY_INT      && type!=NPY_UINT      &&
-       type!=NPY_LONG     && type!=NPY_ULONG     &&
-       type!=NPY_LONGLONG && type!=NPY_ULONGLONG)
-      throw runtime_error("Value is not of type integer.");
     npy_intp *dims=PyArray_SHAPE(a);
-    switch(type) {
-      case NPY_SHORT:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_short*>    (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_USHORT:    for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ushort*>   (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_INT:       for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_int*>      (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_UINT:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_uint*>     (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_LONG:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_long*>     (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_ULONG:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulong*>    (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_LONGLONG:  for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_longlong*> (PyArray_GETPTR1(a, i)) += add; break;
-      case NPY_ULONGLONG: for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulonglong*>(PyArray_GETPTR1(a, i)) += add; break;
+    if(dims[0]>0) {
+      int type=PyArray_TYPE(a);
+      if(type!=NPY_SHORT    && type!=NPY_USHORT    &&
+         type!=NPY_INT      && type!=NPY_UINT      &&
+         type!=NPY_LONG     && type!=NPY_ULONG     &&
+         type!=NPY_LONGLONG && type!=NPY_ULONGLONG)
+        throw runtime_error("Value is not of type integer.");
+      switch(type) {
+        case NPY_SHORT:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_short*>    (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_USHORT:    for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ushort*>   (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_INT:       for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_int*>      (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_UINT:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_uint*>     (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_LONG:      for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_long*>     (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_ULONG:     for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulong*>    (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_LONGLONG:  for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_longlong*> (PyArray_GETPTR1(a, i)) += add; break;
+        case NPY_ULONGLONG: for(size_t i=0; i<dims[0]; ++i) *static_cast<npy_ulonglong*>(PyArray_GETPTR1(a, i)) += add; break;
+      }
     }
   }
   else
