@@ -172,5 +172,12 @@ function hsv=namedColor(name)
     mbxmlutils_nameToHEX("yellowgreen") = "#9acd32";
   end
 
-  hexColor = mbxmlutils_nameToHEX(tolower(name));
+  if isKey(mbxmlutils_nameToHEX, tolower(name))
+    hexColor = mbxmlutils_nameToHEX(tolower(name));
+  else
+    hexColor = name;
+  end
+  if hexColor(1)!='#' || length(hexColor)!=7
+    error(["Invalid color name: ", name]);
+  end
   hsv = rgbColor(hex2dec(hexColor(2:3))/255, hex2dec(hexColor(4:5))/255, hex2dec(hexColor(6:7))/255);

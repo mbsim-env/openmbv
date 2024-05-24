@@ -42,12 +42,13 @@
 #ifndef OPENMBV_SOVRMLBACKGROUND_H
 #define OPENMBV_SOVRMLBACKGROUND_H
 
-#if __GNUC__ >= 14
+#if __GNUC__ >= 12
+  // gcc >= 12 release build triggers a false positive on this code
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
 #include <Inventor/nodes/SoSubNode.h>
-#if __GNUC__ >= 14
+#if __GNUC__ >= 12
   #pragma GCC diagnostic pop
 #endif
 #include <Inventor/nodes/SoNode.h>
