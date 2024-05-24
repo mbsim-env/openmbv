@@ -86,7 +86,7 @@ libpycppwrapper_la_SOURCES = pycppwrapper.cc
 libpycppwrapper_la_HEADERS = pycppwrapper.h
 # python part of the utility library
 libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/site-packages/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
+libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
