@@ -599,7 +599,9 @@ def namedColor(name):
       "yellow": "#ffff00",
       "yellowgreen": "#9acd32",
     }
-  hexColor = namedColor.nameToHEX[name.lower()]
+  hexColor = namedColor.nameToHEX.get(name.lower(), name)
+  if hexColor[0]!="#" or len(hexColor)!=7:
+    raise RuntimeError(f"Invalid color name: {name}")
   return rgbColor(int(hexColor[1:3], 16)/255, int(hexColor[3:5], 16)/255, int(hexColor[5:7], 16)/255)
 namedColor.nameToHEX=None
 
