@@ -29,6 +29,7 @@ def getWindowsEnvPath(name):
 def skipWindowsLibrary(libname):
   # skip some libname's
   if libname.startswith("api-ms-win-"): return True # windows system libs
+  if libname=="???": return True # ???
   if libname.startswith("libfltk"): return True # a octave dep of a unused octave module
   if libname.startswith("libportaudio"): return True # a octave dep of a unused octave module
   return False
@@ -83,8 +84,6 @@ def getDependencies(filename):
       if match is not None and not skipWindowsLibrary(match.expand("\\1")):
         raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
       match=re.search("^\s*(.+)\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match is not None and match.expand("\\2")=="???":
-        raise RuntimeError('Library '+match.expand("\\1")+' not found (=???) (a dependency of '+filename+')')
       if match is not None and not os.path.realpath(match.expand("\\2")) in getDoNotAdd() and not skipWindowsLibrary(match.expand("\\1")):
         res.add(match.expand("\\2"))
     return res
