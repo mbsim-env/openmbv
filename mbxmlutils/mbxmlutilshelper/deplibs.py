@@ -13,6 +13,12 @@ import time
 
 
 @functools.lru_cache(maxsize=None)
+def convertPath(name):
+  if platform.system()=="Linux":
+    return name
+  return subprocess.check_output(["cygpath", "-w", name], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
+
+@functools.lru_cache(maxsize=None)
 def getWindowsEnvPath(name):
   if platform.system()=="Windows":
     return os.environ[name]
@@ -84,8 +90,8 @@ def getDependencies(filename):
       if match is not None and not skipWindowsLibrary(match.expand("\\1")):
         raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
       match=re.search("^\s*(.+)\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match is not None and not os.path.realpath(match.expand("\\2")) in getDoNotAdd() and not skipWindowsLibrary(match.expand("\\1")):
-        res.add(match.expand("\\2"))
+      if match is not None and not os.path.realpath(convertPath(match.expand("\\2"))) in getDoNotAdd() and not skipWindowsLibrary(match.expand("\\1")):
+        res.add(convertPath(match.expand("\\2")))
     return res
   elif re.search('PE32\+? executable', content) is not None:
     try:
