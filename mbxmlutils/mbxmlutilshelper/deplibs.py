@@ -90,7 +90,7 @@ def getDependencies(filename):
       if match is not None and not skipWindowsLibrary(match.expand("\\1")):
         raise RuntimeError('Library '+match.expand("\\1")+' not found (a dependency of '+filename+')')
       match=re.search("^\s*(.+)\s=>\s(.+)\s\(0x[0-9a-fA-F]+\)$", line)
-      if match is not None and not os.path.realpath(convertPath(match.expand("\\2"))) in getDoNotAdd() and not skipWindowsLibrary(match.expand("\\1")):
+      if match is not None and not skipFile(os.path.realpath(convertPath(match.expand("\\2")))) and not skipWindowsLibrary(match.expand("\\1")):
         res.add(convertPath(match.expand("\\2")))
     return res
   elif re.search('PE32\+? executable', content) is not None:
@@ -99,7 +99,7 @@ def getDependencies(filename):
         match=re.search("^\s*DLL Name:\s(.+)$", line)
         if match is not None:
           absfile=searchWindowsLibrary(match.expand("\\1"), os.path.dirname(filename), filename)
-          if absfile is not None and not os.path.realpath(absfile) in getDoNotAdd():
+          if absfile is not None and not skipFile(os.path.realpath(absfile)):
             res.add(absfile)
       return res
     except subprocess.CalledProcessError:
@@ -139,10 +139,15 @@ def getDoNotAdd():
   notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
   notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/syswow64/*")) # copy in HOME dir
   # for windows-msys2 do not add the Windows system dlls
-  notAdd.update(glob.glob(os.environ['WINDIR']+"/system32/*"))
-  notAdd.update(glob.glob(os.environ['WINDIR']+"/syswow64/*"))
+  notAdd.update(glob.glob(os.environ.get("WINDIR", "")+"/system32/*"))
+  notAdd.update(glob.glob(os.environ.get("WINDIR", "")+"/syswow64/*"))
+
+  notAdd=set(map(lambda x: x.replace("\\", "/").upper(), notAdd))
 
   return notAdd
+
+def skipFile(absfile):
+  return absfile.replace("\\", "/").upper() in getDoNotAdd()
 
 @functools.lru_cache(maxsize=None)
 def relDir(filename):
