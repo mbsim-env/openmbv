@@ -133,11 +133,14 @@ def getDoNotAdd():
   notAdd.update(glob.glob("/osupdate/local/lib64/libGLESv2.so*")) # mesa
   notAdd.update(glob.glob("/osupdate/local/lib64/libGL.so*")) # mesa
 
-  # for windows do not add the Windows system dlls (= fake dlls on wine)
+  # for windows-wine do not add the Windows system dlls (= fake dlls on wine)
   notAdd.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
   notAdd.update(glob.glob("/usr/lib/wine/fakedlls/*")) # read wine fake dlls
   notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
   notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/syswow64/*")) # copy in HOME dir
+  # for windows-msys2 do not add the Windows system dlls
+  notAdd.update(glob.glob(os.environ['WINDIR']+"/system32/*"))
+  notAdd.update(glob.glob(os.environ['WINDIR']+"/syswow64/*"))
 
   return notAdd
 
