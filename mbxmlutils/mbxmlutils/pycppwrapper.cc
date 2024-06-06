@@ -56,25 +56,36 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
                       const std::vector<boost::filesystem::path> &sysPathPrepend,
                       const std::vector<boost::filesystem::path> &sysPathAppend,
                       const std::vector<boost::filesystem::path> &possiblePrefix) {
+#ifdef _WIN32
+  boost::filesystem::path dllDir("bin");
+  std::string pathsep(";");
+#else
+  boost::filesystem::path dllDir("lib");
+  std::string pathsep(":");
+#endif
+
+  boost::filesystem::path prefix;
+  for(auto &p : possiblePrefix) {
+    if(boost::filesystem::is_directory(p/"lib64"/("python"+pythonVersion)/"encodings") ||
+       boost::filesystem::is_directory(p/"lib"/("python"+pythonVersion)/"encodings") ||
+#ifdef _WIN32
+       boost::filesystem::exists(p/"bin"/"python.exe") ||
+       boost::filesystem::exists(p/"bin"/"python3.exe") ||
+       boost::filesystem::exists(p/"bin"/"python.bat") ||
+       boost::filesystem::exists(p/"bin"/"python3.bat")
+#else
+       boost::filesystem::exists(p/"bin"/"python") ||
+       boost::filesystem::exists(p/"bin"/"python3")
+#endif
+    ) {
+      prefix=p;
+      break;
+    }
+  }
+
   boost::filesystem::path PYTHONHOME;
   if(!getenv("PYTHONHOME")) {
-    for(auto &p : possiblePrefix) {
-      if(boost::filesystem::is_directory(p/"lib64"/("python"+pythonVersion)/"encodings") ||
-         boost::filesystem::is_directory(p/"lib"/("python"+pythonVersion)/"encodings") ||
-#ifdef _WIN32
-         boost::filesystem::exists(p/"bin"/"python.exe") ||
-         boost::filesystem::exists(p/"bin"/"python3.exe") ||
-         boost::filesystem::exists(p/"bin"/"python.bat") ||
-         boost::filesystem::exists(p/"bin"/"python3.bat")
-#else
-         boost::filesystem::exists(p/"bin"/"python") ||
-         boost::filesystem::exists(p/"bin"/"python3")
-#endif
-      ) {
-        PYTHONHOME=p;
-        break;
-      }
-    }
+    PYTHONHOME = prefix;
     if(!PYTHONHOME.empty()) {
       // the string for putenv must have program life time
       static char PYTHONHOME_ENV[2048] { 0 };
@@ -83,6 +94,21 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
       putenv(PYTHONHOME_ENV);
     }
   }
+
+#ifdef _WIN32
+  {
+    auto *pp = getenv("PYTHONPATH");
+    std::string PYTHONPATH(pp ? pp : "");
+    PYTHONPATH += (PYTHONPATH.empty() ? "" : pathsep)+(prefix/"lib").string();
+    PYTHONPATH += pathsep+(prefix/"lib"/"lib-dynload").string();
+    PYTHONPATH += pathsep+(prefix/"lib"/"site-packages").string();
+    // the string for putenv must have program life time
+    static char PYTHONPATH_ENV[2048] { 0 };
+    if(PYTHONPATH_ENV[0]==0)
+      strcpy(PYTHONPATH_ENV, (std::string("PYTHONPATH=")+PYTHONPATH).c_str());
+    putenv(PYTHONPATH_ENV);
+  }
+#endif
 
   static auto mainW=boost::locale::conv::utf_to_utf<wchar_t>(main.string());
   #if __GNUC__ >= 11
@@ -96,13 +122,6 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   #endif
   Py_InitializeEx(0);
 
-#ifdef _WIN32
-  boost::filesystem::path dllDir("bin");
-  std::string pathsep(";");
-#else
-  boost::filesystem::path dllDir("lib");
-  std::string pathsep(":");
-#endif
   if(!PYTHONHOME.empty()) {
 #if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
     PyO os=CALLPY(PyImport_ImportModule, "os");
