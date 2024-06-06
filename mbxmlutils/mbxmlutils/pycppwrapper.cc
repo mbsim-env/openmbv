@@ -98,15 +98,15 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
 #ifdef _WIN32
   {
     auto *pp = getenv("PYTHONPATH");
-    std::string PYTHONPATH(pp ? pp : "");
-    PYTHONPATH += (PYTHONPATH.empty() ? "" : pathsep)+(prefix/"lib").string();
-    PYTHONPATH += pathsep+(prefix/"lib"/"lib-dynload").string();
-    PYTHONPATH += pathsep+(prefix/"lib"/"site-packages").string();
+    std::string PYTHONPATHstr(pp ? pp : "");
+    PYTHONPATHstr += (PYTHONPATHstr.empty() ? "" : pathsep)+(prefix/"lib").string();
+    PYTHONPATHstr += pathsep+(prefix/"lib"/"lib-dynload").string();
+    PYTHONPATHstr += pathsep+(prefix/"lib"/"site-packages").string();
     // the string for putenv must have program life time
-    static char PYTHONPATH_ENV[2048] { 0 };
-    if(PYTHONPATH_ENV[0]==0)
-      strcpy(PYTHONPATH_ENV, (std::string("PYTHONPATH=")+PYTHONPATH).c_str());
-    putenv(PYTHONPATH_ENV);
+    static char PYTHONPATHstr_ENV[2048] { 0 };
+    if(PYTHONPATHstr_ENV[0]==0)
+      strcpy(PYTHONPATHstr_ENV, (std::string("PYTHONPATH=")+PYTHONPATHstr).c_str());
+    putenv(PYTHONPATHstr_ENV);
   }
 #endif
 
