@@ -73,6 +73,9 @@ boost::filesystem::path Eval::installPath(boost::filesystem::canonical(loc()).pa
 bool tryDouble2Int(double d, int &i) {
   static const double eps=pow(10, -numeric_limits<double>::digits10-2);
 
+  // to not try to treat inf or nan as integer
+  if(isinf(d) || isnan(d)) return false;
+
   i=lround(d);
   double delta=fabs(d-i);
   if(delta>eps*i && delta>eps)
