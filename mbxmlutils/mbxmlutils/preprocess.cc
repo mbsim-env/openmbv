@@ -97,7 +97,8 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   auto mainxmlele=document->getDocumentElement();
   if(!param)
     param = make_shared<ParamSet>();
-  Preprocess::preprocess(mainxmlele, param);
+  int dummy;
+  Preprocess::preprocess(mainxmlele, dummy, param);
   // preprocess(...) may invalidate all DOMNode's except DOMDocument (due to revalidation by serialize/reparse).
   // Hence, get the mainxmlele (root DOMElement) again from the DOMDocument aver preprocess(...).
   mainxmlele=document->getDocumentElement();
@@ -133,9 +134,11 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   return document;
 }
 
-bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, int embedXPathCount) {
+bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared_ptr<ParamSet>& param, int embedXPathCount) {
   if(E(e)->getTagName()==PV%"Embed") {
     // handle the Embed element
+
+    nrElementsEmbeded = 0;
 
     // check if only href OR child element (other than pv:Parameter) exists (This is not checked by the schema)
     DOMElement *inlineEmbedEle=e->getFirstElementChild();
@@ -359,6 +362,7 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
         }
       }
       if(onlyif) {
+        nrElementsEmbeded++;
         if(!enewFilename.empty() && !fileExists) {
           embedEvalException.setMessage(string("Embed file \"").append(enewFilename.string()).append("\" not found."));
           throw embedEvalException;
@@ -386,7 +390,8 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
         vector<int> xpathp; // save the position of the p node since preprocess(e) may invalidate all nodes except DOMDocument
         if(p->getNodeType()==DOMNode::ELEMENT_NODE)
           xpathp = E(static_cast<DOMElement*>(p))->getElementLocation();
-        bool ni = preprocess(e);
+        int dummy;
+        bool ni = preprocess(e, dummy);
         nodesInvalidated = ni || nodesInvalidated;
         if(ni) { // if preprocess(e) has invalidated all nodes then restore p from the stored xpath
           if(!xpathp.empty()) // we need to handle the case the p is a DOMElement and p is a DOMDocument
@@ -409,6 +414,8 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
   }
   else {
     // handle all elements other than the Embed element
+
+    nrElementsEmbeded = -1;
 
     bool function=false;
 
@@ -510,7 +517,14 @@ bool Preprocess::preprocess(DOMElement *&e, const shared_ptr<ParamSet>& param, i
     if(n)
       xpathn = E(n)->getElementLocation();
     if(E(c)->getTagName()==PV%"Embed") childEmbedXPathCount++;
-    bool ni = preprocess(c, shared_ptr<ParamSet>(), childEmbedXPathCount);
+    int nrElementsEmbeded;
+    bool ni = preprocess(c, nrElementsEmbeded, shared_ptr<ParamSet>(), childEmbedXPathCount);
+    // if c is a Embed element we need to fix xpathn since the count from the parent element of c to the next sibling element of c
+    // is wrong in xpathn if the Embed element is replaced by no element (e.g. Embed-count=0) or by more then one element (e.g. Embed-count>1).
+    // This is needed to ensure the locateElement in the below code finds the correct next sibling element of c if we need to use locateElement
+    // because all node pointers were invalidated (due to a reparse/revalidate).
+    if(!xpathn.empty() && nrElementsEmbeded != -1)
+      xpathn[0]+=nrElementsEmbeded-1;
     nodesInvalidated = ni || nodesInvalidated;
     if(nodesInvalidated) {
       // this will work always but is slower then c=n

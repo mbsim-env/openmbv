@@ -62,7 +62,10 @@ class Preprocess : virtual public fmatvec::Atom {
     void extractEvaluator();
 
     using PositionMap = std::map<FQN, int>;
-    bool preprocess(xercesc::DOMElement *&e, // in: element to process; out: e changes only if e is itself a Embed element
+    bool preprocess(// in: element to process; out: e changes only if e is itself a Embed element
+                    xercesc::DOMElement *&e,
+                    // out: number of elements added for a Embed element (may be 0), if e is a Embed element or -1 if e is not a Embed element
+                    int &nrElementsEmbeded,
                     // in: root level parameters to overwrite; out: root level parameters
                     const std::shared_ptr<ParamSet>& param=std::shared_ptr<ParamSet>(),
 
