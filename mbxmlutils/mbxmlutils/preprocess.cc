@@ -327,13 +327,14 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     DOMElement *embed=e;
     DOMNode *p=e->getParentNode();
     DOMElement *insertBefore=embed->getNextElementSibling();
+    DOMEvalException embedEvalException("", embed);
     XercesUniquePtr<DOMElement> embedUniquePtr(static_cast<DOMElement*>(p->removeChild(embed)));
     int realCount=0;
     auto onlyifStr = E(embed)->getAttribute("onlyif");
     // embed by gets invalidated during the below for loop, hence we create already a DOMEvalException object with
     // the context of embed now for potential throwing it later on (the error message is set before)
     // This avoid that we need embed later on during the for loop.
-    DOMEvalException embedEvalException("", embed);
+
     // the over the count!
     for(long i=1; i<=count; i++) {
       NewParamLevel newParamLevel(eval);
@@ -352,9 +353,6 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(!onlyifStr.empty()) {
         try {
           onlyif=(eval->cast<double>(eval->eval(onlyifStr))==1);
-        }
-        catch(DOMEvalException &ex) {
-          throw ex;
         }
         catch(const exception &ex) {
           embedEvalException.setMessage(ex.what());
