@@ -213,7 +213,8 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
                       const std::vector<boost::filesystem::path> &sysPathPrepend={},
                       const std::vector<boost::filesystem::path> &sysPathAppend={},
-                      const std::vector<boost::filesystem::path> &possiblePrefix={});
+                      const std::vector<boost::filesystem::path> &possiblePrefix={},
+                      const std::vector<boost::filesystem::path> &PATHAppend={});
 
 // a Py_BuildValue variant working like called with CALLPY
 template<typename... Args>

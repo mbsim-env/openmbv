@@ -55,7 +55,8 @@ void checkPythonError() {
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
                       const std::vector<boost::filesystem::path> &sysPathPrepend,
                       const std::vector<boost::filesystem::path> &sysPathAppend,
-                      const std::vector<boost::filesystem::path> &possiblePrefix) {
+                      const std::vector<boost::filesystem::path> &possiblePrefix,
+                      const std::vector<boost::filesystem::path> &PATHAppend) {
 #ifdef _WIN32
   boost::filesystem::path dllDir("bin");
   std::string pathsep(";");
@@ -122,24 +123,37 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   #endif
   Py_InitializeEx(0);
 
-  if(!PYTHONHOME.empty()) {
-#if _WIN32 && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
-    PyO os=CALLPY(PyImport_ImportModule, "os");
-    PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
+  PyO os=CALLPY(PyImport_ImportModule, "os");
+  PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
+  auto appendToPATH = [&os_add_dll_directory, &pathsep](const std::string &path) {
+#if defined(_WIN32) && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
     PyO arg(CALLPY(PyTuple_New, 1));
-    PyO libdir(CALLPY(PyUnicode_FromString, (PYTHONHOME/dllDir).string()));
+    PyO libdir(CALLPY(PyUnicode_FromString, path));
     CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
     CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
-#else
+#elif defined(_WIN32)
     // the string for putenv must have program life time
     static char PATH_ENV[2048] { 0 };
     if(PATH_ENV[0]==0) {
       std::string PATH_OLD(getenv("PATH"));
-      strcpy(PATH_ENV, ("PATH="+PATH_OLD+pathsep+(PYTHONHOME/dllDir).string()).c_str());
+      strcpy(PATH_ENV, ("PATH="+PATH_OLD+pathsep+path).c_str());
     }
     putenv(PATH_ENV);
+#else
+    // the string for putenv must have program life time
+    static char LD_LIBRARY_PATH_ENV[2048] { 0 };
+    if(LD_LIBRARY_PATH_ENV[0]==0) {
+      std::string LD_LIBRARY_PATH_OLD(getenv("LD_LIBRARY_PATH"));
+      strcpy(LD_LIBRARY_PATH_ENV, ("LD_LIBRARY_PATH="+LD_LIBRARY_PATH_OLD+pathsep+path).c_str());
+    }
+    putenv(LD_LIBRARY_PATH_ENV);
 #endif
-  }
+  };
+  if(!PYTHONHOME.empty())
+    appendToPATH((PYTHONHOME/dllDir).string());
+
+  for(auto &p : PATHAppend)
+    appendToPATH(p.string());
 
   // add to sys.path
   PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
