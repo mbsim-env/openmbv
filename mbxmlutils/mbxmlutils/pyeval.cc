@@ -81,7 +81,7 @@ class PyInit {
 
 PyInit::PyInit() {
   try {
-#if _WIN32
+#ifdef _WIN32
     string binLib("bin");
 #else
     string binLib("lib");
