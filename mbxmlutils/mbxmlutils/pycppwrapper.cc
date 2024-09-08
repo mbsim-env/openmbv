@@ -123,12 +123,14 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   #endif
   Py_InitializeEx(0);
 
-  auto appendToPATH = [&pathsep](const std::string &path) {
+  auto appendToPATH = [&pathsep](const boost::filesystem::path &path) {
+    if(!boost::filesystem::is_directory(path))
+      return;
 #if defined(_WIN32) && PY_MAJOR_VERSION==3 && PY_MINOR_VERSION>=8
     PyO os=CALLPY(PyImport_ImportModule, "os");
     PyO os_add_dll_directory=CALLPY(PyObject_GetAttrString, os, "add_dll_directory");
     PyO arg(CALLPY(PyTuple_New, 1));
-    PyO libdir(CALLPY(PyUnicode_FromString, path));
+    PyO libdir(CALLPY(PyUnicode_FromString, path.string()));
     CALLPY(PyTuple_SetItem, arg, 0, libdir.incRef());
     CALLPY(PyObject_CallObject, os_add_dll_directory, arg);
 #elif defined(_WIN32)
@@ -137,7 +139,7 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     if(PATH_ENV[0]==0) {
       auto *p=getenv("PATH");
       std::string PATH_OLD(p ? p : "");
-      PATH_OLD += (PATH_OLD.empty() ? "" : pathsep)+path;
+      PATH_OLD += (PATH_OLD.empty() ? "" : pathsep)+path.string();
       strcpy(PATH_ENV, ("PATH="+PATH_OLD).c_str());
     }
     putenv(PATH_ENV);
@@ -147,17 +149,17 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     if(LD_LIBRARY_PATH_ENV[0]==0) {
       auto *llp=getenv("LD_LIBRARY_PATH");
       std::string LD_LIBRARY_PATH_OLD(llp ? llp : "");
-      LD_LIBRARY_PATH_OLD += (LD_LIBRARY_PATH_OLD.empty() ? "" : pathsep)+path;
+      LD_LIBRARY_PATH_OLD += (LD_LIBRARY_PATH_OLD.empty() ? "" : pathsep)+path.string();
       strcpy(LD_LIBRARY_PATH_ENV, ("LD_LIBRARY_PATH="+LD_LIBRARY_PATH_OLD).c_str());
     }
     putenv(LD_LIBRARY_PATH_ENV);
 #endif
   };
   if(!PYTHONHOME.empty())
-    appendToPATH((PYTHONHOME/dllDir).string());
+    appendToPATH(PYTHONHOME/dllDir);
 
   for(auto &p : PATHAppend)
-    appendToPATH(p.string());
+    appendToPATH(p);
 
   // add to sys.path
   PyO sysPath(CALLPYB(PySys_GetObject, const_cast<char*>("path")));
