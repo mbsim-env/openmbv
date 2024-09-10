@@ -39,6 +39,7 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
 Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc) {
   document = inputDoc;
   msgStatic(Info)<<"Validate document."<<endl;
+  msgStatic(Debug)<<X()%document->getDocumentURI()<<endl;
   D(document)->validate();
   msgStatic(Debug)<<"Finished: Validate document."<<endl;
   extractEvaluator();
