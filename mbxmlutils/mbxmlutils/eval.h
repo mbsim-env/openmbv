@@ -245,6 +245,21 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! Set value on DOMElement (is used by Eval::cast)
     static void setValue(xercesc::DOMElement *e, const Value &v);
 
+    /*! Return the value of a call to name using the arguments args.
+     * The following functions must be implemented by the evaluator:
+     *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given in rad.
+     *   - rotateAboutY(beta):  returns a 3x3 rotation matrix about the y-axis by angle beta which is given in rad.
+     *   - rotateAboutZ(gamma): returns a 3x3 rotation matrix about the z-axis by angle gamma which is given in rad.
+     *   - cardan(alpha, beta, gamma): returns a 3x3 rotation matrix of a cardan rotation about the angles alpha,
+     *     beta and gamma which are given in rad.
+     *   - euler(PHI, theta, phi): returns a 3x3 rotation matrix of a euler rotation about the angles PHI,
+     *     theta and phi which are given in rad.
+     *   - load(filename): returns a NxM matrix of the data stored in the file filename. filename may be a absolute
+     *     or relative path. A relative path is interprete relative to the location of the XML file with the load
+     *     statement. (The abstract Eval class guarantees that the current path is at the XML file if load is called)
+     */
+    virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
+
   protected:
     //! create a function independent variable. If dim == 0 a scalar is created else a vector.
     virtual Value createFunctionIndep(int dim) const = 0;
@@ -272,21 +287,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     Value currentImport;
     // stack of imports
     std::stack<Value> importStack;
-
-    /*! Return the value of a call to name using the arguments args.
-     * The following functions must be implemented by the evaluator:
-     *   - rotateAboutX(alpha): returns a 3x3 rotation matrix about the x-axis by angle alpha which is given in rad.
-     *   - rotateAboutY(beta):  returns a 3x3 rotation matrix about the y-axis by angle beta which is given in rad.
-     *   - rotateAboutZ(gamma): returns a 3x3 rotation matrix about the z-axis by angle gamma which is given in rad.
-     *   - cardan(alpha, beta, gamma): returns a 3x3 rotation matrix of a cardan rotation about the angles alpha,
-     *     beta and gamma which are given in rad.
-     *   - euler(PHI, theta, phi): returns a 3x3 rotation matrix of a euler rotation about the angles PHI,
-     *     theta and phi which are given in rad.
-     *   - load(filename): returns a NxM matrix of the data stored in the file filename. filename may be a absolute
-     *     or relative path. A relative path is interprete relative to the location of the XML file with the load
-     *     statement. (The abstract Eval class guarantees that the current path is at the XML file if load is called)
-     */
-    virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
     //! evaluate the string str using the current parameters and return the result.
     virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const=0;
