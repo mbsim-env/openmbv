@@ -755,8 +755,8 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   // handle in-memory-files
   if(uri.empty())
     return {};
-  // return the URI, if it already begins with / or //
-  if(uri[0]=='/')
+  // return the URI, if it already begins with "/", "//" or "\\"
+  if(uri[0]=='/' or uri.substr(0,2)=="\\\\")
     return uri;
   // handle (the original xerces) schema for local files
   static const string fileScheme="file://";
