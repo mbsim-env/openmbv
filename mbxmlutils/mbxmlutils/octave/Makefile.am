@@ -13,6 +13,7 @@ dist_octave_DATA = cardan.m \
 		   rgbColor.m\
 		   namedColor.m\
 		   invCardan.m\
+		   mbxmlutils_load.m\
 		   PKG_ADD
 
 dist_octaveSwigRef_DATA = @swig_ref/horzcat.m\
