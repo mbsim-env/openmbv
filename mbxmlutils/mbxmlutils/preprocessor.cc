@@ -92,9 +92,10 @@ int main(int argc, char *argv[]) {
     path xmlCatalog=*it;
     path mainXML(args.back());
 
-    Preprocess preprocess(mainXML, xmlCatalog);
+    Preprocess preprocess(mainXML, xmlCatalog, !depFileName.empty());
     auto mainXMLDoc = preprocess.processAndGetDocument();
-    dependencies = preprocess.getDependencies();
+    if(!depFileName.empty())
+      dependencies = preprocess.getDependencies();
 
     // save result file
     path mainxmlpp;

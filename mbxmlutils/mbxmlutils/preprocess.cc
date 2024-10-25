@@ -20,8 +20,12 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
                          shared_ptr<DOMParser>, // a direct parser OR
                          DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
                          path // a filename of a XML catalog file to create a parser
-                       > parserVariant
+                       > parserVariant,
+                       bool trackDependencies
                       ) {
+  if(trackDependencies)
+    dependencies = make_unique<std::vector<boost::filesystem::path>>();
+
   if(const path* xmlCatalogFile = get_if<path>(&parserVariant)) {
     msgStatic(Debug)<<"Create a validating XML parser from XML catalog file."<<endl;
     parserVariant = DOMParser::create(*xmlCatalogFile);
@@ -31,12 +35,15 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
     parserVariant = DOMParser::create(*xmlCatalogEle);
   }
   auto parser = get<shared_ptr<DOMParser>>(parserVariant);
-  document = parseCached(parser, inputFile, dependencies, "XML input file.");
+  document = parseCached(parser, inputFile, "XML input file.");
   msgStatic(Debug)<<"Finished: XML input file"<<endl;
   extractEvaluator();
 }
 
-Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc) {
+Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDependencies) {
+  if(trackDependencies)
+    dependencies = make_unique<std::vector<boost::filesystem::path>>();
+
   document = inputDoc;
   msgStatic(Info)<<"Validate document."<<endl;
   D(document)->validate();
@@ -47,7 +54,9 @@ Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc) {
 const vector<path>& Preprocess::getDependencies() const {
   if(!preprocessed)
     throw DOMEvalException("Preprocess::getDependencies() is only useful after Preprocess::processAndGetDocument!", document->getDocumentElement());
-  return dependencies;
+  if(!dependencies)
+    throw DOMEvalException("Preprocess::getDependencies() is only valid if trackDependencies=true was used in the constructor!", document->getDocumentElement());
+  return *dependencies;
 }
 
 shared_ptr<Eval> Preprocess::getEvaluator() const {
@@ -84,7 +93,7 @@ void Preprocess::extractEvaluator() {
     evalName=text;
   }
 
-  eval = Eval::createEvaluator(evalName, &dependencies);
+  eval = Eval::createEvaluator(evalName, dependencies.get());
 }
 
 shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
@@ -186,14 +195,15 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       string subst;
       try { subst=eval->cast<string>(eval->eval(E(e)->getAttributeNode("href"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
       enewFilename=E(e)->convertPath(subst);
-      dependencies.push_back(enewFilename);
+      if(dependencies)
+        dependencies->push_back(enewFilename);
 
       // validate/load if file is given and save in enew
       fileExists = exists(enewFilename);
       if(fileExists) {
         shared_ptr<DOMDocument> newdoc;
         try {
-          newdoc=parseCached(D(document)->getParser(), enewFilename, dependencies, "Embed file.", true);
+          newdoc=parseCached(D(document)->getParser(), enewFilename, "Embed file.", true);
         }
         catch(DOMEvalException& ex) {
           ex.appendContext(e),
@@ -258,9 +268,10 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       paramFile=E(e)->convertPath(subst);
       if(exists(paramFile)) {
         // add local parameter file to dependencies
-        dependencies.push_back(paramFile);
+        if(dependencies)
+          dependencies->push_back(paramFile);
         // validate and local parameter file
-        auto localparamxmldoc=parseCached(D(document)->getParser(), paramFile, dependencies, "Local parameter file.");
+        auto localparamxmldoc=parseCached(D(document)->getParser(), paramFile, "Local parameter file.");
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
@@ -538,7 +549,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
 }
 
 shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &parser, const path &inputFile,
-                                                vector<path> &dependencies, const string &msg, bool allowUnknownRootElement) {
+                                                const string &msg, bool allowUnknownRootElement) {
   auto [it, insert] = parsedFiles.emplace(absolute(inputFile), shared_ptr<DOMDocument>());
   if(!insert) {
     msgStatic(Info)<<"Reuse cached file "<<inputFile<<": "<<msg<<endl;
@@ -548,7 +559,7 @@ shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &par
   shared_ptr<DOMDocument> doc;
   if(allowUnknownRootElement) {
     try {
-      doc = parser->parse(inputFile, &dependencies, false);
+      doc = parser->parse(inputFile, dependencies.get(), false);
     }
     catch(const DOMEvalException &ex) {
       if(ex.getNodeType()!=DOMNode::DOCUMENT_NODE) // if anything except the root element caused the error -> throw
@@ -557,11 +568,11 @@ shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &par
       // on error parse without validation
       if(!noneValidatingParser)
         noneValidatingParser = DOMParser::create();
-      doc = noneValidatingParser->parse(inputFile, &dependencies, false);
+      doc = noneValidatingParser->parse(inputFile, dependencies.get(), false);
     }
   }
   else
-    doc = parser->parse(inputFile, &dependencies, false);
+    doc = parser->parse(inputFile, dependencies.get(), false);
   return it->second = doc;
 }
 
