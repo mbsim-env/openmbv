@@ -105,6 +105,13 @@ OctInit::OctInit() {
     std::string dir=(MBXMLUtils::Eval::installPath/LIBDIR).string();
     octave::feval("addpath", octave_value_list(octave_value(dir)));
 
+    static char* mfmf=getenv("mfmf");
+    if(mfmf) {
+    // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
+    std::string dir=(MBXMLUtils::Eval::installPath/"share"/"mbxmlutils"/"octave").string();
+    octave::feval("addpath", octave_value_list(octave_value(dir)));
+    }
+
     // save initial octave search path
     initialPath=octave::feval("path", octave_value_list(), 1)(0).string_value();
 
@@ -387,8 +394,11 @@ OctEval::OctEval(std::vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   currentImport=ci;
   ci->path=octInit.initialPath;
 
+  static char* mfmf=getenv("mfmf");
+  if(!mfmf) {
   // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
   addImportHelper(installPath/"share"/"mbxmlutils"/"octave");
+  }
 };
 
 OctEval::~OctEval() = default;
