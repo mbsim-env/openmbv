@@ -256,6 +256,8 @@ def installPrefix():
 
 def load(filename):
   return numpy.genfromtxt(filename)
+def mbxmlutils_load(filename):
+  return numpy.genfromtxt(filename)
 
 
 

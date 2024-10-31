@@ -18,11 +18,11 @@ class Preprocess : virtual public fmatvec::Atom {
                  std::shared_ptr<MBXMLUtils::DOMParser>, // a direct parser OR
                  xercesc::DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
                  boost::filesystem::path // a filename of a XML catalog file to create a parser
-               > parserVariant
-              );
+               > parserVariant,
+               bool trackDependencies);
     //! Instantiate a preprocessor using a already parsed DOMDocument
     //! The inputDoc is validated.
-    Preprocess(const std::shared_ptr<xercesc::DOMDocument> &inputDoc);
+    Preprocess(const std::shared_ptr<xercesc::DOMDocument> &inputDoc, bool trackDependencies);
 
     //! Set top level parameters to overwrite before processAndGetDocument is called
     void setParam(const std::shared_ptr<ParamSet>& param_);
@@ -45,7 +45,7 @@ class Preprocess : virtual public fmatvec::Atom {
 
   private:
     std::shared_ptr<xercesc::DOMDocument> document;
-    std::vector<boost::filesystem::path> dependencies;
+    std::unique_ptr<std::vector<boost::filesystem::path>> dependencies;
     std::shared_ptr<Eval> eval;
     std::shared_ptr<ParamSet> param;
     std::shared_ptr<DOMParser> noneValidatingParser;
@@ -56,7 +56,6 @@ class Preprocess : virtual public fmatvec::Atom {
     std::map<boost::filesystem::path, std::shared_ptr<xercesc::DOMDocument>> parsedFiles;
     std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
                                                       const boost::filesystem::path &inputFile,
-                                                      std::vector<boost::filesystem::path> &dependencies,
                                                       const std::string &msg, bool allowUnknownRootElement=false);
 
     void extractEvaluator();

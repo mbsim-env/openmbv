@@ -456,7 +456,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     Value ret;
     vector<Value> args(1);
     args[0]=fileName;
-    try { ret=callFunction("load", args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
+    try { ret=callFunction("mbxmlutils_load", args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
     handleUnit(e, ret);
     return ret;
   }
