@@ -90,8 +90,12 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   for(auto &name : ivb->getRemoveNodesByName())
     removeNode([&name](auto &sa){ sa.setName(name.c_str()); });
   // remove nodes by type
-  for(auto &type : ivb->getRemoveNodesByType())
+  for(auto type : ivb->getRemoveNodesByType()) {
+    // We fix the hacked SoVRMLBackground2 node which overrids Background
+    if(type=="Background" || type=="VRMLBackground" || type=="SoVRMLBackground")
+      type="SoVRMLBackground2";
     removeNode([&type](auto &sa){ sa.setType(SoType::fromName(type.c_str())); });
+  }
 
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
   SoBase *ref=Utils::getChildNodeByName(soIv, "OpenMBVIvBodyMaterial");
