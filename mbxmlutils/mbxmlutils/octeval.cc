@@ -600,27 +600,27 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
 #else
       info()
 #endif
-      + "\n" + err.str(), e);
+      , e);
   }
   catch(octave::exit_exception &ex)
   {
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     // octave::exit_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-    throw DOMEvalException("Caught octave exception (Exit exception)\n" + err.str(), e);
+    throw DOMEvalException("Caught octave exception (Exit exception)", e);
   }
   catch(octave::interrupt_exception &ex)
   {
     printEvaluatorMsg(out, fmatvec::Atom::Info);
     // octave::interrupt_exception is not derived (in older release) from std::exception -> convert it to an std::exception.
-    throw DOMEvalException("Caught octave exception (Interrupt exception)\n" + err.str(), e);
+    throw DOMEvalException("Caught octave exception (Interrupt exception)", e);
   }
   catch(const std::exception &ex) { // should not happend
     printEvaluatorMsg(out, fmatvec::Atom::Info);
-    throw DOMEvalException(std::string(ex.what())+":\n"+err.str(), e);
+    throw DOMEvalException(std::string(ex.what()), e);
   }
   catch(...) { // should not happend
     printEvaluatorMsg(out, fmatvec::Atom::Info);
-    throw DOMEvalException("Unknwon exception:\n"+err.str(), e);
+    throw DOMEvalException("Unknwon exception", e);
   }
   printEvaluatorMsg(out, fmatvec::Atom::Info);
   printEvaluatorMsg(err, fmatvec::Atom::Warn);
@@ -640,8 +640,7 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
      !octInit.interpreter->get_symbol_table().current_scope().is_variable("ans") &&
      !octInit.interpreter->get_symbol_table().current_scope().is_variable(strNoSpace)) {
 #endif
-    throw DOMEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement: "+
-      str, e);
+    throw DOMEvalException("'ret' variable not defined in multi statement octave expression or incorrect single statement", e);
   }
   if(skipRet)
     return {};

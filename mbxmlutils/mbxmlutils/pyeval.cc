@@ -327,7 +327,7 @@ void PyEval::addImport(const string &code, const DOMElement *e) {
         MBXMLUTILS_REDIR_STDERR(err);
         auto [it, created] = byteCodeMap.emplace(uuidGen(codetrim), make_pair(Py_file_input, PyO()));
         if(created) {
-          it->second.second = PyO(Py_CompileStringExFlags(codetrim.c_str(), "", Py_file_input, &flags, 2));
+          it->second.second = PyO(Py_CompileStringExFlags(codetrim.c_str(), "<localString>", Py_file_input, &flags, 2));
           if(!it->second.second) {
             byteCodeMap.erase(it);
             throw PythonException(__FILE__, __LINE__);
@@ -515,7 +515,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_eval_input, PyO()));
     bool error=false;
     if(created) {
-      it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_eval_input, &flags, 2));
+      it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<localString>", Py_eval_input, &flags, 2));
       if(!it->second.second) {
         byteCodeMap.erase(it);
         PythonException dummy("", 0); // clear the python error
@@ -558,7 +558,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
         MBXMLUTILS_REDIR_STDERR(err);
         auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_file_input, PyO()));
         if(created) {
-          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "", Py_file_input, &flags, 2));
+          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<localString>", Py_file_input, &flags, 2));
           if(!it->second.second) {
             byteCodeMap.erase(it);
             throw PythonException(__FILE__, __LINE__);
@@ -583,7 +583,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       }
       catch(const exception&) {
         // 'ret' variable not found or invalid expression
-        throw DOMEvalException("Invalid expression or statement does not define the 'ret' variable in expression:\n"+str, e);
+        throw DOMEvalException("Invalid Python statement: does not define the 'ret' variable.", e);
       }
     }
   }

@@ -73,7 +73,7 @@ getOriginalFilename_la_SOURCES = octave_getOriginalFilename.cc
 # xmlflat dummy evaluator
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_eval_xmlflat_la_LIBADD = libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
 libmbxmlutils_eval_xmlflat_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h

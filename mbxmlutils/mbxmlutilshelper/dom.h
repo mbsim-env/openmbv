@@ -118,25 +118,6 @@ class FQN : public std::pair<std::string, std::string> {
     FQN(const std::string &ns, const std::string &name) : std::pair<std::string, std::string>(ns, name) {}
 };
 
-//! Helper class to easily construct full qualified XML names (FQN) using XML namespace prefixes.
-class NamespaceURI {
-  public:
-    NamespaceURI(std::string nsuri_) : nsuri(std::move(nsuri_)) {}
-    FQN operator%(const std::string &localName) const { return {nsuri, localName}; }
-    const std::string& getNamespaceURI() const { return nsuri; }
-  private:
-    std::string nsuri;
-};
-
-//! Declaration of the XML xinclude prefix/URI.
-const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude");
-//! Declaration of the xmlns prefix/URI.
-const NamespaceURI XMLNS("http://www.w3.org/2000/xmlns/");
-//! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
-const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils");
-//! Declaration of the XML catalog namespace
-const NamespaceURI XMLCATALOG("urn:oasis:names:tc:entity:xmlns:xml:catalog");
-
 //! Helper class for DOMEvalException.
 //! Extension of DOMLocator with a embed count
 class EmbedDOMLocator : public xercesc::DOMLocator {
@@ -162,14 +143,41 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     xercesc::DOMNode *getRelatedNode() const override { return nullptr; }
     const XMLCh *getURI() const override { return file; }
     int getEmbedCount() const { return embedCount; }
+    //! get a (simple) XPath expression to the location: each element is prefixed with the namespace URI between { }
     const std::string& getRootXPathExpression() const { return xpath; }
+    //! get human readable (simple) XPath expression to the location
+    std::string getRootHRXPathExpression() const;
+    static void addNSURIPrefix(std::string nsuri, const std::vector<std::string> &prefix);
+    static const std::map<std::string, std::string>& getNSURIPrefix() { return nsURIPrefix(); }
   private:
     X x;
     const XMLCh *file;
     int row;
     int embedCount;
     std::string xpath;
+    static std::map<std::string, std::string>& nsURIPrefix();
 };
+
+//! Helper class to easily construct full qualified XML names (FQN) using XML namespace prefixes.
+class NamespaceURI {
+  public:
+    NamespaceURI(std::string nsuri_, const std::vector<std::string> &preferredPrefix={}) : nsuri(std::move(nsuri_)) {
+      EmbedDOMLocator::addNSURIPrefix(nsuri, preferredPrefix);
+    }
+    FQN operator%(const std::string &localName) const { return {nsuri, localName}; }
+    const std::string& getNamespaceURI() const { return nsuri; }
+  private:
+    std::string nsuri;
+};
+
+//! Declaration of the XML xinclude prefix/URI.
+const NamespaceURI XINCLUDE("http://www.w3.org/2001/XInclude", {"xi", "xinc", "xinclude"});
+//! Declaration of the xmlns prefix/URI.
+const NamespaceURI XMLNS("http://www.w3.org/2000/xmlns/", {"xmlns"});
+//! Declaration of the MBXMLUtils physicalvariable namespace prefix/URI.
+const NamespaceURI PV("http://www.mbsim-env.de/MBXMLUtils", {"p", "pv", "mbxmlutils"});
+//! Declaration of the XML catalog namespace
+const NamespaceURI XMLCATALOG("urn:oasis:names:tc:entity:xmlns:xml:catalog", {"catalog", "xmlcatalog"});
 
 // Exception wrapping for DOMEvalException.
 // Rethrow a exception as DOMEvalException with context e, a DOMEvalException is just rethrown unchanged.

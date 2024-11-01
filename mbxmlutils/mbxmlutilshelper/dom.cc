@@ -260,6 +260,36 @@ namespace {
   }
 }
 
+map<string, string>& EmbedDOMLocator::nsURIPrefix() {
+  static map<string, string> v;
+  return v;
+}
+
+void EmbedDOMLocator::addNSURIPrefix(std::string nsuri, const std::vector<std::string> &prefix) {
+  auto [it, created]=nsURIPrefix().emplace(nsuri, "#DUMMY#");
+  if(!created)
+    return;
+  for(auto &p : prefix) {
+    if(find_if(nsURIPrefix().begin(), nsURIPrefix().end(), [&p](auto &x) { return x.second==p; })==nsURIPrefix().end()) {
+      it->second=p;
+      break;
+    }
+  }
+  static int nID = 1;
+  if(it->second=="#DUMMY#") {
+    while(find_if(nsURIPrefix().begin(), nsURIPrefix().end(), [](auto &x) { return x.second=="n"+to_string(nID); })!=nsURIPrefix().end())
+      nID++;
+    it->second="n"+to_string(nID);
+  }
+}
+
+std::string EmbedDOMLocator::getRootHRXPathExpression() const {
+  auto xpath=getRootXPathExpression();
+  for(auto &[uri, prefix] : nsURIPrefix())
+    boost::replace_all(xpath, "{"+uri+"}", prefix.empty() ? "" : prefix+":");
+  return xpath;
+}
+
 bool DOMErrorPrinter::handleError(const DOMError& e)
 {
   string type;
@@ -947,9 +977,9 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
   }
   else if(format=="HTMLFILELINE")
-    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:)</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:) <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:)<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
   else if(format=="HTMLXPATH")
-    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)(?{line}\&line=$+{line}:)">$+{file}</a>: <span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)(?{line}\&line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>:<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
 
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
@@ -961,10 +991,11 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode
   str.append("@line").append((loc.getLineNumber()>0?to_string(loc.getLineNumber()):""));
   str.append("@xpath").append(loc.getRootXPathExpression());
+  str.append("@hrxpath").append(loc.getRootHRXPathExpression());
   str.append("@ecount").append((loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):""));
   str.append("@sse").append((subsequentError?string("x"):""));
   static const boost::regex re(
-    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
+    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@hrxpath(?<hrxpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
   // apply substitutions
   return boost::regex_replace(str, re, format, boost::regex_constants::format_all);
@@ -1143,7 +1174,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
       root=*xmlCatalogEle;
     if(E(root)->getTagName()!=XMLCATALOG%"catalog")
       throw runtime_error("The root element of a XML catalog must be {"+XMLCATALOG.getNamespaceURI()+"}catalog.");
-    static const NamespaceURI XMLNAMESPACE("http://www.w3.org/XML/1998/namespace");
+    static const NamespaceURI XMLNAMESPACE("http://www.w3.org/XML/1998/namespace", {"xmlnamespace"});
     if(E(root)->hasAttribute(XMLNAMESPACE%"base"))
       throw runtime_error("This parser does not supports xml:base attributes in XML catalogs.");
     for(DOMElement *c=root->getFirstElementChild(); c!=nullptr; c=c->getNextElementSibling()) {

@@ -33,7 +33,7 @@ namespace OpenMBV {
   using Index = int;
 
 #ifndef SWIG // SWIG can not parse this (swig bug?). However it is not needed for the swig interface -> removed for swig
-  const MBXMLUtils::NamespaceURI OPENMBV("http://www.mbsim-env.de/OpenMBV");
+  const MBXMLUtils::NamespaceURI OPENMBV("http://www.mbsim-env.de/OpenMBV", {"ombv", "openmbv"});
 #endif
 
   class Group;
