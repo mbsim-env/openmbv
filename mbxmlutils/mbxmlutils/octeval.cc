@@ -106,7 +106,7 @@ OctInit::OctInit() {
     octave::feval("addpath", octave_value_list(octave_value(dir)));
 
     // add .../share/mbxmlutils/octave to octave search path (MBXMLUtils m-files are stored their)
-    std::string dir=(MBXMLUtils::Eval::installPath/"share"/"mbxmlutils"/"octave").string();
+    dir=(MBXMLUtils::Eval::installPath/"share"/"mbxmlutils"/"octave").string();
     octave::feval("addpath", octave_value_list(octave_value(dir)));
 
     // save initial octave search path
