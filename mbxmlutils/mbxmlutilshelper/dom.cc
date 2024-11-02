@@ -967,11 +967,11 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   string format(ev?ev:"GCC");
   if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
 #ifdef _WIN32
-    bool stdoutIsTTY=GetFileType(GetStdHandle(STD_OUTPUT_HANDLE))==FILE_TYPE_CHAR;
+    bool stderrIsTTY=GetFileType(GetStdHandle(STD_ERROR_HANDLE))==FILE_TYPE_CHAR;
 #else
-    bool stdoutIsTTY=isatty(1)==1;
+    bool stderrIsTTY=isatty(2)==1;
 #endif
-    if((format=="GCC" && stdoutIsTTY) || format=="GCCTTY")
+    if((format=="GCC" && stderrIsTTY) || format=="GCCTTY")
       format=R"|(\e]8;;file://$+{urifile}\a\e[1m$+{file}\e[0m\e]8;;\a\e[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\e[0m (?{sse}:\e[1;31m)$+{msg}\e[0m)|";
     else
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
