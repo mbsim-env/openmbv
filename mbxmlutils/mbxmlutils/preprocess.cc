@@ -5,6 +5,7 @@
 #include <xercesc/dom/DOMProcessingInstruction.hpp>
 #include <xercesc/dom/DOMTypeInfo.hpp>
 #include <chrono>
+#include <boost/scope_exit.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -286,6 +287,15 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)));
     }
 
+    if(localParamEle) {
+      // add the OriginalFilename if not already added
+      if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
+        E(localParamEle)->setOriginalFilename(E(e)->getOriginalFilename());
+      // include a processing instruction with the line number of the original element
+      E(localParamEle)->setOriginalElementLineNumber(E(e)->getLineNumber());
+      E(localParamEle)->setEmbedXPathCount(embedXPathCount);
+    }
+
     // overwrite local parameter to/by param (only handle root level parameters)
     if(localParamEle && param && e->getParentNode()->getNodeType()==DOMNode::DOCUMENT_NODE) {
 
@@ -356,7 +366,13 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(localParamEle && E(localParamEle)->getTagName()!=embedFileNotFound) {
         eval->msg(Info)<<"Generate local parameters for "<<(enewFilename.empty()?enewInlineFilename:(string("\"").append(enewFilename.string()).append("\"")))
                          <<" ("<<i<<"/"<<count<<")"<<endl;
-        eval->addParamSet(localParamEle.get());
+        // before we call eval->addParamSet(...) we add localParamEle.get() to the DOM tree to propably handle the calling
+        // context when a DOMEvalException is thrown. After the call we remove it again and store it again in localParamEle.
+        auto localParamEleInDOM=static_cast<DOMElement*>(p->insertBefore(localParamEle.release(), nullptr));
+        BOOST_SCOPE_EXIT(&localParamEle, &p, &localParamEleInDOM) {
+          localParamEle.reset(static_cast<DOMElement*>(p->removeChild(localParamEleInDOM)));
+        } BOOST_SCOPE_EXIT_END
+        eval->addParamSet(localParamEleInDOM);
       }
 
       // embed only if 'onlyif' attribute is true
