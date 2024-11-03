@@ -272,7 +272,14 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         if(dependencies)
           dependencies->push_back(paramFile);
         // validate and local parameter file
-        auto localparamxmldoc=parseCached(D(document)->getParser(), paramFile, "Local parameter file.");
+        shared_ptr<DOMDocument> localparamxmldoc;
+        try {
+          localparamxmldoc=parseCached(D(document)->getParser(), paramFile, "Local parameter file.");
+        }
+        catch(DOMEvalException& ex) {
+          ex.appendContext(e),
+          throw ex;
+        }
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
