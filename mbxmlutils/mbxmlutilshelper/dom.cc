@@ -979,7 +979,7 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   else if(format=="HTMLFILELINE")
     format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:)<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
   else if(format=="HTMLXPATH")
-    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&ecount=$+{ecount}:)(?{line}\&line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>:<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
+    format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&amp;ecount=$+{ecount}:)(?{line}\&amp;line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>:<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
 
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
