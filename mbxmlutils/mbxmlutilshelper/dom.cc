@@ -755,6 +755,7 @@ XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
   MemBufInputSource memInput(reinterpret_cast<XMLByte*>(data.get()), dataByteLen, X()%D(me)->getDocumentFilename().string(), false);
   Wrapper4InputSource domInput(&memInput, false);
   parser->errorHandler.resetError();
+  parser->locationFilter.setLineNumberOffset(0);
   shared_ptr<DOMDocument> newDoc(parser->parser->parse(&domInput), [](auto && PH1) { if(PH1) PH1->release(); });
   if(parser->errorHandler.hasError())
     throw parser->errorHandler.getError();
@@ -1025,7 +1026,7 @@ namespace { template struct rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
 DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) {
   // store the line number of the element start as user data
   auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser->parser.get());
-  int lineNr=(abstractParser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber();
+  int lineNr=(abstractParser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber()+lineNumberOffset;
   E(e)->addEmbedData("MBXMLUtils_LineNr", to_string(lineNr));
   return FILTER_ACCEPT;
 }
@@ -1227,6 +1228,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
+  locationFilter.setLineNumberOffset(0);
   shared_ptr<DOMDocument> doc;
   // check if file is writeable
   bool writeable=true;
@@ -1276,6 +1278,34 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     handleXInclude(root, dependencies);
   // return DOM document
   return doc;
+}
+
+DOMElement* DOMParser::parseWithContext(const string &str, DOMNode *contextNode, DOMLSParser::ActionType action,
+                                                    vector<path> *dependencies, bool doXInclude) {
+  if(contextNode->getNodeType()!=DOMNode::ELEMENT_NODE)
+    throw runtime_error("DOMParser::parseWithContext can only be used to parse with DOMElement's context node.");
+  // reset error handler and parser document and throw on errors
+  errorHandler.resetError();
+  locationFilter.setLineNumberOffset(E(static_cast<DOMElement*>(contextNode))->getLineNumber()-2);
+  DOMLSInput *source = domImpl->createLSInput();
+  X x;
+  source->setStringData(x%str);
+  auto n=parser->parseWithContext(source, contextNode, action);
+  if(errorHandler.hasError()) {
+    DOMEvalException ex(errorHandler.getError());
+    throw ex;
+  }
+  if(n->getNodeType()!=DOMNode::ELEMENT_NODE)
+    throw runtime_error("DOMParser::parseWithContext can only be used to parse DOMElement's on root level.");
+
+  convertEmbedPIToEmbedData(static_cast<DOMElement*>(n)); // if a error occurs convertEmbedPIToEmbedData is already called
+  if(doXInclude) {
+    auto root=static_cast<DOMElement*>(n);
+    handleXInclude(root, dependencies);
+  }
+
+  // return DOM document
+  return static_cast<DOMElement*>(n);
 }
 
 namespace {

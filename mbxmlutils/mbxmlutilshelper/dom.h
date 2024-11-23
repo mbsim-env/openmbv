@@ -487,8 +487,10 @@ class LocationInfoFilter : public xercesc::DOMLSParserFilter {
     xercesc::DOMLSParserFilter::FilterAction acceptNode(xercesc::DOMNode *n) override;
     xercesc::DOMLSParserFilter::FilterAction startElement(xercesc::DOMElement *e) override;
     xercesc::DOMNodeFilter::ShowType getWhatToShow() const override;
+    void setLineNumberOffset(int offset) { lineNumberOffset=offset; }
   private:
     DOMParser *parser;
+    int lineNumberOffset { 0 };
 };
 
 class TypeDerivativeHandler : public xercesc::PSVIHandler, virtual public fmatvec::Atom {
@@ -529,12 +531,18 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! A none validating parser if xmlCatalog is empty or a nullptr.
     //! A validating parser if xmlCatalog defines a XML catalog file or a root XML element of a catalog
     static std::shared_ptr<DOMParser> create(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog=static_cast<xercesc::DOMElement*>(nullptr));
-    //! Parse a XML document
+    //! Parse a XML document from a filename.
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.
     std::shared_ptr<xercesc::DOMDocument> parse(const boost::filesystem::path &inputSource,
                                                 std::vector<boost::filesystem::path> *dependencies=nullptr,
                                                 bool doXInclude=true);
+    //! Parse a XML document from a istream to a given context.
+    //! Track file dependencies if dependencies is not null.
+    //! Allow XML XInclude if doXInclude is true.
+    xercesc::DOMElement* parseWithContext(const std::string &str, xercesc::DOMNode *contextNode, xercesc::DOMLSParser::ActionType action,
+                                          std::vector<boost::filesystem::path> *dependencies=nullptr,
+                                          bool doXInclude=true);
     //! Serialize a document to a file.
     //! Helper function to write a node.
     static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource);
