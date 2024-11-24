@@ -949,9 +949,13 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
   auto ee=found;
   while(ee) {
     string xpath;
-    if(ee->getParentNode())
-      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression().append("/{").
-        append(PV.getNamespaceURI()).append("}Embed[").append(to_string(E(ee)->getEmbedXPathCount())).append("]");
+    if(ee->getParentNode()) {
+      xpath=E(static_cast<const DOMElement*>(ee->getParentNode()))->getRootXPathExpression();
+      // if embedCount is != 0 we need to used it (append it to the xpath)
+      // if embedCount is 0 we skip it (this may happen e.g. in mbsimgui)
+      if(E(ee)->getEmbedXPathCount()!=0)
+        xpath.append("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(E(ee)->getEmbedXPathCount())).append("]");
+    }
     else
       xpath="[no xpath available]";
     locationStack.emplace_back(E(ee)->getOriginalFilename(true, found),
