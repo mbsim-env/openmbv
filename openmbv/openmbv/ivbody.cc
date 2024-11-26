@@ -110,7 +110,15 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   bboxAction.apply(soSepRigidBody);
   float x1,y1,z1,x2,y2,z2;
   bboxAction.getBoundingBox().getBounds(x1,y1,z1,x2,y2,z2);
-  double size=min(x2-x1,min(y2-y1,z2-z1))*ivb->getScaleFactor();
+  if(x1>x2) swap(x1, x2);
+  if(y1>y2) swap(y1, y2);
+  if(z1>z2) swap(z1, z2);
+  double min=0;
+  if(static_cast<double>(x2)-x1 < numeric_limits<float>::max()             ) min=x2-x1;
+  if(static_cast<double>(y2)-y1 < numeric_limits<float>::max() && y2-y1<min) min=y2-y1;
+  if(static_cast<double>(z2)-z1 < numeric_limits<float>::max() && z2-z1<min) min=z2-z1;
+  if(min>numeric_limits<float>::max()/2) min=1;
+  double size=min*ivb->getScaleFactor();
   refFrameScale->scaleFactor.setValue(size,size,size);
   localFrameScale->scaleFactor.setValue(size,size,size);
 
