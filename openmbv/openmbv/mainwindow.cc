@@ -1662,15 +1662,18 @@ void MainWindow::exportCurrentAsPNG() {
   if(dialog.result()==QDialog::Rejected) return;
 
   QString str("Exporting current frame to %1, please wait!");
-  str=str.arg(QFileInfo(dialog.getFileName()).absoluteFilePath());
+  str=str.arg(dialog.getFileName());
   statusBar()->showMessage(str);
   msg(Info)<<str.toStdString()<<endl;
+  QFile::remove(dialog.getFileName());
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
   statusBar()->showMessage("Done", 10000);
+  if(QFile::exists(dialog.getFileName()))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(dialog.getFileName()));
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
@@ -1757,6 +1760,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     p.setArguments({"-c", videoCmd});
 #endif
     QDialog output;
+    output.setWindowTitle("Create video from PNG sequence");
     auto rec=QGuiApplication::primaryScreen()->size();
     output.resize(rec.width()*3/4,rec.height()*3/4);
     auto *outputLA=new QVBoxLayout(&output);
@@ -1779,7 +1783,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     });
     int ret;
     connect(&p, static_cast<void(QProcess::*)(int,QProcess::ExitStatus)>(&QProcess::finished),
-        [&p, &ret, &outputText, outputClose](int exitCode, QProcess::ExitStatus exitStatus) {
+        [&p, &ret, &outputText, &outputClose, &fileName](int exitCode, QProcess::ExitStatus exitStatus) {
       outputText->setPlainText(outputText->toPlainText()+p.readAllStandardOutput());
       if(exitCode==0)
         outputText->appendHtml("<div style=\"color: #00ff00\">SUCCESS</div>");
@@ -1788,6 +1792,8 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       outputText->verticalScrollBar()->setValue(outputText->verticalScrollBar()->maximum());
       outputClose->setDisabled(false);
       ret=exitCode;
+      if(QFile::exists(fileName) && ret==0)
+        QDesktopServices::openUrl(QUrl::fromLocalFile(fileName));
     });
     p.start();
     output.exec();
@@ -1803,8 +1809,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       msg(Info)<<str.toStdString()<<endl;
       return;
     }
-    else
-      statusBar()->showMessage("Done", 10000);
+    statusBar()->showMessage("Done", 10000);
   }
 }
 
@@ -1957,10 +1962,13 @@ void MainWindow::exportCurrentAsIV() {
   if(filename.isNull()) return;
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
+  QFile::remove(filename);
   SoOutput output;
   output.openFile(filename.toStdString().c_str());
   SoWriteAction wa(&output);
   wa.apply(sceneRoot);
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::exportCurrentAsPS() {
@@ -1968,6 +1976,7 @@ void MainWindow::exportCurrentAsPS() {
   if(filename.isNull()) return;
   if(!filename.endsWith(".ps",Qt::CaseInsensitive))
     filename=filename+".ps";
+  QFile::remove(filename);
   // set text color to black
   SbColor fgColorTopSaved=*fgColorTop->getValues(0);
   SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
@@ -1993,6 +2002,8 @@ void MainWindow::exportCurrentAsPS() {
   // reset text color
   fgColorTop->set1Value(0, fgColorTopSaved);
   fgColorBottom->set1Value(0, fgColorBottomSaved);
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::toggleMenuBarSlot() {

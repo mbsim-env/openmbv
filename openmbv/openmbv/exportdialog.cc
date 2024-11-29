@@ -25,6 +25,9 @@
 
 namespace OpenMBVGUI {
 
+bool keepValue = false;
+bool skipValue = false;
+
 ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog(parent) {
 
   int row=-1;
@@ -36,18 +39,19 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     keepL.setText("Keep PNG sequence files:");
     keepL.setToolTip(tt2);
     dialogLO.addWidget(&keepL, row, 0);
-    keep.setChecked(false);
+    keep.setChecked(keepValue);
     keep.setToolTip(tt2);
+    connect(&keep, &QCheckBox::clicked, [](bool checked) {
+      keepValue=checked;
+    });
     dialogLO.addWidget(&keep, row, 1, 1, 2);
     row++;
     QString tt("If enabled a existing set of PNG files form a previous run is used. If disabled a new sequence is generated first. This can be used to avoid regeneration of the sequence if e.g. only the bitrate should be changed.");
     skipL.setText("Skip PNG generation:");
     skipL.setToolTip(tt);
     dialogLO.addWidget(&skipL, row, 0);
-    skip.setChecked(false);
-    skip.setToolTip(tt);
-    dialogLO.addWidget(&skip, row, 1, 1, 2);
     connect(&skip, &QCheckBox::clicked, [this](bool checked) {
+      skipValue=checked;
       scaleL.setDisabled(checked);
       scale.setDisabled(checked);
       backgroundL.setDisabled(checked);
@@ -58,6 +62,10 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
       frameRangeL.setDisabled(checked);
       frameRangeLText.setDisabled(checked);
     });
+    skip.setChecked(skipValue);
+    skip.clicked(skipValue);
+    skip.setToolTip(tt);
+    dialogLO.addWidget(&skip, row, 1, 1, 2);
   }
   scaleL.setText("Resolution factor:");
   row++;
