@@ -104,11 +104,6 @@ int main(int argc, char *argv[]) {
   if(i==arg.end() && i2==arg.end())
     fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Info, std::make_shared<bool>(false));
 
-  // environment variables
-  // Disalbe COIN VBO per default (see --help)
-  static char COIN_VBO[11];
-  if(getenv("COIN_VBO")==nullptr) putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
-
   // help
   i=find(arg.begin(), arg.end(), "-h");
   i2=find(arg.begin(), arg.end(), "--help");

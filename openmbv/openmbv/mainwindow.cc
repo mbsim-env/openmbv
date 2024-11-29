@@ -108,6 +108,24 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
+  // environment variables
+
+  // Disalbe COIN VBO per default (see --help)
+  static char COIN_VBO[11];
+  if(getenv("COIN_VBO")==nullptr)
+    putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
+
+  // for offscreen renderer these envvars are needed on Linux
+  static char ENV1[128];
+  if(getenv("COIN_FULL_INDIRECT_RENDERING")==nullptr)
+    putenv(strcpy(ENV1, "COIN_FULL_INDIRECT_RENDERING=1"));
+  static char ENV2[128];
+  if(getenv("COIN_OFFSCREENRENDERER_TILEHEIGHT")==nullptr)
+    putenv(strcpy(ENV2, "COIN_OFFSCREENRENDERER_TILEHEIGHT=8196"));
+  static char ENV3[128];
+  if(getenv("COIN_OFFSCREENRENDERER_TILEWIDTH")==nullptr)
+    putenv(strcpy(ENV3, "COIN_OFFSCREENRENDERER_TILEWIDTH=8196"));
+
   // Enable global search of USE in iv files
   static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
   putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
@@ -1629,7 +1647,15 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   // render offscreen
   SbBool ok=offScreenRenderer->render(root);
   if(!ok) {
-    QMessageBox::warning(this, "PNG export warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
+    QMessageBox::warning(this, "PNG export warning",
+      "Unable to render offscreen image. See OpenGL/Coin messages in console!\n\n"
+      "On Linux this may because the X server has disabled indirect GLX. To enable it add\n"
+      "\n"
+      "Section \"ServerFlags\"\n"
+      "  Option \"IndirectGLX\" \"on\"\n"
+      "EndSection\n"
+      "\n"
+      "to the X11 config in 'etc/X11/xorg.conf'.");
     root->unref();
     return;
   }
