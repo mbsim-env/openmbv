@@ -22,6 +22,7 @@
 
 #include <QDialog>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QButtonGroup>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
@@ -42,18 +43,20 @@ class ExportDialog : public QDialog {
     QLabel variantL;
     QButtonGroup colorBG, variantBG;
     QRadioButton transparentRB, colorRB;
-    QRadioButton pngSeqenceRB, videoRB;
-    QLabel scaleL, backgroundL, fileNameL, speedL, speedLText, fpsL, frameRangeL, frameRangeLText, videoCmdL, bitRateL;
-    QTextEdit videoCmd;
+    QRadioButton pngSeqenceRB;
+    QLabel scaleL, backgroundL, fileNameL, speedL, speedLText, fpsL, frameRangeL, frameRangeLText, bitRateL, skipL, keepL;
+    QCheckBox skip, keep;
     QSpinBox bitRate;
+    QString outputFileExt;
   public:
     ExportDialog(QWidget *parent, bool sequence, bool video);
-    double getScale() { return scale.value(); }
-    bool getTransparent() { return transparentRB.isChecked(); }
-    QString getFileName() { return fileName.text(); }
-    double getFPS() { return fps.value(); }
-    int getBitRate() { return bitRate.value(); }
-    QString getVideoCmd() { return videoCmd.toPlainText(); }
+    double getScale() const { return scale.value(); }
+    bool getTransparent() const { return transparentRB.isChecked(); }
+    QString getFileName() const;
+    double getFPS() const { return fps.value(); }
+    int getBitRate() const { return bitRate.value(); }
+    bool keepPNGs() const { return keep.isChecked(); }
+    bool skipPNGGeneration() const { return skip.isChecked(); }
 };
 
 }

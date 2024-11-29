@@ -45,6 +45,11 @@
 #include <QShortcut>
 #include <QMimeData>
 #include <QScroller>
+#include <QThread>
+#include <QProcess>
+#include <QScrollBar>
+#include <QPlainTextEdit>
+#include <QScreen>
 #include "utils.h"
 #include <QMetaMethod>
 #include <Inventor/nodes/SoBaseColor.h>
@@ -1665,30 +1670,34 @@ void MainWindow::exportCurrentAsPNG() {
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
   exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
+  statusBar()->showMessage("Done", 10000);
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
+  auto removePNGs = [](const QString &pngBaseName) {
+    QFileInfo fi(pngBaseName);
+    QRegExp re("^"+fi.fileName()+"_[0-9][0-9][0-9][0-9][0-9][0-9].png$");
+    QDir d(fi.dir());
+    for(auto &f : d.entryList({"*"})) {
+      if(re.exactMatch(f.toLower()))
+        QFile(d.absoluteFilePath(f)).remove();
+    }
+  };
+
   ExportDialog dialog(this, true, video);
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
   double scale=dialog.getScale();
   bool transparent=dialog.getTransparent();
   QString fileName=dialog.getFileName();
-  if(!video && !fileName.toUpper().endsWith(".PNG")) return;
-  QString pngBaseName=fileName;
-  unique_ptr<QTemporaryDir> tmpDir;
-  if(!video)
-    pngBaseName=pngBaseName.remove(pngBaseName.length()-4,4);
-  else {
-    tmpDir=std::make_unique<QTemporaryDir>();
-    pngBaseName=tmpDir->filePath("openmbv");
-  }
+  QFileInfo fi(fileName);
+  QString pngBaseName=fi.dir().filePath(fi.completeBaseName());
   double speed=speedSB->value();
   int startFrame=timeSlider->currentMinimum();
   int endFrame=timeSlider->currentMaximum();
   double fps=dialog.getFPS();
 
-  if(speed/deltaTime/fps<1) {
+  if(speed/deltaTime/fps<1 && !dialog.skipPNGGeneration()) {
     int ret=QMessageBox::warning(this, "Export PNG sequence",
       "Some video-frames would contain the same data,\n"
       "because the animation speed is to slow,\n"
@@ -1704,47 +1713,98 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*scale);
 
-  QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
-  progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
-  progress.setWindowModality(Qt::WindowModal);
-  for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
-    progress.setValue(videoFrame);
+  if(!dialog.skipPNGGeneration()) {
+    QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
+    removePNGs(pngBaseName);
+    progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
+    progress.setWindowModality(Qt::WindowModal);
+    for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
+      progress.setValue(videoFrame);
+      if(progress.wasCanceled())
+        break;
+      QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
+      str=str.arg(pngBaseName).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
+      statusBar()->showMessage(str);
+      msg(Info)<<str.toStdString()<<endl;
+      frame->setValue(frame_);
+      exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+    }
     if(progress.wasCanceled())
-      break;
-    QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
-    str=str.arg(QFileInfo(pngBaseName).absoluteFilePath()).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
-    statusBar()->showMessage(str);
-    msg(Info)<<str.toStdString()<<endl;
-    frame->setValue(frame_);
-    exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+      return;
+    progress.setValue(lastVideoFrame);
   }
-  if(progress.wasCanceled())
-    return;
-  progress.setValue(lastVideoFrame);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/scale);
   if(video) {
     QString str("Encoding video file to %1, please wait!");
-    str=str.arg(QFileInfo(fileName).absoluteFilePath());
+    str=str.arg(fileName);
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
-    QString videoCmd=dialog.getVideoCmd();
-    QFile(QFileInfo(fileName).absoluteFilePath()).remove();
-    videoCmd.replace("%O", QFileInfo(fileName).absoluteFilePath());
-    videoCmd.replace("%B", QString::number(dialog.getBitRate()*1024));
+    auto videoCmd=appSettings->get<QString>(AppSettings::exportdialog_videocmd);
+    QFile(fileName).remove();
+    videoCmd.replace("%I", pngBaseName+"_%06d.png");
+    videoCmd.replace("%O", fileName);
+    videoCmd.replace("%B", QString::number(dialog.getBitRate()*1000));
     videoCmd.replace("%F", QString::number(fps, 'f', 1));
     msg(Info)<<"Running command:"<<endl
-             <<videoCmd.toStdString()<<endl
-             <<"in directory "<<tmpDir->path().toStdString()<<endl;
-    QString cwd=QDir::currentPath();
-    QDir::setCurrent(tmpDir->path());
-    int ret=std::system(videoCmd.toStdString().c_str());
-    QDir::setCurrent(cwd);
+             <<videoCmd.toStdString()<<endl;
+
+    QProcess p(this);
+#ifdef WIN32
+    p.setProgram("cmd");
+    p.setNativeArguments("/c "+videoCmd);
+#else
+    p.setProgram("/bin/sh");
+    p.setArguments({"-c", videoCmd});
+#endif
+    QDialog output;
+    auto rec=QGuiApplication::primaryScreen()->size();
+    output.resize(rec.width()*3/4,rec.height()*3/4);
+    auto *outputLA=new QVBoxLayout(&output);
+    output.setLayout(outputLA);
+    auto *outputText=new QPlainTextEdit(&output);
+    outputText->setReadOnly(true);
+    QFont font("unexistent");
+    font.setStyleHint(QFont::Monospace);
+    outputText->setFont(font);
+    outputLA->addWidget(outputText,0);
+    auto *outputClose=new QPushButton("Close", &output);
+    outputClose->setDisabled(true);
+    connect(outputClose, &QPushButton::pressed, [&output]() {
+      output.close();
+    });
+    outputLA->addWidget(outputClose,1);
+    connect(&p, &QProcess::readyReadStandardOutput, [&p,&outputText]() {
+      outputText->setPlainText(outputText->toPlainText()+p.readAllStandardOutput());
+      outputText->verticalScrollBar()->setValue(outputText->verticalScrollBar()->maximum());
+    });
+    int ret;
+    connect(&p, static_cast<void(QProcess::*)(int,QProcess::ExitStatus)>(&QProcess::finished),
+        [&p, &ret, &outputText, outputClose](int exitCode, QProcess::ExitStatus exitStatus) {
+      outputText->setPlainText(outputText->toPlainText()+p.readAllStandardOutput());
+      if(exitCode==0)
+        outputText->appendHtml("<div style=\"color: #00ff00\">SUCCESS</div>");
+      else
+        outputText->appendHtml("<div style=\"color: #ff0000\">FAILED</div>");
+      outputText->verticalScrollBar()->setValue(outputText->verticalScrollBar()->maximum());
+      outputClose->setDisabled(false);
+      ret=exitCode;
+    });
+    p.start();
+    output.exec();
+    p.terminate();
+    p.waitForFinished(3000);
+    p.kill();
+
+    if(!dialog.keepPNGs())
+      removePNGs(pngBaseName);
     if(ret!=0) {
       QString str("FAILED. See console output!");
       statusBar()->showMessage(str, 10000);
       msg(Info)<<str.toStdString()<<endl;
       return;
     }
+    else
+      statusBar()->showMessage("Done", 10000);
   }
 }
 

@@ -408,10 +408,11 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[exportdialog_fps]={"exportdialog/fps", 25.0};
   setting[exportdialog_filename_png]={"exportdialog/filename/png", "openmbv.png"};
   setting[exportdialog_filename_video]={"exportdialog/filename/video", "openmbv.webm"};
-  setting[exportdialog_bitrate]={"exportdialog/bitrate", 2048};
-  setting[exportdialog_videocmd]={"exportdialog/videocmd",
-    "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 1 -f null /dev/null && "
-    "ffmpeg -framerate %F -i openmbv_%06d.png -c:v libvpx-vp9 -b:v %B -pass 2 %O"};
+  setting[exportdialog_bitrate]={"exportdialog/kbps", 10000}; // bitrate is a old key which should no longer be used
+  setting[exportdialog_videocmd]={"exportdialog/videocommand", // videocmd is a old key which should no longer be used
+    "ffmpeg -framerate %F -i %I -c:v libvpx-vp9 -b:v %B -pass 1 -f null /dev/null 2>&1 && "
+    "ffmpeg -framerate %F -i %I -c:v libvpx-vp9 -b:v %B -pass 2 %O 2>&1"};
+  setting[exportdialog_videoext]={"exportdialog/videoextension", "webm"};
   setting[propertydialog_geometry]={"propertydialog/geometry", QVariant()};
   setting[dialogstereo_geometry]={"dialogstereo/geometry", QVariant()};
   setting[mouseCursorSize]={"mainwindow/manipulate3d/mouseCursorSize", 5.0};
@@ -566,24 +567,43 @@ IntSetting::IntSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& ic
 }
 class StringSetting : public QWidget {
   public:
-    StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
-                  const std::function<void(QString)> &set={});
+    StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name, bool singleLine=true,
+                  const QString &tt="", const std::function<void(QString)> &set={});
 };
-StringSetting::StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name,
-                             const std::function<void(QString)> &set) : QWidget(layout->parentWidget()) {
+StringSetting::StringSetting(QGridLayout *layout, AppSettings::AS key, const QIcon& icon, const QString &name, bool singleLine,
+                             const QString &tt, const std::function<void(QString)> &set) : QWidget(layout->parentWidget()) {
   QFontInfo fontInfo(font());
   int row=layout->rowCount();
   auto *iconLabel=new QLabel;
   iconLabel->setPixmap(icon.pixmap(fontInfo.pixelSize(),fontInfo.pixelSize()));
   layout->addWidget(iconLabel, row, 0);
-  layout->addWidget(new QLabel(name, this), row, 1);
-  auto textEdit=new QLineEdit(this);
-  layout->addWidget(textEdit, row, 2);
-  textEdit->setText(appSettings->get<QString>(key));
-  connect(textEdit, &QLineEdit::textChanged, [key, set](const QString &value){
-    appSettings->set(key, value);
-    if(set) set(value);
-  });
+  auto *label=new QLabel(name, this);
+  layout->addWidget(label, row, 1);
+  label->setToolTip(tt);
+  QLineEdit *lineEdit { nullptr };
+  QTextEdit *textEdit { nullptr };
+  if(singleLine) {
+    lineEdit=new QLineEdit(this);
+    lineEdit->setToolTip(tt);
+    layout->addWidget(lineEdit, row, 2);
+    lineEdit->setText(appSettings->get<QString>(key));
+    connect(lineEdit, &QLineEdit::textChanged, [key, set, lineEdit](){
+      auto value=lineEdit->text();
+      appSettings->set(key, value);
+      if(set) set(value);
+    });
+  }
+  else {
+    textEdit=new QTextEdit(this);
+    textEdit->setToolTip(tt);
+    layout->addWidget(textEdit, row, 2);
+    textEdit->setText(appSettings->get<QString>(key));
+    connect(textEdit, &QTextEdit::textChanged, [key, set, textEdit](){
+      auto value=textEdit->toPlainText();
+      appSettings->set(key, value);
+      if(set) set(value);
+    });
+  }
 }
 class ChoiceSetting : public QWidget {
   public:
@@ -1238,6 +1258,18 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   new IntSetting(misc, AppSettings::shortAniTime, Utils::QIconCached("time.svg"), "Short animation time:", "ms");
   new DoubleSetting(misc, AppSettings::speedChangeFactor, Utils::QIconCached("speed.svg"), "Animation speed factor:", "1/key", {},
                     0, numeric_limits<double>::max(), 0.01);
+  new StringSetting(misc, AppSettings::exportdialog_videocmd, QIcon(), "Video export command:", false,
+    "<p>Command to generate the video from a sequence of PNG files:</p>"
+    "<ul>"
+    "  <li>The absolute path of the input PNG sequence files can be accessed using %I</li>"
+    "  <li>The absolute path of the output video file can be accessed using %O</li>"
+    "  <li>The bit-rate (in unit Bits per second) can be accessed using %B</li>"
+    "  <li>The frame-rate (a floating point number) can be accessed using %F</li>"
+    "</ul>"
+    "<p>(if using ffmpeg '-c:v libvpx-vp9' (file extension *.webm) is a good codec for web pages and "
+    "'-c:v libx264' (file extension *.mp4) is a good codec for MS-Powerpoint))</p>"
+    "<p>(note that only the output to stdout of this command is shown in the UI. Pipe stderr to stdout)</p>");
+  new StringSetting(misc, AppSettings::exportdialog_videoext, QIcon(), "Video export output filename ext:", true);
   addSpace(misc);
 }
 void SettingsDialog::closeEvent(QCloseEvent *event) {

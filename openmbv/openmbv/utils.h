@@ -199,6 +199,7 @@ class AppSettings {
       exportdialog_filename_video,
       exportdialog_bitrate,
       exportdialog_videocmd,
+      exportdialog_videoext,
       propertydialog_geometry,
       dialogstereo_geometry,
       mouseCursorSize,
