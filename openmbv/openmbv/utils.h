@@ -202,6 +202,7 @@ class AppSettings {
       exportdialog_videoext,
       propertydialog_geometry,
       dialogstereo_geometry,
+      mouseCursor3D,
       mouseCursorSize,
       mouseNoneLeftMoveAction,
       mouseShiftLeftMoveAction,

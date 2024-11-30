@@ -40,7 +40,7 @@ namespace OpenMBVGUI {
 
 MyTouchWidget::MyTouchWidget(QWidget *parent) : TouchWidget<QWidget>(parent) {
   setAttribute(Qt::WA_Hover, true);
-  setCursor(Qt::BlankCursor);
+  setCursor3D(appSettings->get<bool>(AppSettings::mouseCursor3D));
   setLongTapInterval(appSettings->get<int>(AppSettings::tapAndHoldTimeout));
 
   auto set=[](auto &action, Modifier mod, AppSettings::AS appSet){
@@ -1095,6 +1095,9 @@ void MyTouchWidget::changeFrame(int steps, bool rel) {
 }
 
 void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
+  if(!cursor3D)
+    return;
+
   auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
 
   int x=mousePos.x();
@@ -1142,6 +1145,13 @@ void MyTouchWidget::setVerticalAxis(MoveAction act) {
     else if(abs(SverticalAxis[0])>1e-7)
       rotateAboutSz(-M_PI/2);
   }
+}
+
+void MyTouchWidget::setCursor3D(bool value) {
+  cursor3D = value;
+  setCursor(cursor3D ? Qt::BlankCursor : Qt::CrossCursor);
+  if(!cursor3D)
+    MainWindow::getInstance()->setCursorPos();
 }
 
 }

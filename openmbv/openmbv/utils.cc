@@ -415,6 +415,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[exportdialog_videoext]={"exportdialog/videoextension", "webm"};
   setting[propertydialog_geometry]={"propertydialog/geometry", QVariant()};
   setting[dialogstereo_geometry]={"dialogstereo/geometry", QVariant()};
+  setting[mouseCursor3D]={"mainwindow/manipulate3d/mouseCursor3D", true};
   setting[mouseCursorSize]={"mainwindow/manipulate3d/mouseCursorSize", 5.0};
   using MA=MyTouchWidget::MoveAction;
   setting[mouseNoneLeftMoveAction]=        {"mainwindow/manipulate3d/mouseNoneLeftMoveAction", static_cast<int>(MA::RotateAboutSySx)};
@@ -745,9 +746,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
     MainWindow::getInstance()->updateScene();
   });
-  new DoubleSetting(scene3D, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
-    MainWindow::getInstance()->mouseCursorSizeField->setValue(value);
-  }, 0, 100, 1);
   new DoubleSetting(scene3D, AppSettings::outlineShilouetteEdgeLineWidth, Utils::QIconCached("olselinewidth.svg"), "Outline line width:", "px", [](double value){
     MainWindow::getInstance()->olseDrawStyle->lineWidth.setValue(value);
   }, 0, numeric_limits<double>::max(), 0.1);
@@ -1199,6 +1197,13 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
   mouseTouchSettings->setColumnStretch(0, 0);
   mouseTouchSettings->setColumnStretch(1, 0);
   mouseTouchSettings->setColumnStretch(2, 1);
+  new ChoiceSetting(mouseTouchSettings, AppSettings::mouseCursor3D, Utils::QIconCached("mouse.svg"), "Mouse cursor type:",
+                    {{"2D crosshairs", ""}, {"3D world frame axis", ""}}, [](int value){
+    MainWindow::getInstance()->glViewerWG->setCursor3D(value);
+  });
+  new DoubleSetting(mouseTouchSettings, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
+    MainWindow::getInstance()->mouseCursorSizeField->setValue(value);
+  }, 0, 100, 1);
   new DoubleSetting(mouseTouchSettings, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
     if(MainWindow::getInstance()->dialogStereo)
