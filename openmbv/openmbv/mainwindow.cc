@@ -1688,18 +1688,20 @@ void MainWindow::exportCurrentAsPNG() {
   if(dialog.result()==QDialog::Rejected) return;
 
   QString str("Exporting current frame to %1, please wait!");
-  str=str.arg(dialog.getFileName());
+  auto filename=dialog.getFileName();
+  str=str.arg(filename);
   statusBar()->showMessage(str);
   msg(Info)<<str.toStdString()<<endl;
-  QFile::remove(dialog.getFileName());
+  QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
-  exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
+  exportAsPNG(width, height, filename.toStdString(), dialog.getTransparent());
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
   statusBar()->showMessage("Done", 10000);
-  if(QFile::exists(dialog.getFileName()))
-    QDesktopServices::openUrl(QUrl::fromLocalFile(dialog.getFileName()));
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
@@ -1721,6 +1723,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   QString fileName=dialog.getFileName();
   QFileInfo fi(fileName);
   QString pngBaseName=fi.dir().filePath(fi.completeBaseName());
+  QDir().mkpath(fi.dir().path());
   double speed=speedSB->value();
   int startFrame=timeSlider->currentMinimum();
   int endFrame=timeSlider->currentMaximum();
@@ -1989,6 +1992,7 @@ void MainWindow::exportCurrentAsIV() {
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
   QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   SoOutput output;
   output.openFile(filename.toStdString().c_str());
   SoWriteAction wa(&output);
@@ -2003,6 +2007,7 @@ void MainWindow::exportCurrentAsPS() {
   if(!filename.endsWith(".ps",Qt::CaseInsensitive))
     filename=filename+".ps";
   QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   // set text color to black
   SbColor fgColorTopSaved=*fgColorTop->getValues(0);
   SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
