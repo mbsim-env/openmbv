@@ -13,6 +13,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include "dom.h"
+#include "windows_signal_conversion.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -27,6 +28,7 @@ int main(int argc, char *argv[]) {
   assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
 #endif
   setlocale(LC_ALL, "C");
+  convertWMCLOSEtoSIGTERM();
 
   vector<string> args;
   args.reserve(argc-1);

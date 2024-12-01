@@ -17,6 +17,7 @@
 #include <xercesc/dom/DOMDocument.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <mbxmlutilshelper/windows_signal_conversion.h>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]) {
   assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
 #endif
   setlocale(LC_ALL, "C");
+  convertWMCLOSEtoSIGTERM();
 
   try {
 

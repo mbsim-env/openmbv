@@ -1,0 +1,10 @@
+#ifndef MBXMLUTILS_WINDOWS_SIGNAL_CONVERSION_H
+#define MBXMLUTILS_WINDOWS_SIGNAL_CONVERSION_H
+
+namespace MBXMLUtils {
+
+void convertWMCLOSEtoSIGTERM();
+
+}
+
+#endif
