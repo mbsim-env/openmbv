@@ -1,9 +1,15 @@
 #include "windows_signal_conversion.h"
+#include <thread>
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+using namespace std;
 
 namespace MBXMLUtils {
 
 void convertWMCLOSEtoSIGTERM() {
-#ifdef WIN32
+#ifdef _WIN32
   thread messageLoopThread([](){
     const char DUMMYWINDOWCLASS[] = "DummyWindowClass";
     WNDCLASS wc = {};

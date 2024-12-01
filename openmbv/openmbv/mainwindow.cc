@@ -1781,7 +1781,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
              <<videoCmd.toStdString()<<endl;
 
     QProcess p(this);
-#ifdef WIN32
+#ifdef _WIN32
     p.setProgram("cmd");
     p.setNativeArguments("/c "+videoCmd);
 #else

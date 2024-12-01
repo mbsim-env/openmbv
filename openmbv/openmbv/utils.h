@@ -42,7 +42,7 @@
 #include <unordered_map>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define CALLMETHOD __stdcall
 #else
 #  define CALLMETHOD
