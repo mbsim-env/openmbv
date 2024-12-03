@@ -25,11 +25,48 @@
 
 namespace OpenMBVGUI {
 
+bool keepValue = false;
+bool skipValue = false;
+
 ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog(parent) {
 
   int row=-1;
   setWindowTitle("Export current frame as PNG");
   setLayout(&dialogLO);
+  if(video) {
+    row++;
+    QString tt2("If enabled the generated PNG sequence files are kept (not delete). This can be used to avoid regeneration of the sequence at a further run if e.g. only the bitrate should be changed.");
+    keepL.setText("Keep PNG sequence files:");
+    keepL.setToolTip(tt2);
+    dialogLO.addWidget(&keepL, row, 0);
+    keep.setChecked(keepValue);
+    keep.setToolTip(tt2);
+    connect(&keep, &QCheckBox::clicked, [](bool checked) {
+      keepValue=checked;
+    });
+    dialogLO.addWidget(&keep, row, 1, 1, 2);
+    row++;
+    QString tt("If enabled a existing set of PNG files form a previous run is used. If disabled a new sequence is generated first. This can be used to avoid regeneration of the sequence if e.g. only the bitrate should be changed.");
+    skipL.setText("Skip PNG generation:");
+    skipL.setToolTip(tt);
+    dialogLO.addWidget(&skipL, row, 0);
+    connect(&skip, &QCheckBox::clicked, [this](bool checked) {
+      skipValue=checked;
+      scaleL.setDisabled(checked);
+      scale.setDisabled(checked);
+      backgroundL.setDisabled(checked);
+      transparentRB.setDisabled(checked);
+      colorRB.setDisabled(checked);
+      speedL.setDisabled(checked);
+      speedLText.setDisabled(checked);
+      frameRangeL.setDisabled(checked);
+      frameRangeLText.setDisabled(checked);
+    });
+    skip.setChecked(skipValue);
+    skip.clicked(skipValue);
+    skip.setToolTip(tt);
+    dialogLO.addWidget(&skip, row, 1, 1, 2);
+  }
   scaleL.setText("Resolution factor:");
   row++;
   dialogLO.addWidget(&scaleL, row, 0);
@@ -51,6 +88,16 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
   if(sequence) {
     setWindowTitle("Export frame sequence as PNG"); // overwrite title
     row++;
+    speedL.setText("Speed:");
+    dialogLO.addWidget(&speedL, row, 0);
+    speedLText.setText("use current speed");
+    dialogLO.addWidget(&speedLText, row, 1, 1, 2);
+    row++;
+    frameRangeL.setText("Frame range:");
+    dialogLO.addWidget(&frameRangeL, row, 0);
+    frameRangeLText.setText("use current range");
+    dialogLO.addWidget(&frameRangeLText, row, 1, 1, 2);
+    row++;
     if(!video)
       fpsL.setText("Frames per second:");
     else
@@ -61,75 +108,61 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     fps.setValue(appSettings->get<double>(AppSettings::exportdialog_fps));
     fps.setDecimals(1);
     dialogLO.addWidget(&fps, row, 1, 1, 2);
-    row++;
-    speedL.setText("Speed:");
-    dialogLO.addWidget(&speedL, row, 0);
-    speedLText.setText("use current speed");
-    dialogLO.addWidget(&speedLText, row, 1, 1, 2);
-    row++;
-    frameRangeL.setText("Frame range:");
-    dialogLO.addWidget(&frameRangeL, row, 0);
-    frameRangeLText.setText("use current range");
-    dialogLO.addWidget(&frameRangeLText, row, 1, 1, 2);
   }
   if(!video) {
+    outputFileExt="png";
     row++;
-    fileNameL.setText("Base-PNG-File:");
-    QString tt("For each frame a underscore and a 6-digit sequence number is\n"
-               "appended to the base-file, e.g: openmbv_000341.png");
-    fileNameL.setToolTip(tt);
+    QString ttfile;
+    if(!sequence) {
+      fileNameL.setText("Output PNG filename:");
+      ttfile=".png is appended if it does not end so.";
+    }
+    else {
+      fileNameL.setText("Output PNG base-filename:");
+      ttfile="For each frame a underscore and a 6-digit sequence number is\n"
+         "appended to the base-filename, e.g: openmbv_000341.png.\n"
+         ".png is appended if it does not end so.";
+    }
+    fileNameL.setToolTip(ttfile);
     dialogLO.addWidget(&fileNameL, row, 0);
     fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_png));
-    fileName.setToolTip(tt);
+    fileName.setToolTip(ttfile);
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
     connect(&fileNameButton, &QPushButton::clicked, this, [this](){
-      QString name=QFileDialog::getSaveFileName(this, "Save PNG sequence to file", fileName.text(), "PNG-image (*.png)");
+      QString name=QFileDialog::getSaveFileName(this, "Output PNG file", fileName.text(), "PNG-image (*.png)");
       if(name.isNull()) return;
       fileName.setText(name);
     });
-    fileNameButton.setToolTip(tt);
+    fileNameButton.setToolTip(ttfile);
     dialogLO.addWidget(&fileNameButton, row, 2);
   }
   else {
+    outputFileExt=appSettings->get<QString>(AppSettings::exportdialog_videoext);
     setWindowTitle("Export frame sequence as video"); // overwrite title
     row++;
-    fileNameL.setText("Video-File (%O):");
+    bitRateL.setText("Bit-Rate [kBit/s] (%B):");
+    dialogLO.addWidget(&bitRateL, row, 0);
+    bitRate.setRange(1,1000000);
+    bitRate.setSingleStep(500);
+    bitRate.setValue(appSettings->get<int>(AppSettings::exportdialog_bitrate));
+    dialogLO.addWidget(&bitRate, row, 1, 1, 2);
+    row++;
+    QString ttfile("."+outputFileExt+" is appended if it does not end so.");
+    fileNameL.setText("Output video filename (%O):");
+    fileNameL.setToolTip(ttfile);
     dialogLO.addWidget(&fileNameL, row, 0);
     fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
+    fileName.setToolTip(ttfile);
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
     connect(&fileNameButton, &QPushButton::clicked, this, [this](){
-      QString name=QFileDialog::getSaveFileName(this, "Save video to file", fileName.text(), "Video (*.*)");
+      QString name=QFileDialog::getSaveFileName(this, "Output video file", fileName.text(), "Video (*."+outputFileExt+")");
       if(name.isNull()) return;
       fileName.setText(name);
     });
+    fileNameButton.setToolTip(ttfile);
     dialogLO.addWidget(&fileNameButton, row, 2);
-    bitRateL.setText("Bit-Rate [KiBit/s] (%B):");
-    row++;
-    dialogLO.addWidget(&bitRateL, row, 0);
-    bitRate.setRange(1,102400);
-    bitRate.setSingleStep(512);
-    bitRate.setValue(appSettings->get<int>(AppSettings::exportdialog_bitrate));
-    dialogLO.addWidget(&bitRate, row, 1, 1, 2);
-    QString tt("<p>Command to generate the video from a sequence of PNG-files:</p>"
-               "<ul>"
-               "  <li>The input PNG sequence files are in the current directory of this command (being a temporary dir) "
-               "      and are named openmbv_000000.png, openmbv_000001.png, ...\n"
-               "  <li>The absolute path of the output video file can be accessed using %O\n"
-               "  <li>The bit-rate (in unit Bits per second) can be accessed using %B\n"
-               "  <li>The frame-rate (a floating point number) can be accessed using %F"
-               "</ul>"
-               "<p>(if using ffmpeg '-c:v libvpx-vp9' (file extension *.webm) is a good codec for web pages and "
-               "'-c:v libx264' (file extension *.mp4) is a good codec for MS-Powerpoint)</p>");
-    videoCmdL.setText("Video Command");
-    videoCmdL.setToolTip(tt);
-    row++;
-    dialogLO.addWidget(&videoCmdL, row, 0);
-    row++;
-    videoCmd.setText(appSettings->get<QString>(AppSettings::exportdialog_videocmd));
-    videoCmd.setToolTip(tt);
-    dialogLO.addWidget(&videoCmd, row, 0, 1, 3);
   }
   abort.setText("Abort");
   connect(&abort, &QPushButton::clicked, this, &ExportDialog::reject);
@@ -148,11 +181,17 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     else {
       appSettings->set(AppSettings::exportdialog_filename_video, fileName.text());
       appSettings->set(AppSettings::exportdialog_bitrate, bitRate.value());
-      appSettings->set(AppSettings::exportdialog_videocmd, videoCmd.toPlainText());
     }
     accept();
   });
   dialogLO.addWidget(&ok, row, 2);
+}
+
+QString ExportDialog::getFileName() const {
+  //mfmf make absolute
+  if(fileName.text().toLower().endsWith("."+outputFileExt.toLower()))
+    return QFileInfo(fileName.text()).absoluteFilePath();
+  return QFileInfo(fileName.text()+"."+outputFileExt).absoluteFilePath();
 }
 
 }

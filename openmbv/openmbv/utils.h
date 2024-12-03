@@ -42,7 +42,7 @@
 #include <unordered_map>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define CALLMETHOD __stdcall
 #else
 #  define CALLMETHOD
@@ -199,8 +199,10 @@ class AppSettings {
       exportdialog_filename_video,
       exportdialog_bitrate,
       exportdialog_videocmd,
+      exportdialog_videoext,
       propertydialog_geometry,
       dialogstereo_geometry,
+      mouseCursor3D,
       mouseCursorSize,
       mouseNoneLeftMoveAction,
       mouseShiftLeftMoveAction,

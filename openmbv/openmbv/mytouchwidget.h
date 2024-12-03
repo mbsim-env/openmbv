@@ -93,6 +93,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void setRelCursorZPerWheel(double value) { relCursorZPerWheel=value; }
     void setRelCursorZPerPixel(double value) { relCursorZPerPixel=value; }
     void setPixelPerFrame(int value) { pixelPerFrame=value; }
+    void setCursor3D(bool value);
   protected:
     // functions for mouse events
     void mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;
@@ -142,6 +143,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     float relCursorZPerWheel;
     float relCursorZPerPixel;
     int pixelPerFrame;
+    bool cursor3D;
 
     int verticalAxis { 2 };
     void setVerticalAxis(MoveAction act);

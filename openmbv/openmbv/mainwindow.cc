@@ -45,6 +45,11 @@
 #include <QShortcut>
 #include <QMimeData>
 #include <QScroller>
+#include <QThread>
+#include <QProcess>
+#include <QScrollBar>
+#include <QPlainTextEdit>
+#include <QScreen>
 #include "utils.h"
 #include <QMetaMethod>
 #include <Inventor/nodes/SoBaseColor.h>
@@ -102,6 +107,24 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
   boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
+
+  // environment variables
+
+  // Disalbe COIN VBO per default (see --help)
+  static char COIN_VBO[11];
+  if(getenv("COIN_VBO")==nullptr)
+    putenv(strcpy(COIN_VBO, "COIN_VBO=0"));
+
+  // for offscreen renderer these envvars are needed on Linux
+  static char ENV1[128];
+  if(getenv("COIN_FULL_INDIRECT_RENDERING")==nullptr)
+    putenv(strcpy(ENV1, "COIN_FULL_INDIRECT_RENDERING=1"));
+  static char ENV2[128];
+  if(getenv("COIN_OFFSCREENRENDERER_TILEHEIGHT")==nullptr)
+    putenv(strcpy(ENV2, "COIN_OFFSCREENRENDERER_TILEHEIGHT=8196"));
+  static char ENV3[128];
+  if(getenv("COIN_OFFSCREENRENDERER_TILEWIDTH")==nullptr)
+    putenv(strcpy(ENV3, "COIN_OFFSCREENRENDERER_TILEWIDTH=8196"));
 
   // Enable global search of USE in iv files
   static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
@@ -1624,7 +1647,15 @@ void MainWindow::exportAsPNG(short width, short height, const std::string& fileN
   // render offscreen
   SbBool ok=offScreenRenderer->render(root);
   if(!ok) {
-    QMessageBox::warning(this, "PNG export warning", "Unable to render offscreen image. See OpenGL/Coin messages in console!");
+    QMessageBox::warning(this, "PNG export warning",
+      "Unable to render offscreen image. See OpenGL/Coin messages in console!\n\n"
+      "On Linux this may because the X server has disabled indirect GLX. To enable it add\n"
+      "\n"
+      "Section \"ServerFlags\"\n"
+      "  Option \"IndirectGLX\" \"on\"\n"
+      "EndSection\n"
+      "\n"
+      "to the X11 config in 'etc/X11/xorg.conf'.");
     root->unref();
     return;
   }
@@ -1657,38 +1688,48 @@ void MainWindow::exportCurrentAsPNG() {
   if(dialog.result()==QDialog::Rejected) return;
 
   QString str("Exporting current frame to %1, please wait!");
-  str=str.arg(QFileInfo(dialog.getFileName()).absoluteFilePath());
+  auto filename=dialog.getFileName();
+  str=str.arg(filename);
   statusBar()->showMessage(str);
   msg(Info)<<str.toStdString()<<endl;
+  QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
-  exportAsPNG(width, height, dialog.getFileName().toStdString(), dialog.getTransparent());
+  exportAsPNG(width, height, filename.toStdString(), dialog.getTransparent());
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
+  statusBar()->showMessage("Done", 10000);
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::exportSequenceAsPNG(bool video) {
+  auto removePNGs = [](const QString &pngBaseName) {
+    QFileInfo fi(pngBaseName);
+    QRegExp re("^"+fi.fileName()+"_[0-9][0-9][0-9][0-9][0-9][0-9].png$");
+    QDir d(fi.dir());
+    for(auto &f : d.entryList({"*"})) {
+      if(re.exactMatch(f.toLower()))
+        QFile(d.absoluteFilePath(f)).remove();
+    }
+  };
+
   ExportDialog dialog(this, true, video);
   dialog.exec();
   if(dialog.result()==QDialog::Rejected) return;
   double scale=dialog.getScale();
   bool transparent=dialog.getTransparent();
   QString fileName=dialog.getFileName();
-  if(!video && !fileName.toUpper().endsWith(".PNG")) return;
-  QString pngBaseName=fileName;
-  unique_ptr<QTemporaryDir> tmpDir;
-  if(!video)
-    pngBaseName=pngBaseName.remove(pngBaseName.length()-4,4);
-  else {
-    tmpDir=std::make_unique<QTemporaryDir>();
-    pngBaseName=tmpDir->filePath("openmbv");
-  }
+  QFileInfo fi(fileName);
+  QString pngBaseName=fi.dir().filePath(fi.completeBaseName());
+  QDir().mkpath(fi.dir().path());
   double speed=speedSB->value();
   int startFrame=timeSlider->currentMinimum();
   int endFrame=timeSlider->currentMaximum();
   double fps=dialog.getFPS();
 
-  if(speed/deltaTime/fps<1) {
+  if(speed/deltaTime/fps<1 && !dialog.skipPNGGeneration()) {
     int ret=QMessageBox::warning(this, "Export PNG sequence",
       "Some video-frames would contain the same data,\n"
       "because the animation speed is to slow,\n"
@@ -1704,47 +1745,100 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*scale);
 
-  QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
-  progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
-  progress.setWindowModality(Qt::WindowModal);
-  for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
-    progress.setValue(videoFrame);
+  if(!dialog.skipPNGGeneration()) {
+    QProgressDialog progress("Create sequence of PNGs...", "Cancel", 0, lastVideoFrame, this);
+    removePNGs(pngBaseName);
+    progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
+    progress.setWindowModality(Qt::WindowModal);
+    for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
+      progress.setValue(videoFrame);
+      if(progress.wasCanceled())
+        break;
+      QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
+      str=str.arg(pngBaseName).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
+      statusBar()->showMessage(str);
+      msg(Info)<<str.toStdString()<<endl;
+      frame->setValue(frame_);
+      exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+    }
     if(progress.wasCanceled())
-      break;
-    QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
-    str=str.arg(QFileInfo(pngBaseName).absoluteFilePath()).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
-    statusBar()->showMessage(str);
-    msg(Info)<<str.toStdString()<<endl;
-    frame->setValue(frame_);
-    exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+      return;
+    progress.setValue(lastVideoFrame);
   }
-  if(progress.wasCanceled())
-    return;
-  progress.setValue(lastVideoFrame);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/scale);
   if(video) {
     QString str("Encoding video file to %1, please wait!");
-    str=str.arg(QFileInfo(fileName).absoluteFilePath());
+    str=str.arg(fileName);
     statusBar()->showMessage(str);
     msg(Info)<<str.toStdString()<<endl;
-    QString videoCmd=dialog.getVideoCmd();
-    QFile(QFileInfo(fileName).absoluteFilePath()).remove();
-    videoCmd.replace("%O", QFileInfo(fileName).absoluteFilePath());
-    videoCmd.replace("%B", QString::number(dialog.getBitRate()*1024));
+    auto videoCmd=appSettings->get<QString>(AppSettings::exportdialog_videocmd);
+    QFile(fileName).remove();
+    videoCmd.replace("%I", pngBaseName+"_%06d.png");
+    videoCmd.replace("%O", fileName);
+    videoCmd.replace("%B", QString::number(dialog.getBitRate()*1000));
     videoCmd.replace("%F", QString::number(fps, 'f', 1));
     msg(Info)<<"Running command:"<<endl
-             <<videoCmd.toStdString()<<endl
-             <<"in directory "<<tmpDir->path().toStdString()<<endl;
-    QString cwd=QDir::currentPath();
-    QDir::setCurrent(tmpDir->path());
-    int ret=std::system(videoCmd.toStdString().c_str());
-    QDir::setCurrent(cwd);
+             <<videoCmd.toStdString()<<endl;
+
+    QProcess p(this);
+#ifdef _WIN32
+    p.setProgram("cmd");
+    p.setNativeArguments("/c "+videoCmd);
+#else
+    p.setProgram("/bin/sh");
+    p.setArguments({"-c", videoCmd});
+#endif
+    QDialog output;
+    output.setWindowTitle("Create video from PNG sequence");
+    auto rec=QGuiApplication::primaryScreen()->size();
+    output.resize(rec.width()*3/4,rec.height()*3/4);
+    auto *outputLA=new QVBoxLayout(&output);
+    output.setLayout(outputLA);
+    auto *outputText=new QPlainTextEdit(&output);
+    outputText->setReadOnly(true);
+    QFont font("unexistent");
+    font.setStyleHint(QFont::Monospace);
+    outputText->setFont(font);
+    outputLA->addWidget(outputText,0);
+    auto *outputClose=new QPushButton("Close", &output);
+    outputClose->setDisabled(true);
+    connect(outputClose, &QPushButton::pressed, [&output]() {
+      output.close();
+    });
+    outputLA->addWidget(outputClose,1);
+    connect(&p, &QProcess::readyReadStandardOutput, [&p,&outputText]() {
+      outputText->setPlainText(outputText->toPlainText()+p.readAllStandardOutput());
+      outputText->verticalScrollBar()->setValue(outputText->verticalScrollBar()->maximum());
+    });
+    int ret;
+    connect(&p, static_cast<void(QProcess::*)(int,QProcess::ExitStatus)>(&QProcess::finished),
+        [&p, &ret, &outputText, &outputClose, &fileName](int exitCode, QProcess::ExitStatus exitStatus) {
+      outputText->setPlainText(outputText->toPlainText()+p.readAllStandardOutput());
+      if(exitCode==0)
+        outputText->appendHtml("<div style=\"color: #00ff00\">SUCCESS</div>");
+      else
+        outputText->appendHtml("<div style=\"color: #ff0000\">FAILED</div>");
+      outputText->verticalScrollBar()->setValue(outputText->verticalScrollBar()->maximum());
+      outputClose->setDisabled(false);
+      ret=exitCode;
+      if(QFile::exists(fileName) && ret==0)
+        QDesktopServices::openUrl(QUrl::fromLocalFile(fileName));
+    });
+    p.start();
+    output.exec();
+    p.terminate();
+    p.waitForFinished(3000);
+    p.kill();
+
+    if(!dialog.keepPNGs())
+      removePNGs(pngBaseName);
     if(ret!=0) {
       QString str("FAILED. See console output!");
       statusBar()->showMessage(str, 10000);
       msg(Info)<<str.toStdString()<<endl;
       return;
     }
+    statusBar()->showMessage("Done", 10000);
   }
 }
 
@@ -1897,10 +1991,14 @@ void MainWindow::exportCurrentAsIV() {
   if(filename.isNull()) return;
   if(!filename.endsWith(".iv",Qt::CaseInsensitive))
     filename=filename+".iv";
+  QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   SoOutput output;
   output.openFile(filename.toStdString().c_str());
   SoWriteAction wa(&output);
   wa.apply(sceneRoot);
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::exportCurrentAsPS() {
@@ -1908,6 +2006,8 @@ void MainWindow::exportCurrentAsPS() {
   if(filename.isNull()) return;
   if(!filename.endsWith(".ps",Qt::CaseInsensitive))
     filename=filename+".ps";
+  QFile::remove(filename);
+  QDir().mkpath(QFileInfo(filename).dir().path());
   // set text color to black
   SbColor fgColorTopSaved=*fgColorTop->getValues(0);
   SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
@@ -1933,6 +2033,8 @@ void MainWindow::exportCurrentAsPS() {
   // reset text color
   fgColorTop->set1Value(0, fgColorTopSaved);
   fgColorBottom->set1Value(0, fgColorBottomSaved);
+  if(QFile::exists(filename))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 }
 
 void MainWindow::toggleMenuBarSlot() {
