@@ -388,7 +388,7 @@ std::string OctEval::serializeFunction(const Value &x) const {
 
 OctEval::OctEval(std::vector<bfs::path> *dependencies_) : Eval(dependencies_) {
   auto ci=std::make_shared<Import>();
-  currentImport=ci;
+  currentImport[""]=ci;
   ci->path=octInit.initialPath;
 };
 
@@ -412,7 +412,7 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
   // set octave path to top of stack of not already done
   std::string curPath;
   curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value();
-  auto ci=std::static_pointer_cast<Import>(currentImport);
+  auto ci=std::static_pointer_cast<Import>(currentImport.at(""));
   std::string &currentPath=ci->path;
   if(curPath!=currentPath)
   {
@@ -466,7 +466,10 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
 #endif
 }
 
-void OctEval::addImport(const std::string &code, const DOMElement *e) {
+void OctEval::addImport(const std::string &code, const DOMElement *e, const std::string &type) {
+  if(type!="")
+    throw DOMEvalException("Octave 'import' is only possible with type=''!", e);
+
   try {
     bfs::path dir;
     if(e) {
@@ -545,7 +548,7 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   static octave_function *path=octInit.interpreter->get_symbol_table().find_function("path").function_value(); // get ones a pointer for performance reasons
   std::string curPath;
   try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_AS_DOMEVALEXCEPTION(e)
-  auto ci=std::static_pointer_cast<Import>(currentImport);
+  auto ci=std::static_pointer_cast<Import>(currentImport.at(""));
   std::string &currentPath=ci->path;
   if(curPath!=currentPath)
   {

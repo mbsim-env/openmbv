@@ -10,7 +10,15 @@
   <xs:element name="Parameter">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="import" type="stringFullEval"/>
+        <xs:element name="import">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="stringFullEval">
+                <xs:attribute name="type" type="xs:string"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="stringParameter">
           <xs:complexType>
             <xs:simpleContent>

@@ -217,10 +217,11 @@
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/matrixParameter&gt;
   &lt;anyAarameter name="p"&gt;{'test', 4, 6.0}&lt;/anyParameter&gt;
   &lt;import&gt;'/home/user/octaveScripts'&lt;/import&gt;
+  &lt;import type="someString"&gt;'/home/user/octaveScripts'&lt;/import&gt;
 &lt;/Parameter&gt;
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
-    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute: it imports submodules, adds to the search path or something else.</p>
+    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute but an optional 'type' attribute which defaults to '': it imports submodules, adds to the search path or something else. See at a specific evaluator for details about what it does for this evaluator.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
     <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. This description of this general section is based on the octave expression evaluator, but all other evaluators are similar. See the sub-sections for details.</p>
@@ -338,25 +339,61 @@ ret=myfunc(m1/2);
 <p>Where "current parameters" are all parameters of the current parameter stack. The result is the value of the variable
 "ret", if given. Else its the value of the variable "ans", if given (note that octave stores the result of expressions
 in a variable named "ans"). Else, if the code was just the name of another variable the result is the value of this variable.</p>
-<p><code>addImport</code>/<code>&lt;import&gt;</code> does a usual evaluation and the resulting string is added to the octave path.</p>
+<p><code>addImport</code>/<code>&lt;import&gt;</code> does a usual evaluation and the resulting string is added to the octave path [is does more but the exact behaviour is currently not very well defined, try to avoid 'import' in octave].</p>
 
     <h2><a id="pythonevaluator" href="#pythonevaluator-content">6.2 Python Expression Evaluator</a></h2>
-<p>Each evaluation is done in a python context with:</p>
+<p>Each evaluation is done in a clean python context with:</p>
 <dl class="dl-horizontal">
-  <dt>python globals:</dt>
-  <dd>set to python __builtins__ merged with the "imports" and merged with the "current parameters"</dd>
-  <dt>python locals:</dt>
-  <dd>is the same dictionary as pyhton globals</dd>
+  <dt>globals():</dt>
+  <dd>set to the following key-value pairs, in order, where keys are overwritten if already existing:
+    <ul>
+      <li>python __builtins__</li>
+      <li style="color:gray">the key-values of the global import list (this list is deprecated and should be empty)</li>
+      <li>the key-values of the current parameter stack</li>
+    </ul>
+  </dd>
+  <dt>locals():</dt>
+  <dd>is the same dictionary as globals()</dd>
 </dl>
-<p>Where "imports" is a dictionary with the same lifetime of this class, initially empty, and filled with all
-new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code>, see below for details.
-And "current parameters" are all parameters of the current parameter stack.</p>
-<p>If the evaluation is a single expressions, then the result of the evaluation is the result of this expression.
-If the evaluation is not a single expressions, then the result is the value of the variable named "ret" which must
-be defined by the evaluation.</p>
-<p><code>addImport</code>/<code>&lt;import&gt;</code> adds all new variables defined by the evaluation to the "imports": each variable which is
-in the list of global(=local) variables after the import evaluation, but was not in the list of global(=local) variables before the evaluation, 
-is added to the import list. This import list is then used for all successive evaluations.</p>
+
+<p style="color:gray">The deprecated global import list is a dictionary with the same lifetime as the instance of this class, initially empty, and filled with all
+new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code> with a type of '' or 'global'. Use it with care (its use is deprecated) to ensure a clear scope of imports.<br/>
+All new variables means here all variables which are available in Python globals/locals after the evaluation of the 'import' statement but where not available in Python globals/locals before the evaluation. Hence, if a import add a variable which already existed before it is NOT overwritten. This is different to parameters and a local import which overwrite existing variables with the same name. Overwriting names should be avoid anyway, if possible, to improve readability.</p>
+
+<p>The current parameter stack is a dictionary with a local scope (lifetime). A stack of current parameters exists. Each parameter fills its parameter name to this dictionary overwriting a already existing key. Each <code>addImport</code>/<code>&lt;import&gt;</code> with a type 'local' fills all keys which exist after the evaluation in the python global/local context to this list.</p>
+
+<p>Parameter can be a single expressions where the result of the evaluation is used for the value.
+If the evaluation is a multi statement code, then the result is the value of the variable named "ret" which must
+be defined by the evaluation. A import is always a multi statement code.</p>
+
+<p>Examples:</p>
+
+<pre>&lt;scalarParameter name="p1"&gt;4+3&lt;/scalarParameter&gt;</pre>
+<p>Stores the key "p1" with a value of 7 to the current parameter stack. p1 is assigned the single expression value 4+3.</p>
+
+<pre>&lt;scalarParameter name="p2"&gt;
+  a=2
+  ret=a+1
+&lt;/scalarParameter&gt;</pre>
+<p>Stores the key "p2" with a value of 3 to the current parameter stack. p2 is assigned the value of the variable "ret".</p>
+
+<pre>&lt;import type="local"&gt;import numpy&lt;/import&gt;</pre>
+<p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy" creates a single python variable "numpy" which is stored in the parameter stack.</p>
+
+<pre>&lt;anyParameter name="numpy"&gt;import numpy as ret&lt;/anyParameter&gt;</pre>
+<p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy as ret" import the python numpy module as the name "ret" which is used by a multi statement code as the value of the parameter name "numpy"</p>
+
+<pre>&lt;import type="local"&gt;from json import *&lt;/import&gt;</pre>
+<p>Stores all objects provided by the python module "json" with its name in to the current parameter stack. "from json import *" creates for each object in side of json a variable name which is stored in the parameter stack.</p>
+
+<pre>&lt;import type="local"&gt;
+  aa=9
+  bb=aa+3
+  cc=7
+&lt;/import&gt;</pre>
+<p>Stores the keys "aa", "bb" and "cc" with the values 9, 12 and 8 to the current parameter stack. All created variables are stored in the parameter stack.</p>
+
+<p>Note than you can store functions (function pointers) using import and also using anyParameter but such functions cannot access python global variables defined using other parameters since python globals() is defined at function define time and keeps the same regardless of where the function is called. See <a href="https://docs.python.org/3/library/functions.html#globals">Python documentation</a>. Hence, pass all required data for such functions via the function parameter list.</p>
 
     <h1><a id="symbolicFunctions" href="#symbolicFunctions-content">7 Symbolic Functions</a></h1>
     <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.
@@ -411,7 +448,7 @@ is added to the import list. This import list is then used for all successive ev
 Symbolic vectors and matrices are usual octave vector and matrices with a element data type of octave SWIG object.</p>
 
     <h2><a id="pythonsymbolicFunctions" href="#pythonsymbolicFunctions-content">7.2 Python Symbolic Functions</a></h2>
-<p>As noted above, symbolic functions are used in the pyhton evaluator using the python sympy module. The full power of sympy
+<p>As noted above, symbolic functions are used in the python evaluator using the python sympy module. The full power of sympy
 can be used, however, the resulting symbolic expression passed back to the evaluator can only contain a limited set of symbolic
 functions. See the above table.</p>
 <p>Since the none symbolic part of the python evaluator is based on numpy for vector and matrix representation also symbolic vectors

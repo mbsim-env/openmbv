@@ -225,7 +225,8 @@ void Eval::addParamSet(const DOMElement *e) {
     if(E(ee)->getTagName()==PV%"import") {
       auto textEle=E(ee)->getFirstTextChild();
       auto text=textEle ? X()%textEle->getData() : "";
-      addImport(text, ee);
+      auto type=E(ee)->getAttribute("type");
+      addImport(text, ee, type);
     }
     else
       addParam(E(ee)->getAttribute("name"), eval(ee));

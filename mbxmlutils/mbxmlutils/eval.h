@@ -125,7 +125,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     //! Import evaluator statements. This routine highly depends on the evaluator.
     //! See the spezialized evaluators documentation for details.
-    virtual void addImport(const std::string &code, const xercesc::DOMElement *e)=0;
+    virtual void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &type="")=0;
     
     //! Evaluate the XML element e using the current parameters returning the resulting value.
     //! The type of evaluation depends on the type of e.
@@ -284,9 +284,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     std::stack<std::unordered_map<std::string, Value> > paramStack;
 
     // current imports
-    Value currentImport;
+    std::unordered_map<std::string, Value> currentImport;
     // stack of imports
-    std::stack<Value> importStack;
+    std::stack<std::unordered_map<std::string, Value> > importStack;
 
     //! evaluate the string str using the current parameters and return the result.
     virtual Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const=0;

@@ -45,7 +45,7 @@ class OctEval : public Eval {
     //! \p code must evaluate to a string representing a directory/path.
     //! A relative path is expanded to an absolute path using the path of e as current directory.
     //! The absolute path is then added using "addpath" to the octave search path.
-    void addImport(const std::string &code, const xercesc::DOMElement *e) override;
+    void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &type="") override;
 
     void addImportHelper(const boost::filesystem::path &dir);
 
