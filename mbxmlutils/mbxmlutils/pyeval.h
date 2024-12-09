@@ -22,7 +22,7 @@ class PyEval : public Eval {
     ~PyEval() override;
     static std::string getNameStatic() { return "python"; }
     std::string getName() const override { return getNameStatic(); }
-    void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &type="") override;
+    void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &action="") override;
     bool valueIsOfType(const Value &value, ValueType type) const override;
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
     void convertIndex(Value &v, bool evalTo1Base) override;
@@ -33,8 +33,8 @@ class PyEval : public Eval {
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const override;
   private:
     // Eval::currentImport / importStack is not used since
-    // - "global" uses globaImportDict and
-    // - "local" uses currentParam / paramStack.
+    // - "addNewVarsGlobally" uses globaImportDict and
+    // - "addAllVarsLocally" uses currentParam / paramStack.
     PythonCpp::PyO globalImportDict; // deprecated
 
     double                           cast_double                (const Value &value) const override;

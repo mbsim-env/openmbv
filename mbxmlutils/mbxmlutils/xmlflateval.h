@@ -17,7 +17,7 @@ class XMLFlatEval : public Eval {
     ~XMLFlatEval() override;
     static std::string getNameStatic() { return "xmlflat"; }
     std::string getName() const override { return getNameStatic(); }
-    void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &type="") override;
+    void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &action="") override;
     bool valueIsOfType(const Value &value, ValueType type) const override;
     std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const override;
     void convertIndex(Value &v, bool evalTo1Based) override {}

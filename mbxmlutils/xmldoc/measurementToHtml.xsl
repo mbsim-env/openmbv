@@ -217,11 +217,11 @@
   &lt;matrixParameter name="A"&gt;[1,2;3,4]&lt;/matrixParameter&gt;
   &lt;anyAarameter name="p"&gt;{'test', 4, 6.0}&lt;/anyParameter&gt;
   &lt;import&gt;'/home/user/octaveScripts'&lt;/import&gt;
-  &lt;import type="someString"&gt;'/home/user/octaveScripts'&lt;/import&gt;
+  &lt;import action="someString"&gt;'/home/user/octaveScripts'&lt;/import&gt;
 &lt;/Parameter&gt;
 </pre>
     <p>The parameter names must be unique. The parameters are added from top to bottom. Parameters may depend on parameters already added. The parameter values can be given as <a href="#evaluator">Expression Evaluator</a>. Hence a parameter below another parameter may reference this value.</p>
-    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute but an optional 'type' attribute which defaults to '': it imports submodules, adds to the search path or something else. See at a specific evaluator for details about what it does for this evaluator.</p>
+    <p>&lt;scalarParameter&gt;, &lt;vectorParameter&gt; and &lt;matrixParameter&gt; define a parameter value of type scalar, vector and matrix, respectively. &lt;anyParameter&gt; defines a parameter value of any type the evaluator can handle, e.g. a cell array or struct for octave. &lt;import&gt; is highly dependent on the evaluator and does not have a 'name' attribute but an optional 'action' attribute which defaults to '': it imports submodules, adds to the search path or something else. See at a specific evaluator for details about what it does for this evaluator.</p>
 
     <h1><a id="evaluator" href="#evaluator-content">6 Expression Evaluator</a></h1>
     <p>Different expression evaluators can be used. Currently implemented is python and octave as evaluator. This description of this general section is based on the octave expression evaluator, but all other evaluators are similar. See the sub-sections for details.</p>
@@ -357,10 +357,10 @@ in a variable named "ans"). Else, if the code was just the name of another varia
 </dl>
 
 <p style="color:gray">The deprecated global import list is a dictionary with the same lifetime as the instance of this class, initially empty, and filled with all
-new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code> with a type of '' or 'global'. Use it with care (its use is deprecated) to ensure a clear scope of imports.<br/>
-All new variables means here all variables which are available in Python globals/locals after the evaluation of the 'import' statement but where not available in Python globals/locals before the evaluation. Hence, if a import add a variable which already existed before it is NOT overwritten. This is different to parameters and a local import which overwrite existing variables with the same name. Overwriting names should be avoid anyway, if possible, to improve readability.</p>
+new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code> with a action of '' or 'addNewVarsGlobally'. Use it with care (its use is deprecated) to ensure a clear scope of imports.<br/>
+All new variables means here all variables which are available in Python globals/locals after the evaluation of the 'import' statement but where not available in Python globals/locals before the evaluation. Hence, if a import add a variable which already existed before it is NOT overwritten. This is different to parameters and a import action "addAllVarsLocally" which overwrite existing variables with the same name. Overwriting names should be avoid anyway, if possible, to improve readability.</p>
 
-<p>The current parameter stack is a dictionary with a local scope (lifetime). A stack of current parameters exists. Each parameter fills its parameter name to this dictionary overwriting a already existing key. Each <code>addImport</code>/<code>&lt;import&gt;</code> with a type 'local' fills all keys which exist after the evaluation in the python global/local context to this list.</p>
+<p>The current parameter stack is a dictionary with a local scope (lifetime). A stack of current parameters exists. Each parameter fills its parameter name to this dictionary overwriting a already existing key. Each <code>addImport</code>/<code>&lt;import&gt;</code> with a action 'allAllVarsLocally' fills all keys which exist after the evaluation in the python global/local context to this list.</p>
 
 <p>Parameter can be a single expressions where the result of the evaluation is used for the value.
 If the evaluation is a multi statement code, then the result is the value of the variable named "ret" which must
@@ -377,21 +377,33 @@ be defined by the evaluation. A import is always a multi statement code.</p>
 &lt;/scalarParameter&gt;</pre>
 <p>Stores the key "p2" with a value of 3 to the current parameter stack. p2 is assigned the value of the variable "ret".</p>
 
-<pre>&lt;import type="local"&gt;import numpy&lt;/import&gt;</pre>
+<pre>&lt;import action="addAllVarsLocally"&gt;import numpy&lt;/import&gt;</pre>
 <p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy" creates a single python variable "numpy" which is stored in the parameter stack.</p>
 
 <pre>&lt;anyParameter name="numpy"&gt;import numpy as ret&lt;/anyParameter&gt;</pre>
 <p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy as ret" import the python numpy module as the name "ret" which is used by a multi statement code as the value of the parameter name "numpy"</p>
 
-<pre>&lt;import type="local"&gt;from json import *&lt;/import&gt;</pre>
+<pre>&lt;import action="addAllVarsLocally"&gt;from json import *&lt;/import&gt;</pre>
 <p>Stores all objects provided by the python module "json" with its name in to the current parameter stack. "from json import *" creates for each object in side of json a variable name which is stored in the parameter stack.</p>
 
-<pre>&lt;import type="local"&gt;
+<pre>&lt;import action="addAllVarsLocally"&gt;
   aa=9
   bb=aa+3
   cc=7
 &lt;/import&gt;</pre>
 <p>Stores the keys "aa", "bb" and "cc" with the values 9, 12 and 8 to the current parameter stack. All created variables are stored in the parameter stack.</p>
+
+<pre>&lt;import action="addAllVarsLocally"&gt;
+  def localScope():
+    global bb
+    aa=9
+    bb=aa+3
+    cc=7
+  localScope()
+  del localScope
+&lt;/import&gt;</pre>
+<p>Stores the only the key "bb" with the values 12 to the current parameter stack. All variables inside the function localScope have a local scope to this function except the explicitly
+set global variable "bb". Even the global "localScope" is deleted again, after being called. Hence after the evaluation only the global variable "bb" exists and is added to the current parameter stack.</p>
 
 <p>Note than you can store functions (function pointers) using import and also using anyParameter but such functions cannot access python global variables defined using other parameters since python globals() is defined at function define time and keeps the same regardless of where the function is called. See <a href="https://docs.python.org/3/library/functions.html#globals">Python documentation</a>. Hence, pass all required data for such functions via the function parameter list.</p>
 

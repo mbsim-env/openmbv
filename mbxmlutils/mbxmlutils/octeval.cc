@@ -466,8 +466,8 @@ void OctEval::addImportHelper(const boost::filesystem::path &dir) {
 #endif
 }
 
-void OctEval::addImport(const std::string &code, const DOMElement *e, const std::string &type) {
-  if(type!="")
+void OctEval::addImport(const std::string &code, const DOMElement *e, const std::string &action) {
+  if(action!="")
     throw DOMEvalException("Octave 'import' is only possible with type=''!", e);
 
   try {

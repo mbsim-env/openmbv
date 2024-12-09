@@ -33,7 +33,7 @@ Eval::Value XMLFlatEval::createFunctionIndep(int dim) const {
   return make_shared<string>();
 }
 
-void XMLFlatEval::addImport(const string &code, const DOMElement *e, const string &type) {
+void XMLFlatEval::addImport(const string &code, const DOMElement *e, const string &action) {
   throw runtime_error("addImport not possible.");
 }
 
