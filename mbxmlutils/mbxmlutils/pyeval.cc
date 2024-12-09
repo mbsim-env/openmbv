@@ -237,7 +237,7 @@ int MBXMLUtils_SharedLibrary_init() {
 boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}()); // initialize a uuid name generator with a random namespace
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
-  globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsGlobally" import action
+  globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsToInstance" import action
 }
 
 PyEval::~PyEval() = default;
@@ -283,14 +283,14 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
   // python globalsLocals (fill with builtins)
   PyO globalsLocals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
-  // python globalsLocals (fill with imports of action ""="addNewVarsGlobally")
-  CALLPY(PyDict_Merge, globalsLocals, globalImportDict, true); // for the deprecated "addNewVarsGlobally" import action
+  // python globalsLocals (fill with imports of action ""="addNewVarsToInstance")
+  CALLPY(PyDict_Merge, globalsLocals, globalImportDict, true); // for the deprecated "addNewVarsToInstance" import action
   // python globalsLocals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));
 
   // save current keys in globalsLocals (see later)
-  PyO orgKeyList(CALLPY(PyDict_Keys, globalsLocals)); // only needed for the deprecated "addNewVarsGlobally" import action
+  PyO orgKeyList(CALLPY(PyDict_Keys, globalsLocals)); // only needed for the deprecated "addNewVarsToInstance" import action
 
   // get current python sys.path
   auto getSysPath=[](){
@@ -348,8 +348,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
   }
 
-  if(action=="" || action=="addNewVarsGlobally") { // deprecated
-    Deprecated::message(nullptr, R"(A Python <import action="addNewVarsGlobally"> element is deprecated, use action="addAllVarsLocally".)", e);
+  if(action=="" || action=="addNewVarsToInstance") { // deprecated
+    Deprecated::message(nullptr, R"(A Python <import action="addNewVarsToInstance"> element is deprecated, use action="addAllVarsAsParams".)", e);
     // remove all already existing keys from globalsLocals (addImport should only add newly created variables to the global import list)
     auto size = CALLPY(PyList_Size, orgKeyList);
     for(decltype(size) idx = 0; idx < size; ++idx)
@@ -363,7 +363,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     // add/merge the newly added globalsLocals to globalImportDict (the global import list)
     CALLPY(PyDict_Merge, globalImportDict, globalsLocals, true);
   }
-  else if(action=="addAllVarsLocally") {
+  else if(action=="addAllVarsAsParams") {
     // add/merge all globalsLocals to currentParam
     PyObject *_key, *_value;
     Py_ssize_t pos=0;
@@ -374,7 +374,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     }
   }
   else
-    throw DOMEvalException("Python 'import' is only possible with action='' == action='addNewVarsGlobally' or action='addAllVarsLocally' (action='"+action+"')!", e);
+    throw DOMEvalException("Python 'import' is only possible with action='' == action='addNewVarsToInstance' or action='addAllVarsAsParams' (action='"+action+"')!", e);
 
   if(dependencies) {
     // get current python sys.path
@@ -506,8 +506,8 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   // python globalsLocals (fill with builtins)
   PyO globalsLocals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
-  // python globalsLocals (fill with imports of action ""="addNewVarsGlobally")
-  CALLPY(PyDict_Merge, globalsLocals, globalImportDict, true); // for the deprecated "addNewVarsGlobally" import action
+  // python globalsLocals (fill with imports of action ""="addNewVarsToInstance")
+  CALLPY(PyDict_Merge, globalsLocals, globalImportDict, true); // for the deprecated "addNewVarsToInstance" import action
   // python globalsLocals (fill with current parameters)
   for(auto i=currentParam.begin(); i!=currentParam.end(); i++)
     CALLPY(PyDict_SetItemString, globalsLocals, i->first, C(i->second));

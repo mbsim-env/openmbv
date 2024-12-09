@@ -357,8 +357,8 @@ in a variable named "ans"). Else, if the code was just the name of another varia
 </dl>
 
 <p style="color:gray">The deprecated global import list is a dictionary with the same lifetime as the instance of this class, initially empty, and filled with all
-new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code> with a action of '' or 'addNewVarsGlobally'. Use it with care (its use is deprecated) to ensure a clear scope of imports.<br/>
-All new variables means here all variables which are available in Python globals/locals after the evaluation of the 'import' statement but where not available in Python globals/locals before the evaluation. Hence, if a import add a variable which already existed before it is NOT overwritten. This is different to parameters and a import action "addAllVarsLocally" which overwrite existing variables with the same name. Overwriting names should be avoid anyway, if possible, to improve readability.</p>
+new variables defined by each evaluation of <code>addImport</code>/<code>&lt;import&gt;</code> with a action of '' or 'addNewVarsToInstance'. Use it with care (its use is deprecated) to ensure a clear scope of imports.<br/>
+All new variables means here all variables which are available in Python globals/locals after the evaluation of the 'import' statement but where not available in Python globals/locals before the evaluation. Hence, if a import add a variable which already existed before it is NOT overwritten. This is different to parameters and a import action "addAllVarsAsParams" which overwrite existing variables with the same name. Overwriting names should be avoid anyway, if possible, to improve readability.</p>
 
 <p>The current parameter stack is a dictionary with a local scope (lifetime). A stack of current parameters exists. Each parameter fills its parameter name to this dictionary overwriting a already existing key. Each <code>addImport</code>/<code>&lt;import&gt;</code> with a action 'allAllVarsLocally' fills all keys which exist after the evaluation in the python global/local context to this list.</p>
 
@@ -377,23 +377,23 @@ be defined by the evaluation. A import is always a multi statement code.</p>
 &lt;/scalarParameter&gt;</pre>
 <p>Stores the key "p2" with a value of 3 to the current parameter stack. p2 is assigned the value of the variable "ret".</p>
 
-<pre>&lt;import action="addAllVarsLocally"&gt;import numpy&lt;/import&gt;</pre>
+<pre>&lt;import action="addAllVarsAsParams"&gt;import numpy&lt;/import&gt;</pre>
 <p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy" creates a single python variable "numpy" which is stored in the parameter stack.</p>
 
 <pre>&lt;anyParameter name="numpy"&gt;import numpy as ret&lt;/anyParameter&gt;</pre>
 <p>Stores the key "numpy" with a struct containing the python numpy module to the current parameter stack. "import numpy as ret" import the python numpy module as the name "ret" which is used by a multi statement code as the value of the parameter name "numpy"</p>
 
-<pre>&lt;import action="addAllVarsLocally"&gt;from json import *&lt;/import&gt;</pre>
+<pre>&lt;import action="addAllVarsAsParams"&gt;from json import *&lt;/import&gt;</pre>
 <p>Stores all objects provided by the python module "json" with its name in to the current parameter stack. "from json import *" creates for each object in side of json a variable name which is stored in the parameter stack.</p>
 
-<pre>&lt;import action="addAllVarsLocally"&gt;
+<pre>&lt;import action="addAllVarsAsParams"&gt;
   aa=9
   bb=aa+3
   cc=7
 &lt;/import&gt;</pre>
 <p>Stores the keys "aa", "bb" and "cc" with the values 9, 12 and 8 to the current parameter stack. All created variables are stored in the parameter stack.</p>
 
-<pre>&lt;import action="addAllVarsLocally"&gt;
+<pre>&lt;import action="addAllVarsAsParams"&gt;
   def localScope():
     global bb
     aa=9
@@ -406,6 +406,10 @@ be defined by the evaluation. A import is always a multi statement code.</p>
 set global variable "bb". Even the global "localScope" is deleted again, after being called. Hence after the evaluation only the global variable "bb" exists and is added to the current parameter stack.</p>
 
 <p>Note than you can store functions (function pointers) using import and also using anyParameter but such functions cannot access python global variables defined using other parameters since python globals() is defined at function define time and keeps the same regardless of where the function is called. See <a href="https://docs.python.org/3/library/functions.html#globals">Python documentation</a>. Hence, pass all required data for such functions via the function parameter list.</p>
+
+<p>The python module mbxmlutils has a dictionary named "staticData" which can be used to store values for the lifetime of the program.</p>
+
+<p>Storing data for the lifetime of the instance of this class is, except the deprecated "addNewVarsToInstance" action, not possible by design for now.</p>
 
     <h1><a id="symbolicFunctions" href="#symbolicFunctions-content">7 Symbolic Functions</a></h1>
     <p>The expression evaluators (octave and python) also support symbolic functions known by the symbolic framework of fmatvec.

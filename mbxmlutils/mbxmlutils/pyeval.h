@@ -33,8 +33,8 @@ class PyEval : public Eval {
     Value fullStringToValue(const std::string &str, const xercesc::DOMElement *e, bool skipRet=false) const override;
   private:
     // Eval::currentImport / importStack is not used since
-    // - "addNewVarsGlobally" uses globaImportDict and
-    // - "addAllVarsLocally" uses currentParam / paramStack.
+    // - "addNewVarsToInstance" uses globaImportDict and
+    // - "addAllVarsAsParams" uses currentParam / paramStack.
     PythonCpp::PyO globalImportDict; // deprecated
 
     double                           cast_double                (const Value &value) const override;
