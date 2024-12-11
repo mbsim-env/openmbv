@@ -185,20 +185,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   screenAnnotationScale1To1=new SoScale;
   screenAnnotationScale1To1->ref();
 
-  // gl viewer
-  glViewerWG=new MyTouchWidget(this);
-  timeString=new SoAsciiText;
-  timeString->ref();
-  bgColor=new SoMFColor;
-  bgColor->set1Value(0, 0.35,0.35,0.6);
-  bgColor->set1Value(1, 0.35,0.35,0.6);
-  bgColor->set1Value(2, 0.83,0.83,1.0);
-  bgColor->set1Value(3, 0.83,0.83,1.0);
-  fgColorTop=new SoMFColor;
-  fgColorTop->set1Value(0, 0,0,0);
-  fgColorBottom=new SoMFColor;
-  fgColorBottom->set1Value(0, 1,1,1);
-  glViewer=new SoQtMyViewer(glViewerWG);
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
@@ -244,6 +230,21 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   cursorSwitch->addChild(cursorPointCol);
   auto *cursorPoint=new SoPointSet;
   cursorSwitch->addChild(cursorPoint);
+
+  // gl viewer
+  glViewerWG=new MyTouchWidget(this);
+  timeString=new SoAsciiText;
+  timeString->ref();
+  bgColor=new SoMFColor;
+  bgColor->set1Value(0, 0.35,0.35,0.6);
+  bgColor->set1Value(1, 0.35,0.35,0.6);
+  bgColor->set1Value(2, 0.83,0.83,1.0);
+  bgColor->set1Value(3, 0.83,0.83,1.0);
+  fgColorTop=new SoMFColor;
+  fgColorTop->set1Value(0, 0,0,0);
+  fgColorBottom=new SoMFColor;
+  fgColorBottom->set1Value(0, 1,1,1);
+  glViewer=new SoQtMyViewer(glViewerWG);
 
   auto *offset=new SoPolygonOffset; // move lines/points to front
   sceneRoot->addChild(offset);
