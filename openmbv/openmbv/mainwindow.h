@@ -201,7 +201,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void speedWheelReleased();
   protected:
     SoOffscreenRenderer *offScreenRenderer;
-    void exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
+    bool exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG(bool video);
     void exportCurrentAsIV();

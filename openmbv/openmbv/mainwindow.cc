@@ -1599,87 +1599,119 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-void MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
-  offScreenRenderer->setViewportRegion(SbViewportRegion(width, height));
-  if(transparent)
-    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
-  else
-    offScreenRenderer->setComponents(SoOffscreenRenderer::RGB);
+bool MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
+  SbVec2s guiSize=glViewer->getSceneManager()->getViewportRegion().getWindowSize();
+  short guiWidth, guiHeight;
+  guiSize.getValue(guiWidth, guiHeight);
+  if(width==guiWidth && height==guiHeight && transparent==false) {
+    // directly use the drawing on the screen as PNG export
 
-  // root separator for export
-  auto *root=new SoSeparator;
-  root->ref();
-  SbColor fgColorTopSaved=*fgColorTop->getValues(0);
-  SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
-  // add background
-  if(!transparent) {
-    if(backgroundNeeded) {
-      // do not write to depth buffer
-      auto *db1=new SoDepthBuffer;
-      root->addChild(db1);
-      db1->write.setValue(false);
-      // render background
-      root->addChild(glViewer->bgSep);
-      // write to depth buffer until now
-      auto *db2=new SoDepthBuffer;
-      root->addChild(db2);
-      db2->write.setValue(true);
-    }
+    //glViewer->render();
+    glViewer->redraw();//mfmf
+    // get the image from OpenGL
+    std::vector<unsigned char> pixels(width*height*4);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+    // flip the image vertically (OpenGL and PNG use a flipped y-coordinate)
+    for(int y = 0; y < height / 2; ++y)
+      for(int x = 0; x < width * 4; ++x)
+        swap(pixels[y*width*4+x], pixels[(height-1-y)*width*4+x]);
+    // save as PNG image
+    QImage image(pixels.data(), width, height, QImage::Format_RGBA8888);
+    image.save(fileName.c_str(), "png");
+    return true;
   }
-  // set text color to black
   else {
-    fgColorTop->set1Value(0, 0,0,0);
-    fgColorBottom->set1Value(0, 0,0,0);
-  }
-  // add scene
-  root->addChild(glViewer->getSceneManager()->getSceneGraph());
-  // do not test depth buffer
-  auto *db=new SoDepthBuffer;
-  root->addChild(db);
-  db->function.setValue(SoDepthBufferElement::ALWAYS);
-  // add foreground
-  root->addChild(glViewer->screenAnnotationSep);
-  // update/redraw glViewer: this is required to update e.g. the clipping planes before offscreen rendering
-  // (SoOffscreenRenderer does not update the clipping planes but SoQtViewer does so!)
-  // (it gives the side effect, that the user sees the current exported frame)
-  // (the double rendering does not lead to permormance problems)
-  glViewer->redraw();
-  // render offscreen
-  SbBool ok=offScreenRenderer->render(root);
-  if(!ok) {
-    QMessageBox::warning(this, "PNG export warning",
-      "Unable to render offscreen image. See OpenGL/Coin messages in console!\n\n"
-      "On Linux this may because the X server has disabled indirect GLX. To enable it add\n"
-      "\n"
-      "Section \"ServerFlags\"\n"
-      "  Option \"IndirectGLX\" \"on\"\n"
-      "EndSection\n"
-      "\n"
-      "to the X11 config in 'etc/X11/xorg.conf'.");
-    root->unref();
-    return;
-  }
+    // use a offscreen renderer
 
-  // set set text color
-  if(transparent) {
-    fgColorTop->set1Value(0, fgColorTopSaved);
-    fgColorBottom->set1Value(0, fgColorBottomSaved);
-  }
+    offScreenRenderer->setViewportRegion(SbViewportRegion(width, height));
+    if(transparent)
+      offScreenRenderer->setComponents(SoOffscreenRenderer::RGB_TRANSPARENCY);
+    else
+      offScreenRenderer->setComponents(SoOffscreenRenderer::RGB);
 
-  auto *buf=new unsigned char[width*height*4];
-  for(int y=0; y<height; y++)
-    for(int x=0; x<width; x++) {
-      int i=(y*width+x)* (transparent?4:3);
-      int o=((height-y-1)*width+x)*4;
-      buf[o+0]=offScreenRenderer->getBuffer()[i+2]; // blue
-      buf[o+1]=offScreenRenderer->getBuffer()[i+1]; // green
-      buf[o+2]=offScreenRenderer->getBuffer()[i+0]; // red
-      buf[o+3]=(transparent?offScreenRenderer->getBuffer()[i+3]:255); // alpha
+    // root separator for export
+    auto *root=new SoSeparator;
+    root->ref();
+    SbColor fgColorTopSaved=*fgColorTop->getValues(0);
+    SbColor fgColorBottomSaved=*fgColorBottom->getValues(0);
+    // add background
+    if(!transparent) {
+      if(backgroundNeeded) {
+        // do not write to depth buffer
+        auto *db1=new SoDepthBuffer;
+        root->addChild(db1);
+        db1->write.setValue(false);
+        // render background
+        root->addChild(glViewer->bgSep);
+        // write to depth buffer until now
+        auto *db2=new SoDepthBuffer;
+        root->addChild(db2);
+        db2->write.setValue(true);
+      }
     }
-  QImage image(buf, width, height, QImage::Format_ARGB32);
-  image.save(fileName.c_str(), "png");
-  delete[]buf;
-  root->unref();
+    // set text color to black
+    else {
+      fgColorTop->set1Value(0, 0,0,0);
+      fgColorBottom->set1Value(0, 0,0,0);
+    }
+    // add scene
+    root->addChild(glViewer->getSceneManager()->getSceneGraph());
+    // do not test depth buffer
+    auto *db=new SoDepthBuffer;
+    root->addChild(db);
+    db->function.setValue(SoDepthBufferElement::ALWAYS);
+    // add foreground
+    root->addChild(glViewer->screenAnnotationSep);
+    // update/redraw glViewer: this is required to update e.g. the clipping planes before offscreen rendering
+    // (SoOffscreenRenderer does not update the clipping planes but SoQtViewer does so!)
+    // (it gives the side effect, that the user sees the current exported frame)
+    // (the double rendering does not lead to permormance problems)
+    glViewer->redraw();
+    // render offscreen
+    SbBool ok=offScreenRenderer->render(root);
+    if(!ok) {
+      QMessageBox::warning(this, "PNG Export Error",
+          R"_(
+Unable to render offscreen image. See OpenGL/Coin messages in console!
+
+On Linux this may because the X server has disabled indirect GLX. To enable it add
+
+Section "ServerFlags"
+  Option "IndirectGLX" "on"
+EndSection
+
+to the X11 config in '/etc/X11/xorg.conf'.
+
+
+Alternatively you can export without a offscreen renderer. But this is only
+used when 'Resoluation factor'=1.0 and 'Background'='Use scene color' is set.
+)_");
+      root->unref();
+      return false;
+    }
+
+    // set set text color
+    if(transparent) {
+      fgColorTop->set1Value(0, fgColorTopSaved);
+      fgColorBottom->set1Value(0, fgColorBottomSaved);
+    }
+
+    auto *buf=new unsigned char[width*height*4];
+    for(int y=0; y<height; y++)
+      for(int x=0; x<width; x++) {
+        int i=(y*width+x)* (transparent?4:3);
+        int o=((height-y-1)*width+x)*4;
+        buf[o+0]=offScreenRenderer->getBuffer()[i+2]; // blue
+        buf[o+1]=offScreenRenderer->getBuffer()[i+1]; // green
+        buf[o+2]=offScreenRenderer->getBuffer()[i+0]; // red
+        buf[o+3]=(transparent?offScreenRenderer->getBuffer()[i+3]:255); // alpha
+      }
+    QImage image(buf, width, height, QImage::Format_ARGB32);
+    image.save(fileName.c_str(), "png");
+    delete[]buf;
+    root->unref();
+    return true;
+  }
 }
 
 void MainWindow::exportCurrentAsPNG() {
@@ -1759,7 +1791,8 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       statusBar()->showMessage(str);
       msg(Info)<<str.toStdString()<<endl;
       frame->setValue(frame_);
-      exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent);
+      if(!exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent))
+        break;
     }
     if(progress.wasCanceled())
       return;
