@@ -426,10 +426,10 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   path PYTHONDST(PYTHON_SUBDIR);
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for MBXMLUtils py-files."<<endl;
-  for(auto srcIt=directory_iterator(installPath/"share"/"mbxmlutils"/"python"); srcIt!=directory_iterator(); ++srcIt) {
+  for(auto srcIt=directory_iterator(installPath/"share"/"mbxmlutils"/"python"/"mbxmlutils"); srcIt!=directory_iterator(); ++srcIt) {
     if(is_directory(*srcIt)) // skip directories
       continue;
-    files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python", false);
+    files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python"/"mbxmlutils", false);
   }
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
