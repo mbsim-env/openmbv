@@ -1,5 +1,6 @@
-pythondir = @datadir@/@PACKAGE@/python
+pythonmbxmlutilsdir = @datadir@/@PACKAGE@/python/mbxmlutils
 
-dist_python_DATA = mbxmlutils.py
+dist_pythonmbxmlutils_DATA = mbxmlutils/__init__.py \
+                             mbxmlutils/Qt.py
 
 TESTS = testsymbolic.sh
