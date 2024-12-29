@@ -111,7 +111,7 @@ class Utils : virtual public fmatvec::Atom {
 
 
     // TESSELATION
-    static GLUtesselator *tess;
+    static GLUtesselator *tess();
 
 
     using FactoryElement = std::tuple<QIcon, std::string, std::function<std::shared_ptr<OpenMBV::Object> ()>>;

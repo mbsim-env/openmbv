@@ -56,9 +56,9 @@ void Utils::initialize() {
   initialized=true;
 
   // tess
-  gluTessCallback(tess, GLU_TESS_BEGIN_DATA, (void (CALLMETHOD *)())tessBeginCB);
-  gluTessCallback(tess, GLU_TESS_VERTEX, (void (CALLMETHOD *)())tessVertexCB);
-  gluTessCallback(tess, GLU_TESS_END, (void (CALLMETHOD *)())tessEndCB);
+  gluTessCallback(tess(), GLU_TESS_BEGIN_DATA, (void (CALLMETHOD *)())tessBeginCB);
+  gluTessCallback(tess(), GLU_TESS_VERTEX, (void (CALLMETHOD *)())tessVertexCB);
+  gluTessCallback(tess(), GLU_TESS_END, (void (CALLMETHOD *)())tessEndCB);
 }
 
 void Utils::deinitialize() {
@@ -246,7 +246,13 @@ SbVec3f Utils::rotation2Cardan(const SbRotation& R) {
 }
 
 // for tess
-GLUtesselator *Utils::tess=gluNewTess();
+GLUtesselator *Utils::tess() {
+  auto d=[](GLUtesselator* x) {
+    gluDeleteTess(x);
+  };
+  static unique_ptr<GLUtesselator, decltype(d)> t(gluNewTess(), d);
+  return t.get();
+}
 GLenum Utils::tessType;
 int Utils::tessNumVertices;
 SoTriangleStripSet *Utils::tessTriangleStrip;

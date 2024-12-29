@@ -137,25 +137,25 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
     ol2->coordIndex.set1Value(r+1, -1);
   }
   // base and top
-  gluTessProperty(Utils::tess, GLU_TESS_WINDING_RULE, windingRule);
+  gluTessProperty(Utils::tess(), GLU_TESS_WINDING_RULE, windingRule);
   auto *soTess=new SoGroup;
   soTess->ref();
   vector<GLdouble*> vPtr;
   vPtr.reserve(contour.size()*(!contour.empty()?contour[0]->size():0)*2);
-  gluTessBeginPolygon(Utils::tess, soTess);
+  gluTessBeginPolygon(Utils::tess(), soTess);
   for(auto & c : contour) {
-    gluTessBeginContour(Utils::tess);
+    gluTessBeginContour(Utils::tess());
     for(size_t r=0; r<c->size(); r++) {
       auto *v=new GLdouble[3]; // is deleted later using vPtr
       vPtr.push_back(v);
       v[0]=(*c)[r]->getXComponent();
       v[1]=(*c)[r]->getYComponent();
       v[2]=0;
-      gluTessVertex(Utils::tess, v, v);
+      gluTessVertex(Utils::tess(), v, v);
     }
-    gluTessEndContour(Utils::tess);
+    gluTessEndContour(Utils::tess());
   }
-  gluTessEndPolygon(Utils::tess);
+  gluTessEndPolygon(Utils::tess());
   // now we can delete all v
   for(auto & i : vPtr)
     delete[]i;
