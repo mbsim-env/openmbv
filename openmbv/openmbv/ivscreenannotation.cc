@@ -100,7 +100,6 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   }
   if(!ivSep)
     return;
-  ivSep->ref();
 
   // search for a OpenMBVIvScreenAnnotationPathOrigin or OpenMBVIvScreenAnnotationPathOrigin1 node
   auto getPathNode = [](SoSeparator *ivSep) {

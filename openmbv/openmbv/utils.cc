@@ -47,7 +47,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-unordered_map<size_t, Utils::SoDeleteSeparator> Utils::ivBodyCache;
+unordered_map<size_t, Utils::SoDeleteSeparator> Utils::ivCache;
 unordered_map<string, QIcon> Utils::iconCache;
 bool Utils::initialized=false;
 
@@ -88,47 +88,49 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     return new SoSeparator;
   }
   size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash));
-  auto ins=ivBodyCache.emplace(fullHash, SoDeleteSeparator());
+  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
   auto newFileTime = boost::myfilesystem::last_write_time(filename);
-  if(ins.second || newFileTime > ins.first->second.fileTime) {
-    ins.first->second.fileTime = newFileTime;
+  if(created || newFileTime > it->second.fileTime) {
+    it->second.fileTime = newFileTime;
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
-      ins.first->second.sep=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-      if(ins.first->second.sep) {
-        ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
-        return ins.first->second.sep;
+      it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
+      if(it->second.sep) {
+        it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+        return it->second.sep.get();
       }
     }
     // error case
     QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str);
     msgStatic(Warn)<<str.toStdString()<<endl;
-    ivBodyCache.erase(ins.first);
+    ivCache.erase(it);
     return nullptr;
   }
-  return ins.first->second.sep;
+  it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+  return it->second.sep.get();
 }
 
 SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash) {
   size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash));
-  auto ins=ivBodyCache.emplace(fullHash, SoDeleteSeparator());
-  if(ins.second) {
+  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
+  if(created) {
     SoInput in;
     in.setBuffer(content.data(), content.size());
-    ins.first->second.sep=SoDB::readAll(&in); // stored in a global cache => false positive in valgrind
-    if(ins.first->second.sep)  {
-      ins.first->second.sep->ref(); // increment reference count to prevent a delete for cached entries
-      return ins.first->second.sep;
+    it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
+    if(it->second.sep)  {
+      it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+      return it->second.sep.get();
     }
     // error case
     QString str("Failed to load IV content from string.");
     MainWindow::getInstance()->statusBar()->showMessage(str);
     msgStatic(Warn)<<str.toStdString()<<endl;
-    ivBodyCache.erase(ins.first);
+    ivCache.erase(it);
     return nullptr;
   }
-  return ins.first->second.sep;
+  it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+  return it->second.sep.get();
 }
 
 SoNode* Utils::getChildNodeByName(SoGroup *sep, const SbName &name) {

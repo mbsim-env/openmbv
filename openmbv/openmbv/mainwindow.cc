@@ -1129,7 +1129,7 @@ MainWindow::~MainWindow() {
 
   // delete all globally stored Coin data before deinit Coin/SoQt
   EdgeCalculation::edgeCache.clear();
-  Utils::ivBodyCache.clear();
+  Utils::ivCache.clear();
   SoQt::done();
 
   Utils::deinitialize();

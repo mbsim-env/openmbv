@@ -125,17 +125,12 @@ class Utils : virtual public fmatvec::Atom {
 
 
   private:
+    struct SoUnref  { void operator()(SoSeparator *s) { if(s) s->unref(); } };
     struct SoDeleteSeparator {
-      SoDeleteSeparator() = default;
-      SoDeleteSeparator(const SoDeleteSeparator& other) = delete;
-      SoDeleteSeparator(SoDeleteSeparator&& other) = default;
-      SoDeleteSeparator& operator=(const SoDeleteSeparator& other) = delete;
-      SoDeleteSeparator& operator=(SoDeleteSeparator&& other) = delete;
-      ~SoDeleteSeparator() { if(sep) sep->unref(); }
-      SoSeparator *sep=nullptr;
+      std::unique_ptr<SoSeparator, SoUnref> sep;
       boost::posix_time::ptime fileTime;
     };
-    static std::unordered_map<size_t, SoDeleteSeparator> ivBodyCache;
+    static std::unordered_map<size_t, SoDeleteSeparator> ivCache;
     static std::unordered_map<std::string, QIcon> iconCache;
 
     // INITIALIZATION
