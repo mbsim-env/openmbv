@@ -250,7 +250,7 @@ def getOriginalFilename():
 
 
 def installPrefix():
-  return os.path.realpath(os.path.dirname(__file__)+"/../../..")
+  return os.path.realpath(os.path.dirname(__file__)+"/../../../..")
 
 
 
