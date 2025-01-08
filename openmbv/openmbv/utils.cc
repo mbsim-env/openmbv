@@ -95,10 +95,8 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
       it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
-      if(it->second.sep) {
-        it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+      if(it->second.sep)
         return it->second.sep.get();
-      }
     }
     // error case
     QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
@@ -107,7 +105,6 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     ivCache.erase(it);
     return nullptr;
   }
-  it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
   return it->second.sep.get();
 }
 
@@ -118,10 +115,8 @@ SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash)
     SoInput in;
     in.setBuffer(content.data(), content.size());
     it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
-    if(it->second.sep)  {
-      it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
+    if(it->second.sep)
       return it->second.sep.get();
-    }
     // error case
     QString str("Failed to load IV content from string.");
     MainWindow::getInstance()->statusBar()->showMessage(str);
@@ -129,7 +124,6 @@ SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash)
     ivCache.erase(it);
     return nullptr;
   }
-  it->second.sep->ref(); // increment reference count to prevent a delete for cached entries
   return it->second.sep.get();
 }
 

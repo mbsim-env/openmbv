@@ -52,6 +52,51 @@ namespace OpenMBVGUI {
 
 class MainWindow;
 
+template<class T>
+class SoSharedPtr {
+  public:
+    SoSharedPtr() = default;
+    SoSharedPtr(const SoSharedPtr& src) {
+      ptr = src.ptr;
+      ptr->ref();
+    }
+    SoSharedPtr(SoSharedPtr&& src) noexcept {
+      ptr = src.ptr;
+      src.ptr=nullptr;
+    }
+    SoSharedPtr& operator=(const SoSharedPtr& src) {
+      if(ptr) ptr->unref();
+      ptr = src.ptr;
+      ptr->ref();
+      return *this;
+    }
+    SoSharedPtr& operator=(SoSharedPtr&& src) noexcept {
+      if(ptr) ptr->unref();
+      ptr = src.ptr;
+      src.ptr=nullptr;
+      return *this;
+    }
+    SoSharedPtr(T* p) : ptr(p) {
+      if(ptr) ptr->ref();
+    }
+    ~SoSharedPtr() {
+      if(ptr) ptr->unref();
+    }
+    void reset(T* p) {
+      if(ptr) ptr->unref();
+      ptr = p;
+      if(ptr) ptr->ref();
+    }
+    operator bool() const {
+      return ptr!=nullptr;
+    }
+    T* get() const {
+      return ptr;
+    }
+  private:
+    T* ptr { nullptr };
+};
+
 /** Utilitiy class */
 class Utils : virtual public fmatvec::Atom {
   friend MainWindow;
@@ -125,9 +170,8 @@ class Utils : virtual public fmatvec::Atom {
 
 
   private:
-    struct SoUnref  { void operator()(SoSeparator *s) { if(s) s->unref(); } };
     struct SoDeleteSeparator {
-      std::unique_ptr<SoSeparator, SoUnref> sep;
+      SoSharedPtr<SoSeparator> sep;
       boost::posix_time::ptime fileTime;
     };
     static std::unordered_map<size_t, SoDeleteSeparator> ivCache;

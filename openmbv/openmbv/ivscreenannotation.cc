@@ -68,8 +68,7 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
 
   // load the IV content using a cache
   string fileName=ivsa->getIvFileName();
-  struct SoUnref  { void operator()(SoSeparator *s) { if(s) s->unref(); } };
-  unique_ptr<SoSeparator, SoUnref> ivSep;
+  SoSharedPtr<SoSeparator> ivSep;
   if(!fileName.empty()) {
     boost::filesystem::path fn(fileName);
     if(!boost::filesystem::exists(fn)) {
@@ -111,13 +110,12 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   auto pathNode = getPathNode(ivSep.get());
 
   // add the cached IV content or the copied content to the scene graph
-  auto ivSepPtr = ivSep.release();
-  sep->addChild(ivSepPtr);
+  sep->addChild(ivSep.get());
 
   // now search for the pathSep node without the number (only done one, not inside of the loop)
   SoSeparator *pathSepNoNumber = nullptr, *pathSepInIv;
   if(pathNode)
-    pathSepNoNumber=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSepPtr, "OpenMBVIvScreenAnnotationPathSep"));
+    pathSepNoNumber=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSep.get(), "OpenMBVIvScreenAnnotationPathSep"));
 
   // loop over all pathNode's
   int i=1;
@@ -126,7 +124,7 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     if(pathSepNoNumber)
       pathSepInIv=pathSepNoNumber;
     else
-      pathSepInIv=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSepPtr, ("OpenMBVIvScreenAnnotationPathSep"+to_string(i)).c_str()));
+      pathSepInIv=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSep.get(), ("OpenMBVIvScreenAnnotationPathSep"+to_string(i)).c_str()));
     // stop if not such node was found
     if(!pathSepInIv) {
       cerr<<"A node named OpenMBVIvScreenAnnotationPathSep[<nr>] must exist and be of type Separator!"<<endl;
@@ -145,13 +143,13 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
 
     SoSearchAction sa;
     sa.setNode(pathNode);
-    sa.apply(ivSepPtr);
+    sa.apply(ivSep.get());
     pathPath.emplace_back(sa.getPath());
     pathPath.back()->ref();
     gma = make_unique<SoGetMatrixAction>(SbViewportRegion());
 
     i++;
-    pathNode=Utils::getChildNodeByName(ivSepPtr, ("OpenMBVIvScreenAnnotationPathOrigin"+to_string(i)).c_str());
+    pathNode=Utils::getChildNodeByName(ivSep.get(), ("OpenMBVIvScreenAnnotationPathOrigin"+to_string(i)).c_str());
   }
   pathMaxFrameRead=-1;
 }
