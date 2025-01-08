@@ -419,17 +419,34 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     
         // apply embed to new element
         // (do not pass param here since we report only top level parameter sets)
-        vector<int> xpathp; // save the position of the p node since preprocess(e) may invalidate all nodes except DOMDocument
-        if(p->getNodeType()==DOMNode::ELEMENT_NODE)
-          xpathp = E(static_cast<DOMElement*>(p))->getElementLocation();
+        //
+        // we need to store the location of the insertBefore and the p element since we may need to recover these elements
+        // if "preprocess(...)" of this embed element invalidates nodes.
+        vector<int> location;
+        if(insertBefore)
+          // if insertBefore != null we store its location and p (being the parent of insertBefore) is the parent element of this location
+          location = E(insertBefore)->getElementLocation();
+        else {
+          // if insertBefore == null we store the location of p (being the parent of insertBefore)
+          if(p->getNodeType()==DOMNode::ELEMENT_NODE) // p may be a document for which we cannot call getElementLocation but its location is a empty vector mfmf
+            location = E(static_cast<DOMElement*>(p))->getElementLocation();
+        }
         int dummy;
         bool ni = preprocess(e, dummy);
         nodesInvalidated = ni || nodesInvalidated;
-        if(ni) { // if preprocess(e) has invalidated all nodes then restore p from the stored xpath
-          if(!xpathp.empty()) // we need to handle the case the p is a DOMElement and p is a DOMDocument
-            p=static_cast<DOMElement*>(D(document)->locateElement(xpathp));
-          else
-            p=document.get();
+        if(ni) { // if preprocess(e) has invalidated all nodes then restore p and insertBefore from the stored xpath
+          if(insertBefore) {
+            // location stores the location of insertBefore and p is the parent of insertBefore
+            insertBefore=static_cast<DOMElement*>(D(document)->locateElement(location));
+            p = insertBefore->getParentNode();
+          }
+          else {
+            // location stores the location of p and insertBefore == null (beond the last child element of p)
+            if(!location.empty()) // we need to handle the case the p is a DOMElement and p is a DOMDocument
+              p=static_cast<DOMElement*>(D(document)->locateElement(location));
+            else
+              p=document.get();
+          }
         }
       }
       else
