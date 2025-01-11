@@ -59,9 +59,10 @@ int main(int argc, char *argv[]) {
           <<"  --dependencies    Write a newline separated list of dependent files including"<<endl
           <<"                    <main-file> to <dep-file-name>"<<endl
           <<"  --stdout <msg>    Print on stdout messages of type <msg>."<<endl
-          <<"                    <msg> may be info~<pre>~<post>, warn~<pre>~<post>, debug~<pre>~<post>"<<endl
-          <<"                    error~<pre>~<post>~ or depr~<pre>~<post>~."<<endl
+          <<"                    <msg> may be 'info~<pre>~<post>', 'warn~<pre>~<post>', 'debug~<pre>~<post>'"<<endl
+          <<"                    'error~<pre>~<post>' or 'depr~<pre>~<post>'."<<endl
           <<"                    Each message is prefixed/postfixed with <pre>/<post>."<<endl
+          <<"                    If '~HTML' is appended than HTML escaping takes place."<<endl
           <<"                    --stdout may be specified multiple times."<<endl
           <<"  --stderr <msg>    Analog to --stdout but prints to stderr."<<endl
           <<""<<endl

@@ -966,10 +966,17 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
   }
 }
 
+void DOMEvalException::htmlEscaping(string &msg) {
+  boost::replace_all(msg, "&", "&amp;");
+  boost::replace_all(msg, "<", "&lt;");
+  boost::replace_all(msg, ">", "&gt;");
+}
+
 string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::string &message, bool subsequentError) {
   // get MBXMLUTILS_ERROROUTPUT
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
+  bool htmlOutput=false;
   if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
 #ifdef _WIN32
     bool stdoutIsTTY=GetFileType(GetStdHandle(STD_OUTPUT_HANDLE))==FILE_TYPE_CHAR;
@@ -983,16 +990,25 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
     else
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
   }
-  else if(format=="HTMLFILELINE")
+  else if(format=="HTMLFILELINE") {
+    htmlOutput=true;
     format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}(?{line}\?line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>(?{ecount} [ecount=<span class="MBXMLUTILS_ECOUNT">$+{ecount}</span>]:)<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
-  else if(format=="HTMLXPATH")
+  }
+  else if(format=="HTMLXPATH") {
+    htmlOutput=true;
     format=R"|(<span class="MBXMLUTILS_ERROROUTPUT(?{sse} MBXMLUTILS_SSE:)"><a href="$+{file}?xpath=$+{xpath}(?{ecount}&amp;ecount=$+{ecount}:)(?{line}\&amp;line=$+{line}:)">$+{file}(?{line}\:$+{line}:):$+{hrxpath}</a>:<br/><span class="MBXMLUTILS_MSG">$+{msg}</span></span>)|";
+  }
 
+  string messageConverted;
+  if(htmlOutput) {
+    messageConverted=message;
+    htmlEscaping(messageConverted);
+  }
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
   // string and regex to generate it implicitly.
   string str;
-  str.append("@msg").append(message); // @msg includes a new line at the end
+  str.append("@msg").append(htmlOutput ? messageConverted : message); // @msg includes a new line at the end
   str.append("@file").append(X()%loc.getURI());
   str.append("@absfile").append(absolute(X()%loc.getURI()).string());
   str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode

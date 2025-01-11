@@ -46,9 +46,14 @@ namespace MBXMLUtils {
     auto &str = ele ? ele->msgStatic(fmatvec::Atom::Deprecated) : fmatvec::Atom::msgStatic(fmatvec::Atom::Deprecated);
     // create a hash of the message and ...
     boost::hash<pair<ostream*, string> > messageHash;
-    if(printedMessages.insert(messageHash(make_pair(&str, msg+"\n"+msg2))).second)
+    if(printedMessages.insert(messageHash(make_pair(&str, msg+"\n"+msg2))).second) {
       // ... print the message if it is not already printed
-      str<<"Deprecated feature called:"<<endl<<msg<<endl<<msg2<<endl;
+      str<<"Deprecated feature called:"<<endl<<msg<<endl
+         // skipws is not relevant for a ostream except by fmatvec::PrePostfixedStream which disabled the escaping
+         // (that is why it is used here)
+         <<flush<<skipws<<msg2<<flush<<noskipws
+         <<endl;
+    }
   }
 
   void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput) {
@@ -100,10 +105,16 @@ namespace MBXMLUtils {
       else throw runtime_error("Unknown message stream.");
       static std::regex re(".*~(.*)~(.*)", std::regex::extended);
       std::smatch m;
-      if(!std::regex_match(*itn, m, re))
+      auto value=*itn;
+      bool html=false;
+      if(value.substr(value.size()-5)=="~HTML") {
+        html=true;
+        value=value.substr(0, value.size()-5);
+      }
+      if(!std::regex_match(value, m, re))
         throw runtime_error("Invalid argument: "+*it+" "+*itn);
       fmatvec::Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(true),
-        std::make_shared<fmatvec::PrePostfixedStream>(m.str(1), m.str(2), ostr));
+        std::make_shared<fmatvec::PrePostfixedStream>(m.str(1), m.str(2), ostr, html ? DOMEvalException::htmlEscaping : nullptr));
   
       args.erase(itn);
       args.erase(it);
