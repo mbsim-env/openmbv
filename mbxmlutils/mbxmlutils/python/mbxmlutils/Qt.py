@@ -40,6 +40,11 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
 
 
 
+# Shows a instance of the dialog class D. The instance is constructed using args.
+# If no QApplication is running yet it is started automatically.
+# That is why we need to pass a dialog class D and not a dialog instance d as input
+# since it is not possible to create any QWidget instance before a QApplilcation is running.
+# For our convinience you mazimized can be used to maximize the created dialog or not.
 def showDialog(D, args=(), maximized=True):
   if isGUI():
     import PySide2.QtCore
@@ -50,7 +55,7 @@ def showDialog(D, args=(), maximized=True):
     d.exec()
   else:
     import PySide2.QtCore
-    # create QApplication if noe exists yet
+    # create QApplication it it does exists yet: this is needed before any QWidget instance can be created
     if PySide2.QtWidgets.QApplication.instance() is None:
       PySide2.QtWidgets.QApplication()
     # create and show the dialog
