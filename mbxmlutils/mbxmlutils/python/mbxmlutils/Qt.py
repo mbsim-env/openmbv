@@ -4,10 +4,16 @@ import PySide2.QtWidgets
 
 # returns True if this function was called while a Qt-GUI was running (e.g. mbsimgui)
 def isGUI():
-  if isGUI.value is None:
-    isGUI.value = PySide2.QtWidgets.QApplication.instance() is not None
-  return isGUI.value
-isGUI.value=None
+  return _isGUI
+
+# initialize the Qt module
+if PySide2.QtWidgets.QApplication.instance() is None:
+  # if a QApplication is not already instantiated then we are not running a GUI program (mbsimgui) and start a QAppliation now
+  _isGUI=False
+  PySide2.QtWidgets.QApplication()
+else:
+  # if a QApplication is already instantiated then we are running a GUI program (mbsimgui) and need not to start a QApplication
+  _isGUI=True
 
 
 
@@ -40,28 +46,21 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
 
 
 
-# Shows a instance of the dialog class D. The instance is constructed using args.
-# If no QApplication is running yet it is started automatically.
-# That is why we need to pass a dialog class D and not a dialog instance d as input
-# since it is not possible to create any QWidget instance before a QApplilcation is running.
-# For our convinience you mazimized can be used to maximize the created dialog or not.
-def showDialog(D, args=(), maximized=True):
+# Use this function to show the initial widget (main window) for a plot or other UI.
+# You should use this instead of w.show() or w.exec() to support showing widgets in GUI and none GUI programs.
+# since this function will propably handle the creation of a Qt event loop if needed.
+# The widget is shown modal.
+# maximized can be used for your convinience to show the widget maximized
+# (calls w.setWindowState(PySide2.QtCore.Qt.WindowMaximized))
+def showWidget(w, maximized=True):
+  import PySide2.QtCore
+  if maximized:
+    w.setWindowState(PySide2.QtCore.Qt.WindowMaximized)
   if isGUI():
-    import PySide2.QtCore
-    # create and exec the dialog
-    d=D(*args)
-    if maximized:
-      d.setWindowState(PySide2.QtCore.Qt.WindowMaximized)
-    d.exec()
+    # show the dialog model and wait for it to exit (a global event loop in already running by the GUI program)
+    w.exec()
   else:
-    import PySide2.QtCore
-    # create QApplication it it does exists yet: this is needed before any QWidget instance can be created
-    if PySide2.QtWidgets.QApplication.instance() is None:
-      PySide2.QtWidgets.QApplication()
-    # create and show the dialog
-    d=D(*args)
-    if maximized:
-      d.setWindowState(PySide2.QtCore.Qt.WindowMaximized)
-    d.show()
-    # execute QApplication
+    # in a one GUI program show the dialog and return and
+    w.show()
+    # start a local event loop (none is running till now) which waits for the dialog to exit (hence the dialog is modal)
     PySide2.QtWidgets.QApplication.instance().exec_()
