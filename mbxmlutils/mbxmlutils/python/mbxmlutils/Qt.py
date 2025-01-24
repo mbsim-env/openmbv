@@ -17,7 +17,7 @@ else:
 
 
 
-# a helper class for a GUI dialog with matplotlib child widgets
+# A helper class for a GUI dialog with matplotlib child widgets.
 class MatplotlibDialog(PySide2.QtWidgets.QDialog):
   def __init__(self, parent=None):
     import matplotlib
@@ -31,12 +31,16 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
     self.plot = {}
     self.plotToolbar = {}
     self.setModal(True)
+  # Get, or create and get, a matplotlib widget named "id".
+  # The returned widget has a "figure" attribute being the matplotlib figure
+  # which itself has the matplotlib function "subplots" to create axes
   def getPlotWidget(self, id):
     import matplotlib
     import matplotlib.backends.backend_qtagg
     if id not in self.plot:
       self.plot[id] = matplotlib.backends.backend_qtagg.FigureCanvas()
     return self.plot[id]
+  # Get, or create and get, the matplotlib navigation toolbar widget for the matplotlib widget named "id", see getPlotWidget
   def getPlotWidgetToolbar(self, id):
     import matplotlib
     import matplotlib.backends.backend_qtagg
@@ -46,13 +50,29 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
 
 
 
-# Use this function to show the initial widget (main window) for a plot or other UI.
-# You should use this instead of w.show() or w.exec() to support showing widgets in GUI and none GUI programs.
-# since this function will propably handle the creation of a Qt event loop if needed.
+# This class create a dialog with the standard matplotlib layout of a matplotlib figure:
+# the toolbar at the top of the dialog and a single main figure widget.
+# getFigure can be used to get the matplotlib figure e.g. to create subplots
+# The dialog is then shown modal using execWidget.
+class StdMatplotlibDialog(MatplotlibDialog):
+  def __init__(self, parent=None):
+    super().__init__(parent)
+    layout = PySide2.QtWidgets.QVBoxLayout()
+    self.setLayout(layout)
+    layout.addWidget(self.getPlotWidgetToolbar("plot"))
+    self.plot=self.getPlotWidget("plot")
+    layout.addWidget(self.plot)
+  def getFigure(self):
+    return self.plot.figure
+
+
+
+# Use this function to show (execute) the main widget for a model specific UI (e.g. a plot window).
+# You should use this function instead of w.exec() (or w.show()) to support showing widgets in GUI and none GUI programs.
+# For none GUI program this function will automatically create a Qt event loop until the Widget is open.
 # The widget is shown modal.
-# maximized can be used for your convinience to show the widget maximized
-# (calls w.setWindowState(PySide2.QtCore.Qt.WindowMaximized))
-def showWidget(w, maximized=True):
+# "maximized" can be used for your convinience to show the widget maximized (calls w.setWindowState(PySide2.QtCore.Qt.WindowMaximized)).
+def execWidget(w, maximized=True):
   import PySide2.QtCore
   if maximized:
     w.setWindowState(PySide2.QtCore.Qt.WindowMaximized)
