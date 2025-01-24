@@ -724,7 +724,7 @@ void Eval::printEvaluatorMsg(const std::ostringstream &str, MsgType msgType) {
   if(!str.str().empty()) {
     std::string msg=str.str();
     trim_right_if(msg, boost::is_any_of(" \n"));
-    fmatvec::Atom::msgStatic(msgType)<<"Evaluator output: "<<msg<<std::endl;
+    fmatvec::Atom::msgStatic(msgType)<<"Evaluator output:"<<endl<<msg<<std::endl;
   }
 }
 
