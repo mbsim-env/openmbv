@@ -224,9 +224,9 @@ def _getDLL():
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils.so")
     else:
-      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-0")
   return _getDLL.dll
 _getDLL.dll=None
 
