@@ -233,19 +233,19 @@ _getDLL.dll=None
 
 
 def registerPath(path):
-  # call the mbxmlutilsPyEvalRegisterPath function from the lib of the _getDLL call
+  # call the mbxmlutils_Eval_registerPath function from the lib of the _getDLL call
   import ctypes
-  _getDLL().mbxmlutilsPyEvalRegisterPath.argtypes=[ctypes.c_char_p]
-  _getDLL().mbxmlutilsPyEvalRegisterPath(path.encode("utf-8"))
+  _getDLL().mbxmlutils_Eval_registerPath.argtypes=[ctypes.c_char_p]
+  _getDLL().mbxmlutils_Eval_registerPath(path.encode("utf-8"))
 
 
 
 # return the (original) filename which contains the currently evaluated element
 def getOriginalFilename():
-  # call the mbxmlutilsPyEvalGetOriginalFilename function from the lib of the _getDLL call
+  # call the mbxmlutils_DOMElement_getOriginalFilename function from the lib of the _getDLL call
   import ctypes
-  _getDLL().mbxmlutilsPyEvalGetOriginalFilename.restype=ctypes.c_char_p
-  return _getDLL().mbxmlutilsPyEvalGetOriginalFilename().decode("utf-8")
+  _getDLL().mbxmlutils_DOMElement_getOriginalFilename.restype=ctypes.c_char_p
+  return _getDLL().mbxmlutils_DOMElement_getOriginalFilename().decode("utf-8")
 
 
 

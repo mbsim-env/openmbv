@@ -647,9 +647,9 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
   return s;
 }
 
-Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval) const {
+Eval::Value Eval::stringToValue(const string &str, const DOMElement *e, bool fullEval, bool skipRet) const {
   if(fullEval)
-    return fullStringToValue(str, e);
+    return fullStringToValue(str, e, skipRet);
   else
     return create(partialStringToString(str, e));
 }
@@ -729,3 +729,31 @@ void Eval::printEvaluatorMsg(const std::ostringstream &str, MsgType msgType) {
 }
 
 } // end namespace MBXMLUtils
+
+// C helper functions to be called the a evaluator scripting engine
+// Many scripting engines can call to C functions, that is why we provide these here for convinience
+extern "C" {
+
+int mbxmlutils_Eval_registerPath(const char *path) noexcept {
+  try {
+    mbxmlutilsStaticDependencies.emplace_back(path);
+  }
+  catch(...) {
+    cerr<<"Internal Error (this should never happen): the c function for registerPath failed!"<<endl;
+  }
+  return 0;
+}
+
+const char* mbxmlutils_DOMElement_getOriginalFilename() noexcept {
+  try {
+    static string originalFilenameStr;
+    originalFilenameStr = originalFilename.string();
+    return originalFilenameStr.c_str();
+  }
+  catch(...) {
+    cerr<<"Internal Error (this should never happen): the c function for originalFilename failed!"<<endl;
+    return "<originalFileName failed>";
+  }
+}
+
+}

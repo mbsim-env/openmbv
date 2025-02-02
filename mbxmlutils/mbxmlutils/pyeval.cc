@@ -311,9 +311,11 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
   {
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;
-    path chdir=E(e)->getOriginalFilename().parent_path();
-    if(!chdir.empty())
-      current_path(chdir);
+    if(e) {
+      path chdir=E(e)->getOriginalFilename().parent_path();
+      if(!chdir.empty())
+        current_path(chdir);
+    }
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
@@ -322,7 +324,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
-      originalFilename=E(e)->getOriginalFilename();
+      if(e)
+        originalFilename=E(e)->getOriginalFilename();
       {
         MBXMLUTILS_REDIR_STDOUT(out);
         MBXMLUTILS_REDIR_STDERR(err);
@@ -338,7 +341,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
           throw runtime_error("Internal error: in addImport a Python bytecode was cached with the wrong input tag.");
         CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
-      addStaticDependencies(e);
+      if(e)
+        addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
       printEvaluatorMsg(out, fmatvec::Atom::Info);
@@ -376,7 +380,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
   else
     throw DOMEvalException("Python 'import' is only possible with action='' == action='addNewVarsToInstance' or action='addAllVarsAsParams' (action='"+action+"')!", e);
 
-  if(dependencies) {
+  if(dependencies && e) {
     // get current python sys.path
     set<string> newPath=getSysPath();
     // add py-files in added sys.path to dependencies
@@ -574,7 +578,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
         MBXMLUTILS_REDIR_STDERR(err);
         auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_file_input, PyO()));
         if(created) {
-          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<localString>", Py_file_input, &flags, 2));
+          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
           if(!it->second.second) {
             byteCodeMap.erase(it);
             throw PythonException(__FILE__, __LINE__);
@@ -906,17 +910,4 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
   return false;
 }
 
-}
-
-// called from mbxmlutils.registerPath and adds path to the dependencies of this evaluator
-extern "C" int mbxmlutilsPyEvalRegisterPath(const char *path) {
-  mbxmlutilsStaticDependencies.emplace_back(path);
-  return 0;
-}
-
-// called from mbxmlutils.getOriginalFilename and returns the filename of the currently evaluated element
-extern "C" const char* mbxmlutilsPyEvalGetOriginalFilename() {
-  static string originalFilenameStr;
-  originalFilenameStr = originalFilename.string();
-  return originalFilenameStr.c_str();
 }

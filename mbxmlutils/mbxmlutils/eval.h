@@ -224,7 +224,7 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! evaluate str and return result as an variable, this can be used to evaluate outside of XML.
     //! If e is given it is used as location information in case of errors.
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
-    Value stringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr, bool fullEval=true) const;
+    Value stringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr, bool fullEval=true, bool skipRet=false) const;
 
     //! create a value of the given type. T can be one of:
     //! double: create a floating point value
@@ -342,8 +342,6 @@ template<> Eval::Value Eval::create<double>                               (const
 template<> Eval::Value Eval::create<std::vector<double> >                 (const std::vector<double>& v) const;
 template<> Eval::Value Eval::create<std::vector<std::vector<double> > >   (const std::vector<std::vector<double> >& v) const;
 template<> Eval::Value Eval::create<std::string>                          (const std::string& v) const;
-template<> Eval::Value Eval::create<std::vector<Eval::Value>>             (const std::vector<Value>& v) const;
-template<> Eval::Value Eval::create<std::vector<std::vector<Eval::Value>>>(const std::vector<std::vector<Value> >& v) const;
 
 } // end namespace MBXMLUtils
 
