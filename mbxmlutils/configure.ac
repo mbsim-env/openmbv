@@ -274,7 +274,7 @@ AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Mak
 AC_CONFIG_FILES([mbxmlutils/octave/testsymbolic.sh],[chmod +x mbxmlutils/octave/testsymbolic.sh])
 AC_CONFIG_FILES([mbxmlutils/python/testsymbolic.sh],[chmod +x mbxmlutils/python/testsymbolic.sh])
 AC_CONFIG_FILES([mbxmlutils/measurement.sh],[chmod +x mbxmlutils/measurement.sh])
-AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html],[chmod +x xsd2html/mbxmlutils-xsd2html])
+AC_CONFIG_FILES([xsd2html/mbxmlutils-xsd2html.sh],[chmod +x xsd2html/mbxmlutils-xsd2html.sh])
 
 hardcode_into_libs=no # do not add hardcoded libdirs to ltlibraries
 hardcode_libdir_flag_spec_CXX= # do not add hardcodeed libdirs to ltbinaries

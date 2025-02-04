@@ -1,9 +1,9 @@
 #! /bin/sh
 
 if [ $# -lt 5 ]; then
-  echo "Usage: mbxmlutils-xsd2html <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
-  echo "                           <ProjectName> <DocygenPrefix>"
-  echo "                           [<AddInXsdFile> ...]"
+  echo "Usage: mbxmlutils-xsd2html.sh <InXsdFile> <InDoxygenXmlDir> <FigureDir>"
+  echo "                              <ProjectName> <DocygenPrefix>"
+  echo "                              [<AddInXsdFile> ...]"
   echo "  InXsdFile: Input xsd file which should be converted to html"
   echo "  InDoxygenXmlDir: Directory of the Doxygen XML output of the"
   echo "                   corrospondending documentation"
