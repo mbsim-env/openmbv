@@ -224,7 +224,7 @@ def _getDLL():
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils.so")
+      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils.so.0")
     else:
       _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-0")
   return _getDLL.dll
