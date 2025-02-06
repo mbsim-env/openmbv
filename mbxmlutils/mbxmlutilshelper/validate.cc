@@ -67,6 +67,11 @@ int main(int argc, char *argv[]) {
       parser->parse(xml);
       fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<xml<<" validates."<<endl;
     }
+    catch(const DOMEvalException &ex) {
+      error++;
+      // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the fmatvec::Atom streams) from duing another escaping
+      fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<flush<<skipws<<ex.what()<<flush<<noskipws<<endl;
+    }
     catch(const std::exception &ex) {
       error++;
       fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;

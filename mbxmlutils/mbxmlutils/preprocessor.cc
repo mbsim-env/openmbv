@@ -118,6 +118,11 @@ int main(int argc, char *argv[]) {
         dependenciesFile<<dependencie.string()<<endl;
     }
   }
+  catch(const DOMEvalException &ex) {
+    // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the fmatvec::Atom streams) from duing another escaping
+    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<flush<<skipws<<ex.what()<<flush<<noskipws<<endl;
+    return 1;
+  }
   catch(const std::exception &ex) {
     fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;
     return 1;

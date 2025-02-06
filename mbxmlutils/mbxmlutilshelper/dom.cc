@@ -966,6 +966,20 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
   }
 }
 
+bool DOMEvalException::isHTMLOutputEnabled() {
+  // get MBXMLUTILS_ERROROUTPUT
+  const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
+  string format(ev?ev:"GCC");
+  bool htmlOutput=false;
+  if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
+  }
+  else if(format=="HTMLFILELINE")
+    htmlOutput=true;
+  else if(format=="HTMLXPATH")
+    htmlOutput=true;
+  return htmlOutput;
+}
+
 void DOMEvalException::htmlEscaping(string &msg) {
   boost::replace_all(msg, "&", "&amp;");
   boost::replace_all(msg, "<", "&lt;");

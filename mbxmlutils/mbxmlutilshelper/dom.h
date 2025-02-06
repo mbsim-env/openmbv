@@ -203,6 +203,7 @@ class DOMEvalException : public std::exception {
     void setSubsequentError(bool sse) { subsequentError=sse; }
     const char* what() const noexcept override;
     xercesc::DOMNode::NodeType getNodeType() const { return nodeType; }
+    static bool isHTMLOutputEnabled();
     static void htmlEscaping(std::string &msg);
   protected:
     DOMEvalException(const std::string &errorMsg_, const xercesc::DOMLocator &loc);
