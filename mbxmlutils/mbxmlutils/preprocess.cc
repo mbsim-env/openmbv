@@ -313,7 +313,8 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
           if(E(p)->getAttribute("name")==it.first) {
             // if found overwrite this parameter
-            p->removeChild(E(p)->getFirstTextChild())->release();
+            if(E(p)->getFirstTextChild())
+              p->removeChild(E(p)->getFirstTextChild())->release();
             Eval::setValue(p, it.second);
             msgStatic(Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
             found=true;
