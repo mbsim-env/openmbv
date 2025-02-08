@@ -26,6 +26,19 @@ using namespace PythonCpp;
 
 namespace {
 
+// create a valid GIL in the ctor and release it again in the dtor
+class GilState {
+  public:
+    GilState() { state=PyGILState_Ensure(); }
+    ~GilState() { PyGILState_Release(state); }
+    GilState(const GilState &) = delete;
+    GilState(GilState &&) = delete;
+    GilState& operator=(const GilState &) = delete;
+    GilState& operator=(GilState &&) = delete;
+  private:
+    PyGILState_STATE state;
+};
+
 inline PyO C(const MBXMLUtils::Eval::Value &value) {
   return *static_pointer_cast<PyO>(value);
 }
@@ -237,12 +250,14 @@ int MBXMLUtils_SharedLibrary_init() {
 boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}()); // initialize a uuid name generator with a random namespace
 
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
+  GilState gil;
   globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsToInstance" import action
 }
 
 PyEval::~PyEval() = default;
 
 Eval::Value PyEval::createFunctionIndep(int dim) const {
+  GilState gil;
   PyO indep;
   if(dim==0)
     indep=CALLPY(PyObject_CallObject, pyInit->sympyDummy(), CALLPY(PyTuple_New, 0));
@@ -280,6 +295,7 @@ namespace {
 }
 
 void PyEval::addImport(const string &code, const DOMElement *e, const string &action) {
+  GilState gil;
   // python globalsLocals (fill with builtins)
   PyO globalsLocals(CALLPY(PyDict_New));
   CALLPY(PyDict_SetItemString, globalsLocals, "__builtins__", CALLPYB(PyEval_GetBuiltins));
@@ -397,6 +413,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
 }
 
 bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
+  GilState gil;
   PyO v(C(value));
   switch(type) {
     case ScalarType: return ::is_scalar_double(value);
@@ -467,6 +484,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 }
 
 Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) const {
+  GilState gil;
   pair<map<string, PyO>::iterator, bool> f=pyInit->functionValue.insert(make_pair(name, PyO()));
   if(f.second)
     f.first->second=CALLPYB(PyDict_GetItemString, CALLPYB(PyModule_GetDict, pyInit->mbxmlutils()), name);
@@ -480,6 +498,7 @@ Eval::Value PyEval::callFunction(const string &name, const vector<Value>& args) 
 }
 
 Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bool skipRet) const {
+  GilState gil;
   string strtrim=str;
   boost::trim(strtrim);
 
@@ -634,6 +653,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
 }
 
 double PyEval::cast_double(const Value &value) const {
+  GilState gil;
   PyO v(C(value));
   if(CALLPY(PyFloat_Check, v))
     return CALLPY(PyFloat_AsDouble, v);
@@ -645,6 +665,7 @@ double PyEval::cast_double(const Value &value) const {
 }
 
 vector<double> PyEval::cast_vector_double(const Value &value) const {
+  GilState gil;
   PyArrayObject* a;
   int type;
   if(!is_vector_double(value, &a, &type))
@@ -658,6 +679,7 @@ vector<double> PyEval::cast_vector_double(const Value &value) const {
 }
 
 vector<vector<double> >PyEval::cast_vector_vector_double(const Value &value) const {
+  GilState gil;
   PyArrayObject* a;
   int type;
   if(!is_vector_vector_double(value, &a, &type))
@@ -672,10 +694,12 @@ vector<vector<double> >PyEval::cast_vector_vector_double(const Value &value) con
 }
 
 string PyEval::cast_string(const Value &value) const {
+  GilState gil;
   return CALLPY(PyUnicode_AsUTF8, C(value));
 }
 
 Eval::Value PyEval::create_double(const double& v) const {
+  GilState gil;
   int i;
   if(tryDouble2Int(v, i))
     return C(CALLPY(PyLong_FromLong, i));
@@ -683,6 +707,7 @@ Eval::Value PyEval::create_double(const double& v) const {
 }
 
 Eval::Value PyEval::create_vector_double(const vector<double>& v) const {
+  GilState gil;
   npy_intp dims[1];
   dims[0]=v.size();
   PyO ret(PyArray_SimpleNew(1, dims, NPY_DOUBLE));
@@ -691,6 +716,7 @@ Eval::Value PyEval::create_vector_double(const vector<double>& v) const {
 }
 
 Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v) const {
+  GilState gil;
   npy_intp dims[2];
   dims[0]=v.size();
   dims[1]=v[0].size();
@@ -702,10 +728,12 @@ Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v
 }
 
 Eval::Value PyEval::create_string(const string& v) const {
+  GilState gil;
   return C(CALLPY(PyUnicode_FromString, v));
 }
 
 Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {
+  GilState gil;
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO item(CALLPY(PyList_New, v.size()));
   for(size_t i=0; i<v.size(); ++i)
@@ -715,6 +743,7 @@ Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {
 }
 
 Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
+  GilState gil;
   PyO arg(CALLPY(PyTuple_New, 1));
   PyO rows(CALLPY(PyList_New, v.size()));
   for(size_t r=0; r<v.size(); ++r) {
@@ -728,6 +757,7 @@ Eval::Value PyEval::createFunctionDep(const vector<vector<Value> >& v) const {
 }
 
 Eval::Value PyEval::createFunction(const vector<Value> &indeps, const Value &dep) const {
+  GilState gil;
   auto t=CALLPY(PyTuple_New, indeps.size()+1);
   for(size_t i=0; i<indeps.size(); ++i)
     CALLPY(PyTuple_SetItem, t, i, C(indeps[i]).incRef());
@@ -736,6 +766,7 @@ Eval::Value PyEval::createFunction(const vector<Value> &indeps, const Value &dep
 }
 
 string PyEval::serializeFunction(const Value &x) const {
+  GilState gil;
   auto serializeFunctionPy=[](PyO& o) {
     PyO arg(CALLPY(PyTuple_New, 1));
     CALLPY(PyTuple_SetItem, arg, 0, o.incRef());
@@ -756,6 +787,7 @@ string PyEval::serializeFunction(const Value &x) const {
 }
 
 void PyEval::convertIndex(Value &v, bool evalTo1Base) {
+  GilState gil;
   int add = evalTo1Base ? 1 : -1;
 
   if(valueIsOfType(v, ScalarType))
@@ -787,6 +819,7 @@ void PyEval::convertIndex(Value &v, bool evalTo1Base) {
 }
 
 string PyEval::getStringRepresentation(const Value &x) const {
+  GilState gil;
   PyO args(CALLPY(PyTuple_New, 3));
   CALLPY(PyTuple_SetItem, args, 0, C(x).incRef()); // PyTuple_SetItem steals a reference of v
   CALLPY(PyTuple_SetItem, args, 1, CALLPY(PyLong_FromLong, 4).incRef()); // indent=4

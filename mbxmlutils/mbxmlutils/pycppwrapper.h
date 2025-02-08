@@ -88,7 +88,12 @@ class PyO {
     explicit PyO(PyObject *src, bool srcIsBorrowedRef=false) : p(src) { if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     PyO(const PyO &r) : p(r.p) { Py_XINCREF(p); }
     PyO(PyO &&r)  noexcept : p(r.p) { r.p=nullptr; }
-    ~PyO() { Py_XDECREF(p); }
+    ~PyO() {
+      // the dtor may be called outside of a valid Python GIL -> create one
+      auto state=PyGILState_Ensure();
+      Py_XDECREF(p);
+      PyGILState_Release(state);
+    }
     PyO& operator=(const PyO &r) { Py_XDECREF(p); p=r.p; Py_XINCREF(p); return *this; }
     PyO& operator=(PyO &&r)  noexcept { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
     void reset() { Py_XDECREF(p); p=nullptr; }
