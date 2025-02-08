@@ -183,6 +183,7 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
 }
 
 const char* PythonException::what() const noexcept {
+  GilState gil;
   if(!msg.empty())
     return msg.c_str();
 

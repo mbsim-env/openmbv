@@ -81,21 +81,34 @@ inline int PyUnicode_Check_func(PyObject *p) { return PyUnicode_Check(p); }
 #undef PyUnicode_Check
 #define PyUnicode_Check PythonCpp::PyUnicode_Check_func
 
+// create a valid GIL in the ctor and release it again in the dtor
+class GilState {
+  public:
+    GilState() { state=PyGILState_Ensure(); }
+    ~GilState() { PyGILState_Release(state); }
+    GilState(const GilState &) = delete;
+    GilState(GilState &&) = delete;
+    GilState& operator=(const GilState &) = delete;
+    GilState& operator=(GilState &&) = delete;
+  private:
+    PyGILState_STATE state;
+};
+
 // we use this for python object for c++ reference counting
 class PyO {
   public:
-    constexpr PyO()  = default;
+    constexpr PyO() = default;
     explicit PyO(PyObject *src, bool srcIsBorrowedRef=false) : p(src) { if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     PyO(const PyO &r) : p(r.p) { Py_XINCREF(p); }
     PyO(PyO &&r)  noexcept : p(r.p) { r.p=nullptr; }
     ~PyO() {
+      if(!p) return;
       // the dtor may be called outside of a valid Python GIL -> create one
-      auto state=PyGILState_Ensure();
+      GilState gil;
       Py_XDECREF(p);
-      PyGILState_Release(state);
     }
     PyO& operator=(const PyO &r) { Py_XDECREF(p); p=r.p; Py_XINCREF(p); return *this; }
-    PyO& operator=(PyO &&r)  noexcept { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
+    PyO& operator=(PyO &&r) noexcept { Py_XDECREF(p); p=r.p; r.p=nullptr; return *this; }
     void reset() { Py_XDECREF(p); p=nullptr; }
     void reset(PyObject *src, bool srcIsBorrowedRef=false) { Py_XDECREF(p); p=src; if(srcIsBorrowedRef) Py_XINCREF(p); } // use srcIsBorrowedRef=true if src is a borrowed reference
     void swap(PyO &r) { PyObject *temp=p; p=r.p; r.p=temp; }

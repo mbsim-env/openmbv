@@ -26,19 +26,6 @@ using namespace PythonCpp;
 
 namespace {
 
-// create a valid GIL in the ctor and release it again in the dtor
-class GilState {
-  public:
-    GilState() { state=PyGILState_Ensure(); }
-    ~GilState() { PyGILState_Release(state); }
-    GilState(const GilState &) = delete;
-    GilState(GilState &&) = delete;
-    GilState& operator=(const GilState &) = delete;
-    GilState& operator=(GilState &&) = delete;
-  private:
-    PyGILState_STATE state;
-};
-
 inline PyO C(const MBXMLUtils::Eval::Value &value) {
   return *static_pointer_cast<PyO>(value);
 }
