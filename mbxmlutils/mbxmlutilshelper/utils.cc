@@ -24,7 +24,14 @@
 #include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
 #include <regex>
 #ifdef _WIN32
+  #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
   #include <windows.h>
+  #undef __STRICT_ANSI__ // to define _controlfp which is not part of ANSI and hence not defined in mingw
+  #include <cfloat>
+  #define __STRICT_ANSI__
+#else
+  #include <cfenv>
 #endif
 
 using namespace std;
@@ -118,6 +125,17 @@ namespace MBXMLUtils {
   
       args.erase(itn);
       args.erase(it);
+    }
+  }
+
+  void handleFPE() {
+    auto mbxmlutils_fpe=getenv("MBXMLUTILS_FPE");
+    if(mbxmlutils_fpe && string(mbxmlutils_fpe)=="1") {
+      #ifdef _WIN32
+        _controlfp(~(_EM_ZERODIVIDE | _EM_INVALID | _EM_OVERFLOW), _MCW_EM);
+      #else
+        assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
+      #endif
     }
   }
 

@@ -45,6 +45,9 @@ class Deprecated : virtual public fmatvec::Atom {
 // This removes parsed arguments from args.
 void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput=false);
 
+// enable FPE trapping when MBXMLUTILS_FPE is set to 1
+void handleFPE();
+
 }
 
 #endif
