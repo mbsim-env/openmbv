@@ -24,7 +24,9 @@
 #include <Inventor/Qt/viewers/SoQtViewer.h>
 #include <QtCore/QEvent>
 #ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN // GL/gl.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN // GL/gl.h includes windows.h on Windows -> avoid full header -> WIN32_LEAN_AND_MEAN
+#  endif
 #endif
 #include <GL/gl.h>
 #include <Inventor/fields/SoMFColor.h>

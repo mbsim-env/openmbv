@@ -24,8 +24,12 @@
 #include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
 #include <regex>
 #ifdef _WIN32
-  #define WIN32_LEAN_AND_MEAN
-  #define NOMINMAX
+  #ifndef WIN32_LEAN_AND_MEAN
+  #  define WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef NOMINMAX
+  #  define NOMINMAX
+  #endif
   #include <windows.h>
   #undef __STRICT_ANSI__ // to define _controlfp which is not part of ANSI and hence not defined in mingw
   #include <cfloat>
