@@ -17,12 +17,6 @@
  * Contact: friedrich.at.gc@googlemail.com
  */
 
-#include "config.h"
-#include <cstdlib>
-#include "utils.h"
-#include "dom.h"
-#include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
-#include <regex>
 #ifdef _WIN32
   #ifndef WIN32_LEAN_AND_MEAN
   #  define WIN32_LEAN_AND_MEAN
@@ -37,6 +31,12 @@
 #else
   #include <cfenv>
 #endif
+#include "config.h"
+#include <cstdlib>
+#include "utils.h"
+#include "dom.h"
+#include <boost/functional/hash.hpp> //  boost::hash can hash a std::pair but std::hash cannot
+#include <regex>
 
 using namespace std;
 using namespace MBXMLUtils;
