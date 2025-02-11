@@ -1,3 +1,5 @@
+"""MBXMLUtils preprocessor helper functions"""
+
 import os
 import numpy
 
@@ -233,15 +235,15 @@ _getDLL.dll=None
 
 
 def registerPath(path):
-  # call the mbxmlutils_Eval_registerPath function from the lib of the _getDLL call
+  """call the mbxmlutils_Eval_registerPath function from the lib of the _getDLL call"""
   import ctypes
   _getDLL().mbxmlutils_Eval_registerPath.argtypes=[ctypes.c_char_p]
   _getDLL().mbxmlutils_Eval_registerPath(path.encode("utf-8"))
 
 
 
-# return the (original) filename which contains the currently evaluated element
 def getOriginalFilename():
+  """return the (original) filename which contains the currently evaluated element"""
   # call the mbxmlutils_DOMElement_getOriginalFilename function from the lib of the _getDLL call
   import ctypes
   _getDLL().mbxmlutils_DOMElement_getOriginalFilename.restype=ctypes.c_char_p
@@ -250,18 +252,22 @@ def getOriginalFilename():
 
 
 def installPrefix():
+  """return the base installation directory"""
   return os.path.realpath(os.path.dirname(__file__)+"/../../../..")
 
 
 
 def load(filename):
+  """load data from a CSV file"""
   return numpy.genfromtxt(filename)
 def mbxmlutils_load(filename):
+  """load data from a CSV file"""
   return numpy.genfromtxt(filename)
 
 
 
 def cardan(*argv):
+  """create a transformation matrix from cardan angles"""
   if len(argv)==3:
     alpha=argv[0]
     beta=argv[1]
@@ -287,6 +293,7 @@ def cardan(*argv):
 
 
 def invCardan(T):
+  """create a transformation matrix from inverse cardan angles"""
   ms=_MathOrSympy(T[0][2], T[1][2], T[2][2], T[0][1], T[0][0], T[1][0], T[1][1])
   if T[0][2]<-1-1e-12 or T[0][2]>1+1e-12:
     raise RuntimeError("Argument of invCardan is not a rotation matrix (due to numerical errors)")
@@ -303,6 +310,7 @@ def invCardan(T):
 
 
 def euler(*argv):
+  """create a transformation matrix from euler angles"""
   if len(argv)==3:
     PHI=argv[0]
     theta=argv[1]
@@ -328,6 +336,7 @@ def euler(*argv):
 
 
 def rotateAboutX(phi):
+  """create a transformation matrix from a rotation about x-axis"""
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[1,0,0],
                               [0,ms.cos(phi),-ms.sin(phi)],
@@ -336,6 +345,7 @@ def rotateAboutX(phi):
 
 
 def rotateAboutY(phi):
+  """create a transformation matrix from a rotation about y-axis"""
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),0,ms.sin(phi)],
                               [0,1,0],
@@ -344,6 +354,7 @@ def rotateAboutY(phi):
 
 
 def rotateAboutZ(phi):
+  """create a transformation matrix from a rotation about z-axis"""
   ms=_MathOrSympy(phi)
   return _convert(numpy.array([[ms.cos(phi),-ms.sin(phi),0],
                               [ms.sin(phi),ms.cos(phi),0],
@@ -352,6 +363,9 @@ def rotateAboutZ(phi):
 
 
 def tilde(x):
+  """The tilde operator
+  If x is a 3-vector return the screw symmetric 3x3-matrix of this vector
+  If x a screw symmetric 3x3-matrix return the corresponding 3-vector"""
 
   if len(x)==3 and not hasattr(x[0], '__len__'):
 
@@ -372,35 +386,35 @@ def tilde(x):
 
 
 
-# Apply the steiner rule on a inertia.
-#
-# If the input "inertia" is a inertia tensor around its center of mass then the
-# output is the corresponding inertia tensor around a point "com" away from the center of mass (note that the sign of "com" does not care: com and -com results in the same).
-# "mass", which must be positive in this case, is the mass of the object.
-#
-# If the input "inertia" is a inertia tensor around a point "com" away from the center of mass then the
-# output is the corresponding inertia tensor around the center of mass (note that the sign of "com" does not care: com and -com results in the same).
-# "mass", which must be negative, in this case, is the negative mass of the object.
-#
-# "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
-# and inertiaOrientation defines the transformation matrix between both (T_LK)
 def steinerRule(mass, inertia, com, inertiaOrientation = None):
+  """Apply the steiner rule on a inertia.
+
+  If the input "inertia" is a inertia tensor around its center of mass then the
+  output is the corresponding inertia tensor around a point "com" away from the center of mass (note that the sign of "com" does not care: com and -com results in the same).
+  "mass", which must be positive in this case, is the mass of the object.
+
+  If the input "inertia" is a inertia tensor around a point "com" away from the center of mass then the
+  output is the corresponding inertia tensor around the center of mass (note that the sign of "com" does not care: com and -com results in the same).
+  "mass", which must be negative, in this case, is the negative mass of the object.
+
+  "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
+  and inertiaOrientation defines the transformation matrix between both (T_LK)"""
   T_LK = numpy.array(inertiaOrientation) if inertiaOrientation is not None else numpy.eye(3)
   return  T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
 
 
 
-# Sum up mass values.
-# massValue is a dictionary with the keys
-# - "mass":               the mass of body to add
-# - "inertia":            the inertia tensor of the body to add; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L
-# - "com":                the center of mass of the body to add; the com must be given with respect to a local coordinate system L
-# - "inertiaOrientation": optional, if given, "inertia" is not with respect to the local system L but to a system K and inertiaOrientation defines the transformation matrix between both (T_LK)
-# Returned is a dictionary with the same keys being the summed up mass values of all arguments where
-# - "inertia":            is given around the summed up center of mass and with respect to the local coordinate system L.
-# - "com":                is with respect to the local cooridnate system L.
-# - "inertiaOrientation": is not provided since "inertia" is always returned with respect to the local coordinate system L (T_LK = eye).
 def sumMassValues(*massValue):
+  """Sum up mass values.
+  massValue is a dictionary with the keys
+  - "mass":               the mass of body to add
+  - "inertia":            the inertia tensor of the body to add; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L
+  - "com":                the center of mass of the body to add; the com must be given with respect to a local coordinate system L
+  - "inertiaOrientation": optional, if given, "inertia" is not with respect to the local system L but to a system K and inertiaOrientation defines the transformation matrix between both (T_LK)
+  Returned is a dictionary with the same keys being the summed up mass values of all arguments where
+  - "inertia":            is given around the summed up center of mass and with respect to the local coordinate system L.
+  - "com":                is with respect to the local cooridnate system L.
+  - "inertiaOrientation": is not provided since "inertia" is always returned with respect to the local coordinate system L (T_LK = eye)."""
   sum_m = 0
   sum_inertia_L = numpy.zeros((3,3))
   sum_mcom = numpy.zeros(3)
@@ -414,8 +428,8 @@ def sumMassValues(*massValue):
 
 
 
-# return the HSV color of the given RGB values (0-1)
 def rgbColor(*argv):
+  """return the HSV color of the given RGB values (0-1)"""
   import colorsys
   if len(argv)==3:
     red=argv[0]
@@ -431,9 +445,9 @@ def rgbColor(*argv):
 
 
 
-# return the HSV color of the given CSS color name which can also be a HEX color (#XXXXXX)
-# see https://www.w3.org/wiki/CSS/Properties/color/keywords
 def namedColor(name):
+  """return the HSV color of the given CSS color name which can also be a HEX color (#XXXXXX)
+  see https://www.w3.org/wiki/CSS/Properties/color/keywords"""
   if namedColor.nameToHEX is None:
     namedColor.nameToHEX={
       "black": "#000000",
