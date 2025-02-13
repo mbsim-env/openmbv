@@ -1296,8 +1296,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     DOMEvalException ex(errorHandler.getError());
     if(!ex.locationStack.empty()) {
       auto &l=ex.locationStack.front();
-      EmbedDOMLocator exNew(inputSource.string(), l.getLineNumber(),
-                            l.getEmbedCount(), l.getRootXPathExpression());
+      EmbedDOMLocator exNew(toRelativePath(X()%l.getURI()), l.getLineNumber(), l.getEmbedCount(), l.getRootXPathExpression());
       ex.locationStack.front()=exNew;
     }
     throw ex;
