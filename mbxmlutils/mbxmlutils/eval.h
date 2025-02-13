@@ -260,6 +260,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
      */
     virtual Value callFunction(const std::string &name, const std::vector<Value>& args) const=0;
 
+    size_t getStackSize() { assert(paramStack.size()==importStack.size()); return paramStack.size(); }
+
   protected:
     //! create a function independent variable. If dim == 0 a scalar is created else a vector.
     virtual Value createFunctionIndep(int dim) const = 0;
