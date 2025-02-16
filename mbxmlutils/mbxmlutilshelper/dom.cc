@@ -1315,6 +1315,40 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   return doc;
 }
 
+shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dependencies, bool doXInclude) {
+  // reset error handler and parser document and throw on errors
+  errorHandler.resetError();
+  locationFilter.setLineNumberOffset(0);
+  DOMLSInput *source = domImpl->createLSInput();
+  std::stringstream buffer;
+  buffer<<inputStream.rdbuf();
+  string inputString=buffer.str();
+  X x;
+  source->setStringData(x%inputString);
+  shared_ptr<DOMDocument> doc(parser->parse(source), [](auto && PH1) { if(PH1) PH1->release(); });
+  if(errorHandler.hasError()) {
+    // fix the filename
+    DOMEvalException ex(errorHandler.getError());
+    if(!ex.locationStack.empty()) {
+      auto &l=ex.locationStack.front();
+      EmbedDOMLocator exNew(toRelativePath(X()%l.getURI()), l.getLineNumber(), l.getEmbedCount(), l.getRootXPathExpression());
+      ex.locationStack.front()=exNew;
+    }
+    throw ex;
+  }
+  convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
+  // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
+  doc->setUserData(domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
+  doc->setUserData(embedDataKey,new map<string,string>(),&userDataHandler);
+  // set file name
+  if(doXInclude) {
+    DOMElement *root=doc->getDocumentElement();
+    handleXInclude(root, dependencies);
+  }
+  // return DOM document
+  return doc;
+}
+
 DOMElement* DOMParser::parseWithContext(const string &str, DOMNode *contextNode, DOMLSParser::ActionType action,
                                                     vector<path> *dependencies, bool doXInclude) {
   if(contextNode->getNodeType()!=DOMNode::ELEMENT_NODE)

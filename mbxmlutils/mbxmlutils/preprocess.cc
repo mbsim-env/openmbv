@@ -24,6 +24,33 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
                        > parserVariant,
                        bool trackDependencies
                       ) {
+  auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
+  document = parseCached(parser, inputFile, "XML input file.");
+  msgStatic(Debug)<<"Finished: XML input file"<<endl;
+  extractEvaluator();
+}
+
+Preprocess::Preprocess(istream &inputStream, // the input stream containing the XML file used as input
+                       variant<
+                         shared_ptr<DOMParser>, // a direct parser OR
+                         DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
+                         path // a filename of a XML catalog file to create a parser
+                       > parserVariant,
+                       bool trackDependencies
+                      ) {
+  auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
+  msgStatic(Info)<<"Load, parse and validate input stream."<<endl;
+  document = parseCached(parser, inputStream, "XML input file.");
+  msgStatic(Debug)<<"Finished: XML input file"<<endl;
+  extractEvaluator();
+}
+
+std::shared_ptr<DOMParser> Preprocess::initDependenciesAndParser(std::variant<
+                                         std::shared_ptr<MBXMLUtils::DOMParser>, // a direct parser OR
+                                         xercesc::DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
+                                         boost::filesystem::path // a filename of a XML catalog file to create a parser
+                                       > parserVariant,
+                                       bool trackDependencies) {
   if(trackDependencies)
     dependencies = make_unique<std::vector<boost::filesystem::path>>();
 
@@ -35,10 +62,7 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
     msgStatic(Debug)<<"Create a validating XML parser from XML catalog element."<<endl;
     parserVariant = DOMParser::create(*xmlCatalogEle);
   }
-  auto parser = get<shared_ptr<DOMParser>>(parserVariant);
-  document = parseCached(parser, inputFile, "XML input file.");
-  msgStatic(Debug)<<"Finished: XML input file"<<endl;
-  extractEvaluator();
+  return get<shared_ptr<DOMParser>>(parserVariant);
 }
 
 Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDependencies) {
@@ -614,6 +638,43 @@ shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &par
   }
   else
     doc = parser->parse(inputFile, dependencies.get(), false);
+  return it->second = doc;
+}
+
+shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &parser, istream &inputStream,
+                                                const string &msg, bool allowUnknownRootElement) {
+  // read the entire stream (we need the content at least two times)
+  std::stringstream buffer;
+  buffer<<inputStream.rdbuf();
+  string inputString=buffer.str();
+  auto hashNr=hash<string>{}(inputString);
+  auto [it, insert] = parsedStream.emplace(hashNr, shared_ptr<DOMDocument>());
+  if(!insert) {
+    msgStatic(Info)<<"Reuse cached input stream (hash="<<hashNr<<"): "<<msg<<endl;
+    return it->second;
+  }
+  msgStatic(Info)<<"Parse and validate input stream (hash="<<hashNr<<"): "<<msg<<endl;
+  shared_ptr<DOMDocument> doc;
+  if(allowUnknownRootElement) {
+    try {
+      stringstream str(inputString); // no std::move here since inputString may be needed a second time inside the catch
+      doc = parser->parse(str, dependencies.get(), false);
+    }
+    catch(const DOMEvalException &ex) {
+      if(ex.getNodeType()!=DOMNode::DOCUMENT_NODE) // if anything except the root element caused the error -> throw
+                                                   // else return a unvalidated document
+        throw ex;
+      // on error parse without validation
+      if(!noneValidatingParser)
+        noneValidatingParser = DOMParser::create();
+      stringstream str(std::move(inputString)); // this error will be done with c++20
+      doc = noneValidatingParser->parse(str, dependencies.get(), false);
+    }
+  }
+  else {
+    stringstream str(std::move(inputString)); // this error will be done with c++20
+    doc = parser->parse(str, dependencies.get(), false);
+  }
   return it->second = doc;
 }
 

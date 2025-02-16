@@ -20,6 +20,15 @@ class Preprocess : virtual public fmatvec::Atom {
                  boost::filesystem::path // a filename of a XML catalog file to create a parser
                > parserVariant,
                bool trackDependencies);
+    //! Instantiate a preprocessor using a input stream and a parser.
+    //! The input stream is read and validated.
+    Preprocess(std::istream &inputStream, // the input stream containing the XML file used as input
+               std::variant<
+                 std::shared_ptr<MBXMLUtils::DOMParser>, // a direct parser OR
+                 xercesc::DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
+                 boost::filesystem::path // a filename of a XML catalog file to create a parser
+               > parserVariant,
+               bool trackDependencies);
     //! Instantiate a preprocessor using a already parsed DOMDocument
     //! The inputDoc is validated.
     Preprocess(const std::shared_ptr<xercesc::DOMDocument> &inputDoc, bool trackDependencies);
@@ -53,9 +62,21 @@ class Preprocess : virtual public fmatvec::Atom {
 
     bool preprocessed { false };
 
-    std::map<boost::filesystem::path, std::shared_ptr<xercesc::DOMDocument>> parsedFiles;
+    std::shared_ptr<DOMParser> initDependenciesAndParser(std::variant<
+                                 std::shared_ptr<MBXMLUtils::DOMParser>, // a direct parser OR
+                                 xercesc::DOMElement*, // the root element of a DOM tree of a XML catalog file to create a parser OR
+                                 boost::filesystem::path // a filename of a XML catalog file to create a parser
+                               > parserVariant,
+                               bool trackDependencies);
+
+    std::map<boost::filesystem::path, std::shared_ptr<xercesc::DOMDocument>> parsedFiles;//mfmf make this static and check timestemps
     std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
                                                       const boost::filesystem::path &inputFile,
+                                                      const std::string &msg, bool allowUnknownRootElement=false);
+
+    std::map<size_t, std::shared_ptr<xercesc::DOMDocument>> parsedStream;//mfmf make this static
+    std::shared_ptr<xercesc::DOMDocument> parseCached(const std::shared_ptr<DOMParser> &parser,
+                                                      std::istream &inputStream,
                                                       const std::string &msg, bool allowUnknownRootElement=false);
 
     void extractEvaluator();
