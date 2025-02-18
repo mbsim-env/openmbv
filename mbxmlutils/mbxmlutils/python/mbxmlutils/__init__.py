@@ -115,8 +115,8 @@ def _serializeFunction(x):
       # serialize a independent variable (all independe variables must be sympy.Dummy classes
       if x.func.__name__=="Dummy":
         import uuid
-        # create a unique UUID for the variable (map the hash to a UUID)
-        uid=_serializeFunction.indepMap.setdefault(hash(x), uuid.uuid4())
+        # create a unique UUID for the variable (map the object x to a UUID)
+        uid=_serializeFunction.indepMap.setdefault(x, uuid.uuid4())
         # for debug runs (FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID=1) map the UUID to a counting int and use it
         # (to generate equal results on each run)
         if _serializeFunction.FMATVEC_DEBUG_SYMBOLICEXPRESSION_UUID is not None:
