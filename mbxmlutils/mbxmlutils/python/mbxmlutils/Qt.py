@@ -1,5 +1,7 @@
 """MBXMLUtils preprocessor helper functions specific for Qt based applications"""
 
+import os
+import matplotlib
 import PySide2.QtWidgets
 
 
@@ -17,6 +19,10 @@ else:
   # if a QApplication is already instantiated then we are running a GUI program (mbsimgui) and need not to start a QApplication
   _isGUI=True
 
+# enforce matplotlib to use PySide2
+os.environ["QT_API"]="PySide2"
+matplotlib.use('Qt5Agg')
+
 
 
 class MatplotlibDialog(PySide2.QtWidgets.QDialog):
@@ -24,13 +30,8 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
   def __init__(self, parent=None):
     """Construct a MatplotlibDialog instance and pass parent to QDialog"""
     super().__init__(parent)
-    import matplotlib
     import PySide2.QtCore
-    import os
     self.setWindowFlag(PySide2.QtCore.Qt.WindowMaximizeButtonHint, True)
-    # enforce matplotlib to use PySide2
-    os.environ["QT_API"]="PySide2"
-    matplotlib.use('Qt5Agg')
     self.plot = {}
     self.plotToolbar = {}
     self.setModal(True)
