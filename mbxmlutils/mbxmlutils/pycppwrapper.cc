@@ -89,7 +89,8 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   }
 
   boost::filesystem::path PYTHONHOME;
-  if(!getenv("PYTHONHOME")) {
+  const char *PH=getenv("PYTHONHOME");
+  if(!PH) {
     PYTHONHOME = prefix;
     if(!PYTHONHOME.empty()) {
       // the string for putenv must have program life time
@@ -99,6 +100,8 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
       putenv(PYTHONHOME_ENV);
     }
   }
+  else
+    PYTHONHOME=PH;
 
 #ifdef _WIN32
   {
