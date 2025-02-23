@@ -169,6 +169,7 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
 }
 
 bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared_ptr<ParamSet>& param, int embedXPathCount) {
+  checkInterrupt();
   if(E(e)->getTagName()==PV%"Embed") {
     // handle the Embed element
 
@@ -390,6 +391,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
 
     // the over the count!
     for(long i=1; i<=count; i++) {
+      checkInterrupt();
       NewParamLevel newParamLevel(eval);
       Eval::Value ii=eval->create(static_cast<double>(i));
       eval->convertIndex(ii, false);
@@ -496,6 +498,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     // evaluate attributes
     DOMNamedNodeMap *attr=e->getAttributes();
     for(int i=0; i<attr->getLength(); i++) {
+      checkInterrupt();
       auto *a=static_cast<DOMAttr*>(attr->item(i));
       // skip xml* attributes
       if((X()%a->getName()).substr(0, 3)=="xml")

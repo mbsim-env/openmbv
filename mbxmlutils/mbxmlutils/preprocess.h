@@ -33,6 +33,10 @@ class Preprocess : virtual public fmatvec::Atom {
     //! The inputDoc is validated.
     Preprocess(const std::shared_ptr<xercesc::DOMDocument> &inputDoc, bool trackDependencies);
 
+    void setCheckInterruptFunction(const std::function<void()> &func) {
+      checkInterruptFunc=func;
+    }
+
     //! Set top level parameters to overwrite before processAndGetDocument is called
     void setParam(const std::shared_ptr<ParamSet>& param_);
     //! Get available top level parameters after processAndGetDocument is called
@@ -60,6 +64,12 @@ class Preprocess : virtual public fmatvec::Atom {
     std::shared_ptr<DOMParser> noneValidatingParser;
     static const FQN embedFileNotFound;
 
+    std::function<void()> checkInterruptFunc;
+    void checkInterrupt() {
+      if(checkInterruptFunc)
+        checkInterruptFunc();
+    }
+
     bool preprocessed { false };
 
     std::shared_ptr<DOMParser> initDependenciesAndParser(std::variant<
@@ -81,7 +91,6 @@ class Preprocess : virtual public fmatvec::Atom {
 
     void extractEvaluator();
 
-    using PositionMap = std::map<FQN, int>;
     bool preprocess(// in: element to process; out: e changes only if e is itself a Embed element
                     xercesc::DOMElement *&e,
                     // out: number of elements added for a Embed element (may be 0), if e is a Embed element or -1 if e is not a Embed element
