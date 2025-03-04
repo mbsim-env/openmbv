@@ -118,17 +118,20 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   }
 #endif
 
-  static auto mainW=boost::locale::conv::utf_to_utf<wchar_t>(main.string());
-  #if __GNUC__ >= 11
-    // python >= 3.8 has deprecated this call
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  #endif
-  Py_SetProgramName(const_cast<wchar_t*>(mainW.c_str()));
-  #if __GNUC__ >= 11
-    #pragma GCC diagnostic pop
-  #endif
-  Py_InitializeEx(0);
+  PyStatus status;
+  PyConfig config;
+  PyConfig_InitIsolatedConfig(&config);
+  status = PyConfig_SetString(&config, &config.program_name, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(main.string()).c_str()));
+  if(PyStatus_Exception(status)) {
+    PyConfig_Clear(&config);
+    throw std::runtime_error("Python initialization from config failed.");
+  }
+  status = Py_InitializeFromConfig(&config);
+  if(PyStatus_Exception(status)) {
+    PyConfig_Clear(&config);
+    throw std::runtime_error("Python initialization from config failed.");
+  }
+  PyConfig_Clear(&config);
 
   auto appendToPATH = [&pathsep](const boost::filesystem::path &path) {
     if(!boost::filesystem::is_directory(path))
