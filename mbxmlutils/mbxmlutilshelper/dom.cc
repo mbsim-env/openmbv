@@ -1323,6 +1323,8 @@ shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dep
   std::stringstream buffer;
   buffer<<inputStream.rdbuf();
   string inputString=buffer.str();
+  if(inputString.empty())
+    throw runtime_error("Got empty string to parse as XML.");
   X x;
   source->setStringData(x%inputString);
   shared_ptr<DOMDocument> doc(parser->parse(source), [](auto && PH1) { if(PH1) PH1->release(); });
