@@ -90,17 +90,38 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
 
   boost::filesystem::path PYTHONHOME;
   const char *PH=getenv("PYTHONHOME");
-  PYTHONHOME = PH ? PH : prefix;
+  if(!PH) {
+    PYTHONHOME = prefix;
+    if(!PYTHONHOME.empty()) {
+      // the string for putenv must have program life time
+      static char PYTHONHOME_ENV[2048] { 0 };
+      if(PYTHONHOME_ENV[0]==0)
+        strcpy(PYTHONHOME_ENV, (std::string("PYTHONHOME=")+PYTHONHOME.string()).c_str());
+      putenv(PYTHONHOME_ENV);
+    }
+  }
+  else
+    PYTHONHOME=PH;
+
+#ifdef _WIN32
+  {
+    auto *pp = getenv("PYTHONPATH");
+    std::string PYTHONPATHstr(pp ? pp : "");
+    PYTHONPATHstr += (PYTHONPATHstr.empty() ? "" : pathsep)+(prefix/"lib").string();
+    PYTHONPATHstr += pathsep+(prefix/"lib"/"lib-dynload").string();
+    PYTHONPATHstr += pathsep+(prefix/"lib"/"site-packages").string();
+    // the string for putenv must have program life time
+    static char PYTHONPATHstr_ENV[2048] { 0 };
+    if(PYTHONPATHstr_ENV[0]==0)
+      strcpy(PYTHONPATHstr_ENV, (std::string("PYTHONPATH=")+PYTHONPATHstr).c_str());
+    putenv(PYTHONPATHstr_ENV);
+  }
+#endif
 
   PyStatus status;
   PyConfig config;
   PyConfig_InitIsolatedConfig(&config);
   status = PyConfig_SetString(&config, &config.program_name, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(main.string()).c_str()));
-  if(PyStatus_Exception(status)) {
-    PyConfig_Clear(&config);
-    throw std::runtime_error("Python initialization from config failed.");
-  }
-  status = PyConfig_SetString(&config, &config.home, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(PYTHONHOME.string()).c_str()));
   if(PyStatus_Exception(status)) {
     PyConfig_Clear(&config);
     throw std::runtime_error("Python initialization from config failed.");
@@ -144,13 +165,6 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     putenv(LD_LIBRARY_PATH_ENV);
 #endif
   };
-
-  appendToPATH(prefix/"lib");
-  if(auto p=prefix/"lib"/"lib-dynload"; exists(p))
-    appendToPATH(p);
-  if(auto p=prefix/"lib"/"site-packages"; exists(p))
-    appendToPATH(p);
-
   if(!PYTHONHOME.empty())
     appendToPATH(PYTHONHOME/dllDir);
 
