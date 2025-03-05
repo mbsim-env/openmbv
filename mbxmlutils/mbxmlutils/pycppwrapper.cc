@@ -92,26 +92,24 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   const char *PH=getenv("PYTHONHOME");
   PYTHONHOME = PH ? PH : prefix;
 
-  #define THROW_IF_STATUS(status) \
-    if(PyStatus_Exception(status)) { \
-      PyConfig_Clear(&config); \
-      throw std::runtime_error("Python initialization from config failed."); \
-    }
+  PyStatus status;
   PyConfig config;
   PyConfig_InitIsolatedConfig(&config);
-
-  THROW_IF_STATUS(PyConfig_SetString(&config, &config.program_name, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(main.string()).c_str())));
-
-  THROW_IF_STATUS(PyConfig_SetString(&config, &config.home, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(PYTHONHOME.string()).c_str())));
-
-  std::string PYTHONPATH((prefix/"lib").string());
-  if(auto p=prefix/"lib"/"lib-dynload"; exists(p))
-    PYTHONPATH+=pathsep+p.string();
-  if(auto p=prefix/"lib"/"site-packages"; exists(p))
-    PYTHONPATH+=pathsep+p.string();
-  THROW_IF_STATUS(PyConfig_SetString(&config, &config.pythonpath_env, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(PYTHONPATH).c_str())));
-
-  THROW_IF_STATUS(Py_InitializeFromConfig(&config));
+  status = PyConfig_SetString(&config, &config.program_name, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(main.string()).c_str()));
+  if(PyStatus_Exception(status)) {
+    PyConfig_Clear(&config);
+    throw std::runtime_error("Python initialization from config failed.");
+  }
+  status = PyConfig_SetString(&config, &config.home, const_cast<wchar_t*>(boost::locale::conv::utf_to_utf<wchar_t>(PYTHONHOME.string()).c_str()));
+  if(PyStatus_Exception(status)) {
+    PyConfig_Clear(&config);
+    throw std::runtime_error("Python initialization from config failed.");
+  }
+  status = Py_InitializeFromConfig(&config);
+  if(PyStatus_Exception(status)) {
+    PyConfig_Clear(&config);
+    throw std::runtime_error("Python initialization from config failed.");
+  }
   PyConfig_Clear(&config);
 
   auto appendToPATH = [&pathsep](const boost::filesystem::path &path) {
@@ -146,6 +144,12 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     putenv(LD_LIBRARY_PATH_ENV);
 #endif
   };
+
+  appendToPATH(prefix/"lib");
+  if(auto p=prefix/"lib"/"lib-dynload"; exists(p))
+    appendToPATH(p);
+  if(auto p=prefix/"lib"/"site-packages"; exists(p))
+    appendToPATH(p);
 
   if(!PYTHONHOME.empty())
     appendToPATH(PYTHONHOME/dllDir);
