@@ -184,25 +184,23 @@ PyInit::~PyInit() {
 // On Windows this is not required, but does not hurt.
 unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
 
-// A class to block/unblock stderr or stdout. Block in called in the ctor, unblock in the dtor
+// A class to redirect stderr or stdout.
 template<int T>
-class Block {
+class Redirect {
   public:
-    Block(std::ostringstream &strstr_) : strstr(strstr_) {
+    Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      curStream=CALLPY(PyObject_CallObject, pyInit->ioStringIO, CALLPY(PyTuple_New, 0));
-      if(CALLPY(PySys_SetObject, T==1?"stdout":"stderr", curStream)!=0)
-        throw runtime_error("Internal error: setting sys.stdout/stderr to a external buffer failed.");
+      auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
+      PyO arg(CALLPY(PyTuple_New, 1));
+      CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromLong, reinterpret_cast<size_t>(&str)).incRef());
+      auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
+      CALLPY(PySys_SetObject, T==1?"stdout":"stderr", cppOStream);
     }
-    ~Block() {
+    ~Redirect() {
       PyObject *type, *value, *traceback;
       PyErr_Fetch(&type, &value, &traceback);
       try {
-        if(CALLPY(PySys_SetObject, T==1?"stdout":"stderr", oldStream)!=0)
-          throw runtime_error("Internal error: resetting sys.stdout/stderr failed.");
-        PyO getvalue(CALLPY(PyObject_GetAttrString, curStream, "getvalue"));
-        PyO str(CALLPY(PyObject_CallObject, getvalue, CALLPY(PyTuple_New, 0)));
-        strstr<<PyUnicode_AsUTF8(str.get());
+        CALLPY(PySys_SetObject, T==1?"stdout":"stderr", oldStream);
       }
       catch(exception &ex) {
         cerr<<"Internal error: exception in dtor: "<<ex.what()<<endl;
@@ -217,11 +215,9 @@ class Block {
     }
   private:
     PyO oldStream;
-    PyO curStream;
-    std::ostringstream &strstr;
 };
-#define MBXMLUTILS_REDIR_STDOUT(strstr) Block<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
-#define MBXMLUTILS_REDIR_STDERR(strstr) Block<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
+#define MBXMLUTILS_REDIR_STDOUT(strstr) Redirect<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
+#define MBXMLUTILS_REDIR_STDERR(strstr) Redirect<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
 
 extern "C"
 int MBXMLUtils_SharedLibrary_init() {
@@ -322,7 +318,6 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
-    ostringstream out;
     ostringstream err;
     try {
       auto codetrim=fixPythonIndentation(code, e);
@@ -330,7 +325,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
       if(e)
         originalFilename=E(e)->getOriginalFilename();
       {
-        MBXMLUTILS_REDIR_STDOUT(out);
+        MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);
         auto [it, created] = byteCodeMap.emplace(uuidGen(codetrim), make_pair(Py_file_input, PyO()));
         if(created) {
@@ -348,10 +343,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
         addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      printEvaluatorMsg(out, fmatvec::Atom::Info);
       throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
     }
-    printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
   }
 
@@ -533,10 +526,9 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   else
     originalFilename.clear();
   PyO exprResult;
-  ostringstream out;
   ostringstream err;
   {
-    MBXMLUTILS_REDIR_STDOUT(out);
+    MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
     MBXMLUTILS_REDIR_STDERR(err);
     auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_eval_input, PyO()));
     bool error=false;
@@ -555,18 +547,15 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
         exprResult=CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       catch(const exception& ex) { // on failure -> report error
-        printEvaluatorMsg(out, fmatvec::Atom::Info);
         throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
       }
   }
   if(exprResult) { // on success ...
-    printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
     ret=exprResult;
     addStaticDependencies(e);
   }
   else { // on failure ...
-    ostringstream out;
     ostringstream err;
     try {
       // ... evaluate as statement
@@ -580,7 +569,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       else
         originalFilename.clear();
       {
-        MBXMLUTILS_REDIR_STDOUT(out);
+        MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);
         auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_file_input, PyO()));
         if(created) {
@@ -597,10 +586,8 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      printEvaluatorMsg(out, fmatvec::Atom::Info);
       throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
     }
-    printEvaluatorMsg(out, fmatvec::Atom::Info);
     printEvaluatorMsg(err, fmatvec::Atom::Warn);
     if(!skipRet) {
       try {
@@ -928,6 +915,21 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
     return true;
   }
   return false;
+}
+
+}
+
+extern "C" {
+
+void mbxmlutils_output(void *strPtr, const char *data) noexcept {
+  try {
+    auto &str=*reinterpret_cast<ostream*>(strPtr);
+    str<<data;
+    str.flush();
+  }
+  catch(...) {
+    cerr<<"Internal Error (this should never happen): the c function for registerPath failed!"<<endl;
+  }
 }
 
 }

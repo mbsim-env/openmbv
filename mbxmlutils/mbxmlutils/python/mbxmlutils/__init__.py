@@ -2,6 +2,7 @@
 
 import os
 import numpy
+import io
 
 
 
@@ -220,34 +221,57 @@ _serializeFunction.opMap={
 
 
 
-def _getDLL():
+def _getEvalDLL():
   # load the libmbxmlutils-eval-global-python.so ones
-  if _getDLL.dll is None:
+  if _getEvalDLL.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils.so.0")
+      _getEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils.so.0")
     else:
-      _getDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-0")
-  return _getDLL.dll
-_getDLL.dll=None
+      _getEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-0")
+  return _getEvalDLL.dll
+_getEvalDLL.dll=None
+
+def _getPyEvalDLL():
+  # load the libmbxmlutils-eval-global-python.so ones
+  if _getPyEvalDLL.dll is None:
+    import ctypes
+    import sys
+    if sys.platform.startswith('linux'):
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+    else:
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+  return _getPyEvalDLL.dll
+_getPyEvalDLL.dll=None
 
 
 
 def registerPath(path):
-  """call the mbxmlutils_Eval_registerPath function from the lib of the _getDLL call"""
+  """call the mbxmlutils_Eval_registerPath function from the lib of the _getEvalDLL call"""
   import ctypes
-  _getDLL().mbxmlutils_Eval_registerPath.argtypes=[ctypes.c_char_p]
-  _getDLL().mbxmlutils_Eval_registerPath(path.encode("utf-8"))
+  _getEvalDLL().mbxmlutils_Eval_registerPath.argtypes=[ctypes.c_char_p]
+  _getEvalDLL().mbxmlutils_Eval_registerPath(path.encode("utf-8"))
 
 
 
 def getOriginalFilename():
   """return the (original) filename which contains the currently evaluated element"""
-  # call the mbxmlutils_DOMElement_getOriginalFilename function from the lib of the _getDLL call
+  # call the mbxmlutils_DOMElement_getOriginalFilename function from the lib of the _getEvalDLL call
   import ctypes
-  _getDLL().mbxmlutils_DOMElement_getOriginalFilename.restype=ctypes.c_char_p
-  return _getDLL().mbxmlutils_DOMElement_getOriginalFilename().decode("utf-8")
+  _getEvalDLL().mbxmlutils_DOMElement_getOriginalFilename.restype=ctypes.c_char_p
+  return _getEvalDLL().mbxmlutils_DOMElement_getOriginalFilename().decode("utf-8")
+
+
+
+class _CppOStream(io.IOBase):
+  def __init__(self, cppOStreamPtr_):
+    self.cppOStreamPtr=cppOStreamPtr_
+  def write(self, data):
+    import ctypes
+    _getPyEvalDLL().mbxmlutils_output.argtypes=[ctypes.c_void_p, ctypes.c_char_p]
+    _getPyEvalDLL().mbxmlutils_output.restype=None
+    _getPyEvalDLL().mbxmlutils_output(self.cppOStreamPtr, data.encode("utf-8"))
 
 
 
