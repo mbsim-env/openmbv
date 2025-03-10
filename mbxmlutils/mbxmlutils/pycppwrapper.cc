@@ -190,50 +190,62 @@ PythonException::PythonException(const char *file_, int line_) : file(file_), li
 }
 
 const char* PythonException::what() const noexcept {
-  GilState gil;
   if(!msg.empty())
     return msg.c_str();
 
+  GilState gil;
+
+  PyObject *savedstderr=nullptr;
+  PyObject *io=nullptr;
+  PyObject *fileIO=nullptr;
+  PyObject *buf=nullptr;
+  PyObject *getvalue=nullptr;
+  PyObject *pybufstr=nullptr;
+  #define RETURN(msg) \
+    Py_XDECREF(savedstderr); \
+    Py_XDECREF(io); \
+    Py_XDECREF(fileIO); \
+    Py_XDECREF(buf); \
+    Py_XDECREF(getvalue); \
+    Py_XDECREF(pybufstr); \
+    return msg;
+
   // redirect stderr
-  PyObject *savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
+  savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
+  Py_XINCREF(savedstderr);
   if(!savedstderr)
-    return "Unable to create Python error message: no sys.stderr available.";
-  PyObject *io=PyImport_ImportModule("io");
+    RETURN("Unable to create Python error message: no sys.stderr available.");
+  io=PyImport_ImportModule("io");
   if(!io)
-    return "Unable to create Python error message: cannot load io module.";
-  PyObject *fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
+    RETURN("Unable to create Python error message: cannot load io module.");
+  fileIO=PyObject_GetAttrString(io, "StringIO"); // sys.stderr is a file in text mode
   if(!fileIO)
-    return "Unable to create Python error message: cannot get in memory file class.";
-  Py_DECREF(io);
-  PyObject *buf=PyObject_CallObject(fileIO, nullptr);
-  Py_DECREF(fileIO);
+    RETURN("Unable to create Python error message: cannot get in memory file class.");
+  buf=PyObject_CallObject(fileIO, nullptr);
   if(!buf)
-    return "Unable to create Python error message: cannot create new in memory file instance";
+    RETURN("Unable to create Python error message: cannot create new in memory file instance");
   if(PySys_SetObject(const_cast<char*>("stderr"), buf)!=0)
-    return "Unable to create Python error message: cannot redirect stderr";
+    RETURN("Unable to create Python error message: cannot redirect stderr");
   // restore error
-  PyErr_Restore(type.get(), value.get(), traceback.get());
   Py_XINCREF(type.get());
   Py_XINCREF(value.get());
   Py_XINCREF(traceback.get());
+  PyErr_Restore(type.get(), value.get(), traceback.get());
   // print to redirected stderr
   PyErr_Print();
   // unredirect stderr
   if(PySys_SetObject(const_cast<char*>("stderr"), savedstderr)!=0)
-    return "Unable to create Python error message: cannot revert redirect stderr";
+    RETURN("Unable to create Python error message: cannot revert redirect stderr");
   // get redirected output as string
-  PyObject *getvalue=PyObject_GetAttrString(buf, "getvalue");
+  getvalue=PyObject_GetAttrString(buf, "getvalue");
   if(!getvalue)
-    return "Unable to create Python error message: cannot get getvalue attribute";
-  PyObject *pybufstr=PyObject_CallObject(getvalue, nullptr);
+    RETURN("Unable to create Python error message: cannot get getvalue attribute");
+  pybufstr=PyObject_CallObject(getvalue, nullptr);
   if(!pybufstr)
-    return "Unable to create Python error message: cannot get string from in memory file output";
-  Py_DECREF(getvalue);
-  Py_DECREF(buf);
+    RETURN("Unable to create Python error message: cannot get string from in memory file output");
   std::string str=PyUnicode_AsUTF8(pybufstr); // sys.stderr is a file in text mode
   if(PyErr_Occurred())
-    return "Unable to create Python error message: cannot get c string";
-  Py_DECREF(pybufstr);
+    RETURN("Unable to create Python error message: cannot get c string");
   std::stringstream strstr;
   strstr<<"Python exception";
 #ifndef NDEBUG
@@ -242,7 +254,7 @@ const char* PythonException::what() const noexcept {
 #endif
   strstr<<":"<<std::endl<<str;
   msg=strstr.str();
-  return msg.c_str();
+  RETURN(msg.c_str());
 }
 
 DisableFPE::DisableFPE() {
