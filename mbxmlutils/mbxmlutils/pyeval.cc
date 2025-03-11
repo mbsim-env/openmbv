@@ -437,21 +437,40 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   path PYTHONSRC(PYTHON_LIBDIR);
   if(exists(installPath/PYTHON_SUBDIR/"site-packages"))
     PYTHONSRC=installPath/PYTHON_SUBDIR;
-  for(auto srcIt=recursive_directory_iterator(PYTHONSRC); srcIt!=recursive_directory_iterator(); ++srcIt) {
+
+  auto addFile = [&PYTHONSRC, &PYTHONDST](auto &srcIt) {
     if(is_directory(*srcIt)) // skip directories
-      continue;
+      return;
+    if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
+      return;
     path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
-    if((*subDir.begin()=="site-packages" || *subDir.begin()=="dist-packages") &&
-      *(++subDir.begin())!="numpy" && *(++subDir.begin())!="sympy" && *(++subDir.begin())!="mpmath") // skip site-packages dir but not numpy and sympy/mpmath
-      continue;
-    if(*subDir.begin()=="config") // skip config dir
-      continue;
     bool bin=false;
-    const regex so(".*\\.so(\\..*)*");
+    static const regex so(".*\\.so(\\..*)*");
     if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
        regex_match(srcIt->path().filename().string(), so))
       bin=true;
     files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
+  };
+
+  for(auto srcIt=directory_iterator(PYTHONSRC); srcIt!=directory_iterator(); ++srcIt) {
+    if(*srcIt->path().rbegin()=="config") // skip config dir
+      continue;
+    bool cont=false;
+    for(auto sitePackages : {"site-packages", "dist-packages"})
+      if(*srcIt->path().rbegin()==sitePackages) { // in site-packages ..
+        cont=true;
+        for(auto mod : {"numpy", "sympy", "mpmath"}) // .. only these subdirs
+          if(exists(srcIt->path()/mod))
+            for(auto srcRecIt=recursive_directory_iterator(srcIt->path()/mod); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
+              addFile(srcRecIt);
+      }
+    if(cont)
+      continue;
+    if(is_directory(*srcIt)) // directory -> recursive
+      for(auto srcRecIt=recursive_directory_iterator(*srcIt); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
+        addFile(srcRecIt);
+    else
+      addFile(srcIt);
   }
 #if _WIN32
   // on Windows include the PYTHONSRC/../DLLs directory, if existing
