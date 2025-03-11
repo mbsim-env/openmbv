@@ -213,8 +213,6 @@ const char* PythonException::what() const noexcept {
   // redirect stderr
   savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
   Py_XINCREF(savedstderr);
-  if(!savedstderr)
-    RETURN("Unable to create Python error message: no sys.stderr available.");
   io=PyImport_ImportModule("io");
   if(!io)
     RETURN("Unable to create Python error message: cannot load io module.");
