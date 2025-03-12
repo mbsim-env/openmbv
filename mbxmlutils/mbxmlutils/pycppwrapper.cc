@@ -201,17 +201,20 @@ const char* PythonException::what() const noexcept {
   PyObject *buf=nullptr;
   PyObject *getvalue=nullptr;
   PyObject *pybufstr=nullptr;
-  #define RETURN(msg) \
+  #define RETURN(msg) { \
     Py_XDECREF(savedstderr); \
     Py_XDECREF(io); \
     Py_XDECREF(fileIO); \
     Py_XDECREF(buf); \
     Py_XDECREF(getvalue); \
     Py_XDECREF(pybufstr); \
-    return msg;
+    return msg; \
+  }
 
   // redirect stderr
   savedstderr=PySys_GetObject(const_cast<char*>("stderr"));
+  if(!savedstderr)
+    RETURN("Unable to create Python error message: cannot get sys.stderr.");
   Py_XINCREF(savedstderr);
   io=PyImport_ImportModule("io");
   if(!io)
