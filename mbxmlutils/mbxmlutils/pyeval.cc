@@ -190,9 +190,9 @@ class Redirect {
   public:
     Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
+      static auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
       PyO arg(CALLPY(PyTuple_New, 1));
-      CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromLong, reinterpret_cast<size_t>(&str)).incRef());
+      CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
       auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
       CALLPY(PySys_SetObject, T==1?"stdout":"stderr", cppOStream);
     }
