@@ -621,27 +621,54 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   }
   if(skipRet)
     return {};
-  // convert a list of scalars / list of lists of scalars to a numpy 1D / 2D array, respectively
-  // * a list of len==0 is interpreted as a R^0 vector [shape==(0,)]
-  if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)==0) {
-    PyO args(CALLPY(PyTuple_New, 1));
-    CALLPY(PyTuple_SetItem, args, 0, CALLPY(PyLong_FromLong, 0).incRef()); // PyTuple_SetItem steals a reference of ret
-    return C(CALLPY(PyObject_CallObject, pyInit->numpyZeros(), args));
-  }
-  // * note that in python you cannot create R^0xC matrix from a python list
-  // * a list with at least one element is converted using numpy.asarray (if the first element is a scalar, a empty list, a list of doubles or a numpy 1D array)
-  if(CALLPY(PyList_Check, ret) && CALLPY(PyList_Size, ret)>0) {
-    PyO firstEle(CALLPYB(PyList_GetItem, ret, 0));
-    if(is_scalar_double(C(firstEle)) ||
-       (CALLPY(PyList_Check, firstEle) && CALLPY(PyList_Size, firstEle)==0) ||
-       (CALLPY(PyList_Check, firstEle) && CALLPY(PyList_Size, firstEle)>0 && is_scalar_double(C(CALLPYB(PyList_GetItem, firstEle, 0)))) ||
-       is_vector_double(C(firstEle))) {
+
+  // check for vector or matrix return value (which is converted to numpy)
+  if(CALLPY(PyList_Check, ret)) {
+    auto size = CALLPY(PyList_Size, ret);
+    if(size==0) {
+      // convert a empty list to a numpy shape (0,) vector
+      PyO args(CALLPY(PyTuple_New, 1));
+      CALLPY(PyTuple_SetItem, args, 0, CALLPY(PyLong_FromLong, 0).incRef()); // PyTuple_SetItem steals a reference of ret
+      return C(CALLPY(PyObject_CallObject, pyInit->numpyZeros(), args));
+    }
+    bool isVector=true;
+    bool isMatrix=true;
+    int cols=-1;
+    for(size_t i=0; i<size; ++i) {
+      PyO ele(CALLPYB(PyList_GetItem, ret, i));
+      if(is_scalar_double(C(ele)))
+        isMatrix=false;
+      else
+        isVector=false;
+      if(CALLPY(PyList_Check, ele)) {
+        auto size2 = CALLPY(PyList_Size, ele);
+        if(i==0)
+          cols=size2;
+        else if(cols!=size2) {
+          isMatrix=false;
+          break;
+        }
+        for(size_t j=0; j<size2; ++j) {
+          PyO ele2(CALLPYB(PyList_GetItem, ele, j));
+          if(!is_scalar_double(C(ele2)))
+            isMatrix=false;
+          if(!isVector && !isMatrix)
+            break;
+        }
+      }
+      if(!isVector && !isMatrix)
+        break;
+    }
+    if(isVector && isMatrix)
+      throw runtime_error("Internal error: isVector and isMatrix is both true.");
+    if(isVector || isMatrix) {
       PyO args(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, args, 0, ret.incRef()); // PyTuple_SetItem steals a reference of ret
       return C(CALLPY(PyObject_CallObject, pyInit->numpyAsarray(), args));
     }
   }
-  // return result
+
+  // all other ret are just returned as it
   return C(ret);
 }
 

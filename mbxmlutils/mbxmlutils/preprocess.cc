@@ -288,7 +288,8 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     path paramFile;
     if(E(e)->hasAttribute("parameterHref")) {
       // parameter from parameterHref attribute
-      Eval::Value ret=eval->eval(E(e)->getAttributeNode("parameterHref"));
+      Eval::Value ret;
+      try { ret=eval->eval(E(e)->getAttributeNode("parameterHref")); } RETHROW_AS_DOMEVALEXCEPTION(e)
       string subst;
       try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
       paramFile=E(e)->convertPath(subst);
@@ -361,7 +362,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           E(e)->removeAttribute("unit");
           E(e)->removeAttribute("convertUnit");
         }
-        catch(DOMEvalException &ex) {
+        catch(exception &ex) {
           if(E(p)->getTagName()!=PV%"import")
             eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
                            <<E(p)->getAttribute("name")<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
@@ -406,7 +407,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         BOOST_SCOPE_EXIT(&localParamEle, &p, &localParamEleInDOM) {
           localParamEle.reset(static_cast<DOMElement*>(p->removeChild(localParamEleInDOM)));
         } BOOST_SCOPE_EXIT_END
-        eval->addParamSet(localParamEleInDOM);
+        try { eval->addParamSet(localParamEleInDOM); } RETHROW_AS_DOMEVALEXCEPTION(e)
       }
 
       // embed only if 'onlyif' attribute is true
@@ -509,7 +510,8 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       // skip attributes which are not evaluated
       if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
         continue;
-      Eval::Value value=eval->eval(a);
+      Eval::Value value;
+      try { value=eval->eval(a); } RETHROW_AS_DOMEVALEXCEPTION(e)
       string s;
       try {
         if(eval->valueIsOfType(value, Eval::ScalarType)) {
@@ -552,7 +554,8 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
        E(e)->isDerivedFrom(PV%"indexVector") ||
        E(e)->isDerivedFrom(PV%"indexMatrix") ||
        function) {
-      Eval::Value value=eval->eval(e);
+      Eval::Value value;
+      try { value=eval->eval(e); } RETHROW_AS_DOMEVALEXCEPTION(e)
       E(e)->removeAttribute("unit");
       E(e)->removeAttribute("convertUnit");
       // if a child element exists (xml*Group or fromFileGroup) then remove it
@@ -572,7 +575,8 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     // handle elements of type PV%"script"
     if(E(e)->isDerivedFrom(PV%"script")) {
       // eval element: for PV%"script" a string containing all parameters in xmlflateval notation is returned.
-      Eval::Value value=eval->eval(e);
+      Eval::Value value;
+      try { value=eval->eval(e); } RETHROW_AS_DOMEVALEXCEPTION(e)
       // add processing instruction <?ScriptParameter ...?>
       // add processing instruction <?ScriptParameter ...?>
       E(e)->addProcessingInstructionChildNamed("ScriptParameter", eval->cast<string>(value));
