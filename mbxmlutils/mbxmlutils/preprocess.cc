@@ -265,16 +265,20 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       // Very special care must be taken since 2. is done by serializing and reparsing the document which will
       // invalidate all DOMNode's except the DOMDocument.
       // Hence, we save the xpath of enew and get the enew element again in 3. using the saved xpath.
+      auto doc = e->getOwnerDocument();
+
+      DOMEvalException msg("WARNING: Revalidate document "+D(doc)->getDocumentFilename().string()+
+                           " to populate this local element with type information.", enew.get());
+      msgStatic(Debug)<<msg.what()<<endl;
+
       vector<int> xPathenew;
       XercesUniquePtr<DOMElement> savede;
-      auto doc = e->getOwnerDocument();
       {
         auto p = e->getParentNode();
         auto enewPtr = enew.release();
         savede.reset(static_cast<DOMElement*>(p->replaceChild(enewPtr, e)));
         xPathenew = E(enewPtr)->getElementLocation();
       }
-      msgStatic(Debug)<<"Revalidate main document to populate local Embed element with type information."<<endl;
       auto oldRoot = D(doc)->validate(); // prevent release of the old root element until end of scope (we need "e" next)
       {
         auto enewPtr = static_cast<DOMElement*>(D(doc)->locateElement(xPathenew));
