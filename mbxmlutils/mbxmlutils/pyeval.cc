@@ -622,7 +622,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(skipRet)
     return {};
 
-  // check for vector or matrix return value (which is converted to numpy)
+  // check for vector/matrix return value (which is converted to numpy 1D/2D ndarray)
   if(CALLPY(PyList_Check, ret)) {
     auto size = CALLPY(PyList_Size, ret);
     if(size==0) {
@@ -634,27 +634,42 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     bool isVector=true;
     bool isMatrix=true;
     int cols=-1;
-    for(size_t i=0; i<size; ++i) {
-      PyO ele(CALLPYB(PyList_GetItem, ret, i));
-      if(is_scalar_double(C(ele)))
+    for(size_t r=0; r<size; ++r) {
+      PyO row(CALLPYB(PyList_GetItem, ret, r));
+      if(is_scalar_double(C(row)))
         isMatrix=false;
       else
         isVector=false;
-      if(CALLPY(PyList_Check, ele)) {
-        auto size2 = CALLPY(PyList_Size, ele);
-        if(i==0)
-          cols=size2;
-        else if(cols!=size2) {
+      if(CALLPY(PyList_Check, row)) {
+        auto colsInRowr = CALLPY(PyList_Size, row);
+        if(r==0)
+          cols=colsInRowr;
+        else if(cols!=colsInRowr) {
           isMatrix=false;
           break;
         }
-        for(size_t j=0; j<size2; ++j) {
-          PyO ele2(CALLPYB(PyList_GetItem, ele, j));
+        for(size_t j=0; j<colsInRowr; ++j) {
+          PyO ele2(CALLPYB(PyList_GetItem, row, j));
           if(!is_scalar_double(C(ele2)))
             isMatrix=false;
           if(!isVector && !isMatrix)
             break;
         }
+      }
+      else if(is_vector_double(C(row))) {
+        auto *a=reinterpret_cast<PyArrayObject*>(row.get());
+        npy_intp *dims=PyArray_SHAPE(a);
+        auto colsInRowr = dims[0];
+        if(r==0)
+          cols=colsInRowr;
+        else if(cols!=colsInRowr) {
+          isMatrix=false;
+          break;
+        }
+      }
+      else {
+        isMatrix=false;
+        break;
       }
       if(!isVector && !isMatrix)
         break;
