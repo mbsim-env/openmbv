@@ -643,7 +643,11 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
       if(eCount>0)
         xpath=string("/{").append(PV.getNamespaceURI()).append("}Embed[").append(to_string(eCount)).append("]").append(xpath);
     }
-    e=static_cast<const DOMElement*>(e->getParentNode());
+    auto *p=e->getParentNode();
+    if(p && p->getNodeType()==DOMNode::ELEMENT_NODE)
+      e=static_cast<const DOMElement*>(p);
+    else
+      e=nullptr;
     if(!e) { // it may happen that e is nullptr -> we cannot return an xpath in this case since the full abs path is not known
       xpath="";
       break;
@@ -913,6 +917,8 @@ DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::
   }
   else if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
     appendContext(n, loc.getLineNumber());
+  else if(n->getNodeType()==DOMNode::DOCUMENT_FRAGMENT_NODE)
+    appendContext(n, loc.getLineNumber());
   else
     assert(false && "DOMEvalException can only be called with a DOMLocator of node type element, attribute or text.");
 }
@@ -943,6 +949,12 @@ void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
     filename=D(doc)->getDocumentFilename();
     lineNr=0;
     embedCount=0;
+  }
+  else if(n->getNodeType()==DOMNode::DOCUMENT_FRAGMENT_NODE) {
+    xpath="mfmfxpath";
+    filename="mfmffilename";
+    lineNr=99;
+    embedCount=99;
   }
   else
     throw runtime_error("DOMEvalException::appendContext can only be called for element and attribute nodes.");
