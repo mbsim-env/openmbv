@@ -60,48 +60,48 @@ def _serializeFunction(x):
   # serialize a matrix or vector (we allow sympy matrices, numpy array and python lists)
   if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix" or \
      type(x)==numpy.ndarray:
-    s="["
+    s=["["]
     if len(x.shape)==2:
       (rows, cols)=x.shape
       for r in range(0, rows):
         for c in range(0, cols):
-          s+=_serializeFunction(x[r,c])
+          s.append(_serializeFunction(x[r,c]))
           if c<cols-1:
-            s+=", "
+            s.append(", ")
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     elif len(x.shape)==1:
       rows=x.shape[0]
       for r in range(0, rows):
-        s+=_serializeFunction(x[r])
+        s.append(_serializeFunction(x[r]))
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     else:
       raise RuntimeError("Internal error: Unknonw shape")
-    s+="]"
-    return s
+    s.append("]")
+    return "".join(s)
   elif type(x)==list:
-    s="["
+    s=["["]
     if len(x)>0 and type(x[0])==list:
       rows=len(x)
       for r in range(0, rows):
         cols=len(x[r])
         for c in range(0, cols):
-          s+=_serializeFunction(x[r][c])
+          s.append(_serializeFunction(x[r][c]))
           if c<cols-1:
-            s+=", "
+            s.append(", ")
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     elif (len(x)>0 and type(x[0])!=list) or len(x)==0:
       rows=len(x)
       for r in range(0, rows):
-        s+=_serializeFunction(x[r])
+        s.append(_serializeFunction(x[r]))
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     else:
       raise RuntimeError("Internal error: Unknonw shape")
-    s+="]"
-    return s
+    s.append("]")
+    return "".join(s)
   # serialize a scalar
   else:
     # serialize a scalar (may be called recursively)
@@ -145,21 +145,28 @@ def _serializeFunction(x):
           if nrArgs==2 and x.args[1][1]!=True:
             raise RuntimeError("Internal error in: "+str(x))
 
-          if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
-            sympyRelational=sympy.core.relational
-          else:
-            sympyRelational=sympy.relational
-
-          if isinstance(c, sympyRelational.GreaterThan) or isinstance(c, sympyRelational.StrictGreaterThan):
-            return "condition("+serializeVertex(c.lhs-c.rhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
-          elif isinstance(c, sympyRelational.LessThan) or isinstance(c, sympyRelational.StrictLessThan):
-            return "condition("+serializeVertex(c.rhs-c.lhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
-          elif c==True:
-            return serializeVertex(gt)
-          elif c==False:
-            return serializeVertex(le)
-          else:
-            raise RuntimeError("Unknown relation in Piecewise: "+str(x))
+          def boolVertexToGt0Func(c):
+            if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
+              _sympyRelational=sympy.core.relational
+            else:
+              _sympyRelational=sympy.relational
+          
+            if isinstance(c, _sympyRelational.GreaterThan) or isinstance(c, _sympyRelational.StrictGreaterThan):
+              return c.lhs-c.rhs
+            elif isinstance(c, _sympyRelational.LessThan) or isinstance(c, _sympyRelational.StrictLessThan):
+              return c.rhs-c.lhs
+            elif c==True:
+              return 1
+            elif c==False:
+              return -1
+            elif isinstance(c, sympy.logic.boolalg.And):
+              return sympy.Min(*map(lambda x: boolVertexToGt0Func(x), c.args))
+            elif isinstance(c, sympy.logic.boolalg.Or):
+              return sympy.Max(*map(lambda x: boolVertexToGt0Func(x), c.args))
+            else:
+              raise RuntimeError("Unknown relation in Piecewise: "+str(c))
+          cGt0Func=boolVertexToGt0Func(c)
+          return "".join(["condition(",serializeVertex(cGt0Func),",",serializeVertex(gt),",",serializeVertex(le),")"])
       # handle known function from opMap
       opStr=_serializeFunction.opMap.get(x.func.__name__)
       if opStr is None:
@@ -175,14 +182,14 @@ def _serializeFunction(x):
         ):
         raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
       # serailize
-      s=opStr[0]+"("
+      s=[opStr[0],"("]
       first=True
       for op in x.args[0:opStr[1]]:
-        if not first: s+=","
-        s+=serializeVertex(op)
+        if not first: s.append(",")
+        s.append(serializeVertex(op))
         first=False
-      s+=")"
-      return s
+      s.append(")")
+      return "".join(s)
     # serialize x to string s (may call serializeVertex recursively)
     s=serializeVertex(x)
     return s
