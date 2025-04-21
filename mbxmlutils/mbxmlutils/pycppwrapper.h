@@ -227,7 +227,10 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 // Initialize python giving main as program name to python.
 // All path in sysPathAppend are added to python's sys.path array.
 // If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
-// and if one is found envvar is set
+// and if one is found envvar is set.
+// The calling thread holds the python GIL after this function finished. To release it
+// call PyEval_SaveThread() or PyEval_ReleaseThread(PyThreadState_Get()). In this case ensure to acquire the GIL in each thread before
+// each call to python using the class GilState
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
                       const std::vector<boost::filesystem::path> &sysPathPrepend={},
                       const std::vector<boost::filesystem::path> &sysPathAppend={},

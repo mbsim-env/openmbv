@@ -41,12 +41,6 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
-}
-
-namespace MBXMLUtils {
-
-MBXMLUTILS_EVAL_REGISTER(PyEval)
-
 class PyOOnDemand {
   public:
     PyOOnDemand() = default;
@@ -89,21 +83,21 @@ PyInit::PyInit() {
 #endif
 
     // init python
-    initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
+    initializePython(MBXMLUtils::Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
       // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
+      MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
     }, {
       // append mbxmlutils module to the python path (the basic Python module for the pyeval)
-      Eval::installPath/"share"/"mbxmlutils"/"python",
+      MBXMLUtils::Eval::installPath/"share"/"mbxmlutils"/"python",
       // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
-      Eval::installPath/"bin",
+      MBXMLUtils::Eval::installPath/"bin",
     }, {
       // possible python prefix
-      Eval::installPath,
+      MBXMLUtils::Eval::installPath,
       boost::filesystem::path(PYTHON_PREFIX),
     }, {
       // append to PATH (on Windows using os.add_dll_directory)
-      Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
+      MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
     });
 
     // init numpy
@@ -140,6 +134,8 @@ PyInit::PyInit() {
 
     PyO io(CALLPY(PyImport_ImportModule, "io"));
     ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
+
+    PyEval_ReleaseThread(PyThreadState_Get());
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -154,6 +150,7 @@ PyInit::PyInit() {
 
 PyInit::~PyInit() {
   try {
+    GilState gil;
     // clear all Python object before deinit
     if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
     if(sympyDummy) sympyDummy().reset();
@@ -162,6 +159,8 @@ PyInit::~PyInit() {
     if(numpyArray) numpyArray().reset();
     functionValue.clear();
     if(mbxmlutils) mbxmlutils().reset();
+    if(pprintPformat) pprintPformat().reset();
+    ioStringIO.reset();
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -219,6 +218,22 @@ class Redirect {
 #define MBXMLUTILS_REDIR_STDOUT(strstr) Redirect<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
 #define MBXMLUTILS_REDIR_STDERR(strstr) Redirect<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
 
+path toRelativePath(const path& abs, const path& relTo) {
+  size_t dist=distance(relTo.begin(), relTo.end());
+  path::iterator dstIt=abs.begin();
+  for(int i=0; i<dist; ++i) ++dstIt;
+  path ret;
+  for(; dstIt!=abs.end(); ++dstIt)
+    ret/=*dstIt;
+  return ret;
+}
+
+}
+
+namespace MBXMLUtils {
+
+MBXMLUTILS_EVAL_REGISTER(PyEval)
+
 extern "C"
 int MBXMLUtils_SharedLibrary_init() {
   try {
@@ -237,7 +252,11 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsToInstance" import action
 }
 
-PyEval::~PyEval() = default;
+PyEval::~PyEval() {
+  GilState gil;
+  globalImportDict.reset();
+  byteCodeMap.clear();
+}
 
 Eval::Value PyEval::createFunctionIndep(int dim) const {
   GilState gil;
@@ -405,20 +424,6 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   throw runtime_error("Internal error: Unknwon ValueType.");
 }
 
-path relative(const path& abs, const path& relTo) {
-  size_t dist=distance(relTo.begin(), relTo.end());
-  path::iterator dstIt=abs.begin();
-  for(int i=0; i<dist; ++i) ++dstIt;
-  path ret;
-  for(; dstIt!=abs.end(); ++dstIt)
-    ret/=*dstIt;
-  return ret;
-}
-
-path replace_extension(path p, const path& newExt=path()) {
-  return p.replace_extension(newExt);
-}
-
 map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   static map<path, pair<path, bool> > files;
   if(!files.empty())
@@ -443,7 +448,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       return;
     if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
       return;
-    path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
+    path subDir=toRelativePath(*srcIt, PYTHONSRC).parent_path();
     bool bin=false;
     static const regex so(".*\\.so(\\..*)*");
     if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
