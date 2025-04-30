@@ -431,7 +431,9 @@ def steinerRule(mass, inertia, com, inertiaOrientation = None):
   "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
   and inertiaOrientation defines the transformation matrix between both (T_LK)"""
   T_LK = numpy.array(inertiaOrientation) if inertiaOrientation is not None else numpy.eye(3)
-  return  T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
+  inertiaOut = T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
+  inertiaOut = (inertiaOut + inertiaOut.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
+  return inertiaOut
 
 
 
@@ -446,6 +448,8 @@ def sumMassValues(*massValue):
   - "inertia":            is given around the summed up center of mass and with respect to the local coordinate system L.
   - "com":                is with respect to the local cooridnate system L.
   - "inertiaOrientation": is not provided since "inertia" is always returned with respect to the local coordinate system L (T_LK = eye)."""
+  import warnings
+  warnings.warn("sumMassValues is deprecated, please use the class MassValues")
   sum_m = 0
   sum_inertia_L = numpy.zeros((3,3))
   sum_mcom = numpy.zeros(3)
@@ -455,7 +459,66 @@ def sumMassValues(*massValue):
     sum_mcom += mv["mass"] * numpy.array(mv["com"])
   sum_com = sum_mcom / sum_m
   sum_inertia_C = steinerRule(-sum_m, sum_inertia_L, sum_com) # negative mass -> move from none-com to com
+  sum_inertia_C = (sum_inertia_C + sum_inertia_C.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
   return { "mass": sum_m, "inertia": sum_inertia_C, "com": sum_com}
+
+
+
+class MassValues():
+  """Mass related values of a rigid-body: mass, center of gravity and inertia tensor.
+  The following members exist:
+  - mass:               the mass of rigid-body
+  - com:                the center of mass of the rigid-body; the com must be given with respect to a local coordinate system L
+  - inertia:            the inertia tensor of the rigid-body; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L"""
+  def __init__(self, mass, com, inertia):
+    """Create an MassValues instance with mass, com and inertia"""
+    self.mass=mass
+    self.com=numpy.array(com)
+    self.inertia=numpy.array(inertia)
+  def __str__(self):
+    """Print the mass values"""
+    inertiaStr = numpy.array2string(self.inertia).replace("\n", "")
+    return f'MassValues(mass={self.mass}, com={self.com}, inertia={inertiaStr})'
+  def copy(self):
+    """Deep copy the mass values instance"""
+    return MassValues(mass=self.mass, com=self.com, inertia=self.inertia)
+  def __add__(self, rhs):
+    """Add two mass values: both, the lhs and rhs must be represented in the same local coordinate system L"""
+    sum_m = self.mass +\
+            rhs.mass
+    sum_inertia_L = steinerRule(self.mass, self.inertia, self.com) +\
+                    steinerRule(rhs.mass , rhs.inertia , rhs.com   ) # positive mass -> move from com to none-com
+    sum_mcom = self.mass * self.com +\
+               rhs.mass  * rhs.com
+    sum_com = sum_mcom / sum_m
+    sum_inertia_C = steinerRule(-sum_m, sum_inertia_L, sum_com) # negative mass -> move from none-com to com
+    sum_inertia_C = (sum_inertia_C + sum_inertia_C.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
+    return MassValues(mass=sum_m, com=sum_com, inertia=sum_inertia_C)
+  def __sub__(self, rhs):
+    """Substract a mass value from another: both, the lhs and rhs must be represented in the same local coordinate system L"""
+    # mv1 - mv2 = mv1 + mv2n with mv2n being mv2 with a negative sign for mass and inertia
+    rhsNeg = rhs.copy()
+    rhsNeg.mass *= -1
+    rhsNeg.inertia *= -1
+    return self+rhsNeg
+
+
+
+def inertiaCuboid(mass, lx, ly, lz):
+  """Returns the inertia around the center of mass of a homogeneous, solid cuboid with the dimensions lx, ly, lz."""
+  return numpy.array([
+    [1/12*mass*(ly**2+lz**2),0,0],
+    [0,1/12*mass*(lx**2+lz**2),0],
+    [0,0,1/12*mass*(lx**2+ly**2)],
+  ])
+def inertiaCylinder(mass, r, h):
+  """Returns the inertia around the center of mass of a homogeneous, solid cylinder with radius r and height h.
+  The cylinder rotation axis is the x-axis (h is along x-axis)."""
+  return numpy.array([
+    [1/2*mass*r**2,0,0],
+    [0,1/12*mass*(3*r**2+h**2),0],
+    [0,0,1/12*mass*(3*r**2+h**2)],
+  ])
 
 
 
