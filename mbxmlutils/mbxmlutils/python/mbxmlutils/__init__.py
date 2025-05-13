@@ -470,7 +470,7 @@ class MassValues():
   - mass:               the mass of rigid-body
   - com:                the center of mass of the rigid-body; the com must be given with respect to a local coordinate system L
   - inertia:            the inertia tensor of the rigid-body; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L"""
-  def __init__(self, mass, com, inertia):
+  def __init__(self, mass=0, com=numpy.zeros((3,)), inertia=numpy.zeros((3,3))):
     """Create an MassValues instance with mass, com and inertia"""
     self.mass=mass
     self.com=numpy.array(com)
@@ -501,6 +501,20 @@ class MassValues():
     rhsNeg.mass *= -1
     rhsNeg.inertia *= -1
     return self+rhsNeg
+  def __mul__(self, fac):
+    """Multiply a mass value with a scalar: multiplies mass and inertia with the factor"""
+    res = self.copy()
+    res.mass *= fac
+    res.inertia *= fac
+    return res
+  def __rmul__(self, fac):
+    """Multiply a mass value with a scalar: multiplies mass and inertia with the factor"""
+    # call the commutative multiply operator
+    return self * fac
+  def __truediv__(self, fac):
+    """Divide a mass value with a scalar: divides mass and inertia by the factor"""
+    # call the multiply operator with the inverse factor
+    return self * (1/fac)
 
 
 
