@@ -43,7 +43,6 @@ class SbVec3fComp {
     SbVec3fComp(double eps_) : eps(eps_) {}
     // return true if a<b
     bool operator()(const SbVec3f& a, const SbVec3f& b) const {
-      double eps=0;
       if(fabs(a[0]-b[0])<=eps)
         if(fabs(a[1]-b[1])<=eps)
           if(a[2]<b[2] && fabs(a[2]-b[2])>eps)
