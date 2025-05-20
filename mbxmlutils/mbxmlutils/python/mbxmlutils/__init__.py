@@ -417,6 +417,14 @@ def tilde(x):
 
 
 
+def _checkInertia(inertia):
+  I = numpy.array(inertia)
+  if not numpy.allclose(I, I.T, rtol=1e-10, atol=1e-10):
+    raise RuntimeError(f"The mass inertia value {I} is not symmetric.")
+  # we do not check for none zero diagonal elements since we allow calculation with mass values where a zero mass is allowed
+
+
+
 def steinerRule(mass, inertia, com, inertiaOrientation = None):
   """Apply the steiner rule on a inertia.
 
@@ -430,6 +438,7 @@ def steinerRule(mass, inertia, com, inertiaOrientation = None):
 
   "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
   and inertiaOrientation defines the transformation matrix between both (T_LK)"""
+  _checkInertia(inertia)
   T_LK = numpy.array(inertiaOrientation) if inertiaOrientation is not None else numpy.eye(3)
   inertiaOut = T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
   inertiaOut = (inertiaOut + inertiaOut.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
@@ -475,6 +484,7 @@ class MassValues():
     self.mass=mass
     self.com=numpy.array(com)
     self.inertia=numpy.array(inertia)
+    _checkInertia(self.inertia)
   def __str__(self):
     """Print the mass values"""
     inertiaStr = numpy.array2string(self.inertia).replace("\n", "")
