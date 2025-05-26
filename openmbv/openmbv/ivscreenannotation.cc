@@ -168,8 +168,8 @@ double IvScreenAnnotation::update() {
   vector<double> data=ivsa->getRow(frame);
   
   auto setColumnLabelFields = [this](const vector<double> &data) {
-    for(size_t i=0; i<columnLabelFields.size(); ++i)
-      columnLabelFields[i]->value.setValue(data[i]);
+    for(size_t i=1; i<data.size(); ++i)
+      columnLabelFields[i-1]->value.setValue(data[i]);
   };
   setColumnLabelFields(data);
 

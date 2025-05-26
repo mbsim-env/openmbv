@@ -88,13 +88,29 @@ namespace OpenMBV {
       template<typename T>
       void append(const T& row) {
         if(data==nullptr) throw std::runtime_error("IvScreenAnnotation: Cannot append data to an environment object");
-        if(row.size()!=static_cast<int>(columnLabels.size())) throw std::runtime_error("IvScreenAnnotation: The dimension does not match (append: "+
-                                            std::to_string(row.size())+", columns: "+std::to_string(columnLabels.size())+")");
-        data->append(&row(0), row.size());
+        if(row.size()!=1+columnLabels.size()) throw std::runtime_error("IvScreenAnnotation: The dimension does not match (append: "+
+                                                    std::to_string(row.size())+", columns: "+std::to_string(1+columnLabels.size())+")");
+        data->append(&row[0], row.size());
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data ? data->getRow(i) : std::vector<double>(columnLabels.size()); }
+      std::vector<double> getRow(int i) override {
+        if(!data)
+          return std::vector<double>(1+columnLabels.size());
+
+        auto row = data->getRow(i);
+
+        // handle legacy data (no "time" column as first column)
+        if(columnLabels.size() == row.size()) {
+          std::vector<double> ret(1+row.size());
+          ret[0] = 0; // use 0 for time column
+          for(size_t i = 0; i < row.size(); ++i)
+            ret[i+1] = row[i];
+          return ret;
+        }
+
+        return row;
+      }
     protected:
       IvScreenAnnotation();
       ~IvScreenAnnotation() override = default;
