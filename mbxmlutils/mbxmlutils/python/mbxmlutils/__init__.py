@@ -741,6 +741,26 @@ namedColor.nameToHEX=None
 
 
 
+def embedIvImage(filename):
+  """Create a IV 'image' token, usable e.g. in Texture2, which equals the image in filename."""
+  import PIL.Image
+  im = PIL.Image.open(filename)
+  l = len(im.getpixel((0,0)))
+  if l<3:
+    raise RuntimeError("Only RGB and RGBA images can be handled by embedIvImage for now")
+  out=[]
+  for y in reversed(range(0,im.size[1])):
+    for x in range(0,im.size[0]):
+      p = im.getpixel((x,y))
+      if l==4:
+        n = p[0]*256**3+p[1]*256**2+p[2]*256+p[3]
+      else:
+        n = p[0]*256**2+p[1]*256+p[2]
+      out.append(hex(n))
+  return f"image {im.size[0]} {im.size[1]} {l} "+" ".join(out)
+
+
+
 # a simply dictionary on module level to store data.
 # the lifetime of data is the lifetime of the python evaluator.
 # This can be used to store any data and access it later on (but take care about memory usage when large data is stored)
