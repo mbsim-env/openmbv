@@ -11,7 +11,7 @@ mbxmlutilsvalidate.o: $(srcdir)/mbxmlutilsvalidate.rc $(srcdir)/mbxmlutilsvalida
 # XML helper functions
 libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS)
-libmbxmlutilshelper_la_LIBADD = $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_REGEX_LIB@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(LIBDL)
+libmbxmlutilshelper_la_LIBADD = $(LDFLAGS_NOUNDEF) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_REGEX_LIB@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(LIBDL)
 libmbxmlutilshelper_la_SOURCES = dom.cc utils.cc windows_signal_conversion.cc
 libmbxmlutilshelper_la_HEADERS = dom.h utils.h windows_signal_conversion.h shared_library.h last_write_time.h thislinelocation.h
 libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
@@ -24,7 +24,7 @@ dist_w3cschema_DATA = XInclude.xsd
 bin_PROGRAMS = mbxmlutilsvalidate
 mbxmlutilsvalidate_SOURCES = validate.cc
 mbxmlutilsvalidate_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilsvalidate_LDADD = libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(MAYBE_WIN32_mbxmlutilsvalidate_OBJ)
+mbxmlutilsvalidate_LDADD = $(LDFLAGS_NOUNDEF) libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(MAYBE_WIN32_mbxmlutilsvalidate_OBJ)
 
 
 pythondir = @datadir@/@PACKAGE@/python

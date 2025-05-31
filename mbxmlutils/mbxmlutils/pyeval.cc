@@ -62,7 +62,7 @@ class PyOOnDemand {
 class PyInit {
   public:
     PyInit();
-    ~PyInit();
+    // ~PyInit(); we do not deinit python!
     PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
     PyOOnDemand numpyAsarray;
@@ -100,6 +100,8 @@ PyInit::PyInit() {
       MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
     });
 
+    GilState gil;
+
     // init numpy
     CALLPY(_import_array);
 
@@ -135,7 +137,7 @@ PyInit::PyInit() {
     PyO io(CALLPY(PyImport_ImportModule, "io"));
     ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
 
-    PyEval_ReleaseThread(PyThreadState_Get());
+//mfmf    PyEval_ReleaseThread(PyThreadState_Get());
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -148,40 +150,32 @@ PyInit::PyInit() {
   }
 }
 
-PyInit::~PyInit() {
-  try {
-    GilState gil;
-    // clear all Python object before deinit
-    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
-    if(sympyDummy) sympyDummy().reset();
-    if(numpyAsarray) numpyAsarray().reset();
-    if(numpyZeros) numpyZeros().reset();
-    if(numpyArray) numpyArray().reset();
-    functionValue.clear();
-    if(mbxmlutils) mbxmlutils().reset();
-    if(pprintPformat) pprintPformat().reset();
-    ioStringIO.reset();
-  }
-  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const exception& ex) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
-      <<"Continuing but undefined behaviour may occur."<<endl;
-  }
-  catch(...) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
-      <<"Continuing but undefined behaviour may occur."<<endl;
-  }
-}
+//PyInit::~PyInit() {
+//  try {
+//    GilState gil;
+//    // clear all Python object before deinit
+//    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
+//    if(sympyDummy) sympyDummy().reset();
+//    if(numpyAsarray) numpyAsarray().reset();
+//    if(numpyZeros) numpyZeros().reset();
+//    if(numpyArray) numpyArray().reset();
+//    functionValue.clear();
+//    if(mbxmlutils) mbxmlutils().reset();
+//    if(pprintPformat) pprintPformat().reset();
+//    ioStringIO.reset();
+//  }
+//  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
+//  catch(const exception& ex) {
+//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
+//      <<"Continuing but undefined behaviour may occur."<<endl;
+//  }
+//  catch(...) {
+//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
+//      <<"Continuing but undefined behaviour may occur."<<endl;
+//  }
+//}
 
-// we cannot call the ctor of PyInit here as a global variable!
-// Some python modules do not link against libpython but rely on the fact the libpyhton is already
-// loaded into the global symbol space. Hence, this library must be loaded using RTDL_GLOBAL and
-// the initialization cannot be done in global ctor code, nor in using the _init function of ld nor
-// using the GNU __attribute__((constructor)) because this does not work! But calling a init function
-// after the so is fully loaded does work. Hence, we define the MBXMLUtils_SharedLibrary_init function
-// here which is executed by SharedLibrary::load after the lib is loaded.
-// On Windows this is not required, but does not hurt.
-unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
+PyInit *pyInit = new PyInit; // init Python on library load and deinit on library unload = program end (we never deinit python)
 
 // A class to redirect stderr or stdout.
 template<int T>
@@ -189,7 +183,7 @@ class Redirect {
   public:
     Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      static auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
+      auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
       PyO arg(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
       auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
@@ -233,17 +227,6 @@ path toRelativePath(const path& abs, const path& relTo) {
 namespace MBXMLUtils {
 
 MBXMLUTILS_EVAL_REGISTER(PyEval)
-
-extern "C"
-int MBXMLUtils_SharedLibrary_init() {
-  try {
-    pyInit=make_unique<PyInit>();
-  }
-  catch(...) {
-    return 1;
-  }
-  return 0;
-}
 
 boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}()); // initialize a uuid name generator with a random namespace
 
