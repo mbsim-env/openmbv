@@ -81,13 +81,13 @@ libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 # python c++ wrapper librarey
 libpycppwrapper_ladir = $(includedir)/mbxmlutils
 libpycppwrapper_la_CPPFLAGS = $(PYTHON_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
-libpycppwrapper_la_LIBADD = -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
+libpycppwrapper_la_LIBADD = $(PYTHON_LIBS_OPT) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libpycppwrapper_la_SOURCES = pycppwrapper.cc
 libpycppwrapper_la_HEADERS = pycppwrapper.h
 # python part of the utility library
 libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
-libmbxmlutils_eval_global_python_la_LIBADD = libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
+libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h

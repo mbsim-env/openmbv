@@ -248,6 +248,12 @@ PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(s
 AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])
 AC_DEFINE_UNQUOTED([PYTHON_VERSION], ["$pythonversion"], [Python version])
 AC_SUBST([PYTHON_VERSION],[$pythonversion])
+if test "_$host_os" != "_mingw32"; then
+  PYTHON_LIBS_OPT=""
+else
+  PYTHON_LIBS_OPT"$PYTHON_LIBS"
+fi
+AC_SUBST([PYTHON_LIBS_OPT])
 
 dnl Check for doxygen
 AC_ARG_WITH([doxygenpath],
@@ -264,8 +270,13 @@ if test "_$host_os" != "_mingw32"; then
 fi
 
 # from now on only libtool is used for linking
-LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL -no-undefined"
-LDFLAGS_NOUNDEF="-Wl,--no-undefined"
+if test "_$host_os" != "_mingw32"; then
+  LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL"
+  LDFLAGS_NOUNDEF="-no-undefined -Wl,--no-undefined"
+else
+  LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL -no-undefined -Wl,--no-undefined"
+  LDFLAGS_NOUNDEF=""
+fi
 AC_SUBST([LDFLAGS_NOUNDEF], [$LDFLAGS_NOUNDEF])
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 
