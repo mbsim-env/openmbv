@@ -83,7 +83,7 @@ libpycppwrapper_ladir = $(includedir)/mbxmlutils
 libpycppwrapper_la_CPPFLAGS = $(PYTHON_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 libpycppwrapper_la_LIBADD = $(PYTHON_LIBS_OPT) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libpycppwrapper_la_SOURCES = pycppwrapper.cc
-libpycppwrapper_la_HEADERS = pycppwrapper.h
+libpycppwrapper_la_HEADERS = pycppwrapper.h pycppwrapper_mainlib.h
 # python part of the utility library
 libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround

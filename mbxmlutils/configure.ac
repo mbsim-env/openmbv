@@ -210,22 +210,23 @@ AC_SUBST([OCTAVE], [$(dirname $mkoctfile)/octave-cli$(test "$cross_compiling" ==
 # check for python
 AC_ARG_WITH([pythonversion], [  --with-pythonversion=VER  The version of python to build for (default: $(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")).],
   [pythonversion="$withval"],[pythonversion=$(python3 --version | sed -re "s/.*\<(3\.[[0-9]]+)\..*/\1/")])
-PKG_CHECK_MODULES([PYTHON], [python-$pythonversion-embed], [], [
-  PKG_CHECK_MODULES([PYTHON], [python-$pythonversion])
-])
+PKG_CHECK_MODULES([PYTHON], [python-$pythonversion-embed])
 if test "_$PYTHON_BIN" == "_"; then
-  PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion)/bin/python$pythonversion"
+  PYTHON_BIN="$(pkg-config --variable=exec_prefix python-$pythonversion-embed)/bin/python$pythonversion"
 fi
-PYTHON_PREFIX="$(pkg-config --variable=exec_prefix python-$pythonversion)"
+PYTHON_PREFIX="$(pkg-config --variable=exec_prefix python-$pythonversion-embed)"
 PYTHON_LIBDIR=$($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST"))' | dos2unix)
 if test "$cross_compiling" == "yes"; then
   PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
 fi
 if test "_$host_os" != "_mingw32"; then
   PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
+  PYTHON_MAINLIB="$(pkg-config --variable=libdir python-$pythonversion-embed)/libpython$pythonversion.so"
 else
   PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
+  PYTHON_MAINLIB=""
 fi
+AC_SUBST([PYTHON_MAINLIB])
 if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
   PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
   PYTHON_PACKAGES=site-packages
@@ -283,7 +284,7 @@ test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpa
 dnl set conditional variable for the subdirectories in the Makefile.am
 AM_CONDITIONAL([COND_WIN32], [test "_$host_os" = "_mingw32"])
 
-AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc pycppwrapper.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile])
+AC_CONFIG_FILES([Makefile xmldoc/Makefile xsd2html/Makefile mbxmlutilshelper/Makefile mbxmlutils/Makefile mbxmlutilshelper.pc mbxmlutils.pc pycppwrapper.pc mbxmlutils/octave/Makefile mbxmlutils/python/Makefile doc/Makefile doc/doxyfile mbxmlutils/pycppwrapper_mainlib.h])
 AC_CONFIG_FILES([mbxmlutils/octave/testsymbolic.sh],[chmod +x mbxmlutils/octave/testsymbolic.sh])
 AC_CONFIG_FILES([mbxmlutils/python/testsymbolic.sh],[chmod +x mbxmlutils/python/testsymbolic.sh])
 AC_CONFIG_FILES([mbxmlutils/measurement.sh],[chmod +x mbxmlutils/measurement.sh])
