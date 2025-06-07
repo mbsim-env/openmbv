@@ -31,26 +31,32 @@
 #define _MBXMLUTILS_PYCPPWRAPPER_MAINLIB_H_
 
 #include <string>
+#include <tuple>
+#include <dlfcn.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
 namespace PythonCpp {
 
-  std::pair<std::string, std::string> getPythonMainLib(const std::string &installPath) {
+  inline std::tuple<std::string, std::string, bool> getPythonMainLib(const std::string &installPath) {
 #ifdef _WIN32
-    return {};
+    return {{}, {}, false};
 #else
+    auto globalSymbols = dlopen(nullptr, 0);
+    bool pythonLoaded = dlsym(globalSymbols, "Py_InitializeEx");
+    // dlclose(globalSymbols); not needed and not possible with dlopen(nullptr, ...)
+
     std::string PYMAINLIB("@PYTHON_MAINLIB@");
     auto i=PYMAINLIB.rfind('/');
     auto PYMAINLIBFILE=PYMAINLIB.substr(i+1);
     if(installPath.empty())
-      return {PYMAINLIB.substr(0, i), PYMAINLIBFILE};
+      return {PYMAINLIB.substr(0, i), PYMAINLIBFILE, pythonLoaded};
     if(access((installPath+"/lib/"+PYMAINLIBFILE).c_str(), 0)==0)
-      return {installPath+"/lib", PYMAINLIBFILE};
+      return {installPath+"/lib", PYMAINLIBFILE, pythonLoaded};
     if(access((installPath+"/lib64/"+PYMAINLIBFILE).c_str(), 0)==0)
-      return {installPath+"/lib64", PYMAINLIBFILE};
-    return {PYMAINLIB.substr(0, i), PYMAINLIBFILE};
+      return {installPath+"/lib64", PYMAINLIBFILE, pythonLoaded};
+    return {PYMAINLIB.substr(0, i), PYMAINLIBFILE, pythonLoaded};
 #endif
   }
 
