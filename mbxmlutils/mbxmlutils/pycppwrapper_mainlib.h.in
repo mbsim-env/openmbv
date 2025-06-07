@@ -32,8 +32,8 @@
 
 #include <string>
 #include <tuple>
-#include <dlfcn.h>
 #ifndef _WIN32
+#include <dlfcn.h>
 #include <unistd.h>
 #endif
 
