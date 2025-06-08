@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/uuid/random_generator.hpp>
+#include <boost/scope_exit.hpp>
 #include "mbxmlutils/eval_static.h"
 #include "mbxmlutilshelper/utils.h"
 #include <memory>
@@ -82,6 +83,7 @@ PyInit::PyInit() {
     string binLib("lib");
 #endif
 
+    bool pyIsInit = Py_IsInitialized();
     // init python
     initializePython(MBXMLUtils::Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
       // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
@@ -100,6 +102,11 @@ PyInit::PyInit() {
       MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
     });
 
+    BOOST_SCOPE_EXIT(pyIsInit) {
+      // if we have initialized python (for the first time) we release the thread at the end of this function
+      if(!pyIsInit)
+        PyEval_SaveThread();
+    } BOOST_SCOPE_EXIT_END
     GilState gil;
 
     // init numpy
@@ -136,8 +143,6 @@ PyInit::PyInit() {
 
     PyO io(CALLPY(PyImport_ImportModule, "io"));
     ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
-
-//mfmf    PyEval_ReleaseThread(PyThreadState_Get());
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
