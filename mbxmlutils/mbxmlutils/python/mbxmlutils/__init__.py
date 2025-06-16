@@ -485,7 +485,7 @@ class MassValues():
     self.com=numpy.array(com)
     self.inertia=numpy.array(inertia)
     _checkInertia(self.inertia)
-  def __str__(self):
+  def __repr__(self):
     """Print the mass values"""
     inertiaStr = numpy.array2string(self.inertia).replace("\n", "")
     return f'MassValues(mass={self.mass}, com={self.com}, inertia={inertiaStr})'
