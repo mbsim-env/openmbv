@@ -148,8 +148,6 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   }
 
   preprocessed = true;
-  fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Validate preprocessed file"<<endl;
-  D(document)->validate();
 
   auto end = std::chrono::high_resolution_clock::now();
   msgStatic(Info)<<"Finished XML preprocessing in "<<std::chrono::duration<double>(end-start).count()<<" seconds."<<endl;
