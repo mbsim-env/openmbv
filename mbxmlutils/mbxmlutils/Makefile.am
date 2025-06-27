@@ -131,7 +131,7 @@ CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_oct
 
 
 # generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath/getOriginalFilename
-install-exec-hook:
+install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	ANYFAILED=0; \
 	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-python$(shext) $(runlibdir)/libmbxmlutils-eval-python-runtime$(shext); do \
