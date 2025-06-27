@@ -32,7 +32,7 @@ types.xsd: $(srcdir)/measurement.xml $(srcdir)/measurement2physicalvariable.xsl
 
 
 
-lib_LTLIBRARIES = libpycppwrapper.la libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-global-python.la
+lib_LTLIBRARIES = libpycppwrapper.la libmbxmlutils.la libmbxmlutils-eval-octave.la libmbxmlutils-eval-xmlflat.la libmbxmlutils-eval-python.la libmbxmlutils-eval-python-runtime.la
 module_LTLIBRARIES = fmatvec_symbolic_swig_octave.la registerPath.la getOriginalFilename.la
 moduledir = $(runlibdir)
 
@@ -84,13 +84,20 @@ libpycppwrapper_la_CPPFLAGS = $(PYTHON_CFLAGS) -D_hypot=hypot # -D_hypot is a MS
 libpycppwrapper_la_LIBADD = $(PYTHON_LIBS_OPT) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libpycppwrapper_la_SOURCES = pycppwrapper.cc
 libpycppwrapper_la_HEADERS = pycppwrapper.h pycppwrapper_mainlib.h
-# python part of the utility library
-libmbxmlutils_eval_global_python_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_global_python_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
-libmbxmlutils_eval_global_python_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
-libmbxmlutils_eval_global_python_la_LDFLAGS = -avoid-version
-libmbxmlutils_eval_global_python_la_SOURCES = pyeval.cc
-libmbxmlutils_eval_global_python_la_HEADERS = pyeval.h
+
+# python part of the utility library (the main python evaluator)
+libmbxmlutils_eval_python_runtime_ladir = $(includedir)/mbxmlutils
+libmbxmlutils_eval_python_runtime_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
+libmbxmlutils_eval_python_runtime_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
+libmbxmlutils_eval_python_runtime_la_LDFLAGS = -avoid-version
+libmbxmlutils_eval_python_runtime_la_SOURCES = pyeval.cc
+libmbxmlutils_eval_python_runtime_la_HEADERS = pyeval.h
+
+# python part of the utility library (the python eval lib which loads at runtime python and then libmbxmlutils_eval_python)
+libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir)
+libmbxmlutils_eval_python_la_LIBADD = -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_eval_python_la_LDFLAGS = -avoid-version
+libmbxmlutils_eval_python_la_SOURCES = pyeval-loader.cc
 
 BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 
@@ -127,7 +134,7 @@ CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_oct
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
 	ANYFAILED=0; \
-	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-global-python$(shext); do \
+	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-python$(shext) $(runlibdir)/libmbxmlutils-eval-python-runtime$(shext); do \
 	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
 	    echo "Create dependency file for $$F"; \
 	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > $$F.deplibs || ANYFAILED=1; \

@@ -75,13 +75,16 @@ class PyInit {
     PyO ioStringIO;
 };
 
+#ifdef _WIN32
+static string binLib("bin");
+static string soDll(".dll");
+#else
+static string binLib("lib");
+static string soDll(".so");
+#endif
+
 PyInit::PyInit() {
   try {
-#ifdef _WIN32
-    string binLib("bin");
-#else
-    string binLib("lib");
-#endif
 
     bool pyIsInit = Py_IsInitialized();
     // init python
@@ -444,6 +447,9 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       bin=true;
     files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
   };
+
+  // libmbxmlutils-eval-python.so loads at runtime libmbxmlutils-eval-python-runtime.so 
+  files[installPath/binLib/("libmbxmlutils-eval-python-runtime"+soDll)]=make_pair(binLib, true);
 
   for(auto srcIt=directory_iterator(PYTHONSRC); srcIt!=directory_iterator(); ++srcIt) {
     if(*srcIt->path().rbegin()=="config") // skip config dir
