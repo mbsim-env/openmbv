@@ -27,7 +27,7 @@ namespace {
   Init::Init() {
     auto installPath = boost::filesystem::path(loc()).parent_path().parent_path();
 #ifdef _WIN32
-    string libname="bin/mbxmlutils-eval-python-runtime.dll";
+    string libname="bin/libmbxmlutils-eval-python-runtime.dll";
 #else
     auto [PYMAINLIB, PYMAINLIBFILE, PYTHONLOADED] = PythonCpp::getPythonMainLib(installPath.string());
     if(!PYTHONLOADED)
