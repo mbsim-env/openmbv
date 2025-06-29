@@ -229,7 +229,7 @@ _serializeFunction.opMap={
 
 
 def _getEvalDLL():
-  # load the libmbxmlutils-eval-global-python.so ones
+  # load the libmbxmlutils.so ones
   if _getEvalDLL.dll is None:
     import ctypes
     import sys
@@ -241,14 +241,14 @@ def _getEvalDLL():
 _getEvalDLL.dll=None
 
 def _getPyEvalDLL():
-  # load the libmbxmlutils-eval-global-python.so ones
+  # load the libmbxmlutils-eval-python-runtime.so ones
   if _getPyEvalDLL.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python-runtime.so")
     else:
-      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python-runtime")
   return _getPyEvalDLL.dll
 _getPyEvalDLL.dll=None
 
