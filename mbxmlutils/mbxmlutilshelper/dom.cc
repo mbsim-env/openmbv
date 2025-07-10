@@ -120,6 +120,8 @@ namespace MBXMLUtils {
 ThisLineLocation domLoc;
 
 namespace {
+  static const string mbxmlutilsfileSchema="mbxmlutilsfile://";
+
   InitXerces initXerces;
 
   string domParserKeyStr("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
@@ -806,7 +808,6 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
     return uri.substr(fileScheme.length() + addChars);
   }
   // handle mbxmlutilsfile schema
-  static const string mbxmlutilsfileSchema="mbxmlutilsfile://";
   if(uri.substr(0, mbxmlutilsfileSchema.length())==mbxmlutilsfileSchema)
     return uri.substr(mbxmlutilsfileSchema.length());
   // all other schemas are errors
@@ -1302,7 +1303,9 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   else
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
-  doc->setDocumentURI(X()%(string("mbxmlutilsfile://").append(inputSource.string())));
+  string docURI = mbxmlutilsfileSchema;
+  docURI.append(inputSource.string());
+  doc->setDocumentURI(X()%docURI);
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
