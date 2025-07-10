@@ -356,7 +356,10 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       // output parameters to the caller
       param->clear();
       shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
-      for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
+      for(DOMElement *p=localParamEle->getLastElementChild(); p!=nullptr; p=p->getPreviousElementSibling()) {
+        auto name=E(p)->getAttribute("name");
+        if(param->find(name)!=param->end())
+          continue;
         Eval::Value parValue;
         // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
         try {
@@ -367,11 +370,10 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         catch(exception &ex) {
           if(E(p)->getTagName()!=PV%"import")
             eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
-                           <<E(p)->getAttribute("name")<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
+                           <<name<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
           continue;
         }
-        if(!param->emplace(E(p)->getAttribute("name"), parValue).second)
-          throw DOMEvalException("Cannot add parameter. A parameter with the same name already exists.", p);
+        param->emplace(name, parValue);
       }
     }
 
