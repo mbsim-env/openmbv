@@ -106,7 +106,6 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
 MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
   skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
-  boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
 
   // environment variables
 
@@ -136,7 +135,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   list<string>::iterator i, i2;
 
   setWindowTitle("OpenMBV - Open Multi Body Viewer");
-  setWindowIcon(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
+  setWindowIcon(Utils::QIconCached("openmbv.svg"));
 
   // init Utils
   Utils::initialize();
@@ -680,7 +679,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   auto *helpMenu=new QMenu("Help", menuBar());
   helpMenu->addAction(Utils::QIconCached("help.svg"), "GUI help...", this, &MainWindow::guiHelp);
   helpMenu->addAction(Utils::QIconCached("help.svg"), "XML help...", this, &MainWindow::xmlHelp);
-  helpMenu->addAction(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string().c_str()),
+  helpMenu->addAction(Utils::QIconCached("openmbv.svg"),
                       "About OpenMBV...", this, &MainWindow::aboutOpenMBV);
   menuBar()->addMenu(helpMenu);
 
@@ -928,11 +927,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 }
 
 DialogStereo::DialogStereo() {
-  static const boost::filesystem::path installPath(boost::dll::program_location().parent_path().parent_path());
-
   setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
   setWindowTitle("OpenMBV - Stereo View");
-  setWindowIcon(Utils::QIconCached((installPath/"share"/"openmbv"/"icons"/"openmbv.svg").string()));
+  setWindowIcon(Utils::QIconCached("openmbv.svg"));
   connect(new QShortcut(QKeySequence("F5"),this), &QShortcut::activated, this, [this](){
     if(isFullScreen()) {
       showNormal();
@@ -1273,8 +1270,7 @@ void MainWindow::aboutOpenMBV() {
     auto *icon=new QLabel;
     layout->addWidget(icon, 0, 0, Qt::AlignTop);
     QFontInfo fontinfo(font());
-    icon->setPixmap(Utils::QIconCached((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons"/"openmbv.svg")
-                    .string().c_str()).pixmap(fontinfo.pixelSize()*3,fontinfo.pixelSize()*3));
+    icon->setPixmap(Utils::QIconCached("openmbv.svg").pixmap(fontinfo.pixelSize()*3,fontinfo.pixelSize()*3));
     auto *text=new QTextEdit;
     layout->addWidget(text, 0, 1);
     Utils::enableTouch(text);
