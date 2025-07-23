@@ -83,7 +83,7 @@ bool tryDouble2Int(double d, int &i) {
   return true;
 }
 
-NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(move(oe_)), newLevel(newLevel_) {
+NewParamLevel::NewParamLevel(shared_ptr<Eval> oe_, bool newLevel_) : oe(std::move(oe_)), newLevel(newLevel_) {
   if(newLevel)
     oe->pushContext();
 }

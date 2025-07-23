@@ -107,26 +107,26 @@ const std::vector<std::string>& IvScreenAnnotation::getColumnLabels() const {
 }
 
 void IvScreenAnnotation::createHDF5File() {
-  std::shared_ptr<Group> p=parent.lock();
-  hdf5Group=p->getHDF5Group()->createChildObject<H5::Group>(name)();
+  Body::createHDF5File();
 
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(columnLabels.size());
-  data->setColumnLabel(columnLabels);
+  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+columnLabels.size());
+  vector<string> colNames(1+columnLabels.size());
+  colNames[0] = "time";
+  for(size_t i=0; i<columnLabels.size(); ++i)
+    colNames[i+1] = columnLabels[i];
+  data->setColumnLabel(colNames);
 }
 
 void IvScreenAnnotation::openHDF5File() {
-  hdf5Group=nullptr;
-  try {
-    std::shared_ptr<Group> p=parent.lock();
-    hdf5Group=p->getHDF5Group()->openChildObject<H5::Group>(name);
-  }
-  catch(...) {
-    msg(Debug)<<"Unable to open the HDF5 Group '"<<name<<"'. Using 0 for all data."<<endl;
-  }
+  Body::openHDF5File();
 
   if(!hdf5Group) return;
   try {
     data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+
+    // handle legacy data (no "time" columns as first col)
+    if(columnLabels.size() == data->getColumns())
+      msg(Deprecated) << "The HDF5 file does not contain a 'time' column as first columns: " << getFullName() << endl;
   }
   catch(...) {
     data=nullptr;

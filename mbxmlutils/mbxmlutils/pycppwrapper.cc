@@ -130,6 +130,8 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
   #endif
   Py_InitializeEx(0);
 
+  GilState gil;
+
   auto appendToPATH = [&pathsep](const boost::filesystem::path &path) {
     if(!boost::filesystem::is_directory(path))
       return;

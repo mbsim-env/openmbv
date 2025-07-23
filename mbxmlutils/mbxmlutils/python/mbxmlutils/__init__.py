@@ -60,48 +60,48 @@ def _serializeFunction(x):
   # serialize a matrix or vector (we allow sympy matrices, numpy array and python lists)
   if x.__class__.__name__=="MutableDenseMatrix" or x.__class__.__name__=="ImmutableDenseMatrix" or \
      type(x)==numpy.ndarray:
-    s="["
+    s=["["]
     if len(x.shape)==2:
       (rows, cols)=x.shape
       for r in range(0, rows):
         for c in range(0, cols):
-          s+=_serializeFunction(x[r,c])
+          s.append(_serializeFunction(x[r,c]))
           if c<cols-1:
-            s+=", "
+            s.append(", ")
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     elif len(x.shape)==1:
       rows=x.shape[0]
       for r in range(0, rows):
-        s+=_serializeFunction(x[r])
+        s.append(_serializeFunction(x[r]))
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     else:
       raise RuntimeError("Internal error: Unknonw shape")
-    s+="]"
-    return s
+    s.append("]")
+    return "".join(s)
   elif type(x)==list:
-    s="["
+    s=["["]
     if len(x)>0 and type(x[0])==list:
       rows=len(x)
       for r in range(0, rows):
         cols=len(x[r])
         for c in range(0, cols):
-          s+=_serializeFunction(x[r][c])
+          s.append(_serializeFunction(x[r][c]))
           if c<cols-1:
-            s+=", "
+            s.append(", ")
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     elif (len(x)>0 and type(x[0])!=list) or len(x)==0:
       rows=len(x)
       for r in range(0, rows):
-        s+=_serializeFunction(x[r])
+        s.append(_serializeFunction(x[r]))
         if r<rows-1:
-          s+="; "
+          s.append("; ")
     else:
       raise RuntimeError("Internal error: Unknonw shape")
-    s+="]"
-    return s
+    s.append("]")
+    return "".join(s)
   # serialize a scalar
   else:
     # serialize a scalar (may be called recursively)
@@ -145,21 +145,28 @@ def _serializeFunction(x):
           if nrArgs==2 and x.args[1][1]!=True:
             raise RuntimeError("Internal error in: "+str(x))
 
-          if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
-            sympyRelational=sympy.core.relational
-          else:
-            sympyRelational=sympy.relational
-
-          if isinstance(c, sympyRelational.GreaterThan) or isinstance(c, sympyRelational.StrictGreaterThan):
-            return "condition("+serializeVertex(c.lhs-c.rhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
-          elif isinstance(c, sympyRelational.LessThan) or isinstance(c, sympyRelational.StrictLessThan):
-            return "condition("+serializeVertex(c.rhs-c.lhs)+","+serializeVertex(gt)+","+serializeVertex(le)+")"
-          elif c==True:
-            return serializeVertex(gt)
-          elif c==False:
-            return serializeVertex(le)
-          else:
-            raise RuntimeError("Unknown relation in Piecewise: "+str(x))
+          def boolVertexToGt0Func(c):
+            if list(map(lambda x: int(x), sympy.__version__.split(".")[0:2])) >= [1,6]:
+              _sympyRelational=sympy.core.relational
+            else:
+              _sympyRelational=sympy.relational
+          
+            if isinstance(c, _sympyRelational.GreaterThan) or isinstance(c, _sympyRelational.StrictGreaterThan):
+              return c.lhs-c.rhs
+            elif isinstance(c, _sympyRelational.LessThan) or isinstance(c, _sympyRelational.StrictLessThan):
+              return c.rhs-c.lhs
+            elif c==True:
+              return 1
+            elif c==False:
+              return -1
+            elif isinstance(c, sympy.logic.boolalg.And):
+              return sympy.Min(*map(lambda x: boolVertexToGt0Func(x), c.args))
+            elif isinstance(c, sympy.logic.boolalg.Or):
+              return sympy.Max(*map(lambda x: boolVertexToGt0Func(x), c.args))
+            else:
+              raise RuntimeError("Unknown relation in Piecewise: "+str(c))
+          cGt0Func=boolVertexToGt0Func(c)
+          return "".join(["condition(",serializeVertex(cGt0Func),",",serializeVertex(gt),",",serializeVertex(le),")"])
       # handle known function from opMap
       opStr=_serializeFunction.opMap.get(x.func.__name__)
       if opStr is None:
@@ -175,14 +182,14 @@ def _serializeFunction(x):
         ):
         raise RuntimeError("Number of arguments of operator "+x.func.__name__+" does not match: "+str(x))
       # serailize
-      s=opStr[0]+"("
+      s=[opStr[0],"("]
       first=True
       for op in x.args[0:opStr[1]]:
-        if not first: s+=","
-        s+=serializeVertex(op)
+        if not first: s.append(",")
+        s.append(serializeVertex(op))
         first=False
-      s+=")"
-      return s
+      s.append(")")
+      return "".join(s)
     # serialize x to string s (may call serializeVertex recursively)
     s=serializeVertex(x)
     return s
@@ -222,7 +229,7 @@ _serializeFunction.opMap={
 
 
 def _getEvalDLL():
-  # load the libmbxmlutils-eval-global-python.so ones
+  # load the libmbxmlutils.so ones
   if _getEvalDLL.dll is None:
     import ctypes
     import sys
@@ -234,14 +241,14 @@ def _getEvalDLL():
 _getEvalDLL.dll=None
 
 def _getPyEvalDLL():
-  # load the libmbxmlutils-eval-global-python.so ones
+  # load the libmbxmlutils-eval-python-runtime.so ones
   if _getPyEvalDLL.dll is None:
     import ctypes
     import sys
     if sys.platform.startswith('linux'):
-      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python.so")
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python-runtime.so")
     else:
-      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-global-python")
+      _getPyEvalDLL.dll=ctypes.cdll.LoadLibrary("libmbxmlutils-eval-python-runtime")
   return _getPyEvalDLL.dll
 _getPyEvalDLL.dll=None
 
@@ -410,6 +417,14 @@ def tilde(x):
 
 
 
+def _checkInertia(inertia):
+  I = numpy.array(inertia)
+  if not numpy.allclose(I, I.T, rtol=1e-10, atol=1e-10):
+    raise RuntimeError(f"The mass inertia value {I} is not symmetric.")
+  # we do not check for none zero diagonal elements since we allow calculation with mass values where a zero mass is allowed
+
+
+
 def steinerRule(mass, inertia, com, inertiaOrientation = None):
   """Apply the steiner rule on a inertia.
 
@@ -423,8 +438,11 @@ def steinerRule(mass, inertia, com, inertiaOrientation = None):
 
   "inertiaOrientation" is optional, if given, "inertia" is not with respect to the local system L (in which com is given) but with respect to a system K
   and inertiaOrientation defines the transformation matrix between both (T_LK)"""
+  _checkInertia(inertia)
   T_LK = numpy.array(inertiaOrientation) if inertiaOrientation is not None else numpy.eye(3)
-  return  T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
+  inertiaOut = T_LK @ numpy.array(inertia) @ T_LK.T + mass * tilde(numpy.array(com)).T @ tilde(numpy.array(com))
+  inertiaOut = (inertiaOut + inertiaOut.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
+  return inertiaOut
 
 
 
@@ -439,6 +457,8 @@ def sumMassValues(*massValue):
   - "inertia":            is given around the summed up center of mass and with respect to the local coordinate system L.
   - "com":                is with respect to the local cooridnate system L.
   - "inertiaOrientation": is not provided since "inertia" is always returned with respect to the local coordinate system L (T_LK = eye)."""
+  import warnings
+  warnings.warn("sumMassValues is deprecated, please use the class MassValues")
   sum_m = 0
   sum_inertia_L = numpy.zeros((3,3))
   sum_mcom = numpy.zeros(3)
@@ -448,7 +468,81 @@ def sumMassValues(*massValue):
     sum_mcom += mv["mass"] * numpy.array(mv["com"])
   sum_com = sum_mcom / sum_m
   sum_inertia_C = steinerRule(-sum_m, sum_inertia_L, sum_com) # negative mass -> move from none-com to com
+  sum_inertia_C = (sum_inertia_C + sum_inertia_C.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
   return { "mass": sum_m, "inertia": sum_inertia_C, "com": sum_com}
+
+
+
+class MassValues():
+  """Mass related values of a rigid-body: mass, center of gravity and inertia tensor.
+  The following members exist:
+  - mass:               the mass of rigid-body
+  - com:                the center of mass of the rigid-body; the com must be given with respect to a local coordinate system L
+  - inertia:            the inertia tensor of the rigid-body; the inertia must be given around its center of mass "com" and with respect to a local coordinate system L"""
+  def __init__(self, mass=0, com=numpy.zeros((3,)), inertia=numpy.zeros((3,3))):
+    """Create an MassValues instance with mass, com and inertia"""
+    self.mass=mass
+    self.com=numpy.array(com)
+    self.inertia=numpy.array(inertia)
+    _checkInertia(self.inertia)
+  def __repr__(self):
+    """Print the mass values"""
+    inertiaStr = numpy.array2string(self.inertia).replace("\n", "")
+    return f'MassValues(mass={self.mass}, com={self.com}, inertia={inertiaStr})'
+  def copy(self):
+    """Deep copy the mass values instance"""
+    return MassValues(mass=self.mass, com=self.com, inertia=self.inertia)
+  def __add__(self, rhs):
+    """Add two mass values: both, the lhs and rhs must be represented in the same local coordinate system L"""
+    sum_m = self.mass +\
+            rhs.mass
+    sum_inertia_L = steinerRule(self.mass, self.inertia, self.com) +\
+                    steinerRule(rhs.mass , rhs.inertia , rhs.com   ) # positive mass -> move from com to none-com
+    sum_mcom = self.mass * self.com +\
+               rhs.mass  * rhs.com
+    sum_com = sum_mcom / sum_m
+    sum_inertia_C = steinerRule(-sum_m, sum_inertia_L, sum_com) # negative mass -> move from none-com to com
+    sum_inertia_C = (sum_inertia_C + sum_inertia_C.T)/2 # make the matrix symmetric again (it may be slightly non-symmetric due to numerics)
+    return MassValues(mass=sum_m, com=sum_com, inertia=sum_inertia_C)
+  def __sub__(self, rhs):
+    """Substract a mass value from another: both, the lhs and rhs must be represented in the same local coordinate system L"""
+    # mv1 - mv2 = mv1 + mv2n with mv2n being mv2 with a negative sign for mass and inertia
+    rhsNeg = rhs.copy()
+    rhsNeg.mass *= -1
+    rhsNeg.inertia *= -1
+    return self+rhsNeg
+  def __mul__(self, fac):
+    """Multiply a mass value with a scalar: multiplies mass and inertia with the factor"""
+    res = self.copy()
+    res.mass *= fac
+    res.inertia *= fac
+    return res
+  def __rmul__(self, fac):
+    """Multiply a mass value with a scalar: multiplies mass and inertia with the factor"""
+    # call the commutative multiply operator
+    return self * fac
+  def __truediv__(self, fac):
+    """Divide a mass value with a scalar: divides mass and inertia by the factor"""
+    # call the multiply operator with the inverse factor
+    return self * (1/fac)
+
+
+
+def inertiaCuboid(mass, lx, ly, lz):
+  """Returns the inertia around the center of mass of a homogeneous, solid cuboid with the dimensions lx, ly, lz."""
+  return numpy.array([
+    [1/12*mass*(ly**2+lz**2),0,0],
+    [0,1/12*mass*(lx**2+lz**2),0],
+    [0,0,1/12*mass*(lx**2+ly**2)],
+  ])
+def inertiaCylinder(mass, r, h):
+  """Returns the inertia around the center of mass of a homogeneous, solid cylinder with radius r and height h.
+  The cylinder rotation axis is the x-axis (h is along x-axis)."""
+  return numpy.array([
+    [1/2*mass*r**2,0,0],
+    [0,1/12*mass*(3*r**2+h**2),0],
+    [0,0,1/12*mass*(3*r**2+h**2)],
+  ])
 
 
 
@@ -644,6 +738,26 @@ def namedColor(name):
     raise RuntimeError(f"Invalid color name: {name}")
   return rgbColor(int(hexColor[1:3], 16)/255, int(hexColor[3:5], 16)/255, int(hexColor[5:7], 16)/255)
 namedColor.nameToHEX=None
+
+
+
+def embedIvImage(filename):
+  """Create a IV 'image' token, usable e.g. in Texture2, which equals the image in filename."""
+  import PIL.Image
+  im = PIL.Image.open(filename)
+  l = len(im.getpixel((0,0)))
+  if l<3:
+    raise RuntimeError("Only RGB and RGBA images can be handled by embedIvImage for now")
+  out=[]
+  for y in reversed(range(0,im.size[1])):
+    for x in range(0,im.size[0]):
+      p = im.getpixel((x,y))
+      if l==4:
+        n = p[0]*256**3+p[1]*256**2+p[2]*256+p[3]
+      else:
+        n = p[0]*256**2+p[1]*256+p[2]
+      out.append(hex(n))
+  return f"image {im.size[0]} {im.size[1]} {l} "+" ".join(out)
 
 
 

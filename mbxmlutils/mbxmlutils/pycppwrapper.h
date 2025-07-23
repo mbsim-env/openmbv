@@ -225,9 +225,11 @@ inline typename MapRetType<PyRet>::type callPy(const char *file, int line, PyRet
 #define CALLPYB(...) PythonCpp::callPy(__FILE__, __LINE__, __VA_ARGS__).incRef()
 
 // Initialize python giving main as program name to python.
+// We never deinitialize python
 // All path in sysPathAppend are added to python's sys.path array.
 // If PYTHONHOME is not set all possiblePrefix dirs are tested for a possible PYTHONHOME
-// and if one is found envvar is set
+// and if one is found envvar is set.
+// After initializing python ensure the hold the GIL before doing any calls to python, use the class GilState for this
 void initializePython(const boost::filesystem::path &main, const std::string &pythonVersion,
                       const std::vector<boost::filesystem::path> &sysPathPrepend={},
                       const std::vector<boost::filesystem::path> &sysPathAppend={},

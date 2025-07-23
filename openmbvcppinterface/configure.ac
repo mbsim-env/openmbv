@@ -138,6 +138,12 @@ else
   pythonshext=".so"
 fi
 AC_SUBST([PYTHON_SHEXT], [$pythonshext])
+if test "_$host_os" != "_mingw32"; then
+  PYTHON_LIBS_OPT=""
+else
+  PYTHON_LIBS_OPT="$PYTHON_LIBS"
+fi
+AC_SUBST([PYTHON_LIBS_OPT])
 
 dnl Check for java
 AC_ARG_WITH([javapath],  [  --with-javapath=PATH   The path to the java program.],  [javapath="$withval"],[javapath=""])
@@ -175,7 +181,14 @@ fi
 
 AC_SUBST([MBXMLUTILSSCHEMA],[$(pkg-config mbxmlutils --variable SCHEMADIR)])
 
-LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL -no-undefined -Wl,--no-undefined"
+if test "_$host_os" != "_mingw32"; then
+  LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL"
+  LDFLAGS_NOUNDEF="-no-undefined -Wl,--no-undefined"
+else
+  LDFLAGS="$LDFLAGS $LDFLAGS_LIBTOOL -no-undefined -Wl,--no-undefined"
+  LDFLAGS_NOUNDEF=""
+fi
+AC_SUBST([LDFLAGS_NOUNDEF], [$LDFLAGS_NOUNDEF])
 test "_$host_os" != "_mingw32" && LDFLAGS="$LDFLAGS -Wl,--disable-new-dtags,-rpath,\\\$\$ORIGIN/../lib"
 
 AC_CONFIG_FILES([Makefile doc/Makefile openmbvcppinterface.pc openmbvcppinterface/Makefile

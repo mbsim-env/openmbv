@@ -14,6 +14,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/uuid/random_generator.hpp>
+#include <boost/scope_exit.hpp>
 #include "mbxmlutils/eval_static.h"
 #include "mbxmlutilshelper/utils.h"
 #include <memory>
@@ -41,12 +42,6 @@ bool is_vector_vector_double(const MBXMLUtils::Eval::Value &value, PyArrayObject
 double arrayScalarGetDouble(PyObject *o, bool *error=nullptr);
 double arrayGetDouble(PyArrayObject *a, int type, int r, int c=-1);
 
-}
-
-namespace MBXMLUtils {
-
-MBXMLUTILS_EVAL_REGISTER(PyEval)
-
 class PyOOnDemand {
   public:
     PyOOnDemand() = default;
@@ -68,7 +63,7 @@ class PyOOnDemand {
 class PyInit {
   public:
     PyInit();
-    ~PyInit();
+    // ~PyInit(); we do not deinit python!
     PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
     PyOOnDemand numpyAsarray;
@@ -80,31 +75,42 @@ class PyInit {
     PyO ioStringIO;
 };
 
-PyInit::PyInit() {
-  try {
 #ifdef _WIN32
-    string binLib("bin");
+static string binLib("bin");
+static string soDll(".dll");
 #else
-    string binLib("lib");
+static string binLib("lib");
+static string soDll(".so");
 #endif
 
+PyInit::PyInit() {
+  try {
+
+    bool pyIsInit = Py_IsInitialized();
     // init python
-    initializePython(Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
+    initializePython(MBXMLUtils::Eval::installPath/"bin"/"mbxmlutilspp", PYTHON_VERSION, {
       // prepand the installation/../mbsim-env-python-site-packages dir to the python path (Python pip of mbsim-env is configured to install user defined python packages there)
-      Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
+      MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages",
     }, {
       // append mbxmlutils module to the python path (the basic Python module for the pyeval)
-      Eval::installPath/"share"/"mbxmlutils"/"python",
+      MBXMLUtils::Eval::installPath/"share"/"mbxmlutils"/"python",
       // append the installation/bin dir to the python path (SWIG generated python modules (e.g. OpenMBV.py) are located there)
-      Eval::installPath/"bin",
+      MBXMLUtils::Eval::installPath/"bin",
     }, {
       // possible python prefix
-      Eval::installPath,
+      MBXMLUtils::Eval::installPath,
       boost::filesystem::path(PYTHON_PREFIX),
     }, {
       // append to PATH (on Windows using os.add_dll_directory)
-      Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
+      MBXMLUtils::Eval::installPath.parent_path()/"mbsim-env-python-site-packages"/binLib,
     });
+
+    BOOST_SCOPE_EXIT(pyIsInit) {
+      // if we have initialized python (for the first time) we release the thread at the end of this function
+      if(!pyIsInit)
+        PyEval_SaveThread();
+    } BOOST_SCOPE_EXIT_END
+    GilState gil;
 
     // init numpy
     CALLPY(_import_array);
@@ -152,37 +158,32 @@ PyInit::PyInit() {
   }
 }
 
-PyInit::~PyInit() {
-  try {
-    // clear all Python object before deinit
-    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
-    if(sympyDummy) sympyDummy().reset();
-    if(numpyAsarray) numpyAsarray().reset();
-    if(numpyZeros) numpyZeros().reset();
-    if(numpyArray) numpyArray().reset();
-    functionValue.clear();
-    if(mbxmlutils) mbxmlutils().reset();
-  }
-  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-  catch(const exception& ex) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
-      <<"Continuing but undefined behaviour may occur."<<endl;
-  }
-  catch(...) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
-      <<"Continuing but undefined behaviour may occur."<<endl;
-  }
-}
+//PyInit::~PyInit() {
+//  try {
+//    GilState gil;
+//    // clear all Python object before deinit
+//    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
+//    if(sympyDummy) sympyDummy().reset();
+//    if(numpyAsarray) numpyAsarray().reset();
+//    if(numpyZeros) numpyZeros().reset();
+//    if(numpyArray) numpyArray().reset();
+//    functionValue.clear();
+//    if(mbxmlutils) mbxmlutils().reset();
+//    if(pprintPformat) pprintPformat().reset();
+//    ioStringIO.reset();
+//  }
+//  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
+//  catch(const exception& ex) {
+//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
+//      <<"Continuing but undefined behaviour may occur."<<endl;
+//  }
+//  catch(...) {
+//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
+//      <<"Continuing but undefined behaviour may occur."<<endl;
+//  }
+//}
 
-// we cannot call the ctor of PyInit here as a global variable!
-// Some python modules do not link against libpython but rely on the fact the libpyhton is already
-// loaded into the global symbol space. Hence, this library must be loaded using RTDL_GLOBAL and
-// the initialization cannot be done in global ctor code, nor in using the _init function of ld nor
-// using the GNU __attribute__((constructor)) because this does not work! But calling a init function
-// after the so is fully loaded does work. Hence, we define the MBXMLUtils_SharedLibrary_init function
-// here which is executed by SharedLibrary::load after the lib is loaded.
-// On Windows this is not required, but does not hurt.
-unique_ptr<PyInit> pyInit; // init Python on library load and deinit on library unload = program end
+PyInit *pyInit = new PyInit; // init Python on library load and deinit on library unload = program end (we never deinit python)
 
 // A class to redirect stderr or stdout.
 template<int T>
@@ -190,7 +191,7 @@ class Redirect {
   public:
     Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      static auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
+      auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
       PyO arg(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
       auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
@@ -219,16 +220,21 @@ class Redirect {
 #define MBXMLUTILS_REDIR_STDOUT(strstr) Redirect<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
 #define MBXMLUTILS_REDIR_STDERR(strstr) Redirect<2> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstderr_, __LINE__)(strstr)
 
-extern "C"
-int MBXMLUtils_SharedLibrary_init() {
-  try {
-    pyInit=make_unique<PyInit>();
-  }
-  catch(...) {
-    return 1;
-  }
-  return 0;
+path toRelativePath(const path& abs, const path& relTo) {
+  size_t dist=distance(relTo.begin(), relTo.end());
+  path::iterator dstIt=abs.begin();
+  for(int i=0; i<dist; ++i) ++dstIt;
+  path ret;
+  for(; dstIt!=abs.end(); ++dstIt)
+    ret/=*dstIt;
+  return ret;
 }
+
+}
+
+namespace MBXMLUtils {
+
+MBXMLUTILS_EVAL_REGISTER(PyEval)
 
 boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}()); // initialize a uuid name generator with a random namespace
 
@@ -237,7 +243,11 @@ PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsToInstance" import action
 }
 
-PyEval::~PyEval() = default;
+PyEval::~PyEval() {
+  GilState gil;
+  globalImportDict.reset();
+  byteCodeMap.clear();
+}
 
 Eval::Value PyEval::createFunctionIndep(int dim) const {
   GilState gil;
@@ -405,20 +415,6 @@ bool PyEval::valueIsOfType(const Value &value, ValueType type) const {
   throw runtime_error("Internal error: Unknwon ValueType.");
 }
 
-path relative(const path& abs, const path& relTo) {
-  size_t dist=distance(relTo.begin(), relTo.end());
-  path::iterator dstIt=abs.begin();
-  for(int i=0; i<dist; ++i) ++dstIt;
-  path ret;
-  for(; dstIt!=abs.end(); ++dstIt)
-    ret/=*dstIt;
-  return ret;
-}
-
-path replace_extension(path p, const path& newExt=path()) {
-  return p.replace_extension(newExt);
-}
-
 map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   static map<path, pair<path, bool> > files;
   if(!files.empty())
@@ -443,7 +439,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       return;
     if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
       return;
-    path subDir=MBXMLUtils::relative(*srcIt, PYTHONSRC).parent_path();
+    path subDir=toRelativePath(*srcIt, PYTHONSRC).parent_path();
     bool bin=false;
     static const regex so(".*\\.so(\\..*)*");
     if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
@@ -451,6 +447,9 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       bin=true;
     files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
   };
+
+  // libmbxmlutils-eval-python.so loads at runtime libmbxmlutils-eval-python-runtime.so 
+  files[installPath/binLib/("libmbxmlutils-eval-python-runtime"+soDll)]=make_pair(binLib, true);
 
   for(auto srcIt=directory_iterator(PYTHONSRC); srcIt!=directory_iterator(); ++srcIt) {
     if(*srcIt->path().rbegin()=="config") // skip config dir
