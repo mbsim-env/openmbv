@@ -33,6 +33,8 @@ class Preprocess : virtual public fmatvec::Atom {
     //! The inputDoc is validated.
     Preprocess(const std::shared_ptr<xercesc::DOMDocument> &inputDoc, bool trackDependencies);
 
+    ~Preprocess();
+
     void setCheckInterruptFunction(const std::function<void()> &func) {
       checkInterruptFunc=func;
     }

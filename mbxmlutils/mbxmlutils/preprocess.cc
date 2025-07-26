@@ -24,6 +24,8 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
                        > parserVariant,
                        bool trackDependencies
                       ) {
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"/>"<<flush<<noskipws;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
   document = parseCached(parser, inputFile, "XML input file.");
   msgStatic(Debug)<<"Finished: XML input file"<<endl;
@@ -38,6 +40,8 @@ Preprocess::Preprocess(istream &inputStream, // the input stream containing the 
                        > parserVariant,
                        bool trackDependencies
                       ) {
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"/>"<<flush<<noskipws;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
   msgStatic(Info)<<"Load, parse and validate input stream."<<endl;
   document = parseCached(parser, inputStream, "XML input file.");
@@ -66,6 +70,8 @@ std::shared_ptr<DOMParser> Preprocess::initDependenciesAndParser(std::variant<
 }
 
 Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDependencies) {
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"/>"<<flush<<noskipws;
   if(trackDependencies)
     dependencies = make_unique<std::vector<boost::filesystem::path>>();
 
@@ -74,6 +80,11 @@ Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDepend
   D(document)->validate();
   msgStatic(Debug)<<"Finished: Validate document."<<endl;
   extractEvaluator();
+}
+
+Preprocess::~Preprocess() {
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_DTOR\"/>"<<flush<<noskipws;
 }
 
 const vector<path>& Preprocess::getDependencies() const {
@@ -122,6 +133,8 @@ void Preprocess::extractEvaluator() {
 }
 
 shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_START\"/>"<<flush<<noskipws;
   msgStatic(Info)<<"Start XML preprocessing."<<endl;
   auto start = std::chrono::high_resolution_clock::now();
   if(preprocessed)
@@ -163,6 +176,8 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   searchEmbed(document->getDocumentElement());
 #endif
 
+  if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
+    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_END\"/>"<<flush<<noskipws;
   return document;
 }
 
