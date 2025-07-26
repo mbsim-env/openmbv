@@ -68,14 +68,12 @@ void Utils::deinitialize() {
   iconCache.clear();
 }
 
-const QIcon& Utils::QIconCached(string filename) {
-  // fix relative filename
-  if(filename[0]!=':' && filename[0]!='/')
-    filename=getIconPath()+"/"+filename;
-  
-  pair<unordered_map<string, QIcon>::iterator, bool> ins=iconCache.insert(pair<string, QIcon>(filename, QIcon()));
-  if(ins.second)
-    return ins.first->second=QIcon(filename.c_str());
+const QIcon& Utils::QIconCached(const string &basefilename) {
+  pair<unordered_map<string, QIcon>::iterator, bool> ins=iconCache.insert(pair<string, QIcon>(basefilename, QIcon()));
+  if(ins.second) {
+    static const string iconPath((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"icons").string()+"/");
+    return ins.first->second=QIcon((iconPath+basefilename).c_str());
+  }
   return ins.first->second;
 }
 

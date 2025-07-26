@@ -114,10 +114,11 @@ class Utils : virtual public fmatvec::Atom {
 
     // HELPER FUNCTIONS
 
-    /** Use QIconCached(filename) instead of QIcon(filename) everywhere
+    /** Use QIconCached(basefilename) instead of QIcon(filename) everywhere
      * to cache the parsing of e.g. SVG files. This lead to a speedup
-     * (at app init) by a factor of 11 in my test case. */
-    static const QIcon& QIconCached(std::string filename);
+     * (at app init) by a factor of 11 in my test case.
+     * (note that only a base-filename is passed as parameter NOT a relative or absolute filename) */
+    static const QIcon& QIconCached(const std::string &basefilename);
 
     /** Use SoDBreadAllFileNameCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-file parsing and scene generation.
