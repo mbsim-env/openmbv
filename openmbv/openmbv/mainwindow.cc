@@ -1720,7 +1720,7 @@ void MainWindow::exportCurrentAsPNG() {
   auto filename=dialog.getFileName();
   str=str.arg(filename);
   statusBar()->showMessage(str);
-  msg(Info)<<str.toStdString()<<endl;
+  msg(Status)<<str.toStdString()<<endl;
   QFile::remove(filename);
   QDir().mkpath(QFileInfo(filename).dir().path());
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
@@ -1786,7 +1786,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
       str=str.arg(pngBaseName).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
       statusBar()->showMessage(str);
-      msg(Info)<<str.toStdString()<<endl;
+      msg(Status)<<str.toStdString()<<endl;
       frame->setValue(frame_);
       if(!exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent))
         break;
@@ -1800,7 +1800,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     QString str("Encoding video file to %1, please wait!");
     str=str.arg(fileName);
     statusBar()->showMessage(str);
-    msg(Info)<<str.toStdString()<<endl;
+    msg(Status)<<str.toStdString()<<endl;
     auto videoCmd=appSettings->get<QString>(AppSettings::exportdialog_videocmd);
     QFile(fileName).remove();
     videoCmd.replace("%I", pngBaseName+"_%06d.png");
@@ -1865,7 +1865,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     if(ret!=0) {
       QString str("FAILED. See console output!");
       statusBar()->showMessage(str, 10000);
-      msg(Info)<<str.toStdString()<<endl;
+      msg(Status)<<str.toStdString()<<endl;
       return;
     }
     statusBar()->showMessage("Done", 10000);
@@ -1953,7 +1953,7 @@ void MainWindow::saveWindowState() {
   str=str.arg(size().width()).arg(size().height()).
           arg(pos().x()).arg(pos().y());
   statusBar()->showMessage(str, 10000);
-  msg(Info)<<str.toStdString()<<endl;
+  msg(Status)<<str.toStdString()<<endl;
 
   QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombvwst", "*.ombvwst");
   if(filename.isNull()) return;
@@ -2001,7 +2001,7 @@ void MainWindow::loadCamera(string filename) {
   else {
     QString str("Only SoPerspectiveCamera and SoOrthographicCamera are allowed!");
     statusBar()->showMessage(str, 10000);
-    msg(Info)<<str.toStdString()<<endl;
+    msg(Status)<<str.toStdString()<<endl;
   }
 }
 

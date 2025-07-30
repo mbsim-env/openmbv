@@ -701,7 +701,7 @@ vector<pair<Body*, vector<SbVec3f>>> MyTouchWidget::getObjectsByRay(const QPoint
         (delta+MainWindow::getInstance()->cameraPosition->vector[0]).getValue(x,y,z);
         QString str("Point [%1, %2, %3] on %4"); str=str.arg(x).arg(y).arg(z).arg(it->second->getObject()->getFullName().c_str());
         MainWindow::getInstance()->statusBar()->showMessage(str);
-        fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<str.toStdString()<<endl;
+        fmatvec::Atom::msgStatic(fmatvec::Atom::Status)<<str.toStdString()<<endl;
 
         break;
       }

@@ -796,7 +796,7 @@ void TransRotEditor::draggerFinishedCB(void *data, SoDragger *dragger_) {
            .arg(me->spinBox[5]->value()*M_PI/180)
            .arg(obj->getObject()->getFullName().c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
-    me->msg(Info)<<str.toStdString()<<endl;
+    me->msg(Status)<<str.toStdString()<<endl;
   }
 }
 

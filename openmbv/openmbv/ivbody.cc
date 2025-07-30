@@ -170,7 +170,7 @@ void IvBody::calculateEdges(const string& fullName, double creaseEdges, bool bou
   // (OpenMBV::~Group deletes all children)
   QString str("Started edge calculation for %1 in a thread:"); str=str.arg(fullName.c_str());
   statusBarShowMessage(str, 1000);
-  msg(Info)<<str.toStdString()<<endl;
+  msg(Status)<<str.toStdString()<<endl;
   edgeCalc->preproces(fullName, true);
   if(creaseEdges>=0) edgeCalc->calcCreaseEdges(creaseEdges);
   if(boundaryEdges) edgeCalc->calcBoundaryEdges();
@@ -185,7 +185,7 @@ void IvBody::addEdgesToScene() {
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());
   QString str("Finished edge calculation for %1 and added to scene."); str=str.arg(ivb->getFullName().c_str());
   statusBarShowMessage(str, 1000);
-  msg(Info)<<str.toStdString()<<endl;
+  msg(Status)<<str.toStdString()<<endl;
   MainWindow::getInstance()->waitFor.erase(&calculateEdgesThread);
 }
 
