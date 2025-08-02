@@ -29,6 +29,8 @@
 #include <octave/parse.h>
 #include <octave/defaults.h>
 
+#include <csignal>
+
 using namespace xercesc;
 namespace bfs=boost::filesystem;
 
@@ -91,9 +93,27 @@ OctInit::OctInit() {
       }
     }
 
+    // interpreter->execute() installs it one signal handers -> save it an restore it after the call
+    using SignalHandler = void (*)(int);
+    #ifndef _WIN32
+    SignalHandler oldSigHup;
+    oldSigHup  = signal(SIGHUP , SIG_DFL);
+    #endif
+    SignalHandler oldSigInt, oldSigTerm;
+    oldSigInt  = signal(SIGINT , SIG_DFL);
+    oldSigTerm = signal(SIGTERM, SIG_DFL);
+
     interpreter=new octave::interpreter();
+    interpreter->initialize_history(false);
+    interpreter->initialize();
     if(interpreter->execute()!=0)
       throw std::runtime_error("Cannot execute octave interpreter.");
+
+    #ifndef _WIN32
+    signal(SIGHUP , oldSigHup );
+    #endif
+    signal(SIGINT , oldSigInt );
+    signal(SIGTERM, oldSigTerm);
   
     // set some global octave config
     octave_value_list warnArg;
