@@ -95,7 +95,7 @@ void Group::openHDF5File() {
 }
 
 boost::filesystem::path getTempNoneSWMRFileName(const boost::filesystem::path &fileName) {
-  return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR."+fileName.extension().string())).string();
+  return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR"+fileName.extension().string())).string();
 }
 
 void Group::writeXML() {
