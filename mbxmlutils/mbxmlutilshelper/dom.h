@@ -221,6 +221,9 @@ class DOMEvalException : public std::exception {
       urifile         | same as absfile but URI encoded
       line            | the line number in the file where the error occurred
       xpath           | the XPath expression from the root element of the file to the element in the file where the error occurred
+                      | the unique namespace URI of a element is {} encoded and prefixed to the local name
+      hrxpath         | more human readable variant of xpath
+                      | a short, unique but variable, default namespace prefix is prefixed to the local name separated by :
       ecount          | the embed count number where the error occurred
       sse             | undefined value but only defined if this is a subsequent error
      

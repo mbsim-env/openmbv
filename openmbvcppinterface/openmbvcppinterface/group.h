@@ -39,7 +39,7 @@ namespace OpenMBV {
     protected:
       std::vector<std::shared_ptr<Object> > object;
       std::string expandStr;
-      std::string fileName; // the file name of the .ombvx file including the absolute or relatvie path
+      boost::filesystem::path fileName; // the file name of the .ombvx file including the absolute or relatvie path
       std::shared_ptr<H5::File> hdf5File;
       std::function<void()> closeRequestCallback;
       std::function<void()> refreshCallback;
@@ -75,12 +75,12 @@ namespace OpenMBV {
       std::shared_ptr<H5::File>& getHDF5File() { return hdf5File; }
 
       /** Returns the file name of the .ombvx file including the absolute or relatvie path */
-      std::string getFileName() { return fileName; }
+      std::string getFileName() { return fileName.string(); }
 
       std::string getFullName() override;
       
       /** Sets the file name of the .ombvx file including the absolute or relatvie path */
-      void setFileName(const std::string &fn) { fileName=fn; }
+      void setFileName(const boost::filesystem::path &fn) { fileName=fn; }
       
       /** Initialize/Write the tree (XML and h5).
        * Call this function for the root node of the tree to init the h5 file.

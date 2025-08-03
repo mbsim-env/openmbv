@@ -200,7 +200,17 @@
 // generate interfaces for these files
 %include <openmbvcppinterface/polygonpoint.h>
 %include <openmbvcppinterface/object.h>
+
 %include <openmbvcppinterface/group.h>
+// swig scripting languages does not support implicit cast from boost::filesystem::path to std::string
+// -> remove the path variant and add a string variant for setFileName
+%ignore OpenMBV::Group::setFileName(const boost::filesystem::path &fn);
+%extend OpenMBV::Group {
+  void setFileName(const std::string &fn) {
+    $self->setFileName(fn);
+  }
+}
+
 %include <openmbvcppinterface/body.h>
 %include <openmbvcppinterface/dynamiccoloredbody.h>
 %include <openmbvcppinterface/rigidbody.h>

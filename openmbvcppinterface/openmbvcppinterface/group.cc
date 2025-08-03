@@ -55,7 +55,7 @@ string Group::getFullName() {
     if(p)
       fullName = p->getFullName()+"/"+name;
     else
-      fullName = fileName.empty() ? name : fileName;
+      fullName = fileName.empty() ? name : fileName.string();
   }
   return fullName;
 }
@@ -94,6 +94,10 @@ void Group::openHDF5File() {
       i->openHDF5File();
 }
 
+boost::filesystem::path getTempNoneSWMRFileName(const boost::filesystem::path &fileName) {
+  return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR."+fileName.extension().string())).string();
+}
+
 void Group::writeXML() {
   // write .ombvx file
   shared_ptr<DOMParser> parser=DOMParser::create();
@@ -102,7 +106,7 @@ void Group::writeXML() {
   E(parent)->setAttribute("expand", expandStr);
   for(auto & i : object)
     i->writeXMLFile(parent);
-  DOMParser::serialize(xmlFile.get(), fileName);
+  DOMParser::serialize(xmlFile.get(), getTempNoneSWMRFileName(fileName).string());
 }
 
 void Group::initializeUsingXML(DOMElement *element) {
@@ -131,7 +135,7 @@ void Group::initializeUsingXML(DOMElement *element) {
 void Group::readXML() {
   // read XML
   shared_ptr<DOMParser> parser=DOMParser::create();
-  shared_ptr<DOMDocument> doc=parser->parse(fileName);  
+  shared_ptr<DOMDocument> doc=parser->parse(fileName);
 
   if(E(doc->getDocumentElement())->getTagName()!=OPENMBV%"Group")
     throw runtime_error("The root element must be of type {"+OPENMBV.getNamespaceURI()+"}Group");
@@ -145,11 +149,11 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
   if(fileName.empty()) fileName=name+".ombvx";
 
   if(writeH5File) {
-    string h5FileName=fileName.substr(0,fileName.length()-6)+".ombvh5";
+    auto h5FileName=fileName.parent_path()/(fileName.stem().string()+".ombvh5");
     // This call will block until the h5 file can we opened for writing.
     // That is why we call it before calling writeXML.
     // This way the XML file will always be in sync with the H5 file since both use the same lock when the files are written.
-    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::write);
+    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::writeTempNoneSWMR);
   }
   // now write the XML file (the H5 file is locked currently)
   if(writeXMLFile)
@@ -165,6 +169,7 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 }
 
 void Group::enableSWMR() {
+  boost::filesystem::rename(getTempNoneSWMRFileName(fileName), fileName);
   hdf5File->enableSWMR(); // this will unblock the h5 file
 }
 
