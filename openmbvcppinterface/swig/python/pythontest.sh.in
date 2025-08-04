@@ -7,7 +7,7 @@ export PATH=$PATH:"@prefix@/bin"
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 # "script with  | cat > ..." is needed to avoid "Py_Initialize: can't initialize sys standard streams" when running with wine but fails on Linux :-(
 script -qec "@XC_EXEC_PREFIX@ @prefix@/bin/h5lockserie@EXEEXT@ --remove MBS_outfile.ombvh5 || echo 'failed but continuing'" /dev/null
-rm -f result.txt
+rm -f result.txt MBS_outfile.ombvh5 MBS_outfile.ombvx MBS_outfile.tempNoneSWMR.ombvh5 MBS_outfile.tempNoneSWMR.ombvx
 if [ "_@XC_EXEC_PREFIX@" == "_" ]; then
   @XC_EXEC_PREFIX@ @PYTHON_BIN@ @abs_srcdir@/pythontest.py > result.txt
 else

@@ -59,6 +59,9 @@ namespace OpenMBV {
        */
       void readXML();
 
+    private:
+      bool ombvxRenameNeeded { false };
+
     public:
       /** Expand this tree node in a view if true (the default) */
       void setExpand(bool expand) { expandStr=(expand)?"true":"false"; }

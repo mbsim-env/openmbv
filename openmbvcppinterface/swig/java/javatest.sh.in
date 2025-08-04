@@ -13,7 +13,7 @@ if test openmbv.jar -nt @prefix@/bin/openmbv.jar; then
 fi
 
 @XC_EXEC_PREFIX@ @prefix@/bin/h5lockserie@EXEEXT@ --remove MBS_outfile.ombvh5 || echo "failed but continuing"
-rm -f result.txt
+rm -f result.txt MBS_outfile.ombvh5 MBS_outfile.ombvx MBS_outfile.tempNoneSWMR.ombvh5 MBS_outfile.tempNoneSWMR.ombvx
 @JAVA@ -classpath temp_testdir:@prefix@/bin/openmbv.jar javatest > result.txt
 cat result.txt
 

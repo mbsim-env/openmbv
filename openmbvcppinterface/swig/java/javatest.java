@@ -6,6 +6,10 @@ public class javatest {
 
   // main program
   public static void main(String argv[]) {
+    mymain();
+  }
+
+  public static void mymain() {
     // create main group
     Group group=ObjectFactory.create_Group();
     group.setName("MBS");
@@ -32,6 +36,9 @@ public class javatest {
     double d=cube.getLength(); System.out.println(d);
     cube.append(new double[]{0.4, 1, 2, 3, 4, 5, 6, 0.25});
 
+    // You need to call delete to call the dtor of group (which closes the file)
+    // Note that java may even never call the dtor without this statement since its even not guarantieed
+    // that java runs the garbage collector and finalizer at program end
     group.delete();
   }
 

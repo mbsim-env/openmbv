@@ -31,6 +31,12 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
 
+namespace {
+  boost::filesystem::path getTempNoneSWMRFileName(const boost::filesystem::path &fileName) {
+    return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR"+fileName.extension().string())).string();
+  }
+}
+
 namespace OpenMBV {
 
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
@@ -38,7 +44,10 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(Group, OPENMBV%"Group")
 Group::Group() : expandStr("true") {
 }
 
-Group::~Group() = default;
+Group::~Group() {
+  if(ombvxRenameNeeded)
+    boost::filesystem::rename(getTempNoneSWMRFileName(fileName), fileName);
+}
 
 void Group::addObject(const shared_ptr<Object>& newObject) {
   if(newObject->name.empty()) throw runtime_error("object to add must have a name");
@@ -94,10 +103,6 @@ void Group::openHDF5File() {
       i->openHDF5File();
 }
 
-boost::filesystem::path getTempNoneSWMRFileName(const boost::filesystem::path &fileName) {
-  return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR"+fileName.extension().string())).string();
-}
-
 void Group::writeXML() {
   // write .ombvx file
   shared_ptr<DOMParser> parser=DOMParser::create();
@@ -107,6 +112,7 @@ void Group::writeXML() {
   for(auto & i : object)
     i->writeXMLFile(parent);
   DOMParser::serialize(xmlFile.get(), getTempNoneSWMRFileName(fileName).string());
+  ombvxRenameNeeded = true;
 }
 
 void Group::initializeUsingXML(DOMElement *element) {
@@ -170,6 +176,7 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 
 void Group::enableSWMR() {
   boost::filesystem::rename(getTempNoneSWMRFileName(fileName), fileName);
+  ombvxRenameNeeded = false;
   hdf5File->enableSWMR(); // this will unblock the h5 file
 }
 
