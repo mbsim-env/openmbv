@@ -51,10 +51,10 @@ AC_ARG_WITH([boost-system-lib],
   [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
 AC_SUBST([BOOST_SYSTEM_LIB])
 
-AC_ARG_WITH([boost-filesystem],
-  [  --with-boost-filesystem=LIBNAME  The library name of boost filesystem excluding prefix/suffix (Default: boost_filesystem).],
-  [BOOST_FILESYSTEM="$withval"], [BOOST_FILESYSTEM="boost_filesystem"])
-AC_SUBST([BOOST_FILESYSTEM])
+AC_ARG_WITH([boost-filesystem-lib],
+  [  --with-boost-filesystem-lib=LIBNAME  The library name of boost filesystem excluding prefix/suffix (Default: boost_filesystem).],
+  [BOOST_FILESYSTEM_LIB="$withval"], [BOOST_FILESYSTEM_LIB="boost_filesystem"])
+AC_SUBST([BOOST_FILESYSTEM_LIB])
 
 AM_CONDITIONAL([COND_CROSSCOMPILE], [test "$cross_compiling" == "yes"])
 
