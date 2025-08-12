@@ -32,8 +32,8 @@ using namespace MBXMLUtils;
 using namespace xercesc;
 
 namespace {
-  boost::filesystem::path getTempNoneSWMRFileName(const boost::filesystem::path &fileName) {
-    return (fileName.parent_path()/(fileName.stem().string()+".tempNoneSWMR"+fileName.extension().string())).string();
+  boost::filesystem::path getPreSWMRFileName(const boost::filesystem::path &fileName) {
+    return (fileName.parent_path()/(fileName.stem().string()+".preSWMR"+fileName.extension().string())).string();
   }
 }
 
@@ -46,7 +46,7 @@ Group::Group() : expandStr("true") {
 
 Group::~Group() {
   if(ombvxRenameNeeded)
-    boost::filesystem::rename(getTempNoneSWMRFileName(fileName), fileName);
+    boost::filesystem::rename(getPreSWMRFileName(fileName), fileName);
 }
 
 void Group::addObject(const shared_ptr<Object>& newObject) {
@@ -111,7 +111,7 @@ void Group::writeXML() {
   E(parent)->setAttribute("expand", expandStr);
   for(auto & i : object)
     i->writeXMLFile(parent);
-  DOMParser::serialize(xmlFile.get(), getTempNoneSWMRFileName(fileName).string());
+  DOMParser::serialize(xmlFile.get(), getPreSWMRFileName(fileName).string());
   ombvxRenameNeeded = true;
 }
 
@@ -159,7 +159,7 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
     // This call will block until the h5 file can we opened for writing.
     // That is why we call it before calling writeXML.
     // This way the XML file will always be in sync with the H5 file since both use the same lock when the files are written.
-    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::writeTempNoneSWMR);
+    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::writeWithRename);
   }
   // now write the XML file (the H5 file is locked currently)
   if(writeXMLFile)
@@ -175,7 +175,7 @@ void Group::write(bool writeXMLFile, bool writeH5File) {
 }
 
 void Group::enableSWMR() {
-  boost::filesystem::rename(getTempNoneSWMRFileName(fileName), fileName);
+  boost::filesystem::rename(getPreSWMRFileName(fileName), fileName);
   ombvxRenameNeeded = false;
   hdf5File->enableSWMR(); // this will unblock the h5 file
 }

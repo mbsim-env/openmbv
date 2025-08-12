@@ -10,7 +10,7 @@ else
 fi
 export OPENMBVCPPINTERFACE_PREFIX="@native_prefix@"
 @XC_EXEC_PREFIX@ @prefix@/bin/h5lockserie@EXEEXT@ --remove MBS_outfile.ombvh5 || echo "failed but continuing"
-rm -f result.txt MBS_outfile.ombvh5 MBS_outfile.ombvx MBS_outfile.tempNoneSWMR.ombvh5 MBS_outfile.tempNoneSWMR.ombvx
+rm -f result.txt MBS_outfile.ombvh5 MBS_outfile.ombvx MBS_outfile.preSWMR.ombvh5 MBS_outfile.preSWMR.ombvx
 @XC_EXEC_PREFIX@ @OCTAVE@ -q $(@XC_PATH_CONVERT@ @abs_srcdir@/octavetest.m) > result.txt
 cat result.txt
 
