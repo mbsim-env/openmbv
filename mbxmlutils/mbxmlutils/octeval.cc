@@ -1,4 +1,5 @@
 // octave used M_PI which is not longer defined in newer compilers
+#include <boost/algorithm/string/replace.hpp>
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -300,6 +301,57 @@ Eval::Value OctEval::create_vector_vector_double(const std::vector<std::vector<d
 
 Eval::Value OctEval::create_string(const std::string& v) const {
   return std::make_shared<octave_value>(v);
+}
+
+std::string OctEval::createSourceCode_double(const double& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<v;
+  return ret.str();
+}
+
+std::string OctEval::createSourceCode_vector_double(const std::vector<double>& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool first=true;
+  for(double e : v) {
+    ret<<(first?"":";")<<e;
+    first=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+std::string OctEval::createSourceCode_vector_vector_double(const std::vector<std::vector<double> >& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool firstRow=true;
+  for(auto& r : v) {
+    if(!firstRow)
+      ret<<";";
+    bool firstCol=true;
+    for(double e : r) {
+      ret<<(firstCol?"":",")<<e;
+      firstCol=false;
+    }
+    firstRow=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+std::string OctEval::createSourceCode_string(const std::string& v) const {
+  std::string vv(v);
+  boost::replace_all(vv, "\\", "\\\\");
+  boost::replace_all(vv, "\n", "\\n");
+  boost::replace_all(vv, "\"", "\\\"");
+
+  std::string ret("\"");
+  ret+=vv;
+  ret+="\"";
+  return ret;
 }
 
 Eval::Value OctEval::createFunctionDep(const std::vector<Value>& v) const {

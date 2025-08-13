@@ -216,6 +216,26 @@ Eval::Value Eval::create<string>(const string& v) const {
   return create_string(v);
 }
 
+template<>
+string Eval::createSourceCode<double>(const double& v) const {
+  return createSourceCode_double(v);
+}
+
+template<>
+string Eval::createSourceCode<vector<double> >(const vector<double>& v) const {
+  return createSourceCode_vector_double(v);
+}
+
+template<>
+string Eval::createSourceCode<vector<vector<double> > >(const vector<vector<double> >& v) const {
+  return createSourceCode_vector_vector_double(v);
+}
+
+template<>
+string Eval::createSourceCode<string>(const string& v) const {
+  return createSourceCode_string(v);
+}
+
 void Eval::addParam(const string &paramName, const Value& value) {
   currentParam[paramName]=value;
 }

@@ -31,7 +31,7 @@ namespace MBXMLUtils {
 
 bool tryDouble2Int(double d, int &i);
 
-//! A dummy object representing a value as string in the syntax of the Eval.
+//! A dummy object representing a value as string in the syntax of the Eval (xmlflat).
 class CodeString : public std::string {
   public:
     CodeString(const std::string &str) : std::string(str) {}
@@ -226,13 +226,22 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! If fullEval is false the "partially" evaluation is returned as a string even so it is not really a string.
     Value stringToValue(const std::string &str, const xercesc::DOMElement *e=nullptr, bool fullEval=true, bool skipRet=false) const;
 
-    //! create a value of the given type. T can be one of:
+    //! create a abstract Value object of the given type. T can be one of:
     //! double: create a floating point value
     //! vector<double>: create a vector of floating point values
     //! vector<vector<double>>: create a matrix of floating point values
     //! string: create a string value
     template<class T>
     Value create(const T& v) const;
+
+    //! create evaluator specific source code of the given type.
+    //! The resulting string can be evaluated by the specific evaluator. T can be one of:
+    //! double: create a floating point value
+    //! vector<double>: create a vector of floating point values
+    //! vector<vector<double>>: create a matrix of floating point values
+    //! string: create a string value
+    template<class T>
+    std::string createSourceCode(const T& v) const;
 
     //! return a list of all required files of the evaluator (excluding dependent files of libraries)
     virtual std::map<boost::filesystem::path, std::pair<boost::filesystem::path, bool> >& requiredFiles() const=0;
@@ -321,6 +330,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const=0;
     virtual Value create_string                   (const std::string& v) const=0;
 
+    // virtual spezialization of createSourceCode(...)
+    virtual std::string createSourceCode_double                   (const double& v) const=0;
+    virtual std::string createSourceCode_vector_double            (const std::vector<double>& v) const=0;
+    virtual std::string createSourceCode_vector_vector_double     (const std::vector<std::vector<double> >& v) const=0;
+    virtual std::string createSourceCode_string                   (const std::string& v) const=0;
+
     virtual std::string serializeFunction(const Value &x) const = 0;
 
     Value handleUnit(const xercesc::DOMElement *e, const Value &ret);
@@ -344,6 +359,12 @@ template<> Eval::Value Eval::create<double>                               (const
 template<> Eval::Value Eval::create<std::vector<double> >                 (const std::vector<double>& v) const;
 template<> Eval::Value Eval::create<std::vector<std::vector<double> > >   (const std::vector<std::vector<double> >& v) const;
 template<> Eval::Value Eval::create<std::string>                          (const std::string& v) const;
+
+// spezializations for createSourceCode
+template<> std::string Eval::createSourceCode<double>                               (const double& v) const;
+template<> std::string Eval::createSourceCode<std::vector<double> >                 (const std::vector<double>& v) const;
+template<> std::string Eval::createSourceCode<std::vector<std::vector<double> > >   (const std::vector<std::vector<double> >& v) const;
+template<> std::string Eval::createSourceCode<std::string>                          (const std::string& v) const;
 
 } // end namespace MBXMLUtils
 

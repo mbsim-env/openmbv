@@ -213,6 +213,49 @@ Eval::Value XMLFlatEval::create_string(const string& v) const {
   return make_shared<string>("'"+v+"'");
 }
 
+string XMLFlatEval::createSourceCode_double(const double& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<v;
+  return ret.str();
+}
+
+string XMLFlatEval::createSourceCode_vector_double(const vector<double>& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool first=true;
+  for(double e : v) {
+    ret<<(first?"":";")<<e;
+    first=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+string XMLFlatEval::createSourceCode_vector_vector_double(const vector<vector<double> >& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool firstRow=true;
+  for(auto& r : v) {
+    if(!firstRow)
+      ret<<";";
+    bool firstCol=true;
+    for(double e : r) {
+      ret<<(firstCol?"":",")<<e;
+      firstCol=false;
+    }
+    firstRow=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+string XMLFlatEval::createSourceCode_string(const string& v) const {
+  return "'"+v+"'";
+}
+
 Eval::Value XMLFlatEval::createFunctionDep(const vector<Value>& v) const {
   return make_shared<string>();
 }

@@ -1,3 +1,4 @@
+#include <boost/algorithm/string/replace.hpp>
 #include <config.h>
 
 // python includes
@@ -764,6 +765,53 @@ Eval::Value PyEval::create_vector_vector_double(const vector<vector<double> >& v
 Eval::Value PyEval::create_string(const string& v) const {
   GilState gil;
   return C(CALLPY(PyUnicode_FromString, v));
+}
+
+std::string PyEval::createSourceCode_double(const double& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<v;
+  return ret.str();
+}
+
+std::string PyEval::createSourceCode_vector_double(const std::vector<double>& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool first=true;
+  for(double e : v) {
+    ret<<(first?"":",")<<e;
+    first=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+std::string PyEval::createSourceCode_vector_vector_double(const std::vector<std::vector<double> >& v) const {
+  std::ostringstream ret;
+  ret.precision(std::numeric_limits<double>::digits10+1);
+  ret<<"[";
+  bool firstRow=true;
+  for(auto& r : v) {
+    if(!firstRow)
+      ret<<",";
+    ret<<createSourceCode_vector_double(r);
+    firstRow=false;
+  }
+  ret<<"]";
+  return ret.str();
+}
+
+std::string PyEval::createSourceCode_string(const std::string& v) const {
+  std::string vv(v);
+  boost::replace_all(vv, "\\", "\\\\");
+  boost::replace_all(vv, "\n", "\\n");
+  boost::replace_all(vv, "\'", "\\\'");
+
+  std::string ret("'");
+  ret+=vv;
+  ret+="'";
+  return ret;
 }
 
 Eval::Value PyEval::createFunctionDep(const vector<Value>& v) const {

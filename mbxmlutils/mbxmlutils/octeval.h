@@ -86,10 +86,15 @@ class OctEval : public Eval {
     std::vector<std::vector<double> > cast_vector_vector_double(const Value &value) const override;
     std::string                       cast_string              (const Value &value) const override;
 
-    Value create_double                   (const double& v) const override;
-    Value create_vector_double            (const std::vector<double>& v) const override;
-    Value create_vector_vector_double     (const std::vector<std::vector<double> >& v) const override;
-    Value create_string                   (const std::string& v) const override;
+    Value create_double              (const double& v) const override;
+    Value create_vector_double       (const std::vector<double>& v) const override;
+    Value create_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
+    Value create_string              (const std::string& v) const override;
+
+    std::string createSourceCode_double              (const double& v) const override;
+    std::string createSourceCode_vector_double       (const std::vector<double>& v) const override;
+    std::string createSourceCode_vector_vector_double(const std::vector<std::vector<double> >& v) const override;
+    std::string createSourceCode_string              (const std::string& v) const override;
 
     Value createFunctionDep(const std::vector<Value>& v) const override;
     Value createFunctionDep(const std::vector<std::vector<Value> >& v) const override;
