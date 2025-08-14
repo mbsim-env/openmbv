@@ -262,6 +262,18 @@ namespace {
     };
     walk(ee);
   }
+
+  // a boost ipc file lock must always be the same file_lock object for the same lock-file within a process
+  boost::interprocess::file_lock& getFileLockObj(const boost::filesystem::path &filename) {
+    static std::mutex m;
+    std::scoped_lock lock(m);
+    static map<boost::filesystem::path, boost::interprocess::file_lock> lockMap;
+    auto it = lockMap.find(filename);
+    if(it != lockMap.end())
+      return it->second;
+    return lockMap.emplace_hint(it, filename, boost::interprocess::file_lock(filename.string().c_str()))->second;
+  }
+
 }
 
 map<string, string>& EmbedDOMLocator::nsURIPrefix() {
@@ -1287,7 +1299,11 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   // if the file is writable use a lock file, if not writable no locking is needed
   if(writeable) {
-    // at least using wine we cannot use inputSource as lock file itself, its crashing
+    // threads lock using mutex
+    static std::mutex m;
+    std::scoped_lock lockThread(m);
+
+    // interprocess lock using file lock: boost ipc filelocks are unspecified regarding thread locking -> that's why we lock threads before
     path inputSourceLock(inputSource.parent_path()/(string(".").append(inputSource.filename().string()).append(".lock")));
     { std::ofstream dummy(inputSourceLock.string()); } // create the file
 #ifdef _WIN32
@@ -1297,7 +1313,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
         SetFileAttributesA(inputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
     }
 #endif
-    boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
+    boost::interprocess::file_lock &inputSourceFileLock = getFileLockObj(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
   }
@@ -1400,7 +1416,12 @@ namespace {
 
 void DOMParser::serialize(DOMNode *n, const path &outputSource) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper();
-  // at least using wine we cannot use outputSource as lock file itself, its crashing
+
+  // threads lock using mutex
+  static std::mutex m;
+  std::scoped_lock lockThread(m);
+
+  // interprocess lock using file lock: boost ipc filelocks are unspecified regarding thread locking -> that's why we lock threads before
   path outputSourceLock(outputSource.parent_path()/(string(".").append(outputSource.filename().string()).append(".lock")));
   { std::ofstream dummy(outputSourceLock.string()); } // create the file
 #ifdef _WIN32
@@ -1410,7 +1431,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource) {
       SetFileAttributesA(outputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
   }
 #endif
-  boost::interprocess::file_lock outputSourceFileLock(outputSourceLock.string().c_str()); // lock the file
+  boost::interprocess::file_lock &outputSourceFileLock = getFileLockObj(outputSourceLock.string().c_str()); // lock the file
   boost::interprocess::scoped_lock lock(outputSourceFileLock);
   {
     TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
