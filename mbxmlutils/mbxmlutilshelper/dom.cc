@@ -5,9 +5,17 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
-#include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/interprocess/sync/interprocess_sharable_mutex.hpp>
+#ifdef _WIN32
+  #include <boost/interprocess/windows_shared_memory.hpp>
+#else
+  #include <boost/interprocess/shared_memory_object.hpp>
+#endif
+#include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
+#include <utility>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -113,6 +121,41 @@ bool lexical_cast<bool>(const string& arg)
   throw std::runtime_error("Input is not bool:\n"+arg);
 }
 
+}
+
+namespace {
+#ifdef _WIN32
+  using SharedMemory = boost::interprocess::windows_shared_memory;
+  inline void SharedMemoryRemove(const char* shmName) {
+  }
+  inline SharedMemory SharedMemoryCreate(const char *shmName, boost::interprocess::mode_t mode, size_t size) {
+    auto shm=SharedMemory(boost::interprocess::create_only, shmName, mode, size);
+    return shm;
+  }
+#else
+  using SharedMemory = boost::interprocess::shared_memory_object;
+  inline void SharedMemoryRemove(const char* shmName) {
+    SharedMemory::remove(shmName);
+  }
+  inline SharedMemory SharedMemoryCreate(const char *shmName, boost::interprocess::mode_t mode, size_t size) {
+    auto shm=SharedMemory(boost::interprocess::create_only, shmName, mode);
+    shm.truncate(size);
+    return shm;
+  }
+#endif
+  class SyncronizationPrimitive {
+    public:
+      SyncronizationPrimitive(boost::filesystem::path filename_);
+      ~SyncronizationPrimitive();
+      inline boost::interprocess::interprocess_sharable_mutex& getMutex();
+    private:
+      boost::filesystem::path filename;
+      SharedMemory shm;
+      boost::interprocess::mapped_region region;
+      struct SharedMemObject;
+      SharedMemObject *sharedData { nullptr };
+      string shmName;
+  };
 }
 
 namespace MBXMLUtils {
@@ -261,16 +304,6 @@ namespace {
         walk(c);
     };
     walk(ee);
-  }
-
-  // a boost ipc file lock must always be the same file_lock object for the same lock-file within a process
-  boost::interprocess::file_lock& getFileLockObj(const boost::filesystem::path &filename) {
-    // this function is not thread safe!
-    static map<boost::filesystem::path, boost::interprocess::file_lock> lockMap;
-    auto it = lockMap.find(filename);
-    if(it != lockMap.end())
-      return it->second;
-    return lockMap.emplace_hint(it, filename, boost::interprocess::file_lock(filename.string().c_str()))->second;
   }
 
 }
@@ -1298,17 +1331,8 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   }
   // if the file is writable use a lock file, if not writable no locking is needed
   if(writeable) {
-    path inputSourceLock(inputSource.parent_path()/(string(".").append(inputSource.filename().string()).append(".lock")));
-    { std::ofstream dummy(inputSourceLock.string()); } // create the file
-#ifdef _WIN32
-    { // make lock file hidden on windows
-      auto attrs = GetFileAttributesA(inputSourceLock.string().c_str());
-      if(attrs != INVALID_FILE_ATTRIBUTES)
-        SetFileAttributesA(inputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
-    }
-#endif
-    boost::interprocess::file_lock &inputSourceFileLock = getFileLockObj(inputSourceLock.string().c_str()); // lock the file
-    boost::interprocess::sharable_lock lock(inputSourceFileLock);
+    SyncronizationPrimitive sync(inputSource);
+    boost::interprocess::sharable_lock lock(sync.getMutex());
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
   }
   else
@@ -1411,22 +1435,11 @@ namespace {
 void DOMParser::serialize(DOMNode *n, const path &outputSource) {
   shared_ptr<DOMLSSerializer> ser=serializeHelper();
 
-  path outputSourceLock(outputSource.parent_path()/(string(".").append(outputSource.filename().string()).append(".lock")));
-  { std::ofstream dummy(outputSourceLock.string()); } // create the file
-#ifdef _WIN32
-  { // make lock file hidden on windows
-    auto attrs = GetFileAttributesA(outputSourceLock.string().c_str());
-    if(attrs != INVALID_FILE_ATTRIBUTES)
-      SetFileAttributesA(outputSourceLock.string().c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
-  }
-#endif
-  boost::interprocess::file_lock &outputSourceFileLock = getFileLockObj(outputSourceLock.string().c_str()); // lock the file
-  boost::interprocess::scoped_lock lock(outputSourceFileLock);
-  {
-    TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
-    if(!ser->writeToURI(n, X()%outputSource.string()))
-      throw runtime_error("Serializing the document failed.");
-  }
+  TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
+  SyncronizationPrimitive sync(outputSource);
+  boost::interprocess::scoped_lock lock(sync.getMutex());
+  if(!ser->writeToURI(n, X()%outputSource.string()))
+    throw runtime_error("Serializing the document failed.");
 }
 
 void DOMParser::serializeToString(DOMNode *n, string &outputData) {
@@ -1464,5 +1477,43 @@ shared_ptr<DOMDocument> DOMParser::createDocument() {
   doc->setUserData(embedDataKey,new map<string,string>(),&userDataHandler);
   return doc;
 }
+
+}
+
+namespace {
+
+boost::interprocess::named_mutex globalMutex(boost::interprocess::open_or_create, "mbxmlutils_mutex_syncprim");
+
+struct SyncronizationPrimitive::SharedMemObject {
+  boost::interprocess::interprocess_sharable_mutex mutex;
+  size_t shmUseCount { 0 };
+};
+
+SyncronizationPrimitive::SyncronizationPrimitive(boost::filesystem::path filename_) : filename(std::move(filename_)) {
+  shmName = "mbxmlutils_xmlfile_"+to_string(hash<string>{}(absolute(filename).lexically_normal().generic_string()));
+  boost::interprocess::scoped_lock lock(globalMutex);
+  try {
+    shm=SharedMemory(boost::interprocess::open_only, shmName.c_str(), boost::interprocess::read_write);
+    region=boost::interprocess::mapped_region(shm, boost::interprocess::read_write);
+    sharedData=static_cast<SharedMemObject*>(region.get_address()); // get pointer
+  }
+  catch(...) {
+    shm=SharedMemoryCreate(shmName.c_str(), boost::interprocess::read_write, sizeof(SharedMemObject));
+    region=boost::interprocess::mapped_region(shm, boost::interprocess::read_write);
+    sharedData=new(region.get_address())SharedMemObject; // initialize shared memory (by placement new)
+  }
+  sharedData->shmUseCount++;
+}
+
+SyncronizationPrimitive::~SyncronizationPrimitive() {
+  boost::interprocess::scoped_lock lockF(globalMutex);
+  sharedData->shmUseCount--;
+  if(sharedData->shmUseCount==0) {
+    sharedData->~SharedMemObject(); // call destructor of SharedMemObject
+    SharedMemoryRemove(shmName.c_str()); // effectively destructs shm
+  }
+}
+
+boost::interprocess::interprocess_sharable_mutex& SyncronizationPrimitive::getMutex() { return sharedData->mutex; }
 
 }
