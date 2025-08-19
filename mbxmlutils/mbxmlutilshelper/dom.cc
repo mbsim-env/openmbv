@@ -5,7 +5,14 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/scope_exit.hpp>
+#ifdef __GNUC__
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #include <boost/interprocess/sync/named_mutex.hpp>
+#ifdef __GNUC__
+  #pragma GCC diagnostic pop
+#endif
 #include <boost/interprocess/sync/interprocess_sharable_mutex.hpp>
 #ifdef _WIN32
   #include <boost/interprocess/windows_shared_memory.hpp>
