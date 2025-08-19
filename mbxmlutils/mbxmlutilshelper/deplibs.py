@@ -9,6 +9,7 @@ import platform
 import glob
 import functools
 import time
+import argparse
 
 
 
@@ -168,9 +169,39 @@ def depLibs(filename):
 
 # when started as a program
 if __name__=="__main__":
-  deps=depLibs(sys.argv[1])
-  reldir=relDir(sys.argv[1])
-  print('<DependentShFiles>')
-  for d in deps:
-    print('  <file reldir="%s" orgdir="%s">%s</file>'%(reldir, os.path.dirname(d), os.path.basename(d)))
-  print('</DependentShFiles>')
+  argparser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter,
+    description='''Create dependency xml file'''
+  )
+  argparser.add_argument("files", nargs="*", help="dll/so files to process")
+  outArgs = argparser.add_mutually_exclusive_group(required=True)
+  outArgs.add_argument("-o", type=str, help="output files to <o>/<basename of input-file>.deplibs")
+  outArgs.add_argument("-b", action="store_true", help="output files to <dir-of input-file>/<basename of input-file>.deplibs")
+  argparser.add_argument("--skip", type=str, default=[], action="append", help="basefile-name to skip")
+  args = argparser.parse_args()
+
+  if args.o is not None:
+    os.makedirs(args.o, exist_ok=True)
+
+  for file in args.files:
+    if os.path.basename(file) in args.skip:
+      print("deplibs.py: skipping: "+file)
+      continue
+
+    if args.o is not None:
+      outFile = os.path.join(args.o, os.path.basename(file)+".deplibs")
+    else:
+      outFile = os.path.join(os.path.dirname(file), os.path.basename(file)+".deplibs")
+
+    if os.path.exists(outFile) and os.path.getmtime(outFile) > os.path.getmtime(file):
+      print("deplibs.py: already up to date: "+outFile)
+      continue
+
+    print("deplibs.py: Creating: "+outFile)
+    deps=depLibs(file)
+    reldir=relDir(file)
+    with open(outFile, "wt") as f:
+      print('<DependentShFiles>', file=f)
+      for d in deps:
+        print('  <file reldir="%s" orgdir="%s">%s</file>'%(reldir, os.path.dirname(d), os.path.basename(d)), file=f)
+      print('</DependentShFiles>', file=f)

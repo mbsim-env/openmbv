@@ -133,34 +133,14 @@ CLEANFILES = types.xsd fmatvec_symbolic_swig_octave.cc fmatvec_symbolic_swig_oct
 # generate deplib files for octave oct-files, fmatvec_symbolic_swig_octave, mbxmlutils-eval-octave and registerPath/getOriginalFilename
 install-exec-local: install-moduleLTLIBRARIES
 	set -e; \
-	ANYFAILED=0; \
-	for F in $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-python$(shext) $(runlibdir)/libmbxmlutils-eval-python-runtime$(shext); do \
-	  if test $$F -nt $$F.deplibs -o ! -e $$F; then \
-	    echo "Create dependency file for $$F"; \
-	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$F > $$F.deplibs || ANYFAILED=1; \
-	  fi; \
-	done; \
-	if test $$ANYFAILED = 1; then \
-	  echo "At least one deplibs command failed, see above."; \
-	  exit 1; \
-	fi;
+	python3 $(prefix)/share/mbxmlutils/python/deplibs.py -b $(runlibdir)/fmatvec_symbolic_swig_octave.oct $(runlibdir)/libmbxmlutils-eval-octave$(shext) $(runlibdir)/registerPath.oct $(runlibdir)/getOriginalFilename.oct $(runlibdir)/libmbxmlutils-eval-python$(shext) $(runlibdir)/libmbxmlutils-eval-python-runtime$(shext);
 	set -e; \
-	mkdir -p $(prefix)/share/deplibs; \
-	ANYFAILED=0; \
-	for i in $(MKOCTFILE_LIBDIR)/oct/*/*.oct \
-	         $(PYTHON_LIBDIR2)/*.so \
-	         $(PYTHON_LIBDIR2)/*.dll \
-	         $(PYTHON_LIBDIR2)/*.pyd \
-	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
-	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
-	         $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/.libs/*.dll; do \
-	  test $$(basename $$i) == __init_gnuplot__.oct && continue; \
-	  if test $$i -nt $(prefix)/share/deplibs/$$(basename $$i).deplibs; then \
-	    echo "Create dependency file and wrapper file for $$i"; \
-	    python3 $(prefix)/share/mbxmlutils/python/deplibs.py $$i > $(prefix)/share/deplibs/$$(basename $$i).deplibs || ANYFAILED=1; \
-	  fi; \
-	done; \
-	if test $$ANYFAILED = 1; then \
-	  echo "At least one deplibs command failed, see above."; \
-	  exit 1; \
-	fi;
+	shopt -s nullglob; \
+	python3 $(prefix)/share/mbxmlutils/python/deplibs.py -o $(prefix)/share/deplibs --skip __init_gnuplot__.oct \
+	  $(MKOCTFILE_LIBDIR)/oct/*/*.oct \
+	  $(PYTHON_LIBDIR2)/*.so \
+	  $(PYTHON_LIBDIR2)/*.dll \
+	  $(PYTHON_LIBDIR2)/*.pyd \
+	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
+	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
+	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/.libs/*.dll;
