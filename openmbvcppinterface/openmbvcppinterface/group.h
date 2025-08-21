@@ -47,7 +47,7 @@ namespace OpenMBV {
       void openHDF5File() override;
 
       Group();
-      ~Group() override;
+      ~Group() override = default;
 
       /** Initialisze/Write the XML file.
        * Call this function for the root node of the tree to create/write/ the XML file.
@@ -58,9 +58,6 @@ namespace OpenMBV {
        * Call this function to read an OpenMBV XML file and creating the Object tree.
        */
       void readXML();
-
-    private:
-      bool ombvxRenameNeeded { false };
 
     public:
       /** Expand this tree node in a view if true (the default) */
