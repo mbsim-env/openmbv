@@ -1289,9 +1289,6 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   locationFilter.setLineNumberOffset(0);
   shared_ptr<DOMDocument> doc;
   doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
-  string docURI = mbxmlutilsfileSchema;
-  docURI.append(inputSource.string());
-  doc->setDocumentURI(X()%docURI);
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
@@ -1302,6 +1299,9 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     }
     throw ex;
   }
+  string docURI = mbxmlutilsfileSchema;
+  docURI.append(inputSource.string());
+  doc->setDocumentURI(X()%docURI);
   convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
   doc->setUserData(domParserKey, new shared_ptr<DOMParser>(shared_from_this()), &userDataHandler);
