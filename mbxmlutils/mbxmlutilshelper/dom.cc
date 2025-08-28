@@ -1299,10 +1299,27 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
 #endif
     boost::interprocess::file_lock inputSourceFileLock(inputSourceLock.string().c_str()); // lock the file
     boost::interprocess::sharable_lock lock(inputSourceFileLock);
+#ifdef _WIN32
+    auto h = ::CreateFileW((LPCWSTR)(X()%inputSource.string()), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+    cout<<"mfmf1 "<<X()%inputSource.string()<<": "<<h<<" "<<::GetLastError()<<endl;
+    ::CloseHandle(h);
+    h = ::CreateFileA(inputSource.string().c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+    cout<<"mfmf2 "<<X()%inputSource.string()<<": "<<h<<" "<<::GetLastError()<<endl;
+    ::CloseHandle(h);
+#endif
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
   }
-  else
+  else {
+#ifdef _WIN32
+    auto h = ::CreateFileW((LPCWSTR)(X()%inputSource.string()), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+    cout<<"mfmf3 "<<X()%inputSource.string()<<": "<<h<<" "<<::GetLastError()<<endl;
+    ::CloseHandle(h);
+    h = ::CreateFileA(inputSource.string().c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+    cout<<"mfmf4 "<<X()%inputSource.string()<<": "<<h<<" "<<::GetLastError()<<endl;
+    ::CloseHandle(h);
+#endif
     doc.reset(parser->parseURI(X()%inputSource.string()), [](auto && PH1) { if(PH1) PH1->release(); });
+  }
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
