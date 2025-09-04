@@ -1,5 +1,5 @@
 # USAGE
-# install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -DLIBS=${CMAKE_INSTALL_PREFIX}/lib/$<TARGET_FILE_PREFIX:mytarget>$<TARGET_FILE_BASE_NAME:mytarget>$<TARGET_FILE_SUFFIX:mytarget> -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_INSTALL_PREFIX}/share/mbxmlutils/python/deplibs.cmake)")
+# install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -DLIBS=${CMAKE_INSTALL_PREFIX}/$<IF:$<PLATFORM_ID:Windows>,${CMAKE_INSTALL_BINDIR},${CMAKE_INSTALL_LIBDIR}>/$<TARGET_FILE_NAME:mbsimRCStengel> -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_INSTALL_PREFIX}/share/mbxmlutils/python/deplibs.cmake)")
 #
 # NOTE
 # comma ',' is used as seperator in -DLIBS to avoid that ';' is interpreted by the shell
