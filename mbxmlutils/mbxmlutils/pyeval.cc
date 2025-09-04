@@ -322,10 +322,13 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     // restore current dir on exit and change current dir
     PreserveCurrentDir preserveDir;
     if(e) {
-      path chdir=E(e)->getOriginalFilename().parent_path();
+      originalFilename=boost::filesystem::absolute(E(e)->getOriginalFilename());
+      path chdir=originalFilename.parent_path();
       if(!chdir.empty())
         current_path(chdir);
     }
+    else
+      originalFilename.clear();
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
@@ -333,8 +336,6 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     try {
       auto codetrim=fixPythonIndentation(code, e);
       mbxmlutilsStaticDependencies.clear();
-      if(e)
-        originalFilename=E(e)->getOriginalFilename();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);
@@ -520,10 +521,13 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   // restore current dir on exit and change current dir
   PreserveCurrentDir preserveDir;
   if(e) {
-    path chdir=E(e)->getOriginalFilename().parent_path();
+    originalFilename=boost::filesystem::absolute(E(e)->getOriginalFilename());
+    path chdir=originalFilename.parent_path();
     if(!chdir.empty())
       current_path(chdir);
   }
+  else
+    originalFilename.clear();
 
   // python globalsLocals (fill with builtins)
   PyO globalsLocals(CALLPY(PyDict_New));
@@ -540,10 +544,6 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
 
   // evaluate as expression (using the trimmed str) and save result in ret
   mbxmlutilsStaticDependencies.clear();
-  if(e)
-    originalFilename=E(e)->getOriginalFilename();
-  else
-    originalFilename.clear();
   PyO exprResult;
   ostringstream err;
   {
@@ -583,10 +583,6 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
-      if(e)
-        originalFilename=E(e)->getOriginalFilename();
-      else
-        originalFilename.clear();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);

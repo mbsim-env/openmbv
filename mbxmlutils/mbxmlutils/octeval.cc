@@ -582,10 +582,13 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   // restore current dir on exit and change current dir
   PreserveCurrentDir preserveDir;
   if(e) {
-    bfs::path chdir=E(e)->getOriginalFilename().parent_path();
+    originalFilename=bfs::absolute(E(e)->getOriginalFilename());
+    bfs::path chdir=originalFilename.parent_path();
     if(!chdir.empty())
       bfs::current_path(chdir);
   }
+  else
+    originalFilename.clear();
 
   // clear local octave variables
   // octInit.interpreter->get_symbol_table().current_scope().clear_variables() seems to be buggy, it sometimes clears
@@ -654,10 +657,6 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
     MBXMLUTILS_REDIR_STDOUT(out);
     MBXMLUTILS_REDIR_STDERR(err);
     mbxmlutilsStaticDependencies.clear();
-    if(e)
-      originalFilename=E(e)->getOriginalFilename();
-    else
-      originalFilename.clear();
 #if OCTAVE_MAJOR_VERSION >= 5
     octInit.interpreter->eval_string(str+";", true, dummy, 0); // eval as statement list
 #else
