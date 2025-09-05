@@ -94,3 +94,77 @@ def execWidget(w, maximized=True):
     w.show()
     # start a local event loop (none is running till now) which waits for the dialog to exit (hence the dialog is modal)
     PySide2.QtWidgets.QApplication.instance().exec_()
+
+
+
+def blockUntilDialoagsAreClosed(*args):
+  """This function blocks until (currently open) dialogs listed as arguments are closed."""
+  import PySide2.QtCore
+  openDialogs=len(args)
+  el=PySide2.QtCore.QEventLoop()
+  def finished():
+    nonlocal openDialogs
+    openDialogs-=1
+    if openDialogs==0:
+      el.exit(0)
+  for d in args:
+    d.finished.connect(finished)
+  el.exec_()
+
+
+
+def onArtistClick(artist, func):
+  """If artist (e.g. a line, text, ...) is clicked then the function func(artist) is run.
+  However, this works only if the default toolbar actions is currently active.
+  If no toolbar action is active (the artist is clickable) then also the mouse cursor changes
+  to a hand when the mouse is over the artist."""
+  import PySide2.QtCore
+  artist.set_picker(True)
+  def onPick(event):
+    if event.artist == artist:
+      func()
+  artist.figure.canvas.mpl_connect("pick_event", onPick)
+  def onMouseMove(event):
+    if artist.figure.canvas.widgetlock.locked():
+      return
+    if artist.contains(event)[0]:
+      artist.figure.canvas.setCursor(PySide2.QtCore.Qt.PointingHandCursor)
+    else:
+      artist.figure.canvas.setCursor(PySide2.QtCore.Qt.ArrowCursor)
+  artist.figure.canvas.mpl_connect("motion_notify_event", onMouseMove)
+
+
+
+class BitBlitManager:
+  """A helper class for efficient interactive matplotlib figures/axes."""
+  def __init__(self, figOrAxes, animatedArtists):
+    """Creates a bit blit manger with a matplotlib figure or axes object and a list of artists.
+    The figure or axes area is then bit blit with the static plot data as background the list of 
+    artists as foreground."""
+    if isinstance(figOrAxes, matplotlib.figure.Figure):
+      self.fig = figOrAxes
+    elif isinstance(figOrAxes, matplotlib.axes.Axes):
+      self.fig = figOrAxes.figure
+    else:
+      raise RuntimeError("wrong first argument")
+    self.bbox = figOrAxes.bbox
+    self.background = None
+    self.artists = []
+    for a in animatedArtists:
+      a.set_animated(True)
+      self.artists.append(a)
+    self.fig.canvas.mpl_connect("draw_event", self._draw)
+  def update(self):
+    """Update/redraw the figure or axes.
+    Draw the static plot data as background and the the list of artists at foreground."""
+    if self.background is None:
+      self._draw(None)
+    self.fig.canvas.restore_region(self.background)
+    self._drawAnimated()
+    self.fig.canvas.blit(self.bbox)
+  def _draw(self, event):
+    self.background = self.fig.canvas.copy_from_bbox(self.bbox)
+    self._drawAnimated()
+  def _drawAnimated(self):
+    for a in self.artists:
+      self.fig.draw_artist(a)
