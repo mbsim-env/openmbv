@@ -34,7 +34,7 @@ namespace OpenMBVGUI {
 
 DynamicPointSet::DynamicPointSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : FlexibleBody(obj, parentItem, soParent, ind) {
   pointset=std::static_pointer_cast<OpenMBV::DynamicPointSet>(obj);
-  iconFile="pointset.svg";
+  //iconFile="pointset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   auto *point = new SoPointSet;

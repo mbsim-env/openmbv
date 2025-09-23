@@ -108,10 +108,14 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
   });
   layout->addWidget(filterLE, 0, 1);
   connect(filterLE, &QLineEdit::textEdited, this, &AbstractViewFilter::applyFilter);
-  connect(view->model(), &QAbstractItemModel::dataChanged, this, [this](const QModelIndex &index, const QModelIndex &bottomRight){
+  connect(view->model(), &QAbstractItemModel::dataChanged, this, [this](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles){
     if(filterLE->text().isEmpty())
       return;
-    updateItem(index);
+    for(auto r : roles)
+      if(r != Qt::ForegroundRole) {
+        updateItem(topLeft);
+        break;
+      }
   });
 }
 

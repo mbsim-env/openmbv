@@ -32,7 +32,7 @@ namespace OpenMBVGUI {
 
 CylindricalGear::CylindricalGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   e=std::static_pointer_cast<OpenMBV::CylindricalGear>(obj);
-  iconFile="cylindricalgear.svg";
+  //iconFile="cylindricalgear.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML

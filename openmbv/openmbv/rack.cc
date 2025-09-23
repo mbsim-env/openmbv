@@ -31,7 +31,7 @@ namespace OpenMBVGUI {
 
 Rack::Rack(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   e=std::static_pointer_cast<OpenMBV::Rack>(obj);
-  iconFile="rack.svg";
+  //iconFile="rack.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML

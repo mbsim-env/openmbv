@@ -34,7 +34,7 @@ namespace OpenMBVGUI {
 
 DynamicIndexedLineSet::DynamicIndexedLineSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : FlexibleBody(obj, parentItem, soParent, ind) {
   lineset=std::static_pointer_cast<OpenMBV::DynamicIndexedLineSet>(obj);
-  iconFile="indexedlineset.svg";
+  //iconFile="indexedlineset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   auto *line = new SoIndexedLineSet;

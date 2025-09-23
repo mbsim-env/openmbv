@@ -34,7 +34,7 @@ namespace OpenMBVGUI {
 
 DynamicIndexedFaceSet::DynamicIndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : FlexibleBody(obj, parentItem, soParent, ind) {
   faceset=std::static_pointer_cast<OpenMBV::DynamicIndexedFaceSet>(obj);
-  iconFile="indexedfaceset.svg";
+  //iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   auto *surface = new SoIndexedFaceSet;

@@ -35,7 +35,7 @@ namespace OpenMBVGUI {
 
 DynamicNurbsCurve::DynamicNurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind, true) {
   nurbscurve=std::static_pointer_cast<OpenMBV::DynamicNurbsCurve>(obj);
-  iconFile="nurbscurve.svg";
+  //iconFile="nurbscurve.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   mat->diffuseColor.setNum(nurbscurve->getNumberOfControlPoints());

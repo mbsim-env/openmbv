@@ -35,7 +35,7 @@ namespace OpenMBVGUI {
 
 DynamicNurbsSurface::DynamicNurbsSurface(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind, true) {
   nurbssurface=std::static_pointer_cast<OpenMBV::DynamicNurbsSurface>(obj);
-  iconFile="nurbssurface.svg";
+  //iconFile="nurbssurface.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   mat->diffuseColor.setNum(nurbssurface->getNumberOfUControlPoints()*nurbssurface->getNumberOfVControlPoints());

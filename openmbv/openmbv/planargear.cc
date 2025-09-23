@@ -32,7 +32,7 @@ namespace OpenMBVGUI {
 
 PlanarGear::PlanarGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   e=std::static_pointer_cast<OpenMBV::PlanarGear>(obj);
-  iconFile="planargear.svg";
+  //iconFile="planargear.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML

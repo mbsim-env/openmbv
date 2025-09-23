@@ -34,7 +34,7 @@ namespace OpenMBVGUI {
 
 NurbsCurve::NurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   nurbscurve=std::static_pointer_cast<OpenMBV::NurbsCurve>(obj);
-  iconFile="nurbscurve.svg";
+  //iconFile="nurbscurve.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   vector<vector<double> > cp = nurbscurve->getControlPoints();

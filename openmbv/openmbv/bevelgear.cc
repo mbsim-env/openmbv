@@ -52,7 +52,7 @@ struct Residuum {
 
 BevelGear::BevelGear(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   e=std::static_pointer_cast<OpenMBV::BevelGear>(obj);
-  iconFile="bevelgear.svg";
+  //iconFile="bevelgear.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML

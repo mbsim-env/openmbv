@@ -33,7 +33,7 @@ namespace OpenMBVGUI {
 
 IndexedFaceSet::IndexedFaceSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   faceset=std::static_pointer_cast<OpenMBV::IndexedFaceSet>(obj);
-  iconFile="indexedfaceset.svg";
+  //iconFile="indexedfaceset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   vector<vector<double> > vp = faceset->getVertexPositions();

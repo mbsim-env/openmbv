@@ -33,7 +33,7 @@ namespace OpenMBVGUI {
 
 FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind, true) {
   body=std::static_pointer_cast<OpenMBV::FlexibleBody>(obj);
-  iconFile="flexiblebody.svg";
+  //iconFile="flexiblebody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   mat->diffuseColor.setNum(max(1,body->getNumberOfVertexPositions()));

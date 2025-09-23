@@ -33,7 +33,7 @@ namespace OpenMBVGUI {
 
 PointSet::PointSet(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : RigidBody(obj, parentItem, soParent, ind) {
   pointset=std::static_pointer_cast<OpenMBV::PointSet>(obj);
-  iconFile="pointset.svg";
+  //iconFile="pointset.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   vector<vector<double> > vp = pointset->getVertexPositions();
