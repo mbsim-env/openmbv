@@ -22,6 +22,7 @@
 #include <openmbvcppinterface/body.h>
 #include <openmbvcppinterface/objectfactory.h>
 #include <hdf5serie/file.h>
+#include <hdf5serie/simpledataset.h>
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -35,6 +36,8 @@ namespace {
   boost::filesystem::path getPreSWMRFileName(const boost::filesystem::path &fileName) {
     return (fileName.parent_path()/(fileName.stem().string()+".preSWMR"+fileName.extension().string())).string();
   }
+
+  const string ombvxPath("openmbv_ombvxContent");
 }
 
 namespace OpenMBV {
@@ -98,7 +101,7 @@ void Group::openHDF5File() {
       i->openHDF5File();
 }
 
-void Group::writeXML() {
+shared_ptr<DOMDocument> Group::writeXMLDoc() {
   // write .ombvx file
   shared_ptr<DOMParser> parser=DOMParser::create();
   shared_ptr<DOMDocument> xmlFile=parser->createDocument();
@@ -106,7 +109,11 @@ void Group::writeXML() {
   E(parent)->setAttribute("expand", expandStr);
   for(auto & i : object)
     i->writeXMLFile(parent);
-  DOMParser::serialize(xmlFile.get(), getPreSWMRFileName(fileName).string());
+  return xmlFile;
+}
+
+void Group::writeXML() {
+  DOMParser::serialize(writeXMLDoc().get(), getPreSWMRFileName(fileName).string());
 }
 
 void Group::initializeUsingXML(DOMElement *element) {
@@ -133,9 +140,15 @@ void Group::initializeUsingXML(DOMElement *element) {
 }
 
 void Group::readXML() {
+  boost::filesystem::path xmlFileName;
+  if(fileName.extension()==".ombvh5")
+    xmlFileName=fileName.parent_path()/(fileName.stem().string()+".ombvx");
+  else
+    xmlFileName=fileName;
+
   // read XML
   shared_ptr<DOMParser> parser=DOMParser::create();
-  shared_ptr<DOMDocument> doc=parser->parse(fileName);
+  shared_ptr<DOMDocument> doc=parser->parse(xmlFileName);
 
   if(E(doc->getDocumentElement())->getTagName()!=OPENMBV%"Group")
     throw runtime_error("The root element must be of type {"+OPENMBV.getNamespaceURI()+"}Group");
@@ -144,22 +157,35 @@ void Group::readXML() {
   initializeUsingXML(doc->getDocumentElement());
 }
 
-void Group::write(bool writeXMLFile, bool writeH5File) {
+void Group::write(bool writeXMLFile, bool writeH5File, bool embedXMLInH5) {
   // use element name as base filename if fileName was not set
   if(fileName.empty()) fileName=name+".ombvx";
 
+  auto h5FileName=fileName.parent_path()/(fileName.stem().string()+".ombvh5");
   if(writeH5File) {
-    auto h5FileName=fileName.parent_path()/(fileName.stem().string()+".ombvh5");
     // This call will block until the h5 file can we opened for writing.
     // That is why we call it before calling writeXML.
     // This way the XML file will always be in sync with the H5 file since both use the same lock when the files are written.
-    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::writeWithRename, function<void()>{}, function<void()>{}, [this](){
-      boost::filesystem::rename(getPreSWMRFileName(fileName), fileName);
+    hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::writeWithRename, function<void()>{}, function<void()>{}, [this,embedXMLInH5](){
+      if(!embedXMLInH5)
+        boost::filesystem::rename(getPreSWMRFileName(fileName), fileName);
     });
   }
   // now write the XML file (the H5 file is locked currently)
-  if(writeXMLFile)
+  if(!embedXMLInH5 && writeXMLFile)
     writeXML();
+  if(embedXMLInH5 && writeXMLFile) {
+    boost::filesystem::remove(fileName);
+    boost::filesystem::remove(getPreSWMRFileName(fileName));
+    string ombvx;
+    DOMParser::serializeToString(writeXMLDoc().get(), ombvx);
+    if(writeH5File)
+      hdf5File->createChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)(1, ombvx.length())->write({ombvx});
+    else {
+      H5::File file(h5FileName, H5::File::write);
+      file.createChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)(1, ombvx.length())->write({ombvx});
+    }
+  }
   // now walk all objects and createw the corresponding groups/datasets in the H5 file
   if(writeH5File) {
     hdf5Group=hdf5File.get();
@@ -191,7 +217,12 @@ void Group::requestFlush() {
 void Group::read() {
   std::shared_ptr<Group> p=parent.lock();
   // check if a corresponding H5 file exists, if yes ...
-  string h5FileName(getFileName().substr(0,getFileName().length()-6)+".ombvh5");
+
+  string h5FileName;
+  if(fileName.extension()==".ombvx")
+    h5FileName=(fileName.parent_path()/(fileName.stem().string()+".ombvh5")).string();
+  else
+    h5FileName=fileName.string();
   if(boost::filesystem::exists(h5FileName)) {
     // ... open the H5 file for reading. This will block the H5 file for writers.
     hdf5Group=nullptr;
@@ -209,7 +240,29 @@ void Group::read() {
   }
 
   // now read the XML file (the H5 file is currently locked for writer)
-  readXML();
+  if(hdf5File) {
+    string ombvx;
+    try {
+      ombvx=hdf5File->openChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)->read()[0];
+    }
+    catch(H5::Exception&) {
+      readXML();
+    }
+    if(!ombvx.empty()) {
+      // read XML
+      shared_ptr<DOMParser> parser=DOMParser::create();
+      istringstream str(std::move(ombvx));
+      shared_ptr<DOMDocument> doc=parser->parse(str);
+
+      if(E(doc->getDocumentElement())->getTagName()!=OPENMBV%"Group")
+        throw runtime_error("The root element must be of type {"+OPENMBV.getNamespaceURI()+"}Group");
+
+      // read XML using OpenMBVCppInterface
+      initializeUsingXML(doc->getDocumentElement());
+    }
+  }
+  else
+    readXML();
 
   if(getEnvironment() && boost::filesystem::exists(h5FileName))
     throw runtime_error("This XML file is an environment file but a corresponding H5 file exists!");

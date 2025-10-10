@@ -12,7 +12,7 @@
   <xs:import namespace="http://www.mbsim-env.de/MBXMLUtils"/>
 
   <xs:annotation><xs:documentation xml:lang="en" xmlns="">
-    <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombvx</code>) and a HDF5 file (<code>&lt;filename&gt;.ombvh5</code>).</p>
+      <p>The data of an OpenMBV visualization consist of two parts: a XML file (<code>&lt;filename&gt;.ombvx</code>) and a HDF5 file (<code>&lt;filename&gt;.ombvh5</code>). Alternatively, the content of the ombvx file can be embed in the ombvh5 file as a dataset of type string and dataspace dimension (1) at the path <code>/openmbv_ombvxContent</code> (a dataspace with dimension (1) instead of a scalar dataspce is used to allow compression, at least if the type is a fixed size string).</p>
     <p>The root element of the XML file must be <span class="_element">&lt;Group&gt;</span>. The syntax, the attributes and the possible children for the XML elements is documented in the section Elements. A full valid example XML file (TS.ombvx) is given by:</p><pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <Group name="TS" expand="1" enable="1" xmlns="http://www.mbsim-env.de/OpenMBV">
   <Group name="Hauptgruppe1" expand="1" enable="1">

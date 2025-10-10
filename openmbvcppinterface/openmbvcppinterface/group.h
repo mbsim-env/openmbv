@@ -49,6 +49,7 @@ namespace OpenMBV {
       Group();
       ~Group() override = default;
 
+      std::shared_ptr<xercesc::DOMDocument> writeXMLDoc();
       /** Initialisze/Write the XML file.
        * Call this function for the root node of the tree to create/write/ the XML file.
        */
@@ -86,7 +87,7 @@ namespace OpenMBV {
        * Call this function for the root node of the tree to init the h5 file.
        * (Only the h5 tree is written, but do data. Use append() to write date to h5 file after calling this function)
        */
-      void write(bool writeXMLFile=true, bool writeH5File=true);
+      void write(bool writeXMLFile=true, bool writeH5File=true, bool embedXMLInH5=false);
 
       /** Read the tree (XML and h5). */
       void read();
