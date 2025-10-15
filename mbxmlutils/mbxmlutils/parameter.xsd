@@ -14,6 +14,11 @@
           <xs:complexType>
             <xs:simpleContent>
               <xs:extension base="stringFullEval">
+                <xs:attribute name="label" type="xs:string">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The optional label for this parameter. Just to identify the parameter in e.g. a UI (similar to the 'name' of normal parameters)
+                  </xs:documentation></xs:annotation>
+                </xs:attribute>
                 <xs:attribute name="action" type="xs:string"/>
               </xs:extension>
             </xs:simpleContent>
@@ -24,6 +29,9 @@
             <xs:simpleContent>
               <xs:extension base="stringFullEval">
                 <xs:attribute name="name" use="required">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The name of the parameter. In the evaluator a variable with this name will be available holding the value of the parameter.
+                  </xs:documentation></xs:annotation>
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
@@ -39,6 +47,9 @@
             <xs:complexContent>
               <xs:extension base="nounitScalar">
                 <xs:attribute name="name" use="required">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The name of the parameter. In the evaluator a variable with this name will be available holding the value of the parameter.
+                  </xs:documentation></xs:annotation>
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
@@ -54,6 +65,9 @@
             <xs:complexContent>
               <xs:extension base="nounitVector">
                 <xs:attribute name="name" use="required">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The name of the parameter. In the evaluator a variable with this name will be available holding the value of the parameter.
+                  </xs:documentation></xs:annotation>
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
@@ -69,6 +83,9 @@
             <xs:complexContent>
               <xs:extension base="nounitMatrix">
                 <xs:attribute name="name" use="required">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The name of the parameter. In the evaluator a variable with this name will be available holding the value of the parameter.
+                  </xs:documentation></xs:annotation>
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
@@ -84,6 +101,9 @@
             <xs:simpleContent>
               <xs:extension base="xs:string">
                 <xs:attribute name="name" use="required">
+                  <xs:annotation><xs:documentation xml:lang="en">
+                    The name of the parameter. In the evaluator a variable with this name will be available holding the value of the parameter.
+                  </xs:documentation></xs:annotation>
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
                       <xs:pattern value="[_a-zA-Z][_a-zA-Z0-9]*"/>
