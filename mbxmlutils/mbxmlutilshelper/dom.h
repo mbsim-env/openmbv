@@ -1,6 +1,7 @@
 #ifndef _MBXMLUTILSHELPER_DOM_H_
 #define _MBXMLUTILSHELPER_DOM_H_
 
+#include <boost/algorithm/string/trim.hpp>
 #include <fmatvec/atom.h>
 #include <string>
 #include <utility>
@@ -305,7 +306,18 @@ class DOMElementWrapper {
     template<class T> T getText(int r=0, int c=0) const {
       try {
         auto textEle=E(me)->getFirstTextChild();
-        auto text=textEle ? X()%textEle->getData() : "";
+        if(!textEle) {
+          if constexpr(std::is_same_v<T, std::string>) {
+            for(auto *n=me->getFirstChild(); n; n=n->getNextSibling())
+              if(n->getNodeType()==xercesc_3_2::DOMNode::TEXT_NODE || n->getNodeType()==xercesc_3_2::DOMNode::CDATA_SECTION_NODE)
+                if(!boost::trim_copy(X()%static_cast<xercesc::DOMText*>(n)->getData()).empty())
+                  throw std::runtime_error("There must be no or a single, none empty, text node but the text node is split by a comment or processing-instruction node.");
+            return "";
+          }
+          else
+            throw std::runtime_error("There must be a single, none empty, text node but either, no text node exists at all, or the text node is split by a comment or processing-instruction node.");
+        }
+        auto text=X()%textEle->getData();
         auto ret=boost::lexical_cast<T>(text);
         CheckSize<T>::check(me, ret, r, c);
         return ret;

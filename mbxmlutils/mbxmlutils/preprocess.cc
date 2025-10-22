@@ -124,8 +124,7 @@ void Preprocess::extractEvaluator() {
     // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
     evaluator=E(document->getDocumentElement())->getFirstElementChildNamed(PV%"evaluator");
   if(evaluator) {
-    auto textEle=E(evaluator)->getFirstTextChild();
-    auto text=textEle ? X()%textEle->getData() : "";
+    auto text=E(evaluator)->getText<string>();
     evalName=text;
   }
 
@@ -356,8 +355,6 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
           if(E(p)->getAttribute("name")==it.first) {
             // if found overwrite this parameter
-            if(E(p)->getFirstTextChild())
-              p->removeChild(E(p)->getFirstTextChild())->release();
             Eval::setValue(p, it.second);
             msgStatic(Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
             found=true;
@@ -577,12 +574,13 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       try { value=eval->eval(e); } RETHROW_AS_DOMEVALEXCEPTION(e)
       E(e)->removeAttribute("unit");
       E(e)->removeAttribute("convertUnit");
-      // if a child element exists (xml*Group or fromFileGroup) then remove it
-      if(e->getFirstElementChild())
-        e->removeChild(e->getFirstElementChild())->release();
-      // remove also all child text nodes
-      while(E(e)->getFirstTextChild())
-        e->removeChild(E(e)->getFirstTextChild())->release();
+      // remove all child elements and child text nodes (since we add the evaluated value as the data = text node)
+      DOMNode *nNext;
+      for(auto *n=e->getFirstChild(); n; n=nNext) {
+        nNext = n->getNextSibling();
+        if(n->getNodeType()==DOMNode::ELEMENT_NODE || n->getNodeType()==DOMNode::TEXT_NODE || n->getNodeType()==DOMNode::CDATA_SECTION_NODE)
+          e->removeChild(n)->release();
+      }
       DOMNode *node;
       DOMDocument *doc=e->getOwnerDocument();
       try {
