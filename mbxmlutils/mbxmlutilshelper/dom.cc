@@ -1320,7 +1320,7 @@ shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dep
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   locationFilter.setLineNumberOffset(0);
-  DOMLSInput *source = domImpl->createLSInput();
+  unique_ptr<DOMLSInput, void(*)(DOMLSInput*)> source(domImpl->createLSInput(), [](auto x) { if(x) x->release(); });
   std::stringstream buffer;
   buffer<<inputStream.rdbuf();
   string inputString=buffer.str();
@@ -1328,7 +1328,7 @@ shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dep
     throw runtime_error("Got empty string to parse as XML.");
   X x;
   source->setStringData(x%inputString);
-  shared_ptr<DOMDocument> doc(parser->parse(source), [](auto && PH1) { if(PH1) PH1->release(); });
+  shared_ptr<DOMDocument> doc(parser->parse(source.get()), [](auto && PH1) { if(PH1) PH1->release(); });
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
@@ -1359,10 +1359,10 @@ DOMElement* DOMParser::parseWithContext(const string &str, DOMNode *contextNode,
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   locationFilter.setLineNumberOffset(E(static_cast<DOMElement*>(contextNode))->getLineNumber()-2);
-  DOMLSInput *source = domImpl->createLSInput();
+  unique_ptr<DOMLSInput, void(*)(DOMLSInput*)> source(domImpl->createLSInput(), [](auto x) { if(x) x->release(); });
   X x;
   source->setStringData(x%str);
-  auto n=parser->parseWithContext(source, contextNode, action);
+  auto n=parser->parseWithContext(source.get(), contextNode, action);
   if(errorHandler.hasError()) {
     DOMEvalException ex(errorHandler.getError());
     throw ex;
