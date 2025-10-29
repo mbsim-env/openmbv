@@ -3,6 +3,7 @@
 import os
 import matplotlib
 import PySide2.QtWidgets
+import PySide2.QtCore
 
 
 
@@ -11,10 +12,19 @@ def isGUI():
   return _isGUI
 
 # initialize the Qt module
-if PySide2.QtWidgets.QApplication.instance() is None:
+if PySide2.QtCore.QCoreApplication.instance() is None:
+  import sys
   # if a QApplication is not already instantiated then we are not running a GUI program (mbsimgui) and start a QAppliation now
   _isGUI=False
-  PySide2.QtWidgets.QApplication()
+  if sys.platform.startswith("linux"):
+    # Linux may be headless -> instantiate QCoreApplication or QApplication
+    if os.environ.get("DISPLAY", "")!="" or os.environ.get("WAYLAND_DISPLAY", "")!="":
+      PySide2.QtWidgets.QApplication()
+    else:
+      PySide2.QtCore.QCoreApplication()
+  else:
+    # In Windows instantiate always QApplication
+    PySide2.QtWidgets.QApplication()
 else:
   # if a QApplication is already instantiated then we are running a GUI program (mbsimgui) and need not to start a QApplication
   _isGUI=True
@@ -30,7 +40,6 @@ class MatplotlibDialog(PySide2.QtWidgets.QDialog):
   def __init__(self, parent=None):
     """Construct a MatplotlibDialog instance and pass parent to QDialog"""
     super().__init__(parent)
-    import PySide2.QtCore
     self.setWindowFlag(PySide2.QtCore.Qt.WindowMaximizeButtonHint, True)
     self.plot = {}
     self.plotToolbar = {}
@@ -83,7 +92,6 @@ def execWidget(w, maximized=True):
   For none GUI program this function will automatically create a Qt event loop until the Widget is open.
   The widget is shown modal.
   "maximized" can be used for your convinience to show the widget maximized (calls w.setWindowState(PySide2.QtCore.Qt.WindowMaximized))."""
-  import PySide2.QtCore
   if maximized:
     w.setWindowState(PySide2.QtCore.Qt.WindowMaximized)
   if isGUI():
@@ -99,7 +107,6 @@ def execWidget(w, maximized=True):
 
 def blockUntilDialoagsAreClosed(*args):
   """This function blocks until (currently open) dialogs listed as arguments are closed."""
-  import PySide2.QtCore
   openDialogs=len(args)
   el=PySide2.QtCore.QEventLoop()
   def finished():
@@ -118,7 +125,6 @@ def onArtistClick(artist, func):
   However, this works only if the default toolbar actions is currently active.
   If no toolbar action is active (the artist is clickable) then also the mouse cursor changes
   to a hand when the mouse is over the artist."""
-  import PySide2.QtCore
   artist.set_picker(True)
   def onPick(event):
     if event.artist == artist:
