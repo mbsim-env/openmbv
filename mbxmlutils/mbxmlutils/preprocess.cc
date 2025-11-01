@@ -108,21 +108,29 @@ shared_ptr<Preprocess::ParamSet> Preprocess::getParam() const {
 }
 
 void Preprocess::extractEvaluator() {
+  // check if the root element is valid -> if its a Embed -> no counterName, count or onlyif allowed
+  auto root=document->getDocumentElement();
+  if(E(root)->getTagName()==PV%"Embed") {
+    if(E(root)->hasAttribute("counterName") || E(root)->hasAttribute("count") || E(root)->hasAttribute("href") ||
+       (E(root)->hasAttribute("onlyif") && E(root)->getAttribute("onlyif")!="1"))
+      throw DOMEvalException("A Embed element as root element is not allowed to have a counterName, count, onlyif or href attribute.", root);
+  }
+
   // create a clean evaluator (get the evaluator name first form the dom)
 
   string evalName="octave"; // default evaluator
   DOMElement *evaluator;
-  if(E(document->getDocumentElement())->getTagName()==PV%"Embed") {
+  if(E(root)->getTagName()==PV%"Embed") {
     // if the root element IS A Embed than the <evaluator> element is the first child of the
     // first (none pv:Parameter) child of the root element
-    auto r=document->getDocumentElement()->getFirstElementChild();
+    auto r=root->getFirstElementChild();
     if(E(r)->getTagName()==PV%"Parameter")
       r=r->getNextElementSibling();
     evaluator=E(r)->getFirstElementChildNamed(PV%"evaluator");
   }
   else
     // if the root element IS NOT A Embed than the <evaluator> element is the first child root element
-    evaluator=E(document->getDocumentElement())->getFirstElementChildNamed(PV%"evaluator");
+    evaluator=E(root)->getFirstElementChildNamed(PV%"evaluator");
   if(evaluator) {
     auto text=E(evaluator)->getText<string>();
     evalName=text;
@@ -326,6 +334,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
         // generate local parameters
         localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)));
+        E(localParamEle)->setOriginalFilename(E(localparamxmldoc->getDocumentElement())->getOriginalFilename());
       }
       else
         localParamEle.reset(D(e->getOwnerDocument())->createElement(embedFileNotFound));
@@ -337,9 +346,6 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     }
 
     if(localParamEle) {
-      // add the OriginalFilename if not already added
-      if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
-        E(localParamEle)->setOriginalFilename(E(e)->getOriginalFilename());
       // include a processing instruction with the line number of the original element
       E(localParamEle)->setOriginalElementLineNumber(E(e)->getLineNumber());
       E(localParamEle)->setEmbedXPathCount(embedXPathCount);
