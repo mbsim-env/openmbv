@@ -22,14 +22,6 @@ def convertPath(name):
 def getWindowsEnvPath(name):
   if platform.system()=="Windows":
     return os.environ[name]
-  if platform.system()=="Linux":
-    value=subprocess.check_output(["wine", "cmd", "/c", "echo", "%"+name+"%"], stderr=open(os.devnull,"w")).decode('utf-8').rstrip('\r\n')
-    cmd=["winepath", "-u"]
-    cmd.extend(value.split(';'))
-    vwin=subprocess.check_output(cmd, stderr=open(os.devnull,"w")).decode('utf-8').splitlines()
-    if name=="PATH" and "WINEPATH" in os.environ:
-      vwin=os.environ["WINEPATH"].split(";")+vwin
-    return ';'.join(vwin)
   raise RuntimeError('Unknown platform')
 
 def skipWindowsLibrary(libname):
@@ -111,33 +103,17 @@ def getDoNotAdd():
   notAdd=set()
   # for linux
   system=[
-    ("rpm", ["-ql"], # rpm (CentOS7)
-      ["glibc", "zlib", "libstdc++", "libgcc", # standard libs
-       "mesa-dri-drivers", "mesa-libGLU", "mesa-libgbm", "mesa-libglapi", "mesa-libEGL", "mesa-libGL", # mesa
-       "libdrm", "libglvnd", "libglvnd-glx", "libglvnd-opengl", # mesa
-       "libX11", "libXext", "libxcb", "libXau", # standard X11
-      ]),
+    ("dpkg", ["-L"], ["libc6:amd64"]), # debian: skip all files from glibc
   ]
   for s in system:
-    for p in s[2]:
-      if shutil.which(s[0]):
+    if shutil.which(s[0]):
+      for p in s[2]:
         try:
           for line in subprocess.check_output([s[0]]+s[1]+[p], stderr=open(os.devnull,"w")).decode('utf-8').splitlines():
             notAdd.add(os.path.realpath(line))
         except subprocess.CalledProcessError:
           print('WARNING: Cannot get files of system package '+p+' using '+s[0]+' command', file=sys.stderr)
 
-  # for linux do not add the (specific to docker image mbsimenv/build)
-  notAdd.update(glob.glob("/osupdate/local/lib64/libglapi.so*")) # mesa
-  notAdd.update(glob.glob("/osupdate/local/lib64/libGLESv1_CM.so*")) # mesa
-  notAdd.update(glob.glob("/osupdate/local/lib64/libGLESv2.so*")) # mesa
-  notAdd.update(glob.glob("/osupdate/local/lib64/libGL.so*")) # mesa
-
-  # for windows-wine do not add the Windows system dlls (= fake dlls on wine)
-  notAdd.update(glob.glob("/usr/lib64/wine/fakedlls/*")) # read wine fake dlls
-  notAdd.update(glob.glob("/usr/lib/wine/fakedlls/*")) # read wine fake dlls
-  notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/system32/*")) # copy in HOME dir
-  notAdd.update(glob.glob(os.environ['HOME']+"/.wine/drive_c/windows/syswow64/*")) # copy in HOME dir
   # for windows-msys2 do not add the Windows system dlls
   notAdd.update(glob.glob(os.environ.get("WINDIR", "")+"/system32/*"))
   notAdd.update(glob.glob(os.environ.get("WINDIR", "")+"/syswow64/*"))
