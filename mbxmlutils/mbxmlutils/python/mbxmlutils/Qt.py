@@ -105,7 +105,7 @@ def execWidget(w, maximized=True):
 
 
 
-def blockUntilDialoagsAreClosed(*args):
+def blockUntilDialogsAreClosed(*args):
   """This function blocks until (currently open) dialogs listed as arguments are closed."""
   openDialogs=len(args)
   el=PySide2.QtCore.QEventLoop()
