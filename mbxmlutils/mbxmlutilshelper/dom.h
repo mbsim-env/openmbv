@@ -184,7 +184,7 @@ const NamespaceURI XMLCATALOG("urn:oasis:names:tc:entity:xmlns:xml:catalog", {"c
 // Rethrow a exception as DOMEvalException with context e, a DOMEvalException is just rethrown unchanged.
 #define RETHROW_AS_DOMEVALEXCEPTION(e) \
   catch(MBXMLUtils::DOMEvalException &ex) { \
-    throw ex; \
+    throw; \
   } \
   catch(const std::exception &ex) { \
     throw DOMEvalException(ex.what(), e); \
