@@ -56,10 +56,6 @@ AC_ARG_WITH([boost-filesystem-lib],
   [  --with-boost-filesystem-lib=LIBNAME  The library name of boost filesystem excluding prefix/suffix (Default: boost_filesystem).],
   [BOOST_FILESYSTEM_LIB="$withval"], [BOOST_FILESYSTEM_LIB="boost_filesystem"])
 AC_SUBST([BOOST_FILESYSTEM_LIB])
-AC_ARG_WITH([boost-system-lib],
-  [  --with-boost-system-lib=LIBNAME  The library name of boost system excluding prefix/suffix (Default: boost_system).],
-  [BOOST_SYSTEM_LIB="$withval"], [BOOST_SYSTEM_LIB="boost_system"])
-AC_SUBST([BOOST_SYSTEM_LIB])
 AC_ARG_WITH([boost-regex-lib],
   [  --with-boost-regex-lib=LIBNAME  The library name of boost regex excluding prefix/suffix (Default: boost_regex).],
   [BOOST_REGEX_LIB="$withval"], [BOOST_REGEX_LIB="boost_regex"])

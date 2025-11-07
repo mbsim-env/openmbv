@@ -39,14 +39,14 @@ moduledir = $(runlibdir)
 # utility library
 libmbxmlutils_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_la_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_la_LIBADD = $(LDFLAGS_NOUNDEF) ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(LIBDL)
+libmbxmlutils_la_LIBADD = $(LDFLAGS_NOUNDEF) ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ $(LIBDL)
 libmbxmlutils_la_SOURCES = eval.cc preprocess.cc
 libmbxmlutils_la_HEADERS = eval.h preprocess.h
 
 # octave evaluator
 libmbxmlutils_eval_octave_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_octave_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) $(NOWARNING)
-libmbxmlutils_eval_octave_la_LIBADD = $(LDFLAGS_NOUNDEF) $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_eval_octave_la_LIBADD = $(LDFLAGS_NOUNDEF) $(MKOCTFILE_LIBS) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_FILESYSTEM_LIB@
 libmbxmlutils_eval_octave_la_LDFLAGS = -avoid-version
 if !COND_WIN32
 libmbxmlutils_eval_octave_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
@@ -63,7 +63,7 @@ endif
 registerPath_la_SOURCES = octave_registerPath.cc
 # octave getOriginalFilename
 getOriginalFilename_la_CPPFLAGS = -I$(abs_top_srcdir) $(MKOCTFILE_CFLAGS) $(NOWARNING)
-getOriginalFilename_la_LIBADD = $(LDFLAGS_NOUNDEF) $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+getOriginalFilename_la_LIBADD = $(LDFLAGS_NOUNDEF) $(MKOCTFILE_LIBS) libmbxmlutils.la -l@BOOST_FILESYSTEM_LIB@
 getOriginalFilename_la_LDFLAGS = -module -shrext .oct -avoid-version
 if !COND_WIN32
 getOriginalFilename_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
@@ -73,7 +73,7 @@ getOriginalFilename_la_SOURCES = octave_getOriginalFilename.cc
 # xmlflat dummy evaluator
 libmbxmlutils_eval_xmlflat_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_xmlflat_la_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-libmbxmlutils_eval_xmlflat_la_LIBADD = $(LDFLAGS_NOUNDEF) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_eval_xmlflat_la_LIBADD = $(LDFLAGS_NOUNDEF) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@
 libmbxmlutils_eval_xmlflat_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_xmlflat_la_SOURCES = xmlflateval.cc
 libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
@@ -81,21 +81,21 @@ libmbxmlutils_eval_xmlflat_la_HEADERS = xmlflateval.h
 # python c++ wrapper librarey
 libpycppwrapper_ladir = $(includedir)/mbxmlutils
 libpycppwrapper_la_CPPFLAGS = $(PYTHON_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
-libpycppwrapper_la_LIBADD = $(PYTHON_LIBS_OPT) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
+libpycppwrapper_la_LIBADD = $(PYTHON_LIBS_OPT) -l@BOOST_FILESYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libpycppwrapper_la_SOURCES = pycppwrapper.cc
 libpycppwrapper_la_HEADERS = pycppwrapper.h pycppwrapper_mainlib.h
 
 # python part of the utility library (the main python evaluator)
 libmbxmlutils_eval_python_runtime_ladir = $(includedir)/mbxmlutils
 libmbxmlutils_eval_python_runtime_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
-libmbxmlutils_eval_python_runtime_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
+libmbxmlutils_eval_python_runtime_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libmbxmlutils_eval_python_runtime_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_python_runtime_la_SOURCES = pyeval.cc
 libmbxmlutils_eval_python_runtime_la_HEADERS = pyeval.h
 
 # python part of the utility library (the python eval lib which loads at runtime python and then libmbxmlutils_eval_python)
 libmbxmlutils_eval_python_la_CPPFLAGS = -I$(top_srcdir)
-libmbxmlutils_eval_python_la_LIBADD = -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@
+libmbxmlutils_eval_python_la_LIBADD = -l@BOOST_FILESYSTEM_LIB@
 libmbxmlutils_eval_python_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_python_la_SOURCES = pyeval-loader.cc
 
@@ -105,7 +105,7 @@ BUILT_SOURCES = fmatvec_symbolic_swig_octave.cc
 bin_PROGRAMS = mbxmlutilspp
 mbxmlutilspp_SOURCES = preprocessor.cc
 mbxmlutilspp_CPPFLAGS = -I$(top_srcdir) $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
-mbxmlutilspp_LDADD = $(LDFLAGS_NOUNDEF) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ $(FMATVEC_LIBS) $(LIBDL) $(MAYBE_WIN32_mbxmlutilspp_OBJ)
+mbxmlutilspp_LDADD = $(LDFLAGS_NOUNDEF) libmbxmlutils.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ $(FMATVEC_LIBS) $(LIBDL) $(MAYBE_WIN32_mbxmlutilspp_OBJ)
 
 
 

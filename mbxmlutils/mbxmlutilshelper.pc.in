@@ -7,5 +7,5 @@ Name: MBXMLUtilsHelper
 Description: MBXMLUtils Helper Utilities
 Requires: xerces-c fmatvec
 Version: @VERSION@
-Libs: -L${libdir} -lmbxmlutilshelper -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ @LIBDL@
+Libs: -L${libdir} -lmbxmlutilshelper -l@BOOST_FILESYSTEM_LIB@ @LIBDL@
 Cflags: -I${includedir} @DEFINES@

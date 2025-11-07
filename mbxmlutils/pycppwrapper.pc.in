@@ -7,6 +7,6 @@ Name: PyCppWrapper
 Description: A wrapper library from c++ to python
 Requires: 
 Version: @VERSION@
-Libs: -L${libdir} -lpycppwrapper @PYTHON_LIBS_OPT@ -l@BOOST_FILESYSTEM_LIB@ -l@BOOST_SYSTEM_LIB@ # do not link with PYTHON_LIBS
+Libs: -L${libdir} -lpycppwrapper @PYTHON_LIBS_OPT@ -l@BOOST_FILESYSTEM_LIB@ # do not link with PYTHON_LIBS
 Libs_main=-Wl,--no-as-needed -Xlinker @PYTHON_LIBS@ -Wl,--as-needed
 Cflags: -I${includedir} @PYTHON_CFLAGS@
