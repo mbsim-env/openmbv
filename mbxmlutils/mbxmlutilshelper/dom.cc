@@ -296,11 +296,11 @@ void EmbedDOMLocator::addNSURIPrefix(std::string nsuri, const std::vector<std::s
   }
 }
 
-std::string EmbedDOMLocator::getRootHRXPathExpression() const {
-  auto xpath=getRootXPathExpression();
+std::string EmbedDOMLocator::convertToRootHRXPathExpression(const string &xpath) {
+  std::string ret(xpath);
   for(auto &[uri, prefix] : nsURIPrefix())
-    boost::replace_all(xpath, "{"+uri+"}", prefix.empty() ? "" : prefix+":");
-  return xpath;
+    boost::replace_all(ret, "{"+uri+"}", prefix.empty() ? "" : prefix+":");
+  return ret;
 }
 
 bool DOMErrorPrinter::handleError(const DOMError& e)
@@ -1052,7 +1052,7 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode
   str.append("@line").append((loc.getLineNumber()>0?to_string(loc.getLineNumber()):""));
   str.append("@xpath").append(loc.getRootXPathExpression());
-  str.append("@hrxpath").append(loc.getRootHRXPathExpression());
+  str.append("@hrxpath").append(EmbedDOMLocator::convertToRootHRXPathExpression(loc.getRootXPathExpression()));
   str.append("@ecount").append((loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):""));
   str.append("@sse").append((subsequentError?string("x"):""));
   static const boost::regex re(

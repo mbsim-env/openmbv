@@ -147,7 +147,7 @@ class EmbedDOMLocator : public xercesc::DOMLocator {
     //! get a (simple) XPath expression to the location: each element is prefixed with the namespace URI between { }
     const std::string& getRootXPathExpression() const { return xpath; }
     //! get human readable (simple) XPath expression to the location
-    std::string getRootHRXPathExpression() const;
+    static std::string convertToRootHRXPathExpression(const std::string &xpath);
     static void addNSURIPrefix(std::string nsuri, const std::vector<std::string> &prefix);
     static const std::map<std::string, std::string>& getNSURIPrefix() { return nsURIPrefix(); }
   private:
