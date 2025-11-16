@@ -218,6 +218,7 @@ class DOMEvalException : public std::exception {
       --------------- | -------------------------------------------
       msg             | the error message
       file            | the filename where the error occurred (may be relative to the current directory)
+      basefile        | same as file but only the basename without any path
       absfile         | same as file but always absolute
       urifile         | same as absfile but URI encoded
       line            | the line number in the file where the error occurred
@@ -225,6 +226,7 @@ class DOMEvalException : public std::exception {
                       | the unique namespace URI of a element is {} encoded and prefixed to the local name
       hrxpath         | more human readable variant of xpath
                       | a short, unique but variable, default namespace prefix is prefixed to the local name separated by :
+      shorthrxpath    | same as hrxpath but only the last 3 path parts are returned
       ecount          | the embed count number where the error occurred
       sse             | undefined value but only defined if this is a subsequent error
      
@@ -237,6 +239,9 @@ class DOMEvalException : public std::exception {
       GCCNONE use gcc style output without any escape sequences
       HTMLFILELINE: use HTML like output with a link with filename and line number
       HTMLXPATH: use HTML like output with a link with filename and xpath expression
+      If the value for MBXMLUTILS_ERROROUTPUT starts with
+      'HTMLOUTPUT:'
+      then HTML escaping is used for messages
      */
     static std::string convertToString(const EmbedDOMLocator &loc, const std::string &message, bool subsequentError=false);
 

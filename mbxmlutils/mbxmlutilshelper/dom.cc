@@ -995,6 +995,11 @@ bool DOMEvalException::isHTMLOutputEnabled() {
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
   bool htmlOutput=false;
+  static const string HTMLOUTPUT("HTMLOUTPUT:");
+  if(format.substr(0,HTMLOUTPUT.size())==HTMLOUTPUT) {
+    htmlOutput=true;
+    format=format.substr(HTMLOUTPUT.size());
+  }
   if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
   }
   else if(format=="HTMLFILELINE")
@@ -1015,6 +1020,11 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   const char *ev=getenv("MBXMLUTILS_ERROROUTPUT");
   string format(ev?ev:"GCC");
   bool htmlOutput=false;
+  static const string HTMLOUTPUT("HTMLOUTPUT:");
+  if(format.substr(0,HTMLOUTPUT.size())==HTMLOUTPUT) {
+    htmlOutput=true;
+    format=format.substr(HTMLOUTPUT.size());
+  }
   if(format=="GCC" || format=="GCCTTY" || format=="GCCNONE") {
 #ifdef _WIN32
     bool stdoutIsTTY=GetFileType(GetStdHandle(STD_OUTPUT_HANDLE))==FILE_TYPE_CHAR;
@@ -1042,21 +1052,33 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
     messageConverted=message;
     htmlEscaping(messageConverted);
   }
+  auto hrxpath = EmbedDOMLocator::convertToRootHRXPathExpression(loc.getRootXPathExpression());
+  size_t pos = hrxpath.size();
+  size_t start;
+  int i=0;
+  do {
+    ++i;
+    start = pos;
+    pos = hrxpath.rfind('/', start-1);
+  } while(pos != string::npos && start > 0 && i < 3+1);
+  auto shorthrxpath = start>0 ? "..."+hrxpath.substr(start) : hrxpath;
   // Generate a boost::match_results object.
   // To avoid using boost internal inoffizial functions to create a match_results object we use the foolowing
   // string and regex to generate it implicitly.
   string str;
   str.append("@msg").append(htmlOutput ? messageConverted : message); // @msg includes a new line at the end
   str.append("@file").append(X()%loc.getURI());
+  str.append("@basefile").append(path(X()%loc.getURI()).filename().string());
   str.append("@absfile").append(absolute(X()%loc.getURI()).string());
   str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode
   str.append("@line").append((loc.getLineNumber()>0?to_string(loc.getLineNumber()):""));
   str.append("@xpath").append(loc.getRootXPathExpression());
-  str.append("@hrxpath").append(EmbedDOMLocator::convertToRootHRXPathExpression(loc.getRootXPathExpression()));
+  str.append("@hrxpath").append(hrxpath);
+  str.append("@shorthrxpath").append(shorthrxpath);
   str.append("@ecount").append((loc.getEmbedCount()>0?to_string(loc.getEmbedCount()):""));
   str.append("@sse").append((subsequentError?string("x"):""));
   static const boost::regex re(
-    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@hrxpath(?<hrxpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
+    R"q(^@msg(?<msg>.+)?@file(?<file>.+)?@basefile(?<basefile>.+)?@absfile(?<absfile>.+)?@urifile(?<urifile>.+)?@line(?<line>.+)?@xpath(?<xpath>.+)?@hrxpath(?<hrxpath>.+)?@shorthrxpath(?<shorthrxpath>.+)?@ecount(?<ecount>.+)?@sse(?<sse>.+)?$)q"
   );
   // apply substitutions
   return boost::regex_replace(str, re, format, boost::regex_constants::format_all);
