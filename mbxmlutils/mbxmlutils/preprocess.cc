@@ -341,7 +341,6 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     }
     else if(inlineParamEle) {
       // inline parameter
-      E(inlineParamEle)->setOriginalFilename();
       localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)));
     }
 
