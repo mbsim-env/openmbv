@@ -289,7 +289,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
 
       DOMEvalException msg("WARNING: Revalidate document "+D(doc)->getDocumentFilename().string()+
                            " to populate this local element with type information.", enew.get());
-      msgStatic(Debug)<<msg.what()<<endl;
+      msgStatic(Debug)<<flush<<skipws<<msg.what()<<flush<<noskipws<<endl;
 
       vector<int> xPathenew;
       XercesUniquePtr<DOMElement> savede;
