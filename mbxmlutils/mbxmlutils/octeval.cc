@@ -584,8 +584,11 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   if(e) {
     originalFilename=bfs::absolute(E(e)->getOriginalFilename());
     bfs::path chdir=originalFilename.parent_path();
-    if(!chdir.empty())
+    if(!chdir.empty()) {
+      if(!is_directory(chdir)) // make windows and linux consistent: fail if chdir does not exist
+        throw DOMEvalException("Cannot set '"+chdir.string()+"' as current working directory, it does not exist or is no dir", e);
       bfs::current_path(chdir);
+    }
   }
   else
     originalFilename.clear();
