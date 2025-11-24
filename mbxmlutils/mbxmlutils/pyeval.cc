@@ -373,7 +373,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
       }
       catch(PythonException &ex) {
         if(!PyType_IsSubtype(reinterpret_cast<PyTypeObject*>(ex.getType().get()), reinterpret_cast<PyTypeObject*>(PyExc_KeyError)))
-          throw ex;
+          throw;
       }
     // add/merge the newly added globalsLocals to globalImportDict (the global import list)
     CALLPY(PyDict_Merge, globalImportDict, globalsLocals, true);

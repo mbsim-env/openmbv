@@ -253,7 +253,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         }
         catch(DOMEvalException& ex) {
           ex.appendContext(e),
-          throw ex;
+          throw;
         }
         enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)));
       }
@@ -328,7 +328,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         }
         catch(DOMEvalException& ex) {
           ex.appendContext(e),
-          throw ex;
+          throw;
         }
         if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
           throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
@@ -658,7 +658,7 @@ shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &par
     catch(const DOMEvalException &ex) {
       if(ex.getNodeType()!=DOMNode::DOCUMENT_NODE) // if anything except the root element caused the error -> throw
                                                    // else return a unvalidated document
-        throw ex;
+        throw;
       // on error parse without validation
       if(!noneValidatingParser)
         noneValidatingParser = DOMParser::create();
@@ -692,7 +692,7 @@ shared_ptr<DOMDocument> Preprocess::parseCached(const shared_ptr<DOMParser> &par
     catch(const DOMEvalException &ex) {
       if(ex.getNodeType()!=DOMNode::DOCUMENT_NODE) // if anything except the root element caused the error -> throw
                                                    // else return a unvalidated document
-        throw ex;
+        throw;
       // on error parse without validation
       if(!noneValidatingParser)
         noneValidatingParser = DOMParser::create();
