@@ -838,16 +838,26 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // read XML files
   QDir dir;
   QRegExp filterRE1(".+\\.ombvx");
+  QRegExp filterRE2(".+\\.ombvh5");
   dir.setFilter(QDir::Files);
   i=arg.begin();
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
-      // open all .+\.ombvx
+      // open all .+\.ombvx and .+\.ombvh5
       QStringList file=dir.entryList();
+      QList<QString> alreadyOpened;
       for(int j=0; j<file.size(); j++)
-        if(filterRE1.exactMatch(file[j]))
+        if(filterRE1.exactMatch(file[j])) {
           openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+          alreadyOpened.push_back(file[j].mid(0, file[j].length()-6));
+        }
+      for(int j=0; j<file.size(); j++)
+        if(filterRE2.exactMatch(file[j])) {
+          if(alreadyOpened.contains(file[j].mid(0, file[j].length()-7)))
+            continue;
+          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+        }
       i2=i; i++; arg.erase(i2);
       continue;
     }
@@ -1182,7 +1192,7 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
 
 void MainWindow::openFileDialog() {
   QStringList files=QFileDialog::getOpenFileNames(nullptr, "Add OpenMBV Files", ".",
-    "OpenMBV files (*.ombvx)");
+    "OpenMBV files (*.ombvx *.ombvh5)");
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
   viewAllSlot();
@@ -2227,7 +2237,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
 void MainWindow::dropEvent(QDropEvent *event) {
   for (int i = 0; i < event->mimeData()->urls().size(); i++) {
     QString path = event->mimeData()->urls()[i].toLocalFile().toLocal8Bit().data();
-    if (path.endsWith(".ombvx")) {
+    if (path.endsWith(".ombvx") || path.endsWith(".ombvh5")) {
       QFile Fout(path);
       if (Fout.exists())
         openFile(Fout.fileName().toStdString());

@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         <<"--CC               Change current dir to dir of last <dir> argument or dir of last <file> argument."<<endl
         <<"                   All arguments are still relative to the original current dir."<<endl
         <<"--maximized        Show window maximized on startup."<<endl
-        <<"<dir>              Open/Load all [^.]+\\.ombvx files"<<endl
+        <<"<dir>              Open/Load all [^.]+\\.ombvx and [^.]+\\.ombvh5 files"<<endl
         <<"                   in <dir>. Only fully preprocessed xml files are allowd."<<endl
         <<"                   <dir> and <file> must be the last arguments."<<endl
         <<"<file>             Open/Load <file>. Only fully preprocessed xml files"<<endl
