@@ -152,7 +152,13 @@ ExportDialog::ExportDialog(QWidget *parent, bool sequence, bool video) : QDialog
     fileNameL.setText("Output video filename (%O):");
     fileNameL.setToolTip(ttfile);
     dialogLO.addWidget(&fileNameL, row, 0);
-    fileName.setText(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
+    auto fn(appSettings->get<QString>(AppSettings::exportdialog_filename_video));
+    if(!fn.endsWith("."+appSettings->get<QString>(AppSettings::exportdialog_videoext))) {
+      // if the video filename extension does not match the extension from the settings dialog, adapt the video filename extension
+      QFileInfo fi(fn);
+      fn = fi.path()+"/"+fi.completeBaseName()+"."+appSettings->get<QString>(AppSettings::exportdialog_videoext);
+    }
+    fileName.setText(fn);
     fileName.setToolTip(ttfile);
     dialogLO.addWidget(&fileName, row, 1);
     fileNameButton.setText("Browse...");
