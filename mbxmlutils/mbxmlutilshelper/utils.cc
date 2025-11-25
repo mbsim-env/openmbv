@@ -143,4 +143,8 @@ namespace MBXMLUtils {
     }
   }
 
+  void Deprecated::clear() {
+    printedMessages.clear();
+  }
+
 }

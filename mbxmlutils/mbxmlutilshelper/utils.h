@@ -36,6 +36,9 @@ class Deprecated : virtual public fmatvec::Atom {
      * But only if the same message was not printed before to this stream.
      * If e is NULL a stack trace is printed if available if e it not NULL MBXMLUtils::DOMEvalException is printed. */
     static void message(const fmatvec::Atom *ele, const std::string &msg, const xercesc::DOMElement *e=nullptr);
+    /*! Clears the memory for printed messages.
+     * After calling this function all messages are printed again, even if the same message was already printed before */
+    static void clear();
   private:
     static std::set<std::size_t> printedMessages;
 };
