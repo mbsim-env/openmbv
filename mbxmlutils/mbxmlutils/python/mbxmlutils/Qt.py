@@ -83,6 +83,8 @@ class StdMatplotlibDialog(MatplotlibDialog):
     layout.addWidget(self.stdPlot)
   def getFigure(self):
     return self.stdPlot.figure
+  def getToolbar(self):
+    return self.getPlotWidgetToolbar("plot")
 
 
 
@@ -138,6 +140,23 @@ def onArtistClick(artist, func):
     else:
       artist.figure.canvas.setCursor(PySide2.QtCore.Qt.ArrowCursor)
   artist.figure.canvas.mpl_connect("motion_notify_event", onMouseMove)
+
+
+
+def enableWheelZoom(ax, scaleFac=1.15):
+  """Enable zooming using the mouse wheel for the given axes"""
+  def onWheel(event):
+    if event.inaxes != ax:
+      return
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    x = event.xdata
+    y = event.ydata
+    fac = 1 / scaleFac if event.button=="up" else scaleFac
+    ax.set_xlim([x - (x - xlim[0]) * fac, x + (xlim[1] - x) * fac])
+    ax.set_ylim([y - (y - ylim[0]) * fac, y + (ylim[1] - y) * fac])
+    ax.figure.canvas.draw_idle()
+  ax.figure.canvas.mpl_connect('scroll_event', onWheel)
 
 
 
