@@ -138,7 +138,9 @@ PyInit::PyInit() {
       return CALLPY(PyObject_GetAttrString, sympy, "Dummy");
     });
 
-    mbxmlutils_serializeFunction=PyOOnDemand([this](){ return CALLPY(PyObject_GetAttrString, mbxmlutils(), "_serializeFunction"); });
+    mbxmlutils_serializeFunction=PyOOnDemand([](){ return CALLPY(PyObject_GetAttrString,
+                                                                 CALLPY(PyImport_ImportModule, "mbxmlutils._internal"),
+                                                                 "_serializeFunction"); });
 
     pprintPformat=PyOOnDemand([](){
       auto pprint = CALLPY(PyImport_ImportModule, "pprint");
@@ -159,31 +161,6 @@ PyInit::PyInit() {
   }
 }
 
-//PyInit::~PyInit() {
-//  try {
-//    GilState gil;
-//    // clear all Python object before deinit
-//    if(mbxmlutils_serializeFunction) mbxmlutils_serializeFunction().reset();
-//    if(sympyDummy) sympyDummy().reset();
-//    if(numpyAsarray) numpyAsarray().reset();
-//    if(numpyZeros) numpyZeros().reset();
-//    if(numpyArray) numpyArray().reset();
-//    functionValue.clear();
-//    if(mbxmlutils) mbxmlutils().reset();
-//    if(pprintPformat) pprintPformat().reset();
-//    ioStringIO.reset();
-//  }
-//  // print error and rethrow. (The exception may not be catched since this is called in pre-main)
-//  catch(const exception& ex) {
-//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception during Python deinitialization:"<<endl<<ex.what()<<endl
-//      <<"Continuing but undefined behaviour may occur."<<endl;
-//  }
-//  catch(...) {
-//    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception during Python deinitialization."<<endl
-//      <<"Continuing but undefined behaviour may occur."<<endl;
-//  }
-//}
-
 PyInit *pyInit = new PyInit; // init Python on library load and deinit on library unload = program end (we never deinit python)
 
 // A class to redirect stderr or stdout.
@@ -192,7 +169,9 @@ class Redirect {
   public:
     Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      auto cppOStreamClass=CALLPY(PyObject_GetAttrString, pyInit->mbxmlutils(), "_CppOStream");
+      static auto cppOStreamClass=CALLPY(PyObject_GetAttrString,
+                                         CALLPY(PyImport_ImportModule, "mbxmlutils._internal"),
+                                         "_CppOStream");
       PyO arg(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
       auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
