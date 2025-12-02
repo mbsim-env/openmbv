@@ -65,6 +65,12 @@ class PyInit {
   public:
     PyInit();
     // ~PyInit(); we do not deinit python!
+
+    // we cannot use any "static PyO varname = ..." in the code since a static variable will be deinitialized after python
+    // got already deinitialized. And skipping "static" will call "..." any time such a line is reached.
+    // Hence, we collect all such static variables here (these are NEVER destroyed -> leads to memory leaks at program and, but that's fine in python).
+    // If varname is needed for any call to the python evaluator we use PyO if varname name be needed we use PyOOnDemand to do
+    // the initialization on demand at the first use of varname.
     PyOOnDemand mbxmlutils;
     map<string, PyO> functionValue;
     PyOOnDemand numpyAsarray;
@@ -73,7 +79,7 @@ class PyInit {
     PyOOnDemand sympyDummy;
     PyOOnDemand mbxmlutils_serializeFunction;
     PyOOnDemand pprintPformat;
-    PyO ioStringIO;
+    PyO cppOStreamClass;
 };
 
 #ifdef _WIN32
@@ -147,8 +153,8 @@ PyInit::PyInit() {
       return CALLPY(PyObject_GetAttrString, pprint, "pformat");
     });
 
-    PyO io(CALLPY(PyImport_ImportModule, "io"));
-    ioStringIO=CALLPY(PyObject_GetAttrString, io, "StringIO");
+    auto mbxmlutils_internal = CALLPY(PyImport_ImportModule, "mbxmlutils._internal");
+    cppOStreamClass=CALLPY(PyObject_GetAttrString, mbxmlutils_internal, "_CppOStream");
   }
   // print error and rethrow. (The exception may not be catched since this is called in pre-main)
   catch(const exception& ex) {
@@ -169,12 +175,9 @@ class Redirect {
   public:
     Redirect(std::ostream &str) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
-      static auto cppOStreamClass=CALLPY(PyObject_GetAttrString,
-                                         CALLPY(PyImport_ImportModule, "mbxmlutils._internal"),
-                                         "_CppOStream");
       PyO arg(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
-      auto cppOStream=CALLPY(PyObject_CallObject, cppOStreamClass, arg);
+      auto cppOStream=CALLPY(PyObject_CallObject, pyInit->cppOStreamClass, arg);
       CALLPY(PySys_SetObject, T==1?"stdout":"stderr", cppOStream);
     }
     ~Redirect() {
