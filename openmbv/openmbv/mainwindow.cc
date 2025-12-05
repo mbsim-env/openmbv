@@ -50,6 +50,9 @@
 #include <QScrollBar>
 #include <QPlainTextEdit>
 #include <QScreen>
+#include <QListView>
+#include <QStringListModel>
+#include <QGroupBox>
 #include "utils.h"
 #include <QMetaMethod>
 #include <Inventor/nodes/SoBaseColor.h>
@@ -416,6 +419,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
+  act=fileMenu->addAction(QIcon::fromTheme("document-save-as"), "Rewrite file...", this, &MainWindow::rewriteFile);
+  addAction(act); // must work also if menu bar is invisible
   act=fileMenu->addAction(Utils::QIconCached("settings.svg"), "Settings...", this, &MainWindow::showSettingsDialog);
   addAction(act); // must work also if menu bar is invisible
   fileMenu->addSeparator();
@@ -2336,6 +2341,106 @@ void MainWindow::setNearPlaneValue(float value) {
   else
     glViewer->setAutoClippingStrategy(SoQtMyViewer::VARIABLE_NEAR_PLANE, nearPlaneValue);
   frame->touch();
+}
+
+void MainWindow::rewriteFile() {
+  auto root = objectList->invisibleRootItem();
+  QList<QString> fileList;
+  for(int i = 0; i < root->childCount(); ++i) {
+    auto group = static_pointer_cast<OpenMBV::Group>(static_cast<Group*>(root->child(i))->getObject());
+    fileList.append(group->getFileName().c_str());
+  }
+  auto dialog = new QDialog(this);
+  dialog->setWindowTitle("Rewrite file");
+  auto layout= new QGridLayout(dialog);
+  dialog->setLayout(layout);
+  layout->addWidget(new QLabel("Note that only the file on disk is rewritten to a new file on disk with the given options.\n"
+                               "Any changes in the property dialogs of Objects are NOT saved!"), 0,0,1,2);
+  auto list = new QListView(dialog);
+  layout->addWidget(new QLabel("File to rewrite:"), 1,0,1,2);
+  layout->addWidget(list, 2,0,1,2);
+  list->setModel(new QStringListModel(fileList));
+  layout->addWidget(new QLabel("Options:"), 3,0,1,2);
+  layout->addWidget(new QLabel("Embed XML in H5:"), 4,0);
+  auto embed = new QCheckBox();
+  layout->addWidget(embed, 4,1);
+  auto cancel = new QPushButton("Cancel");
+  connect(cancel, &QPushButton::clicked, [dialog](){
+    dialog->close();
+  });
+  layout->addWidget(cancel, 5,0);
+  auto saveAs = new QPushButton("Save as...");
+  layout->addWidget(saveAs, 5,1);
+  connect(saveAs, &QPushButton::clicked, [this, list, embed, &fileList, dialog](){
+    auto outFilename = QFileDialog::getSaveFileName(this, "Save as", ".", "OpenMBV files (*.ombvh5)");
+    if(outFilename.endsWith(".ombvx"))
+      outFilename = outFilename.mid(0, outFilename.length()-6);
+    if(outFilename.endsWith(".ombvh5"))
+      outFilename = outFilename.mid(0, outFilename.length()-7);
+    auto inFilename = fileList[list->currentIndex().row()];
+    if(inFilename.endsWith(".ombvx"))
+      inFilename = inFilename.mid(0, inFilename.length()-6);
+    if(inFilename.endsWith(".ombvh5"))
+      inFilename = inFilename.mid(0, inFilename.length()-7);
+    QFile::remove(outFilename+".ombvh5");
+    QFile::copy(inFilename+".ombvh5", outFilename+".ombvh5");
+    QFile::remove(outFilename+".ombvx");
+
+    H5::ScopedHID faid(H5Pcreate(H5P_FILE_ACCESS), &H5Pclose);
+    H5::checkCall(H5Pset_libver_bounds(faid, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST));
+    H5::ScopedHID file(H5Fopen((outFilename+".ombvh5").toStdString().c_str(), H5F_ACC_RDWR, faid), &H5Fclose);
+    H5::ScopedHID ombvxID;
+    try {
+      ombvxID.reset(H5Dopen(file, "openmbv_ombvxContent", H5P_DEFAULT), &H5Dclose);
+    }
+    catch(H5::Exception &) {
+    }
+    if(ombvxID>=0 && embed->isChecked()) {
+      // nothing more to do
+    }
+    else if(ombvxID>=0 && !embed->isChecked()) {
+      // read ombvx from H5 file
+      H5::ScopedHID memDataSpaceID(H5Dget_space(ombvxID), &H5Sclose);
+      H5::ScopedHID stringTypeID(H5Dget_type(ombvxID), &H5Tclose);
+      H5::ScopedHID fixedStringTypeID(H5Tcopy(H5T_C_S1), &H5Tclose);
+      if(H5Tset_size(fixedStringTypeID, H5Tget_size(stringTypeID))<0)
+        throw runtime_error("Internal error: Can not create varaible length string datatype.");
+      auto fixedStrSize=H5Tget_size(fixedStringTypeID);
+      vector<char> buf(fixedStrSize);
+      H5::checkCall(H5Dread(ombvxID, fixedStringTypeID, memDataSpaceID, memDataSpaceID, H5P_DEFAULT, &buf[0]));
+      char *start=&buf[0];
+      string data(start, strnlen(start, fixedStrSize));
+      // write ombvx to XML file
+      ofstream ombvxFile((outFilename+".ombvx").toStdString());
+      ombvxFile<<data;
+      // delete ombvx from H5 file
+      H5::checkCall(H5Ldelete(file, "openmbv_ombvxContent", H5P_DEFAULT));
+    }
+    else if(ombvxID<0 && !embed->isChecked()) {
+      QFile::remove(outFilename+".ombvx");
+      QFile::copy(inFilename+".ombvx", outFilename+".ombvx");
+    }
+    else if(ombvxID<0 && embed->isChecked()) {
+      // read ombvx from XML file
+      ifstream ombvxFile((inFilename+".ombvx").toStdString());
+      string data{istreambuf_iterator<char>(ombvxFile), istreambuf_iterator<char>()};
+      // write ombvx to H5 file
+      H5::ScopedHID fixedStringTypeID(H5Tcopy(H5T_C_S1), &H5Tclose);
+      if(H5Tset_size(fixedStringTypeID, data.length())<0)
+        throw runtime_error("Internal error: Can not create varaible length string datatype.");
+      hsize_t dims[1];
+      dims[0]=1;
+      H5::ScopedHID memDataSpaceID(H5Screate_simple(1, dims, nullptr), &H5Sclose);
+      H5::ScopedHID propID(H5Pcreate(H5P_DATASET_CREATE), &H5Pclose);
+      H5::checkCall(H5Pset_attr_phase_change(propID, 0, 0));
+      H5::checkCall(H5Pset_chunk(propID, 1, dims));
+      if(H5::File::getDefaultCompression()>0) H5::checkCall(H5Pset_deflate(propID, H5::File::getDefaultCompression()));
+      H5::ScopedHID id(H5Dcreate2(file, "openmbv_ombvxContent", fixedStringTypeID, memDataSpaceID, H5P_DEFAULT, propID, H5P_DEFAULT), &H5Dclose);
+      H5::checkCall(H5Dwrite(id, fixedStringTypeID, memDataSpaceID, memDataSpaceID, H5P_DEFAULT, data.data()));
+    }
+    dialog->close();
+  });
+  dialog->exec();
 }
 
 void MainWindow::showSettingsDialog() {
