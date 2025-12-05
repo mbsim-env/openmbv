@@ -316,7 +316,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }
     QMenu* getSceneViewMenu() { return sceneViewMenu; }
     void viewAllSlot() { glViewer->viewAll(); }
-    void rewriteFile();
+    void repackFile();
     void showSettingsDialog();
 
     // update the flag backgroundNeeded which defines if the color gradient background is needed or not (its not needed if a VRMLBackground element exists)
