@@ -2441,7 +2441,13 @@ void MainWindow::repackFile() {
       }
     }
     static const QString binDir((boost::dll::program_location().parent_path().parent_path()/"bin").string().c_str());
-    auto h5repack=QStandardPaths::findExecutable("h5repack", {binDir});
+    QString h5repack;
+    if(h5repack.isEmpty())
+      h5repack=QStandardPaths::findExecutable("h5repack-shared", {binDir});
+    if(h5repack.isEmpty())
+      h5repack=QStandardPaths::findExecutable("h5repack"       , {binDir});
+    if(h5repack.isEmpty())
+      h5repack=QStandardPaths::findExecutable("h5repack-shared");
     if(h5repack.isEmpty())
       h5repack=QStandardPaths::findExecutable("h5repack");
     if(h5repack.isEmpty()) {
