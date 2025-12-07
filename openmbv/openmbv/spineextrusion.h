@@ -24,6 +24,7 @@
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
+#include <Inventor/fields/SoMFMatrix.h>
 #include <hdf5serie/vectorserie.h>
 #include <QMenu>
 
@@ -70,7 +71,10 @@ class SpineExtrusion : public DynamicColoredBody {
     std::shared_ptr<OpenMBV::SpineExtrusion> spineExtrusion;
     void createProperties() override;
 
+    int doublesPerPoint;
+
     void setIvSpine(const std::vector<double>& data);
+    SoMFMatrix scpOri;
 };
 
 }

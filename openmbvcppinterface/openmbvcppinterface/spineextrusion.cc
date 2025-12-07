@@ -40,6 +40,14 @@ SpineExtrusion::~SpineExtrusion() = default;
 DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
+  switch(csOri) {
+    case orthogonalWithTwist:
+      E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'orthogonalWithTwist'");
+      break;
+    case cardanWrtWorld:
+      E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorld'");
+      break;
+  }
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
   if( stateOffSet.size() > 0 )
@@ -49,14 +57,29 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
 
 void SpineExtrusion::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
   vector<string> columns;
   columns.emplace_back("Time");
-  for(int i=0;i<numberOfSpinePoints;i++) {
-    columns.push_back("x"+fmatvec::toString(i));
-    columns.push_back("y"+fmatvec::toString(i));
-    columns.push_back("z"+fmatvec::toString(i));
-    columns.push_back("twist"+fmatvec::toString(i));
+  switch(csOri) {
+    case orthogonalWithTwist:
+      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
+      for(int i=0;i<numberOfSpinePoints;i++) {
+        columns.push_back("x"+fmatvec::toString(i));
+        columns.push_back("y"+fmatvec::toString(i));
+        columns.push_back("z"+fmatvec::toString(i));
+        columns.push_back("twist"+fmatvec::toString(i));
+      }
+      break;
+    case cardanWrtWorld:
+      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+6*numberOfSpinePoints);
+      for(int i=0;i<numberOfSpinePoints;i++) {
+        columns.push_back("x"+fmatvec::toString(i));
+        columns.push_back("y"+fmatvec::toString(i));
+        columns.push_back("z"+fmatvec::toString(i));
+        columns.push_back("alpha"+fmatvec::toString(i));
+        columns.push_back("beta"+fmatvec::toString(i));
+        columns.push_back("gamma"+fmatvec::toString(i));
+      }
+      break;
   }
   data->setColumnLabel(columns);
 }
@@ -78,6 +101,16 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   DOMElement *e;
   e=E(element)->getFirstElementChildNamed(OPENMBV%"contour");
   setContour(PolygonPoint::initializeUsingXML(e));
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"crossSectionOrientation");
+  csOri = orthogonalWithTwist;
+  if(e) {
+    auto cs = E(e)->getText<string>();
+    cs = cs.substr(1, cs.length()-2);
+    if     (cs == "orthogonalWithTwist") csOri = orthogonalWithTwist;
+    else if(cs == "cardanWrtWorld"     ) csOri = cardanWrtWorld;
+    else
+      throw runtime_error("Unknown 'crossSectionOrientation'");
+  }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");

@@ -256,6 +256,7 @@
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="contour" type="pv:lengthMatrix"/>
+          <xs:element name="crossSectionOrientation" type="pv:stringFullEval"/>
           <xs:element name="scaleFactor" type="pv:nounitScalar"/>
           <xs:element name="initialRotation" type="pv:angleVector"/>
           <xs:element name="stateOffSet" minOccurs="0" type="pv:nounitVector"/>

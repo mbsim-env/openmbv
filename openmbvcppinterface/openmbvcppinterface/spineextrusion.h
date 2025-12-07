@@ -35,12 +35,29 @@ namespace OpenMBV {
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
    * double precision values. Each row represents one dataset in time.
-   * A row consists of the following columns in order given in
+   *
+   * The cross section is either orthogonal to the curve with a twist
+   * around the curve OR
+   * freely rotated with respect to the world system.
+   * The cross section is defined in the x-z-plane
+   *
+   * If the cross section is orthogonal to the curve then
+   * a row consists of the following columns in order given in
    * world frame (N is the number of spine points): time,
    * spine point 1 x, spine point 1 y, spine point 1 z, spine twist 1,
    * spine point 2 x, spine point 2 y, spine point 2 z, spine twist 2,
    * ...,
-   * spine point N x, spine point N y, spine point N z, spine twist N */
+   * spine point N x, spine point N y, spine point N z, spine twist N
+   *
+   * If the cross section is freely rotated
+   * a row consists of the following columns in order given in
+   * world frame (N is the number of spine points): time,
+   * spine point 1 x, spine point 1 y, spine point 1 z, cross section alpha 1, cross section beta 1, cross section gamma 1,
+   * spine point 2 x, spine point 2 y, spine point 2 z, cross section alpha 2, cross section beta 2, cross section gamma 2,
+   * ...,
+   * spine point N x, spine point N y, spine point N z, cross section alpha N, cross section beta N, cross section gamma N
+   * where alpha, beta and gamma are cardan angles.
+   */
   class SpineExtrusion : public DynamicColoredBody {
     friend class ObjectFactory;
     public:
@@ -91,6 +108,10 @@ namespace OpenMBV {
 
       std::vector<double> getStateOffSet() { return stateOffSet; }
 
+      enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld };
+      void setCrossSectionOrientation(CrossSectionOrienation o) { csOri = o; }
+      CrossSectionOrienation getCrossSectionOrientation() { return csOri; }
+
       /** Get the initial rotation of the body. */
       std::vector<double> getInitialRotation() { return initialRotation; }
 
@@ -124,6 +145,8 @@ namespace OpenMBV {
 
       /** Scale factor of the body. */
       double scaleFactor{1};
+
+      CrossSectionOrienation csOri { orthogonalWithTwist };
       
       /** Intial rotation of the body. */
       std::vector<double> initialRotation;
