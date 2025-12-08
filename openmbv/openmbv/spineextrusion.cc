@@ -183,6 +183,9 @@ static void calcSCPOrientation(SoVRMLExtrusion *p, SoMFMatrix &ret)
     X = Y.cross(Z);
     my_normalize(X);
 
+    prevY = Y;
+    prevZ = Z;
+
     matrix[0][0] = X[0];
     matrix[0][1] = X[1];
     matrix[0][2] = X[2];
