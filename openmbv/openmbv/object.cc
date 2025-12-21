@@ -37,7 +37,7 @@ namespace OpenMBVGUI {
 // we use none signaling (quiet) NaN values for double in OpenMBV -> Throw compile error if these do not exist.
 static_assert(numeric_limits<double>::has_quiet_NaN, "This platform does not support quiet NaN for double.");
 
-set<Object*> Object::objects;
+map<SoNode*, Object*> Object::objectMap;
 
 Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) :  drawThisPath(true),
                properties(nullptr), clone(nullptr) {
@@ -47,7 +47,6 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     ind=-ind-3; // fix the index
   }
   object=obj;
-  objects.insert(this);
   // parent item
   if(ind==-1 || ind>=parentItem->childCount())
     parentItem->addChild(this); // insert as last element
@@ -74,6 +73,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soSwitch->ref();
   soSwitch->whichChild.setValue(obj->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soSep=new SoSeparator;
+  objectMap.emplace(soSep, this);
   soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
 
@@ -101,11 +101,11 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
 
   clone=nullptr;
   if(isClone) { // the below code is quite expensive, that's why we do it only if we know that this object is a clone
-    set<Object*>::iterator it;
-    for(it=objects.begin(); it!=objects.end(); it++)
-      if(this!=(*it) && (*it)->object->getFullName()==object->getFullName())
+    map<SoNode*, Object*>::iterator it;
+    for(it=objectMap.begin(); it!=objectMap.end(); it++)
+      if(this!=it->second && it->second->object->getFullName()==object->getFullName())
         break;
-    clone = it==objects.end()?NULL:*it;
+    clone = it==objectMap.end()?NULL:it->second;
   }
 
   if(clone && clone->properties) {
@@ -133,7 +133,11 @@ Object::~Object() {
   soSwitch->unref();
   if(!isCloneToBeDeleted)
     delete properties;
-  objects.erase(this);
+  for(auto [node,obj] : objectMap)
+    if(obj==this) {
+      objectMap.erase(node);
+      break;
+    }
 }
 
 PropertyDialog *Object::getProperties() {

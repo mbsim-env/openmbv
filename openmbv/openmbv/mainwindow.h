@@ -261,12 +261,16 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColor *bboxColor;
     SoDrawStyle *highlightDrawStyle;
     SoBaseColor *highlightColor;
+    double highlightTransparencyFactor;
+    bool highlightBBox;
+    bool highlightTransparency;
     SoComplexity *complexity;
     SoMFColor *bgColor, *fgColorTop, *fgColorBottom;
     MyTouchWidget *glViewerWG;
     /** highlight the given object, de-highlight all others */
     void highlightObject(Object *current);
     /** highlight ALL object with ID, de-highlight all others */
+    void highlightItems(const QList<QTreeWidgetItem*> &items);
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;

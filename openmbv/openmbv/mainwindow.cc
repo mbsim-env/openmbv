@@ -930,6 +930,16 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
     fgColorBottom->set1Value(0, 1-(color.value()+127)/255,1-(color.value()+127)/255,1-(color.value()+127)/255);
 
     setStereoOffset(appSettings->get<double>(AppSettings::stereoOffset));
+
+    int value = appSettings->get<int>(AppSettings::highlightMethod);
+    highlightBBox = false;
+    highlightTransparency = false;
+    if(value == 0 || value == 2)
+      highlightBBox = true;
+    if(value == 1 || value == 2)
+      highlightTransparency = true;
+
+    highlightTransparencyFactor = appSettings->get<double>(AppSettings::highlightTransparencyFactor);
   }
 
   reinit3DView(static_cast<StereoType>(appSettings->get<int>(AppSettings::stereoType)));
@@ -1085,27 +1095,44 @@ MainWindow* const MainWindow::getInstance() {
 }
 
 void MainWindow::highlightObject(Object *current) {
-  // disable all highlights
-  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
-    obj->setHighlight(false);
-  });
-  // enable current highlights
-  if(current)
-    current->setHighlight(true);
+  if(highlightBBox) {
+    // disable all highlights
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
+      obj->setHighlight(false);
+    });
+    // enable current highlights
+    if(current)
+      current->setHighlight(true);
+  }
+
+  if(highlightTransparency) {
+    if(current)
+      highlightItems({ current });
+    else
+      highlightItems({});
+  }
 }
 
 void MainWindow::highlightObject(const string &curID) {
-  // disable all highlight
-  Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
-    obj->setHighlight(false);
-  });
+  if(highlightBBox) {
+    // disable all highlight
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [](Object *obj) {
+      obj->setHighlight(false);
+    });
+  }
   // enable all curID highlights
-  if(!curID.empty())
-    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [curID](auto && obj) {
+  QList<QTreeWidgetItem*> items;
+  if(!curID.empty()) {
+    Utils::visitTreeWidgetItems<Object*>(objectList->invisibleRootItem(), [this, &curID, &items](auto && obj) {
       if(obj->object->getID()!=curID)
         return;
-      obj->setHighlight(true);
+      if(highlightBBox)
+        obj->setHighlight(true);
+      items.push_back(obj);
     });
+  }
+  if(highlightTransparency)
+    highlightItems(items);
 }
 
 MainWindow::~MainWindow() {
@@ -2222,14 +2249,61 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
   frameMaxSB->setValue(max);
 }
 
+void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
+  static map<SoMaterial*, float> originalMatTrans;
+
+  // restore the original transparency setting of all materials
+  for(auto [mat, t] : originalMatTrans)
+    mat->transparency = t;
+  originalMatTrans.clear();
+
+  // if nothing is selected we are finished: all is shown with its original transperency
+  if(items.count()==0)
+    return;
+
+  // iterate all SoMaterial nodes
+  SoSearchAction sa;
+  sa.setInterest(SoSearchAction::ALL);
+  sa.setType(SoMaterial::getClassTypeId());
+  sa.apply(sceneRoot);
+  auto pl = sa.getPaths();
+  for(int i=0; i<pl.getLength(); ++i) {
+    auto path = pl[i];
+    // if the node is part of a Body get the selection state of the body (or use unselected)
+    bool selected = false;
+    for(int j=path->getLength()-1; j>=0; j--) {
+      auto it=Object::getObjectMap().find(path->getNode(j));
+      if(it!=Object::getObjectMap().end() && items.contains(it->second))
+        selected = true;
+    }
+    // if the material is not part of a selected Body store the original transparency and set it to be more transparent
+    if(!selected) {
+      auto *mat = static_cast<SoMaterial*>(path->getTail());
+      if(auto [it, created] = originalMatTrans.emplace(mat, 0); created) {
+        float t = mat->transparency[0];
+        it->second = t;
+        mat->transparency = t+(1-t)*highlightTransparencyFactor;
+      }
+    }
+  }
+}
+
 void MainWindow::selectionChanged() {
+  // if the objectSelected signal is connected do nothing, its handled externally
   if(isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectSelected)))
     return;
-  for(QTreeWidgetItemIterator it(objectList); *it; ++it) {
-    auto obj=dynamic_cast<Object*>(*it);
-    if(obj)
-      obj->setHighlight((*it)->isSelected());
+
+  if(highlightBBox) {
+    // highlight all selected objects using a cyan bbox
+    for(QTreeWidgetItemIterator it(objectList); *it; ++it) {
+      auto obj=dynamic_cast<Object*>(*it);
+      if(obj)
+        obj->setHighlight((*it)->isSelected());
+    }
   }
+
+  if(highlightTransparency)
+    highlightItems(objectList->selectedItems());
 }
 
 

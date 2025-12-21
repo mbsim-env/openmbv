@@ -222,6 +222,8 @@ class AppSettings {
       outlineShilouetteEdgeLineColor,
       boundingBoxLineWidth,
       boundingBoxLineColor,
+      highlightMethod,
+      highlightTransparencyFactor,
       highlightLineWidth,
       highlightLineColor,
       complexityType,

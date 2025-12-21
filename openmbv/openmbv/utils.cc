@@ -391,6 +391,8 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[outlineShilouetteEdgeLineColor]={"mainwindow/sceneGraph/outlineShilouetteEdgeLineColor", QColor(0,0,0)};
   setting[boundingBoxLineWidth]={"mainwindow/sceneGraph/boundingBoxLineWidth", 2.0};
   setting[boundingBoxLineColor]={"mainwindow/sceneGraph/boundingBoxLineColor", QColor(0,190,0)};
+  setting[highlightMethod]={"mainwindow/sceneGraph/highlightMethod", 0};
+  setting[highlightTransparencyFactor]={"mainwindow/sceneGraph/highlightTransparencyFactor", 0.8};
   setting[highlightLineWidth]={"mainwindow/sceneGraph/highlightLineWidth", 3.0};
   setting[highlightLineColor]={"mainwindow/sceneGraph/highlightLineColor", QColor(0,255,255)};
   setting[complexityType]={"mainwindow/sceneGraph/complexityType", 1};
@@ -760,6 +762,27 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     auto rgb=value.rgb();
     MainWindow::getInstance()->bboxColor->rgb.set1Value(0, qRed(rgb)/255.0, qGreen(rgb)/255.0, qBlue(rgb)/255.0);
   });
+  new ChoiceSetting(scene3D, AppSettings::highlightMethod, QIcon(), "Highlight method:", {
+    {"Bounding box"                 , "Draw a bbox with highlight-color/-linewidth"},
+    {"Transparency"                 , "Increase the transparency of all none highlighted objects"},
+    {"Bounding box and transparency", "Both, bbox and transparency"},
+  }, [](int value){
+    MainWindow::getInstance()->highlightBBox = true;
+    MainWindow::getInstance()->highlightTransparency = true;
+    MainWindow::getInstance()->highlightObject(nullptr);
+    MainWindow::getInstance()->highlightBBox = false;
+    MainWindow::getInstance()->highlightTransparency = false;
+    if(value == 0 || value == 2)
+      MainWindow::getInstance()->highlightBBox = true;
+    if(value == 1 || value == 2)
+      MainWindow::getInstance()->highlightTransparency = true;
+    MainWindow::getInstance()->objectList->itemSelectionChanged();
+    if(MainWindow::getInstance()->highlightTransparency)
+      MainWindow::getInstance()->highlightItems(MainWindow::getInstance()->objectList->selectedItems());
+  });
+  new DoubleSetting(scene3D, AppSettings::highlightTransparencyFactor, QIcon(), "Highlight transparency factor:", "", [](double value){
+    MainWindow::getInstance()->highlightTransparencyFactor = value;
+  }, 0, 1, 0.01);
   new DoubleSetting(scene3D, AppSettings::highlightLineWidth, Utils::QIconCached("lines.svg"), "Highlight line width:", "px", [](double value){
     MainWindow::getInstance()->highlightDrawStyle->lineWidth.setValue(value);
   }, 0, numeric_limits<double>::max(), 0.1);
