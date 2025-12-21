@@ -144,3 +144,9 @@ install-exec-local: install-moduleLTLIBRARIES
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/.libs/*.dll;
+
+install-exec-hook:
+	$(INSTALL_DATA) $(srcdir)/octave-parts.lic $(libdir)/libmbxmlutils-eval-octave.COPYING
+	$(INSTALL_DATA) $(srcdir)/octave-parts.lic $(libdir)/fmatvec_symbolic_swig_octave.COPYING
+	$(INSTALL_DATA) $(srcdir)/octave-parts.lic $(libdir)/registerPath.COPYING
+	$(INSTALL_DATA) $(srcdir)/octave-parts.lic $(libdir)/getOriginalFilename.COPYING

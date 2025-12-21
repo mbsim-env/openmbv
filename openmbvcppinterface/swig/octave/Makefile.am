@@ -28,3 +28,6 @@ TESTS = octavetest.sh
 
 exampledir = $(prefix)/share/openmbvcppinterface/examples/swig
 example_DATA = $(srcdir)/octavetest.m
+
+install-exec-hook:
+	$(INSTALL_DATA) $(srcdir)/octave-parts.lic $(bindir)/OpenMBV.oct.COPYING
