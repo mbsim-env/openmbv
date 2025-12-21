@@ -86,13 +86,14 @@ namespace OpenMBV {
 
       double getScaleFactor() { return scaleFactor; }
 
-      /** Set the initial rotation of the body. */
+      /** Set the initial rotation of the body.
+       * This is only used if 'crossSectionOrientation' is set to 'orthogonalWithTwist' and the initial spine
+       * is fully colinear. */
       void setInitialRotation(const std::vector<double>& initRot) {
         if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
         initialRotation=initRot;
       }
 
-      /** Set the initial rotation of the body. */
       void setInitialRotation(double a, double b, double g) {
         std::vector<double> initRot;
         initRot.push_back(a);

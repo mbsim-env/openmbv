@@ -72,14 +72,19 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   // normals
   auto *normal=new SoNormal;
   soSepRigidBody->addChild(normal);
-  normal->vector.set1Value(0, 0, 0, -1);
-  normal->vector.set1Value(1, 0, 0, 1);
+  auto n = normal->vector.startEditing();
+  n[0] = SbVec3f(0, 0, -1);
+  n[1] = SbVec3f(0, 0, 1);
   for(int i=0; i<N; i++) {
     double phi=2*M_PI/N*i;
-    normal->vector.set1Value(i+2, cos(phi), sin(phi), (baseRadius-topRadius)/height);
-    if(innerBaseRadius>0 || innerTopRadius>0)
-      normal->vector.set1Value(i+2+N, -cos(phi), -sin(phi), -(innerBaseRadius-innerTopRadius)/height);
+    n[i+2] = SbVec3f(cos(phi), sin(phi), (baseRadius-topRadius)/height);
+    n[i+2].normalize();
+    if(innerBaseRadius>0 || innerTopRadius>0) {
+      n[i+2+N] = SbVec3f(-cos(phi), -sin(phi), -(innerBaseRadius-innerTopRadius)/height);
+      n[i+2+N].normalize();
+    }
   }
+  normal->vector.finishEditing();
   // fix radius if height==0
   if(height==0 && innerTopRadius<innerBaseRadius) innerBaseRadius=innerTopRadius;
   if(height==0 && topRadius>baseRadius) baseRadius=topRadius;

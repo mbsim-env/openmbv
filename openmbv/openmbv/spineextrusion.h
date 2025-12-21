@@ -32,6 +32,8 @@ namespace OpenMBV {
   class SpineExtrusion;
 }
 
+class SoNormal;
+
 namespace OpenMBVGUI {
 
 /**
@@ -74,7 +76,12 @@ class SpineExtrusion : public DynamicColoredBody {
     int doublesPerPoint;
 
     void setIvSpine(const std::vector<double>& data);
-    SoMFMatrix scpOri;
+
+    void setCardanWrtWorldSpine(const std::vector<double>& data);
+    SoCoordinate3 *quadMeshCoords;
+    SoNormal *quadMeshNormals;
+    SoTranslation *endCupTrans[2];
+    SoRotation *endCupRot[2];
 };
 
 }
