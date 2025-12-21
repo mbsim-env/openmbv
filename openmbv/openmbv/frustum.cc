@@ -72,6 +72,7 @@ Frustum::Frustum(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *p
   // normals
   auto *normal=new SoNormal;
   soSepRigidBody->addChild(normal);
+  normal->vector.setNum(N+2 + (innerBaseRadius>0 || innerTopRadius>0 ? N : 0));
   auto n = normal->vector.startEditing();
   n[0] = SbVec3f(0, 0, -1);
   n[1] = SbVec3f(0, 0, 1);
