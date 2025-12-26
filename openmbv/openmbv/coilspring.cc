@@ -209,7 +209,7 @@ QString CoilSpring::getInfo() {
 double CoilSpring::update() {
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=coilSpring->getRow(frame);
+  auto data=coilSpring->getRow(frame);
 
   // translation / rotation
   fromPoint->translation.setValue(data[1],data[2],data[3]);

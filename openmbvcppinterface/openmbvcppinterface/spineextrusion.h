@@ -34,7 +34,7 @@ namespace OpenMBV {
    * \author Thorsten Schindler
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    *
    * The cross section is either orthogonal to the curve with a twist
    * around the curve OR
@@ -124,7 +124,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(1+4*numberOfSpinePoints); }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
@@ -142,7 +142,7 @@ namespace OpenMBV {
       std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > contour;
 
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
 
       /** Scale factor of the body. */
       double scaleFactor{1};

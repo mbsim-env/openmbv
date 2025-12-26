@@ -249,7 +249,7 @@ void NurbsDisk::moveCameraWithSlot() {
 double NurbsDisk::update() {
   // read from hdf5
   int frame = MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data = nurbsDisk->getRow(frame);
+  auto data = nurbsDisk->getRow(frame);
 
   // vector of the position of the disk (midpoint of base circle, not midplane!)
   translation->translation.setValue(data[1], data[2], data[3]);

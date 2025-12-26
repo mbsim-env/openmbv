@@ -51,7 +51,7 @@ class Arrow : public DynamicColoredBody {
     double update() override;
     SoScale *scale1, *scale2;
     double headLength;
-    std::vector<double> data;
+    std::vector<OpenMBV::Float> data;
     double length, scaleLength;
     void createProperties() override;
   public:

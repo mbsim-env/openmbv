@@ -114,7 +114,7 @@ double CompoundRigidBody::update() {
 
   // update the color for children
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=rigidBody->getRow(frame);
+  auto data=rigidBody->getRow(frame);
   for(int i=0; i<childCount(); i++) {
     auto *childRB=static_cast<RigidBody*>(child(i));
     if(childRB->diffuseColor[0]<0)

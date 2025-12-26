@@ -65,9 +65,9 @@ void Path::createProperties() {
 double Path::update() {
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=path->getRow(frame);
+  auto data=path->getRow(frame);
   for(int i=maxFrameRead+1; i<=frame; i++) {
-    vector<double> data=path->getRow(i);
+    auto data=path->getRow(i);
     coord->point.set1Value(i, data[1], data[2], data[3]);
   }
   maxFrameRead=frame;

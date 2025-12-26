@@ -62,7 +62,7 @@ DynamicNurbsCurve::DynamicNurbsCurve(const std::shared_ptr<OpenMBV::Object> &obj
 
 double DynamicNurbsCurve::update() {
   int frame = MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data = nurbscurve->getRow(frame);
+  auto data = nurbscurve->getRow(frame);
 
   SbColor *colorData = mat->diffuseColor.startEditing();
   SbColor *specData = mat->specularColor.startEditing();

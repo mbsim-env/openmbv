@@ -163,7 +163,7 @@ int main() {
 
   g->write();
 
-  vector<double> row(8);
+  vector<Float> row(8);
   for(int i=0; i<10; i++) {
     row[1]=i/10.0;
     c2->append(row);

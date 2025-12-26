@@ -109,10 +109,10 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     case OpenMBV::SpineExtrusion::cardanWrtWorld     : doublesPerPoint = 6; break;
   }
 
-  std::vector<double> data;
+  std::vector<OpenMBV::Float> data;
 
   if( spineExtrusion->getStateOffSet().size() > 0 ) {
-    data = std::vector<double>(spineExtrusion->getStateOffSet().size()+1);
+    data = std::vector<OpenMBV::Float>(spineExtrusion->getStateOffSet().size()+1);
 
     for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
       data[i+1] = spineExtrusion->getStateOffSet()[i]; // we have == 0.0 due to local init
@@ -356,7 +356,7 @@ double SpineExtrusion::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data=spineExtrusion->getRow(frame);
+  auto data=spineExtrusion->getRow(frame);
 
   if( spineExtrusion->getStateOffSet().size() > 0 )
     for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
@@ -374,12 +374,12 @@ double SpineExtrusion::update() {
   return data[0];
 }
 
-void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
+void SpineExtrusion::setIvSpine(const std::vector<OpenMBV::Float>& data) {
   // set spine
   extrusion->spine.setNum(numberOfSpinePoints);
   SbVec3f *sp = extrusion->spine.startEditing();
   for(int i=0;i<numberOfSpinePoints;i++)
-    sp[i] = SbVec3f(data[doublesPerPoint*i+1],data[doublesPerPoint*i+2],data[doublesPerPoint*i+3]);
+    sp[i].setValue(data[doublesPerPoint*i+1],data[doublesPerPoint*i+2],data[doublesPerPoint*i+3]);
   extrusion->spine.finishEditing();
   extrusion->spine.setDefault(FALSE);
 
@@ -395,7 +395,7 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   extrusion->orientation.setDefault(FALSE);
 }
 
-void SpineExtrusion::setCardanWrtWorldSpine(const std::vector<double> &data) {
+void SpineExtrusion::setCardanWrtWorldSpine(const std::vector<OpenMBV::Float> &data) {
   auto &contour = *spineExtrusion->getContour();
   int csSize = contour.size();
 

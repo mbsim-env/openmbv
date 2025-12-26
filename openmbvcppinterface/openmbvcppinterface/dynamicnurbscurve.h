@@ -33,7 +33,7 @@ namespace OpenMBV {
       std::vector<std::vector<double> > cp;
       int num{0};
       std::vector<double> knot;
-      H5::VectorSerie<double>* data;
+      H5::VectorSerie<Float>* data;
       DynamicNurbsCurve() = default;
       ~DynamicNurbsCurve() override = default;
       xercesc::DOMElement *writeXMLFile(xercesc::DOMNode *parent) override;
@@ -61,7 +61,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*num); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(1+4*num); }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

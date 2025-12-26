@@ -175,7 +175,7 @@ double RigidBody::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=rigidBody->getRow(frame);
+  auto data=rigidBody->getRow(frame);
   
   // set scene values
   translation->translation.setValue(data[1], data[2], data[3]);
@@ -191,7 +191,7 @@ double RigidBody::update() {
   // path
   if(rigidBody->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> data=rigidBody->getRow(i);
+      auto data=rigidBody->getRow(i);
       pathCoord->point.set1Value(i, data[1], data[2], data[3]);
     }
     pathMaxFrameRead=frame;

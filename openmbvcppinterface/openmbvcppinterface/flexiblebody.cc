@@ -36,7 +36,7 @@ DOMElement* FlexibleBody::writeXMLFile(DOMNode *parent) {
 
 void FlexibleBody::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numvp);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+4*numvp);
   vector<string> columns;
   columns.emplace_back("Time");
   for(int i=0;i<numvp;i++) {
@@ -52,7 +52,7 @@ void FlexibleBody::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;

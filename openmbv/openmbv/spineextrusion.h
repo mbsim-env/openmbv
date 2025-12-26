@@ -75,9 +75,9 @@ class SpineExtrusion : public DynamicColoredBody {
 
     int doublesPerPoint;
 
-    void setIvSpine(const std::vector<double>& data);
+    void setIvSpine(const std::vector<OpenMBV::Float>& data);
 
-    void setCardanWrtWorldSpine(const std::vector<double>& data);
+    void setCardanWrtWorldSpine(const std::vector<OpenMBV::Float>& data);
     SoCoordinate3 *quadMeshCoords;
     SoNormal *quadMeshNormals;
     SoTranslation *endCupTrans[2];

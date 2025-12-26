@@ -60,7 +60,7 @@ namespace OpenMBV {
    * from system R to system W.
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order: time,
    * \f$ _W x_P \f$, \f$ _W y_P \f$, \f$ _W z_P \f$,
    * \f$ \alpha_P \f$, \f$ \beta_P \f$, \f$ \gamma_P \f$,
@@ -74,7 +74,7 @@ namespace OpenMBV {
       double scaleFactor{1};
       void createHDF5File() override;
       void openHDF5File() override;
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
       std::weak_ptr<CompoundRigidBody> compound;
 
       RigidBody();
@@ -148,7 +148,7 @@ namespace OpenMBV {
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
-          std::vector<double> tmprow(8);
+          std::vector<Float> tmprow(8);
           std::copy(&row[0], &row[8], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
@@ -158,7 +158,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(8); }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
