@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/coilspring.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 #include <openmbvcppinterface/ivbody.h>
+#include <openmbvcppinterface/spineextrusion.h>
 #include <iostream>
 
 using namespace OpenMBV;
@@ -37,6 +38,50 @@ int main() {
   assert(feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW)!=-1);
 #endif
   setlocale(LC_ALL, "C");
+
+#if 0
+  shared_ptr<Group> g=ObjectFactory::create<Group>();
+  g->setName("test");
+  g->setFileName("test.ombvx");
+    auto sp(ObjectFactory::create<SpineExtrusion>());
+    g->addObject(sp);
+    sp->setName("spine");
+    int Nsp=2000;
+    int Nc=200;
+    int Tt=1000;
+    sp->setNumberOfSpinePoints(Nsp);
+    auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
+    double r=0.1;
+    contour->emplace_back(PolygonPoint::create(0,r,1));
+    contour->emplace_back(PolygonPoint::create(0,0,1));
+    contour->emplace_back(PolygonPoint::create(r,0,1));
+    double da=M_PI/2/(Nc-2);
+    for(double a=da; a<M_PI/2-da/2; a+=da)
+      contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
+    std::reverse(contour->begin(), contour->end());
+    sp->setContour(contour);
+    sp->setCrossSectionOrientation(SpineExtrusion::cardanWrtWorld);
+    sp->setCounterClockWise(false);
+  g->write();
+
+  vector<double> data(1+6*Nsp);
+  double Tend=1;
+  for(double t=0; t<Tend; t+=Tend/Tt) {
+    data[0]=t;
+    for(int Isp=0; Isp<Nsp; ++Isp) {
+      double R=0.3*cos(2*M_PI*10*t);
+      double x=static_cast<double>(Isp)/Nsp*2*M_PI;
+      data[6*Isp+1] = x;
+      data[6*Isp+2] = R*sin(x);
+      data[6*Isp+3] = 0;
+      data[6*Isp+4] = 0;
+      data[6*Isp+5] = 0;
+      data[6*Isp+6] = M_PI/2+atan(R*cos(x));
+    }
+    sp->append(data);
+  }
+  return 0;
+#endif
 
   cout<<"CREATE"<<endl;
   {

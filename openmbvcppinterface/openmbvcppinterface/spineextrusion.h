@@ -113,6 +113,15 @@ namespace OpenMBV {
       void setCrossSectionOrientation(CrossSectionOrienation o) { csOri = o; }
       CrossSectionOrienation getCrossSectionOrientation() { return csOri; }
 
+      void setCounterClockWise(bool f) { ccw = f; }
+      bool getCounterClockWise() { return ccw; }
+
+      /** If true, the default, the normal vectors (and, of course the points) are update at each frame.
+       * If false, the normal vectors are only updated at the very first call but ever again.
+       * This option is only relevant for crossSectionOrientation=cardanWrtWorld and false leads to faster rendering. */
+      void setUpdateNormals(bool f) { updateNormals = f; }
+      bool getUpdateNormals() { return updateNormals; }
+
       /** Get the initial rotation of the body. */
       std::vector<double> getInitialRotation() { return initialRotation; }
 
@@ -148,6 +157,10 @@ namespace OpenMBV {
       double scaleFactor{1};
 
       CrossSectionOrienation csOri { orthogonalWithTwist };
+
+      bool ccw { true };
+
+      bool updateNormals { true };
       
       /** Intial rotation of the body. */
       std::vector<double> initialRotation;

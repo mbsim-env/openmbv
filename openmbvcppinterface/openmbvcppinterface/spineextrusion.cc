@@ -48,6 +48,8 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
       E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorld'");
       break;
   }
+  E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
+  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
   if( stateOffSet.size() > 0 )
@@ -111,6 +113,12 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
     else
       throw runtime_error("Unknown 'crossSectionOrientation'");
   }
+  setCounterClockWise(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"counterClockWise");
+  if(e) setCounterClockWise(E(e)->getText<bool>());
+  setUpdateNormals(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");
+  if(e) setUpdateNormals(E(e)->getText<bool>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");

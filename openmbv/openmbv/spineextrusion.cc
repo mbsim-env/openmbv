@@ -158,7 +158,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       // additional flags
       extrusion->solid=TRUE; // backface culling
       extrusion->convex=TRUE; // only convex polygons included in visualisation
-      extrusion->ccw=TRUE; // vertex ordering counterclockwise?
+      extrusion->ccw=spineExtrusion->getCounterClockWise() ? TRUE : FALSE; // vertex ordering
       extrusion->beginCap=TRUE; // front side at begin of the spine
       extrusion->endCap=TRUE; // front side at end of the spine
       extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
@@ -193,44 +193,48 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       break;
     }
     case OpenMBV::SpineExtrusion::cardanWrtWorld: {
+      int csSize = contour->size();
+
       quadMeshCoords = new SoCoordinate3;
       soSep->addChild(quadMeshCoords);
-      quadMeshCoords->point.setNum(numberOfSpinePoints * contour->size());
+      quadMeshCoords->point.setNum(numberOfSpinePoints * csSize);
       quadMeshNormals = new SoNormal;
       soSep->addChild(quadMeshNormals);
-      quadMeshNormals->vector.setNum(numberOfSpinePoints * 2*contour->size());
+      quadMeshNormals->vector.setNum(numberOfSpinePoints * 2*csSize);
+      auto *sh=new SoShapeHints;
+      soSep->addChild(sh);
+      sh->vertexOrdering.setValue(spineExtrusion->getCounterClockWise() ? SoShapeHints::COUNTERCLOCKWISE : SoShapeHints::CLOCKWISE);
+      sh->shapeType.setValue(SoShapeHints::SOLID);
       auto stripMesh = new SoIndexedTriangleStripSet;
       soSep->addChild(stripMesh);
 
       // mesh indices of spine
-      stripMesh->coordIndex.setNum((2*numberOfSpinePoints+1) * contour->size());
+      stripMesh->coordIndex.setNum((2*numberOfSpinePoints+1) * csSize);
       int *p = stripMesh->coordIndex.startEditing();
       int idx=0;
-      for(size_t csIdx=0;csIdx<contour->size();csIdx++) {
+      for(int csIdx=0;csIdx<csSize;csIdx++) {
         for(int spIdx=0;spIdx<numberOfSpinePoints;spIdx++) {
-          int coordIdx = spIdx*contour->size()+csIdx;
+          int coordIdx = spIdx*csSize+csIdx;
           p[idx++] = coordIdx;
-          p[idx++] = csIdx<contour->size()-1 ? coordIdx+1 : coordIdx+1-contour->size();
+          p[idx++] = csIdx<csSize-1 ? coordIdx+1 : coordIdx+1-csSize;
         }
         p[idx++] = -1;
       }
       stripMesh->coordIndex.finishEditing();
 
       // normal indices of spine
-      stripMesh->normalIndex.setNum((2*numberOfSpinePoints+1) * contour->size());
+      stripMesh->normalIndex.setNum((2*numberOfSpinePoints+1) * csSize);
       int *n = stripMesh->normalIndex.startEditing();
       idx=0;
-      for(size_t csIdx=0;csIdx<contour->size();csIdx++) {
+      for(int csIdx=0;csIdx<csSize;csIdx++) {
         for(int spIdx=0;spIdx<numberOfSpinePoints;spIdx++) {
-          int coordIdx = spIdx*contour->size()+csIdx;
+          int coordIdx = spIdx*csSize+csIdx;
           n[idx++] = 2*coordIdx;
           n[idx++] = 2*coordIdx+1;
         }
         n[idx++] = -1;
       }
       stripMesh->normalIndex.finishEditing();
-
-      int csSize = contour->size();
 
       // end cups as tesselation
       {
@@ -240,17 +244,13 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         auto *nb=new SoNormalBinding;
         endCupSep->addChild(nb);
         nb->value.setValue(SoNormalBinding::OVERALL);
-        // normal
-        auto *endCupNormal=new SoNormal;
-        endCupSep->addChild(endCupNormal);
-        endCupNormal->vector.set1Value(0, 0,0,1);
         // coords
         auto endCupPoint=new SoCoordinate3;
         endCupSep->addChild(endCupPoint);
         endCupPoint->point.setNum(csSize);
         auto p = endCupPoint->point.startEditing();
         idx=0;
-        for(size_t csIdx=0; csIdx<contour->size(); csIdx++)
+        for(int csIdx=0; csIdx<csSize; csIdx++)
           p[idx++] = SbVec3f(
             (*contour)[csIdx]->getXComponent() * spineExtrusion->getScaleFactor(),
             0,
@@ -264,7 +264,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         endCup->coordIndex.setNum(csSize+2);
         auto *ec = endCup->coordIndex.startEditing();
         idx=0;
-        for(size_t csIdx=0; csIdx<contour->size(); csIdx++) {
+        for(int csIdx=0; csIdx<csSize; csIdx++) {
           ec[idx] = idx;
           idx++;
         }
@@ -276,10 +276,14 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         for(int i : {0,1}) {
           auto sep = new SoSeparator;
           endCupSep->addChild(sep);
+          // normal
+          auto *endCupNormal=new SoNormal;
+          sep->addChild(endCupNormal);
+          endCupNormal->vector.set1Value(0, 0,!((i==0) xor spineExtrusion->getCounterClockWise())?-1:1,0);
           // vertex ordering
           auto *sh=new SoShapeHints;
           sep->addChild(sh);
-          sh->vertexOrdering.setValue(i==0 ? SoShapeHints::CLOCKWISE : SoShapeHints::COUNTERCLOCKWISE);
+          sh->vertexOrdering.setValue(!((i==0) xor spineExtrusion->getCounterClockWise()) ? SoShapeHints::CLOCKWISE : SoShapeHints::COUNTERCLOCKWISE);
           sh->shapeType.setValue(SoShapeHints::SOLID);
           // translation/rotation and face
           endCupTrans[i] = new SoTranslation;
@@ -301,7 +305,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       ol->coordIndex.setNum((numberOfSpinePoints+1)*csSize1);
       auto *l = ol->coordIndex.startEditing();
       idx = 0;
-      for(size_t csIdx=0;csIdx<contour->size();csIdx++) {
+      for(int csIdx=0;csIdx<csSize;csIdx++) {
         if(round((*contour)[csIdx]->getBorderValue())==0)
           continue;
         for(int spIdx=0;spIdx<numberOfSpinePoints;spIdx++) {
@@ -317,7 +321,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       ol->coordIndex.setNum(idx+2*csSize+4);
       l = ol->coordIndex.startEditing();
       for(int spIdx : {0, numberOfSpinePoints-1}) {
-        for(size_t csIdx=0;csIdx<contour->size();csIdx++) {
+        for(int csIdx=0;csIdx<csSize;csIdx++) {
           int pIdx = spIdx*csSize+csIdx;
           l[idx++] = pIdx;
         }
@@ -325,8 +329,69 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         l[idx++] = -1;
       }
       ol->coordIndex.finishEditing();
+      
+      // prepare contour points (convert to SbVec3f) and calculate normal in cross-section plane
+      nsp.resize(csSize);
+      normal.resize(2*csSize);
+      for(int csIdx=0;csIdx<csSize;csIdx++) {
+        // points
+        nsp[csIdx].setValue(
+          (*contour)[csIdx]->getXComponent() * spineExtrusion->getScaleFactor(),
+          0,
+          (*contour)[csIdx]->getYComponent() * spineExtrusion->getScaleFactor()
+        );
+        // normals
+        int nIdx = 2*csIdx;
+        normal[nIdx].setValue(
+          -((*contour)[csIdx==csSize-1?0:csIdx+1]->getYComponent() - (*contour)[csIdx]->getYComponent()),
+          0,
+            (*contour)[csIdx==csSize-1?0:csIdx+1]->getXComponent() - (*contour)[csIdx]->getXComponent()
+        );
+        normal[nIdx].normalize();
+        normal[nIdx+1] = normal[nIdx];
+      }
+      for(int csIdx=0;csIdx<csSize;csIdx++) {
+        // combine normals
+        int nIdx = 2*csIdx;
+        if(round((*contour)[csIdx]->getBorderValue())==0) {
+          auto &n1 = normal[csIdx>0?nIdx-1:nIdx-1+2*csSize];
+          auto &n2 = normal[nIdx];
+          n1 = n1 + n2;
+          n1.normalize();
+          n2 = n1;
+        }
+      }
 
       setCardanWrtWorldSpine(data);
+
+#if 0
+      // draw normals for debugging
+      auto normCol = new SoMaterial;
+      soSep->addChild(normCol);
+      normCol->diffuseColor.setValue(0,0,0);
+      normCol->emissiveColor.setValue(0,1,0);
+      auto normC = new SoCoordinate3;
+      soSep->addChild(normC);
+      normC->point.setNum(numberOfSpinePoints * csSize * 2 * 2);
+      float k=0.2/5;
+      idx=0;
+      for(int spIdx=0; spIdx<numberOfSpinePoints; ++spIdx) {
+        for(int csIdx=0; csIdx<csSize; ++csIdx) {
+          int pIdx = spIdx*csSize+csIdx;
+          int nIdx = 2*pIdx;
+          normC->point.set1Value(idx++, quadMeshCoords->point[pIdx]);
+          normC->point.set1Value(idx++, quadMeshCoords->point[pIdx]+k*quadMeshNormals->vector[csIdx>0?nIdx-1:nIdx-1+2*csSize]);
+          normC->point.set1Value(idx++, quadMeshCoords->point[pIdx]);
+          normC->point.set1Value(idx++, quadMeshCoords->point[pIdx]+k*quadMeshNormals->vector[nIdx]);
+        }
+      }
+      auto normL = new SoLineSet;
+      soSep->addChild(normL);
+      normL->numVertices.setNum(numberOfSpinePoints * csSize * 2);
+      for(int i=0; i<numberOfSpinePoints * csSize * 2; ++i)
+        normL->numVertices.set1Value(i, 2);
+#endif
+
       break;
     }
   }
@@ -367,7 +432,7 @@ double SpineExtrusion::update() {
       setIvSpine(data);
       break;
     case OpenMBV::SpineExtrusion::cardanWrtWorld:
-      setCardanWrtWorldSpine(data);
+      setCardanWrtWorldSpine(data, spineExtrusion->getUpdateNormals());
       break;
   }
 
@@ -395,16 +460,19 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   extrusion->orientation.setDefault(FALSE);
 }
 
-void SpineExtrusion::setCardanWrtWorldSpine(const std::vector<double> &data) {
+void SpineExtrusion::setCardanWrtWorldSpine(const std::vector<double> &data, bool updateNormals) {
   auto &contour = *spineExtrusion->getContour();
   int csSize = contour.size();
 
   SbVec3f r01[2];
   SbMatrix T01[2];
 
-  // points
   {
     SbVec3f *p = quadMeshCoords->point.startEditing();
+    SbVec3f *n = nullptr;
+    if(updateNormals)
+      n = quadMeshNormals->vector.startEditing();
+    //#pragma omp parallel for default(none) shared(data, r01, T01, csSize, p, n, updateNormals)
     for(int spIdx=0; spIdx<numberOfSpinePoints; spIdx++) {
       SbVec3f r(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
       SbVec3f angle(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
@@ -419,62 +487,45 @@ void SpineExtrusion::setCardanWrtWorldSpine(const std::vector<double> &data) {
         T01[1] = T;
       }
       for(int csIdx=0; csIdx<csSize; csIdx++) {
-        SbVec3f nsp(
-          contour[csIdx]->getXComponent() * spineExtrusion->getScaleFactor(),
-          0,
-          contour[csIdx]->getYComponent() * spineExtrusion->getScaleFactor()
-        );
+        // points
         SbVec3f T_nsp;
-        T.multMatrixVec(nsp, T_nsp);
+        T.multMatrixVec(nsp[csIdx], T_nsp);
         int pIdx = spIdx*csSize+csIdx;
         p[pIdx] = r + T_nsp;
+        if(updateNormals) {
+          // normals
+          int nIdx = spIdx*2*csSize+2*csIdx;
+          SbVec3f T_normal;
+          T.multMatrixVec(normal[2*csIdx+0], T_normal);
+          n[nIdx]   = T_normal;
+          T.multMatrixVec(normal[2*csIdx+1], T_normal);
+          n[nIdx+1] = T_normal;
+        }
       }
     }
-    quadMeshCoords->point.finishEditing();
-  }
-
-  // normals
-  {
-    auto p = quadMeshCoords->point.getValues(0);
-    SbVec3f *n = quadMeshNormals->vector.startEditing();
-    // normals: smooth in spine direction and face-based in cross-section direction
-    for(int spIdx=0; spIdx<numberOfSpinePoints; spIdx++) {
-      for(int csIdx=0; csIdx<csSize; csIdx++) {
-        int pIdx = spIdx*csSize+csIdx;
-        int nIdx = spIdx*2*csSize+2*csIdx;
-        {
-          int bspS=pIdx+(spIdx==0?+0:-csSize);
-          int bspE=pIdx+(spIdx==numberOfSpinePoints-1?-0:csSize);
-          SbVec3f bsp = p[bspE] - p[bspS];
-          SbVec3f bcs = p[csIdx==csSize-1?pIdx+1-csSize:pIdx+1] - p[pIdx];
-          n[nIdx] = bcs.cross(bsp);
-          n[nIdx].normalize();
-        }
-        {
-          int bspS=pIdx+1+(spIdx==0?+0:-csSize);
-          int bspE=pIdx+1+(spIdx==numberOfSpinePoints-1?-0:csSize);
-          if(csIdx==csSize-1) { bspS-=csSize; bspE-=csSize; }
-          SbVec3f bsp = p[bspE] - p[bspS];
-          SbVec3f bcs = p[csIdx==csSize-1?pIdx+1-csSize:pIdx+1] - p[pIdx+1-1];
-          n[nIdx+1] = bcs.cross(bsp);
+    if(updateNormals) {
+      //#pragma omp parallel for default(none) shared(data, csSize, p, n)
+      for(int spIdx=0; spIdx<numberOfSpinePoints; spIdx++) {
+        for(int csIdx=0; csIdx<csSize; csIdx++) {
+          // normals x b
+          int pIdx = spIdx*csSize+csIdx;
+          int nIdx = 2*pIdx;
+          int pIdxA = (spIdx>0?spIdx-1:0)*csSize+csIdx;
+          int pIdxB = (spIdx<numberOfSpinePoints-1?spIdx+1:numberOfSpinePoints-1)*csSize+csIdx;
+          SbVec3f b = p[pIdxB] - p[pIdxA];
+          auto ortho = [](const SbVec3f &n, const SbVec3f &b) {
+            auto x = n.dot(b)/b.dot(b)*b;
+            return n-x;
+          };
+          n[nIdx]   = ortho(n[nIdx  ], b);
+          n[nIdx+1] = ortho(n[nIdx+1], b);
+          n[nIdx]  .normalize();
           n[nIdx+1].normalize();
         }
       }
+      quadMeshNormals->vector.finishEditing();
     }
-    // normals: combine (make smooth) the normals of ajected faces if getBorderValue of the contour is 1
-    for(int csIdx=0; csIdx<csSize; csIdx++) {
-      if(round(contour[csIdx]->getBorderValue())==1)
-        continue;
-      for(int spIdx=0; spIdx<numberOfSpinePoints; spIdx++) {
-        int nIdx = spIdx*2*csSize+2*csIdx;
-        auto &n1 = n[nIdx];
-        auto &n2 = n[nIdx+(csIdx==0?2*csSize-1:-1)];
-        n1 = n1 + n2;
-        n1.normalize();
-        n2 = n1;
-      }
-    }
-    quadMeshNormals->vector.finishEditing();
+    quadMeshCoords->point.finishEditing();
   }
 
   // translation and rotation of end cups
