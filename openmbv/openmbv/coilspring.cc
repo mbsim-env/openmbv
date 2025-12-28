@@ -38,7 +38,9 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   //h5 dataset
   int rows=coilSpring->getRows();
   double dt;
-  if(rows>=2) dt=coilSpring->getRow(1)[0]-coilSpring->getRow(0)[0]; else dt=0;
+  vector<double> data0;
+  if(rows>=1) data0=coilSpring->getRow(0);
+  if(rows>=2) dt=coilSpring->getRow(1)[0]-data0[0]; else dt=0;
   resetAnimRange(rows, dt);
 
   double R=coilSpring->getSpringRadius();
@@ -54,7 +56,14 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   // read XML
   scaleValue=coilSpring->getScaleFactor();
   nominalLength=coilSpring->getNominalLength();
-  if(nominalLength<0) nominalLength=r*N*4;
+  if(nominalLength<0) {
+    if(data0.size()>0) {
+      SbVec3f distance(data0[4]-data0[1],data0[5]-data0[2],data0[6]-data0[3]);
+      nominalLength=distance.length();
+    }
+    else
+      nominalLength=r*N*4;
+  }
 
   // create so
   // body

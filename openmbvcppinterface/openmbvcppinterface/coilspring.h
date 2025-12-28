@@ -97,7 +97,7 @@ namespace OpenMBV {
        * length is nominalLength. In all other cases the cross-section
        * scales with the spring length and is getting a ellipse.
        * If nominalLength is less than 0, the nominalLength is
-       * choosen automatically.
+       * choosen automatically: its the length at row 0, if at least 1 row exists.
        */
       void setNominalLength(double l) { nominalLength=l; }
       double getNominalLength() { return nominalLength; }
