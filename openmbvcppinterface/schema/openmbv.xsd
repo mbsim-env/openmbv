@@ -328,6 +328,7 @@
       <xs:extension base="DynamicColoredBodyType">
         <xs:sequence>
           <xs:element name="type" minOccurs="0" type="pv:stringFullEval"/>
+          <xs:element name="updateNormals" type="pv:booleanFullEval" minOccurs="0"/>
           <xs:element name="numberOfCoils" type="pv:nounitScalar"/>
           <xs:element name="springRadius" type="pv:lengthScalar"/>
           <xs:element name="crossSectionRadius" type="pv:lengthScalar" minOccurs="0"/>

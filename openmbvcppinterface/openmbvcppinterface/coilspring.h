@@ -52,6 +52,7 @@ namespace OpenMBV {
       double numberOfCoils{3};
       double nominalLength{-1};
       Type type{tube};
+      bool updateNormals { true };
       
       CoilSpring();
       ~CoilSpring() override;
@@ -114,6 +115,12 @@ namespace OpenMBV {
        */
       void setType(Type t) { type=t; }
       Type getType() { return type; }
+
+      /** If true, the default, the normal vectors (and, of course the points) are update at each frame.
+       * If false, the normal vectors are only updated at the very first call but ever again.
+       * This option is only relevant for type=tube and false leads to faster rendering. */
+      void setUpdateNormals(bool f) { updateNormals = f; }
+      bool getUpdateNormals() { return updateNormals; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

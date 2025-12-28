@@ -36,6 +36,21 @@ class SoNormal;
 
 namespace OpenMBVGUI {
 
+class ExtrusionCardan {
+  public:
+    void init(int spSize, const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour,
+              double csScale, bool ccw,
+              SoSeparator *soSep, SoSeparator *soOutLineSep);
+    void setCardanWrtWorldSpine(const std::vector<double>& data, bool updateNormals=true);
+  private:
+    std::vector<SbVec3f> nsp;
+    std::vector<SbVec3f> normal;
+    SoCoordinate3 *quadMeshCoords;
+    SoNormal *quadMeshNormals;
+    SoTranslation *endCupTrans[2];
+    SoRotation *endCupRot[2];
+};
+
 /**
  * \brief class for extrusion along a curve
  * \author Thorsten Schindler
@@ -77,13 +92,7 @@ class SpineExtrusion : public DynamicColoredBody {
 
     void setIvSpine(const std::vector<double>& data);
 
-    void setCardanWrtWorldSpine(const std::vector<double>& data, bool updateNormals=true);
-    std::vector<SbVec3f> nsp;
-    std::vector<SbVec3f> normal;
-    SoCoordinate3 *quadMeshCoords;
-    SoNormal *quadMeshNormals;
-    SoTranslation *endCupTrans[2];
-    SoRotation *endCupRot[2];
+    ExtrusionCardan extrusionCardan;
 };
 
 }

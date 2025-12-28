@@ -43,6 +43,7 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case polyline: typeStr="polyline"; break;
   }
   E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
+  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
   E(e)->addElementText(OPENMBV%"numberOfCoils", numberOfCoils);
   E(e)->addElementText(OPENMBV%"springRadius", springRadius);
   E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
@@ -89,6 +90,9 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
     if(typeStr=="scaledTube") setType(scaledTube);
     if(typeStr=="polyline") setType(polyline);
   }
+  setUpdateNormals(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");
+  if(e) setUpdateNormals(E(e)->getText<bool>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfCoils");
   setNumberOfCoils(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"springRadius");

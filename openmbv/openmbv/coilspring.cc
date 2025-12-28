@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "coilspring.h"
+#include "spineextrusion.h"
 #include "mainwindow.h"
 #include "utils.h"
 #include "openmbvcppinterface/coilspring.h"
@@ -30,7 +31,7 @@ using namespace std;
 
 namespace OpenMBVGUI {
 
-CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), spine(nullptr), scaledSpine(nullptr) {
+CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : DynamicColoredBody(obj, parentItem, soParent, ind), scaledSpine(nullptr) {
   coilSpring=std::static_pointer_cast<OpenMBV::CoilSpring>(obj);
   iconFile="coilspring.svg";
   setIcon(0, Utils::QIconCached(iconFile));
@@ -74,32 +75,25 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
 
   switch(coilSpring->getType()) {
     case OpenMBV::CoilSpring::tube: {
-      extrusion=new SoVRMLExtrusion;
-      soSep->addChild(extrusion);
-      // cross section
-      extrusion->crossSection.setNum(iCircSegments+1);
-      SbVec2f *cs = extrusion->crossSection.startEditing();
+      tube = make_unique<ExtrusionCardan>();
+      auto contour = make_shared<std::vector<std::shared_ptr<OpenMBV::PolygonPoint>>>();
       for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
-        cs[i]=SbVec2f(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments));
-      cs[iCircSegments]=cs[0]; // close cross section: uses exact the same point: helpfull for "binary space partitioning container"
-      extrusion->crossSection.finishEditing();
-      extrusion->crossSection.setDefault(FALSE);
+        contour->emplace_back(OpenMBV::PolygonPoint::create(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments), 0));
+      tube->init(int(numberOfSpinePointsPerCoil*N), contour,
+                 1.0, true,
+                 soSep, soOutLineSep);
       // initialise spine 
-      spine = new float[3*(int(numberOfSpinePointsPerCoil*N)+1)];
+      spine.resize(6*(int(numberOfSpinePointsPerCoil*N)+1)+1);
       for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
-        spine[3*i] = R*cos(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
-        spine[3*i+1] = R*sin(i*N*2.*M_PI/numberOfSpinePointsPerCoil/N);
-        spine[3*i+2] = 0;
+        float alpha = i*N*2.*M_PI/numberOfSpinePointsPerCoil/N;
+        spine[6*i+1] = R*cos(alpha);
+        spine[6*i+2] = R*sin(alpha);
+        spine[6*i+3] = 0;
+        spine[6*i+4] = 0;
+        spine[6*i+5] = 0;
+        spine[6*i+6] = alpha;
       }
-      extrusion->spine.setValuesPointer(int(numberOfSpinePointsPerCoil*N+1),spine);
-      extrusion->spine.setDefault(FALSE);
-      // additional flags
-      extrusion->solid=TRUE; // backface culling
-      extrusion->convex=TRUE; // only convex polygons included in visualisation
-      extrusion->ccw=TRUE; // vertex ordering counterclockwise?
-      extrusion->beginCap=TRUE; // front side at begin of the spine
-      extrusion->endCap=TRUE; // front side at end of the spine
-      extrusion->creaseAngle=1.5; // angle below which surface normals are drawn smooth (always smooth, except begin/end cap => < 90deg)
+      tube->setCardanWrtWorldSpine(spine);
       break;
     }
     case OpenMBV::CoilSpring::scaledTube: {
@@ -197,7 +191,6 @@ void CoilSpring::createProperties() {
 }
 
 CoilSpring::~CoilSpring() {
-  delete[]spine;
   delete[]scaledSpine;
 }
 
@@ -211,7 +204,7 @@ QString CoilSpring::getInfo() {
          QString("<hr width=\"10000\"/>")+
          QString("<b>From point:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
          QString("<b>Length:</b> %1").arg(coilSpring->getType()==OpenMBV::CoilSpring::tube?
-                                          spine[3*int(numberOfSpinePointsPerCoil*N)+2]:
+                                          spine[6*int(numberOfSpinePointsPerCoil*N)+3]:
                                           sz*nominalLength);
 }
 
@@ -228,10 +221,21 @@ double CoilSpring::update() {
   switch(coilSpring->getType()) {
     case OpenMBV::CoilSpring::tube:
       // tube 
-      for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
-        spine[3*i+2] = i*distance.length()*scaleValue/numberOfSpinePointsPerCoil/N;
+      for(int i=0;i<=int(numberOfSpinePointsPerCoil*N);i++) {
+        spine[6*i+3] = i*distance.length()*scaleValue/numberOfSpinePointsPerCoil/N;
+        float alpha = i*N*2.*M_PI/numberOfSpinePointsPerCoil/N;
+        double R=coilSpring->getSpringRadius();
+        float n = atan( distance.length()*scaleValue / ( N*2.*M_PI*R ) );
+        // spine[6*i+4:6] = Utils::rotation2Cardan(Utils::cardan2Rotation(SbVec3f(0,0,alpha))*Utils::cardan2Rotation(SbVec3f(n,0,0)));
+        float sinn = sin(n);
+        float cosn = cos(n);
+        float sinalpha = sin(alpha);
+        float cosalpha = cos(alpha);
+        spine[6*i+4] = atan2(sinn*cosalpha, cosn);
+        spine[6*i+5] = asin(sinalpha*sinn);
+        spine[6*i+6] = atan2(sinalpha*cosn, cosalpha);
       }
-      extrusion->spine.touch();
+      tube->setCardanWrtWorldSpine(spine, coilSpring->getUpdateNormals());
       break;
     case OpenMBV::CoilSpring::scaledTube:
     case OpenMBV::CoilSpring::polyline:

@@ -36,6 +36,8 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
+class ExtrusionCardan;
+
 /**
  * \brief class for drawing simple helix springs
  * \author Thorsten Schindler
@@ -55,9 +57,6 @@ class CoilSpring : public DynamicColoredBody {
 
   protected:
 
-    /** extrusion body */
-    SoVRMLExtrusion *extrusion;
-
     SoScale *scale;
 
     /** translation of helix */
@@ -67,7 +66,7 @@ class CoilSpring : public DynamicColoredBody {
     SoRotation* rotation;
 
     /** memory for efficient spine update */ 
-    float* spine, *scaledSpine;
+    float *scaledSpine;
 
     /** radius of helix */
     double springRadius;
@@ -91,6 +90,9 @@ class CoilSpring : public DynamicColoredBody {
 
     std::shared_ptr<OpenMBV::CoilSpring> coilSpring;
     void createProperties() override;
+
+    std::unique_ptr<ExtrusionCardan> tube;
+    std::vector<double> spine;
 };
 
 }
