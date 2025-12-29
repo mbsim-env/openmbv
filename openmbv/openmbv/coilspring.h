@@ -75,7 +75,7 @@ class CoilSpring : public DynamicColoredBody {
     int numberOfCoils;
 
     /** number of spine points */
-    static const int numberOfSpinePointsPerCoil = 120;
+    static const int numberOfSpinePointsPerCoil = 30;
 
     /** cross section resolution */
     static const int iCircSegments = 20;
