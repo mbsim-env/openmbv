@@ -60,7 +60,7 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   if(p) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
     frameSensor=new SoFieldSensor(frameSensorCB, this);
-    frameSensor->attach(MainWindow::getInstance()->getFrame());
+    frameSensor->attach(&MainWindow::getInstance()->getFrame());
     frameSensor->setPriority(0); // is needed for png export
   }
 
@@ -116,7 +116,7 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
   if(body->getShilouetteEdge()) {
     soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+    shilouetteEdgeFrameSensor->attach(&MainWindow::getInstance()->getFrame());
     shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
     MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
   }

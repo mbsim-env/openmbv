@@ -251,7 +251,7 @@ void Arrow::createProperties() {
 }
 
 double Arrow::update() {
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   // read from hdf5
   data=arrow->getRow(frame);
 
