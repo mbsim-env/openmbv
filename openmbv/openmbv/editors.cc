@@ -233,7 +233,7 @@ void Editor::replaceObject() {
   delete obj;
   Utils::visitTreeWidgetItems<Object*>(newObj, &unsetClone);
   // update the scene
-  MainWindow::getInstance()->frame->touch();
+  MainWindow::getInstance()->frameNode->index.touch();
   // apply object filter
   MainWindow::getInstance()->objectListFilter->applyFilter();
   // restore selection and current item

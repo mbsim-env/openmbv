@@ -1187,7 +1187,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->glViewer->setAspectRatio(value);
     if(MainWindow::getInstance()->glViewerRight)
       MainWindow::getInstance()->glViewerRight->setAspectRatio(value);
-    MainWindow::getInstance()->frame->touch();
+    MainWindow::getInstance()->frameNode->index.touch();
   }, 0, numeric_limits<double>::max(), 0.5);
   new ChoiceSetting(stereoView, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
                     {{"Orthographic", "Orthographic projection, disabled for for stereo view."},

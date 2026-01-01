@@ -287,7 +287,7 @@ void MyTouchWidget::mouseLeftMoveSave(Qt::KeyboardModifiers modifiers, const QPo
     case MoveAction::RotateAboutWzSx: rotateInit(initialPos); break;
     case MoveAction::Translate: translateInit(); break;
   }
-  initialFrame=MainWindow::getInstance()->frame->getValue();
+  initialFrame=MainWindow::getInstance()->frameNode->index[0];
 }
 
 void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
@@ -307,7 +307,7 @@ void MyTouchWidget::mouseRightMoveSave(Qt::KeyboardModifiers modifiers, const QP
     case MoveAction::RotateAboutWzSx: rotateInit(initialPos); break;
     case MoveAction::Translate: translateInit(); break;
   }
-  initialFrame=MainWindow::getInstance()->frame->getValue();
+  initialFrame=MainWindow::getInstance()->frameNode->index[0];
 }
 
 void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoint &initialPos) {
@@ -327,7 +327,7 @@ void MyTouchWidget::mouseMidMoveSave(Qt::KeyboardModifiers modifiers, const QPoi
     case MoveAction::RotateAboutWzSx: rotateInit(initialPos); break;
     case MoveAction::Translate: translateInit(); break;
   }
-  initialFrame=MainWindow::getInstance()->frame->getValue();
+  initialFrame=MainWindow::getInstance()->frameNode->index[0];
 }
 
 void MyTouchWidget::mouseLeftMoveReset(Qt::KeyboardModifiers modifiers) {
@@ -1055,7 +1055,7 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
     if(nearPlaneDistance>camera->farDistance.getValue()*0.999)
       nearPlaneDistance=camera->farDistance.getValue()*0.999;
     MainWindow::getInstance()->setNearPlaneValue(nearPlaneDistance);
-    MainWindow::getInstance()->frame->touch(); // force rendering the scene
+    MainWindow::getInstance()->frameNode->index.touch(); // force rendering the scene
     MainWindow::getInstance()->statusBar()->
       showMessage(QString("Camera near clipping plane at screen-z: %2").arg(nearPlaneDistance, 0, 'f', 6), 1000);
   }
@@ -1067,7 +1067,7 @@ void MyTouchWidget::cameraNearPlane(const QPoint &rel, const QPoint &pos) {
     if(nearPlaneFactor>0.9)
       nearPlaneFactor=0.9;
     MainWindow::getInstance()->setNearPlaneValue(nearPlaneFactor);
-    MainWindow::getInstance()->frame->touch(); // force rendering the scene
+    MainWindow::getInstance()->frameNode->index.touch(); // force rendering the scene
     MainWindow::getInstance()->statusBar()->
       showMessage(QString("Camera near clipping plane normalized factor: %1").arg(nearPlaneFactor, 0, 'f', 6), 1000);
   }
@@ -1088,10 +1088,10 @@ void MyTouchWidget::cursorSz(int relPixel, float relAngle, const QPoint &pos) {
 
 void MyTouchWidget::changeFrame(int steps, bool rel) {
   // change frame
-  auto &frame=MainWindow::getInstance()->frame;
-  frame->setValue(std::min(MainWindow::getInstance()->frameMaxSB->value(),
-                  std::max(MainWindow::getInstance()->frameMinSB->value(),
-                  rel ? static_cast<int>(frame->getValue())+steps : steps)));
+  auto &frame=MainWindow::getInstance()->frameNode->index;
+  frame.setValue(std::min(MainWindow::getInstance()->frameMaxSB->value(),
+                 std::max(MainWindow::getInstance()->frameMinSB->value(),
+                 rel ? static_cast<int>(frame[0])+steps : steps)));
 }
 
 void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
