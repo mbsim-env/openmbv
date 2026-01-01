@@ -36,12 +36,13 @@ namespace OpenMBVGUI {
  * However, only the positional syntax variants are supported (%1%, %1$..., %|1$...)
  * and instead of the positional number (1, 2, 3, ...) the name of a input of
  * this engine must be used (e.g. %i0%, %f2$.3f, ...)
+ *                                 ^^----^^---input-field-names
  *
  * The following single valued inputs are available:
- * - 10 int32 inputs:  i0, i1, i2, i3, i4, i5, i6, i7, i8, i9
- * - 10 float inputs:  f0, f1, f2, f3, f4, f5, f6, f7, f8, f9
- * - 10 string inputs: s0, s1, s2, s3, s4, s5, s6, s7, s8, s9
- * - 10 bool inputs:   b0, b1, b2, b3, b4, b5, b6, b7, b8, b9
+ * - int32 inputs:  i0, i1, i2, i3, i4, i5, i6, i7, i8, i9
+ * - float inputs:  f0, f1, f2, f3, f4, f5, f6, f7, f8, f9
+ * - string inputs: s0, s1, s2, s3, s4, s5, s6, s7, s8, s9
+ * - bool inputs:   b0, b1, b2, b3, b4, b5, b6, b7, b8, b9
  *
  * 'format' is then substituted with these input (if referenced by 'format')
  * and the resulting string is available as single valued string 'output'.

@@ -31,45 +31,65 @@ using namespace std;
 namespace OpenMBVGUI {
 
 DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
-  ivo=std::static_pointer_cast<OpenMBV::DynamicIvBody>(obj);
+  divb=std::static_pointer_cast<OpenMBV::DynamicIvBody>(obj);
   iconFile="dynamicivbody.svg";
   setIcon(0, Utils::QIconCached(iconFile));
 
   // read XML
-  string fileName=ivo->getIvFileName();
+  string fileName=divb->getIvFileName();
+
+  if( divb->getStateOffSet().size() > 0 ) {
+    data = std::vector<double>(divb->getStateOffSet().size()+1);
+
+    for( size_t i = 0; i < divb->getStateOffSet().size(); ++i )
+      data[i+1] = divb->getStateOffSet()[i];
+    data[0] = 0;
+  } else
+    //h5 dataset
+    data = divb->getRow(0);
 
   auto hashData = make_tuple(
-    ivo->getRemoveNodesByName(),
-    ivo->getRemoveNodesByType()
+    divb->getRemoveNodesByName(),
+    divb->getRemoveNodesByType()
   );
 
-  if(ivo->getScalarData()) {
-    dataNodeScalar.resize(ivo->getDataSize());
-    for(size_t i=0; i<ivo->getDataSize(); ++i) {
+  // outline
+  soSep->addChild(soOutLineSwitch);
+  soOutLineColorMatGrp->setName("openmbv_body_outline_style");
+
+  if(divb->getScalarData()) {
+    dataNodeScalar.resize(divb->getDataSize());
+    for(size_t i=0; i<divb->getDataSize(); ++i) {
       dataNodeScalar[i] = new SoShaderParameter1f;
       soSep->addChild(dataNodeScalar[i]);
-      dataNodeScalar[i]->setName(("openmbv_data_"+to_string(i)).c_str());
+      dataNodeScalar[i]->setName(("openmbv_dynamicivbody_data_"+to_string(i)).c_str());
+      dataNodeScalar[i]->value.setValue(data[i]);
     }
   }
   else {
     dataNodeVector = new SoShaderParameterArray1f;
     soSep->addChild(dataNodeVector);
-    dataNodeVector->setName("openmbv_data");
-    dataNodeVector->value.setNum(ivo->getDataSize());
+    dataNodeVector->setName("openmbv_dynamicivbody_data");
+    dataNodeVector->value.setNum(divb->getDataSize());
+    datamfmf.resize(divb->getDataSize());
+    for(size_t i=0; i<divb->getDataSize(); ++i)
+      datamfmf[i] = data[i];
+    dataNodeVector->value.setValuesPointer(divb->getDataSize(), datamfmf.data());
   }
 
   auto inFunc = [this](SoInput& in) {
-    if(ivo->getScalarData())
-      for(size_t i=0; i<ivo->getDataSize(); ++i)
-        in.addReference(("openmbv_data_"+to_string(i)).c_str(), dataNodeScalar[i]);
+    in.addReference("openmbv_body_outline_style", soOutLineColorMatGrp);
+    if(divb->getScalarData())
+      for(size_t i=0; i<divb->getDataSize(); ++i)
+        in.addReference(("openmbv_dynamicivbody_data_"+to_string(i)).c_str(), dataNodeScalar[i]);
     else
-      in.addReference("openmbv_data", dataNodeVector);
+      in.addReference("openmbv_dynamicivbody_data", dataNodeVector);
   };
   SoGroup *soIv;
   if(!fileName.empty())
     soIv=Utils::SoDBreadAllFileNameCached(fileName, boost::hash<decltype(hashData)>{}(hashData), inFunc);
   else
-    soIv=Utils::SoDBreadAllContentCached(ivo->getIvContent(), boost::hash<decltype(hashData)>{}(hashData), inFunc);
+    soIv=Utils::SoDBreadAllContentCached(divb->getIvContent(), boost::hash<decltype(hashData)>{}(hashData), inFunc);
   if(!soIv)
     return;
   soSep->addChild(soIv);
@@ -92,10 +112,10 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     }
   };
   // remove nodes by name
-  for(auto &name : ivo->getRemoveNodesByName())
+  for(auto &name : divb->getRemoveNodesByName())
     removeNode([&name](auto &sa){ sa.setName(name.c_str()); });
   // remove nodes by type
-  for(auto type : ivo->getRemoveNodesByType()) {
+  for(auto type : divb->getRemoveNodesByType()) {
     // We fix the hacked SoVRMLBackground2 node which overrids Background
     if(type=="Background" || type=="VRMLBackground" || type=="SoVRMLBackground")
       type="SoVRMLBackground2";
@@ -106,21 +126,21 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
 DynamicIvBody::~DynamicIvBody() = default;
 
 double DynamicIvBody::update() {
-  if(ivo->getRows()==0) return 0; // do nothing for environement objects
+  if(divb->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  data=ivo->getRow(frame);
+  data=divb->getRow(frame);
   
   // set scene values
-  if(ivo->getScalarData())
-    for(size_t i=0; i<ivo->getDataSize(); ++i)
+  if(divb->getScalarData())
+    for(size_t i=0; i<divb->getDataSize(); ++i)
       dataNodeScalar[i]->value.setValue(data[i]);
   else {
-    datamfmf.resize(ivo->getDataSize());
-    for(size_t i=0; i<ivo->getDataSize(); ++i)
+    datamfmf.resize(divb->getDataSize());
+    for(size_t i=0; i<divb->getDataSize(); ++i)
       datamfmf[i] = data[i];
-    dataNodeVector->value.setValuesPointer(ivo->getDataSize(), datamfmf.data());
+    dataNodeVector->value.setValuesPointer(divb->getDataSize(), datamfmf.data());
   }
 
   return data[0];

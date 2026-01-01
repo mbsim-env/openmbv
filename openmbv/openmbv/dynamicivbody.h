@@ -37,7 +37,7 @@ class DynamicIvBody : public Body {
     DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~DynamicIvBody() override;
   protected:
-    std::shared_ptr<OpenMBV::DynamicIvBody> ivo;
+    std::shared_ptr<OpenMBV::DynamicIvBody> divb;
     double update() override;
     SoShaderParameterArray1f *dataNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;

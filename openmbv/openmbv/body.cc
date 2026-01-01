@@ -70,14 +70,16 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
+  soOutLineColorMatGrp = new SoGroup;
+  soOutLineSep->addChild(soOutLineColorMatGrp);
   auto *lm=new SoLightModel;
-  soOutLineSep->addChild(lm);
+  soOutLineColorMatGrp->addChild(lm);
   lm->model.setValue(SoLightModel::BASE_COLOR);
-  soOutLineSep->addChild(MainWindow::getInstance()->getOlseColor());
-  soOutLineSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
+  soOutLineColorMatGrp->addChild(MainWindow::getInstance()->getOlseColor());
+  soOutLineColorMatGrp->addChild(MainWindow::getInstance()->getOlseDrawStyle());
   // render outlines without backface culling
   auto *sh=new SoShapeHints;
-  soOutLineSep->addChild(sh);
+  soOutLineColorMatGrp->addChild(sh);
   sh->shapeType=SoShapeHints::UNKNOWN_SHAPE_TYPE;
 
   // switch for shilouette edge
