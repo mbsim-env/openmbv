@@ -22,13 +22,13 @@
 
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/fields/SoMFInt32.h>
-#include <Inventor/nodes/SoGroup.h>
+#include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/fields/SoMFVec3d.h>
 #include <Inventor/fields/SoSFEnum.h>
 
 namespace OpenMBVGUI {
 
-class IndexedTesselationFace : public SoGroup {
+class IndexedTesselationFace : public SoSeparator {
  SO_NODE_HEADER(IndexedTesselationFace);
  public:
    SoSFEnum windingRule;
