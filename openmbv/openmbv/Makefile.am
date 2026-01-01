@@ -53,6 +53,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   SoTransposeEngine.cc \
   SoDecomposeArray1fToVec3fEngine.cc \
   SoCardanRotationEngine.cc \
+  SoStringFormatEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc \
@@ -143,6 +144,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   SoTransposeEngine.h \
   SoDecomposeArray1fToVec3fEngine.h \
   SoCardanRotationEngine.h \
+  SoStringFormatEngine.h \
   SoSpecial.h\
   object.h\
   utils.h\

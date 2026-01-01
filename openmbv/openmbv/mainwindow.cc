@@ -79,6 +79,7 @@
 #include <Inventor/fields/SoMFRotation.h>
 #include "SoDecomposeArray1fToVec3fEngine.h"
 #include "SoCardanRotationEngine.h"
+#include "SoStringFormatEngine.h"
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -147,6 +148,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   SoTransposeEngine::initClass();
   DecomposeArray1fToVec3fEngine::initClass();
   CardanRotationEngine::initClass();
+  StringFormatEngine::initClass();
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
   // init realtime
