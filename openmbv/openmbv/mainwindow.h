@@ -307,6 +307,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void setStereoOffset(double value);
     void setCameraType(SoType type);
     void setCursorPos(const SbVec3f *pos=nullptr);
+    void addReferences(SoInput &in) const;
 
     //Event for dropping
     void dragEnterEvent(QDragEnterEvent *event) override;

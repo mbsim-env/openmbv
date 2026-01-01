@@ -109,7 +109,7 @@ double DynamicIvBody::update() {
   if(ivo->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   data=ivo->getRow(frame);
   
   // set scene values

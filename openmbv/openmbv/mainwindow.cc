@@ -188,11 +188,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   frameNode = new SoColorIndex;
   sceneRoot->addChild(frameNode);
   frameNode->index.setValue(0);
-  frameNode->setName("openmbv_frame");
+  frameNode->setName("openmbv_frame"); // needs also code in MainWindow::addReferences()
   timeNode = new SoAlphaTest;
   sceneRoot->addChild(timeNode);
   timeNode->value.setValue(0);
-  timeNode->setName("openmbv_time");
+  timeNode->setName("openmbv_time"); // needs also code in MainWindow::addReferences()
 
   cameraOrientation=new SoTransposeEngine;
   cameraOrientation->ref();
@@ -2488,6 +2488,11 @@ void MainWindow::updateBackgroundNeeded() {
   sa.apply(sceneRoot);
   if(sa.getPaths().getLength()>0)
     backgroundNeeded = false;
+}
+
+void MainWindow::addReferences(SoInput &in) const {
+  in.addReference("openmbv_frame", frameNode);
+  in.addReference("openmbv_time", timeNode);
 }
 
 }

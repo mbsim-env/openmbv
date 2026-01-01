@@ -92,6 +92,7 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     it->second.fileTime = newFileTime;
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
+      MainWindow::getInstance()->addReferences(in);
       if(inFunc)
         inFunc(in);
       it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
@@ -114,6 +115,7 @@ SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash,
   if(created) {
     SoInput in;
     in.setBuffer(content.data(), content.size());
+    MainWindow::getInstance()->addReferences(in);
     if(inFunc)
       inFunc(in);
     it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
