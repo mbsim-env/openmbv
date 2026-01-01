@@ -10,3 +10,5 @@ else
 fi
 @XC_EXEC_PREFIX@ @prefix@/bin/h5lockserie@EXEEXT@ --remove mygrp.ombvh5 || echo "failed but continuing"
 @XC_EXEC_PREFIX@ ./testprog@EXEEXT@ || exit
+
+@PYTHON_BIN@ @abs_srcdir@/dynamicivbody.py > dynamicivbody.iv
