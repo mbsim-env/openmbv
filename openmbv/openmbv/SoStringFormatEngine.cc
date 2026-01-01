@@ -2,7 +2,7 @@
 #include "SoStringFormatEngine.h"
 #include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/SbMatrix.h>
-#include <openmbv/utils.h>
+#include "utils.h"
 #include <boost/format.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
