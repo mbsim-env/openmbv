@@ -21,6 +21,7 @@
 #include <openmbvcppinterface/coilspring.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 #include <openmbvcppinterface/ivbody.h>
+#include <openmbvcppinterface/dynamicivbody.h>
 #include <openmbvcppinterface/spineextrusion.h>
 #include <iostream>
 
@@ -43,13 +44,14 @@ int main() {
   shared_ptr<Group> g=ObjectFactory::create<Group>();
   g->setName("test");
   g->setFileName("test.ombvx");
-    auto sp(ObjectFactory::create<SpineExtrusion>());
+    auto sp(ObjectFactory::create<DynamicIvBody>());
     g->addObject(sp);
-    sp->setName("spine");
+    sp->setName("ivobject");
+    sp->setIvFileName("/home/markus/project/openmbv/openmbvcppinterface/openmbvcppinterface/check/ivobjecttest.iv");
     int Nsp=2000;
     int Nc=200;
     int Tt=1000;
-    sp->setNumberOfSpinePoints(Nsp);
+    sp->setDataSize(1+6*Nsp);
     auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
     double r=0.1;
     contour->emplace_back(PolygonPoint::create(0,r,1));
@@ -59,9 +61,6 @@ int main() {
     for(double a=da; a<M_PI/2-da/2; a+=da)
       contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
     std::reverse(contour->begin(), contour->end());
-    sp->setContour(contour);
-    sp->setCrossSectionOrientation(SpineExtrusion::cardanWrtWorld);
-    sp->setCounterClockWise(false);
   g->write();
 
   vector<double> data(1+6*Nsp);

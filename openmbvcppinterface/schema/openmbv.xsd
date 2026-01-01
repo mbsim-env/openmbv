@@ -88,6 +88,25 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="DynamicIvBody" substitutionGroup="Body" type="DynamicIvBodyType"/>
+  <xs:complexType name="DynamicIvBodyType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:choice>
+            <xs:element name="ivFileName" type="pv:filenameFullEval"/>
+            <xs:element name="ivContent" type="pv:stringFullEval"/>
+          </xs:choice>
+          <xs:element name="dataSize" type="pv:integerFullEval"/>
+          <xs:element name="scalarData" type="pv:booleanFullEval" minOccurs="0"/>
+          <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="stateOffSet" minOccurs="0" type="pv:nounitVector"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="DynamicColoredBody" abstract="true" substitutionGroup="Body" type="DynamicColoredBodyType"/>
   <xs:complexType name="DynamicColoredBodyType">
     <xs:complexContent>

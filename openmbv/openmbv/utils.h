@@ -123,12 +123,12 @@ class Utils : virtual public fmatvec::Atom {
     /** Use SoDBreadAllFileNameCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-file parsing and scene generation.
      * hash is, beside filename, part of the key for the cache. */
-    static SoSeparator* SoDBreadAllFileNameCached(const std::string &filename, size_t hash=0);
+    static SoSeparator* SoDBreadAllFileNameCached(const std::string &filename, size_t hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
 
     /** Use SoDBreadAllContentCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-content parsing and scene generation.
      * hash is, beside content, part of the key for the cache. */
-    static SoSeparator* SoDBreadAllContentCached(const std::string &content, size_t hash=0);
+    static SoSeparator* SoDBreadAllContentCached(const std::string &content, size_t hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
 
     /** Get the node named name being a child or grandchild of sep */
     static SoNode* getChildNodeByName(SoGroup *sep, const SbName &name);

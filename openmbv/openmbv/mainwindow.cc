@@ -77,6 +77,8 @@
 #include <Inventor/engines/SoGate.h>
 #include <Inventor/engines/SoCalculator.h>
 #include <Inventor/fields/SoMFRotation.h>
+#include "SoDecomposeArray1fToVec3fEngine.h"
+#include "SoCardanRotationEngine.h"
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -128,10 +130,6 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   if(getenv("COIN_OFFSCREENRENDERER_TILEWIDTH")==nullptr)
     putenv(strcpy(ENV3, "COIN_OFFSCREENRENDERER_TILEWIDTH=8196"));
 
-  // Enable global search of USE in iv files
-  static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
-  putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
-
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 
@@ -147,6 +145,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   SoQt::init(this);
   // init user engines
   SoTransposeEngine::initClass();
+  DecomposeArray1fToVec3fEngine::initClass();
+  CardanRotationEngine::initClass();
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
   // init realtime

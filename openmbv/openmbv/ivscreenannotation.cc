@@ -78,8 +78,11 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     }
     else {
       SoInput in;
-      if(in.openFile(fileName.c_str(), true)) // if file can be opened, read it
+      if(in.openFile(fileName.c_str(), true)) { // if file can be opened, read it
+        for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+          in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
         ivSep.reset(SoDB::readAll(&in));
+      }
       if(!ivSep) { // error case
         QString str("Failed to load IV file %1."); str=str.arg(fileName.c_str());
         MainWindow::getInstance()->statusBar()->showMessage(str);
@@ -90,6 +93,8 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   else {
     SoInput in;
     in.setBuffer(ivsa->getIvContent().data(), ivsa->getIvContent().size());
+    for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+      in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
     ivSep.reset(SoDB::readAll(&in));
     if(!ivSep) { // error case
       QString str("Failed to load IV content from string.");

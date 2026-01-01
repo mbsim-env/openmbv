@@ -32,6 +32,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   invisiblebody.cc\
   frustum.cc\
   ivbody.cc\
+  dynamicivbody.cc\
   ivscreenannotation.cc\
   frame.cc\
   grid.cc\
@@ -50,6 +51,8 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   mytouchwidget.cc\
   touchtreewidget.cc\
   SoTransposeEngine.cc \
+  SoDecomposeArray1fToVec3fEngine.cc \
+  SoCardanRotationEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc \
@@ -116,6 +119,7 @@ QT_BUILT_SOURCES = \
   invisiblebody.moc.cc\
   frustum.moc.cc\
   ivbody.moc.cc\
+  dynamicivbody.moc.cc\
   ivscreenannotation.moc.cc\
   frame.moc.cc\
   grid.moc.cc\
@@ -137,6 +141,8 @@ openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_L
 libopenmbv_ladir = $(includedir)/openmbv
 libopenmbv_la_HEADERS = mainwindow.h\
   SoTransposeEngine.h \
+  SoDecomposeArray1fToVec3fEngine.h \
+  SoCardanRotationEngine.h \
   SoSpecial.h\
   object.h\
   utils.h\
@@ -154,6 +160,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   invisiblebody.h\
   frustum.h\
   ivbody.h\
+  dynamicivbody.h\
   ivscreenannotation.h\
   frame.h\
   grid.h\

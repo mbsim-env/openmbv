@@ -77,7 +77,7 @@ const QIcon& Utils::QIconCached(const string &basefilename) {
   return ins.first->second;
 }
 
-SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t hash) {
+SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t hash, const function<void(SoInput&)> &inFunc) {
   boost::filesystem::path fn(filename);
   if(!boost::filesystem::exists(fn)) {
     QString str("IV file %1 does not exist."); str=str.arg(filename.c_str());
@@ -92,6 +92,8 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     it->second.fileTime = newFileTime;
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
+      if(inFunc)
+        inFunc(in);
       it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
       if(it->second.sep)
         return it->second.sep.get();
@@ -106,12 +108,14 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
   return it->second.sep.get();
 }
 
-SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash) {
+SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash, const function<void(SoInput&)> &inFunc) {
   size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash));
   auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
   if(created) {
     SoInput in;
     in.setBuffer(content.data(), content.size());
+    if(inFunc)
+      inFunc(in);
     it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
     if(it->second.sep)
       return it->second.sep.get();
