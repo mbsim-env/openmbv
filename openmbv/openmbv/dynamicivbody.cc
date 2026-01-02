@@ -56,6 +56,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   // outline
   soSep->addChild(soOutLineSwitch);
   soOutLineStyle->setName("openmbv_body_outline_style");
+  soOutLineSwitch->setName("openmbv_body_outline_switch");
 
   if(divb->getScalarData()) {
     dataNodeScalar.resize(divb->getDataSize());
@@ -79,6 +80,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
 
   auto inFunc = [this](SoInput& in) {
     in.addReference("openmbv_body_outline_style", soOutLineStyle);
+    in.addReference("openmbv_body_outline_switch", soOutLineSwitch);
     if(divb->getScalarData())
       for(size_t i=0; i<divb->getDataSize(); ++i)
         in.addReference(("openmbv_dynamicivbody_data_"+to_string(i)).c_str(), dataNodeScalar[i]);

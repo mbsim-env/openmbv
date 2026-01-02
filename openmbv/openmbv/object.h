@@ -69,6 +69,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     bool highlight { false };
     void setHighlight(bool value);
     bool drawBoundingBox() { return highlight || object->getBoundingBox(); }
+    void updateEnable();
   public:
     Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     ~Object() override;

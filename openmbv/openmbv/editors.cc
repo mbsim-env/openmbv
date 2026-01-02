@@ -276,7 +276,7 @@ void BoolEditor::actionChangedSlot() {
 
 
 
-FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const string &name) : Editor(parent_, icon, name) {
+FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const string &name, bool replaceObjOnChange_) : Editor(parent_, icon, name), replaceObjOnChange(replaceObjOnChange_) {
   // add the label and a spinbox for the value
   factor=1;
   spinBox=new QDoubleSpinBox;
@@ -292,6 +292,7 @@ FloatEditor::FloatEditor(PropertyDialog *parent_, const QIcon& icon, const strin
 #endif
     ("-888.888888000"));
   connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatEditor::valueChangedSlot);
+  connect(spinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &FloatEditor::stateChanged);
   dialog->addSmallRow(icon, name, spinBox);
 }
 
@@ -303,7 +304,8 @@ void FloatEditor::valueChangedSlot(double newValue) {
     else
       ombvSetter(numeric_limits<double>::quiet_NaN()); // set OpenMBV
   }
-  replaceObject();
+  if(replaceObjOnChange)
+    replaceObject();
 }
 
 
@@ -505,7 +507,7 @@ void StringEditor::valueChangedSlot(const QString &text) {
 
 
 ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const string &name,
-  const std::vector<std::tuple<int, string, QIcon, string> > &list) : Editor(parent_, icon, name) {
+  const std::vector<std::tuple<int, string, QIcon, string> > &list, bool replaceObjOnChange_) : Editor(parent_, icon, name), replaceObjOnChange(replaceObjOnChange_) {
 
   // add the label and a comboBox for the value
   comboBox=new QComboBox;
@@ -513,6 +515,7 @@ ComboBoxEditor::ComboBoxEditor(PropertyDialog *parent_, const QIcon& icon, const
   for(const auto & i : list)
     comboBox->addItem(get<2>(i), get<1>(i).c_str(), QVariant(get<0>(i)));
   connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ComboBoxEditor::valueChangedSlot);
+  connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &ComboBoxEditor::stateChanged);
   dialog->addSmallRow(icon, name, comboBox);
 
   actionGroup=new QActionGroup(this);
@@ -539,7 +542,8 @@ void ComboBoxEditor::valueChangedSlot(int newValue) {
     actionGroup->actions()[i]->setChecked(i-1==comboBox->itemData(newValue).toInt());
     actionGroup->actions()[i]->blockSignals(false);
   }
-  replaceObject();
+  if(replaceObjOnChange)
+    replaceObject();
 }
 
 void ComboBoxEditor::actionChangedSlot(QAction* action) {

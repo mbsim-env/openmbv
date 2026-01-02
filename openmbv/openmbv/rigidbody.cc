@@ -109,7 +109,7 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soLocalFrameSwitch->whichChild.setValue(rigidBody->getLocalFrame()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 
   // initial scale
-  auto *scale=new SoScale;
+  scale=new SoScale;
   scale->scaleFactor.setValue(rigidBody->getScaleFactor(),rigidBody->getScaleFactor(),rigidBody->getScaleFactor());
   soSepRigidBody->addChild(scale);
 
@@ -136,20 +136,32 @@ void RigidBody::createProperties() {
 
   // GUI editors
   if(!clone) {
-    auto *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "RigidBody::localFrame");
+    auto *localFrameEditor=new BoolEditor(properties, Utils::QIconCached("localframe.svg"), "Draw local frame", "RigidBody::localFrame", false);
     localFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getLocalFrame, &OpenMBV::RigidBody::setLocalFrame);
     properties->addPropertyAction(localFrameEditor->getAction());
+    connect(localFrameEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      soLocalFrameSwitch->whichChild.setValue(b?SO_SWITCH_ALL:SO_SWITCH_NONE);
+    });
 
-    auto *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached("referenceframe.svg"), "Draw reference frame", "RigidBody::referenceFrame");
+    auto *referenceFrameEditor=new BoolEditor(properties, Utils::QIconCached("referenceframe.svg"), "Draw reference frame", "RigidBody::referenceFrame", false);
     referenceFrameEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getReferenceFrame, &OpenMBV::RigidBody::setReferenceFrame);
     properties->addPropertyAction(referenceFrameEditor->getAction());
+    connect(referenceFrameEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      soReferenceFrameSwitch->whichChild.setValue(b?SO_SWITCH_ALL:SO_SWITCH_NONE);
+    });
 
-    auto *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"), "Draw path of reference frame", "RigidBody::paht");
+    auto *pathEditor=new BoolEditor(properties, Utils::QIconCached("path.svg"), "Draw path of reference frame", "RigidBody::paht", false);
     pathEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getPath, &OpenMBV::RigidBody::setPath);
     properties->addPropertyAction(pathEditor->getAction());
+    connect(pathEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      soPathSwitch->whichChild.setValue(b?SO_SWITCH_ALL:SO_SWITCH_NONE);
+    });
 
-    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling");
+    auto *scaleFactorEditor=new FloatEditor(properties, QIcon(), "Scaling", false);
     scaleFactorEditor->setOpenMBVParameter(rigidBody, &OpenMBV::RigidBody::getScaleFactor, &OpenMBV::RigidBody::setScaleFactor);
+    connect(scaleFactorEditor, &FloatEditor::stateChanged, this, [this](double s){
+      scale->scaleFactor.setValue(s,s,s);
+    });
 
     // initial translation/rotation editor/dragger
     initialTransRotEditor=new TransRotEditor(properties, QIcon(), "Intial");

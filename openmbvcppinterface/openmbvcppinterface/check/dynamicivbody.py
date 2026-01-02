@@ -261,12 +261,15 @@ Separator {{
       }}
     }}
     # outline
-    Separator {{
-      USE openmbv_body_outline_style
-      IndexedLineSet {{
-        coordIndex [
-          { " ".join(map(lambda x: str(x), tubeCoordIndex)) }
-        ]
+    Switch {{
+      whichChild = USE openmbv_body_outline_switch.whichChild
+      Separator {{
+        USE openmbv_body_outline_style
+        IndexedLineSet {{
+          coordIndex [
+            { " ".join(map(lambda x: str(x), tubeCoordIndex)) }
+          ]
+        }}
       }}
     }}
   }}
@@ -309,11 +312,14 @@ Separator {{
         ]
       }}
       # outline
-      USE openmbv_body_outline_style
-      DEF endCapOutLine IndexedLineSet {{
-        coordIndex [
-          { " ".join(map(lambda x: str(x), range(0,Ncs))) } 0
-        ]
+      Switch {{
+        whichChild = USE openmbv_body_outline_switch.whichChild
+        USE openmbv_body_outline_style
+        DEF endCapOutLine IndexedLineSet {{
+          coordIndex [
+            { " ".join(map(lambda x: str(x), range(0,Ncs))) } 0
+          ]
+        }}
       }}
     }}
     Separator {{
@@ -339,8 +345,11 @@ Separator {{
       }}
       USE endCapIndexedTesselationFace
       # outline
-      USE openmbv_body_outline_style
-      USE endCapOutLine
+      Switch {{
+        whichChild = USE openmbv_body_outline_switch.whichChild
+        USE openmbv_body_outline_style
+        USE endCapOutLine
+      }}
     }}
   }}
 }}
