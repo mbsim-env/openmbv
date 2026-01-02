@@ -66,44 +66,19 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     columnLabelFields[i]->setName(ivsa->getColumnLabels()[i].c_str());
   }
 
-  // load the IV content using a cache
+  // load the IV content (without caching since element specific node references must be resolved)
   string fileName=ivsa->getIvFileName();
   SoSharedPtr<SoSeparator> ivSep;
-  if(!fileName.empty()) {
-    boost::filesystem::path fn(fileName);
-    if(!boost::filesystem::exists(fn)) {
-      QString str("IV file %1 does not exist."); str=str.arg(fileName.c_str());
-      MainWindow::getInstance()->statusBar()->showMessage(str);
-      msgStatic(Warn)<<str.toStdString()<<endl;
-    }
-    else {
-      SoInput in;
-      if(in.openFile(fileName.c_str(), true)) { // if file can be opened, read it
-        for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
-          in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
-        MainWindow::getInstance()->addReferences(in);
-        ivSep.reset(SoDB::readAll(&in));
-      }
-      if(!ivSep) { // error case
-        QString str("Failed to load IV file %1."); str=str.arg(fileName.c_str());
-        MainWindow::getInstance()->statusBar()->showMessage(str);
-        msgStatic(Warn)<<str.toStdString()<<endl;
-      }
-    }
-  }
-  else {
-    SoInput in;
-    in.setBuffer(ivsa->getIvContent().data(), ivsa->getIvContent().size());
-    for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
-      in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
-    MainWindow::getInstance()->addReferences(in);
-    ivSep.reset(SoDB::readAll(&in));
-    if(!ivSep) { // error case
-      QString str("Failed to load IV content from string.");
-      MainWindow::getInstance()->statusBar()->showMessage(str);
-      msgStatic(Warn)<<str.toStdString()<<endl;
-    }
-  }
+  if(!fileName.empty())
+    ivSep.reset(Utils::SoDBreadAllFileNameCached(fileName, {/*no cache*/}, [this](SoInput& in) {
+      for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+        in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+    }));
+  else
+    ivSep.reset(Utils::SoDBreadAllContentCached(ivsa->getIvContent(), {/*no cache*/}, [this](SoInput& in) {
+      for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+        in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+    }));
   if(!ivSep)
     return;
 

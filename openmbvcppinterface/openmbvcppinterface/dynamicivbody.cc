@@ -38,10 +38,6 @@ DOMElement* DynamicIvBody::writeXMLFile(DOMNode *parent) {
     E(e)->addElementText(OPENMBV%"ivContent", "'"+ivContent+"'");
   E(e)->addElementText(OPENMBV%"dataSize", dataSize);
   E(e)->addElementText(OPENMBV%"scalarData", scalarData);
-  for(auto &name : removeNodesByName)
-    E(e)->addElementText(OPENMBV%"removeNodesByName", "'"+name+"'");
-  for(auto &type : removeNodesByType)
-    E(e)->addElementText(OPENMBV%"removeNodesByType", "'"+type+"'");
   if( stateOffSet.size() > 0 )
     E(e)->addElementText(OPENMBV%"stateOffSet", vector<double>(stateOffSet));
   return nullptr;
@@ -65,16 +61,6 @@ void DynamicIvBody::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scalarData");
   if(e)
     scalarData = E(e)->getText<bool>();
-  for(e=E(element)->getFirstElementChildNamed(OPENMBV%"removeNodesByName"); e!=nullptr;
-      e=E(e)->getNextElementSiblingNamed(OPENMBV%"removeNodesByName")) {
-    string str = X()%E(e)->getFirstTextChild()->getData();
-    addRemoveNodesByName(str.substr(1,str.length()-2));
-  }
-  for(e=E(element)->getFirstElementChildNamed(OPENMBV%"removeNodesByType"); e!=nullptr;
-      e=E(e)->getNextElementSiblingNamed(OPENMBV%"removeNodesByType")) {
-    string str = X()%E(e)->getFirstTextChild()->getData();
-    addRemoveNodesByType(str.substr(1,str.length()-2));
-  }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"stateOffSet");
   if( e )
     setStateOffSet(E(e)->getText<vector<double>>());

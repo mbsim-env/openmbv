@@ -77,7 +77,7 @@ const QIcon& Utils::QIconCached(const string &basefilename) {
   return ins.first->second;
 }
 
-SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t hash, const function<void(SoInput&)> &inFunc) {
+SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, const optional<size_t> &hash, const function<void(SoInput&)> &inFunc) {
   boost::filesystem::path fn(filename);
   if(!boost::filesystem::exists(fn)) {
     QString str("IV file %1 does not exist."); str=str.arg(filename.c_str());
@@ -85,50 +85,66 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     msgStatic(Warn)<<str.toStdString()<<endl;
     return new SoSeparator;
   }
-  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash));
-  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
-  auto newFileTime = boost::myfilesystem::last_write_time(filename);
-  if(created || newFileTime > it->second.fileTime) {
-    it->second.fileTime = newFileTime;
+  auto load = [&]() {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
       MainWindow::getInstance()->addReferences(in);
       if(inFunc)
         inFunc(in);
-      it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
+      return SoDB::readAll(&in);
+    }
+    return static_cast<SoSeparator*>(nullptr);
+  };
+  if(hash) {
+    size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash.value()));
+    auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
+    auto newFileTime = boost::myfilesystem::last_write_time(filename);
+    if(created || newFileTime > it->second.fileTime) {
+      it->second.fileTime = newFileTime;
+      it->second.sep.reset(load());
       if(it->second.sep)
         return it->second.sep.get();
+      // error case
+      QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+      ivCache.erase(it);
+      return nullptr;
     }
-    // error case
-    QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
-    MainWindow::getInstance()->statusBar()->showMessage(str);
-    msgStatic(Warn)<<str.toStdString()<<endl;
-    ivCache.erase(it);
-    return nullptr;
+    return it->second.sep.get();
   }
-  return it->second.sep.get();
+  else {
+    return load();
+  }
 }
 
-SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash, const function<void(SoInput&)> &inFunc) {
-  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash));
-  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
-  if(created) {
+SoSeparator* Utils::SoDBreadAllContentCached(const string &content, const optional<size_t> &hash, const function<void(SoInput&)> &inFunc) {
+  auto load = [&]() {
     SoInput in;
     in.setBuffer(content.data(), content.size());
     MainWindow::getInstance()->addReferences(in);
     if(inFunc)
       inFunc(in);
-    it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
-    if(it->second.sep)
-      return it->second.sep.get();
-    // error case
-    QString str("Failed to load IV content from string.");
-    MainWindow::getInstance()->statusBar()->showMessage(str);
-    msgStatic(Warn)<<str.toStdString()<<endl;
-    ivCache.erase(it);
-    return nullptr;
+    return SoDB::readAll(&in);
+  };
+  if(hash) {
+    size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash.value()));
+    auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
+    if(created) {
+      it->second.sep.reset(load());
+      if(it->second.sep)
+        return it->second.sep.get();
+      // error case
+      QString str("Failed to load IV content from string.");
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+      ivCache.erase(it);
+      return nullptr;
+    }
+    return it->second.sep.get();
   }
-  return it->second.sep.get();
+  else
+    return load();
 }
 
 SoNode* Utils::getChildNodeByName(SoGroup *sep, const SbName &name) {

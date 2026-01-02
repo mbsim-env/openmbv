@@ -29,6 +29,7 @@
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/fields/SoMFColor.h>
 #include <string>
+#include <optional>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #ifdef _WIN32
@@ -122,13 +123,19 @@ class Utils : virtual public fmatvec::Atom {
 
     /** Use SoDBreadAllFileNameCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-file parsing and scene generation.
-     * hash is, beside filename, part of the key for the cache. */
-    static SoSeparator* SoDBreadAllFileNameCached(const std::string &filename, size_t hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
+     * The cache is only used when 'hash' is not empty, but this is the default (=0).
+     * The key of the cache is the filename, filename's timestamp and the value of 'hash'.
+     * 'inFunc' is called before the content is read, use it e.g. to addReferences to the SoInput.
+     */
+    static SoSeparator* SoDBreadAllFileNameCached(const std::string &filename, const std::optional<size_t> &hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
 
     /** Use SoDBreadAllContentCached(filename) instead of SoDB::readAll(filename) everywhere
      * to cache the iv-content parsing and scene generation.
-     * hash is, beside content, part of the key for the cache. */
-    static SoSeparator* SoDBreadAllContentCached(const std::string &content, size_t hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
+     * The cache is only used when 'hash' is not empty, but this is the default (=0).
+     * The key of the cache is the filename, filename's timestamp and the value of 'hash'.
+     * 'inFunc' is called before the content is read, use it e.g. to addReferences to the SoInput.
+     */
+    static SoSeparator* SoDBreadAllContentCached(const std::string &content, const std::optional<size_t> &hash=0, const std::function<void(SoInput&)> &inFunc=nullptr);
 
     /** Get the node named name being a child or grandchild of sep */
     static SoNode* getChildNodeByName(SoGroup *sep, const SbName &name);

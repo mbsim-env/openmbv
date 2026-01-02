@@ -44,16 +44,6 @@ namespace OpenMBV {
       void setScalarData(bool s) { scalarData = s; }
       bool getScalarData() { return scalarData; }
 
-      /** Remove all nodes of the name name from the iv file. */
-      void addRemoveNodesByName(const std::string &name) { removeNodesByName.emplace_back(name); }
-
-      std::vector<std::string> getRemoveNodesByName() { return removeNodesByName; }
-
-      /** Remove all nodes of the type type from the iv file. */
-      void addRemoveNodesByType(const std::string &type) { removeNodesByType.emplace_back(type); }
-
-      std::vector<std::string> getRemoveNodesByType() { return removeNodesByType; }
-
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
 
@@ -80,8 +70,6 @@ namespace OpenMBV {
       ~DynamicIvBody() override = default;
       std::string ivFileName;
       std::string ivContent;
-      std::vector<std::string> removeNodesByName;
-      std::vector<std::string> removeNodesByType;
 
       size_t dataSize;
       H5::VectorSerie<double>* data{nullptr};

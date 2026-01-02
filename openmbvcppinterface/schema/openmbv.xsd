@@ -99,8 +99,6 @@
           </xs:choice>
           <xs:element name="dataSize" type="pv:integerFullEval"/>
           <xs:element name="scalarData" type="pv:booleanFullEval" minOccurs="0"/>
-          <xs:element name="removeNodesByName" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
-          <xs:element name="removeNodesByType" type="pv:stringFullEval" minOccurs="0" maxOccurs="unbounded"/>
           <xs:element name="stateOffSet" minOccurs="0" type="pv:nounitVector"/>
         </xs:sequence>
       </xs:extension>

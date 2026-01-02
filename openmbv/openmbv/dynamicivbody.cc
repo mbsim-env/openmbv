@@ -48,11 +48,6 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     //h5 dataset
     data = divb->getRow(0);
 
-  auto hashData = make_tuple(
-    divb->getRemoveNodesByName(),
-    divb->getRemoveNodesByType()
-  );
-
   // outline
   soSep->addChild(soOutLineSwitch);
   soOutLineStyle->setName("openmbv_body_outline_style");
@@ -88,41 +83,14 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
       in.addReference("openmbv_dynamicivbody_data", dataNodeVector);
   };
   SoGroup *soIv;
+  // load the IV content (without caching since element specific node references must be resolved)
   if(!fileName.empty())
-    soIv=Utils::SoDBreadAllFileNameCached(fileName, boost::hash<decltype(hashData)>{}(hashData), inFunc);
+    soIv=Utils::SoDBreadAllFileNameCached(fileName, {/*no cache*/}, inFunc);
   else
-    soIv=Utils::SoDBreadAllContentCached(divb->getIvContent(), boost::hash<decltype(hashData)>{}(hashData), inFunc);
+    soIv=Utils::SoDBreadAllContentCached(divb->getIvContent(), {/*no cache*/}, inFunc);
   if(!soIv)
     return;
   soSep->addChild(soIv);
-
-  // search and remove specific nodes
-  auto removeNode=[soIv, &fileName, this](const function<void(SoSearchAction &sa)> &find){
-    SoSearchAction sa;
-    sa.setInterest(SoSearchAction::ALL);
-    find(sa);
-    sa.apply(soIv);
-    auto pl = sa.getPaths();
-    for(int i=0; i<pl.getLength(); ++i) {
-      msg(Info)<<"Removing the following node for DynamicIvBody from file '"<<fileName<<"':"<<endl;
-      auto *p = pl[i];
-      for(int j=1; j<p->getLength(); ++j) {
-        auto *n = p->getNode(j);
-        msg(Info)<<string(2*j, ' ')<<"- Name: '"<<n->getName()<<"'; Type: '"<<n->getTypeId().getName().getString()<<"'"<<endl;
-      }
-      static_cast<SoGroup*>(p->getNodeFromTail(1))->removeChild(p->getIndexFromTail(0));
-    }
-  };
-  // remove nodes by name
-  for(auto &name : divb->getRemoveNodesByName())
-    removeNode([&name](auto &sa){ sa.setName(name.c_str()); });
-  // remove nodes by type
-  for(auto type : divb->getRemoveNodesByType()) {
-    // We fix the hacked SoVRMLBackground2 node which overrids Background
-    if(type=="Background" || type=="VRMLBackground" || type=="SoVRMLBackground")
-      type="SoVRMLBackground2";
-    removeNode([&type](auto &sa){ sa.setType(SoType::fromName(type.c_str())); });
-  }
 }
 
 DynamicIvBody::~DynamicIvBody() = default;
