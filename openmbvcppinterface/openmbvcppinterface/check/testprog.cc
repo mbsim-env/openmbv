@@ -8,6 +8,7 @@
 #include "config.h"
 #include <cassert>
 #include <cfenv>
+#include <cmath>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cuboid.h>
 #include <openmbvcppinterface/cube.h>
