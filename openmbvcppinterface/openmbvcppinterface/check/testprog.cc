@@ -8,6 +8,7 @@
 #include "config.h"
 #include <cassert>
 #include <cfenv>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cuboid.h>
