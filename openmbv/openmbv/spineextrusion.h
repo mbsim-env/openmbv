@@ -25,6 +25,7 @@
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
 #include <Inventor/fields/SoMFMatrix.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 #include <hdf5serie/vectorserie.h>
 #include <QMenu>
 
@@ -49,6 +50,16 @@ class ExtrusionCardan {
     SoNormal *quadMeshNormals;
     SoTranslation *endCupTrans[2];
     SoRotation *endCupRot[2];
+};
+
+class ExtrusionCardanShader {
+  public:
+    void init(int NSp, SoMaterial *mat, double csScale,
+              const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
+    void updateData(const std::vector<double>& data);
+  private:
+    SoShaderParameterArray1f *dataNodeVector;
+    std::vector<float> datamfmf;
 };
 
 /**
@@ -93,6 +104,7 @@ class SpineExtrusion : public DynamicColoredBody {
     void setIvSpine(const std::vector<double>& data);
 
     ExtrusionCardan extrusionCardan;
+    ExtrusionCardanShader extrusionCardanShader;
 };
 
 }

@@ -57,6 +57,14 @@ namespace OpenMBV {
    * ...,
    * spine point N x, spine point N y, spine point N z, cross section alpha N, cross section beta N, cross section gamma N
    * where alpha, beta and gamma are cardan angles.
+   *
+   * cardanWrtWorld draws the spine-extrusion with pure-basic Coin functionality. Hence, all Coin features like object picking
+   * and boundary box calculation is available. However, for very large number of cross-section points and spine points
+   * the rendering can be slow since Coin needs to update and recalculate all vertices and normals at each frame (on the CPU).
+   * cardanWrtWorldShader draws the spine-extrusion by passing the data from the HDF5 file just to vertex and fragment OpenGL
+   * shaders. The complete recalculation of the vertices and normals is then done by the shader (on the GPU).
+   * Hence, some Coin features like object picking and boundary box calculation are not available for this type.
+   * However, for very large number of cross-section points and spine points the rendering will be much faster.
    */
   class SpineExtrusion : public DynamicColoredBody {
     friend class ObjectFactory;
@@ -109,7 +117,7 @@ namespace OpenMBV {
 
       std::vector<double> getStateOffSet() { return stateOffSet; }
 
-      enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld };
+      enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld, cardanWrtWorldShader };
       void setCrossSectionOrientation(CrossSectionOrienation o) { csOri = o; }
       CrossSectionOrienation getCrossSectionOrientation() { return csOri; }
 

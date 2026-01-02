@@ -1,0 +1,274 @@
+#Inventor V2.1 ascii
+
+Separator {
+  # global coordinates and normals
+  Coordinate3 {
+    point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
+            # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
+      @vertexAndNormalStr@
+    ]
+  }
+  Normal {
+    vector [ # Dummy normals are needed here -> will be overwritten in the vertex shader
+            # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
+      @vertexAndNormalStr@
+    ]
+  }
+  Separator {
+    renderCulling OFF
+    ShaderProgram {
+      shaderObject [
+        VertexShader {
+          sourceType GLSL_PROGRAM
+          sourceProgram "
+            #version 130
+
+            out vec3 worldNormal;
+            attribute float vertexID_float;
+            uniform float data[6*@Nsp@+1];
+
+            mat3 cardan2Rotation(vec3 angle) {
+              float sina = sin(angle.x);
+              float cosa = cos(angle.x);
+              float sinb = sin(angle.y);
+              float cosb = cos(angle.y);
+              float sing = sin(angle.z);
+              float cosg = cos(angle.z);
+              mat3 T;
+              T[0][0] = cosb*cosg;
+              T[0][1] = -cosb*sing;
+              T[0][2] = sinb;
+              T[1][0] = cosa*sing+sina*sinb*cosg;
+              T[1][1] = cosa*cosg-sina*sinb*sing;
+              T[1][2] = -sina*cosb;
+              T[2][0] = sina*sing-cosa*sinb*cosg;
+              T[2][1] = cosa*sinb*sing+sina*cosg;
+              T[2][2] = cosa*cosb;
+              return T;
+            }
+
+            vec3 calcPoint(int vertexID) {
+              const vec3 nsp[@Ncs@] = vec3[](
+@nspStr@
+              );
+
+              int csIdx = int(vertexID/2 % @Ncs@);
+              int spIdx = int(vertexID/2 / @Ncs@);
+              vec3 r = vec3(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
+              vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+              mat3 T = transpose(cardan2Rotation(angle));
+              vec3 T_nsp = T * nsp[csIdx];
+              return r + T_nsp;
+            }
+
+            vec3 calcNormal(int vertexID) {
+              const vec3 normal[2*@Ncs@] = vec3[](
+@normalStr@
+              );
+              const int border[@Ncs@] = int[](
+@borderStr@
+              );
+
+              int nIdx = int(vertexID % (2*@Ncs@));
+              int spIdx = int(vertexID/2 / @Ncs@);
+              vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+              mat3 T = transpose(cardan2Rotation(angle));
+              vec3 n = T * normal[nIdx];
+              //mfmf cross prod with spine direction is missing (the same needs to be done in dynamicivbody.py
+//            //#pragma omp parallel for default(none) shared(csSize, p, n)
+//            for(int spIdx=0; spIdx<spSize; spIdx++) {
+//              for(int csIdx=0; csIdx<csSize; csIdx++) {
+//                // normals x b
+//                int pIdx = spIdx*csSize+csIdx;
+//                int nIdx = 2*pIdx;
+//                int pIdxA = (spIdx>0?spIdx-1:0)*csSize+csIdx;
+//                int pIdxB = (spIdx<spSize-1?spIdx+1:spSize-1)*csSize+csIdx;
+//                SbVec3f b = p[pIdxB] - p[pIdxA];
+//                auto ortho = [](const SbVec3f &n, const SbVec3f &b) {
+//                  auto x = n.dot(b)/b.dot(b)*b;
+//                  return n-x;
+//                };
+//                n[nIdx]   = ortho(n[nIdx  ], b);
+//                n[nIdx+1] = ortho(n[nIdx+1], b);
+//                n[nIdx]  .normalize();
+//                n[nIdx+1].normalize();
+//              }
+//            }
+              return n;
+            }
+             
+            void main(void)
+            {
+              int vertexID = int(vertexID_float+0.5);
+
+              vec3 c = calcPoint(vertexID);
+              vec3 n = calcNormal(vertexID);
+
+              worldNormal = normalize(gl_NormalMatrix * n);
+              gl_Position = gl_ModelViewProjectionMatrix * vec4(c, gl_Vertex.w);
+              gl_FrontColor = gl_Color;
+            }
+          "
+          parameter [
+            ShaderParameterArray1f {
+              name "data"
+              value = USE openmbv_spineextrusion_data.value
+            }
+          ]
+        }
+        FragmentShader {
+          sourceType GLSL_PROGRAM
+          sourceProgram "
+            #version 130
+
+            in vec3 worldNormal;
+             
+            void directionalLight(in int i,
+                                  in vec3 worldNormal,
+                                  inout vec4 ambient,
+                                  inout vec4 diffuse,
+                                  inout vec4 specular)
+            {
+              float nDotVP; // normal . light direction
+              float nDotHV; // normal . light half vector
+              float pf;     // power factor
+             
+              nDotVP = max(0.0, dot(worldNormal, normalize(vec3(gl_LightSource[i].position))));
+             
+              if (nDotVP == 0.0)
+                pf = 0.0;
+              else {
+                nDotHV = max(0.0, dot(worldNormal, vec3(gl_LightSource[i].halfVector)));
+                pf = pow(nDotHV, gl_FrontMaterial.shininess);
+              }
+             
+              ambient += gl_LightSource[i].ambient;
+              diffuse += gl_LightSource[i].diffuse * nDotVP;
+              specular += gl_LightSource[i].specular * pf;
+            }
+             
+            void main(void)
+            {
+              vec4 ambient = vec4(0.0);
+              vec4 diffuse = vec4(0.0);
+              vec4 specular = vec4(0.0);
+              vec3 color;
+             
+              directionalLight(0, normalize(worldNormal), ambient, diffuse, specular);//mfmf use more lights and also spot-lights,...
+             
+              color =
+                gl_FrontLightModelProduct.sceneColor.rgb +
+                ambient.rgb * gl_FrontMaterial.ambient.rgb +
+                diffuse.rgb * gl_Color.rgb +
+                specular.rgb * gl_FrontMaterial.specular.rgb;
+             
+              gl_FragColor = vec4(color, gl_Color.a);
+            }
+          "
+        }
+      ]
+    }
+    VertexAttribute {
+      typeName "SoMFFloat" # Coin only supports short as int type, which is too small.
+                           # Coin will convert a int type to float since glVertexAttribPointerARB not glVertexAttriblPointerARB is used
+                           # -> use a (none negative) float as ID and convert it to in in the vertex shader
+      name "vertexID_float"
+      values [ @vertexAttributeStr@ ]
+    }
+    # tube
+    Separator {
+      renderCulling OFF
+      renderCaching ON
+      IndexedFaceSet { # Coin does not pass VertexAttribut's to IndexedTriangleStripSet -> use IndexedFaceSet
+        coordIndex [
+          @meshCoordIndexStr@
+        ]
+        # we cannot use normalIndex/... since the vertex shader calculates exactly one normal per vertex (per Coordinate3)
+      }
+    }
+    # outline
+    Separator {
+      DEF outLineStyle Material {
+        diffuseColor 0 0 0
+      }
+      IndexedLineSet {
+        coordIndex [
+          @tubeCoordIndexStr@
+        ]
+      }
+    }
+  }
+  # end-cap
+  Separator {
+    NormalBinding {
+      value OVERALL
+    }
+    DEF endCapCoords Coordinate3 {
+      point [
+        @nspStr2@
+      ]
+    }
+    Separator {
+      Normal {
+        vector 0 -1 0
+      }
+      ShapeHints {
+        vertexOrdering CLOCKWISE
+        shapeType SOLID
+      }
+      Transform {
+        translation = DecomposeArray1fToVec3fEngine {
+          startIndex 1
+          input = USE openmbv_spineextrusion_data.value
+        }.output
+        rotation = CardanRotationEngine {
+          angle = DecomposeArray1fToVec3fEngine {
+            startIndex 4
+            input = USE openmbv_spineextrusion_data.value
+          }.output
+          inverse TRUE
+        }.rotation
+      }
+      DEF endCapIndexedTesselationFace IndexedTesselationFace {
+        windingRule ODD
+        coordinate = USE endCapCoords.point
+        coordIndex [
+          @NcsStr@
+        ]
+      }
+      # outline
+      USE outLineStyle
+      DEF endCapOutLine IndexedLineSet {
+        coordIndex [
+          @NcsStr@
+        ]
+      }
+    }
+    Separator {
+      Normal {
+        vector 0 1 0
+      }
+      ShapeHints {
+        vertexOrdering COUNTERCLOCKWISE
+        shapeType SOLID
+      }
+      Transform {
+        translation = DecomposeArray1fToVec3fEngine {
+          startIndex @startIndex1@
+          input = USE openmbv_spineextrusion_data.value
+        }.output
+        rotation = CardanRotationEngine {
+          angle = DecomposeArray1fToVec3fEngine {
+            startIndex @startIndex2@
+            input = USE openmbv_spineextrusion_data.value
+          }.output
+          inverse TRUE
+        }.rotation
+      }
+      USE endCapIndexedTesselationFace
+      # outline
+      USE outLineStyle
+      USE endCapOutLine
+    }
+  }
+}

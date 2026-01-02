@@ -282,6 +282,9 @@ dist_icon_DATA = openmbv.svg \
   cover.png \
   knurl.png
 
+sharedir = @datadir@/openmbv
+dist_share_DATA = spineextrusion.iv
+
 # guihelp.html
 docdir = @datadir@/openmbv/doc
 dist_doc_DATA = guihelp.html

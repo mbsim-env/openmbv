@@ -24,6 +24,7 @@
 #include <Inventor/nodes/SoIndexedTriangleStripSet.h>
 #include "utils.h"
 #include "openmbvcppinterface/spineextrusion.h"
+#include <boost/dll/runtime_symbol_info.hpp>
 #include <cfloat>
 
 using namespace std;
@@ -105,8 +106,9 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   spineExtrusion=std::static_pointer_cast<OpenMBV::SpineExtrusion>(obj);
 
   switch(spineExtrusion->getCrossSectionOrientation()) {
-    case OpenMBV::SpineExtrusion::orthogonalWithTwist: doublesPerPoint = 4; break;
-    case OpenMBV::SpineExtrusion::cardanWrtWorld     : doublesPerPoint = 6; break;
+    case OpenMBV::SpineExtrusion::orthogonalWithTwist : doublesPerPoint = 4; break;
+    case OpenMBV::SpineExtrusion::cardanWrtWorld      :
+    case OpenMBV::SpineExtrusion::cardanWrtWorldShader: doublesPerPoint = 6; break;
   }
 
   std::vector<double> data;
@@ -231,6 +233,11 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
 
       break;
     }
+    case OpenMBV::SpineExtrusion::cardanWrtWorldShader: {
+      extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), contour, soSep);
+      extrusionCardanShader.updateData(data);
+      break;
+    }
   }
 
 }
@@ -270,6 +277,9 @@ double SpineExtrusion::update() {
       break;
     case OpenMBV::SpineExtrusion::cardanWrtWorld:
       extrusionCardan.setCardanWrtWorldSpine(data, spineExtrusion->getUpdateNormals());
+      break;
+    case OpenMBV::SpineExtrusion::cardanWrtWorldShader:
+      extrusionCardanShader.updateData(data);
       break;
   }
 
@@ -545,6 +555,151 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
         }
       }
 
+}
+
+namespace {
+  string S(int x) {
+    return to_string(x);
+  };
+  string S(double x) {
+    return boost::lexical_cast<string>(static_cast<float>(x));
+  };
+}
+
+void ExtrusionCardanShader::init(int Nsp, SoMaterial *mat, double csScale,
+                                 const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep) {
+  dataNodeVector = new SoShaderParameterArray1f;
+  soSep->addChild(dataNodeVector);
+  dataNodeVector->setName("openmbv_spineextrusion_data");
+  dataNodeVector->value.setNum(6*Nsp+1);
+
+  static const string ivFilename((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"spineextrusion.iv").string());
+  ifstream ivFile(ivFilename);
+  std::stringstream buf;
+  buf << ivFile.rdbuf();
+  string ivContent(buf.str());
+
+  int Ncs = contour->size();
+
+  string NcsStr;
+  for(int i=0; i<Ncs; ++i)
+    NcsStr+=" "+S(i);
+
+  string nspStr;
+  for(int i=0; i<Ncs; ++i)
+    nspStr+="vec3("+S((*contour)[i]->getXComponent()*csScale)+",0,"+S((*contour)[i]->getYComponent()*csScale)+"),\n";
+  nspStr=nspStr.substr(0,nspStr.size()-2);
+
+  string nspStr2;
+  for(int i=0; i<Ncs; ++i) {
+    if(i%5==0) nspStr2+="\n";
+    nspStr2+=" "+S((*contour)[i]->getXComponent()*csScale)+" 0 "+S((*contour)[i]->getYComponent()*csScale);
+  }
+
+  vector<SbVec3f> normal(2*Ncs);
+  for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+    int nIdx = 2*csIdx;
+    normal[nIdx+1] = SbVec3f(
+      -((*contour)[csIdx+(csIdx<Ncs-1 ? 1 : 1-Ncs)]->getYComponent() - (*contour)[csIdx]->getYComponent()),
+      0,
+      +((*contour)[csIdx+(csIdx<Ncs-1 ? 1 : 1-Ncs)]->getXComponent() - (*contour)[csIdx]->getXComponent())
+    );
+    normal[nIdx+1].normalize();
+    normal[nIdx+(csIdx<Ncs-1 ? 2 : 2-2*Ncs)] = normal[nIdx+1];
+  }
+  for(int csIdx=0;csIdx<Ncs;++csIdx) {
+    // combine normals
+    int nIdx = 2*csIdx;
+    if(round((*contour)[csIdx]->getBorderValue())==0) {
+      auto &n1 = normal[nIdx+1];
+      auto &n2 = normal[nIdx];
+      n1 = n1 + n2;
+      n1.normalize();
+      n2 = n1;
+    }
+  }
+  string normalStr;
+  for(int i=0; i<2*Ncs; ++i)
+    normalStr+="vec3("+S(normal[i][0])+","+S(normal[i][1])+","+S(normal[i][2])+"),\n";
+  normalStr=normalStr.substr(0,normalStr.size()-2);
+
+  string borderStr;
+  for(int i=0; i<Ncs; ++i) {
+    if(i%50==0) borderStr+="\n";
+    borderStr+=S((*contour)[i]->getBorderValue())+",";
+  }
+  borderStr=borderStr.substr(0,borderStr.size()-1);
+
+  string vertexAndNormalStr;
+  string vertexAttributeStr;
+  for(int i=0; i<2*Nsp*Ncs*3; ++i) {
+    if(i%50==0) vertexAndNormalStr+="\n";
+    if(i%25==0) vertexAttributeStr+="\n";
+    vertexAndNormalStr+=" "+S(0);
+    vertexAttributeStr+=" "+S(i);
+  }
+
+  string meshCoordIndexStr;
+  for(int spIdx=0; spIdx<Nsp-1; ++spIdx) {
+    for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+      if(csIdx%5==0) meshCoordIndexStr+="\n";
+      int nIdx = 2*(spIdx*Ncs+csIdx);
+      meshCoordIndexStr+=" "+S(nIdx+1);
+      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs));
+      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs)+2*Ncs);
+      meshCoordIndexStr+=" "+S(nIdx+1+2*Ncs);
+      meshCoordIndexStr+=" -1";
+    }
+    meshCoordIndexStr+="\n";
+  }
+
+  string tubeCoordIndexStr;
+  for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+    if((*contour)[csIdx]->getBorderValue()==0)
+      continue;
+    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
+      if(spIdx%25==0) tubeCoordIndexStr+="\n";
+      int nIdx = 2*(spIdx*Ncs+csIdx);
+      tubeCoordIndexStr+=" "+S(nIdx);
+    }
+    tubeCoordIndexStr+=" -1\n";
+  }
+
+  boost::algorithm::replace_all(ivContent, "@Nsp@"               , S(Nsp));
+  boost::algorithm::replace_all(ivContent, "@Ncs@"               , S(Ncs));
+  boost::algorithm::replace_all(ivContent, "@vertexAndNormalStr@",   vertexAndNormalStr);
+  boost::algorithm::replace_all(ivContent, "@vertexAttributeStr@",   vertexAttributeStr);
+  boost::algorithm::replace_all(ivContent, "@meshCoordIndexStr@" ,   meshCoordIndexStr);
+  boost::algorithm::replace_all(ivContent, "@tubeCoordIndexStr@" ,   tubeCoordIndexStr);
+  boost::algorithm::replace_all(ivContent, "@nspStr2@"           ,   nspStr2);
+  boost::algorithm::replace_all(ivContent, "@NcsStr@"            ,   NcsStr);
+  boost::algorithm::replace_all(ivContent, "@startIndex1@"       , S(6*(Nsp-1)+1));
+  boost::algorithm::replace_all(ivContent, "@startIndex2@"       , S(6*(Nsp-1)+4));
+  boost::algorithm::replace_all(ivContent, "@nspStr@"            ,   nspStr);
+  boost::algorithm::replace_all(ivContent, "@normalStr@"         ,   normalStr);
+  boost::algorithm::replace_all(ivContent, "@borderStr@"         ,   borderStr);
+
+  static bool OPENMBV_DUMP_SPINEEXTRUSION_IV=getenv("OPENMBV_DUMP_SPINEEXTRUSION_IV")!=nullptr;
+  if(OPENMBV_DUMP_SPINEEXTRUSION_IV) {
+    static int i=0;
+    ofstream f("spineextrusion_"+S(++i)+".iv");
+    f<<ivContent;
+  }
+
+  auto soIv = Utils::SoDBreadAllContentCached(ivContent, {/*no cache*/}, [this, mat](SoInput& in) {
+    in.addReference("openmbv_spineextrusion_data", dataNodeVector);
+    in.addReference("openmbv_dynamiccoloredbody_mat", mat);
+  });
+  if(!soIv)
+    return;
+  soSep->addChild(soIv);
+}
+
+void ExtrusionCardanShader::updateData(const std::vector<double> &data) {
+  datamfmf.resize(data.size());
+  for(size_t i=0; i<data.size(); ++i)
+    datamfmf[i] = data[i];
+  dataNodeVector->value.setValuesPointer(data.size(), datamfmf.data());
 }
 
 }

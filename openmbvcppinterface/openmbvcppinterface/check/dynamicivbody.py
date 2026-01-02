@@ -30,6 +30,15 @@ for csIdx in range(0,Ncs):
   ])
   normal[nIdx+1] = normal[nIdx+1]/numpy.linalg.norm(normal[nIdx+1]);
   normal[nIdx+(2 if csIdx<Ncs-1 else 2-2*Ncs)] = normal[nIdx+1];
+for csIdx in range(0,Ncs):
+  # combine normals
+  nIdx = 2*csIdx
+  if border[csIdx]==0:
+    n1 = normal[nIdx+1]
+    n2 = normal[nIdx]
+    n1 = n1 + n2
+    normal[nIdx+1] = n1/numpy.linalg.norm(n1)
+    normal[nIdx] = n1
 normalStr=""
 for r in range(0,normal.shape[0]):
   normalStr+=f"vec3({','.join(map(lambda x: str(x), normal[r]))}),\n"
@@ -162,13 +171,7 @@ Separator {{
               vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
               mat3 T = transpose(cardan2Rotation(angle));
               vec3 n = T * normal[nIdx];
-              if(border[nIdx/2]==1)
-                return n;
-              else {{
-                int n2Idx = nIdx + (nIdx%2==0 ? +1 : -1);
-                vec3 n2 = T * normal[n2Idx];
-                return normalize(n+n2);
-              }}
+              return n;
             }}
              
             void main(void)

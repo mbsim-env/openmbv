@@ -47,6 +47,9 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
     case cardanWrtWorld:
       E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorld'");
       break;
+    case cardanWrtWorldShader:
+      E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorldShader'");
+      break;
   }
   E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
   E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
@@ -72,6 +75,7 @@ void SpineExtrusion::createHDF5File() {
       }
       break;
     case cardanWrtWorld:
+    case cardanWrtWorldShader:
       data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+6*numberOfSpinePoints);
       for(int i=0;i<numberOfSpinePoints;i++) {
         columns.push_back("x"+fmatvec::toString(i));
@@ -108,8 +112,9 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   if(e) {
     auto cs = E(e)->getText<string>();
     cs = cs.substr(1, cs.length()-2);
-    if     (cs == "orthogonalWithTwist") csOri = orthogonalWithTwist;
-    else if(cs == "cardanWrtWorld"     ) csOri = cardanWrtWorld;
+    if     (cs == "orthogonalWithTwist" ) csOri = orthogonalWithTwist;
+    else if(cs == "cardanWrtWorld"      ) csOri = cardanWrtWorld;
+    else if(cs == "cardanWrtWorldShader") csOri = cardanWrtWorldShader;
     else
       throw runtime_error("Unknown 'crossSectionOrientation'");
   }
