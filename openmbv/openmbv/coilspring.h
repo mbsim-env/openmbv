@@ -37,6 +37,7 @@ namespace OpenMBV {
 namespace OpenMBVGUI {
 
 class ExtrusionCardan;
+class ExtrusionCardanShader;
 
 /**
  * \brief class for drawing simple helix springs
@@ -92,6 +93,7 @@ class CoilSpring : public DynamicColoredBody {
     void createProperties() override;
 
     std::unique_ptr<ExtrusionCardan> tube;
+    std::unique_ptr<ExtrusionCardanShader> tubeShader;
     std::vector<double> spine;
 };
 

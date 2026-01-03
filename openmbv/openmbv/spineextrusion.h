@@ -54,12 +54,16 @@ class ExtrusionCardan {
 
 class ExtrusionCardanShader {
   public:
-    void init(int NSp, SoMaterial *mat, double csScale,
+    void init(int NSp, SoMaterial *mat, double csScale, bool ccw,
               const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
     void updateData(const std::vector<double>& data);
   private:
     SoShaderParameterArray1f *dataNodeVector;
     std::vector<float> datamfmf;
+    int Nsp;
+    double csScale;
+    std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > contour;
+    SoCoordinate3 *coords;
 };
 
 /**

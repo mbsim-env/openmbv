@@ -160,7 +160,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       // additional flags
       extrusion->solid=TRUE; // backface culling
       extrusion->convex=TRUE; // only convex polygons included in visualisation
-      extrusion->ccw=spineExtrusion->getCounterClockWise() ? TRUE : FALSE; // vertex ordering
+      extrusion->ccw=TRUE; // vertex ordering
       extrusion->beginCap=TRUE; // front side at begin of the spine
       extrusion->endCap=TRUE; // front side at end of the spine
       extrusion->creaseAngle=0.3; // angle below which surface normals are drawn smooth
@@ -234,7 +234,8 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       break;
     }
     case OpenMBV::SpineExtrusion::cardanWrtWorldShader: {
-      extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), contour, soSep);
+      extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), spineExtrusion->getCounterClockWise(),
+                                 contour, soSep);
       extrusionCardanShader.updateData(data);
       break;
     }
@@ -399,7 +400,7 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
       quadMeshNormals->vector.setNum(spSize * 2*csSize);
       auto *sh=new SoShapeHints;
       soSep->addChild(sh);
-      sh->vertexOrdering.setValue(ccw ? SoShapeHints::COUNTERCLOCKWISE : SoShapeHints::CLOCKWISE);
+      sh->vertexOrdering.setValue(!ccw ? SoShapeHints::COUNTERCLOCKWISE : SoShapeHints::CLOCKWISE);
       sh->shapeType.setValue(SoShapeHints::SOLID);
       auto stripMesh = new SoIndexedTriangleStripSet;
       soSep->addChild(stripMesh);
@@ -475,11 +476,11 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
           // normal
           auto *endCupNormal=new SoNormal;
           sep->addChild(endCupNormal);
-          endCupNormal->vector.set1Value(0, 0,!((i==0) xor ccw)?-1:1,0);
+          endCupNormal->vector.set1Value(0, 0,!((i==1) xor ccw)?-1:1,0);
           // vertex ordering
           auto *sh=new SoShapeHints;
           sep->addChild(sh);
-          sh->vertexOrdering.setValue(!((i==0) xor ccw) ? SoShapeHints::CLOCKWISE : SoShapeHints::COUNTERCLOCKWISE);
+          sh->vertexOrdering.setValue(!((i==1) xor ccw) ? SoShapeHints::CLOCKWISE : SoShapeHints::COUNTERCLOCKWISE);
           sh->shapeType.setValue(SoShapeHints::SOLID);
           // translation/rotation and face
           endCupTrans[i] = new SoTranslation;
@@ -566,8 +567,12 @@ namespace {
   };
 }
 
-void ExtrusionCardanShader::init(int Nsp, SoMaterial *mat, double csScale,
-                                 const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep) {
+void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, bool ccw,
+                                 const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour_, SoSeparator *soSep) {
+  Nsp = Nsp_;
+  contour = contour_;
+  csScale = csScale_;
+
   dataNodeVector = new SoShaderParameterArray1f;
   soSep->addChild(dataNodeVector);
   dataNodeVector->setName("openmbv_spineextrusion_data");
@@ -678,6 +683,11 @@ void ExtrusionCardanShader::init(int Nsp, SoMaterial *mat, double csScale,
   boost::algorithm::replace_all(ivContent, "@nspStr@"            ,   nspStr);
   boost::algorithm::replace_all(ivContent, "@normalStr@"         ,   normalStr);
   boost::algorithm::replace_all(ivContent, "@borderStr@"         ,   borderStr);
+  boost::algorithm::replace_all(ivContent, "@endCap1Normal@"     ,   ccw ? "0 +1 0" : "0 -1 0");
+  boost::algorithm::replace_all(ivContent, "@endCap2Normal@"     ,   ccw ? "0 -1 0" : "0 +1 0");
+  boost::algorithm::replace_all(ivContent, "@endCap1CCW@"        ,   ccw ? "COUNTERCLOCKWISE" : "CLOCKWISE");
+  boost::algorithm::replace_all(ivContent, "@endCap2CCW@"        ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
+  boost::algorithm::replace_all(ivContent, "@tubeCCW@"           ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
 
   static bool OPENMBV_DUMP_SPINEEXTRUSION_IV=getenv("OPENMBV_DUMP_SPINEEXTRUSION_IV")!=nullptr;
   if(OPENMBV_DUMP_SPINEEXTRUSION_IV) {
@@ -693,6 +703,8 @@ void ExtrusionCardanShader::init(int Nsp, SoMaterial *mat, double csScale,
   if(!soIv)
     return;
   soSep->addChild(soIv);
+
+  coords=static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
 }
 
 void ExtrusionCardanShader::updateData(const std::vector<double> &data) {
@@ -700,6 +712,24 @@ void ExtrusionCardanShader::updateData(const std::vector<double> &data) {
   for(size_t i=0; i<data.size(); ++i)
     datamfmf[i] = data[i];
   dataNodeVector->value.setValuesPointer(data.size(), datamfmf.data());
+
+  if(false) {//mfmf run this code before a user input is done: its slow but will enable the Coin boundingbox and object picking
+    auto *c = coords->point.startEditing();
+    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
+      auto r = SbVec3f(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
+      auto angle = SbVec3f(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+      auto T = Utils::cardan2Rotation(angle);
+      T.invert();
+      for(size_t csIdx=0; csIdx<contour->size(); ++csIdx) {
+        SbVec3f T_nsp;
+        T.multVec(SbVec3f((*contour)[csIdx]->getXComponent()*csScale,0,(*contour)[csIdx]->getYComponent()*csScale), T_nsp);
+        int nIdx = 2*spIdx*contour->size() + 2*csIdx;
+        c[nIdx] = r + T_nsp;
+        c[nIdx+1] = c[nIdx];
+      }
+    }
+    coords->point.finishEditing();
+  }
 }
 
 }

@@ -41,6 +41,7 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case tube: typeStr="tube"; break;
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
+    case tubeShader: typeStr="tubeShader"; break;
   }
   E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
   E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
@@ -89,6 +90,7 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
     if(typeStr=="tube") setType(tube);
     if(typeStr=="scaledTube") setType(scaledTube);
     if(typeStr=="polyline") setType(polyline);
+    if(typeStr=="tubeShader") setType(tubeShader);
   }
   setUpdateNormals(true);
   e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");

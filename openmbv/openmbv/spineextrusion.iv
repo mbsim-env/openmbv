@@ -2,7 +2,7 @@
 
 Separator {
   # global coordinates and normals
-  Coordinate3 {
+  DEF openmbv_spineextrusion_coords Coordinate3 {
     point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
       @vertexAndNormalStr@
@@ -13,6 +13,10 @@ Separator {
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
       @vertexAndNormalStr@
     ]
+  }
+  ShapeHints {
+    vertexOrdering @tubeCCW@
+    shapeType SOLID
   }
   Separator {
     renderCulling OFF
@@ -210,10 +214,10 @@ Separator {
     }
     Separator {
       Normal {
-        vector 0 -1 0
+        vector @endCap1Normal@
       }
       ShapeHints {
-        vertexOrdering CLOCKWISE
+        vertexOrdering @endCap1CCW@
         shapeType SOLID
       }
       Transform {
@@ -246,10 +250,10 @@ Separator {
     }
     Separator {
       Normal {
-        vector 0 1 0
+        vector @endCap2Normal@
       }
       ShapeHints {
-        vertexOrdering COUNTERCLOCKWISE
+        vertexOrdering @endCap2CCW@
         shapeType SOLID
       }
       Transform {

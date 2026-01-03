@@ -19,7 +19,6 @@
 
 #include "config.h"
 #include "dynamicivbody.h"
-#include <Inventor/actions/SoSearchAction.h>
 
 #include <Inventor/nodes/SoShaderParameter.h>
 #include <boost/container_hash/hash.hpp>

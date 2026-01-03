@@ -40,7 +40,8 @@ namespace OpenMBV {
       enum Type {
         tube,
         scaledTube,
-        polyline
+        polyline,
+        tubeShader,
       };
     protected:
       void createHDF5File() override;
@@ -78,7 +79,7 @@ namespace OpenMBV {
       void setSpringRadius(double radius) { springRadius=radius; }
       double getSpringRadius() { return springRadius; }
 
-      /** The radius of the coil spring cross-section if type=tube or type=scaledTube.
+      /** The radius of the coil spring cross-section if type=tube, type=tubeShader or type=scaledTube.
        * If type=polyline this parameter defines the point size of the polyline.
        * If crossSectionRadius is less then 0, the cross-section radius
        * is choosen automatically.
@@ -112,6 +113,8 @@ namespace OpenMBV {
        * than "tube";
        * "polyline": The coil spring geometry is a polyline representing the
        * the spring center line. this is the faster spring visualisation;
+       * "tubeShader": The same as tube but with improved performance using shaders.
+       * see also spineexterusion cardanWrtWorldShader.
        */
       void setType(Type t) { type=t; }
       Type getType() { return type; }
