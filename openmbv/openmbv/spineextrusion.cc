@@ -635,12 +635,18 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   }
   borderStr=borderStr.substr(0,borderStr.size()-1);
 
-  string vertexAndNormalStr;
+  string vertexDummyStr;
+  string normalDummyStr;
+  for(int i=0; i<2*Nsp*Ncs; ++i) {
+    if(i%15==0) vertexDummyStr+="\n";
+    if(i%15==0) normalDummyStr+="\n";
+    vertexDummyStr+=" 0 0 0";
+    normalDummyStr+=" 0 0 0";
+  }
+
   string vertexAttributeStr;
   for(int i=0; i<2*Nsp*Ncs*3; ++i) {
-    if(i%50==0) vertexAndNormalStr+="\n";
     if(i%25==0) vertexAttributeStr+="\n";
-    vertexAndNormalStr+=" "+S(0);
     vertexAttributeStr+=" "+S(i);
   }
 
@@ -672,7 +678,8 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
 
   boost::algorithm::replace_all(ivContent, "@Nsp@"               , S(Nsp));
   boost::algorithm::replace_all(ivContent, "@Ncs@"               , S(Ncs));
-  boost::algorithm::replace_all(ivContent, "@vertexAndNormalStr@",   vertexAndNormalStr);
+  boost::algorithm::replace_all(ivContent, "@vertexDummyStr@"    ,   vertexDummyStr);
+  boost::algorithm::replace_all(ivContent, "@normalDummyStr@"    ,   normalDummyStr);
   boost::algorithm::replace_all(ivContent, "@vertexAttributeStr@",   vertexAttributeStr);
   boost::algorithm::replace_all(ivContent, "@meshCoordIndexStr@" ,   meshCoordIndexStr);
   boost::algorithm::replace_all(ivContent, "@tubeCoordIndexStr@" ,   tubeCoordIndexStr);

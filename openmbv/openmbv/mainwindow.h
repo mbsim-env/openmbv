@@ -115,7 +115,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSFFloat *mouseCursorSizeField;
     QPushButton *disableStereo;
   protected:
-    SoSepNoPick *sceneRootBBox;
+    SepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
     AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
@@ -259,7 +259,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     bool backgroundNeeded { true };
   public:
     SoDrawStyle *olseDrawStyle;
-    SoBaseColorHeavyOverride *olseColor;
+    BaseColorHeavyOverride *olseColor;
     SoDrawStyle *bboxDrawStyle;
     SoBaseColor *bboxColor;
     SoDrawStyle *highlightDrawStyle;
@@ -278,7 +278,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     static MainWindow* const getInstance();
     static void frameSensorCB(void *data, SoSensor*);
     void fpsCB();
-    SoSepNoPick *getSceneRootBBox() { return sceneRootBBox; }
+    SepNoPick *getSceneRootBBox() { return sceneRootBBox; }
     QTripleSlider *getTimeSlider() { return timeSlider; }
     double &getDeltaTime() { return deltaTime; }
     double getSpeed() { return speedSB->value(); }
@@ -294,7 +294,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     bool getEnableFullScreen() { return enableFullScreen; }
     void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
-    SoBaseColorHeavyOverride* getOlseColor() { return olseColor; }
+    BaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
     SoSeparator* getScreenAnnotationList() { return screenAnnotationList; }
     SoScale* getScreenAnnotationScale1To1() { return screenAnnotationScale1To1; }

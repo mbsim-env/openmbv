@@ -171,7 +171,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
   if(pickBBoxAble)
     sep=new SoSeparator;
   else
-    sep=new SoSepNoPickNoBBox;
+    sep=new SepNoPickNoBBox;
 
   SoBaseColor *col;
   SoLineSet *line;

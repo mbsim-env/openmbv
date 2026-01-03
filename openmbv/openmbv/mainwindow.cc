@@ -80,6 +80,7 @@
 #include "SoDecomposeArray1fToVec3fEngine.h"
 #include "SoCardanRotationEngine.h"
 #include "SoStringFormatEngine.h"
+#include "SoSpecial.h"
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -145,6 +146,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // init SoQt and Inventor
   SoQt::init(this);
   // init user engines
+  SepNoPickNoBBox::initClass();
+  SepNoPick::initClass();
+  BaseColorHeavyOverride::initClass();
   SoTransposeEngine::initClass();
   DecomposeArray1fToVec3fEngine::initClass();
   CardanRotationEngine::initClass();
@@ -204,7 +208,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // 3D cursor
   auto *cursorAno=new SoAnnotation;
   sceneRoot->addChild(cursorAno);
-  auto *cursorSep=new SoSepNoPickNoBBox;
+  auto *cursorSep=new SepNoPickNoBBox;
   cursorAno->addChild(cursorSep);
   cursorSwitch=new SoSwitch;
   cursorSep->addChild(cursorSwitch);
@@ -280,7 +284,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   bc->setOverride(true);
   engDrawing->addChild(bc);
 
-  sceneRootBBox=new SoSepNoPick;
+  sceneRootBBox=new SepNoPick;
   sceneRoot->addChild(sceneRootBBox);
   auto *lm=new SoLightModel;
   sceneRootBBox->addChild(lm);
@@ -309,7 +313,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   worldFrameSwitch=new SoSwitch;
   sceneRoot->addChild(worldFrameSwitch);
   worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  auto *worldFrameSep=new SoSepNoPickNoBBox;
+  auto *worldFrameSep=new SepNoPickNoBBox;
   worldFrameSwitch->addChild(worldFrameSep);
   auto *drawStyle=new SoDrawStyle;
   worldFrameSep->addChild(drawStyle);
@@ -743,7 +747,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   complexity->value.setValue(0.2);
 
   // color for outline and shilouette edges
-  olseColor=new SoBaseColorHeavyOverride;
+  olseColor=new BaseColorHeavyOverride;
   olseColor->ref();
   olseColor->rgb.set1Value(0, 0,0,0);
 

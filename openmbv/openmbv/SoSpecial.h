@@ -28,20 +28,29 @@
 
 namespace OpenMBVGUI {
 
-class SoSepNoPickNoBBox : public SoSeparator {
+class SepNoPickNoBBox : public SoSeparator {
+  SO_NODE_HEADER(SepNoPickNoBBox);
   public:
+    SepNoPickNoBBox();
+    static void initClass();
     void rayPick(SoRayPickAction *action) override {}
     void getBoundingBox(SoGetBoundingBoxAction *action) override {}
 };
 
-class SoSepNoPick : public SoSeparator {
+class SepNoPick : public SoSeparator {
+  SO_NODE_HEADER(SepNoPick);
   public:
+    SepNoPick();
+    static void initClass();
     void rayPick(SoRayPickAction *action) override {}
 };
 
 // equals SoBaseColor but the color is uses even if the override flag is set
-class SoBaseColorHeavyOverride : public SoBaseColor {
+class BaseColorHeavyOverride : public SoBaseColor {
+  SO_NODE_HEADER(BaseColorHeavyOverride);
   public:
+    BaseColorHeavyOverride();
+    static void initClass();
     void GLRender(SoGLRenderAction *action) override {
       SoState *state=action->getState(); // get state
       SoOverrideElement::setDiffuseColorOverride(state, this, false); // disable override

@@ -50,6 +50,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   SoQtMyViewer.cc \
   mytouchwidget.cc\
   touchtreewidget.cc\
+  SoSpecial.cc \
   SoTransposeEngine.cc \
   SoDecomposeArray1fToVec3fEngine.cc \
   SoCardanRotationEngine.cc \

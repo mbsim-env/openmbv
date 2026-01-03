@@ -46,11 +46,6 @@ DynamicColoredBody::DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &o
     myMaterialBinding->value = SoMaterialBinding::PER_VERTEX_INDEXED;
     soSep->addChild(myMaterialBinding);
   }
-  else {
-    baseColor=new SoBaseColor;
-    soSep->addChild(baseColor);
-    baseColor->rgb.setHSVValue(diffuseColor[0]>0?diffuseColor[0]:0, diffuseColor[1], diffuseColor[2]);
-  }
 }
 
 void DynamicColoredBody::createProperties() {
@@ -97,8 +92,6 @@ void DynamicColoredBody::setColor(double col) {
 
 void DynamicColoredBody::setHueColor(double hue) {
   float h, s, v;
-  baseColor->rgb[0].getHSVValue(h, s, v);
-  baseColor->rgb.setHSVValue(hue, s, v);
   mat->diffuseColor[0].getHSVValue(h, s, v);
   mat->diffuseColor.setHSVValue(hue, s, v);
   mat->specularColor[0].getHSVValue(h, s, v);

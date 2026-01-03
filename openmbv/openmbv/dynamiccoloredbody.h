@@ -37,7 +37,6 @@ class DynamicColoredBody : public Body {
   protected:
     double minimalColorValue, maximalColorValue;
     SoMaterial *mat;
-    SoBaseColor *baseColor;
     std::vector<double> diffuseColor;
     double color,oldColor;
     void setColor(double col);

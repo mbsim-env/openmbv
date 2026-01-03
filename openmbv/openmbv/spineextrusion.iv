@@ -5,21 +5,20 @@ Separator {
   DEF openmbv_spineextrusion_coords Coordinate3 {
     point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
-      @vertexAndNormalStr@
+      @vertexDummyStr@
     ]
   }
   Normal {
     vector [ # Dummy normals are needed here -> will be overwritten in the vertex shader
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
-      @vertexAndNormalStr@
+      @normalDummyStr@
     ]
   }
   ShapeHints {
     vertexOrdering @tubeCCW@
     shapeType SOLID
   }
-  Separator {
-    renderCulling OFF
+  SepNoPickNoBBox { # Coin just knows the dummy vertex pos -> we need to disable pick and bbox calculation for this node
     ShaderProgram {
       shaderObject [
         VertexShader {
@@ -180,99 +179,91 @@ Separator {
       values [ @vertexAttributeStr@ ]
     }
     # tube
-    Separator {
-      renderCulling OFF
-      renderCaching ON
-      IndexedFaceSet { # Coin does not pass VertexAttribut's to IndexedTriangleStripSet -> use IndexedFaceSet
-        coordIndex [
-          @meshCoordIndexStr@
-        ]
-        # we cannot use normalIndex/... since the vertex shader calculates exactly one normal per vertex (per Coordinate3)
-      }
+    IndexedFaceSet { # Coin does not pass VertexAttribut's to IndexedTriangleStripSet -> use IndexedFaceSet
+      coordIndex [
+        @meshCoordIndexStr@
+      ]
+      # we cannot use normalIndex/... since the vertex shader calculates exactly one normal per vertex (per Coordinate3)
     }
     # outline
-    Separator {
-      DEF outLineStyle Material {
-        diffuseColor 0 0 0
-      }
-      IndexedLineSet {
-        coordIndex [
-          @tubeCoordIndexStr@
-        ]
-      }
+    DEF outLineStyle Material {
+      diffuseColor 0 0 0
+    }
+    IndexedLineSet {
+      coordIndex [
+        @tubeCoordIndexStr@
+      ]
     }
   }
   # end-cap
+  NormalBinding {
+    value OVERALL
+  }
+  DEF endCapCoords Coordinate3 {
+    point [
+      @nspStr2@
+    ]
+  }
   Separator {
-    NormalBinding {
-      value OVERALL
+    Normal {
+      vector @endCap1Normal@
     }
-    DEF endCapCoords Coordinate3 {
-      point [
-        @nspStr2@
+    ShapeHints {
+      vertexOrdering @endCap1CCW@
+      shapeType SOLID
+    }
+    Transform {
+      translation = DecomposeArray1fToVec3fEngine {
+        startIndex 1
+        input = USE openmbv_spineextrusion_data.value
+      }.output
+      rotation = CardanRotationEngine {
+        angle = DecomposeArray1fToVec3fEngine {
+          startIndex 4
+          input = USE openmbv_spineextrusion_data.value
+        }.output
+        inverse TRUE
+      }.rotation
+    }
+    DEF endCapIndexedTesselationFace IndexedTesselationFace {
+      windingRule ODD
+      coordinate = USE endCapCoords.point
+      coordIndex [
+        @NcsStr@
       ]
     }
-    Separator {
-      Normal {
-        vector @endCap1Normal@
-      }
-      ShapeHints {
-        vertexOrdering @endCap1CCW@
-        shapeType SOLID
-      }
-      Transform {
-        translation = DecomposeArray1fToVec3fEngine {
-          startIndex 1
+    # outline
+    USE outLineStyle
+    DEF endCapOutLine IndexedLineSet {
+      coordIndex [
+        @NcsStr@
+      ]
+    }
+  }
+  Separator {
+    Normal {
+      vector @endCap2Normal@
+    }
+    ShapeHints {
+      vertexOrdering @endCap2CCW@
+      shapeType SOLID
+    }
+    Transform {
+      translation = DecomposeArray1fToVec3fEngine {
+        startIndex @startIndex1@
+        input = USE openmbv_spineextrusion_data.value
+      }.output
+      rotation = CardanRotationEngine {
+        angle = DecomposeArray1fToVec3fEngine {
+          startIndex @startIndex2@
           input = USE openmbv_spineextrusion_data.value
         }.output
-        rotation = CardanRotationEngine {
-          angle = DecomposeArray1fToVec3fEngine {
-            startIndex 4
-            input = USE openmbv_spineextrusion_data.value
-          }.output
-          inverse TRUE
-        }.rotation
-      }
-      DEF endCapIndexedTesselationFace IndexedTesselationFace {
-        windingRule ODD
-        coordinate = USE endCapCoords.point
-        coordIndex [
-          @NcsStr@
-        ]
-      }
-      # outline
-      USE outLineStyle
-      DEF endCapOutLine IndexedLineSet {
-        coordIndex [
-          @NcsStr@
-        ]
-      }
+        inverse TRUE
+      }.rotation
     }
-    Separator {
-      Normal {
-        vector @endCap2Normal@
-      }
-      ShapeHints {
-        vertexOrdering @endCap2CCW@
-        shapeType SOLID
-      }
-      Transform {
-        translation = DecomposeArray1fToVec3fEngine {
-          startIndex @startIndex1@
-          input = USE openmbv_spineextrusion_data.value
-        }.output
-        rotation = CardanRotationEngine {
-          angle = DecomposeArray1fToVec3fEngine {
-            startIndex @startIndex2@
-            input = USE openmbv_spineextrusion_data.value
-          }.output
-          inverse TRUE
-        }.rotation
-      }
-      USE endCapIndexedTesselationFace
-      # outline
-      USE outLineStyle
-      USE endCapOutLine
-    }
+    USE endCapIndexedTesselationFace
+    # outline
+    USE outLineStyle
+    USE endCapOutLine
   }
 }
