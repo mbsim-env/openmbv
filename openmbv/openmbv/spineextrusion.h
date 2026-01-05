@@ -108,6 +108,7 @@ class SpineExtrusion : public DynamicColoredBody {
 
     ExtrusionCardan extrusionCardan;
     ExtrusionCardanShader extrusionCardanShader;
+    std::vector<OpenMBV::Float> data;
 };
 
 }

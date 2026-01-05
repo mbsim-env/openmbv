@@ -111,8 +111,6 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     case OpenMBV::SpineExtrusion::cardanWrtWorldShader: doublesPerPoint = 6; break;
   }
 
-  std::vector<OpenMBV::Float> data;
-
   if( spineExtrusion->getStateOffSet().size() > 0 ) {
     data = std::vector<OpenMBV::Float>(spineExtrusion->getStateOffSet().size()+1);
 
@@ -266,7 +264,7 @@ double SpineExtrusion::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  auto data=spineExtrusion->getRow(frame);
+  data=spineExtrusion->getRow(frame);
 
   if( spineExtrusion->getStateOffSet().size() > 0 )
     for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
@@ -678,23 +676,23 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
 
   boost::algorithm::replace_all(ivContent, "@Nsp@"               , S(Nsp));
   boost::algorithm::replace_all(ivContent, "@Ncs@"               , S(Ncs));
-  boost::algorithm::replace_all(ivContent, "@vertexDummyStr@"    ,   vertexDummyStr);
-  boost::algorithm::replace_all(ivContent, "@normalDummyStr@"    ,   normalDummyStr);
-  boost::algorithm::replace_all(ivContent, "@vertexAttributeStr@",   vertexAttributeStr);
-  boost::algorithm::replace_all(ivContent, "@meshCoordIndexStr@" ,   meshCoordIndexStr);
-  boost::algorithm::replace_all(ivContent, "@tubeCoordIndexStr@" ,   tubeCoordIndexStr);
-  boost::algorithm::replace_all(ivContent, "@nspStr2@"           ,   nspStr2);
-  boost::algorithm::replace_all(ivContent, "@NcsStr@"            ,   NcsStr);
   boost::algorithm::replace_all(ivContent, "@startIndex1@"       , S(6*(Nsp-1)+1));
   boost::algorithm::replace_all(ivContent, "@startIndex2@"       , S(6*(Nsp-1)+4));
-  boost::algorithm::replace_all(ivContent, "@nspStr@"            ,   nspStr);
-  boost::algorithm::replace_all(ivContent, "@normalStr@"         ,   normalStr);
-  boost::algorithm::replace_all(ivContent, "@borderStr@"         ,   borderStr);
   boost::algorithm::replace_all(ivContent, "@endCap1Normal@"     ,   ccw ? "0 +1 0" : "0 -1 0");
   boost::algorithm::replace_all(ivContent, "@endCap2Normal@"     ,   ccw ? "0 -1 0" : "0 +1 0");
-  boost::algorithm::replace_all(ivContent, "@endCap1CCW@"        ,   ccw ? "COUNTERCLOCKWISE" : "CLOCKWISE");
   boost::algorithm::replace_all(ivContent, "@endCap2CCW@"        ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
   boost::algorithm::replace_all(ivContent, "@tubeCCW@"           ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
+  boost::algorithm::replace_all(ivContent, "@endCap1CCW@"        ,   ccw ? "COUNTERCLOCKWISE" : "CLOCKWISE");
+  boost::algorithm::replace_all(ivContent, "@borderStr@"         ,   borderStr);
+  boost::algorithm::replace_all(ivContent, "@NcsStr@"            ,   NcsStr);
+  boost::algorithm::replace_all(ivContent, "@nspStr@"            ,   nspStr);
+  boost::algorithm::replace_all(ivContent, "@nspStr2@"           ,   nspStr2);
+  boost::algorithm::replace_all(ivContent, "@normalStr@"         ,   normalStr);
+  boost::algorithm::replace_all(ivContent, "@tubeCoordIndexStr@" ,   tubeCoordIndexStr);
+  boost::algorithm::replace_all(ivContent, "@vertexDummyStr@"    ,   vertexDummyStr);
+  boost::algorithm::replace_all(ivContent, "@normalDummyStr@"    ,   normalDummyStr);
+  boost::algorithm::replace_all(ivContent, "@meshCoordIndexStr@" ,   meshCoordIndexStr);
+  boost::algorithm::replace_all(ivContent, "@vertexAttributeStr@",   vertexAttributeStr);
 
   static bool OPENMBV_DUMP_SPINEEXTRUSION_IV=getenv("OPENMBV_DUMP_SPINEEXTRUSION_IV")!=nullptr;
   if(OPENMBV_DUMP_SPINEEXTRUSION_IV) {
