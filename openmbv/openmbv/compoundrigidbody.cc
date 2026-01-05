@@ -113,7 +113,7 @@ double CompoundRigidBody::update() {
   double t=RigidBody::update();
 
   // update the color for children
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=rigidBody->getRow(frame);
   for(int i=0; i<childCount(); i++) {
     auto *childRB=static_cast<RigidBody*>(child(i));

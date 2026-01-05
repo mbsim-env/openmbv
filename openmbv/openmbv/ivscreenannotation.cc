@@ -164,7 +164,7 @@ double IvScreenAnnotation::update() {
   if(ivsa->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=ivsa->getRow(frame);
   
   auto setColumnLabelFields = [this](const auto &data) {

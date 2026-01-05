@@ -208,7 +208,7 @@ QString CoilSpring::getInfo() {
 
 double CoilSpring::update() {
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=coilSpring->getRow(frame);
 
   // translation / rotation

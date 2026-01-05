@@ -355,7 +355,7 @@ double SpineExtrusion::update() {
   if(spineExtrusion->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=spineExtrusion->getRow(frame);
 
   if( spineExtrusion->getStateOffSet().size() > 0 )

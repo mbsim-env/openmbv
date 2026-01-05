@@ -64,7 +64,7 @@ void Path::createProperties() {
 
 double Path::update() {
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=path->getRow(frame);
   for(int i=maxFrameRead+1; i<=frame; i++) {
     auto data=path->getRow(i);
@@ -77,7 +77,7 @@ double Path::update() {
 }
 
 QString Path::getInfo() {
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
+  int frame=MainWindow::getInstance()->getFrame()[0];
   float x, y, z;
   coord->point.getValues(frame)->getValue(x, y, z);
   return Body::getInfo()+
