@@ -1286,6 +1286,13 @@ void MainWindow::execPropertyMenu(const std::vector<QAction*> &additionalActions
 }
 
 void MainWindow::objectListClicked() {
+  static QTreeWidgetItem* lastSingleSelectedItem = nullptr;
+  if(QApplication::keyboardModifiers()==Qt::NoModifier &&
+     objectList->selectedItems().size()==1 &&
+     objectList->selectedItems()[0]==lastSingleSelectedItem)
+    objectList->setCurrentItem(nullptr);
+  lastSingleSelectedItem = objectList->selectedItems().size()==1 ? objectList->selectedItems()[0] : nullptr;
+
   auto *curObj=static_cast<Object*>(objectList->currentItem());
   objectSelected(curObj ? curObj->object->getID() : "", curObj);
 }

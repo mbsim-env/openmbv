@@ -744,12 +744,12 @@ SbVec3f MyTouchWidget::convertToRel3D(const QPoint &rel) {
 }
 
 void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuForAll) {
-  MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
   // select object
   // if toggle, toggle selection of object
   // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
   auto picked=getObjectsByRay(pos);
   if(picked.empty()) {
+    MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
     MainWindow::getInstance()->objectSelected("", nullptr);
     return;
   }
@@ -761,10 +761,20 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
   else {
     useObjIdx=createObjectListMenu(bodies);
     if(useObjIdx<0) {
+      MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
       MainWindow::getInstance()->objectSelected("", nullptr);
       return;
     }
   }
+
+  if(!toggle &&
+     MainWindow::getInstance()->objectList->selectedItems().size()==1 &&
+     MainWindow::getInstance()->objectList->selectedItems()[0] == bodies[useObjIdx]) {
+    MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
+    MainWindow::getInstance()->objectSelected("", nullptr);
+    return;
+  }
+
   MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0,
     toggle?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
   MainWindow::getInstance()->objectSelected((bodies[useObjIdx])->getObject()->getID(), bodies[useObjIdx]);
