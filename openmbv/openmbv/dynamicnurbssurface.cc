@@ -68,8 +68,8 @@ DynamicNurbsSurface::DynamicNurbsSurface(const std::shared_ptr<OpenMBV::Object> 
 }
 
 double DynamicNurbsSurface::update() {
-  int frame = MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data = nurbssurface->getRow(frame);
+  int frame = MainWindow::getInstance()->getFrame()[0];
+  auto data = nurbssurface->getRow(frame);
 
   SbColor *colorData = mat->diffuseColor.startEditing();
   SbColor *specData = mat->specularColor.startEditing();

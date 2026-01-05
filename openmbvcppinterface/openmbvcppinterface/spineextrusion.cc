@@ -47,7 +47,12 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
     case cardanWrtWorld:
       E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorld'");
       break;
+    case cardanWrtWorldShader:
+      E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorldShader'");
+      break;
   }
+  E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
+  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
   E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
   if( stateOffSet.size() > 0 )
@@ -61,7 +66,7 @@ void SpineExtrusion::createHDF5File() {
   columns.emplace_back("Time");
   switch(csOri) {
     case orthogonalWithTwist:
-      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
+      data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+4*numberOfSpinePoints);
       for(int i=0;i<numberOfSpinePoints;i++) {
         columns.push_back("x"+fmatvec::toString(i));
         columns.push_back("y"+fmatvec::toString(i));
@@ -70,7 +75,8 @@ void SpineExtrusion::createHDF5File() {
       }
       break;
     case cardanWrtWorld:
-      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+6*numberOfSpinePoints);
+    case cardanWrtWorldShader:
+      data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+6*numberOfSpinePoints);
       for(int i=0;i<numberOfSpinePoints;i++) {
         columns.push_back("x"+fmatvec::toString(i));
         columns.push_back("y"+fmatvec::toString(i));
@@ -88,7 +94,7 @@ void SpineExtrusion::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;
@@ -106,11 +112,18 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   if(e) {
     auto cs = E(e)->getText<string>();
     cs = cs.substr(1, cs.length()-2);
-    if     (cs == "orthogonalWithTwist") csOri = orthogonalWithTwist;
-    else if(cs == "cardanWrtWorld"     ) csOri = cardanWrtWorld;
+    if     (cs == "orthogonalWithTwist" ) csOri = orthogonalWithTwist;
+    else if(cs == "cardanWrtWorld"      ) csOri = cardanWrtWorld;
+    else if(cs == "cardanWrtWorldShader") csOri = cardanWrtWorldShader;
     else
       throw runtime_error("Unknown 'crossSectionOrientation'");
   }
+  setCounterClockWise(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"counterClockWise");
+  if(e) setCounterClockWise(E(e)->getText<bool>());
+  setUpdateNormals(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");
+  if(e) setUpdateNormals(E(e)->getText<bool>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
   setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");

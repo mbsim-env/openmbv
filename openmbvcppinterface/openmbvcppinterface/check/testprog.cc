@@ -8,6 +8,8 @@
 #include "config.h"
 #include <cassert>
 #include <cfenv>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cuboid.h>
 #include <openmbvcppinterface/cube.h>
@@ -21,12 +23,16 @@
 #include <openmbvcppinterface/coilspring.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
 #include <openmbvcppinterface/ivbody.h>
+#include <openmbvcppinterface/dynamicivbody.h>
+#include <openmbvcppinterface/spineextrusion.h>
 #include <iostream>
 
 using namespace OpenMBV;
 using namespace std;
 
 void walkHierarchy(const shared_ptr<Group> &grp);
+void dynamicivbody();
+void spineextrusion();
 
 int main() {
 #ifdef _WIN32
@@ -163,7 +169,7 @@ int main() {
 
   g->write();
 
-  vector<double> row(8);
+  vector<Float> row(8);
   for(int i=0; i<10; i++) {
     row[1]=i/10.0;
     c2->append(row);
@@ -215,6 +221,9 @@ int main() {
   if(c->getLength()!=22.2) return  1;
   
   }
+
+  dynamicivbody();
+  spineextrusion();
 }
 
 void walkHierarchy(const shared_ptr<Group> &grp) {
@@ -228,5 +237,91 @@ void walkHierarchy(const shared_ptr<Group> &grp) {
       shared_ptr<Body> b=dynamic_pointer_cast<Body>(o);
       cout<<o->getFullName()<<" [rows="<<b->getRows()<<"]"<<endl;
     }
+  }
+}
+
+void dynamicivbody() {
+  shared_ptr<Group> g=ObjectFactory::create<Group>();
+  g->setName("dynamicivbody");
+  g->setFileName("dynamicivbody.ombvx");
+    auto sp(ObjectFactory::create<DynamicIvBody>());
+    g->addObject(sp);
+    sp->setName("ivobject");
+    sp->setIvFileName("dynamicivbody.iv");
+    int Nsp=2000;
+    int Nc=200;
+    int Tt=1000;
+    sp->setDataSize(1+6*Nsp);
+    auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
+    double r=0.1;
+    contour->emplace_back(PolygonPoint::create(0,r,1));
+    contour->emplace_back(PolygonPoint::create(0,0,1));
+    contour->emplace_back(PolygonPoint::create(r,0,1));
+    double da=M_PI/2/(Nc-2);
+    for(double a=da; a<M_PI/2-da/2; a+=da)
+      contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
+    std::reverse(contour->begin(), contour->end());
+  g->write();
+
+  vector<Float> data(1+6*Nsp);
+  double Tend=1;
+  for(double t=0; t<Tend; t+=Tend/Tt) {
+    data[0]=t;
+    for(int Isp=0; Isp<Nsp; ++Isp) {
+      double R=0.3*cos(2*M_PI*10*t);
+      double x=static_cast<double>(Isp)/Nsp*2*M_PI;
+      data[6*Isp+1] = x;
+      data[6*Isp+2] = R*sin(x);
+      data[6*Isp+3] = 0;
+      data[6*Isp+4] = 0;
+      data[6*Isp+5] = 0;
+      data[6*Isp+6] = M_PI/2+atan(R*cos(x));
+    }
+    sp->append(data);
+  }
+}
+
+void spineextrusion() {
+  shared_ptr<Group> g=ObjectFactory::create<Group>();
+  g->setName("spineextrusion");
+  g->setFileName("spineextrusion.ombvx");
+    auto sp(ObjectFactory::create<SpineExtrusion>());
+    g->addObject(sp);
+    sp->setName("ivobject");
+    int Nsp=2000;
+    int Nc=200;
+    int Tt=1000;
+    auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
+    double r=0.1;
+    contour->emplace_back(PolygonPoint::create(0,r,1));
+    contour->emplace_back(PolygonPoint::create(0,0,1));
+    contour->emplace_back(PolygonPoint::create(r,0,1));
+    double da=M_PI/2/(Nc-2);
+    for(double a=da; a<M_PI/2-da/2; a+=da)
+      contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
+    std::reverse(contour->begin(), contour->end());
+    sp->setNumberOfSpinePoints(Nsp);
+    sp->setDiffuseColor(120.0/360,1,1);
+    sp->setContour(contour);
+    sp->setCrossSectionOrientation(SpineExtrusion::cardanWrtWorldShader);
+    sp->setCounterClockWise(true);
+
+  g->write();
+
+  vector<Float> data(1+6*Nsp);
+  double Tend=1;
+  for(double t=0; t<Tend; t+=Tend/Tt) {
+    data[0]=t;
+    for(int Isp=0; Isp<Nsp; ++Isp) {
+      double R=0.3*cos(2*M_PI*10*t);
+      double x=static_cast<double>(Isp)/Nsp*2*M_PI;
+      data[6*Isp+1] = x;
+      data[6*Isp+2] = R*sin(x);
+      data[6*Isp+3] = 0;
+      data[6*Isp+4] = 0;
+      data[6*Isp+5] = 0;
+      data[6*Isp+6] = M_PI/2+atan(R*cos(x));
+    }
+    sp->append(data);
   }
 }

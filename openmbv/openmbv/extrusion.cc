@@ -106,14 +106,17 @@ Extrusion::Extrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
       if(hasHeight) {
         SbVec3f n1((*c)[r]->getYComponent()-(*c)[rp]->getYComponent(),(*c)[rp]->getXComponent()-(*c)[r]->getXComponent(),0); n1.normalize();
         SbVec3f n2((*c)[rn]->getYComponent()-(*c)[r]->getYComponent(),(*c)[r]->getXComponent()-(*c)[rn]->getXComponent(),0); n2.normalize();
-        if(((int)((*c)[r]->getBorderValue()+0.5))!=1)
-          n1=n2=n1+n2;
+        if((round((*c)[r]->getBorderValue()))!=1) {
+          n2=n1+n2;
+          n2.normalize();
+          n1=n2;
+        }
         n->vector.set1Value(2*r+0, n1);
         n->vector.set1Value(2*r+1, n2);
       }
       ol1->coordIndex.set1Value(r, 2*r+0);
       ol2->coordIndex.set1Value(r, 2*r+1);
-      if(((int)((*c)[r]->getBorderValue()+0.5))==1) {
+      if((round((*c)[r]->getBorderValue()))==1) {
         ol3->coordIndex.set1Value(nr++, 2*r+0);
         ol3->coordIndex.set1Value(nr++, 2*r+1);
         ol3->coordIndex.set1Value(nr++, -1);

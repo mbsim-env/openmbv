@@ -18,6 +18,8 @@ lic_DATA = qt-unix-signals/LICENCE
 
 lib_LTLIBRARIES = libopenmbv.la
 libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) $(HDF5SERIE_CFLAGS) $(QWT_CFLAGS)
+#libopenmbv_la_CPPFLAGS = -fopenmp $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(SOQT_CFLAGS) $(HDF5SERIE_CFLAGS) $(QWT_CFLAGS)
+#libopenmbv_la_LDFLAGS  = -fopenmp
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@
 libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   body.cc\
@@ -30,6 +32,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   invisiblebody.cc\
   frustum.cc\
   ivbody.cc\
+  dynamicivbody.cc\
   ivscreenannotation.cc\
   frame.cc\
   grid.cc\
@@ -47,7 +50,11 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   SoQtMyViewer.cc \
   mytouchwidget.cc\
   touchtreewidget.cc\
+  SoSpecial.cc \
   SoTransposeEngine.cc \
+  SoDecomposeArray1fToVec3fEngine.cc \
+  SoCardanRotationEngine.cc \
+  SoStringFormatEngine.cc \
   spineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc \
@@ -114,6 +121,7 @@ QT_BUILT_SOURCES = \
   invisiblebody.moc.cc\
   frustum.moc.cc\
   ivbody.moc.cc\
+  dynamicivbody.moc.cc\
   ivscreenannotation.moc.cc\
   frame.moc.cc\
   grid.moc.cc\
@@ -128,13 +136,16 @@ BUILT_SOURCES = $(QT_BUILT_SOURCES) $(MAYBE_SIGWATCH_MOC)
 bin_PROGRAMS = openmbv
 openmbv_SOURCES = main.cc
 openmbv_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(SOQT_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAGS) $(QWT_CFLAGS)
-openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ $(MAYBE_WIN32_openmbv_OBJ)
+openmbv_LDADD    = libopenmbv.la $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(COIN_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@ $(MAYBE_WIN32_openmbv_OBJ)
 
 
 
 libopenmbv_ladir = $(includedir)/openmbv
 libopenmbv_la_HEADERS = mainwindow.h\
   SoTransposeEngine.h \
+  SoDecomposeArray1fToVec3fEngine.h \
+  SoCardanRotationEngine.h \
+  SoStringFormatEngine.h \
   SoSpecial.h\
   object.h\
   utils.h\
@@ -152,6 +163,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   invisiblebody.h\
   frustum.h\
   ivbody.h\
+  dynamicivbody.h\
   ivscreenannotation.h\
   frame.h\
   grid.h\
@@ -240,6 +252,7 @@ dist_icon_DATA = openmbv.svg \
   invisiblebody.svg \
   frustum.svg \
   ivbody.svg \
+  dynamicivbody.svg \
   play.svg \
   lastframe.svg \
   stop.svg \
@@ -270,6 +283,9 @@ dist_icon_DATA = openmbv.svg \
   pointsize.svg \
   cover.png \
   knurl.png
+
+sharedir = @datadir@/openmbv
+dist_share_DATA = spineextrusion.iv
 
 # guihelp.html
 docdir = @datadir@/openmbv/doc

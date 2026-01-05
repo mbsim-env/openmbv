@@ -145,9 +145,9 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override {
+      std::vector<Float> getRow(int i) override {
         int NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
-        return data?data->getRow(i):std::vector<double>(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
+        return data?data->getRow(i):std::vector<Float>(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
       }
 
       /** Initializes the time invariant part of the object using a XML node */
@@ -160,7 +160,7 @@ namespace OpenMBV {
       ~NurbsDisk() override;
 
       /** Each row comprises [time,]. */
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
 
       /**
        * \brief String that contains, whether reference Frame should be drawn (="True") or not (="False")

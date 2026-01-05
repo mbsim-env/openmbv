@@ -53,29 +53,17 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   else
     parentItem->insertChild(ind, this); // insert at position ind
   setFlags(flags() | Qt::ItemIsEditable);
-
-  // enable or disable
-  QPalette palette;
-  if((dynamic_cast<Object*>(parentItem)==nullptr && obj->getEnable()) || (obj->getEnable() && ((Object*)parentItem)->drawThisPath)) {
-    drawThisPath=true;
-    setData(0, Qt::UserRole, true); // UserRole is used by AbstractViewFilter for normal/grayed items
-    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Active, QPalette::Text));
-  }
-  else {
-    drawThisPath=false;
-    setData(0, Qt::UserRole, false); // UserRole is used by AbstractViewFilter for normal/grayed items
-    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Disabled, QPalette::Text));
-  }
   
   // craete so basics (Separator)
   soSwitch=new SoSwitch;
   soParent->addChild(soSwitch); // parent so
   soSwitch->ref();
-  soSwitch->whichChild.setValue(obj->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soSep=new SoSeparator;
   objectMap.emplace(soSep, this);
   soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
+
+  updateEnable();
 
   // switch for bounding box
   soBBoxSwitch=new SoSwitch;
@@ -158,9 +146,12 @@ void Object::createProperties() {
   properties->addContextAction(deleteObject);
 
   if(!clone) {
-    auto *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw");
+    auto *enableEditor=new BoolEditor(properties, Utils::QIconCached("drawobject.svg"), "Draw object", "Object::draw", false);
     enableEditor->setOpenMBVParameter(object, &OpenMBV::Object::getEnable, &OpenMBV::Object::setEnable);
     properties->addPropertyAction(enableEditor->getAction()); // add this editor also to the context menu for convinience
+    connect(enableEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      updateEnable();
+    });
 
     boundingBoxEditor=new BoolEditor(properties, Utils::QIconCached("bbox.svg"), "Show bounding box", "Object::boundingBox", false);
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
@@ -248,6 +239,36 @@ void Object::setHighlight(bool value) {
   // update boundingbox action if true
   if(value)
     nodeSensorCB(this, nullptr);
+}
+
+void Object::updateEnable() {
+  // enable or disable
+  QPalette palette;
+  QTreeWidgetItem *parentItem = QTreeWidgetItem::parent();
+  if((dynamic_cast<Object*>(parentItem)==nullptr && object->getEnable()) || (object->getEnable() && ((Object*)parentItem)->drawThisPath)) {
+    drawThisPath=true;
+    setData(0, Qt::UserRole, true); // UserRole is used by AbstractViewFilter for normal/grayed items
+    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Active, QPalette::Text));
+  }
+  else {
+    drawThisPath=false;
+    setData(0, Qt::UserRole, false); // UserRole is used by AbstractViewFilter for normal/grayed items
+    setData(0, Qt::ForegroundRole, palette.brush(QPalette::Disabled, QPalette::Text));
+  }
+  function<void(QTreeWidgetItem *item, bool enable)> walk;
+  walk = [&walk](QTreeWidgetItem *item, bool enable) {
+    for(int i=0; i<item->childCount(); ++i) {
+      auto c = static_cast<Object*>(item->child(i));
+      c->drawThisPath = enable;
+      QPalette palette;
+      c->setData(0, Qt::UserRole, enable); // UserRole is used by AbstractViewFilter for normal/grayed items
+      c->setData(0, Qt::ForegroundRole, palette.brush(enable ? QPalette::Active : QPalette::Disabled, QPalette::Text));
+      walk(c, enable);
+    }
+  };
+  walk(this, drawThisPath);
+
+  soSwitch->whichChild.setValue(object->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
 }
 
 }

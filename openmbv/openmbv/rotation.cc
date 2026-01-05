@@ -107,8 +107,11 @@ Rotation::Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
       // normal
       SbVec2f np((*contour)[c]->getYComponent()-(*contour)[cp]->getYComponent(),(*contour)[cp]->getXComponent()-(*contour)[c]->getXComponent()); np.normalize(); //x-y-plane
       SbVec2f nn((*contour)[cn]->getYComponent()-(*contour)[c]->getYComponent(),(*contour)[c]->getXComponent()-(*contour)[cn]->getXComponent()); nn.normalize(); //x-y-plane
-      if(((int)((*contour)[c]->getBorderValue()+0.5))!=1)
-        nn=np=nn+np;
+      if((round((*contour)[c]->getBorderValue()))!=1) {
+        np=nn+np;
+        np.normalize();
+        nn=np;
+      }
       n->vector.set1Value(nrn++, np[0]*cos(a),np[1],np[0]*sin(a));
       n->vector.set1Value(nrn++, nn[0]*cos(a),nn[1],nn[0]*sin(a));
       // face
@@ -125,11 +128,11 @@ Rotation::Rotation(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem 
         f->normalIndex.set1Value(nrf++, -1);
       }
       // line
-      if(((int)((*contour)[c]->getBorderValue()+0.5))==1)
+      if((round((*contour)[c]->getBorderValue()))==1)
         l->coordIndex.set1Value(nrl++, rs*c+r);
     }
     // line
-    if(((int)((*contour)[c]->getBorderValue()+0.5))==1) {
+    if((round((*contour)[c]->getBorderValue()))==1) {
       if(!open)
         l->coordIndex.set1Value(nrl++, rs*c+0);
       l->coordIndex.set1Value(nrl++, -1);

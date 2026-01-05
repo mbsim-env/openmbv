@@ -109,7 +109,7 @@ const std::vector<std::string>& IvScreenAnnotation::getColumnLabels() const {
 void IvScreenAnnotation::createHDF5File() {
   Body::createHDF5File();
 
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+columnLabels.size());
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+columnLabels.size());
   vector<string> colNames(1+columnLabels.size());
   colNames[0] = "time";
   for(size_t i=0; i<columnLabels.size(); ++i)
@@ -122,7 +122,7 @@ void IvScreenAnnotation::openHDF5File() {
 
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
 
     // handle legacy data (no "time" columns as first col)
     if(columnLabels.size() == data->getColumns())

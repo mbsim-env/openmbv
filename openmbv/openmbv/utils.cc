@@ -77,7 +77,7 @@ const QIcon& Utils::QIconCached(const string &basefilename) {
   return ins.first->second;
 }
 
-SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t hash) {
+SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, const optional<size_t> &hash, const function<void(SoInput&)> &inFunc) {
   boost::filesystem::path fn(filename);
   if(!boost::filesystem::exists(fn)) {
     QString str("IV file %1 does not exist."); str=str.arg(filename.c_str());
@@ -85,44 +85,66 @@ SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, size_t has
     msgStatic(Warn)<<str.toStdString()<<endl;
     return new SoSeparator;
   }
-  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash));
-  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
-  auto newFileTime = boost::myfilesystem::last_write_time(filename);
-  if(created || newFileTime > it->second.fileTime) {
-    it->second.fileTime = newFileTime;
+  auto load = [&]() {
     SoInput in;
     if(in.openFile(filename.c_str(), true)) { // if file can be opened, read it
-      it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
+      MainWindow::getInstance()->addReferences(in);
+      if(inFunc)
+        inFunc(in);
+      return SoDB::readAll(&in);
+    }
+    return static_cast<SoSeparator*>(nullptr);
+  };
+  if(hash) {
+    size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(boost::filesystem::canonical(fn).string(), hash.value()));
+    auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
+    auto newFileTime = boost::myfilesystem::last_write_time(filename);
+    if(created || newFileTime > it->second.fileTime) {
+      it->second.fileTime = newFileTime;
+      it->second.sep.reset(load());
       if(it->second.sep)
         return it->second.sep.get();
+      // error case
+      QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+      ivCache.erase(it);
+      return nullptr;
     }
-    // error case
-    QString str("Failed to load IV file %1."); str=str.arg(filename.c_str());
-    MainWindow::getInstance()->statusBar()->showMessage(str);
-    msgStatic(Warn)<<str.toStdString()<<endl;
-    ivCache.erase(it);
-    return nullptr;
+    return it->second.sep.get();
   }
-  return it->second.sep.get();
+  else {
+    return load();
+  }
 }
 
-SoSeparator* Utils::SoDBreadAllContentCached(const string &content, size_t hash) {
-  size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash));
-  auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
-  if(created) {
+SoSeparator* Utils::SoDBreadAllContentCached(const string &content, const optional<size_t> &hash, const function<void(SoInput&)> &inFunc) {
+  auto load = [&]() {
     SoInput in;
     in.setBuffer(content.data(), content.size());
-    it->second.sep.reset(SoDB::readAll(&in)); // stored in a global cache => false positive in valgrind
-    if(it->second.sep)
-      return it->second.sep.get();
-    // error case
-    QString str("Failed to load IV content from string.");
-    MainWindow::getInstance()->statusBar()->showMessage(str);
-    msgStatic(Warn)<<str.toStdString()<<endl;
-    ivCache.erase(it);
-    return nullptr;
+    MainWindow::getInstance()->addReferences(in);
+    if(inFunc)
+      inFunc(in);
+    return SoDB::readAll(&in);
+  };
+  if(hash) {
+    size_t fullHash = boost::hash<pair<string, size_t>>{}(make_pair(content, hash.value()));
+    auto [it, created]=ivCache.emplace(fullHash, SoDeleteSeparator());
+    if(created) {
+      it->second.sep.reset(load());
+      if(it->second.sep)
+        return it->second.sep.get();
+      // error case
+      QString str("Failed to load IV content from string.");
+      MainWindow::getInstance()->statusBar()->showMessage(str);
+      msgStatic(Warn)<<str.toStdString()<<endl;
+      ivCache.erase(it);
+      return nullptr;
+    }
+    return it->second.sep.get();
   }
-  return it->second.sep.get();
+  else
+    return load();
 }
 
 SoNode* Utils::getChildNodeByName(SoGroup *sep, const SbName &name) {
@@ -149,7 +171,7 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
   if(pickBBoxAble)
     sep=new SoSeparator;
   else
-    sep=new SoSepNoPickNoBBox;
+    sep=new SepNoPickNoBBox;
 
   SoBaseColor *col;
   SoLineSet *line;
@@ -1206,7 +1228,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->glViewer->setAspectRatio(value);
     if(MainWindow::getInstance()->glViewerRight)
       MainWindow::getInstance()->glViewerRight->setAspectRatio(value);
-    MainWindow::getInstance()->frame->touch();
+    MainWindow::getInstance()->frameNode->index.touch();
   }, 0, numeric_limits<double>::max(), 0.5);
   new ChoiceSetting(stereoView, AppSettings::cameraType, Utils::QIconCached("camera.svg"), "Camera type:",
                     {{"Orthographic", "Orthographic projection, disabled for for stereo view."},

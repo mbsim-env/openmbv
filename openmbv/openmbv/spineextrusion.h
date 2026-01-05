@@ -25,6 +25,7 @@
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/SbLinear.h>
 #include <Inventor/fields/SoMFMatrix.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 #include <hdf5serie/vectorserie.h>
 #include <QMenu>
 
@@ -32,7 +33,37 @@ namespace OpenMBV {
   class SpineExtrusion;
 }
 
+class SoNormal;
+
 namespace OpenMBVGUI {
+
+class ExtrusionCardan {
+  public:
+    void init(int spSize, const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour,
+              double csScale, bool ccw,
+              SoSeparator *soSep, SoSeparator *soOutLineSep);
+    void setCardanWrtWorldSpine(const std::vector<OpenMBV::Float>& data, bool updateNormals=true);
+  private:
+    std::vector<SbVec3f> nsp;
+    std::vector<SbVec3f> normal;
+    SoCoordinate3 *quadMeshCoords;
+    SoNormal *quadMeshNormals;
+    SoTranslation *endCupTrans[2];
+    SoRotation *endCupRot[2];
+};
+
+class ExtrusionCardanShader {
+  public:
+    void init(int NSp, SoMaterial *mat, double csScale, bool ccw,
+              const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
+    void updateData(const std::vector<OpenMBV::Float>& data);
+  private:
+    SoShaderParameterArray1f *dataNodeVector;
+    int Nsp;
+    double csScale;
+    std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > contour;
+    SoCoordinate3 *coords;
+};
 
 /**
  * \brief class for extrusion along a curve
@@ -73,8 +104,10 @@ class SpineExtrusion : public DynamicColoredBody {
 
     int doublesPerPoint;
 
-    void setIvSpine(const std::vector<double>& data);
-    SoMFMatrix scpOri;
+    void setIvSpine(const std::vector<OpenMBV::Float>& data);
+
+    ExtrusionCardan extrusionCardan;
+    ExtrusionCardanShader extrusionCardanShader;
 };
 
 }

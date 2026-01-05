@@ -64,6 +64,7 @@ class Body : public Object {
     std::shared_ptr<OpenMBV::Body> body;
     SoSwitch *soOutLineSwitch, *soShilouetteEdgeSwitch;
     SoSeparator *soOutLineSep, *soShilouetteEdgeSep;
+    SoGroup *soOutLineStyle;
     static std::map<SoNode*,Body*> bodyMap;
     void createProperties() override;
     friend class IndexedTesselationFace;

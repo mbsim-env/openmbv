@@ -17,36 +17,31 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 */
 
-#ifndef _OPENMBVGUI_DYNAMICCOLOREDBODY_H_
-#define _OPENMBVGUI_DYNAMICCOLOREDBODY_H_
+#ifndef _OPENMBVGUI_VIOBJECT_H_
+#define _OPENMBVGUI_VIOBJECT_H_
 
 #include "body.h"
-#include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
-#include <Inventor/nodes/SoMaterial.h>
-#include <Inventor/nodes/SoBaseColor.h>
-#include "editors.h"
 
 namespace OpenMBV {
-  class DynamicColoredBody;
+  class DynamicIvBody;
 }
+
+class SoShaderParameterArray1f;
+class SoShaderParameter1f;
 
 namespace OpenMBVGUI {
 
-class DynamicColoredBody : public Body {
+class DynamicIvBody : public Body {
   Q_OBJECT
-  protected:
-    double minimalColorValue, maximalColorValue;
-    SoMaterial *mat;
-    std::vector<double> diffuseColor;
-    double color,oldColor;
-    void setColor(double col);
-    void setHueColor(double hue);
-    double getColor() { return color; }
-    std::shared_ptr<OpenMBV::DynamicColoredBody> dcb;
-    void createProperties() override;
   public:
-    DynamicColoredBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind, bool perVertexIndexed=false);
-    QString getInfo() override;
+    DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    ~DynamicIvBody() override;
+  protected:
+    std::shared_ptr<OpenMBV::DynamicIvBody> divb;
+    double update() override;
+    SoShaderParameterArray1f *dataNodeVector;
+    std::vector<SoShaderParameter1f*> dataNodeScalar;
+    std::vector<OpenMBV::Float> data;
 };
 
 }

@@ -14,7 +14,7 @@ namespace OpenMBVGUI {
 SO_NODE_SOURCE(IndexedTesselationFace);
 
 void IndexedTesselationFace::initClass() {
-  SO_NODE_INIT_CLASS(IndexedTesselationFace, SoGroup, "Group");
+  SO_NODE_INIT_CLASS(IndexedTesselationFace, SoSeparator, "Separator");
 }
 
 void IndexedTesselationFace::constructor() {
@@ -34,7 +34,7 @@ IndexedTesselationFace::IndexedTesselationFace()  {
   constructor();
 }
 
-IndexedTesselationFace::IndexedTesselationFace(int numChilderen) : SoGroup(numChilderen) {
+IndexedTesselationFace::IndexedTesselationFace(int numChilderen) : SoSeparator(numChilderen) {
   constructor();
 }
 
@@ -52,7 +52,7 @@ void IndexedTesselationFace::write(SoWriteAction *action) {
   }
   // remove all internal children and write out without any internal children
   removeAllChildren();
-  SoGroup::write(action);
+  SoSeparator::write(action);
   // restore all internal children
   for(int i=0; i<nr; i++) {
     addChild(child[i]);

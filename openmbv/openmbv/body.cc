@@ -60,7 +60,7 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   if(p) { // do nothing for rigidbodies inside a compountrigidbody
     // register callback function on frame change
     frameSensor=new SoFieldSensor(frameSensorCB, this);
-    frameSensor->attach(MainWindow::getInstance()->getFrame());
+    frameSensor->attach(&MainWindow::getInstance()->getFrame());
     frameSensor->setPriority(0); // is needed for png export
   }
 
@@ -70,14 +70,16 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   soOutLineSwitch->whichChild.setValue(body->getOutLine()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   soOutLineSep=new SoSeparator;
   soOutLineSwitch->addChild(soOutLineSep);
+  soOutLineStyle = new SoGroup;
+  soOutLineSep->addChild(soOutLineStyle);
   auto *lm=new SoLightModel;
-  soOutLineSep->addChild(lm);
+  soOutLineStyle->addChild(lm);
   lm->model.setValue(SoLightModel::BASE_COLOR);
-  soOutLineSep->addChild(MainWindow::getInstance()->getOlseColor());
-  soOutLineSep->addChild(MainWindow::getInstance()->getOlseDrawStyle());
+  soOutLineStyle->addChild(MainWindow::getInstance()->getOlseColor());
+  soOutLineStyle->addChild(MainWindow::getInstance()->getOlseDrawStyle());
   // render outlines without backface culling
   auto *sh=new SoShapeHints;
-  soOutLineSep->addChild(sh);
+  soOutLineStyle->addChild(sh);
   sh->shapeType=SoShapeHints::UNKNOWN_SHAPE_TYPE;
 
   // switch for shilouette edge
@@ -116,7 +118,7 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
   shilouetteEdgeOrientationSensor=new SoFieldSensor(shilouetteEdgeFrameOrCameraSensorCB, this);
   if(body->getShilouetteEdge()) {
     soShilouetteEdgeSwitch->whichChild.setValue(SO_SWITCH_ALL);
-    shilouetteEdgeFrameSensor->attach(MainWindow::getInstance()->getFrame());
+    shilouetteEdgeFrameSensor->attach(&MainWindow::getInstance()->getFrame());
     shilouetteEdgeOrientationSensor->attach(&MainWindow::getInstance()->glViewer->getCamera()->orientation);
     MainWindow::getInstance()->glViewer->getCamera()->orientation.touch();
   }
@@ -159,9 +161,12 @@ void Body::createProperties() {
 
   // GUI editors
   if(!clone) {
-    auto *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outLine");
+    auto *outLineEditor=new BoolEditor(properties, Utils::QIconCached("outline.svg"), "Draw out-line", "Body::outLine", false);
     outLineEditor->setOpenMBVParameter(body, &OpenMBV::Body::getOutLine, &OpenMBV::Body::setOutLine);
     properties->addPropertyAction(outLineEditor->getAction());
+    connect(outLineEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      soOutLineSwitch->whichChild.setValue(b?SO_SWITCH_ALL:SO_SWITCH_NONE);
+    });
 
     auto *shilouetteEdgeEditor=new BoolEditor(properties, Utils::QIconCached("shilouetteedge.svg"), "Draw shilouette edge", "Body::shilouetteEdge");
     shilouetteEdgeEditor->setOpenMBVParameter(body, &OpenMBV::Body::getShilouetteEdge, &OpenMBV::Body::setShilouetteEdge);
@@ -171,9 +176,16 @@ void Body::createProperties() {
       make_tuple(OpenMBV::Body::filled, "Filled", Utils::QIconCached("filled.svg"), "Body::drawStyle::filled"),
       make_tuple(OpenMBV::Body::lines,  "Lines",  Utils::QIconCached("lines.svg"),  "Body::drawStyle::lines"),
       make_tuple(OpenMBV::Body::points, "Points", Utils::QIconCached("points.svg"), "Body::drawStyle::points")
-    });
+    }, false);
     drawMethodEditor->setOpenMBVParameter(body, &OpenMBV::Body::getDrawMethod, &OpenMBV::Body::setDrawMethod);
     properties->addPropertyActionGroup(drawMethodEditor->getActionGroup());
+    connect(drawMethodEditor, &ComboBoxEditor::stateChanged, this, [this](int idx){
+      switch(idx) {
+        case OpenMBV::Body::filled: drawStyle->style.setValue(SoDrawStyle::FILLED); break;
+        case OpenMBV::Body::lines: drawStyle->style.setValue(SoDrawStyle::LINES); break;
+        case OpenMBV::Body::points: drawStyle->style.setValue(SoDrawStyle::POINTS); break;
+      }
+    });
 
     auto *pointSizeEditor=new FloatEditor(properties, Utils::QIconCached("pointsize.svg"), "Define point size");
     pointSizeEditor->setRange(0, DBL_MAX);

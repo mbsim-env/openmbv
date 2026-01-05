@@ -34,7 +34,7 @@ namespace OpenMBV {
    * \author Thorsten Schindler
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    *
    * The cross section is either orthogonal to the curve with a twist
    * around the curve OR
@@ -57,6 +57,14 @@ namespace OpenMBV {
    * ...,
    * spine point N x, spine point N y, spine point N z, cross section alpha N, cross section beta N, cross section gamma N
    * where alpha, beta and gamma are cardan angles.
+   *
+   * cardanWrtWorld draws the spine-extrusion with pure-basic Coin functionality. Hence, all Coin features like object picking
+   * and boundary box calculation is available. However, for very large number of cross-section points and spine points
+   * the rendering can be slow since Coin needs to update and recalculate all vertices and normals at each frame (on the CPU).
+   * cardanWrtWorldShader draws the spine-extrusion by passing the data from the HDF5 file just to vertex and fragment OpenGL
+   * shaders. The complete recalculation of the vertices and normals is then done by the shader (on the GPU).
+   * Hence, some Coin features like object picking and boundary box calculation are not available for this type.
+   * However, for very large number of cross-section points and spine points the rendering will be much faster.
    */
   class SpineExtrusion : public DynamicColoredBody {
     friend class ObjectFactory;
@@ -86,13 +94,14 @@ namespace OpenMBV {
 
       double getScaleFactor() { return scaleFactor; }
 
-      /** Set the initial rotation of the body. */
+      /** Set the initial rotation of the body.
+       * This is only used if 'crossSectionOrientation' is set to 'orthogonalWithTwist' and the initial spine
+       * is fully colinear. */
       void setInitialRotation(const std::vector<double>& initRot) {
         if(initRot.size()!=3) throw std::runtime_error("the dimension does not match");
         initialRotation=initRot;
       }
 
-      /** Set the initial rotation of the body. */
       void setInitialRotation(double a, double b, double g) {
         std::vector<double> initRot;
         initRot.push_back(a);
@@ -108,9 +117,18 @@ namespace OpenMBV {
 
       std::vector<double> getStateOffSet() { return stateOffSet; }
 
-      enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld };
+      enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld, cardanWrtWorldShader };
       void setCrossSectionOrientation(CrossSectionOrienation o) { csOri = o; }
       CrossSectionOrienation getCrossSectionOrientation() { return csOri; }
+
+      void setCounterClockWise(bool f) { ccw = f; }
+      bool getCounterClockWise() { return ccw; }
+
+      /** If true, the default, the normal vectors (and, of course the points) are update at each frame.
+       * If false, the normal vectors are only updated at the very first call but ever again.
+       * This option is only relevant for crossSectionOrientation=cardanWrtWorld and false leads to faster rendering. */
+      void setUpdateNormals(bool f) { updateNormals = f; }
+      bool getUpdateNormals() { return updateNormals; }
 
       /** Get the initial rotation of the body. */
       std::vector<double> getInitialRotation() { return initialRotation; }
@@ -123,7 +141,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(1+4*numberOfSpinePoints); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(1+4*numberOfSpinePoints); }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
@@ -141,12 +159,16 @@ namespace OpenMBV {
       std::shared_ptr<std::vector<std::shared_ptr<PolygonPoint> > > contour;
 
       /** Each row comprises [time,spine world position,spine twist,...,spine world position,spine twist]. */
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
 
       /** Scale factor of the body. */
       double scaleFactor{1};
 
       CrossSectionOrienation csOri { orthogonalWithTwist };
+
+      bool ccw { true };
+
+      bool updateNormals { true };
       
       /** Intial rotation of the body. */
       std::vector<double> initialRotation;

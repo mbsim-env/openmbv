@@ -66,37 +66,19 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     columnLabelFields[i]->setName(ivsa->getColumnLabels()[i].c_str());
   }
 
-  // load the IV content using a cache
+  // load the IV content (without caching since element specific node references must be resolved)
   string fileName=ivsa->getIvFileName();
   SoSharedPtr<SoSeparator> ivSep;
-  if(!fileName.empty()) {
-    boost::filesystem::path fn(fileName);
-    if(!boost::filesystem::exists(fn)) {
-      QString str("IV file %1 does not exist."); str=str.arg(fileName.c_str());
-      MainWindow::getInstance()->statusBar()->showMessage(str);
-      msgStatic(Warn)<<str.toStdString()<<endl;
-    }
-    else {
-      SoInput in;
-      if(in.openFile(fileName.c_str(), true)) // if file can be opened, read it
-        ivSep.reset(SoDB::readAll(&in));
-      if(!ivSep) { // error case
-        QString str("Failed to load IV file %1."); str=str.arg(fileName.c_str());
-        MainWindow::getInstance()->statusBar()->showMessage(str);
-        msgStatic(Warn)<<str.toStdString()<<endl;
-      }
-    }
-  }
-  else {
-    SoInput in;
-    in.setBuffer(ivsa->getIvContent().data(), ivsa->getIvContent().size());
-    ivSep.reset(SoDB::readAll(&in));
-    if(!ivSep) { // error case
-      QString str("Failed to load IV content from string.");
-      MainWindow::getInstance()->statusBar()->showMessage(str);
-      msgStatic(Warn)<<str.toStdString()<<endl;
-    }
-  }
+  if(!fileName.empty())
+    ivSep.reset(Utils::SoDBreadAllFileNameCached(fileName, {/*no cache*/}, [this](SoInput& in) {
+      for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+        in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+    }));
+  else
+    ivSep.reset(Utils::SoDBreadAllContentCached(ivsa->getIvContent(), {/*no cache*/}, [this](SoInput& in) {
+      for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
+        in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+    }));
   if(!ivSep)
     return;
 
@@ -164,10 +146,10 @@ double IvScreenAnnotation::update() {
   if(ivsa->getRows()==0) return 0; // do nothing for environement objects
 
   // read from hdf5
-  int frame=MainWindow::getInstance()->getFrame()->getValue();
-  vector<double> data=ivsa->getRow(frame);
+  int frame=MainWindow::getInstance()->getFrame()[0];
+  auto data=ivsa->getRow(frame);
   
-  auto setColumnLabelFields = [this](const vector<double> &data) {
+  auto setColumnLabelFields = [this](const auto &data) {
     for(size_t i=1; i<data.size(); ++i)
       columnLabelFields[i-1]->value.setValue(data[i]);
   };
@@ -175,7 +157,7 @@ double IvScreenAnnotation::update() {
 
   // path
   for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-    vector<double> data=ivsa->getRow(i);
+    auto data=ivsa->getRow(i);
     setColumnLabelFields(data);
     for(size_t idx=0; idx<pathPath.size(); ++idx) {
       gma->setViewportRegion(MainWindow::getInstance()->glViewer->getViewportRegion());

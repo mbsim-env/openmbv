@@ -30,6 +30,8 @@
 
 namespace OpenMBV {
 
+  using Float = float;
+
   using Index = int;
 
 #ifndef SWIG // SWIG can not parse this (swig bug?). However it is not needed for the swig interface -> removed for swig

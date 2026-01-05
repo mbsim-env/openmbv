@@ -94,15 +94,15 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override {
+      std::vector<Float> getRow(int i) override {
         if(!data)
-          return std::vector<double>(1+columnLabels.size());
+          return std::vector<Float>(1+columnLabels.size());
 
         auto row = data->getRow(i);
 
         // handle legacy data (no "time" column as first column)
         if(columnLabels.size() == row.size()) {
-          std::vector<double> ret(1+row.size());
+          std::vector<Float> ret(1+row.size());
           ret[0] = 0; // use 0 for time column
           for(size_t i = 0; i < row.size(); ++i)
             ret[i+1] = row[i];
@@ -119,7 +119,7 @@ namespace OpenMBV {
       std::string ivFileName;
       std::string ivContent;
       std::vector<std::string> columnLabels;
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
   };
 
 }

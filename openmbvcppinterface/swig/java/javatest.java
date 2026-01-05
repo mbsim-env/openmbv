@@ -34,6 +34,7 @@ public class javatest {
     String ret=cube.getName(); System.out.println(ret);
     boolean b=cube.getReferenceFrame(); System.out.println(b);
     double d=cube.getLength(); System.out.println(d);
+    cube.append(new float[]{0.4f, 1f, 2f, 3f, 4f, 5f, 6f, 0.25f});
     cube.append(new double[]{0.4, 1, 2, 3, 4, 5, 6, 0.25});
 
     // You need to call delete to call the dtor of group (which closes the file)

@@ -67,7 +67,7 @@ void NurbsDisk::createHDF5File() {
   DynamicColoredBody::createHDF5File();
   int NodeDofs;
   NodeDofs = (getElementNumberRadial() + 1) * (getElementNumberAzimuthal() + getInterpolationDegreeAzimuthal());
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(7+3*NodeDofs+3*getElementNumberAzimuthal()*drawDegree*2);
   vector<string> columns;
   columns.emplace_back("Time");
 
@@ -100,7 +100,7 @@ void NurbsDisk::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;

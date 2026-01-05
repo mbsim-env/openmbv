@@ -77,6 +77,10 @@
 #include <Inventor/engines/SoGate.h>
 #include <Inventor/engines/SoCalculator.h>
 #include <Inventor/fields/SoMFRotation.h>
+#include "SoDecomposeArray1fToVec3fEngine.h"
+#include "SoCardanRotationEngine.h"
+#include "SoStringFormatEngine.h"
+#include "SoSpecial.h"
 #include "exportdialog.h"
 #include "object.h"
 #include "cuboid.h"
@@ -130,7 +134,8 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   // Enable global search of USE in iv files
   static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
-  putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
+  if(getenv("COIN_SOINPUT_SEARCH_GLOBAL_DICT")==nullptr)
+    putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
 
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
@@ -146,17 +151,18 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // init SoQt and Inventor
   SoQt::init(this);
   // init user engines
+  SepNoPickNoBBox::initClass();
+  SepNoPick::initClass();
+  BaseColorHeavyOverride::initClass();
   SoTransposeEngine::initClass();
+  DecomposeArray1fToVec3fEngine::initClass();
+  CardanRotationEngine::initClass();
+  StringFormatEngine::initClass();
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
   // init realtime
   SoDB::enableRealTimeSensor(false);
   SoSceneManager::enableRealTimeUpdate(false);
-
-  // initialize global frame field
-  frame=(SoSFUInt32*)SoDB::createGlobalField("frame",SoSFUInt32::getClassTypeId());
-  frame->getContainer()->ref(); // reference the global field
-  frame->setValue(0);
 
   engDrawingBGColorSaved=new SoMFColor();
   engDrawingFGColorBottomSaved=new SoMFColor();
@@ -190,6 +196,15 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
+  frameNode = new SoColorIndex;
+  sceneRoot->addChild(frameNode);
+  frameNode->index.setValue(0);
+  frameNode->setName("openmbv_mainwindow_frame"); // needs also code in MainWindow::addReferences()
+  timeNode = new SoAlphaTest;
+  sceneRoot->addChild(timeNode);
+  timeNode->value.setValue(0);
+  timeNode->setName("openmbv_mainwindow_time"); // needs also code in MainWindow::addReferences()
+
   cameraOrientation=new SoTransposeEngine;
   cameraOrientation->ref();
   cameraPosition=new SoTransformVec3f;
@@ -198,7 +213,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   // 3D cursor
   auto *cursorAno=new SoAnnotation;
   sceneRoot->addChild(cursorAno);
-  auto *cursorSep=new SoSepNoPickNoBBox;
+  auto *cursorSep=new SepNoPickNoBBox;
   cursorAno->addChild(cursorSep);
   cursorSwitch=new SoSwitch;
   cursorSep->addChild(cursorSwitch);
@@ -274,7 +289,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   bc->setOverride(true);
   engDrawing->addChild(bc);
 
-  sceneRootBBox=new SoSepNoPick;
+  sceneRootBBox=new SepNoPick;
   sceneRoot->addChild(sceneRootBBox);
   auto *lm=new SoLightModel;
   sceneRootBBox->addChild(lm);
@@ -303,7 +318,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   worldFrameSwitch=new SoSwitch;
   sceneRoot->addChild(worldFrameSwitch);
   worldFrameSwitch->whichChild.setValue(SO_SWITCH_NONE);
-  auto *worldFrameSep=new SoSepNoPickNoBBox;
+  auto *worldFrameSep=new SepNoPickNoBBox;
   worldFrameSwitch->addChild(worldFrameSep);
   auto *drawStyle=new SoDrawStyle;
   worldFrameSep->addChild(drawStyle);
@@ -345,7 +360,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   objectList->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(objectList,&QTreeWidget::customContextMenuRequested,this, [this](const QPoint &pos){
     execPropertyMenu();
-    frame->touch(); // force rendering the scene
+    frameNode->index.touch(); // force rendering the scene
   });
   connect(objectList,&QTreeWidget::pressed, this, &MainWindow::objectListClicked);
   connect(objectList,&QTreeWidget::itemDoubleClicked,this, [this](QTreeWidgetItem *item){
@@ -697,7 +712,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
 
   // register callback function on frame change
   frameSensor=new SoFieldSensor(frameSensorCB, this);
-  frameSensor->attach(frame);
+  frameSensor->attach(&frameNode->index);
 
   hdf5RefreshDelta=appSettings->get<int>(AppSettings::hdf5RefreshDelta);
 
@@ -737,7 +752,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   complexity->value.setValue(0.2);
 
   // color for outline and shilouette edges
-  olseColor=new SoBaseColorHeavyOverride;
+  olseColor=new BaseColorHeavyOverride;
   olseColor->ref();
   olseColor->rgb.set1Value(0, 0,0,0);
 
@@ -1161,7 +1176,6 @@ MainWindow::~MainWindow() {
   delete engDrawingBGColorSaved;
   delete engDrawingFGColorBottomSaved;
   delete engDrawingFGColorTopSaved;
-  SoDB::renameGlobalField("frame", ""); // delete global field
   delete frameSensor;
   delete mouseCursorSizeField;
   delete relCursorZ;
@@ -1213,7 +1227,7 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   }
 
   // force a update
-  frame->touch();
+  frameNode->index.touch();
   // apply object filter
   objectListFilter->applyFilter();
 
@@ -1516,8 +1530,8 @@ void MainWindow::viewChange(ViewSide side) {
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
   auto *me=(MainWindow*)data;
   me->setObjectInfo(me->objectList->currentItem());
-  me->timeSlider->setValue(MainWindow::instance->getFrame()->getValue());
-  me->frameSB->setValue(MainWindow::instance->getFrame()->getValue());
+  me->timeSlider->setValue(MainWindow::instance->getFrame()[0]);
+  me->frameSB->setValue(MainWindow::instance->getFrame()[0]);
 }
 
 void MainWindow::fpsCB() {
@@ -1546,7 +1560,7 @@ void MainWindow::restartPlay() {
     // emulate anim stop click
     animTimer->stop();
     // emulate anim play click
-    animStartFrame=frame->getValue();
+    animStartFrame=frameNode->index[0];
     time->restart();
     if(fpsMax<1e-15)
       animTimer->start();
@@ -1561,7 +1575,7 @@ void MainWindow::heavyWorkSlot() {
     auto dframe=(int)(dT/deltaTime);// frame increment since play click
     unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
                         (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
-    if(frame->getValue()!=frame_) frame->setValue(frame_); // set frame => update scene
+    if(static_cast<unsigned int>(frameNode->index[0])!=frame_) frameNode->index.setValue(frame_); // set frame => update scene
     //glViewer->render(); // force rendering
   }
   else if(lastFrameAct->isChecked()) {
@@ -1583,10 +1597,10 @@ void MainWindow::heavyWorkSlot() {
     if(currentNumOfRows==0) return;
 
     // update if a new row is available
-    if(currentNumOfRows-1!=timeSlider->totalMaximum() || currentNumOfRows-1!=static_cast<int>(frame->getValue())) {
+    if(currentNumOfRows-1!=timeSlider->totalMaximum() || currentNumOfRows-1!=static_cast<int>(frameNode->index[0])) {
       timeSlider->setTotalMaximum(currentNumOfRows-1);
       timeSlider->setCurrentMaximum(currentNumOfRows-1);
-      frame->setValue(currentNumOfRows-1);
+      frameNode->index.setValue(currentNumOfRows-1);
     }
   }
 }
@@ -1612,8 +1626,8 @@ void MainWindow::hdf5RefreshSlot() {
     timeSlider->setTotalMaximum(currentNumOfRows-1);
     if(timeSlider->currentMaximum()>currentNumOfRows-1)
       timeSlider->setCurrentMaximum(currentNumOfRows-1);
-    if(static_cast<int>(frame->getValue())>currentNumOfRows-1)
-      frame->setValue(currentNumOfRows-1);
+    if(static_cast<int>(frameNode->index[0])>currentNumOfRows-1)
+      frameNode->index.setValue(currentNumOfRows-1);
     restartPlay();
   }
 }
@@ -1829,7 +1843,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       str=str.arg(pngBaseName).arg(100.0*videoFrame/lastVideoFrame,0,'f',1);
       statusBar()->showMessage(str);
       msg(Status)<<str.toStdString()<<endl;
-      frame->setValue(frame_);
+      frameNode->index.setValue(frame_);
       if(!exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent))
         break;
     }
@@ -1950,7 +1964,7 @@ void MainWindow::playSCSlot() {
 
   stopAct->setChecked(false);
   lastFrameAct->setChecked(false);
-  animStartFrame=frame->getValue();
+  animStartFrame=frameNode->index[0];
   time->restart();
   if(fpsMax<1e-15)
     animTimer->start();
@@ -2156,7 +2170,7 @@ void MainWindow::releaseCameraFromBodySlot() {
   cameraPosition->vector.setValue(0,0,0);
   cameraOrientation->inRotation.disconnect();
   cameraOrientation->inRotation.setValue(0,0,0,1);
-  frame->touch(); // enforce update
+  frameNode->index.touch(); // enforce update
 }
 
 void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
@@ -2169,7 +2183,7 @@ void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
   glViewer->getCamera()->position.setValue(yy);
   cameraPosition->vector.connectFrom(pos);
   cameraOrientation->inRotation.connectFrom(rot);
-  frame->touch(); // enforce update
+  frameNode->index.touch(); // enforce update
 }
 
 void MainWindow::showWorldFrameSlot() {
@@ -2414,7 +2428,7 @@ void MainWindow::setNearPlaneValue(float value) {
     glViewer->setAutoClippingStrategy(SoQtMyViewer::CONSTANT_NEAR_PLANE, nearPlaneValue);
   else
     glViewer->setAutoClippingStrategy(SoQtMyViewer::VARIABLE_NEAR_PLANE, nearPlaneValue);
-  frame->touch();
+  frameNode->index.touch();
 }
 
 void MainWindow::repackFile() {
@@ -2559,6 +2573,11 @@ void MainWindow::updateBackgroundNeeded() {
   sa.apply(sceneRoot);
   if(sa.getPaths().getLength()>0)
     backgroundNeeded = false;
+}
+
+void MainWindow::addReferences(SoInput &in) const {
+  in.addReference("openmbv_mainwindow_frame", frameNode);
+  in.addReference("openmbv_mainwindow_time", timeNode);
 }
 
 }

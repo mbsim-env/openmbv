@@ -41,8 +41,10 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case tube: typeStr="tube"; break;
     case scaledTube: typeStr="scaledTube"; break;
     case polyline: typeStr="polyline"; break;
+    case tubeShader: typeStr="tubeShader"; break;
   }
   E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
+  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
   E(e)->addElementText(OPENMBV%"numberOfCoils", numberOfCoils);
   E(e)->addElementText(OPENMBV%"springRadius", springRadius);
   E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
@@ -53,7 +55,7 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
 
 void CoilSpring::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(8);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(8);
   vector<string> columns;
   columns.emplace_back("Time");
   columns.emplace_back("fromPoint x");
@@ -70,7 +72,7 @@ void CoilSpring::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;
@@ -88,7 +90,11 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
     if(typeStr=="tube") setType(tube);
     if(typeStr=="scaledTube") setType(scaledTube);
     if(typeStr=="polyline") setType(polyline);
+    if(typeStr=="tubeShader") setType(tubeShader);
   }
+  setUpdateNormals(true);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");
+  if(e) setUpdateNormals(E(e)->getText<bool>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"numberOfCoils");
   setNumberOfCoils(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"springRadius");

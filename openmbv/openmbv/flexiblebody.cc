@@ -47,8 +47,8 @@ FlexibleBody::FlexibleBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWid
 }
 
 double FlexibleBody::update() {
-  int frame = MainWindow::getInstance()->getFrame()->getValue();
-  std::vector<double> data = body->getRow(frame);
+  int frame = MainWindow::getInstance()->getFrame()[0];
+  auto data = body->getRow(frame);
 
   SbColor *colorData = mat->diffuseColor.startEditing();
   SbColor *specData = mat->specularColor.startEditing();

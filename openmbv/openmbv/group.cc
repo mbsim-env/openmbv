@@ -176,8 +176,8 @@ void Group::refreshFileSlot() {
   // if we are at the first frame we may need to redraw (refresh the scene) since the first frame may
   // also be the ALL NULL position.
   auto *mw=MainWindow::getInstance();
-  if(mw->frame->getValue()==0 && object->getParent().expired()) // only needed for the root Group (which has no parent)
-    mw->frame->setValue(0); // this calls a redraw of the scene
+  if(mw->frameNode->index[0]==0 && object->getParent().expired()) // only needed for the root Group (which has no parent)
+    mw->frameNode->index.setValue(0); // this calls a redraw of the scene
 }
 
 void Group::requestFlush() {

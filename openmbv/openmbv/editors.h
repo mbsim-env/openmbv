@@ -145,7 +145,7 @@ class FloatEditor : public Editor {
 
   public:
     /*! Constructor. */
-    FloatEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name);
+    FloatEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name, bool replaceObjOnChange_=true);
 
     /*! Set the valid range of the double value */
     void setRange(double min, double max) { spinBox->blockSignals(true); spinBox->setRange(min, max); spinBox->blockSignals(false); }
@@ -167,6 +167,9 @@ class FloatEditor : public Editor {
     template<class OMBVClass>
     void setOpenMBVParameter(std::shared_ptr<OMBVClass> &ombv_, double (OMBVClass::*getter)(), void (OMBVClass::*setter)(double));
 
+  Q_SIGNALS:
+    void stateChanged(double s);
+
   protected:
     void valueChangedSlot(double);
 
@@ -174,6 +177,8 @@ class FloatEditor : public Editor {
     QDoubleSpinBox *spinBox;
     std::function<double ()> ombvGetter;
     std::function<void (double)> ombvSetter;
+
+    bool replaceObjOnChange;
 };
 
 
@@ -298,7 +303,7 @@ class ComboBoxEditor : public Editor {
   public:
     /*! Constructor. */
     ComboBoxEditor(PropertyDialog *parent_, const QIcon &icon, const std::string &name,
-      const std::vector<std::tuple<int, std::string, QIcon, std::string> > &list);
+      const std::vector<std::tuple<int, std::string, QIcon, std::string> > &list, bool replaceObjOnChange_=true);
 
     /*! OpenMBVCppInterface syncronization.
      * Use getter and setter of ombv_ to sync this Editor with OpenMBVCppInterface */
@@ -308,6 +313,9 @@ class ComboBoxEditor : public Editor {
     /* return this ComboBox Editor as an ActionGroup */
     QActionGroup *getActionGroup() { return actionGroup; }
 
+  Q_SIGNALS:
+    void stateChanged(int idx);
+
   protected:
     void valueChangedSlot(int);
     void actionChangedSlot(QAction* action);
@@ -316,6 +324,7 @@ class ComboBoxEditor : public Editor {
     std::function<int ()> ombvGetter;
     std::function<void (int)> ombvSetter;
     QActionGroup *actionGroup;
+    bool replaceObjOnChange;
 };
 
 

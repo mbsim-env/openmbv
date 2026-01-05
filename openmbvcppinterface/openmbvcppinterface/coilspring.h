@@ -29,7 +29,7 @@ namespace OpenMBV {
   /** A coil spring
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order given in
    * world frame: time,
    * "from" point x, "from" point y,
@@ -40,18 +40,20 @@ namespace OpenMBV {
       enum Type {
         tube,
         scaledTube,
-        polyline
+        polyline,
+        tubeShader,
       };
     protected:
       void createHDF5File() override;
       void openHDF5File() override;
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
       double springRadius{1};
       double crossSectionRadius{-1};
       double scaleFactor{1};
       double numberOfCoils{3};
       double nominalLength{-1};
       Type type{tube};
+      bool updateNormals { true };
       
       CoilSpring();
       ~CoilSpring() override;
@@ -62,7 +64,7 @@ namespace OpenMBV {
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
-          std::vector<double> tmprow(8);
+          std::vector<Float> tmprow(8);
           std::copy(&row[0], &row[8], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
@@ -72,12 +74,12 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(8); }
 
       void setSpringRadius(double radius) { springRadius=radius; }
       double getSpringRadius() { return springRadius; }
 
-      /** The radius of the coil spring cross-section if type=tube or type=scaledTube.
+      /** The radius of the coil spring cross-section if type=tube, type=tubeShader or type=scaledTube.
        * If type=polyline this parameter defines the point size of the polyline.
        * If crossSectionRadius is less then 0, the cross-section radius
        * is choosen automatically.
@@ -97,7 +99,7 @@ namespace OpenMBV {
        * length is nominalLength. In all other cases the cross-section
        * scales with the spring length and is getting a ellipse.
        * If nominalLength is less than 0, the nominalLength is
-       * choosen automatically.
+       * choosen automatically: its the length at row 0, if at least 1 row exists.
        */
       void setNominalLength(double l) { nominalLength=l; }
       double getNominalLength() { return nominalLength; }
@@ -111,9 +113,17 @@ namespace OpenMBV {
        * than "tube";
        * "polyline": The coil spring geometry is a polyline representing the
        * the spring center line. this is the faster spring visualisation;
+       * "tubeShader": The same as tube but with improved performance using shaders.
+       * see also spineexterusion cardanWrtWorldShader.
        */
       void setType(Type t) { type=t; }
       Type getType() { return type; }
+
+      /** If true, the default, the normal vectors (and, of course the points) are update at each frame.
+       * If false, the normal vectors are only updated at the very first call but ever again.
+       * This option is only relevant for type=tube and false leads to faster rendering. */
+      void setUpdateNormals(bool f) { updateNormals = f; }
+      bool getUpdateNormals() { return updateNormals; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;

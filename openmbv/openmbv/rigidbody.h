@@ -49,7 +49,7 @@ class RigidBody : public DynamicColoredBody {
     SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
-    SoScale *refFrameScale, *localFrameScale;
+    SoScale *refFrameScale, *localFrameScale, *scale;
     SoSeparator *soSepRigidBody;
     TransRotEditor *initialTransRotEditor;
     SoGroup *initTransRotGroup;
