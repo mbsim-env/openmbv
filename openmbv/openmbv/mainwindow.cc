@@ -132,6 +132,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   if(getenv("COIN_OFFSCREENRENDERER_TILEWIDTH")==nullptr)
     putenv(strcpy(ENV3, "COIN_OFFSCREENRENDERER_TILEWIDTH=8196"));
 
+  // Enable global search of USE in iv files
+  static char COIN_SOINPUT_SEARCH_GLOBAL_DICT[34];
+  if(getenv("COIN_SOINPUT_SEARCH_GLOBAL_DICT")==nullptr)
+    putenv(strcpy(COIN_SOINPUT_SEARCH_GLOBAL_DICT, "COIN_SOINPUT_SEARCH_GLOBAL_DICT=1"));
+
   if(instance) throw runtime_error("The class MainWindow is a singleton class!");
   instance=this;
 

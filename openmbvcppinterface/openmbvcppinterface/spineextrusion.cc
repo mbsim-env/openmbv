@@ -66,7 +66,7 @@ void SpineExtrusion::createHDF5File() {
   columns.emplace_back("Time");
   switch(csOri) {
     case orthogonalWithTwist:
-      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+4*numberOfSpinePoints);
+      data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+4*numberOfSpinePoints);
       for(int i=0;i<numberOfSpinePoints;i++) {
         columns.push_back("x"+fmatvec::toString(i));
         columns.push_back("y"+fmatvec::toString(i));
@@ -76,7 +76,7 @@ void SpineExtrusion::createHDF5File() {
       break;
     case cardanWrtWorld:
     case cardanWrtWorldShader:
-      data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(1+6*numberOfSpinePoints);
+      data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(1+6*numberOfSpinePoints);
       for(int i=0;i<numberOfSpinePoints;i++) {
         columns.push_back("x"+fmatvec::toString(i));
         columns.push_back("y"+fmatvec::toString(i));
@@ -94,7 +94,7 @@ void SpineExtrusion::openHDF5File() {
   DynamicColoredBody::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;

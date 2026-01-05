@@ -39,7 +39,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   //h5 dataset
   int rows=coilSpring->getRows();
   double dt;
-  vector<double> data0;
+  vector<OpenMBV::Float> data0;
   if(rows>=1) data0=coilSpring->getRow(0);
   if(rows>=2) dt=coilSpring->getRow(1)[0]-data0[0]; else dt=0;
   resetAnimRange(rows, dt);
@@ -233,7 +233,7 @@ QString CoilSpring::getInfo() {
 double CoilSpring::update() {
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  std::vector<double> data=coilSpring->getRow(frame);
+  auto data=coilSpring->getRow(frame);
 
   // translation / rotation
   fromPoint->translation.setValue(data[1],data[2],data[3]);

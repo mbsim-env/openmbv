@@ -1,6 +1,11 @@
 // module name
 %module OpenMBV
 
+// if OpenMBV::Float is defined to float than this must be double and the other way around
+%define OPENMBVOTHERFLOAT
+  double
+%enddef
+
 %include OpenMBV_include.i
 
 // include special interfaces
@@ -53,25 +58,26 @@
 
 #ifdef SWIGPYTHON
   // for python std::vector<double> wrapping work well out of the box
+  %template(VectorFloat) std::vector<float>;
   %template(VectorDouble) std::vector<double>;
   %template(VectorInt) std::vector<int>;
 #endif
 
 #ifdef SWIGOCTAVE
   // for octave std::vector<double> needs special wrapping to octave vector/matrix (cell array is the default)
-  %typemap(typecheck, precedence=200) std::vector<double>, const std::vector<double>& {
+  %typemap(typecheck, precedence=200) std::vector<float>, const std::vector<float>&, std::vector<double>, const std::vector<double>& {
     $1=(*$input).is_matrix_type();
   }
-  %typemap(in) std::vector<double>, const std::vector<double>& {
+  %typemap(in) std::vector<float>, const std::vector<float>&, std::vector<double>, const std::vector<double>& {
     Matrix m=$input.matrix_value(); //MISSING: try do avoid copying all elements to m
     int size=m.rows();
-    static std::vector<double> localVec;
+    static $1_basetype localVec;
     localVec.resize(size);
     for(int i=0; i<size; i++)//MISSING: try to avoid copying all element from m to localVec
       localVec[i]=m.elem(i);
     $1=&localVec;
   }
-  %typemap(out) std::vector<double> {
+  %typemap(out) std::vector<float>, std::vector<double> {
     size_t n=$1.size();
     RowVector rv(n);
     for(int i=0; i<n; i++)
@@ -132,16 +138,30 @@
 
 #ifdef SWIGJAVA
   // on java we map std::vector<double> to double[] (this can than be mapped implcitly to a Matlab vector)
+  %typemap(jni) std::vector<float>, const std::vector<float>& "jfloatArray"
   %typemap(jni) std::vector<double>, const std::vector<double>& "jdoubleArray"
+  %typemap(jtype) std::vector<float>, const std::vector<float>& "float[]"
   %typemap(jtype) std::vector<double>, const std::vector<double>& "double[]"
+  %typemap(jstype) std::vector<float>, const std::vector<float>& "float[]"
   %typemap(jstype) std::vector<double>, const std::vector<double>& "double[]"
+  %typemap(javain) std::vector<float>, const std::vector<float>& "$javainput"
   %typemap(javain) std::vector<double>, const std::vector<double>& "$javainput"
+  %typemap(javaout) std::vector<float> { return $jnicall; }
   %typemap(javaout) std::vector<double> { return $jnicall; }
+  %typemap(in) std::vector<float>, const std::vector<float>& "
+    std::vector<float> vec$argnum(jenv->GetArrayLength($arg));
+    $1=&vec$argnum;
+    jenv->GetFloatArrayRegion($arg, 0, vec$argnum.size(), vec$argnum.data());
+  "
   %typemap(in) std::vector<double>, const std::vector<double>& "
     std::vector<double> vec$argnum(jenv->GetArrayLength($arg));
     $1=&vec$argnum;
     jenv->GetDoubleArrayRegion($arg, 0, vec$argnum.size(), vec$argnum.data());
   "
+  %typemap(out) std::vector<float> {
+    $result=jenv->NewFloatArray($1.size());
+    jenv->SetFloatArrayRegion($result, 0, $1.size(), $1.data());
+  }
   %typemap(out) std::vector<double> {
     $result=jenv->NewDoubleArray($1.size());
     jenv->SetDoubleArrayRegion($result, 0, $1.size(), $1.data());
@@ -236,13 +256,30 @@
 %include <openmbvcppinterface/dynamicindexedlineset.h>
 %include <openmbvcppinterface/dynamicindexedfaceset.h>
 
-%extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::NurbsDisk             { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::Arrow                 { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::RigidBody             { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::CoilSpring            { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::Path                  { %template(append) append<std::vector<double> >; };
-%extend OpenMBV::FlexibleBody          { %template(append) append<std::vector<double> >; };
+%extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::NurbsDisk             { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::Arrow                 { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::RigidBody             { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::CoilSpring            { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::Path                  { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::FlexibleBody          { %template(append) append<std::vector<Float> >; };
+#if defined SWIGJAVA
+  // octave and python automatically convert from the vector type to std::vector<OpenMBV::Float> even if the vector type in double.
+  // But java does not -> add manual converion function
+  %define APPEND
+    void append(const std::vector<OPENMBVOTHERFLOAT> &data) {
+      std::vector<OpenMBV::Float> dataF(data.size());
+      std::transform(data.begin(), data.end(), dataF.begin(), [](auto x) { return static_cast<OpenMBV::Float>(x); });
+    };
+  %enddef
+  %extend OpenMBV::SpineExtrusion { APPEND };
+  %extend OpenMBV::NurbsDisk      { APPEND };
+  %extend OpenMBV::Arrow          { APPEND };
+  %extend OpenMBV::RigidBody      { APPEND };
+  %extend OpenMBV::CoilSpring     { APPEND };
+  %extend OpenMBV::Path           { APPEND };
+  %extend OpenMBV::FlexibleBody   { APPEND };
+#endif
 
 %include <openmbvcppinterface/objectfactory.h>
 %template(create_Group) OpenMBV::ObjectFactory::create<OpenMBV::Group>;

@@ -41,8 +41,7 @@ class DynamicIvBody : public Body {
     double update() override;
     SoShaderParameterArray1f *dataNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;
-    std::vector<double> data;
-    std::vector<float> datamfmf;
+    std::vector<OpenMBV::Float> data;
 };
 
 }

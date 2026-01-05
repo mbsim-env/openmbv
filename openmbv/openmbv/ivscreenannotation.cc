@@ -147,9 +147,9 @@ double IvScreenAnnotation::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  vector<double> data=ivsa->getRow(frame);
+  auto data=ivsa->getRow(frame);
   
-  auto setColumnLabelFields = [this](const vector<double> &data) {
+  auto setColumnLabelFields = [this](const auto &data) {
     for(size_t i=1; i<data.size(); ++i)
       columnLabelFields[i-1]->value.setValue(data[i]);
   };
@@ -157,7 +157,7 @@ double IvScreenAnnotation::update() {
 
   // path
   for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-    vector<double> data=ivsa->getRow(i);
+    auto data=ivsa->getRow(i);
     setColumnLabelFields(data);
     for(size_t idx=0; idx<pathPath.size(); ++idx) {
       gma->setViewportRegion(MainWindow::getInstance()->glViewer->getViewportRegion());

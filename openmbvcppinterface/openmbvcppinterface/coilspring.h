@@ -29,7 +29,7 @@ namespace OpenMBV {
   /** A coil spring
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order given in
    * world frame: time,
    * "from" point x, "from" point y,
@@ -46,7 +46,7 @@ namespace OpenMBV {
     protected:
       void createHDF5File() override;
       void openHDF5File() override;
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
       double springRadius{1};
       double crossSectionRadius{-1};
       double scaleFactor{1};
@@ -64,7 +64,7 @@ namespace OpenMBV {
         if(row.size()!=8) throw std::runtime_error("the dimension does not match");
         if(!std::isnan(dynamicColor))
         {
-          std::vector<double> tmprow(8);
+          std::vector<Float> tmprow(8);
           std::copy(&row[0], &row[8], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
@@ -74,7 +74,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(8); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(8); }
 
       void setSpringRadius(double radius) { springRadius=radius; }
       double getSpringRadius() { return springRadius; }

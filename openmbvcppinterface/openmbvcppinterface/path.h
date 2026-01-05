@@ -30,7 +30,7 @@ namespace OpenMBV {
   /** Draw a path of a reference point
    *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
-   * double precision values. Each row represents one dataset in time.
+   * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order given in
    * world frame: time, x, y, z */
   class Path : public Body {
@@ -38,7 +38,7 @@ namespace OpenMBV {
     protected:
       void createHDF5File() override;
       void openHDF5File() override;
-      H5::VectorSerie<double>* data;
+      H5::VectorSerie<Float>* data;
       std::vector<double> color;
       
       Path();
@@ -53,7 +53,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(4); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(4); }
 
       /** Set the color of the path (HSV values from 0 to 1). */
       void setColor(const std::vector<double>& hsv) {

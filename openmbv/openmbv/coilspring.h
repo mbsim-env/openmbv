@@ -94,7 +94,7 @@ class CoilSpring : public DynamicColoredBody {
 
     std::unique_ptr<ExtrusionCardan> tube;
     std::unique_ptr<ExtrusionCardanShader> tubeShader;
-    std::vector<double> spine;
+    std::vector<OpenMBV::Float> spine;
 };
 
 }

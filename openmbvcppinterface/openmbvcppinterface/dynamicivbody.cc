@@ -68,7 +68,7 @@ void DynamicIvBody::initializeUsingXML(DOMElement *element) {
 
 void DynamicIvBody::createHDF5File() {
   Body::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(dataSize);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(dataSize);
   vector<string> columns;
   columns.reserve(dataSize);
   for(size_t i=0; i<dataSize; ++i)
@@ -80,7 +80,7 @@ void DynamicIvBody::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;

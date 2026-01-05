@@ -252,6 +252,7 @@ dist_icon_DATA = openmbv.svg \
   invisiblebody.svg \
   frustum.svg \
   ivbody.svg \
+  dynamicivbody.svg \
   play.svg \
   lastframe.svg \
   stop.svg \

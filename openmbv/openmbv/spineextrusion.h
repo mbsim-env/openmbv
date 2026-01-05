@@ -42,7 +42,7 @@ class ExtrusionCardan {
     void init(int spSize, const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour,
               double csScale, bool ccw,
               SoSeparator *soSep, SoSeparator *soOutLineSep);
-    void setCardanWrtWorldSpine(const std::vector<double>& data, bool updateNormals=true);
+    void setCardanWrtWorldSpine(const std::vector<OpenMBV::Float>& data, bool updateNormals=true);
   private:
     std::vector<SbVec3f> nsp;
     std::vector<SbVec3f> normal;
@@ -56,10 +56,9 @@ class ExtrusionCardanShader {
   public:
     void init(int NSp, SoMaterial *mat, double csScale, bool ccw,
               const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
-    void updateData(const std::vector<double>& data);
+    void updateData(const std::vector<OpenMBV::Float>& data);
   private:
     SoShaderParameterArray1f *dataNodeVector;
-    std::vector<float> datamfmf;
     int Nsp;
     double csScale;
     std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > contour;
@@ -105,7 +104,7 @@ class SpineExtrusion : public DynamicColoredBody {
 
     int doublesPerPoint;
 
-    void setIvSpine(const std::vector<double>& data);
+    void setIvSpine(const std::vector<OpenMBV::Float>& data);
 
     ExtrusionCardan extrusionCardan;
     ExtrusionCardanShader extrusionCardanShader;

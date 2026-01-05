@@ -38,7 +38,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   string fileName=divb->getIvFileName();
 
   if( divb->getStateOffSet().size() > 0 ) {
-    data = std::vector<double>(divb->getStateOffSet().size()+1);
+    data = std::vector<OpenMBV::Float>(divb->getStateOffSet().size()+1);
 
     for( size_t i = 0; i < divb->getStateOffSet().size(); ++i )
       data[i+1] = divb->getStateOffSet()[i];
@@ -66,10 +66,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     soSep->addChild(dataNodeVector);
     dataNodeVector->setName("openmbv_dynamicivbody_data");
     dataNodeVector->value.setNum(divb->getDataSize());
-    datamfmf.resize(divb->getDataSize());
-    for(size_t i=0; i<divb->getDataSize(); ++i)
-      datamfmf[i] = data[i];
-    dataNodeVector->value.setValuesPointer(divb->getDataSize(), datamfmf.data());
+    dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
   }
 
   auto inFunc = [this](SoInput& in) {
@@ -105,12 +102,8 @@ double DynamicIvBody::update() {
   if(divb->getScalarData())
     for(size_t i=0; i<divb->getDataSize(); ++i)
       dataNodeScalar[i]->value.setValue(data[i]);
-  else {
-    datamfmf.resize(divb->getDataSize());
-    for(size_t i=0; i<divb->getDataSize(); ++i)
-      datamfmf[i] = data[i];
-    dataNodeVector->value.setValuesPointer(divb->getDataSize(), datamfmf.data());
-  }
+  else
+    dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
 
   return data[0];
 }

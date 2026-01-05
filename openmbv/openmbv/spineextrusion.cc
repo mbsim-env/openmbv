@@ -111,10 +111,10 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     case OpenMBV::SpineExtrusion::cardanWrtWorldShader: doublesPerPoint = 6; break;
   }
 
-  std::vector<double> data;
+  std::vector<OpenMBV::Float> data;
 
   if( spineExtrusion->getStateOffSet().size() > 0 ) {
-    data = std::vector<double>(spineExtrusion->getStateOffSet().size()+1);
+    data = std::vector<OpenMBV::Float>(spineExtrusion->getStateOffSet().size()+1);
 
     for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
       data[i+1] = spineExtrusion->getStateOffSet()[i]; // we have == 0.0 due to local init
@@ -266,7 +266,7 @@ double SpineExtrusion::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  std::vector<double> data=spineExtrusion->getRow(frame);
+  auto data=spineExtrusion->getRow(frame);
 
   if( spineExtrusion->getStateOffSet().size() > 0 )
     for( size_t i = 0; i < spineExtrusion->getStateOffSet().size(); ++i )
@@ -287,12 +287,12 @@ double SpineExtrusion::update() {
   return data[0];
 }
 
-void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
+void SpineExtrusion::setIvSpine(const std::vector<OpenMBV::Float>& data) {
   // set spine
   extrusion->spine.setNum(numberOfSpinePoints);
   SbVec3f *sp = extrusion->spine.startEditing();
   for(int i=0;i<numberOfSpinePoints;i++)
-    sp[i] = SbVec3f(data[doublesPerPoint*i+1],data[doublesPerPoint*i+2],data[doublesPerPoint*i+3]);
+    sp[i].setValue(data[doublesPerPoint*i+1],data[doublesPerPoint*i+2],data[doublesPerPoint*i+3]);
   extrusion->spine.finishEditing();
   extrusion->spine.setDefault(FALSE);
 
@@ -308,7 +308,7 @@ void SpineExtrusion::setIvSpine(const std::vector<double>& data) {
   extrusion->orientation.setDefault(FALSE);
 }
 
-void ExtrusionCardan::setCardanWrtWorldSpine(const std::vector<double> &data, bool updateNormals) {
+void ExtrusionCardan::setCardanWrtWorldSpine(const std::vector<OpenMBV::Float> &data, bool updateNormals) {
   int csSize = nsp.size();
   int spSize = quadMeshCoords->point.getNum() / csSize;
 
@@ -714,11 +714,8 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   coords=static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
 }
 
-void ExtrusionCardanShader::updateData(const std::vector<double> &data) {
-  datamfmf.resize(data.size());
-  for(size_t i=0; i<data.size(); ++i)
-    datamfmf[i] = data[i];
-  dataNodeVector->value.setValuesPointer(data.size(), datamfmf.data());
+void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) {
+  dataNodeVector->value.setValuesPointer(data.size(), data.data());
 
   if(false) {//mfmf run this code before a user input is done: its slow but will enable the Coin boundingbox and object picking
     auto *c = coords->point.startEditing();

@@ -81,7 +81,7 @@ namespace OpenMBV {
       /** Get row number i of the default data.
        * NOTE: see also append()
        */
-      virtual std::vector<double> getRow(int i)=0;
+      virtual std::vector<Float> getRow(int i)=0;
   };
 
 }

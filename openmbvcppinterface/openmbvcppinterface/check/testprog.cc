@@ -169,7 +169,7 @@ int main() {
 
   g->write();
 
-  vector<double> row(8);
+  vector<Float> row(8);
   for(int i=0; i<10; i++) {
     row[1]=i/10.0;
     c2->append(row);
@@ -263,7 +263,7 @@ void dynamicivbody() {
     std::reverse(contour->begin(), contour->end());
   g->write();
 
-  vector<double> data(1+6*Nsp);
+  vector<Float> data(1+6*Nsp);
   double Tend=1;
   for(double t=0; t<Tend; t+=Tend/Tt) {
     data[0]=t;
@@ -308,7 +308,7 @@ void spineextrusion() {
 
   g->write();
 
-  vector<double> data(1+6*Nsp);
+  vector<Float> data(1+6*Nsp);
   double Tend=1;
   for(double t=0; t<Tend; t+=Tend/Tt) {
     data[0]=t;

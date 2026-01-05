@@ -43,7 +43,7 @@ DOMElement* Path::writeXMLFile(DOMNode *parent) {
 
 void Path::createHDF5File() {
   Body::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<double> >("data")(4);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(4);
   vector<string> columns;
   columns.emplace_back("Time");
   columns.emplace_back("x");
@@ -56,7 +56,7 @@ void Path::openHDF5File() {
   Body::openHDF5File();
   if(!hdf5Group) return;
   try {
-    data=hdf5Group->openChildObject<H5::VectorSerie<double> >("data");
+    data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
   }
   catch(...) {
     data=nullptr;

@@ -56,7 +56,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<double> getRow(int i) override { return data?data->getRow(i):std::vector<double>(dataSize); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(dataSize); }
 
       void setStateOffSet(const std::vector<double>& stateOff)
       {
@@ -72,7 +72,7 @@ namespace OpenMBV {
       std::string ivContent;
 
       size_t dataSize;
-      H5::VectorSerie<double>* data{nullptr};
+      H5::VectorSerie<Float>* data{nullptr};
       bool scalarData { false };
 
       /** optional offset for spine vector, may be used as inital position superposed by deflections or as static  */

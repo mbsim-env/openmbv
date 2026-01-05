@@ -294,7 +294,7 @@ double Arrow::update() {
   // path
   if(arrow->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
-      vector<double> localData=arrow->getRow(i);
+      auto localData=arrow->getRow(i);
       if(localData[4]*localData[4]+localData[5]*localData[5]+localData[6]*localData[6]<1e-10) {
         pathNewLine=true;
         continue;
