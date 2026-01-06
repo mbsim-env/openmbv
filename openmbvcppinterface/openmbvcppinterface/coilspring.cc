@@ -107,4 +107,11 @@ void CoilSpring::initializeUsingXML(DOMElement *element) {
   if(e) setScaleFactor(E(e)->getText<double>());
 }
 
+CoilSpring::Type CoilSpring::getType() {
+  static char* OPENMBV_DISABLE_SHADER = getenv("OPENMBV_DISABLE_SHADER");
+  if(type == tubeShader && OPENMBV_DISABLE_SHADER && strcmp(OPENMBV_DISABLE_SHADER, "0")!=0)
+    return tube;
+  return type;
+}
+
 }

@@ -119,7 +119,7 @@ namespace OpenMBV {
 
       enum CrossSectionOrienation { orthogonalWithTwist, cardanWrtWorld, cardanWrtWorldShader };
       void setCrossSectionOrientation(CrossSectionOrienation o) { csOri = o; }
-      CrossSectionOrienation getCrossSectionOrientation() { return csOri; }
+      CrossSectionOrienation getCrossSectionOrientation();
 
       void setCounterClockWise(bool f) { ccw = f; }
       bool getCounterClockWise() { return ccw; }

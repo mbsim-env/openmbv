@@ -133,4 +133,11 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
     setStateOffSet(E(e)->getText<vector<double>>());
 }
 
+SpineExtrusion::CrossSectionOrienation SpineExtrusion::getCrossSectionOrientation() {
+  static char* OPENMBV_DISABLE_SHADER = getenv("OPENMBV_DISABLE_SHADER");
+  if(csOri == cardanWrtWorldShader && OPENMBV_DISABLE_SHADER && strcmp(OPENMBV_DISABLE_SHADER, "0")!=0)
+    return cardanWrtWorld;
+  return csOri;
+}
+
 }

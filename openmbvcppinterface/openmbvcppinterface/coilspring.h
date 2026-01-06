@@ -117,7 +117,7 @@ namespace OpenMBV {
        * see also spineexterusion cardanWrtWorldShader.
        */
       void setType(Type t) { type=t; }
-      Type getType() { return type; }
+      Type getType();
 
       /** If true, the default, the normal vectors (and, of course the points) are update at each frame.
        * If false, the normal vectors are only updated at the very first call but ever again.
