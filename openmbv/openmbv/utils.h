@@ -395,6 +395,8 @@ class SettingsDialog : public QDialog {
     void showEvent(QShowEvent *event) override;
 };
 
+std::string replaceKeys(const std::string &str, const std::map<std::string, std::string> &replace, char pre='@', char post='@');
+
 }
 
 #endif

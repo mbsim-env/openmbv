@@ -563,34 +563,6 @@ namespace {
   string S(double x) {
     return boost::lexical_cast<string>(static_cast<float>(x));
   };
-
-  string replaceKeys(const string &str, const map<string, string> &replace, char pre='@', char post='@') {
-    string ret;
-    size_t cont = 0;
-    while(true) {
-      auto start = str.find(pre, cont);
-      if(start == string::npos) {
-        ret += str.substr(cont);
-        break;
-      }
-      ret += str.substr(cont, start-cont);
-      size_t foundKeySize = 0;
-      for(auto &[key, value] : replace) {
-        if(str.substr(start+1, key.size()+1) == key+post) {
-          ret += value;
-          foundKeySize = key.size();
-          break;
-        }
-      }
-      if(foundKeySize>0)
-        cont = start + foundKeySize + 2;
-      else {
-        ret += pre;
-        cont = start +1;
-      }
-    }
-    return ret;
-  }
 }
 
 void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, bool ccw,
@@ -741,7 +713,6 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
 
   auto soIv = Utils::SoDBreadAllContentCached(ivContent, {/*no cache*/}, [this, mat](SoInput& in) {
     in.addReference("openmbv_spineextrusion_data", dataNodeVector);
-    in.addReference("openmbv_dynamiccoloredbody_mat", mat);
   });
   if(!soIv)
     return;

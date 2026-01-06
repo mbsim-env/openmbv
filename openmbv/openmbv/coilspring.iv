@@ -1,8 +1,20 @@
 #Inventor V2.1 ascii
 
 Separator {
+  # bbox
+  SepNoPick {
+    Material {
+      transparency 1
+    }
+    USE openmbv_coilspring_bboxtrans
+    Cube {
+      width @2Rpr@
+      height @2Rpr@
+      depth = USE openmbv_coilspring_length.value
+    }
+  }
   # global coordinates and normals
-  DEF openmbv_spineextrusion_coords Coordinate3 {
+  DEF openmbv_coilspring_coords Coordinate3 {
     point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
       @vertexDummyStr@
@@ -15,7 +27,7 @@ Separator {
     ]
   }
   ShapeHints {
-    vertexOrdering @tubeCCW@
+    vertexOrdering COUNTERCLOCKWISE
     shapeType SOLID
   }
   SepNoPickNoBBox { # Coin just knows the dummy vertex pos -> we need to disable pick and bbox calculation for this node
@@ -26,9 +38,11 @@ Separator {
           sourceProgram "
             #version 130
 
+            #define M_PI 3.14159265358979
+
             out vec3 worldNormal;
             attribute float vertexID_float;
-            uniform float data[6*@Nsp@+1];
+            uniform float length;
 
             mat3 cardan2Rotation(vec3 angle) {
               float sina = sin(angle.x);
@@ -50,53 +64,58 @@ Separator {
               return T;
             }
 
-            vec3 calcPoint(int vertexID) {
-              const vec3 nsp[@Ncs@] = vec3[](
-@nspStr@
+            vec3 calcr(int spIdx) {
+              float alpha = spIdx*2.*M_PI/@numberOfSpinePointsPerCoil@;
+              vec3 r = vec3(
+                @R@*cos(alpha),
+                @R@*sin(alpha),
+                spIdx*length/@numberOfSpinePointsPerCoil@/@N@
               );
+              return r;
+            }
 
-              int csIdx = int(vertexID/2 % @Ncs@);
-              int spIdx = int(vertexID/2 / @Ncs@);
-              vec3 r = vec3(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
-              vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+            float atan2(float y, float x) {
+              if(x> 0        ) return atan(y/x);
+              if(x< 0 && y>=0) return atan(y/x)+M_PI;
+              if(x< 0 && y< 0) return atan(y/x)-M_PI;
+              if(x==0 && y> 0) return +M_PI/2;
+              if(x==0 && y< 0) return -M_PI/2;
+              return 0.0;
+            }
+
+            vec3 calcAngle(int spIdx) {
+              float alpha = spIdx*2.*M_PI/@numberOfSpinePointsPerCoil@;
+              float n = atan( length / ( @N@*2.*M_PI*@R@ ) );
+              // angle = rotation2Cardan(cardan2Rotation(0,0,alpha)*cardan2Rotation(n,0,0));
+              float sinn = sin(n);
+              float cosn = cos(n);
+              float sinalpha = sin(alpha);
+              float cosalpha = cos(alpha);
+              vec3 angle = vec3(
+                atan2(sinn*cosalpha, cosn),
+                asin(sinalpha*sinn),
+                atan2(sinalpha*cosn, cosalpha)
+              );
+              return angle;
+            }
+
+            vec3 calcPoint(int vertexID, vec3 angle) {
+              int csIdx = int(vertexID % @Ncs@);
+              int spIdx = int(vertexID / @Ncs@);
+              float arg = csIdx*2.*M_PI/@Ncs@;
+              vec3 nsp = vec3(@r@*cos(arg), 0, -@r@*sin(arg));
+              vec3 r = calcr(spIdx);
               mat3 T = cardan2Rotation(angle);
-              vec3 T_nsp = T * nsp[csIdx];
+              vec3 T_nsp = T * nsp;
               return r + T_nsp;
             }
 
-            vec3 calcNormal(int vertexID) {
-              const vec3 normal[2*@Ncs@] = vec3[](
-@normalStr@
-              );
-              const int border[@Ncs@] = int[](
-@borderStr@
-              );
-
-              int nIdx = int(vertexID % (2*@Ncs@));
-              int spIdx = int(vertexID/2 / @Ncs@);
-              vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+            vec3 calcNormal(int vertexID, vec3 angle) {
+              int csIdx = int(vertexID % @Ncs@);
+              float arg = csIdx*2.*M_PI/@Ncs@;
+              vec3 normal = vec3(cos(arg), 0, -sin(arg));
               mat3 T = cardan2Rotation(angle);
-              vec3 n = T * normal[nIdx];
-              //mfmf cross prod with spine direction is missing (the same needs to be done in dynamicivbody.py
-//            //#pragma omp parallel for default(none) shared(csSize, p, n)
-//            for(int spIdx=0; spIdx<spSize; spIdx++) {
-//              for(int csIdx=0; csIdx<csSize; csIdx++) {
-//                // normals x b
-//                int pIdx = spIdx*csSize+csIdx;
-//                int nIdx = 2*pIdx;
-//                int pIdxA = (spIdx>0?spIdx-1:0)*csSize+csIdx;
-//                int pIdxB = (spIdx<spSize-1?spIdx+1:spSize-1)*csSize+csIdx;
-//                SbVec3f b = p[pIdxB] - p[pIdxA];
-//                auto ortho = [](const SbVec3f &n, const SbVec3f &b) {
-//                  auto x = n.dot(b)/b.dot(b)*b;
-//                  return n-x;
-//                };
-//                n[nIdx]   = ortho(n[nIdx  ], b);
-//                n[nIdx+1] = ortho(n[nIdx+1], b);
-//                n[nIdx]  .normalize();
-//                n[nIdx+1].normalize();
-//              }
-//            }
+              vec3 n = T * normal;
               return n;
             }
              
@@ -104,8 +123,10 @@ Separator {
             {
               int vertexID = int(vertexID_float+0.5);
 
-              vec3 c = calcPoint(vertexID);
-              vec3 n = calcNormal(vertexID);
+              int spIdx = int(vertexID / @Ncs@);
+              vec3 angle = calcAngle(spIdx);
+              vec3 c = calcPoint(vertexID, angle);
+              vec3 n = calcNormal(vertexID, angle);
 
               worldNormal = normalize(gl_NormalMatrix * n);
               gl_Position = gl_ModelViewProjectionMatrix * vec4(c, gl_Vertex.w);
@@ -113,9 +134,9 @@ Separator {
             }
           "
           parameter [
-            ShaderParameterArray1f {
-              name "data"
-              value = USE openmbv_spineextrusion_data.value
+            ShaderParameter1f {
+              name "length"
+              value = USE openmbv_coilspring_length.value
             }
           ]
         }
@@ -185,15 +206,6 @@ Separator {
       ]
       # we cannot use normalIndex/... since the vertex shader calculates exactly one normal per vertex (per Coordinate3)
     }
-    # outline
-    DEF outLineStyle Material {
-      diffuseColor 0 0 0
-    }
-    IndexedLineSet {
-      coordIndex [
-        @tubeCoordIndexStr@
-      ]
-    }
   }
   # end-cap
   NormalBinding {
@@ -206,24 +218,13 @@ Separator {
   }
   Separator {
     Normal {
-      vector @endCap1Normal@
+      vector 0 -1 0
     }
     ShapeHints {
-      vertexOrdering @endCap1CCW@
+      vertexOrdering CLOCKWISE
       shapeType SOLID
     }
-    Transform {
-      translation = DecomposeArray1fToVec3fEngine {
-        startIndex 1
-        input = USE openmbv_spineextrusion_data.value
-      }.output
-      rotation = CardanRotationEngine {
-        angle = DecomposeArray1fToVec3fEngine {
-          startIndex 4
-          input = USE openmbv_spineextrusion_data.value
-        }.output
-        inverse TRUE
-      }.rotation
+    DEF endCap1Trans Transform {
     }
     DEF endCapIndexedTesselationFace IndexedTesselationFace {
       windingRule ODD
@@ -233,7 +234,9 @@ Separator {
       ]
     }
     # outline
-    USE outLineStyle
+    DEF outLineStyle Material {
+      diffuseColor 0 0 0
+    }
     DEF endCapOutLine IndexedLineSet {
       coordIndex [
         @NcsStr@
@@ -242,24 +245,13 @@ Separator {
   }
   Separator {
     Normal {
-      vector @endCap2Normal@
+      vector 0 +1 0
     }
     ShapeHints {
-      vertexOrdering @endCap2CCW@
+      vertexOrdering COUNTERCLOCKWISE
       shapeType SOLID
     }
-    Transform {
-      translation = DecomposeArray1fToVec3fEngine {
-        startIndex @startIndex1@
-        input = USE openmbv_spineextrusion_data.value
-      }.output
-      rotation = CardanRotationEngine {
-        angle = DecomposeArray1fToVec3fEngine {
-          startIndex @startIndex2@
-          input = USE openmbv_spineextrusion_data.value
-        }.output
-        inverse TRUE
-      }.rotation
+    DEF endCap2Trans Transform {
     }
     USE endCapIndexedTesselationFace
     # outline

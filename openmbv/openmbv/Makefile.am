@@ -285,7 +285,8 @@ dist_icon_DATA = openmbv.svg \
   knurl.png
 
 sharedir = @datadir@/openmbv
-dist_share_DATA = spineextrusion.iv
+dist_share_DATA = spineextrusion.iv \
+  coilspring.iv
 
 # guihelp.html
 docdir = @datadir@/openmbv/doc

@@ -25,6 +25,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
 #include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 #include <Inventor/nodes/SoTranslation.h>
 #include <Inventor/SbLinear.h>
 #include <hdf5serie/vectorserie.h>
@@ -34,10 +35,27 @@ namespace OpenMBV {
   class CoilSpring;
 }
 
+class SoTransform;
+
 namespace OpenMBVGUI {
 
 class ExtrusionCardan;
-class ExtrusionCardanShader;
+
+class CoilSpringShader {
+  public:
+    void init(double R, double N, int numberOfSpinePointsPerCoil, int Nsp, int Ncs, double r, SoMaterial *mat, SoSeparator *soSep);
+    void updateData(double len);
+  private:
+    SoShaderParameter1f *length;
+    SoTranslation *bboxtrans;
+    int Nsp;
+    double csScale;
+    SoCoordinate3 *coords;
+    SoTransform *endCap1Trans, *endCap2Trans;
+    double R;
+    double N;
+    int numberOfSpinePointsPerCoil;
+};
 
 /**
  * \brief class for drawing simple helix springs
@@ -92,8 +110,10 @@ class CoilSpring : public DynamicColoredBody {
     std::shared_ptr<OpenMBV::CoilSpring> coilSpring;
     void createProperties() override;
 
+    double len;
+
     std::unique_ptr<ExtrusionCardan> tube;
-    std::unique_ptr<ExtrusionCardanShader> tubeShader;
+    std::unique_ptr<CoilSpringShader> tubeShader;
     std::vector<OpenMBV::Float> spine;
 };
 
