@@ -50,7 +50,6 @@ class CoilSpringShader {
     void pickUpdateRestore();
   private:
     SoShaderParameter1f *length;
-    SoTranslation *bboxtrans;
     int Nsp;
     int Ncs;
     double csScale;

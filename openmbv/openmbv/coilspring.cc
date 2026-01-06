@@ -102,7 +102,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       MainWindow::getInstance()->addPickUpdate(this);
       tubeShader = make_unique<CoilSpringShader>();
       tubeShader->init(R, N, numberOfSpinePointsPerCoil, int(numberOfSpinePointsPerCoil*N)+1, iCircSegments, r, mat, soSep);
-      tubeShader->updateData(0);
+      tubeShader->updateData(nominalLength);
       tubeShader->pickUpdate();
       tubeShader->pickUpdateRestore();
       break;
@@ -340,10 +340,6 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
   soSep->addChild(length);
   length->setName("openmbv_coilspring_length");
 
-  bboxtrans = new SoTranslation;
-  soSep->addChild(bboxtrans);
-  bboxtrans->setName("openmbv_coilspring_bboxtrans");
-
   static const string ivFilename((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"coilspring.iv").string());
   ifstream ivFile(ivFilename);
   std::stringstream buf;
@@ -421,7 +417,6 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
 
   auto soIv = Utils::SoDBreadAllContentCached(ivContent, {/*no cache*/}, [this](SoInput& in) {
     in.addReference("openmbv_coilspring_length", length);
-    in.addReference("openmbv_coilspring_bboxtrans", bboxtrans);
   });
   if(!soIv)
     return;
@@ -437,7 +432,6 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
 
 void CoilSpringShader::updateData(double len) {
   length->value.setValue(len);
-  bboxtrans->translation.setValue(0,0,len/2);
 
   auto calcrT = [this, len](int i) {
     float alpha = i*N*2.*M_PI/numberOfSpinePointsPerCoil/N;

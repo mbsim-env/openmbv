@@ -1,18 +1,6 @@
 #Inventor V2.1 ascii
 
 Separator {
-  # bbox
-  SepNoPick {
-    Material {
-      transparency 1
-    }
-    USE openmbv_coilspring_bboxtrans
-    Cube {
-      width @2Rpr@
-      height @2Rpr@
-      depth = USE openmbv_coilspring_length.value
-    }
-  }
   # global coordinates and normals
   DEF openmbv_coilspring_coords Coordinate3 {
     point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
