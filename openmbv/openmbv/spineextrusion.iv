@@ -77,26 +77,14 @@ Separator {
               vec3 angle = vec3(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
               mat3 T = cardan2Rotation(angle);
               vec3 n = T * normal[nIdx];
-              //mfmf cross prod with spine direction is missing (the same needs to be done in dynamicivbody.py
-//            //#pragma omp parallel for default(none) shared(csSize, p, n)
-//            for(int spIdx=0; spIdx<spSize; spIdx++) {
-//              for(int csIdx=0; csIdx<csSize; csIdx++) {
-//                // normals x b
-//                int pIdx = spIdx*csSize+csIdx;
-//                int nIdx = 2*pIdx;
-//                int pIdxA = (spIdx>0?spIdx-1:0)*csSize+csIdx;
-//                int pIdxB = (spIdx<spSize-1?spIdx+1:spSize-1)*csSize+csIdx;
-//                SbVec3f b = p[pIdxB] - p[pIdxA];
-//                auto ortho = [](const SbVec3f &n, const SbVec3f &b) {
-//                  auto x = n.dot(b)/b.dot(b)*b;
-//                  return n-x;
-//                };
-//                n[nIdx]   = ortho(n[nIdx  ], b);
-//                n[nIdx+1] = ortho(n[nIdx+1], b);
-//                n[nIdx]  .normalize();
-//                n[nIdx+1].normalize();
-//              }
-//            }
+              // normals x b
+              int spIdxA = spIdx==0 ? 0 : (spIdx-1)*6;
+              int spIdxB = spIdx==@Nsp@-1 ? spIdx*6 : (spIdx+1)*6;
+              vec3 spA = vec3(data[spIdxA+1],data[spIdxA+2],data[spIdxA+3]);
+              vec3 spB = vec3(data[spIdxB+1],data[spIdxB+2],data[spIdxB+3]);
+              vec3 b = spB - spA;
+              vec3 x = dot(n,b)/dot(b,b)*b;
+              n = normalize(n-x);
               return n;
             }
              
