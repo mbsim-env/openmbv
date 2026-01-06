@@ -563,6 +563,34 @@ namespace {
   string S(double x) {
     return boost::lexical_cast<string>(static_cast<float>(x));
   };
+
+  string replaceKeys(const string &str, const map<string, string> &replace, char pre='@', char post='@') {
+    string ret;
+    size_t cont = 0;
+    while(true) {
+      auto start = str.find(pre, cont);
+      if(start == string::npos) {
+        ret += str.substr(cont);
+        break;
+      }
+      ret += str.substr(cont, start-cont);
+      size_t foundKeySize = 0;
+      for(auto &[key, value] : replace) {
+        if(str.substr(start+1, key.size()+1) == key+post) {
+          ret += value;
+          foundKeySize = key.size();
+          break;
+        }
+      }
+      if(foundKeySize>0)
+        cont = start + foundKeySize + 2;
+      else {
+        ret += pre;
+        cont = start +1;
+      }
+    }
+    return ret;
+  }
 }
 
 void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, bool ccw,
@@ -674,25 +702,29 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     tubeCoordIndexStr+=" -1\n";
   }
 
-  boost::algorithm::replace_all(ivContent, "@Nsp@"               , S(Nsp));
-  boost::algorithm::replace_all(ivContent, "@Ncs@"               , S(Ncs));
-  boost::algorithm::replace_all(ivContent, "@startIndex1@"       , S(6*(Nsp-1)+1));
-  boost::algorithm::replace_all(ivContent, "@startIndex2@"       , S(6*(Nsp-1)+4));
-  boost::algorithm::replace_all(ivContent, "@endCap1Normal@"     ,   ccw ? "0 +1 0" : "0 -1 0");
-  boost::algorithm::replace_all(ivContent, "@endCap2Normal@"     ,   ccw ? "0 -1 0" : "0 +1 0");
-  boost::algorithm::replace_all(ivContent, "@endCap2CCW@"        ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
-  boost::algorithm::replace_all(ivContent, "@tubeCCW@"           ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE");
-  boost::algorithm::replace_all(ivContent, "@endCap1CCW@"        ,   ccw ? "COUNTERCLOCKWISE" : "CLOCKWISE");
-  boost::algorithm::replace_all(ivContent, "@borderStr@"         ,   borderStr);
-  boost::algorithm::replace_all(ivContent, "@NcsStr@"            ,   NcsStr);
-  boost::algorithm::replace_all(ivContent, "@nspStr@"            ,   nspStr);
-  boost::algorithm::replace_all(ivContent, "@nspStr2@"           ,   nspStr2);
-  boost::algorithm::replace_all(ivContent, "@normalStr@"         ,   normalStr);
-  boost::algorithm::replace_all(ivContent, "@tubeCoordIndexStr@" ,   tubeCoordIndexStr);
-  boost::algorithm::replace_all(ivContent, "@vertexDummyStr@"    ,   vertexDummyStr);
-  boost::algorithm::replace_all(ivContent, "@normalDummyStr@"    ,   normalDummyStr);
-  boost::algorithm::replace_all(ivContent, "@meshCoordIndexStr@" ,   meshCoordIndexStr);
-  boost::algorithm::replace_all(ivContent, "@vertexAttributeStr@",   vertexAttributeStr);
+  //mfmf
+  map<string, string> replace {
+    { "Nsp"               , S(Nsp) },
+    { "Ncs"               , S(Ncs) },
+    { "startIndex1"       , S(6*(Nsp-1)+1) },
+    { "startIndex2"       , S(6*(Nsp-1)+4) },
+    { "endCap1Normal"     ,   ccw ? "0 +1 0" : "0 -1 0" },
+    { "endCap2Normal"     ,   ccw ? "0 -1 0" : "0 +1 0" },
+    { "endCap2CCW"        ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE" },
+    { "tubeCCW"           ,   ccw ? "CLOCKWISE" : "COUNTERCLOCKWISE" },
+    { "endCap1CCW"        ,   ccw ? "COUNTERCLOCKWISE" : "CLOCKWISE" },
+    { "borderStr"         ,   borderStr },
+    { "NcsStr"            ,   NcsStr },
+    { "nspStr"            ,   nspStr },
+    { "nspStr2"           ,   nspStr2 },
+    { "normalStr"         ,   normalStr },
+    { "tubeCoordIndexStr" ,   tubeCoordIndexStr },
+    { "vertexDummyStr"    ,   vertexDummyStr },
+    { "normalDummyStr"    ,   normalDummyStr },
+    { "meshCoordIndexStr" ,   meshCoordIndexStr },
+    { "vertexAttributeStr",   vertexAttributeStr },
+  };
+  ivContent = replaceKeys(ivContent, replace);
 
   static bool OPENMBV_DUMP_SPINEEXTRUSION_IV=getenv("OPENMBV_DUMP_SPINEEXTRUSION_IV")!=nullptr;
   if(OPENMBV_DUMP_SPINEEXTRUSION_IV) {
