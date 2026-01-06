@@ -18,6 +18,7 @@
 */
 
 #include "mytouchwidget.h"
+#include "openmbvcppinterface/group.h"
 #include "touchwidget_impl.h"
 #include "Inventor/nodes/SoCamera.h"
 #include "Inventor/nodes/SoOrthographicCamera.h"
@@ -744,29 +745,50 @@ SbVec3f MyTouchWidget::convertToRel3D(const QPoint &rel) {
 }
 
 void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuForAll) {
-  // select object
-  // if toggle, toggle selection of object
-  // if showMenuForAll and multiple objects are under the cursor, show a list of all these objects first and act on the selected then
   auto picked=getObjectsByRay(pos);
   if(picked.empty()) {
+    // nothing picked -> disable selection and emit "no object selected"
     MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
     MainWindow::getInstance()->objectSelected("", nullptr);
     return;
   }
+
   vector<Body*> bodies;
   transform(picked.begin(), picked.end(), back_inserter(bodies), [](auto &x){ return x.first; });
+
+  if(true) {
+    // do not use a body inside of a CompoundRigidBody
+    for(auto & bodyi : bodies) {
+      Object *body = bodyi;
+      while(true) {
+        auto parent = static_cast<Object*>(body->QTreeWidgetItem::parent());
+        if(dynamic_cast<Group*>(parent))
+          break;
+        body = parent;
+      }
+      bodyi = static_cast<Body*>(body);
+    }
+    // make bodies unique
+    std::sort(bodies.begin(), bodies.end());
+    bodies.erase(std::unique(bodies.begin(), bodies.end()), bodies.end());
+  }
+
   int useObjIdx;
-  if(picked.size()==1 || !showMenuForAll)
+  if(bodies.size()==1 || !showMenuForAll)
+    // if only one object is picked or no menu to choose the object is requested -> use the first picked object ...
     useObjIdx=0;
   else {
+    // ... else show a menu to choose the object ...
     useObjIdx=createObjectListMenu(bodies);
     if(useObjIdx<0) {
+      // ... or disable the selection and emit "no object selected" if nothing is choosen
       MainWindow::getInstance()->objectList->setCurrentItem(nullptr);
       MainWindow::getInstance()->objectSelected("", nullptr);
       return;
     }
   }
 
+  // if toggle is and only 1 object is selected and this object is picked then toggle anyway
   if(!toggle &&
      MainWindow::getInstance()->objectList->selectedItems().size()==1 &&
      MainWindow::getInstance()->objectList->selectedItems()[0] == bodies[useObjIdx]) {
@@ -775,6 +797,7 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
     return;
   }
 
+  // select the choosen object and emit the selected object (by ID if it has as ID)
   MainWindow::getInstance()->objectList->setCurrentItem(bodies[useObjIdx],0,
     toggle?QItemSelectionModel::Toggle:QItemSelectionModel::ClearAndSelect);
   MainWindow::getInstance()->objectSelected((bodies[useObjIdx])->getObject()->getID(), bodies[useObjIdx]);
