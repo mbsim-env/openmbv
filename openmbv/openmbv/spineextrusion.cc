@@ -232,6 +232,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       break;
     }
     case OpenMBV::SpineExtrusion::cardanWrtWorldShader: {
+      MainWindow::getInstance()->addPickUpdate(this);
       extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), spineExtrusion->getCounterClockWise(),
                                  contour, soSep);
       extrusionCardanShader.updateData(data);
@@ -239,6 +240,10 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     }
   }
 
+}
+
+SpineExtrusion::~SpineExtrusion() {
+  MainWindow::getInstance()->removePickUpdate(this);
 }
 
 void SpineExtrusion::createProperties() {
@@ -283,6 +288,39 @@ double SpineExtrusion::update() {
   }
 
   return data[0];
+}
+
+void SpineExtrusion::pickUpdate() {
+  extrusionCardanShader.pickUpdate(data);
+}
+
+void SpineExtrusion::pickUpdateRestore() {
+  extrusionCardanShader.pickUpdateRestore();
+}
+
+void ExtrusionCardanShader::pickUpdate(const std::vector<OpenMBV::Float>& data) {
+  sepNoPickNoBBox->skipPick.setValue(false);
+
+  // update coords
+  auto *c = vertex->point.startEditing();
+  for(int spIdx=0; spIdx<Nsp; ++spIdx) {
+    auto r = SbVec3f(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
+    auto angle = SbVec3f(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
+    auto T = Utils::cardan2Rotation(angle);
+    T.invert();
+    for(size_t csIdx=0; csIdx<contour->size(); ++csIdx) {
+      SbVec3f T_nsp;
+      T.multVec(SbVec3f((*contour)[csIdx]->getXComponent()*csScale,0,(*contour)[csIdx]->getYComponent()*csScale), T_nsp);
+      int nIdx = 2*spIdx*contour->size() + 2*csIdx;
+      c[nIdx] = r + T_nsp;
+      c[nIdx+1] = c[nIdx];
+    }
+  }
+  vertex->point.finishEditing();
+}
+
+void ExtrusionCardanShader::pickUpdateRestore() {
+  sepNoPickNoBBox->skipPick.setValue(true);
 }
 
 void SpineExtrusion::setIvSpine(const std::vector<OpenMBV::Float>& data) {
@@ -718,29 +756,12 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     return;
   soSep->addChild(soIv);
 
-  coords=static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
+  vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
+  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_spineextrusion_sepnopicknobbox"));
 }
 
 void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) {
   dataNodeVector->value.setValuesPointer(data.size(), data.data());
-
-  if(false) {//mfmf run this code before a user input is done: its slow but will enable the Coin boundingbox and object picking
-    auto *c = coords->point.startEditing();
-    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
-      auto r = SbVec3f(data[spIdx*6+1],data[spIdx*6+2],data[spIdx*6+3]);
-      auto angle = SbVec3f(data[spIdx*6+4],data[spIdx*6+5],data[spIdx*6+6]);
-      auto T = Utils::cardan2Rotation(angle);
-      T.invert();
-      for(size_t csIdx=0; csIdx<contour->size(); ++csIdx) {
-        SbVec3f T_nsp;
-        T.multVec(SbVec3f((*contour)[csIdx]->getXComponent()*csScale,0,(*contour)[csIdx]->getYComponent()*csScale), T_nsp);
-        int nIdx = 2*spIdx*contour->size() + 2*csIdx;
-        c[nIdx] = r + T_nsp;
-        c[nIdx+1] = c[nIdx];
-      }
-    }
-    coords->point.finishEditing();
-  }
 }
 
 }

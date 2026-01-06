@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_SPINEEXTRUSION_H_
 #define _OPENMBVGUI_SPINEEXTRUSION_H_
 
+#include "SoSpecial.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
@@ -57,12 +58,15 @@ class ExtrusionCardanShader {
     void init(int NSp, SoMaterial *mat, double csScale, bool ccw,
               const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
     void updateData(const std::vector<OpenMBV::Float>& data);
+    void pickUpdate(const std::vector<OpenMBV::Float>& data);
+    void pickUpdateRestore();
   private:
     SoShaderParameterArray1f *dataNodeVector;
     int Nsp;
     double csScale;
     std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > contour;
-    SoCoordinate3 *coords;
+    SoCoordinate3 *vertex;
+    SepNoPickNoBBox *sepNoPickNoBBox;
 };
 
 /**
@@ -76,6 +80,7 @@ class SpineExtrusion : public DynamicColoredBody {
   public:
     /** constructor */
     SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
+    ~SpineExtrusion();
 
     /** info string in spine extrusion pop-up menu */
     QString getInfo() override;
@@ -92,6 +97,8 @@ class SpineExtrusion : public DynamicColoredBody {
   
     /** update method invoked at each time step */
     double update() override;
+    void pickUpdate() override;
+    void pickUpdateRestore() override;
 
     /** test for collinear spine points */
     bool collinear;

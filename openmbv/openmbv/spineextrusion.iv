@@ -18,7 +18,7 @@ Separator {
     vertexOrdering @tubeCCW@
     shapeType SOLID
   }
-  SepNoPickNoBBox { # Coin just knows the dummy vertex pos -> we need to disable pick and bbox calculation for this node
+  DEF openmbv_spineextrusion_sepnopicknobbox SepNoPickNoBBox { # Coin just knows the dummy vertex pos -> we need to disable pick and bbox calculation for this node
     ShaderProgram {
       shaderObject [
         VertexShader {
