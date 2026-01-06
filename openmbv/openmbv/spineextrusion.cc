@@ -599,6 +599,9 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   contour = contour_;
   csScale = csScale_;
 
+  if(6*Nsp+1 >= 16300)
+    cerr<<"The number of basic machine units of a 'uniform' is quite large ("<<6*Nsp+1<<"). You may get problems on the GPU."<<endl;
+
   dataNodeVector = new SoShaderParameterArray1f;
   soSep->addChild(dataNodeVector);
   dataNodeVector->setName("openmbv_spineextrusion_data");
@@ -673,6 +676,10 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   string vertexAttributeStr;
   for(int i=0; i<2*Nsp*Ncs*3; ++i) {
     if(i%25==0) vertexAttributeStr+="\n";
+    if(static_cast<int>(static_cast<float>(i))!=i)
+      throw runtime_error("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
+                          "and than back to 'int' on the GPU. The number of vertices are too large for this conversion.\n"
+                          "(ID="+to_string(i)+")");
     vertexAttributeStr+=" "+S(i);
   }
 
@@ -702,7 +709,6 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     tubeCoordIndexStr+=" -1\n";
   }
 
-  //mfmf
   map<string, string> replace {
     { "Nsp"               , S(Nsp) },
     { "Ncs"               , S(Ncs) },
