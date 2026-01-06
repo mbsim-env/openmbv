@@ -21,6 +21,7 @@
 #define _OPENMBVGUI_SOSEPNOPICKNOBBOX_H_
 
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
+#include <Inventor/fields/SoSFBool.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/nodes/SoBaseColor.h>
@@ -33,8 +34,10 @@ class SepNoPickNoBBox : public SoSeparator {
   public:
     SepNoPickNoBBox();
     static void initClass();
-    void rayPick(SoRayPickAction *action) override {}
-    void getBoundingBox(SoGetBoundingBoxAction *action) override {}
+    void rayPick(SoRayPickAction *action) override;
+    void getBoundingBox(SoGetBoundingBoxAction *action) override;
+    SoSFBool skipBBox;
+    SoSFBool skipPick;
 };
 
 class SepNoPick : public SoSeparator {

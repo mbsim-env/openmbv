@@ -680,7 +680,9 @@ vector<pair<Body*, vector<SbVec3f>>> MyTouchWidget::getObjectsByRay(const QPoint
   pickAction.setPoint(SbVec2s(x, size[1]-y));
   pickAction.setRadius(pickObjectRadius);
   pickAction.setPickAll(true);
+  MainWindow::getInstance()->pickUpdate();
   pickAction.apply(MainWindow::getInstance()->glViewer->getSceneManager()->getSceneGraph());
+  MainWindow::getInstance()->pickUpdateRestore();
   auto pickedPoints=pickAction.getPickedPointList();
   vector<pair<Body*, vector<SbVec3f>>> ret;
   for(int i=0; pickedPoints[i]; i++) {

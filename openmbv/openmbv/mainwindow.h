@@ -257,6 +257,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void selectionChanged();
     float nearPlaneValue;
     bool backgroundNeeded { true };
+    std::set<Body*> pickUpdateSet;
   public:
     SoDrawStyle *olseDrawStyle;
     BaseColorHeavyOverride *olseColor;
@@ -333,6 +334,10 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     // update the flag backgroundNeeded which defines if the color gradient background is needed or not (its not needed if a VRMLBackground element exists)
     void updateBackgroundNeeded();
     bool getBackgroundNeeded() { return backgroundNeeded; }
+    void addPickUpdate(Body *b);
+    void removePickUpdate(Body *b);
+    void pickUpdate();
+    void pickUpdateRestore();
 
   Q_SIGNALS:
     /** This signal is emitted whenever the selected object changes.

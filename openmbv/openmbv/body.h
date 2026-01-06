@@ -58,6 +58,8 @@ class Body : public Object {
     ~Body() override;
     static void frameSensorCB(void *data, SoSensor*);
     virtual double update()=0; // return the current time
+    virtual void pickUpdate() {}
+    virtual void pickUpdateRestore() {}
     void resetAnimRange(int numOfRows, double dt);
     static std::map<SoNode*,Body*>& getBodyMap() { return bodyMap; }
   protected:

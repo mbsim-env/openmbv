@@ -2587,4 +2587,19 @@ void MainWindow::addReferences(SoInput &in) const {
   in.addReference("openmbv_mainwindow_time", timeNode);
 }
 
+void MainWindow::pickUpdate() {
+  for(auto x : pickUpdateSet)
+    x->pickUpdate();
+}
+void MainWindow::pickUpdateRestore() {
+  for(auto x : pickUpdateSet)
+    x->pickUpdateRestore();
+}
+void MainWindow::addPickUpdate(Body *b) {
+  pickUpdateSet.insert(b);
+}
+void MainWindow::removePickUpdate(Body *b) {
+  pickUpdateSet.erase(b);
+}
+
 }

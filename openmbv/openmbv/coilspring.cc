@@ -99,6 +99,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       break;
     }
     case OpenMBV::CoilSpring::tubeShader: {
+      MainWindow::getInstance()->addPickUpdate(this);
       tubeShader = make_unique<CoilSpringShader>();
       tubeShader->init(R, N, numberOfSpinePointsPerCoil, int(numberOfSpinePointsPerCoil*N)+1, iCircSegments, r, mat, soSep);
       tubeShader->updateData(0);
@@ -200,6 +201,7 @@ void CoilSpring::createProperties() {
 }
 
 CoilSpring::~CoilSpring() {
+  MainWindow::getInstance()->removePickUpdate(this);
   delete[]scaledSpine;
 }
 
@@ -264,6 +266,53 @@ double CoilSpring::update() {
   return data[0];
 }
 
+void CoilSpring::pickUpdate() {
+  tubeShader->pickUpdate();
+}
+
+void CoilSpring::pickUpdateRestore() {
+  tubeShader->pickUpdateRestore();
+}
+
+void CoilSpringShader::pickUpdate() {
+  sepNoPickNoBBox->skipPick.setValue(false);
+
+  // update coords
+  auto c = vertex->point.startEditing();
+    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
+      float alpha = spIdx*2.*M_PI/numberOfSpinePointsPerCoil;
+      SbVec3f r_(
+        R*cos(alpha),
+        R*sin(alpha),
+        spIdx*length->value.getValue()/numberOfSpinePointsPerCoil/N
+      );
+      float n = atan( length->value.getValue() / ( N*2.*M_PI*R ) );
+      // angle = rotation2Cardan(cardan2Rotation(0,0,alpha)*cardan2Rotation(n,0,0));
+      float sinn = sin(n);
+      float cosn = cos(n);
+      float sinalpha = sin(alpha);
+      float cosalpha = cos(alpha);
+      SbVec3f angle(
+        atan2(sinn*cosalpha, cosn),
+        asin(sinalpha*sinn),
+         atan2(sinalpha*cosn, cosalpha)
+      );
+      SbRotation T(Utils::cardan2Rotation(angle));
+      for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+        float arg = csIdx*2.*M_PI/Ncs;
+        SbVec3f nsp(r*cos(arg), 0, -r*sin(arg));
+        SbVec3f T_nsp;
+        T.multVec(nsp, T_nsp);
+        c[csIdx+Ncs*spIdx] = r_ + T_nsp;
+      }
+    }
+  vertex->point.finishEditing();
+}
+
+void CoilSpringShader::pickUpdateRestore() {
+  sepNoPickNoBBox->skipPick.setValue(true);
+}
+
 namespace {
   string S(int x) {
     return to_string(x);
@@ -273,11 +322,13 @@ namespace {
   };
 }
 
-void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil_, int Nsp_, int Ncs, double r, SoMaterial *mat, SoSeparator *soSep) {
+void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil_, int Nsp_, int Ncs_, double r_, SoMaterial *mat, SoSeparator *soSep) {
   R = R_;
+  r = r_;
   N = N_;
   numberOfSpinePointsPerCoil = numberOfSpinePointsPerCoil_;
   Nsp = Nsp_;
+  Ncs = Ncs_;
 
   vector<SbVec2f> circle(Ncs);
   for(int i=0;i<Ncs;i++) // clockwise in local coordinate system
@@ -377,6 +428,9 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
   coords=static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_coilspring_coords"));
   endCap1Trans=static_cast<SoTransform*>(Utils::getChildNodeByName(soIv, "endCap1Trans"));
   endCap2Trans=static_cast<SoTransform*>(Utils::getChildNodeByName(soIv, "endCap2Trans"));
+
+  vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_coords"));
+  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_sepnopicknobbox"));
 }
 
 void CoilSpringShader::updateData(double len) {
@@ -409,10 +463,6 @@ void CoilSpringShader::updateData(double len) {
   auto [r2, T2] = calcrT(numberOfSpinePointsPerCoil*N);
   endCap2Trans->translation.setValue(r2);
   endCap2Trans->rotation.setValue(T2);
-
-  if(false) {//mfmf run this code before a user input is done: its slow but will enable the Coin boundingbox and object picking
-    // update coords
-  }
 }
 
 }

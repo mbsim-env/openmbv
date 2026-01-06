@@ -20,6 +20,7 @@
 #ifndef _OPENMBVGUI_COILSPRING_H_
 #define _OPENMBVGUI_COILSPRING_H_
 
+#include "SoSpecial.h"
 #include "dynamiccoloredbody.h"
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoMaterial.h>
@@ -45,16 +46,22 @@ class CoilSpringShader {
   public:
     void init(double R, double N, int numberOfSpinePointsPerCoil, int Nsp, int Ncs, double r, SoMaterial *mat, SoSeparator *soSep);
     void updateData(double len);
+    void pickUpdate();
+    void pickUpdateRestore();
   private:
     SoShaderParameter1f *length;
     SoTranslation *bboxtrans;
     int Nsp;
+    int Ncs;
     double csScale;
     SoCoordinate3 *coords;
     SoTransform *endCap1Trans, *endCap2Trans;
     double R;
+    double r;
     double N;
     int numberOfSpinePointsPerCoil;
+    SoCoordinate3 *vertex;
+    SepNoPickNoBBox *sepNoPickNoBBox;
 };
 
 /**
@@ -106,6 +113,8 @@ class CoilSpring : public DynamicColoredBody {
 
     /** update method invoked at each time step */
     double update() override;
+    void pickUpdate() override;
+    void pickUpdateRestore() override;
 
     std::shared_ptr<OpenMBV::CoilSpring> coilSpring;
     void createProperties() override;

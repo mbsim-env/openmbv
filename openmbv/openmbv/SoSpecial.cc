@@ -13,6 +13,20 @@ void SepNoPickNoBBox::initClass()
 SepNoPickNoBBox::SepNoPickNoBBox()
 {
   SO_NODE_CONSTRUCTOR(SepNoPickNoBBox);
+  SO_NODE_ADD_FIELD(skipBBox, (TRUE));
+  SO_NODE_ADD_FIELD(skipPick, (TRUE));
+}
+
+void SepNoPickNoBBox::rayPick(SoRayPickAction *action) {
+  if(skipPick.getValue())
+    return;
+  SoSeparator::rayPick(action);
+}
+
+void SepNoPickNoBBox::getBoundingBox(SoGetBoundingBoxAction *action) {
+  if(skipBBox.getValue())
+    return;
+  SoSeparator::getBoundingBox(action);
 }
 
 
