@@ -103,6 +103,8 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       tubeShader = make_unique<CoilSpringShader>();
       tubeShader->init(R, N, numberOfSpinePointsPerCoil, int(numberOfSpinePointsPerCoil*N)+1, iCircSegments, r, mat, soSep);
       tubeShader->updateData(0);
+      tubeShader->pickUpdate();
+      tubeShader->pickUpdateRestore();
       break;
     }
     case OpenMBV::CoilSpring::scaledTube: {

@@ -236,6 +236,8 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
       extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), spineExtrusion->getCounterClockWise(),
                                  contour, soSep);
       extrusionCardanShader.updateData(data);
+      extrusionCardanShader.pickUpdate(data);
+      extrusionCardanShader.pickUpdateRestore();
       break;
     }
   }

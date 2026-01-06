@@ -31,6 +31,7 @@ Separator {
     shapeType SOLID
   }
   DEF openmbv_coilspring_sepnopicknobbox SepNoPickNoBBox { # Coin just knows the dummy vertex pos -> we need to disable pick and bbox calculation for this node
+    skipBBox FALSE
     ShaderProgram {
       shaderObject [
         VertexShader {
