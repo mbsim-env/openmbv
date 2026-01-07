@@ -1,7 +1,9 @@
 import numpy
 import math
+import h5py
 
-Nsp = 2000
+with h5py.File("dynamicivbody.ombvh5", "r") as f:
+  Nsp = (f["ivobject"]["data"].shape[1]-1)//6
 Ncs = 200
 
 nsp = numpy.zeros((Ncs,3))

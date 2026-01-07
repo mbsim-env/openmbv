@@ -249,18 +249,8 @@ void dynamicivbody() {
     sp->setName("ivobject");
     sp->setIvFileName("dynamicivbody.iv");
     int Nsp=2000;
-    int Nc=200;
     int Tt=1000;
     sp->setDataSize(1+6*Nsp);
-    auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
-    double r=0.1;
-    contour->emplace_back(PolygonPoint::create(0,r,1));
-    contour->emplace_back(PolygonPoint::create(0,0,1));
-    contour->emplace_back(PolygonPoint::create(r,0,1));
-    double da=M_PI/2/(Nc-2);
-    for(double a=da; a<M_PI/2-da/2; a+=da)
-      contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
-    std::reverse(contour->begin(), contour->end());
   g->write();
 
   vector<Float> data(1+6*Nsp);
