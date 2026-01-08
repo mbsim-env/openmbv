@@ -170,7 +170,7 @@ void IvBody::calculateEdges(const string& fullName, double creaseEdges, bool bou
   // (OpenMBV::~Group deletes all children)
   QString str("Started edge calculation for %1 in a thread:"); str=str.arg(fullName.c_str());
   statusBarShowMessage(str, 1000);
-  // msg(Status)<<str.toStdString()<<endl; no printing to this->msg since this is not thread-safe
+  msg(Status)<<str.toStdString()<<endl;
   edgeCalc->preproces(fullName, true);
   if(creaseEdges>=0) edgeCalc->calcCreaseEdges(creaseEdges);
   if(boundaryEdges) edgeCalc->calcBoundaryEdges();
