@@ -173,7 +173,7 @@ PyInit *pyInit = new PyInit; // init Python on library load and deinit on librar
 template<int T>
 class Redirect {
   public:
-    Redirect(std::ostream &str) {
+    Redirect(fmatvec::osyncstream &&str_) : str(std::move(str_)) {
       oldStream=CALLPYB(PySys_GetObject, T==1?"stdout":"stderr");
       PyO arg(CALLPY(PyTuple_New, 1));
       CALLPY(PyTuple_SetItem, arg, 0, CALLPY(PyLong_FromVoidPtr, &str).incRef());
@@ -198,6 +198,7 @@ class Redirect {
         PyErr_Restore(type, value, traceback);
     }
   private:
+    fmatvec::osyncstream str;
     PyO oldStream;
 };
 #define MBXMLUTILS_REDIR_STDOUT(strstr) Redirect<1> MBXMLUTILS_EVAL_CONCAT(mbxmlutils_redirstdout_, __LINE__)(strstr)
@@ -1015,9 +1016,10 @@ extern "C" {
 
 void mbxmlutils_output(void *strPtr, const char *data) noexcept {
   try {
-    auto &str=*reinterpret_cast<ostream*>(strPtr);
+    auto &str=*reinterpret_cast<fmatvec::osyncstream*>(strPtr);
     str<<data;
     str.flush();
+    str.emit();
   }
   catch(...) {
     cerr<<"Internal Error (this should never happen): the c function for registerPath failed!"<<endl;
