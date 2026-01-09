@@ -26,6 +26,7 @@
 #include "openmbvcppinterface/spineextrusion.h"
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <cfloat>
+#include <GL/glext.h>
 
 using namespace std;
 

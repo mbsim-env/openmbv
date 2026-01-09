@@ -24,6 +24,7 @@
 #include <boost/container_hash/hash.hpp>
 #include "mainwindow.h"
 #include "openmbvcppinterface/dynamicivbody.h"
+#include <GL/glext.h>
 
 using namespace std;
 
