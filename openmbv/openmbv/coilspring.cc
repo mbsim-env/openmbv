@@ -370,8 +370,10 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
     if(i%25==0) vertexAttributeStr+="\n";
     if(static_cast<int>(static_cast<float>(i))!=i)
       throw runtime_error("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
-                          "and than back to 'int' on the GPU. The number of vertices are too large for this conversion.\n"
-                          "(ID="+to_string(i)+")");
+                          "and than back to 'int' on the GPU. The number of vertices in this CoilSpring are too large\n"
+                          "for this conversion. (ID="+to_string(i)+")\n"
+                          "Please use less numberOfCoils or switch to 'tube' or set the envvar\n"
+                          "'OPENMBV_DISABLE_SHADER' which will switch to 'tube' automatically.");
     vertexAttributeStr+=" "+S(i);
   }
 
