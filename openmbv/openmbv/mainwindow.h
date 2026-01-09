@@ -259,6 +259,13 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     bool backgroundNeeded { true };
     std::set<Body*> pickUpdateSet;
   public:
+
+    // coin uses a int (which consumes with padding 4 units) uniform for
+    // - coin_light_model
+    // - coin_two_sided_lighting
+    // - coin_texunit[0-3]_model
+    static constexpr int coinConsumedUniformBasicMachineUnits { 6 * 4 };
+
     SoDrawStyle *olseDrawStyle;
     BaseColorHeavyOverride *olseColor;
     SoDrawStyle *bboxDrawStyle;

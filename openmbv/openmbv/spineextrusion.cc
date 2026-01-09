@@ -690,8 +690,10 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     if(i%25==0) vertexAttributeStr+="\n";
     if(static_cast<int>(static_cast<float>(i))!=i)
       throw runtime_error("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
-                          "and than back to 'int' on the GPU. The number of vertices are too large for this conversion.\n"
-                          "(ID="+to_string(i)+")");
+                          "and than back to 'int' on the GPU. The number of vertices in this SpineExtrusion are too large\n"
+                          "for this conversion. (ID="+to_string(i)+")\n"
+                          "Please use less number of spine/cross-section points or switch to 'cardanWrtWorld' or set the envvar\n"
+                          "'OPENMBV_DISABLE_SHADER' which will switch to 'cardanWrtWorld' automatically.");
     vertexAttributeStr+=" "+S(i);
   }
 
@@ -763,6 +765,19 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
 }
 
 void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) {
+  // check OpenGL limits
+  if(!runtimeCheckDone) {
+    runtimeCheckDone = true;
+    GLint max;
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &max);
+    if(MainWindow::coinConsumedUniformBasicMachineUnits + ((dataNodeVector->value.getNum()+3)/4)*4 > max)
+      throw runtime_error("The number of spine points of this SpineExtrusion is too large for the 'uniform' limit of your GPU.\n"
+                          "(spinePoints="+to_string(dataNodeVector->value.getNum())+"; limit="+
+                                          to_string(max-MainWindow::coinConsumedUniformBasicMachineUnits)+")\n"
+                          "Please use less number of spine points or switch to 'cardanWrtWorld' or set the envvar\n"
+                          "'OPENMBV_DISABLE_SHADER' which will switch to 'cardanWrtWorld' automatically.");
+  }
+
   dataNodeVector->value.setValuesPointer(data.size(), data.data());
 }
 

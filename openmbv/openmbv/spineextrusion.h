@@ -61,6 +61,7 @@ class ExtrusionCardanShader {
     void pickUpdate(const std::vector<OpenMBV::Float>& data);
     void pickUpdateRestore();
   private:
+    bool runtimeCheckDone { false };
     SoShaderParameterArray1f *dataNodeVector;
     int Nsp;
     double csScale;

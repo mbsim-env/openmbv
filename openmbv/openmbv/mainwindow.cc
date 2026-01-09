@@ -1226,8 +1226,6 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
     // the mutex is release now and the callback can deliver rootGroupOMBV->reloadFileSignal() call from now on
   }
 
-  // force a update
-  frameNode->index.touch();
   // apply object filter
   objectListFilter->applyFilter();
 

@@ -42,6 +42,8 @@ class DynamicIvBody : public Body {
     SoShaderParameterArray1f *dataNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;
     std::vector<OpenMBV::Float> data;
+  private:
+    bool runtimeCheckDone { false };
 };
 
 }
