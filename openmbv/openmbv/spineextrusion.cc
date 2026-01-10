@@ -769,9 +769,10 @@ void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) 
   // check OpenGL limits
   if(!runtimeCheckDone) {
     runtimeCheckDone = true;
-    GLint max;
+    assert(glGetString(GL_VERSION));
+    GLint max=-1;
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &max);
-    if(glGetError() != GL_NO_ERROR)
+    if(glGetError() != GL_NO_ERROR || max==-1)
       throw runtime_error("Calling glGetIntegerv failed");
     if(MainWindow::coinConsumedUniformBasicMachineUnits + ((dataNodeVector->value.getNum()+3)/4)*4 > max)
       throw runtime_error("The number of spine points of this SpineExtrusion is too large for the 'uniform' limit of your GPU.\n"

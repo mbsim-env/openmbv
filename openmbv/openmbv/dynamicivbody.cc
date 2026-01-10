@@ -98,10 +98,11 @@ double DynamicIvBody::update() {
   // check OpenGL limits
   if(!runtimeCheckDone) {
     runtimeCheckDone = true;
-    GLint maxFrag, maxVert;
+    assert(glGetString(GL_VERSION));
+    GLint maxFrag=-1, maxVert=-1;
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &maxFrag);
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVert);
-    if(glGetError() != GL_NO_ERROR)
+    if(glGetError() != GL_NO_ERROR || maxFrag==-1 || maxVert==-1)
       throw runtime_error("Calling glGetIntegerv failed");
     size_t max = std::max(maxFrag, maxVert);
     if(( divb->getScalarData() && MainWindow::coinConsumedUniformBasicMachineUnits + divb->getDataSize()*4 > max) ||

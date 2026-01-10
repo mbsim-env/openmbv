@@ -861,37 +861,45 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   QRegExp filterRE2(".+\\.ombvh5");
   dir.setFilter(QDir::Files);
   i=arg.begin();
+
+  // We delay all openFile calls to ensure that a OpenGL context is already created before the open happens.
+  // This allows e.g. to check OpenGL features already in the ctor of Object's
+  auto delayedOpenFile = [this](const string &fn) {
+    waitForAutoExit.insert("MainWindow::openFile::"+fn); // only needed for --autoExit
+    QTimer::singleShot(0, [this, fn](){
+      openFile(fn);
+      viewAllSlot();
+      waitForAutoExit.erase("MainWindow::openFile::"+fn); // only needed for --autoExit
+    });
+  };
+
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
       // open all .+\.ombvx and .+\.ombvh5
       QStringList file=dir.entryList();
       QList<QString> alreadyOpened;
-      for(int j=0; j<file.size(); j++)
-        if(filterRE1.exactMatch(file[j])) {
-          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
-          alreadyOpened.push_back(file[j].mid(0, file[j].length()-6));
+      for(const auto & f : file)
+        if(filterRE1.exactMatch(f)) {
+          delayedOpenFile(dir.path().toStdString()+"/"+f.toStdString());
+          alreadyOpened.push_back(f.mid(0, f.length()-6));
         }
-      for(int j=0; j<file.size(); j++)
-        if(filterRE2.exactMatch(file[j])) {
-          if(alreadyOpened.contains(file[j].mid(0, file[j].length()-7)))
+      for(const auto & f : file)
+        if(filterRE2.exactMatch(f)) {
+          if(alreadyOpened.contains(f.mid(0, f.length()-7)))
             continue;
-          openFile(dir.path().toStdString()+"/"+file[j].toStdString());
+          delayedOpenFile(dir.path().toStdString()+"/"+f.toStdString());
         }
       i2=i; i++; arg.erase(i2);
       continue;
     }
     if(QFile::exists(i->c_str())) {
-      if(openFile(*i)) {
-        i2=i; i++; arg.erase(i2);
-      }
-      else
-        i++;
+      delayedOpenFile(*i);
+      i2=i; i++; arg.erase(i2);
       continue;
     }
     i++;
   }
-  viewAllSlot();
 
   // arg commands after load all files
   
@@ -913,7 +921,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   if(std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end()) {
     auto timer=new QTimer(this);
     connect(timer, &QTimer::timeout,this, [this, timer](){
-      if(waitFor.empty()) {
+      if(waitForAutoExit.empty()) {
         timer->stop();
         if(!close())
           timer->start(100);
@@ -1189,7 +1197,7 @@ MainWindow::~MainWindow() {
   OpenMBVGUI::appSettings.reset();
 }
 
-bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
+void MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
   fmatvec::AdoptCurrentMessageStreamsUntilScopeExit dummy(this);
 
   // default parameter
@@ -1226,12 +1234,12 @@ bool MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
     // the mutex is release now and the callback can deliver rootGroupOMBV->reloadFileSignal() call from now on
   }
 
+  // force a update
+  frameNode->index.touch();
   // apply object filter
   objectListFilter->applyFilter();
 
   updateBackgroundNeeded();
-
-  return true;
 }
 
 void MainWindow::openFileDialog() {

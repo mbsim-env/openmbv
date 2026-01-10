@@ -285,7 +285,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
-    bool openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
+    void openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { frameNode->index.touch(); }
     static MainWindow* const getInstance();
     static void frameSensorCB(void *data, SoSensor*);
@@ -327,7 +327,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     QTreeWidget* getObjectList() { return objectList; }
 
-    std::set<void*> waitFor;
+    std::set<std::string> waitForAutoExit;
     void setNearPlaneValue(float value);
     float getNearPlaneValue() { return nearPlaneValue; }
     SoSFFloat *relCursorZ;
