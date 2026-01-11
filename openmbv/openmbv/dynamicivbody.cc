@@ -48,6 +48,11 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     //h5 dataset
     data = divb->getRow(0);
 
+  int rows=divb->getRows();
+  double dt;
+  if(rows>=2) dt=divb->getRow(1)[0]-divb->getRow(0)[0]; else dt=0;
+  resetAnimRange(rows, dt);
+
   // outline
   soSep->addChild(soOutLineSwitch);
   soOutLineStyle->setName("openmbv_body_outline_style");
