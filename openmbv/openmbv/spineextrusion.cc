@@ -772,11 +772,6 @@ void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) 
     assert(glGetString(GL_VERSION));
     GLint max=-1;
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &max);
-cout<<"mfmf1 "<<max<<endl;
-for(auto i : {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_SHADING_LANGUAGE_VERSION}) {
-  const char* x = (const char*)glGetString(i);
-  cout<<"mfmf2 "<<(x?x:"NO")<<endl;
-}
     if(glGetError() != GL_NO_ERROR || max==-1)
       throw runtime_error("Calling glGetIntegerv failed");
     if(MainWindow::coinConsumedUniformBasicMachineUnits + ((dataNodeVector->value.getNum()+3)/4)*4 > max)
