@@ -25,6 +25,7 @@
 #include "mainwindow.h"
 #include "openmbvcppinterface/dynamicivbody.h"
 #include <GL/glext.h>
+#include <QMessageBox>
 
 using namespace std;
 
@@ -107,15 +108,22 @@ double DynamicIvBody::update() {
     GLint maxFrag=-1, maxVert=-1;
     glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &maxFrag);
     glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVert);
-    if(glGetError() != GL_NO_ERROR || maxFrag==-1 || maxVert==-1)
-      throw runtime_error("Calling glGetIntegerv failed");
+    if(glGetError() != GL_NO_ERROR || maxFrag==-1 || maxVert==-1) {
+      string msg("Calling glGetIntegerv failed\nExiting now!");
+      QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
+      throw runtime_error(msg);
+    }
     size_t max = std::max(maxFrag, maxVert);
     if(( divb->getScalarData() && MainWindow::coinConsumedUniformBasicMachineUnits + divb->getDataSize()*4 > max) ||
-       (!divb->getScalarData() && MainWindow::coinConsumedUniformBasicMachineUnits + ((divb->getDataSize()+3)/4)*4 > max))
-      throw runtime_error("The number of dataSize of this DynamicIvBody is too large for the 'uniform' limit of your GPU.\n"
-                          "(dataSize="+to_string((divb->getDataSize()))+"; limit="+
-                                       to_string(max-MainWindow::coinConsumedUniformBasicMachineUnits)+")\n"
-                          "(Switching from scalarData=true to scalarData=false will reduce the number by factor 4)\n");
+       (!divb->getScalarData() && MainWindow::coinConsumedUniformBasicMachineUnits + ((divb->getDataSize()+3)/4)*4 > max)) {
+      auto msg("The number of dataSize of this DynamicIvBody is too large for the 'uniform' limit of your GPU.\n"
+               "(dataSize="+to_string((divb->getDataSize()))+"; limit="+
+                            to_string(max-MainWindow::coinConsumedUniformBasicMachineUnits)+")\n"
+               "(Switching from scalarData=true to scalarData=false will reduce the number by factor 4)\n"
+               "Exiting now");
+      QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
+      throw runtime_error(msg);
+    }
   }
 
   // read from hdf5
