@@ -770,9 +770,14 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
       }
       bodyi = static_cast<Body*>(body);
     }
-    // make bodies unique
-    std::sort(bodies.begin(), bodies.end());
-    bodies.erase(std::unique(bodies.begin(), bodies.end()), bodies.end());
+    // make bodies unique, but preserve order
+    set<Body*> seen;
+    vector<Body*> bodiesUnique;
+    for(auto &x : bodies) {
+      if(seen.insert(x).second)
+        bodiesUnique.emplace_back(x);
+    }
+    bodies = std::move(bodiesUnique);
   }
 
   int useObjIdx;
