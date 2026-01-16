@@ -248,8 +248,9 @@ void dynamicivbody() {
     g->addObject(sp);
     sp->setName("ivobject");
     sp->setIvFileName("dynamicivbody.iv");
-    int Nsp=2000;
-    int Tt=1000;
+    auto env = getenv("OPENMBV_TESTPROG_DIVB_NSP");
+    int Nsp = env ? atoi(env) : 1000;
+    int Tt = 1000;
     sp->setDataSize(1+6*Nsp);
   g->write();
 
@@ -278,15 +279,17 @@ void spineextrusion() {
     auto sp(ObjectFactory::create<SpineExtrusion>());
     g->addObject(sp);
     sp->setName("ivobject");
-    int Nsp=2000;
-    int Nc=200;
+    auto env = getenv("OPENMBV_TESTPROG_SE_NSP");
+    int Nsp = env ? atoi(env) : 1000;
+    env = getenv("OPENMBV_TESTPROG_SE_NCS");
+    int Ncs = env ? atoi(env) : 100;
     int Tt=1000;
     auto contour = make_shared<std::vector<std::shared_ptr<PolygonPoint>>>();
     double r=0.1;
     contour->emplace_back(PolygonPoint::create(0,r,1));
     contour->emplace_back(PolygonPoint::create(0,0,1));
     contour->emplace_back(PolygonPoint::create(r,0,1));
-    double da=M_PI/2/(Nc-2);
+    double da=M_PI/2/(Ncs-2);
     for(double a=da; a<M_PI/2-da/2; a+=da)
       contour->emplace_back(PolygonPoint::create(r*cos(a),r*sin(a),0));
     std::reverse(contour->begin(), contour->end());

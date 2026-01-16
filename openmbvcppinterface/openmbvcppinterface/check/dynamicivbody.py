@@ -1,10 +1,11 @@
 import numpy
 import math
 import h5py
+import os
 
 with h5py.File("dynamicivbody.ombvh5", "r") as f:
   Nsp = (f["ivobject"]["data"].shape[1]-1)//6
-Ncs = 200
+Ncs = int(os.environ.get("OPENMBV_TESTPROG_DIVB_NCS", "100"))
 
 nsp = numpy.zeros((Ncs,3))
 border = numpy.zeros((Ncs,), dtype=int)
