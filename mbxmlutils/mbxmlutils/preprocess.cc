@@ -233,172 +233,174 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     if(E(e)->hasAttribute("counterName"))
       counterName=E(e)->getAttribute("counterName");
   
-    // get element to embed and set file if this element is from href and save as enew
-    XercesUniquePtr<DOMElement> enew;
-    path enewFilename;
-    bool fileExists = false;
-    if(E(e)->hasAttribute("href")) {
-      // evaluate href
-      string subst;
-      try { subst=eval->cast<string>(eval->eval(E(e)->getAttributeNode("href"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
-      enewFilename=E(e)->convertPath(subst);
-      if(dependencies)
-        dependencies->push_back(enewFilename);
-
-      // validate/load if file is given and save in enew
-      fileExists = exists(enewFilename);
-      if(fileExists) {
-        shared_ptr<DOMDocument> newdoc;
-        try {
-          newdoc=parseCached(D(document)->getParser(), enewFilename, "Embed file.", true);
-        }
-        catch(DOMEvalException& ex) {
-          ex.appendContext(e),
-          throw;
-        }
-        enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)));
-      }
-      else
-        enew.reset(D(e->getOwnerDocument())->createElement(embedFileNotFound));
-    }
-    else
-      // take the child element (inlineEmbedEle)
-      enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)));
-
-    // add the OriginalFilename if not already added
-    if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
-      E(enew)->setOriginalFilename(E(e)->getOriginalFilename());
-    // include a processing instruction with the line number of the original element
-    E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
-    E(enew)->setEmbedXPathCount(embedXPathCount);
-
     bool nodesInvalidated = false;
-    if(E(enew)->getTagName()!=embedFileNotFound && !enew->getSchemaTypeInfo()->getTypeName()) {
-      nodesInvalidated = true;
-      // Validate enew! only needed if enew does not have any type information yet.
-      // (a unvalidated parse may happend when the root element was not known; mainly since the root element is a local element)
-      //
-      // The any-child element of the Embed element is of processContents="skip" but we need the type information
-      // of all element in enew. We do this by:
-      // 1. replacing the Embed element with enew
-      // 2. revalidate the complete document
-      // 3. revert the change of 1.
-      // Very special care must be taken since 2. is done by serializing and reparsing the document which will
-      // invalidate all DOMNode's except the DOMDocument.
-      // Hence, we save the xpath of enew and get the enew element again in 3. using the saved xpath.
-      auto doc = e->getOwnerDocument();
-
-      DOMEvalException msg("WARNING: Revalidate document "+D(doc)->getDocumentFilename().string()+
-                           " to populate this local element with type information.", enew.get());
-      msgStatic(Debug)<<disableEscaping<<msg.what()<<enableEscaping<<endl;
-
-      vector<int> xPathenew;
-      XercesUniquePtr<DOMElement> savede;
-      {
-        auto p = e->getParentNode();
-        auto enewPtr = enew.release();
-        savede.reset(static_cast<DOMElement*>(p->replaceChild(enewPtr, e)));
-        xPathenew = E(enewPtr)->getElementLocation();
-      }
-      auto oldRoot = D(doc)->validate(); // prevent release of the old root element until end of scope (we need "e" next)
-      {
-        auto enewPtr = static_cast<DOMElement*>(D(doc)->locateElement(xPathenew));
-        auto p = enewPtr->getParentNode();
-        enew.reset(static_cast<DOMElement*>(p->replaceChild(savede.release(), enewPtr)));
-      }
-    }
-
-    // get element of the parameters of this embed and set paramFile if this element is from parameterHref and save as localParamEle
     XercesUniquePtr<DOMElement> localParamEle;
+    path enewFilename;
+    string enewInlineFilename;
+    bool fileExists = false;
     path paramFile;
-    if(E(e)->hasAttribute("parameterHref")) {
-      // parameter from parameterHref attribute
-      Eval::Value ret;
-      try { ret=eval->eval(E(e)->getAttributeNode("parameterHref")); } RETHROW_AS_DOMEVALEXCEPTION(e)
-      string subst;
-      try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
-      paramFile=E(e)->convertPath(subst);
-      if(exists(paramFile)) {
-        // add local parameter file to dependencies
+    XercesUniquePtr<DOMElement> enew;
+    if(count>0) {
+      // get element to embed and set file if this element is from href and save as enew
+      if(E(e)->hasAttribute("href")) {
+        // evaluate href
+        string subst;
+        try { subst=eval->cast<string>(eval->eval(E(e)->getAttributeNode("href"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        enewFilename=E(e)->convertPath(subst);
         if(dependencies)
-          dependencies->push_back(paramFile);
-        // validate and local parameter file
-        shared_ptr<DOMDocument> localparamxmldoc;
-        try {
-          localparamxmldoc=parseCached(D(document)->getParser(), paramFile, "Local parameter file.");
+          dependencies->push_back(enewFilename);
+
+        // validate/load if file is given and save in enew
+        fileExists = exists(enewFilename);
+        if(fileExists) {
+          shared_ptr<DOMDocument> newdoc;
+          try {
+            newdoc=parseCached(D(document)->getParser(), enewFilename, "Embed file.", true);
+          }
+          catch(DOMEvalException& ex) {
+            ex.appendContext(e),
+            throw;
+          }
+          enew.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(newdoc->getDocumentElement(), true)));
         }
-        catch(DOMEvalException& ex) {
-          ex.appendContext(e),
-          throw;
-        }
-        if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
-          throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
-        // generate local parameters
-        localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)));
-        E(localParamEle)->setOriginalFilename(E(localparamxmldoc->getDocumentElement())->getOriginalFilename());
+        else
+          enew.reset(D(e->getOwnerDocument())->createElement(embedFileNotFound));
       }
       else
-        localParamEle.reset(D(e->getOwnerDocument())->createElement(embedFileNotFound));
-    }
-    else if(inlineParamEle) {
-      // inline parameter
-      localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)));
-    }
+        // take the child element (inlineEmbedEle)
+        enew.reset(static_cast<DOMElement*>(e->removeChild(inlineEmbedEle)));
 
-    if(localParamEle) {
+      // add the OriginalFilename if not already added
+      if(!E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
+        E(enew)->setOriginalFilename(E(e)->getOriginalFilename());
       // include a processing instruction with the line number of the original element
-      E(localParamEle)->setOriginalElementLineNumber(E(e)->getLineNumber());
-      E(localParamEle)->setEmbedXPathCount(embedXPathCount);
-    }
+      E(enew)->setOriginalElementLineNumber(E(e)->getLineNumber());
+      E(enew)->setEmbedXPathCount(embedXPathCount);
 
-    // overwrite local parameter to/by param (only handle root level parameters)
-    if(localParamEle && param && e->getParentNode()->getNodeType()==DOMNode::DOCUMENT_NODE) {
+      if(E(enew)->getTagName()!=embedFileNotFound && !enew->getSchemaTypeInfo()->getTypeName()) {
+        nodesInvalidated = true;
+        // Validate enew! only needed if enew does not have any type information yet.
+        // (a unvalidated parse may happend when the root element was not known; mainly since the root element is a local element)
+        //
+        // The any-child element of the Embed element is of processContents="skip" but we need the type information
+        // of all element in enew. We do this by:
+        // 1. replacing the Embed element with enew
+        // 2. revalidate the complete document
+        // 3. revert the change of 1.
+        // Very special care must be taken since 2. is done by serializing and reparsing the document which will
+        // invalidate all DOMNode's except the DOMDocument.
+        // Hence, we save the xpath of enew and get the enew element again in 3. using the saved xpath.
+        auto doc = e->getOwnerDocument();
 
-      // override parameters
-      for(auto & it : *param) {
-        // serach for a parameter named it->first in localParamEle
-        bool found=false;
-        for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
-          if(E(p)->getAttribute("name")==it.first) {
-            // if found overwrite this parameter
-            Eval::setValue(p, it.second);
-            msgStatic(Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
-            found=true;
-            break;
+        DOMEvalException msg("WARNING: Revalidate document "+D(doc)->getDocumentFilename().string()+
+                             " to populate this local element with type information.", enew.get());
+        msgStatic(Debug)<<disableEscaping<<msg.what()<<enableEscaping<<endl;
+
+        vector<int> xPathenew;
+        XercesUniquePtr<DOMElement> savede;
+        {
+          auto p = e->getParentNode();
+          auto enewPtr = enew.release();
+          savede.reset(static_cast<DOMElement*>(p->replaceChild(enewPtr, e)));
+          xPathenew = E(enewPtr)->getElementLocation();
+        }
+        auto oldRoot = D(doc)->validate(); // prevent release of the old root element until end of scope (we need "e" next)
+        {
+          auto enewPtr = static_cast<DOMElement*>(D(doc)->locateElement(xPathenew));
+          auto p = enewPtr->getParentNode();
+          enew.reset(static_cast<DOMElement*>(p->replaceChild(savede.release(), enewPtr)));
+        }
+      }
+
+      // get element of the parameters of this embed and set paramFile if this element is from parameterHref and save as localParamEle
+      if(E(e)->hasAttribute("parameterHref")) {
+        // parameter from parameterHref attribute
+        Eval::Value ret;
+        try { ret=eval->eval(E(e)->getAttributeNode("parameterHref")); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        string subst;
+        try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        paramFile=E(e)->convertPath(subst);
+        if(exists(paramFile)) {
+          // add local parameter file to dependencies
+          if(dependencies)
+            dependencies->push_back(paramFile);
+          // validate and local parameter file
+          shared_ptr<DOMDocument> localparamxmldoc;
+          try {
+            localparamxmldoc=parseCached(D(document)->getParser(), paramFile, "Local parameter file.");
           }
+          catch(DOMEvalException& ex) {
+            ex.appendContext(e),
+            throw;
+          }
+          if(E(localparamxmldoc->getDocumentElement())->getTagName()!=PV%"Parameter")
+            throw DOMEvalException("The root element of a parameter file '"+paramFile.string()+"' must be {"+PV.getNamespaceURI()+"}Parameter", e);
+          // generate local parameters
+          localParamEle.reset(static_cast<DOMElement*>(e->getOwnerDocument()->importNode(localparamxmldoc->getDocumentElement(), true)));
+          E(localParamEle)->setOriginalFilename(E(localparamxmldoc->getDocumentElement())->getOriginalFilename());
         }
-        if(!found)
-          msgStatic(Warn)<<"Parameter '"<<it.first<<"' not found and not overwritten"<<endl;
+        else
+          localParamEle.reset(D(e->getOwnerDocument())->createElement(embedFileNotFound));
+      }
+      else if(inlineParamEle) {
+        // inline parameter
+        localParamEle.reset(static_cast<DOMElement*>(e->removeChild(inlineParamEle)));
       }
 
-      // output parameters to the caller
-      param->clear();
-      shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
-      for(DOMElement *p=localParamEle->getLastElementChild(); p!=nullptr; p=p->getPreviousElementSibling()) {
-        auto name=E(p)->getAttribute("name");
-        if(param->find(name)!=param->end())
-          continue;
-        Eval::Value parValue;
-        // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
-        try {
-          parValue=plainEval->eval(p);
-          E(e)->removeAttribute("unit");
-          E(e)->removeAttribute("convertUnit");
-        }
-        catch(exception &ex) {
-          if(E(p)->getTagName()!=PV%"import")
-            eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
-                           <<name<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
-          continue;
-        }
-        param->emplace(name, parValue);
+      if(localParamEle) {
+        // include a processing instruction with the line number of the original element
+        E(localParamEle)->setOriginalElementLineNumber(E(e)->getLineNumber());
+        E(localParamEle)->setEmbedXPathCount(embedXPathCount);
       }
+
+      // overwrite local parameter to/by param (only handle root level parameters)
+      if(localParamEle && param && e->getParentNode()->getNodeType()==DOMNode::DOCUMENT_NODE) {
+
+        // override parameters
+        for(auto & it : *param) {
+          // serach for a parameter named it->first in localParamEle
+          bool found=false;
+          for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
+            if(E(p)->getAttribute("name")==it.first) {
+              // if found overwrite this parameter
+              Eval::setValue(p, it.second);
+              msgStatic(Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
+              found=true;
+              break;
+            }
+          }
+          if(!found)
+            msgStatic(Warn)<<"Parameter '"<<it.first<<"' not found and not overwritten"<<endl;
+        }
+
+        // output parameters to the caller
+        param->clear();
+        shared_ptr<Eval> plainEval=Eval::createEvaluator(eval->getName());
+        for(DOMElement *p=localParamEle->getLastElementChild(); p!=nullptr; p=p->getPreviousElementSibling()) {
+          auto name=E(p)->getAttribute("name");
+          if(param->find(name)!=param->end())
+            continue;
+          Eval::Value parValue;
+          // only add the parameter if it does not depend on others and is of type scalar, vector, matrix or string
+          try {
+            parValue=plainEval->eval(p);
+            E(e)->removeAttribute("unit");
+            E(e)->removeAttribute("convertUnit");
+          }
+          catch(exception &ex) {
+            if(E(p)->getTagName()!=PV%"import")
+              eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
+                             <<name<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
+            continue;
+          }
+          param->emplace(name, parValue);
+        }
+      }
+
+      // generate a enewFilename for a inline embed element used for printing messages
+      if(enewFilename.empty())
+        enewInlineFilename=string("[inline element]:{").append(inlineEmbedEleTagName.first).append("}").append(inlineEmbedEleTagName.second);
     }
-
-    // generate a enewFilename for a inline embed element used for printing messages
-    string enewInlineFilename;
-    if(enewFilename.empty())
-      enewInlineFilename=string("[inline element]:{").append(inlineEmbedEleTagName.first).append("}").append(inlineEmbedEleTagName.second);
 
     // delete embed element and insert count time the new element
     DOMElement *embed=e;
