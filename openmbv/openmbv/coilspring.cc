@@ -25,6 +25,8 @@
 #include "openmbvcppinterface/coilspring.h"
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoNormal.h>
+#include <Inventor/nodes/SoVertexAttribute.h>
 #include <QMenu>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <cfloat>
@@ -357,45 +359,6 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
     nspStr2+=" "+S(circle[i][0])+" 0 "+S(circle[i][1]);
   }
 
-  string vertexDummyStr;
-  string normalDummyStr;
-  for(int i=0; i<Nsp*Ncs; ++i) {
-    if(i%15==0) vertexDummyStr+="\n";
-    if(i%15==0) normalDummyStr+="\n";
-    vertexDummyStr+=" 0 0 0";
-    normalDummyStr+=" 0 0 0";
-  }
-
-  string vertexAttributeStr;
-  for(int i=0; i<Nsp*Ncs*3; ++i) {
-    if(i%25==0) vertexAttributeStr+="\n";
-    if(static_cast<int>(static_cast<float>(i))!=i) {
-      auto msg("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
-               "and than back to 'int' on the GPU. The number of vertices in this CoilSpring are too large\n"
-               "for this conversion. (ID="+to_string(i)+")\n"
-               "Please use less numberOfCoils or switch to 'tube' or set the envvar\n"
-               "'OPENMBV_DISABLE_SHADER' which will switch to 'tube' automatically.\n"
-               "Exiting now");
-      QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
-      throw runtime_error(msg);
-    }
-    vertexAttributeStr+=" "+S(i);
-  }
-
-  string meshCoordIndexStr;
-  for(int spIdx=0; spIdx<Nsp-1; ++spIdx) {
-    for(int csIdx=0; csIdx<Ncs; ++csIdx) {
-      if(csIdx%5==0) meshCoordIndexStr+="\n";
-      int nIdx = spIdx*Ncs+csIdx;
-      meshCoordIndexStr+=" "+S(nIdx);
-      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 1 :1-Ncs));
-      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 1 :1-Ncs)+Ncs);
-      meshCoordIndexStr+=" "+S(nIdx+Ncs);
-      meshCoordIndexStr+=" -1";
-    }
-    meshCoordIndexStr+="\n";
-  }
-
   map<string, string> replace {
     { "R"                         , S(R) },
     { "r"                         , S(r) },
@@ -403,10 +366,6 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
     { "numberOfSpinePointsPerCoil", to_string(numberOfSpinePointsPerCoil) },
     { "Nsp"                       , S(Nsp) },
     { "Ncs"                       , S(Ncs) },
-    { "vertexDummyStr"            ,   vertexDummyStr },
-    { "normalDummyStr"            ,   normalDummyStr },
-    { "vertexAttributeStr"        ,   vertexAttributeStr },
-    { "meshCoordIndexStr"         ,   meshCoordIndexStr },
     { "nspStr2"                   ,   nspStr2 },
     { "NcsStr"                    ,   NcsStr },
     { "startIndex1"               , S(6*(Nsp-1)+1) },
@@ -435,6 +394,47 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
 
   vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_coords"));
   sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_sepnopicknobbox"));
+
+  // set coords: only the numbers, values are set later
+  coords->point.setNum(Nsp*Ncs);
+  // set normals: only the numbers, values are set by the shader
+  auto normal=static_cast<SoNormal*>(Utils::getChildNodeByName(soIv, "openmbv_coilspring_normals"));
+  normal->vector.setNum(Nsp*Ncs);
+  // set vertex attributes: constant values
+  auto vertAttr = static_cast<SoMFFloat*>(static_cast<SoVertexAttribute*>(
+                    Utils::getChildNodeByName(soIv, "openmbv_coilspring_vertattr"))->getValuesField());
+  vertAttr->setNum(Nsp*Ncs);
+  float* va=vertAttr->startEditing();
+    for(int i=0; i<Nsp*Ncs; ++i) {
+      if(static_cast<int>(static_cast<float>(i))!=i) {
+        auto msg("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
+                 "and than back to 'int' on the GPU. The number of vertices in this CoilSpring are too large\n"
+                 "for this conversion. (ID="+to_string(i)+")\n"
+                 "Please use less numberOfCoils or switch to 'tube' or set the envvar\n"
+                 "'OPENMBV_DISABLE_SHADER' which will switch to 'tube' automatically.\n"
+                 "Exiting now");
+        QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
+        throw runtime_error(msg);
+      }
+      va[i] = i;
+    }
+  vertAttr->finishEditing();
+  // set coord indices: constant values
+  auto coordIndex = static_cast<SoIndexedFaceSet*>(Utils::getChildNodeByName(soIv, "openmbv_coilspring_coordindex"));
+  coordIndex->coordIndex.setNum((Nsp-1)*Ncs*5);
+  auto ci = coordIndex->coordIndex.startEditing();
+  int i=0;
+  for(int spIdx=0; spIdx<Nsp-1; ++spIdx) {
+    for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+      int nIdx = spIdx*Ncs+csIdx;
+      ci[i++] = nIdx;
+      ci[i++] = nIdx+(csIdx<Ncs-1 ? 1 :1-Ncs);
+      ci[i++] = nIdx+(csIdx<Ncs-1 ? 1 :1-Ncs)+Ncs;
+      ci[i++] = nIdx+Ncs;
+      ci[i++] = -1;
+    }
+  }
+  coordIndex->coordIndex.finishEditing();
 }
 
 void CoilSpringShader::updateData(double len) {

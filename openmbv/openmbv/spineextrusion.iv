@@ -5,13 +5,11 @@ Separator {
   DEF openmbv_spineextrusion_coords Coordinate3 {
     point [ # Dummy normals are needed here -> will be overwritten in the vertex shader
             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
-      @vertexDummyStr@
     ]
   }
-  Normal {
+  DEF openmbv_spineextrusion_normals Normal {
     vector [ # Dummy normals are needed here -> will be overwritten in the vertex shader
-            # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
-      @normalDummyStr@
+             # If you set coordindates here, these will be used for coin bbox calculation and picking, ... (but will be wrong)
     ]
   }
   ShapeHints {
@@ -160,17 +158,16 @@ Separator {
         }
       ]
     }
-    VertexAttribute {
+    DEF openmbv_spineextrusion_vertattr VertexAttribute {
       typeName "SoMFFloat" # Coin only supports short as int type, which is too small.
                            # Coin will convert a int type to float since glVertexAttribPointerARB not glVertexAttriblPointerARB is used
                            # -> use a (none negative) float as ID and convert it to in in the vertex shader
       name "vertexID_float"
-      values [ @vertexAttributeStr@ ]
+      values [ ]
     }
     # tube
-    IndexedFaceSet { # Coin does not pass VertexAttribut's to IndexedTriangleStripSet -> use IndexedFaceSet
+    DEF openmbv_spineextrusion_coordindex IndexedFaceSet { # Coin does not pass VertexAttribut's to IndexedTriangleStripSet -> use IndexedFaceSet
       coordIndex [
-        @meshCoordIndexStr@
       ]
       # we cannot use normalIndex/... since the vertex shader calculates exactly one normal per vertex (per Coordinate3)
     }
@@ -178,9 +175,8 @@ Separator {
     DEF outLineStyle Material {
       diffuseColor 0 0 0
     }
-    IndexedLineSet {
+    DEF openmbv_spineextrusion_tubecoordindex IndexedLineSet {
       coordIndex [
-        @tubeCoordIndexStr@
       ]
     }
   }

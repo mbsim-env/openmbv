@@ -22,6 +22,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoIndexedTriangleStripSet.h>
+#include <Inventor/nodes/SoVertexAttribute.h>
 #include "utils.h"
 #include "openmbvcppinterface/spineextrusion.h"
 #include <boost/dll/runtime_symbol_info.hpp>
@@ -678,57 +679,6 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   }
   borderStr=borderStr.substr(0,borderStr.size()-1);
 
-  string vertexDummyStr;
-  string normalDummyStr;
-  for(int i=0; i<2*Nsp*Ncs; ++i) {
-    if(i%15==0) vertexDummyStr+="\n";
-    if(i%15==0) normalDummyStr+="\n";
-    vertexDummyStr+=" 0 0 0";
-    normalDummyStr+=" 0 0 0";
-  }
-
-  string vertexAttributeStr;
-  for(int i=0; i<2*Nsp*Ncs*3; ++i) {
-    if(i%25==0) vertexAttributeStr+="\n";
-    if(static_cast<int>(static_cast<float>(i))!=i) {
-      auto msg("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
-               "and than back to 'int' on the GPU. The number of vertices in this SpineExtrusion are too large\n"
-               "for this conversion. (ID="+to_string(i)+")\n"
-               "Please use less number of spine/cross-section points or switch to 'cardanWrtWorld' or set the envvar\n"
-               "'OPENMBV_DISABLE_SHADER' which will switch to 'cardanWrtWorld' automatically.\n"
-               "Exiting now");
-      QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
-      throw runtime_error(msg);
-    }
-    vertexAttributeStr+=" "+S(i);
-  }
-
-  string meshCoordIndexStr;
-  for(int spIdx=0; spIdx<Nsp-1; ++spIdx) {
-    for(int csIdx=0; csIdx<Ncs; ++csIdx) {
-      if(csIdx%5==0) meshCoordIndexStr+="\n";
-      int nIdx = 2*(spIdx*Ncs+csIdx);
-      meshCoordIndexStr+=" "+S(nIdx+1);
-      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs));
-      meshCoordIndexStr+=" "+S(nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs)+2*Ncs);
-      meshCoordIndexStr+=" "+S(nIdx+1+2*Ncs);
-      meshCoordIndexStr+=" -1";
-    }
-    meshCoordIndexStr+="\n";
-  }
-
-  string tubeCoordIndexStr;
-  for(int csIdx=0; csIdx<Ncs; ++csIdx) {
-    if((*contour)[csIdx]->getBorderValue()==0)
-      continue;
-    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
-      if(spIdx%25==0) tubeCoordIndexStr+="\n";
-      int nIdx = 2*(spIdx*Ncs+csIdx);
-      tubeCoordIndexStr+=" "+S(nIdx);
-    }
-    tubeCoordIndexStr+=" -1\n";
-  }
-
   map<string, string> replace {
     { "Nsp"               , S(Nsp) },
     { "Ncs"               , S(Ncs) },
@@ -744,11 +694,6 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     { "nspStr"            ,   nspStr },
     { "nspStr2"           ,   nspStr2 },
     { "normalStr"         ,   normalStr },
-    { "tubeCoordIndexStr" ,   tubeCoordIndexStr },
-    { "vertexDummyStr"    ,   vertexDummyStr },
-    { "normalDummyStr"    ,   normalDummyStr },
-    { "meshCoordIndexStr" ,   meshCoordIndexStr },
-    { "vertexAttributeStr",   vertexAttributeStr },
   };
   ivContent = replaceKeys(ivContent, replace);
 
@@ -759,7 +704,7 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     f<<ivContent;
   }
 
-  auto soIv = Utils::SoDBreadAllContentCached(ivContent, {/*no cache*/}, [this, mat](SoInput& in) {
+  auto soIv = Utils::SoDBreadAllContentCached(ivContent, {/*no cache*/}, [this](SoInput& in) {
     in.addReference("openmbv_spineextrusion_data", dataNodeVector);
   });
   if(!soIv)
@@ -768,6 +713,61 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
 
   vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
   sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_spineextrusion_sepnopicknobbox"));
+
+  // set vertex values: only the size is needed -> values are overwritten later on in ExtrusionCardanShader::pickUpdate
+  vertex->point.setNum(2*Nsp*Ncs);
+  // set normal values: only dummy values are needed since its overwritten by the shader
+  static_cast<SoNormal*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_normals"))->vector.setNum(2*Nsp*Ncs);
+  // set vertex attributes: constant values
+  auto vertAttr = static_cast<SoMFFloat*>(static_cast<SoVertexAttribute*>(
+                    Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_vertattr"))->getValuesField());
+  vertAttr->setNum(2*Nsp*Ncs);
+  float* va=vertAttr->startEditing();
+    for(int i=0; i<2*Nsp*Ncs; ++i) {
+      if(static_cast<int>(static_cast<float>(i))!=i) {
+        auto msg("Due to restrictions in Coin we need to convert the vertex ID 'int' to a 'float' on the CPU\n"
+                 "and than back to 'int' on the GPU. The number of vertices in this SpineExtrusion are too large\n"
+                 "for this conversion. (ID="+to_string(i)+")\n"
+                 "Please use less number of spine/cross-section points or switch to 'cardanWrtWorld' or set the envvar\n"
+                 "'OPENMBV_DISABLE_SHADER' which will switch to 'cardanWrtWorld' automatically.\n"
+                 "Exiting now");
+        QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
+        throw runtime_error(msg);
+      }
+      va[i] = i;
+    }
+  vertAttr->finishEditing();
+  // set coord indices: constant values
+  auto coordIndex = static_cast<SoIndexedFaceSet*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coordindex"));
+  coordIndex->coordIndex.setNum((Nsp-1)*Ncs*5);
+  auto ci = coordIndex->coordIndex.startEditing();
+  int i=0;
+  for(int spIdx=0; spIdx<Nsp-1; ++spIdx) {
+    for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+      int nIdx = 2*(spIdx*Ncs+csIdx);
+      ci[i++] = nIdx+1;
+      ci[i++] = nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs);
+      ci[i++] = nIdx+(csIdx<Ncs-1 ? 2 :2-2*Ncs)+2*Ncs;
+      ci[i++] = nIdx+1+2*Ncs;
+      ci[i++] = -1;
+    }
+  }
+  coordIndex->coordIndex.finishEditing();
+  // set tube coord index: constant values
+  auto tubeCoordIndex = static_cast<SoIndexedLineSet*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_tubecoordindex"));
+  tubeCoordIndex->coordIndex.setNum((Nsp+1)*std::count_if(contour->begin(), contour->end(), [](auto &c){ return c->getBorderValue()!=0; }));
+  auto tci = tubeCoordIndex->coordIndex.startEditing();
+  i=0;
+  for(int csIdx=0; csIdx<Ncs; ++csIdx) {
+    if((*contour)[csIdx]->getBorderValue()==0)
+      continue;
+    for(int spIdx=0; spIdx<Nsp; ++spIdx) {
+      int nIdx = 2*(spIdx*Ncs+csIdx);
+      tci[i++] = nIdx;
+    }
+    tci[i++] = -1;
+  }
+  tubeCoordIndex->coordIndex.finishEditing();
 }
 
 void ExtrusionCardanShader::updateData(const std::vector<OpenMBV::Float> &data) {
