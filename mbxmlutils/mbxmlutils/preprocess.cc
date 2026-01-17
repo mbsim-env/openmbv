@@ -11,6 +11,7 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
 using namespace boost::filesystem;
+using namespace fmatvec;
 
 namespace MBXMLUtils {
 
@@ -25,7 +26,7 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
                        bool trackDependencies
                       ) {
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<enableEscaping;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
   document = parseCached(parser, inputFile, "XML input file.");
   msgStatic(Debug)<<"Finished: XML input file"<<endl;
@@ -41,7 +42,7 @@ Preprocess::Preprocess(istream &inputStream, // the input stream containing the 
                        bool trackDependencies
                       ) {
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<enableEscaping;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
   msgStatic(Info)<<"Load, parse and validate input stream."<<endl;
   document = parseCached(parser, inputStream, "XML input file.");
@@ -71,7 +72,7 @@ std::shared_ptr<DOMParser> Preprocess::initDependenciesAndParser(std::variant<
 
 Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDependencies) {
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<enableEscaping;
   if(trackDependencies)
     dependencies = make_unique<std::vector<boost::filesystem::path>>();
 
@@ -84,7 +85,7 @@ Preprocess::Preprocess(const shared_ptr<DOMDocument> &inputDoc, bool trackDepend
 
 Preprocess::~Preprocess() {
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_DTOR\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_DTOR\"></a>"<<enableEscaping;
 }
 
 const vector<path>& Preprocess::getDependencies() const {
@@ -141,7 +142,7 @@ void Preprocess::extractEvaluator() {
 
 shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_START\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_START\"></a>"<<enableEscaping;
   msgStatic(Info)<<"Start XML preprocessing."<<endl;
   auto start = std::chrono::high_resolution_clock::now();
   if(preprocessed)
@@ -184,7 +185,7 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
 #endif
 
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
-    msgStatic(Info)<<flush<<skipws<<"<a name=\"MBXMLUTILS_PREPROCESS_END\"></a>"<<flush<<noskipws;
+    msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_END\"></a>"<<enableEscaping;
   return document;
 }
 
@@ -289,7 +290,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
 
       DOMEvalException msg("WARNING: Revalidate document "+D(doc)->getDocumentFilename().string()+
                            " to populate this local element with type information.", enew.get());
-      msgStatic(Debug)<<flush<<skipws<<msg.what()<<flush<<noskipws<<endl;
+      msgStatic(Debug)<<disableEscaping<<msg.what()<<enableEscaping<<endl;
 
       vector<int> xPathenew;
       XercesUniquePtr<DOMElement> savede;
@@ -539,9 +540,9 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           double d=eval->cast<double>(value);
           int i;
           if(tryDouble2Int(d, i))
-            s=fmatvec::toString(i);
+            s=toString(i);
           else
-            s=fmatvec::toString(d);
+            s=toString(d);
         }
         else if(eval->valueIsOfType(value, Eval::StringType))
           s=eval->cast<string>(value);

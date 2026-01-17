@@ -1018,8 +1018,6 @@ void mbxmlutils_output(void *strPtr, const char *data) noexcept {
   try {
     auto &str=*reinterpret_cast<fmatvec::osyncstream*>(strPtr);
     str<<data;
-    str.flush();
-    str.emit();
   }
   catch(...) {
     cerr<<"Internal Error (this should never happen): the c function for registerPath failed!"<<endl;

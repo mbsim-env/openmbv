@@ -41,12 +41,13 @@
 using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
+using namespace fmatvec;
 
 namespace MBXMLUtils {
 
   set<size_t> Deprecated::printedMessages;
 
-  void Deprecated::message(const fmatvec::Atom *ele, const string &msg, const DOMElement *e) {
+  void Deprecated::message(const Atom *ele, const string &msg, const DOMElement *e) {
     // create the full deprecated message (including a trace)
     string msg2;
     if(e)
@@ -54,15 +55,13 @@ namespace MBXMLUtils {
     else
       // MISSING get a stacktrace here. e.g. using boost::backtrace if its available
       msg2="(no stack trace available)";
-    auto str = ele ? ele->msg(fmatvec::Atom::Deprecated) : fmatvec::Atom::msgStatic(fmatvec::Atom::Deprecated);
+    auto str = ele ? ele->msg(Atom::Deprecated) : Atom::msgStatic(Atom::Deprecated);
     // create a hash of the message and ...
     boost::hash<pair<ostream*, string> > messageHash;
     if(printedMessages.insert(messageHash(make_pair(&str.getOStream(), msg+"\n"+msg2))).second) {
       // ... print the message if it is not already printed
       str<<"Deprecated feature called:"<<endl<<msg<<endl
-         // skipws is not relevant for a ostream except by fmatvec::PrePostfixedStream which disabled the escaping
-         // (that is why it is used here)
-         <<flush<<skipws<<msg2<<flush<<noskipws
+         <<disableEscaping<<msg2<<enableEscaping
          <<endl;
     }
   }
@@ -92,12 +91,12 @@ namespace MBXMLUtils {
     }
   
     // disable all streams
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Info      , std::make_shared<bool>(false));
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Warn      , std::make_shared<bool>(false));
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Debug     , std::make_shared<bool>(false));
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Error     , std::make_shared<bool>(false));
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Deprecated, std::make_shared<bool>(false));
-    fmatvec::Atom::setCurrentMessageStream(fmatvec::Atom::Status    , std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Info      , std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Warn      , std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Debug     , std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Error     , std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Deprecated, std::make_shared<bool>(false));
+    Atom::setCurrentMessageStream(Atom::Status    , std::make_shared<bool>(false));
   
     // handle --stdout and --stderr args
     list<string>::iterator it;
@@ -106,13 +105,13 @@ namespace MBXMLUtils {
       auto itn=next(it);
       if(itn==args.end())
         throw runtime_error("Invalid argument: "+*it+" "+*itn);
-      fmatvec::Atom::MsgType msgType;
-      if     (itn->substr(0, 5)=="info~"  ) msgType=fmatvec::Atom::Info;
-      else if(itn->substr(0, 5)=="warn~"  ) msgType=fmatvec::Atom::Warn;
-      else if(itn->substr(0, 6)=="debug~" ) msgType=fmatvec::Atom::Debug;
-      else if(itn->substr(0, 6)=="error~" ) msgType=fmatvec::Atom::Error;
-      else if(itn->substr(0, 5)=="depr~"  ) msgType=fmatvec::Atom::Deprecated;
-      else if(itn->substr(0, 7)=="status~") msgType=fmatvec::Atom::Status;
+      Atom::MsgType msgType;
+      if     (itn->substr(0, 5)=="info~"  ) msgType=Atom::Info;
+      else if(itn->substr(0, 5)=="warn~"  ) msgType=Atom::Warn;
+      else if(itn->substr(0, 6)=="debug~" ) msgType=Atom::Debug;
+      else if(itn->substr(0, 6)=="error~" ) msgType=Atom::Error;
+      else if(itn->substr(0, 5)=="depr~"  ) msgType=Atom::Deprecated;
+      else if(itn->substr(0, 7)=="status~") msgType=Atom::Status;
       else throw runtime_error("Unknown message stream.");
       static std::regex re(".*~(.*)~(.*)", std::regex::extended);
       std::smatch m;
@@ -124,8 +123,8 @@ namespace MBXMLUtils {
       }
       if(!std::regex_match(value, m, re))
         throw runtime_error("Invalid argument: "+*it+" "+*itn);
-      fmatvec::Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(true),
-        std::make_shared<fmatvec::PrePostfixedStream>(m.str(1), m.str(2), ostr, html ? DOMEvalException::htmlEscaping : nullptr));
+      Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(true),
+        std::make_shared<PrePostfixedStream>(m.str(1), m.str(2), ostr, html ? DOMEvalException::htmlEscaping : nullptr));
   
       args.erase(itn);
       args.erase(it);

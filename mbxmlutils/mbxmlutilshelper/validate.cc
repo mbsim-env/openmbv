@@ -16,6 +16,7 @@
 using namespace std;
 using namespace boost::filesystem;
 using namespace MBXMLUtils;
+using namespace fmatvec;
 
 int main(int argc, char *argv[]) {
 #ifdef _WIN32
@@ -51,7 +52,7 @@ int main(int argc, char *argv[]) {
     parser=DOMParser::create(xmlCatalog);
   }
   catch(const std::exception &ex) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Exception while loading schemas:"<<endl
+    Atom::msgStatic(Atom::Error)<<"Exception while loading schemas:"<<endl
          <<ex.what()<<endl;
     return 1;
   }
@@ -61,16 +62,16 @@ int main(int argc, char *argv[]) {
     path xml=arg;
     try {
       parser->parse(xml);
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<xml<<" validates."<<endl;
+      Atom::msgStatic(Atom::Info)<<xml<<" validates."<<endl;
     }
     catch(const DOMEvalException &ex) {
       error++;
-      // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the fmatvec::Atom streams) from duing another escaping
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<flush<<skipws<<ex.what()<<flush<<noskipws<<endl;
+      // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the Atom streams) from duing another escaping
+      Atom::msgStatic(Atom::Error)<<disableEscaping<<ex.what()<<enableEscaping<<endl;
     }
     catch(const std::exception &ex) {
       error++;
-      fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;
+      Atom::msgStatic(Atom::Error)<<ex.what()<<endl;
     }
   }
   if(error>0)

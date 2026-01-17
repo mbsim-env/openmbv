@@ -20,6 +20,7 @@ using namespace std;
 using namespace MBXMLUtils;
 using namespace xercesc;
 using namespace boost::filesystem;
+using namespace fmatvec;
 
 int main(int argc, char *argv[]) {
 #ifdef _WIN32
@@ -101,7 +102,7 @@ int main(int argc, char *argv[]) {
       mainxmlpp=*(++i);
     else
       throw runtime_error("No -o argument given.");
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Save preprocessed file "<<mainXML<<" as "<<mainxmlpp<<endl;
+    Atom::msgStatic(Atom::Info)<<"Save preprocessed file "<<mainXML<<" as "<<mainxmlpp<<endl;
     DOMElement *mainxmlele=mainXMLDoc->getDocumentElement();
     E(mainxmlele)->setOriginalFilename();
     DOMParser::serialize(mainXMLDoc.get(), mainxmlpp);
@@ -114,16 +115,16 @@ int main(int argc, char *argv[]) {
     }
   }
   catch(const DOMEvalException &ex) {
-    // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the fmatvec::Atom streams) from duing another escaping
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<flush<<skipws<<ex.what()<<flush<<noskipws<<endl;
+    // DOMEvalException is already passed thought escapeFunc -> skip escapeFunc (if enabled on the Atom streams) from duing another escaping
+    Atom::msgStatic(Atom::Error)<<disableEscaping<<ex.what()<<enableEscaping<<endl;
     return 1;
   }
   catch(const std::exception &ex) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<ex.what()<<endl;
+    Atom::msgStatic(Atom::Error)<<ex.what()<<endl;
     return 1;
   }
   catch(...) {
-    fmatvec::Atom::msgStatic(fmatvec::Atom::Error)<<"Unknown exception."<<endl;
+    Atom::msgStatic(Atom::Error)<<"Unknown exception."<<endl;
     return 1;
   }
   return 0;
