@@ -44,7 +44,7 @@ class ExtrusionCardan;
 
 class CoilSpringShader {
   public:
-    void init(double R, double N, int numberOfSpinePointsPerCoil, int Nsp, int Ncs, double r, SoMaterial *mat, SoSeparator *soSep);
+    void init(double R, double N, int numberOfSpinePointsPerCoil, int Nsp, int Ncs, double r, SoMaterial *mat, SoSeparator *soCoilSpringSep);
     void updateData(double len);
     void pickUpdate();
     void pickUpdateRestore();

@@ -42,7 +42,7 @@ class ExtrusionCardan {
   public:
     void init(int spSize, const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour,
               double csScale, bool ccw,
-              SoSeparator *soSep, SoSeparator *soOutLineSep);
+              SoSeparator *soSpineExtrusionSep, SoSeparator *soOutLineSep);
     void setCardanWrtWorldSpine(const std::vector<OpenMBV::Float>& data, bool updateNormals=true);
   private:
     std::vector<SbVec3f> nsp;
@@ -56,7 +56,7 @@ class ExtrusionCardan {
 class ExtrusionCardanShader {
   public:
     void init(int NSp, SoMaterial *mat, double csScale, bool ccw,
-              const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSep);
+              const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour, SoSeparator *soSpineExtrusionSep);
     void updateData(const std::vector<OpenMBV::Float>& data);
     void pickUpdate(const std::vector<OpenMBV::Float>& data);
     void pickUpdateRestore();

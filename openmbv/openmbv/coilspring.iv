@@ -225,7 +225,7 @@ Separator {
     }
     DEF endCapOutLine IndexedLineSet {
       coordIndex [
-        @NcsStr@
+        @NcsStr@ 0
       ]
     }
   }

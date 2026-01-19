@@ -136,12 +136,14 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
   shared_ptr<vector<shared_ptr<OpenMBV::PolygonPoint> > > contour=spineExtrusion->getContour();
 
   // create so
+  auto soSpineExtrusionSep = new SoSeparator;
+  soSep->addChild(soSpineExtrusionSep);
 
   // body
   switch(spineExtrusion->getCrossSectionOrientation()) {
     case OpenMBV::SpineExtrusion::orthogonalWithTwist: {
       extrusion=new SoVRMLExtrusion;
-      soSep->addChild(extrusion);
+      soSpineExtrusionSep->addChild(extrusion);
 
       // scale
       extrusion->scale.setNum(numberOfSpinePoints);
@@ -197,21 +199,21 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     }
     case OpenMBV::SpineExtrusion::cardanWrtWorld: {
       // outline (DynamicColoredBody does not set soOutLineSwitch as a child of soSep)
-      soSep->addChild(soOutLineSwitch);
+      soSpineExtrusionSep->addChild(soOutLineSwitch);
 
       extrusionCardan.init(numberOfSpinePoints, contour,
                            spineExtrusion->getScaleFactor(), spineExtrusion->getCounterClockWise(),
-                           soSep, soOutLineSep);
+                           soSpineExtrusionSep, soOutLineSep);
       extrusionCardan.setCardanWrtWorldSpine(data);
 
 #if 0
       // draw normals for debugging
       auto normCol = new SoMaterial;
-      soSep->addChild(normCol);
+      soSpineExtrusionSep->addChild(normCol);
       normCol->diffuseColor.setValue(0,0,0);
       normCol->emissiveColor.setValue(0,1,0);
       auto normC = new SoCoordinate3;
-      soSep->addChild(normC);
+      soSpineExtrusionSep->addChild(normC);
       normC->point.setNum(numberOfSpinePoints * csSize * 2 * 2);
       float k=0.2/5;
       idx=0;
@@ -226,7 +228,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
         }
       }
       auto normL = new SoLineSet;
-      soSep->addChild(normL);
+      soSpineExtrusionSep->addChild(normL);
       normL->numVertices.setNum(numberOfSpinePoints * csSize * 2);
       for(int i=0; i<numberOfSpinePoints * csSize * 2; ++i)
         normL->numVertices.set1Value(i, 2);
@@ -237,7 +239,7 @@ SpineExtrusion::SpineExtrusion(const std::shared_ptr<OpenMBV::Object> &obj, QTre
     case OpenMBV::SpineExtrusion::cardanWrtWorldShader: {
       MainWindow::getInstance()->addPickUpdate(this);
       extrusionCardanShader.init(numberOfSpinePoints, mat, spineExtrusion->getScaleFactor(), spineExtrusion->getCounterClockWise(),
-                                 contour, soSep);
+                                 contour, soSpineExtrusionSep);
       extrusionCardanShader.updateData(data);
       extrusionCardanShader.pickUpdate(data);
       extrusionCardanShader.pickUpdateRestore();
@@ -444,21 +446,21 @@ void ExtrusionCardan::setCardanWrtWorldSpine(const std::vector<OpenMBV::Float> &
 
 void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour,
                            double csScale, bool ccw,
-                           SoSeparator *soSep, SoSeparator *soOutLineSep) {
+                           SoSeparator *soSpineExtrusionSep, SoSeparator *soOutLineSep) {
       int csSize = contour->size();
 
       quadMeshCoords = new SoCoordinate3;
-      soSep->addChild(quadMeshCoords);
+      soSpineExtrusionSep->addChild(quadMeshCoords);
       quadMeshCoords->point.setNum(spSize * csSize);
       quadMeshNormals = new SoNormal;
-      soSep->addChild(quadMeshNormals);
+      soSpineExtrusionSep->addChild(quadMeshNormals);
       quadMeshNormals->vector.setNum(spSize * 2*csSize);
       auto *sh=new SoShapeHints;
-      soSep->addChild(sh);
+      soSpineExtrusionSep->addChild(sh);
       sh->vertexOrdering.setValue(!ccw ? SoShapeHints::COUNTERCLOCKWISE : SoShapeHints::CLOCKWISE);
       sh->shapeType.setValue(SoShapeHints::SOLID);
       auto stripMesh = new SoIndexedTriangleStripSet;
-      soSep->addChild(stripMesh);
+      soSpineExtrusionSep->addChild(stripMesh);
 
       // mesh indices of spine
       stripMesh->coordIndex.setNum((2*spSize+1) * csSize);
@@ -491,7 +493,7 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
       // end cups as tesselation
       {
         auto endCupSep = new SoSeparator;
-        soSep->addChild(endCupSep);
+        soSpineExtrusionSep->addChild(endCupSep);
         // normal binding
         auto *nb=new SoNormalBinding;
         endCupSep->addChild(nb);
@@ -623,7 +625,7 @@ namespace {
 }
 
 void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, bool ccw,
-                                 const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour_, SoSeparator *soSep) {
+                                 const std::shared_ptr<std::vector<std::shared_ptr<OpenMBV::PolygonPoint> > > &contour_, SoSeparator *soSpineExtrusionSep) {
   Nsp = Nsp_;
   contour = contour_;
   csScale = csScale_;
@@ -632,7 +634,7 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
     cerr<<"The number of basic machine units of a 'uniform' is quite large ("<<6*Nsp+1<<"). You may get problems on the GPU."<<endl;
 
   dataNodeVector = new SoShaderParameterArray1f;
-  soSep->addChild(dataNodeVector);
+  soSpineExtrusionSep->addChild(dataNodeVector);
   dataNodeVector->setName("openmbv_spineextrusion_data");
   dataNodeVector->value.setNum(6*Nsp+1);
 
@@ -723,10 +725,10 @@ void ExtrusionCardanShader::init(int Nsp_, SoMaterial *mat, double csScale_, boo
   });
   if(!soIv)
     return;
-  soSep->addChild(soIv);
+  soSpineExtrusionSep->addChild(soIv);
 
   vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_spineextrusion_coords"));
-  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_spineextrusion_sepnopicknobbox"));
+  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSpineExtrusionSep, "openmbv_spineextrusion_sepnopicknobbox"));
 
   // set vertex values: only the size is needed -> values are overwritten later on in ExtrusionCardanShader::pickUpdate
   vertex->point.setNum(2*Nsp*Ncs);

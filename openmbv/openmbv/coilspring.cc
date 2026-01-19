@@ -78,6 +78,9 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
   rotation=new SoRotation;
   soSep->addChild(rotation);  
 
+  auto soCoilSpringSep = new SoSeparator;
+  soSep->addChild(soCoilSpringSep);
+
   switch(coilSpring->getType()) {
     case OpenMBV::CoilSpring::tube: {
       tube = make_unique<ExtrusionCardan>();
@@ -85,12 +88,12 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
         contour->emplace_back(OpenMBV::PolygonPoint::create(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments), 0));
 
-      // outline (DynamicColoredBody does not set soOutLineSwitch as a child of soSep)
-      soSep->addChild(soOutLineSwitch);
+      // outline (DynamicColoredBody does not set soOutLineSwitch as a child of soCoilSpringSep)
+      soCoilSpringSep->addChild(soOutLineSwitch);
 
       tube->init(int(numberOfSpinePointsPerCoil*N)+1, contour,
                  1.0, false,
-                 soSep, soOutLineSep);
+                 soCoilSpringSep, soOutLineSep);
       // initialise spine 
       spine.resize(6*(int(numberOfSpinePointsPerCoil*N)+1)+1);
       for(int i=0;i<=numberOfSpinePointsPerCoil*N;i++) {
@@ -108,7 +111,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     case OpenMBV::CoilSpring::tubeShader: {
       MainWindow::getInstance()->addPickUpdate(this);
       tubeShader = make_unique<CoilSpringShader>();
-      tubeShader->init(R, N, numberOfSpinePointsPerCoil, int(numberOfSpinePointsPerCoil*N)+1, iCircSegments, r, mat, soSep);
+      tubeShader->init(R, N, numberOfSpinePointsPerCoil, int(numberOfSpinePointsPerCoil*N)+1, iCircSegments, r, mat, soCoilSpringSep);
       tubeShader->updateData(nominalLength);
       tubeShader->pickUpdate();
       tubeShader->pickUpdateRestore();
@@ -116,7 +119,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     }
     case OpenMBV::CoilSpring::scaledTube: {
       auto *scaledTubeSep=new SoSeparator;
-      soSep->addChild(scaledTubeSep);
+      soCoilSpringSep->addChild(scaledTubeSep);
       scale=new SoScale;
       scaledTubeSep->addChild(scale);
       auto *scaledExtrusion=new SoVRMLExtrusion;
@@ -149,7 +152,7 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
     }
     case OpenMBV::CoilSpring::polyline: {
       auto *polylineSep=new SoSeparator;
-      soSep->addChild(polylineSep);
+      soCoilSpringSep->addChild(polylineSep);
       scale=new SoScale;
       polylineSep->addChild(scale);
       auto *ds=new SoDrawStyle;
@@ -347,7 +350,7 @@ namespace {
   };
 }
 
-void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil_, int Nsp_, int Ncs_, double r_, SoMaterial *mat, SoSeparator *soSep) {
+void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil_, int Nsp_, int Ncs_, double r_, SoMaterial *mat, SoSeparator *soCoilSpringSep) {
   R = R_;
   r = r_;
   N = N_;
@@ -360,7 +363,7 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
     circle[i] = SbVec2f(r*cos(i*2.*M_PI/Ncs), -r*sin(i*2.*M_PI/Ncs));
 
   length = new SoShaderParameter1f;
-  soSep->addChild(length);
+  soCoilSpringSep->addChild(length);
   length->setName("openmbv_coilspring_length");
 
   static const string ivFilename((boost::dll::program_location().parent_path().parent_path()/"share"/"openmbv"/"coilspring.iv").string());
@@ -406,14 +409,14 @@ void CoilSpringShader::init(double R_, double N_, int numberOfSpinePointsPerCoil
   });
   if(!soIv)
     return;
-  soSep->addChild(soIv);
+  soCoilSpringSep->addChild(soIv);
 
   coords=static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soIv, "openmbv_coilspring_coords"));
   endCap1Trans=static_cast<SoTransform*>(Utils::getChildNodeByName(soIv, "endCap1Trans"));
   endCap2Trans=static_cast<SoTransform*>(Utils::getChildNodeByName(soIv, "endCap2Trans"));
 
-  vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_coords"));
-  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soSep, "openmbv_coilspring_sepnopicknobbox"));
+  vertex = static_cast<SoCoordinate3*>(Utils::getChildNodeByName(soCoilSpringSep, "openmbv_coilspring_coords"));
+  sepNoPickNoBBox = static_cast<SepNoPickNoBBox*>(Utils::getChildNodeByName(soCoilSpringSep, "openmbv_coilspring_sepnopicknobbox"));
 
   // set coords: only the numbers, values are set later
   coords->point.setNum(Nsp*Ncs);
