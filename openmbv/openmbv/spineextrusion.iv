@@ -221,7 +221,7 @@ Separator {
     USE outLineStyle
     DEF endCapOutLine IndexedLineSet {
       coordIndex [
-        @NcsStr@
+        @NcsStr@ 0
       ]
     }
   }
