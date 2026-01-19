@@ -296,11 +296,25 @@ double SpineExtrusion::update() {
 }
 
 void SpineExtrusion::pickUpdate() {
-  extrusionCardanShader.pickUpdate(data);
+  switch(spineExtrusion->getCrossSectionOrientation()) {
+    case OpenMBV::SpineExtrusion::orthogonalWithTwist:
+    case OpenMBV::SpineExtrusion::cardanWrtWorld:
+      break;
+    case OpenMBV::SpineExtrusion::cardanWrtWorldShader:
+      extrusionCardanShader.pickUpdate(data);
+      break;
+  }
 }
 
 void SpineExtrusion::pickUpdateRestore() {
-  extrusionCardanShader.pickUpdateRestore();
+  switch(spineExtrusion->getCrossSectionOrientation()) {
+    case OpenMBV::SpineExtrusion::orthogonalWithTwist:
+    case OpenMBV::SpineExtrusion::cardanWrtWorld:
+      break;
+    case OpenMBV::SpineExtrusion::cardanWrtWorldShader:
+      extrusionCardanShader.pickUpdateRestore();
+      break;
+  }
 }
 
 void ExtrusionCardanShader::pickUpdate(const std::vector<OpenMBV::Float>& data) {
