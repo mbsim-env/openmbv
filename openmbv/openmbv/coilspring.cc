@@ -272,11 +272,27 @@ double CoilSpring::update() {
 }
 
 void CoilSpring::pickUpdate() {
-  tubeShader->pickUpdate();
+  switch(coilSpring->getType()) {
+    case OpenMBV::CoilSpring::tube:
+    case OpenMBV::CoilSpring::scaledTube:
+    case OpenMBV::CoilSpring::polyline:
+      break;
+    case OpenMBV::CoilSpring::tubeShader:
+      tubeShader->pickUpdate();
+      break;
+  }
 }
 
 void CoilSpring::pickUpdateRestore() {
-  tubeShader->pickUpdateRestore();
+  switch(coilSpring->getType()) {
+    case OpenMBV::CoilSpring::tube:
+    case OpenMBV::CoilSpring::scaledTube:
+    case OpenMBV::CoilSpring::polyline:
+      break;
+    case OpenMBV::CoilSpring::tubeShader:
+      tubeShader->pickUpdateRestore();
+      break;
+  }
 }
 
 void CoilSpringShader::pickUpdate() {
