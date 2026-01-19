@@ -84,6 +84,10 @@ CoilSpring::CoilSpring(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetI
       auto contour = make_shared<std::vector<std::shared_ptr<OpenMBV::PolygonPoint>>>();
       for(int i=0;i<iCircSegments;i++) // clockwise in local coordinate system
         contour->emplace_back(OpenMBV::PolygonPoint::create(r*cos(i*2.*M_PI/iCircSegments), -r*sin(i*2.*M_PI/iCircSegments), 0));
+
+      // outline (DynamicColoredBody does not set soOutLineSwitch as a child of soSep)
+      soSep->addChild(soOutLineSwitch);
+
       tube->init(int(numberOfSpinePointsPerCoil*N)+1, contour,
                  1.0, false,
                  soSep, soOutLineSep);
