@@ -286,9 +286,14 @@ void Utils::tessBeginCB(GLenum type, void *data) {
     tessTriangleStrip=new SoTriangleStripSet;
     parent->addChild(tessTriangleStrip);
   }
-  if(tessType==GL_TRIANGLE_FAN) {
+  else if(tessType==GL_TRIANGLE_FAN) {
     tessTriangleFan=new SoIndexedFaceSet;
     parent->addChild(tessTriangleFan);
+  }
+  else {
+    auto msg("Unknown triangle type in GLU tesselation callback (type="+to_string(tessType)+")");
+    QMessageBox::critical(nullptr, "Critical Error", msg.c_str());
+    throw runtime_error(msg);
   }
 }
 
