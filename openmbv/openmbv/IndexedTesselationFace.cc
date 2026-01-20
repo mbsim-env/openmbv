@@ -28,6 +28,7 @@ void IndexedTesselationFace::constructor() {
   SO_NODE_ADD_FIELD(windingRule, (ODD));
   SO_NODE_ADD_FIELD(coordinate, (nullptr));
   SO_NODE_ADD_FIELD(coordIndex, (-1));
+  renderCaching = SoSeparator::OFF;
 }
 
 IndexedTesselationFace::IndexedTesselationFace()  {
