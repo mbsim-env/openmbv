@@ -498,34 +498,6 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
         auto *nb=new SoNormalBinding;
         endCupSep->addChild(nb);
         nb->value.setValue(SoNormalBinding::OVERALL);
-        // coords
-        auto endCupPoint=new SoCoordinate3;
-        endCupSep->addChild(endCupPoint);
-        endCupPoint->point.setNum(csSize);
-        auto p = endCupPoint->point.startEditing();
-        idx=0;
-        for(int csIdx=0; csIdx<csSize; csIdx++)
-          p[idx++] = SbVec3f(
-            (*contour)[csIdx]->getXComponent() * csScale,
-            0,
-            (*contour)[csIdx]->getYComponent() * csScale
-          );
-        endCupPoint->point.finishEditing();
-        // tesselation
-        auto endCup=new IndexedTesselationFace;
-        endCup->windingRule.setValue(IndexedTesselationFace::ODD);
-        endCup->coordinate.connectFrom(&endCupPoint->point);
-        endCup->coordIndex.setNum(csSize+2);
-        auto *ec = endCup->coordIndex.startEditing();
-        idx=0;
-        for(int csIdx=0; csIdx<csSize; csIdx++) {
-          ec[idx] = idx;
-          idx++;
-        }
-        ec[idx++] = 0;
-        ec[idx++] = -1;
-        endCup->coordIndex.finishEditing();
-        endCup->generate();
 
         for(int i : {0,1}) {
           auto sep = new SoSeparator;
@@ -544,7 +516,35 @@ void ExtrusionCardan::init(int spSize, const std::shared_ptr<std::vector<std::sh
           sep->addChild(endCupTrans[i]);
           endCupRot[i] = new SoRotation;
           sep->addChild(endCupRot[i]);
+
+          // tesselation
+          auto endCup=new IndexedTesselationFace; // do not add this node twice -> its now working (at least on Windows) for some unknown reason
           sep->addChild(endCup);
+          endCup->windingRule.setValue(IndexedTesselationFace::ODD);
+          // tess-coords
+          endCup->coordinate.setNum(csSize);
+          auto p = endCup->coordinate.startEditing();
+          idx=0;
+          for(int csIdx=0; csIdx<csSize; csIdx++)
+            p[idx++] = SbVec3d(
+              (*contour)[csIdx]->getXComponent() * csScale,
+              0,
+              (*contour)[csIdx]->getYComponent() * csScale
+            );
+          endCup->coordinate.finishEditing();
+          // tess-coordIndex
+          endCup->coordIndex.setNum(csSize+2);
+          auto *ec = endCup->coordIndex.startEditing();
+          idx=0;
+          for(int csIdx=0; csIdx<csSize; csIdx++) {
+            ec[idx] = idx;
+            idx++;
+          }
+          ec[idx++] = 0;
+          ec[idx++] = -1;
+          endCup->coordIndex.finishEditing();
+          // tess-generation
+          endCup->generate();
         }
       }
 
