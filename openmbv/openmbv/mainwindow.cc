@@ -1582,6 +1582,32 @@ void MainWindow::restartPlay() {
   }
 }
 
+int MainWindow::getCurrentNumOfRows() {
+  // request a flush of all writers
+  bool writerActive = requestHDF5Flush();
+  // get number of rows of first none enviroment body
+  if(!openMBVBodyForLastFrame) {
+    auto it=Body::getBodyMap().begin();
+    while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
+      it++;
+    if(it==Body::getBodyMap().end())
+      return -1;
+    openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
+  }
+  // use number of rows for found first none enviroment body
+  int currentNumOfRows=openMBVBodyForLastFrame->getRows();
+
+  // if a writer is active then openMBVBodyForLastFrame->getRows() may return the number of rows but other objects may
+  // still have one row less, dependent on the current HDF5 state and flush
+  // -> hence, we use one row less to ensure all objects have at least this length
+  if(writerActive)
+    currentNumOfRows--;
+
+  if(deltaTime==0 && currentNumOfRows>=2)
+    deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
+  return currentNumOfRows;
+}
+
 void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
@@ -1592,22 +1618,9 @@ void MainWindow::heavyWorkSlot() {
     //glViewer->render(); // force rendering
   }
   else if(lastFrameAct->isChecked()) {
-    // request a flush of all writers
-    requestHDF5Flush();
-    // get number of rows of first none enviroment body
-    if(!openMBVBodyForLastFrame) {
-      auto it=Body::getBodyMap().begin();
-      while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
-        it++;
-      if(it==Body::getBodyMap().end())
-        return;
-      openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
-    }
-    // use number of rows for found first none enviroment body
-    int currentNumOfRows=openMBVBodyForLastFrame->getRows();
-    if(deltaTime==0 && currentNumOfRows>=2)
-      deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
-    if(currentNumOfRows==0) return;
+    auto currentNumOfRows = getCurrentNumOfRows();
+    if(currentNumOfRows<=0)
+      return;
 
     // update if a new row is available
     if(currentNumOfRows-1!=timeSlider->totalMaximum() || currentNumOfRows-1!=static_cast<int>(frameNode->index[0])) {
@@ -1619,21 +1632,9 @@ void MainWindow::heavyWorkSlot() {
 }
 
 void MainWindow::hdf5RefreshSlot() {
-  // request a flush of all writers
-  requestHDF5Flush();
-  // get number of rows of first none enviroment body
-  if(!openMBVBodyForLastFrame) {
-    auto it=Body::getBodyMap().begin();
-    while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
-      it++;
-    if(it==Body::getBodyMap().end())
-      return;
-    openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
-  }
-  // use number of rows for found first none enviroment body
-  int currentNumOfRows=openMBVBodyForLastFrame->getRows();
-  if(deltaTime==0 && currentNumOfRows>=2)
-    deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
+  auto currentNumOfRows = getCurrentNumOfRows();
+  if(currentNumOfRows<=0)
+    return;
   // update if a the number of rows has changed
   if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
     timeSlider->setTotalMaximum(currentNumOfRows-1);
@@ -1645,11 +1646,14 @@ void MainWindow::hdf5RefreshSlot() {
   }
 }
 
-void MainWindow::requestHDF5Flush() {
+bool MainWindow::requestHDF5Flush() {
+  bool writerActive = false;
   for(int i=0; i<objectList->topLevelItemCount(); ++i) {
     auto grp=static_cast<Group*>(objectList->topLevelItem(i));
-    grp->requestFlush();
+    if(grp->requestFlush())
+      writerActive = true;
   }
+  return writerActive;
 }
 
 void MainWindow::speedWheelChanged(int value) {

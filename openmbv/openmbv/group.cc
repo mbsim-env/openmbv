@@ -180,8 +180,8 @@ void Group::refreshFileSlot() {
     mw->frameNode->index.setValue(0); // this calls a redraw of the scene
 }
 
-void Group::requestFlush() {
-  grp->requestFlush();
+bool Group::requestFlush() {
+  return grp->requestFlush();
 }
 
 }

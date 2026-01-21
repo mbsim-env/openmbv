@@ -54,7 +54,12 @@ class DLL_PUBLIC Group : public Object {
     void reloadFileSlot();
     void unloadFileSlot();
     void refreshFileSlot();
-    void requestFlush();
+
+    /** Request a flush of the writer.
+     * If a writer process currently exists true is returned else false. Note that this flag cannot change
+     * while the calling process as opened the file for reading.
+     */
+    bool requestFlush();
   Q_SIGNALS:
     // just a signal to call reloadFileSlot from an arbitary thread.
     void reloadFileSignal();

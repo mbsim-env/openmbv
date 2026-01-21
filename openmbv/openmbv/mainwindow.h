@@ -193,9 +193,16 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
+    int getCurrentNumOfRows();
     void heavyWorkSlot();
     void hdf5RefreshSlot();
-    void requestHDF5Flush();
+
+    /** Request a flush of the writer.
+     * If a writer process currently exists true is returned else false. Note that this flag cannot change
+     * while the calling process as opened the file for reading.
+     */
+    bool requestHDF5Flush();
+
     void restartPlay();
   protected Q_SLOTS:
     void speedWheelChangedD(double value) { speedWheelChanged((int)value); }
