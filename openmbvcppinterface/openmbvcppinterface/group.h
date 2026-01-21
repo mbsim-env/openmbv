@@ -101,8 +101,11 @@ namespace OpenMBV {
       /** Refresh the H5 file. */
       void refresh();
 
-      /** Request a flush of the writer */
-      void requestFlush();
+      /** Request a flush of the writer.
+       * If a writer process currently exists true is returned else false. Note that this flag cannot change
+       * while the calling process as opened the file for reading.
+       */
+      bool requestFlush();
 
       /** Set the callback which is called, by HDF5Serie, if reading this file should be closed (and reopened immediately after) */
       void setCloseRequestCallback(const std::function<void()> &closeRequestCallback_) { closeRequestCallback=closeRequestCallback_; }

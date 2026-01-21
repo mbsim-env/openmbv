@@ -209,9 +209,10 @@ void Group::refresh() {
   hdf5File->refresh();
 }
 
-void Group::requestFlush() {
+bool Group::requestFlush() {
   if(hdf5File)
-    hdf5File->requestFlush();
+    return hdf5File->requestFlush();
+  return false;
 }
 
 void Group::read() {
