@@ -20,6 +20,7 @@
 #ifndef _OPENMBV_GROUP_H_
 #define _OPENMBV_GROUP_H_
 
+#include "hdf5serie/simpledataset.h"
 #include <openmbvcppinterface/objectfactory.h>
 #include <openmbvcppinterface/object.h>
 #include <vector>
@@ -41,6 +42,7 @@ namespace OpenMBV {
       std::string expandStr;
       boost::filesystem::path fileName; // the file name of the .ombvx file including the absolute or relatvie path
       std::shared_ptr<H5::File> hdf5File;
+      H5::SimpleDataset<int> *rowSize { nullptr };
       std::function<void()> closeRequestCallback;
       std::function<void()> refreshCallback;
       void createHDF5File() override;
@@ -73,7 +75,7 @@ namespace OpenMBV {
         return object;
       }
       
-      std::shared_ptr<H5::File>& getHDF5File() { return hdf5File; }
+      std::shared_ptr<H5::File> getHDF5File() const { return hdf5File; }
 
       /** Returns the file name of the .ombvx file including the absolute or relatvie path */
       std::string getFileName() { return fileName.string(); }
@@ -95,8 +97,20 @@ namespace OpenMBV {
       /** Enable SWMR if a H5 file is written. */
       void enableSWMR();
 
-      /** Flush the H5 file if reader has requested a flush. */
-      void flushIfRequested();
+      /** set the number of rows which are now written, and flush the data */
+      void setRowSize(int rs);
+
+      /** get the number of rows which is guaranteed to be written and flushed to the file.
+       * If the files does not contain this information (a legacy ombvh5 file) -1 is returned. */
+      int getRowSize();
+
+      /** Flush the H5 file if reader has requested a flush.
+       * If a flush happens postFlushFunc is called immediately after the flush ("this" as a shared_ptr is passed as argument)
+       * and than the readers are notified about the flush */
+      void flushIfRequested(const std::function<void(const std::shared_ptr<Group> &)> &postFlushFunc={});
+
+      /** Flush now */
+      void flush();
 
       /** Refresh the H5 file. */
       void refresh();

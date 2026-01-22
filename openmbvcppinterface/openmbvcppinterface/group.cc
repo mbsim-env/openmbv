@@ -22,7 +22,6 @@
 #include <openmbvcppinterface/body.h>
 #include <openmbvcppinterface/objectfactory.h>
 #include <hdf5serie/file.h>
-#include <hdf5serie/simpledataset.h>
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -37,7 +36,8 @@ namespace {
     return (fileName.parent_path()/(fileName.stem().string()+".preSWMR"+fileName.extension().string())).string();
   }
 
-  const string ombvxPath("openmbv_ombvxContent");
+  const string ombvxContentPath("openmbv_ombvxContent");
+  const string rowSizePath("openmbv_rowSize");
 }
 
 namespace OpenMBV {
@@ -170,6 +170,8 @@ void Group::write(bool writeXMLFile, bool writeH5File, bool embedXMLInH5) {
       if(!embedXMLInH5)
         boost::filesystem::rename(getPreSWMRFileName(fileName), fileName);
     });
+    rowSize = hdf5File->createChildObject<H5::SimpleDataset<int>>(rowSizePath)();
+    rowSize->write(0);
   }
   // now write the XML file (the H5 file is locked currently)
   if(!embedXMLInH5 && writeXMLFile)
@@ -180,10 +182,10 @@ void Group::write(bool writeXMLFile, bool writeH5File, bool embedXMLInH5) {
     string ombvx;
     DOMParser::serializeToString(writeXMLDoc().get(), ombvx);
     if(writeH5File)
-      hdf5File->createChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)(1, ombvx.length())->write({ombvx});
+      hdf5File->createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, ombvx.length())->write({ombvx});
     else {
       H5::File file(h5FileName, H5::File::write);
-      file.createChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)(1, ombvx.length())->write({ombvx});
+      file.createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, ombvx.length())->write({ombvx});
     }
   }
   // now walk all objects and createw the corresponding groups/datasets in the H5 file
@@ -201,8 +203,27 @@ void Group::enableSWMR() {
   // this will also rename the ombvx file using the callback provided to the H5::File ctor
 }
 
-void Group::flushIfRequested() {
-  hdf5File->flushIfRequested();
+void Group::setRowSize(int rs) {
+  rowSize->write(rs);
+  rowSize->flush();
+}
+
+int Group::getRowSize() {
+  if(!rowSize)
+    // DEPRECATED: legacy case: a old ombvh5 is read which does not contain the rowSize dataset
+    return -1;
+  return rowSize->read();
+}
+
+void Group::flushIfRequested(const function<void(const shared_ptr<Group> &)> &postFlushFunc) {
+  hdf5File->flushIfRequested([postFlushFunc, this](auto f){
+    if(postFlushFunc)
+      postFlushFunc(shared_from_this());
+  });
+}
+
+void Group::flush() {
+  hdf5File->flush();
 }
 
 void Group::refresh() {
@@ -233,6 +254,11 @@ void Group::read() {
         // that is why we do it before calling readXML. This way readXML is also not read while a writer is active
         hdf5File=std::make_shared<H5::File>(h5FileName, H5::File::read, closeRequestCallback, refreshCallback);
         hdf5Group=hdf5File.get();
+        try {
+          rowSize = hdf5File->openChildObject<H5::SimpleDataset<int>>(rowSizePath);
+        }
+        catch(...) {
+        }
       }
       catch(...) {
         msg(Debug)<<"Unable to open the HDF5 File '"<<h5FileName<<"'. Using 0 for all data."<<endl;
@@ -244,7 +270,7 @@ void Group::read() {
   if(hdf5File) {
     string ombvx;
     try {
-      ombvx=hdf5File->openChildObject<H5::SimpleDataset<vector<string>>>(ombvxPath)->read()[0];
+      ombvx=hdf5File->openChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)->read()[0];
     }
     catch(H5::Exception&) {
       readXML();

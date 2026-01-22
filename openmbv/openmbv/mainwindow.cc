@@ -1584,7 +1584,10 @@ void MainWindow::restartPlay() {
 
 int MainWindow::getCurrentNumOfRows() {
   // request a flush of all writers
-  bool writerActive = requestHDF5Flush();
+  requestHDF5Flush();
+
+  auto grp=static_cast<Group*>(objectList->topLevelItem(0));
+  int currentNumOfRows = static_pointer_cast<OpenMBV::Group>(grp->getObject())->getRowSize();
   // get number of rows of first none enviroment body
   if(!openMBVBodyForLastFrame) {
     auto it=Body::getBodyMap().begin();
@@ -1594,14 +1597,14 @@ int MainWindow::getCurrentNumOfRows() {
       return -1;
     openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
   }
-  // use number of rows for found first none enviroment body
-  int currentNumOfRows=openMBVBodyForLastFrame->getRows();
-
-  // if a writer is active then openMBVBodyForLastFrame->getRows() may return the number of rows but other objects may
-  // still have one row less, dependent on the current HDF5 state and flush
-  // -> hence, we use one row less to ensure all objects have at least this length
-  if(writerActive)
-    currentNumOfRows--;
+  if(currentNumOfRows==-1) {
+    // DEPRECATED: legacy case: a old ombvh5 is read which does not contain the rowSize dataset
+    // the file is a ombvh5 legacy file which does not contain the number of rows dataset,
+    // use number of rows for found first none enviroment body.
+    // This may lead to the fact that currentNumOfRows is larger than the number of rows of some other objects.
+    // This will lead to display errors for this object (the objects are drawn at there zero location)
+    currentNumOfRows = openMBVBodyForLastFrame->getRows();
+  }
 
   if(deltaTime==0 && currentNumOfRows>=2)
     deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
