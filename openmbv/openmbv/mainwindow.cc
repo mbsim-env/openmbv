@@ -721,7 +721,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   connect(animTimer, &QTimer::timeout, this, &MainWindow::heavyWorkSlot);
   time=new QElapsedTimer();
   hdf5RefreshTimer=new QTimer(this);
-  connect(hdf5RefreshTimer, &QTimer::timeout, this, &MainWindow::hdf5RefreshSlot);
+  connect(hdf5RefreshTimer, &QTimer::timeout, this, &MainWindow::requestHDF5Flush);
   if(hdf5RefreshDelta>0)
     hdf5RefreshTimer->start(hdf5RefreshDelta);
 
@@ -1582,19 +1582,41 @@ void MainWindow::restartPlay() {
   }
 }
 
-int MainWindow::getCurrentNumOfRows() {
-  // request a flush of all writers
-  requestHDF5Flush();
+// is called with a maximum frequency of fpsMax if the "play" or "last frame" button is checked, if the "stop" button is checked
+// this function is not called since new hdf5 data is checked using hdf5RefreshSlot which is (usually) called less frequently.
+// for "play" the next frame to show is set
+// for "last frame" the flush is requested which will call hdf5RefreshSlot if a flush was done
+void MainWindow::heavyWorkSlot() {
+  if(playAct->isChecked()) {
+    double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
+    auto dframe=(int)(dT/deltaTime);// frame increment since play click
+    unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
+                        (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
+    if(static_cast<unsigned int>(frameNode->index[0])!=frame_) frameNode->index.setValue(frame_); // set frame => update scene
+    //glViewer->render(); // force rendering
+  }
+  else if(lastFrameAct->isChecked())
+    requestHDF5Flush();
+}
 
-  auto grp=static_cast<Group*>(objectList->topLevelItem(0));
-  int currentNumOfRows = static_pointer_cast<OpenMBV::Group>(grp->getObject())->getRowSize();
+// every hdf5RefreshDelta ms requestHDF5Flush is called if the "stop" or "play" button is checked
+// if a flush was done then this hdf5RefreshSlot is called
+void MainWindow::hdf5RefreshSlot(Group *grp) {
+  // -> refresh grp
+
+  auto group = static_pointer_cast<OpenMBV::Group>(grp->getObject());
+  group->refresh();
+
+  // -> get new number of rows
+
+  int currentNumOfRows = group->getRowSize();
   // get number of rows of first none enviroment body
   if(!openMBVBodyForLastFrame) {
     auto it=Body::getBodyMap().begin();
     while(it!=Body::getBodyMap().end() && std::static_pointer_cast<OpenMBV::Body>(it->second->object)->getRows()==0)
       it++;
     if(it==Body::getBodyMap().end())
-      return -1;
+      return;
     openMBVBodyForLastFrame=std::static_pointer_cast<OpenMBV::Body>(it->second->object);
   }
   if(currentNumOfRows==-1) {
@@ -1606,25 +1628,15 @@ int MainWindow::getCurrentNumOfRows() {
     currentNumOfRows = openMBVBodyForLastFrame->getRows();
   }
 
+  // update deltaTime
   if(deltaTime==0 && currentNumOfRows>=2)
     deltaTime=openMBVBodyForLastFrame->getRow(1)[0]-openMBVBodyForLastFrame->getRow(0)[0];
-  return currentNumOfRows;
-}
 
-void MainWindow::heavyWorkSlot() {
-  if(playAct->isChecked()) {
-    double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
-    auto dframe=(int)(dT/deltaTime);// frame increment since play click
-    unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
-                        (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
-    if(static_cast<unsigned int>(frameNode->index[0])!=frame_) frameNode->index.setValue(frame_); // set frame => update scene
-    //glViewer->render(); // force rendering
-  }
-  else if(lastFrameAct->isChecked()) {
-    auto currentNumOfRows = getCurrentNumOfRows();
-    if(currentNumOfRows<=0)
-      return;
+  if(currentNumOfRows<=0)
+    return;
 
+  // -> if "last frame" button is checked
+  if(lastFrameAct->isChecked()) {
     // update if a new row is available
     if(currentNumOfRows-1!=timeSlider->totalMaximum() || currentNumOfRows-1!=static_cast<int>(frameNode->index[0])) {
       timeSlider->setTotalMaximum(currentNumOfRows-1);
@@ -1632,20 +1644,18 @@ void MainWindow::heavyWorkSlot() {
       frameNode->index.setValue(currentNumOfRows-1);
     }
   }
-}
 
-void MainWindow::hdf5RefreshSlot() {
-  auto currentNumOfRows = getCurrentNumOfRows();
-  if(currentNumOfRows<=0)
-    return;
-  // update if a the number of rows has changed
-  if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
-    timeSlider->setTotalMaximum(currentNumOfRows-1);
-    if(timeSlider->currentMaximum()>currentNumOfRows-1)
-      timeSlider->setCurrentMaximum(currentNumOfRows-1);
-    if(static_cast<int>(frameNode->index[0])>currentNumOfRows-1)
-      frameNode->index.setValue(currentNumOfRows-1);
-    restartPlay();
+  // -> if "stop" or "play" button is checked
+  else {
+    // update if a the number of rows has changed
+    if(currentNumOfRows-1!=timeSlider->totalMaximum()) {
+      timeSlider->setTotalMaximum(currentNumOfRows-1);
+      if(timeSlider->currentMaximum()>currentNumOfRows-1)
+        timeSlider->setCurrentMaximum(currentNumOfRows-1);
+      if(static_cast<int>(frameNode->index[0])>currentNumOfRows-1)
+        frameNode->index.setValue(currentNumOfRows-1);
+      restartPlay();
+    }
   }
 }
 
@@ -1971,6 +1981,9 @@ void MainWindow::lastFrameSCSlot() {
     animTimer->start();
   else
     animTimer->start((int)(1000/fpsMax));
+
+  // go to last frame
+  frameNode->index.setValue(timeSlider->currentMaximum());
 }
 
 void MainWindow::playSCSlot() {

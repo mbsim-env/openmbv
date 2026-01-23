@@ -62,7 +62,9 @@ namespace OpenMBVGUI {
 
 Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
   connect(this, &Group::reloadFileSignal, this, &Group::reloadFileSlot);
-  connect(this, &Group::refreshFileSignal, this, &Group::refreshFileSlot);
+  connect(this, &Group::refreshFileSignal, MainWindow::getInstance(), [this](){
+    MainWindow::getInstance()->hdf5RefreshSlot(this);
+  });
 
   grp=std::static_pointer_cast<OpenMBV::Group>(obj);
   iconFile="group.svg";
@@ -168,16 +170,6 @@ void Group::reloadFileSlot() {
   auto grp = parent ? parent->child(ind) : MainWindow::getInstance()->objectList->invisibleRootItem()->child(ind);
   MainWindow::getInstance()->objectList->setCurrentItem(grp, 0, QItemSelectionModel::NoUpdate);
   MainWindow::getInstance()->fileReloaded(static_cast<Group*>(grp));
-}
-
-void Group::refreshFileSlot() {
-  grp->refresh();
-
-  // if we are at the first frame we may need to redraw (refresh the scene) since the first frame may
-  // also be the ALL NULL position.
-  auto *mw=MainWindow::getInstance();
-  if(mw->frameNode->index[0]==0 && object->getParent().expired()) // only needed for the root Group (which has no parent)
-    mw->frameNode->index.setValue(0); // this calls a redraw of the scene
 }
 
 bool Group::requestFlush() {

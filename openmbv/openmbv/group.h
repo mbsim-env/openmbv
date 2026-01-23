@@ -53,7 +53,6 @@ class DLL_PUBLIC Group : public Object {
     void newObjectSlot();
     void reloadFileSlot();
     void unloadFileSlot();
-    void refreshFileSlot();
 
     /** Request a flush of the writer.
      * If a writer process currently exists true is returned else false. Note that this flag cannot change
@@ -63,7 +62,6 @@ class DLL_PUBLIC Group : public Object {
   Q_SIGNALS:
     // just a signal to call reloadFileSlot from an arbitary thread.
     void reloadFileSignal();
-    // just a signal to call refreshFileSlot from an arbitary thread.
     void refreshFileSignal();
 };
 
