@@ -1583,9 +1583,9 @@ void MainWindow::restartPlay() {
 }
 
 // is called with a maximum frequency of fpsMax if the "play" or "last frame" button is checked, if the "stop" button is checked
-// this function is not called since new hdf5 data is checked using hdf5RefreshSlot which is (usually) called less frequently.
+// this function is not called since new hdf5 data is checked using refreshFileSlot which is (usually) called less frequently.
 // for "play" the next frame to show is set
-// for "last frame" the flush is requested which will call hdf5RefreshSlot if a flush was done
+// for "last frame" the flush is requested which will call refreshFileSlot if a flush was done
 void MainWindow::heavyWorkSlot() {
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
@@ -1600,8 +1600,8 @@ void MainWindow::heavyWorkSlot() {
 }
 
 // every hdf5RefreshDelta ms requestHDF5Flush is called if the "stop" or "play" button is checked
-// if a flush was done then this hdf5RefreshSlot is called
-void MainWindow::hdf5RefreshSlot(Group *grp) {
+// if a flush was done then this refreshFileSlot is called
+void MainWindow::refreshFileSlot(Group *grp) {
   // -> refresh grp
 
   auto group = static_pointer_cast<OpenMBV::Group>(grp->getObject());

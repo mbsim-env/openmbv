@@ -63,7 +63,7 @@ namespace OpenMBVGUI {
 Group::Group(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Object(obj, parentItem, soParent, ind) {
   connect(this, &Group::reloadFileSignal, this, &Group::reloadFileSlot);
   connect(this, &Group::refreshFileSignal, MainWindow::getInstance(), [this](){
-    MainWindow::getInstance()->hdf5RefreshSlot(this);
+    MainWindow::getInstance()->refreshFileSlot(this);
   });
 
   grp=std::static_pointer_cast<OpenMBV::Group>(obj);

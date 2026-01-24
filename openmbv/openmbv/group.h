@@ -60,9 +60,8 @@ class DLL_PUBLIC Group : public Object {
      */
     bool requestFlush();
   Q_SIGNALS:
-    // just a signal to call reloadFileSlot from an arbitary thread.
-    void reloadFileSignal();
-    void refreshFileSignal();
+    void reloadFileSignal(); // just a signal to call Group::reloadFileSlot from an arbitary thread.
+    void refreshFileSignal(); // just a signal to call MainWindow::refreshFileSlot from an arbitary thread.
 };
 
 }

@@ -97,28 +97,30 @@ namespace OpenMBV {
       /** Enable SWMR if a H5 file is written. */
       void enableSWMR();
 
-      /** set the number of rows which are now written, and flush the data */
+      /** set the number of rows which are now written, and flush this integer data */
       void setRowSize(int rs);
 
-      /** get the number of rows which is guaranteed to be written and flushed to the file.
+      /** get the number of rows which are guaranteed to be written and flushed to the file.
        * If the files does not contain this information (a legacy ombvh5 file) -1 is returned. */
       int getRowSize();
 
-      /** Flush the H5 file if reader has requested a flush.
-       * If a flush happens postFlushFunc is called immediately after the flush ("this" as a shared_ptr is passed as argument)
-       * and than the readers are notified about the flush */
+      /* This function should be called periodically for a file opened for writing.
+       * It flush's the file (the dataset) of a writer if such a flush was requested by a reader.
+       * Does nothing if no reader has requested a flush.
+       * If a flush happens postFlushFunc is called immediately after the flush (a shared_ptr of "this" is passed as argument)
+       * and than the readers are notified about the flush. */
       void flushIfRequested(const std::function<void(const std::shared_ptr<Group> &)> &postFlushFunc={});
 
-      /** Flush now */
+      /** Flush a writer now */
       void flush();
 
-      /** Refresh the H5 file. */
+      /** Refresh a reader now */
       void refresh();
 
-      /** Request a flush of the writer.
-       * If a writer process currently exists true is returned else false. Note that this flag cannot change
-       * while the calling process as opened the file for reading.
-       */
+      /* Called by a reader to request a flush of the writer.
+       * This is not blocking. If the writer has flushed the setRefreshCallback is called.
+       * If a writer process currently exists true is returned else false. Note that this returned flag cannot change
+       * while the calling process has opened the file for reading. */
       bool requestFlush();
 
       /** Set the callback which is called, by HDF5Serie, if reading this file should be closed (and reopened immediately after) */
