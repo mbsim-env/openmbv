@@ -62,6 +62,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
+#include <Inventor/VRMLnodes/SoVRMLMaterial.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoAnnotation.h>
@@ -2281,7 +2282,13 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
 }
 
 void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
-  static map<SoMaterial*, float> originalMatTrans;
+  highlightItemsT<SoMaterial>(items);
+  highlightItemsT<SoVRMLMaterial>(items);
+}
+
+template<typename Material>
+void MainWindow::highlightItemsT(const QList<QTreeWidgetItem*> &items) {
+  static map<Material*, float> originalMatTrans;
 
   // restore the original transparency setting of all materials
   for(auto [mat, t] : originalMatTrans)
@@ -2292,10 +2299,10 @@ void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
   if(items.count()==0)
     return;
 
-  // iterate all SoMaterial nodes
+  // iterate all Material nodes
   SoSearchAction sa;
   sa.setInterest(SoSearchAction::ALL);
-  sa.setType(SoMaterial::getClassTypeId());
+  sa.setType(Material::getClassTypeId());
   sa.apply(sceneRoot);
   auto pl = sa.getPaths();
   for(int i=0; i<pl.getLength(); ++i) {
@@ -2309,9 +2316,13 @@ void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
     }
     // if the material is not part of a selected Body store the original transparency and set it to be more transparent
     if(!selected) {
-      auto *mat = static_cast<SoMaterial*>(path->getTail());
+      auto *mat = static_cast<Material*>(path->getTail());
       if(auto [it, created] = originalMatTrans.emplace(mat, 0); created) {
-        float t = mat->transparency[0];
+        float t;
+        if constexpr(is_same_v<Material, SoMaterial>)
+          t = mat->transparency[0]; // SoMaterial uses SoMFFloat as transparency -> use the first value
+        else
+          t = mat->transparency.getValue(); // SoVRMLMaterial uses SoSFFloat as transparency -> just use the value
         it->second = t;
         mat->transparency = t+(1-t)*highlightTransparencyFactor;
       }

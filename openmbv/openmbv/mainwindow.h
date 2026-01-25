@@ -287,8 +287,11 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     MyTouchWidget *glViewerWG;
     /** highlight the given object, de-highlight all others */
     void highlightObject(Object *current);
+
     /** highlight ALL object with ID, de-highlight all others */
     void highlightItems(const QList<QTreeWidgetItem*> &items);
+    template<typename Material> void highlightItemsT(const QList<QTreeWidgetItem*> &items);
+
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
