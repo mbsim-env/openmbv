@@ -27,6 +27,9 @@
 #include <vector>
 #include <list>
 #include <xercesc/dom/DOMElement.hpp>
+#ifdef _WIN32
+  #include <windows.h>
+#endif
 
 namespace MBXMLUtils {
 
