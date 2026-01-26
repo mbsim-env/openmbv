@@ -20,6 +20,7 @@
 #ifndef _MBXMLUTILSHELPER_UTILS_H_
 #define _MBXMLUTILSHELPER_UTILS_H_
 
+#include <boost/filesystem/operations.hpp>
 #include <fmatvec/atom.h>
 #include <string>
 #include <set>
@@ -50,6 +51,26 @@ void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput=fal
 
 // enable FPE trapping when MBXMLUTILS_FPE is set to 1
 void handleFPE();
+
+// a fast boost::filesystem::current_path(...)
+// (especially on windows boost::filesystem (and std::filesystem) is very slow on a network drive)
+inline void chdir(const char* dir) {
+#ifdef _WIN32
+  if(SetCurrentDirectory(dir)==0)
+    throw std::runtime_error(std::string("Changing the working directory to ")+dir+" failed.");
+#else
+  if(::chdir(dir)!=0)
+    throw std::runtime_error(std::string("Changing the working directory to ")+dir+" failed.");
+#endif
+}
+
+inline bool fileOrDirExists(const char* f) {
+#ifdef _WIN32
+  return GetFileAttributes(f) != INVALID_FILE_ATTRIBUTES;
+#else
+  return boost::filesystem::exists(f);
+#endif
+}
 
 }
 

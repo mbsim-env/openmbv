@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <xercesc/util/XercesDefs.hpp>
 #include <mbxmlutilshelper/dom.h>
+#include <mbxmlutilshelper/utils.h>
 #include <mbxmlutilshelper/thislinelocation.h>
 #include <unordered_map>
 #include <stack>
@@ -44,7 +45,7 @@ class PreserveCurrentDir {
       dir=boost::filesystem::current_path();
     }
     ~PreserveCurrentDir() {
-      boost::filesystem::current_path(dir);
+      MBXMLUtils::chdir(dir.string().c_str());
     }
   private:
     boost::filesystem::path dir;

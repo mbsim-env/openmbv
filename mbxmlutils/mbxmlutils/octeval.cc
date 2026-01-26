@@ -38,6 +38,7 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include "mbxmlutils/octeval.h"
 #include "mbxmlutils/eval_static.h"
+#include "mbxmlutilshelper/utils.h"
 #include <boost/algorithm/string/trim.hpp>
 
 #include <octave-config.h>
@@ -604,11 +605,8 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   if(e) {
     originalFilename=bfs::absolute(E(e)->getOriginalFilename());
     bfs::path chdir=originalFilename.parent_path();
-    if(!chdir.empty()) {
-      if(!is_directory(chdir)) // make windows and linux consistent: fail if chdir does not exist
-        throw DOMEvalException("Cannot set '"+chdir.string()+"' as current working directory, it does not exist or is no dir", e);
-      bfs::current_path(chdir);
-    }
+    if(!chdir.empty())
+      MBXMLUtils::chdir(chdir.string().c_str());
   }
   else
     originalFilename.clear();

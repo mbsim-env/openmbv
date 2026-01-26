@@ -456,7 +456,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     PreserveCurrentDir preserveDir;
     bfs::path chdir=E(e)->getOriginalFilename().parent_path();
     if(!chdir.empty())
-      bfs::current_path(chdir);
+      MBXMLUtils::chdir(chdir.string().c_str());
 
     Value ret;
     vector<Value> args(1);

@@ -30,6 +30,7 @@
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
+#include <mbxmlutilshelper/utils.h>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
@@ -1304,7 +1305,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
 }
 
 shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
-  if(!exists(inputSource))
+  if(!MBXMLUtils::fileOrDirExists(inputSource.string().c_str()))
     throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
