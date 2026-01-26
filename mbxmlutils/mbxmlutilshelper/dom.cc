@@ -30,7 +30,7 @@
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
-#include <mbxmlutilshelper/utils.h>
+#include "utils.h"
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include <boost/spirit/include/qi.hpp>
