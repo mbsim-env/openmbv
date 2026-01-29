@@ -24,6 +24,8 @@
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoColorIndex.h>
 #include <Inventor/nodes/SoAlphaTest.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/VRMLnodes/SoVRMLMaterial.h>
 #include <QMainWindow>
 #include <QTreeWidget>
 #include <QTextEdit>
@@ -290,7 +292,12 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     /** highlight ALL object with ID, de-highlight all others */
     void highlightItems(const QList<QTreeWidgetItem*> &items);
-    template<typename Material> void highlightItemsT(const QList<QTreeWidgetItem*> &items);
+    struct SoNodeDeleter {
+      void operator()(SoNode *n) const { n->unref(); }
+    };
+    std::map<std::unique_ptr<SoMaterial, SoNodeDeleter>, float> highlightItemsMatTransStoreM;
+    std::map<std::unique_ptr<SoVRMLMaterial, SoNodeDeleter>, float> highlightItemsMatTransStoreV;
+
 
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
