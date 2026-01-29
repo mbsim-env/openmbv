@@ -32,7 +32,7 @@
 #include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
-#include <mbxmlutilshelper/utils.h>
+#include "utils.h"
 #include <boost/spirit/include/qi.hpp>
 #ifdef _WIN32
   #ifndef WIN32_LEAN_AND_MEAN
