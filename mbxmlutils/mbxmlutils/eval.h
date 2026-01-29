@@ -8,6 +8,7 @@
 #include <mbxmlutilshelper/thislinelocation.h>
 #include <unordered_map>
 #include <stack>
+#include "mbxmlutilshelper/utils.h"
 
 #define MBXMLUTILS_EVAL_CONCAT1(X, Y) X##Y
 #define MBXMLUTILS_EVAL_CONCAT(X, Y) MBXMLUTILS_EVAL_CONCAT1(X, Y)
@@ -41,10 +42,10 @@ class CodeString : public std::string {
 class PreserveCurrentDir {
   public:
     PreserveCurrentDir() {
-      dir=boost::filesystem::current_path();
+      dir=MBXMLUtils::current_path();
     }
     ~PreserveCurrentDir() {
-      boost::filesystem::current_path(dir);
+      MBXMLUtils::current_path(dir);
     }
   private:
     boost::filesystem::path dir;

@@ -2,13 +2,14 @@
 #define _MBSIMXML_SET_CURRENT_PATH_H_
 
 #include <boost/filesystem.hpp>
+#include <mbxmlutilshelper/utils.h>
 
 class SetCurrentPath {
   public:
     SetCurrentPath(const boost::filesystem::path& newCurrentPath) {
-      orgCurrentPath=boost::filesystem::current_path();
+      orgCurrentPath=MBXMLUtils::current_path();
       if(!newCurrentPath.empty())
-        boost::filesystem::current_path(newCurrentPath);
+        MBXMLUtils::current_path(newCurrentPath);
     }
     boost::filesystem::path adaptPath(const boost::filesystem::path &p) const {
       if(p.is_absolute())

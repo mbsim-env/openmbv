@@ -307,11 +307,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     if(e) {
       originalFilename=boost::filesystem::absolute(E(e)->getOriginalFilename());
       path chdir=originalFilename.parent_path();
-      if(!chdir.empty()) {
-        if(!is_directory(chdir)) // make windows and linux consistent: fail if chdir does not exist
-          throw DOMEvalException("Cannot set '"+chdir.string()+"' as current working directory, it does not exist or is no dir", e);
-        current_path(chdir);
-      }
+      if(!chdir.empty())
+        MBXMLUtils::current_path(chdir);
     }
     else
       originalFilename.clear();
@@ -412,18 +409,18 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for MBXMLUtils py-files."<<endl;
   for(auto srcIt=directory_iterator(installPath/"share"/"mbxmlutils"/"python"/"mbxmlutils"); srcIt!=directory_iterator(); ++srcIt) {
-    if(is_directory(*srcIt)) // skip directories
+    if(MBXMLUtils::is_directory(*srcIt)) // skip directories
       continue;
     files[srcIt->path()]=make_pair(path("share")/"mbxmlutils"/"python"/"mbxmlutils", false);
   }
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
   path PYTHONSRC(PYTHON_LIBDIR);
-  if(exists(installPath/PYTHON_SUBDIR/"site-packages"))
+  if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
     PYTHONSRC=installPath/PYTHON_SUBDIR;
 
   auto addFile = [&PYTHONSRC, &PYTHONDST](auto &srcIt) {
-    if(is_directory(*srcIt)) // skip directories
+    if(MBXMLUtils::is_directory(*srcIt)) // skip directories
       return;
     if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
       return;
@@ -447,13 +444,13 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
       if(*srcIt->path().rbegin()==sitePackages) { // in site-packages ..
         cont=true;
         for(auto mod : {"numpy", "sympy", "mpmath"}) // .. only these subdirs
-          if(exists(srcIt->path()/mod))
+          if(MBXMLUtils::exists(srcIt->path()/mod))
             for(auto srcRecIt=recursive_directory_iterator(srcIt->path()/mod); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
               addFile(srcRecIt);
       }
     if(cont)
       continue;
-    if(is_directory(*srcIt)) // directory -> recursive
+    if(MBXMLUtils::is_directory(*srcIt)) // directory -> recursive
       for(auto srcRecIt=recursive_directory_iterator(*srcIt); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
         addFile(srcRecIt);
     else
@@ -461,7 +458,7 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   }
 #if _WIN32
   // on Windows include the PYTHONSRC/../DLLs directory, if existing
-  if(exists(PYTHONSRC/".."/"DLLs"))
+  if(MBXMLUtils::exists(PYTHONSRC/".."/"DLLs"))
     for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
       files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
 #endif
@@ -509,11 +506,8 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   if(e) {
     originalFilename=boost::filesystem::absolute(E(e)->getOriginalFilename());
     path chdir=originalFilename.parent_path();
-    if(!chdir.empty()) {
-      if(!is_directory(chdir)) // make windows and linux consistent: fail if chdir does not exist
-        throw DOMEvalException("Cannot set '"+chdir.string()+"' as current working directory, it does not exist or is no dir", e);
-      current_path(chdir);
-    }
+    if(!chdir.empty())
+      MBXMLUtils::current_path(chdir);
   }
   else
     originalFilename.clear();

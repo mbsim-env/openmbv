@@ -604,11 +604,8 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   if(e) {
     originalFilename=bfs::absolute(E(e)->getOriginalFilename());
     bfs::path chdir=originalFilename.parent_path();
-    if(!chdir.empty()) {
-      if(!is_directory(chdir)) // make windows and linux consistent: fail if chdir does not exist
-        throw DOMEvalException("Cannot set '"+chdir.string()+"' as current working directory, it does not exist or is no dir", e);
-      bfs::current_path(chdir);
-    }
+    if(!chdir.empty())
+      MBXMLUtils::current_path(chdir);
   }
   else
     originalFilename.clear();
@@ -851,7 +848,7 @@ std::map<bfs::path, std::pair<bfs::path, bool> >& OctEval::requiredFiles() const
   fmatvec::Atom::msgStatic(Info)<<"Generate file list for MBXMLUtils m-files."<<std::endl;
   for(bfs::directory_iterator srcIt=bfs::directory_iterator(installPath/"share"/"mbxmlutils"/"octave");
     srcIt!=bfs::directory_iterator(); ++srcIt) {
-    if(is_directory(*srcIt)) // skip directories
+    if(MBXMLUtils::is_directory(*srcIt)) // skip directories
       continue;
     files[srcIt->path()]=std::make_pair(bfs::path("share")/"mbxmlutils"/"octave", false);
   }
@@ -866,7 +863,7 @@ std::map<bfs::path, std::pair<bfs::path, bool> >& OctEval::requiredFiles() const
   size_t depth=std::distance(dir.begin(), dir.end());
   for(bfs::recursive_directory_iterator srcIt=bfs::recursive_directory_iterator(dir);
       srcIt!=bfs::recursive_directory_iterator(); ++srcIt) {
-    if(is_directory(*srcIt)) // skip directories
+    if(MBXMLUtils::is_directory(*srcIt)) // skip directories
       continue;
     bfs::path::iterator dstIt=srcIt->path().begin();
     for(int i=0; i<depth; ++i) ++dstIt;

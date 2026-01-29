@@ -32,6 +32,7 @@
 #include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
+#include <mbxmlutilshelper/utils.h>
 #include <boost/spirit/include/qi.hpp>
 #ifdef _WIN32
   #ifndef WIN32_LEAN_AND_MEAN
@@ -161,7 +162,7 @@ namespace {
   // END: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
 
-  path toRelativePath(path absPath, const path& relTo=current_path()) {
+  path toRelativePath(path absPath, const path& relTo=MBXMLUtils::current_path()) {
     if(!absPath.is_absolute())
       throw runtime_error("First argument of toRelativePath must be a absolute path.");
     path::iterator curIt, absIt;
@@ -1304,7 +1305,7 @@ void DOMParser::handleXInclude(DOMElement *&e, vector<path> *dependencies) {
 }
 
 shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *dependencies, bool doXInclude) {
-  if(!exists(inputSource))
+  if(!MBXMLUtils::exists(inputSource))
     throw runtime_error("XML document "+inputSource.string()+" not found");
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
