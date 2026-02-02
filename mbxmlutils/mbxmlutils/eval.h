@@ -141,6 +141,9 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     //! if skipRet=true then str is not required to return anything, a empty Value will be returned in this case.
     Value eval(const std::string &str, const xercesc::DOMElement *e=nullptr, bool skipRet=false);
 
+    //! Check if the type of the value 'value' matches the type of DOMElement 'e'.
+    void checkIfValueMatchesElement(const Value& value, const xercesc::DOMElement *e);
+
     /*! Cast the value value to type <tt>T</tt>.
      * Possible combinations of allowed value types and template types <tt>T</tt> are listed in the
      * following table. If a combination is not allowed a exception is thrown.

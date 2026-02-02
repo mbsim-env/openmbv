@@ -357,20 +357,26 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(localParamEle && param && e->getParentNode()->getNodeType()==DOMNode::DOCUMENT_NODE) {
 
         // override parameters
-        for(auto & it : *param) {
-          // serach for a parameter named it->first in localParamEle
+        for(auto &[parName, parValue] : *param) {
+          // search for a parameter named parName in localParamEle
           bool found=false;
           for(DOMElement *p=localParamEle->getFirstElementChild(); p!=nullptr; p=p->getNextElementSibling()) {
-            if(E(p)->getAttribute("name")==it.first) {
+            if(E(p)->getAttribute("name")==parName) {
               // if found overwrite this parameter
-              Eval::setValue(p, it.second);
-              msgStatic(Info)<<"Parameter '"<<it.first<<"' overwritten with value "<<eval->cast<CodeString>(it.second)<<endl;
+              try {
+                eval->checkIfValueMatchesElement(parValue, p);
+              }
+              catch(const DOMEvalException &ex) {
+                throw DOMEvalException("The parameter '"+parName+"' should be overwritten but its type does not match:\n"+ex.getMessage(), p);
+              }
+              Eval::setValue(p, parValue);
+              msgStatic(Info)<<"Parameter '"<<parName<<"' overwritten with value "<<eval->cast<CodeString>(parValue)<<endl;
               found=true;
               break;
             }
           }
           if(!found)
-            msgStatic(Warn)<<"Parameter '"<<it.first<<"' not found and not overwritten"<<endl;
+            msgStatic(Warn)<<"Parameter '"<<parName<<"' not found and not overwritten"<<endl;
         }
 
         // output parameters to the caller

@@ -368,20 +368,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     ) {
     auto text=E(e)->getText<string>();
     Value ret=stringToValue(text, e);
-     if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(ret, ScalarType))
-      throw DOMEvalException("Value is not of type scalar", e);
-    if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(ret, VectorType))
-      throw DOMEvalException("Value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"matrix") && !valueIsOfType(ret, MatrixType))
-      throw DOMEvalException("Value is not of type matrix", e);
-    if(E(e)->isDerivedFrom(PV%"stringFullEval") && !valueIsOfType(ret, StringType)) // also filenameFullEval
-      throw DOMEvalException("Value is not of type scalar string", e);
-    if(E(e)->isDerivedFrom(PV%"integerVector") && !valueIsOfType(ret, VectorType))
-      throw DOMEvalException("Value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"indexVector") && !valueIsOfType(ret, VectorType))
-      throw DOMEvalException("Value is not of type vector", e);
-    if(E(e)->isDerivedFrom(PV%"indexMatrix") && !valueIsOfType(ret, MatrixType))
-      throw DOMEvalException("Value is not of type matrix", e);
+    checkIfValueMatchesElement(ret, e);
 
     // handle 1 based index vectors and matrices
     if(E(e)->isDerivedFrom(PV%"indexVector") or E(e)->isDerivedFrom(PV%"indexMatrix"))
@@ -579,6 +566,23 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
 
 Eval::Value Eval::eval(const string &str, const DOMElement *e, bool skipRet) {
   return fullStringToValue(str, e, skipRet);
+}
+
+void Eval::checkIfValueMatchesElement(const Value& value, const xercesc::DOMElement *e) {
+  if(E(e)->isDerivedFrom(PV%"scalar") && !valueIsOfType(value, ScalarType))
+    throw DOMEvalException("Value is not of type scalar", e);
+  if(E(e)->isDerivedFrom(PV%"vector") && !valueIsOfType(value, VectorType))
+    throw DOMEvalException("Value is not of type vector", e);
+  if(E(e)->isDerivedFrom(PV%"matrix") && !valueIsOfType(value, MatrixType))
+    throw DOMEvalException("Value is not of type matrix", e);
+  if(E(e)->isDerivedFrom(PV%"stringFullEval") && !valueIsOfType(value, StringType)) // also filenameFullEval
+    throw DOMEvalException("Value is not of type scalar string", e);
+  if(E(e)->isDerivedFrom(PV%"integerVector") && !valueIsOfType(value, VectorType))
+    throw DOMEvalException("Value is not of type vector", e);
+  if(E(e)->isDerivedFrom(PV%"indexVector") && !valueIsOfType(value, VectorType))
+    throw DOMEvalException("Value is not of type vector", e);
+  if(E(e)->isDerivedFrom(PV%"indexMatrix") && !valueIsOfType(value, MatrixType))
+    throw DOMEvalException("Value is not of type matrix", e);
 }
 
 Eval::Value Eval::handleUnit(const xercesc::DOMElement *e, const Value &ret) {
