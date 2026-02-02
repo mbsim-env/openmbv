@@ -258,6 +258,8 @@ void Group::read() {
           rowSize = hdf5File->openChildObject<H5::SimpleDataset<int>>(rowSizePath);
         }
         catch(...) {
+          msg(Atom::Deprecated) << "Opening a legacy .ombvh5 file, without a " << rowSizePath << " element: " << h5FileName <<"\n"
+                                   "This is deprecated but still supported." << endl;
         }
       }
       catch(...) {

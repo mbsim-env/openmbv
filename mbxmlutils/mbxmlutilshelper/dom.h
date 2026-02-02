@@ -17,12 +17,13 @@
 #include <xercesc/dom/DOMLocator.hpp>
 #include <xercesc/dom/DOMUserDataHandler.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-#include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/psvi/PSVIHandler.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/container/small_vector.hpp>
+#include <boost/functional/hash.hpp>
 #include <fmatvec/toString.h>
+#include "simdutf.h"
 
 namespace XERCES_CPP_NAMESPACE {
   class DOMProcessingInstruction;
@@ -86,23 +87,26 @@ class InitXerces {
 //! A returned XMLCh pointer has a lifetime of the X object.
 class X {
   public:
-    const XMLCh *operator%(const std::string &str) {
-      if(str.empty())
-        return &xercesc::chNull;
-      const XMLCh *unicode=xercesc::TranscodeFromStr(reinterpret_cast<const XMLByte*>(str.c_str()), str.length(), "UTF8").adopt();
-      store.emplace_back(unicode, &releaseXMLCh);
-      return unicode;
+    const XMLCh *operator%(const std::string &in) {
+      auto &out = store.emplace_back(in.size()*2+1); // utf16 is at most 2 words per character plus 1 null at the end
+      auto outSize = simdutf::convert_valid_utf8_to_utf16(in.data(), in.size(), out.data());
+      out[outSize] = 0; // set null at the end, the rest of the memory is skipped
+      return out.data();
     }
-    const XMLCh *operator()(const std::string &str) { return operator%(str); }
-    std::string operator%(const XMLCh *unicode) {
-      if(!unicode || unicode[0]==0)
+    const XMLCh *operator()(const std::string &in) { return operator%(in); }
+    std::string operator%(const XMLCh *in) {
+      if(!in || in[0]==0)
         return {};
-      return reinterpret_cast<const char*>(xercesc::TranscodeToStr(unicode, "UTF8").str());
+      auto inSize = std::char_traits<char16_t>::length(in);
+      std::string out(inSize*4, 0); // utf8 is at most 4 bytes per character
+      auto outSize = simdutf::convert_valid_utf16_to_utf8(in, inSize, out.data());
+      out.resize(outSize); // now shrink out to the real size
+      return out;
     }
-    std::string operator()(const XMLCh *unicode) { return operator%(unicode); }
-    static void releaseXMLCh(const XMLCh *s) { xercesc::XMLPlatformUtils::fgMemoryManager->deallocate(const_cast<XMLCh*>(s)); }
+    std::string operator()(const XMLCh *in) { return operator%(in); }
   private:
-    boost::container::small_vector<std::unique_ptr<const XMLCh, decltype(&releaseXMLCh)>, 1> store;
+    // store 1 string of at most 100 characters on the stack -> more/larger string are stored on the heap
+    boost::container::small_vector<boost::container::small_vector<char16_t, 100*2+1>, 1> store;
 };
 
 //! Full qualified name.
@@ -582,12 +586,12 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! create a empty document
     std::shared_ptr<xercesc::DOMDocument> createDocument();
     
-    const std::map<FQN, xercesc::XSTypeDefinition*>& getTypeMap() const { return typeMap; }
+    const std::unordered_map<FQN, xercesc::XSTypeDefinition*, boost::hash<FQN>>& getTypeMap() const { return typeMap; }
   private:
     xercesc::DOMImplementation *domImpl;
     DOMParser(const std::variant<boost::filesystem::path, xercesc::DOMElement*> &xmlCatalog);
     std::shared_ptr<xercesc::DOMLSParser> parser;
-    std::map<FQN, xercesc::XSTypeDefinition*> typeMap;
+    std::unordered_map<FQN, xercesc::XSTypeDefinition*, boost::hash<FQN>> typeMap;
     DOMErrorPrinter errorHandler;
     LocationInfoFilter locationFilter;
     TypeDerivativeHandler typeDerHandler;

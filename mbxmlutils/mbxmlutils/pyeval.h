@@ -56,7 +56,7 @@ class PyEval : public Eval {
 
     std::string serializeFunction(const Value &x) const override;
     static boost::uuids::name_generator uuidGen;
-    mutable std::map<boost::uuids::uuid, std::pair<int, PythonCpp::PyO>> byteCodeMap;
+    mutable std::unordered_map<boost::uuids::uuid, std::pair<int, PythonCpp::PyO>, boost::hash<boost::uuids::uuid>> byteCodeMap;
 };
 
 }

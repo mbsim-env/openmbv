@@ -37,18 +37,18 @@ class ValueUserDataHandler : public xercesc::DOMUserDataHandler {
 };
 
 ValueUserDataHandler valueUserDataHandler;
-const string evalValueKey("http://www.mbsim-env.de/dom/MBXMLUtils/evalValue");
+const u16string evalValueKey(u"http://www.mbsim-env.de/dom/MBXMLUtils/evalValue");
 
 void ValueUserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, const XMLCh* const key,
   void *data, const DOMNode *src, DOMNode *dst) {
-  if(MBXMLUtils::X()%key==evalValueKey) {
+  if(key==evalValueKey) {
     if(operation==NODE_DELETED) {
       delete static_cast<MBXMLUtils::Eval::Value*>(data);
       return;
     }
     if((operation==NODE_CLONED || operation==NODE_IMPORTED) &&
        src->getNodeType()==DOMNode::ELEMENT_NODE && dst->getNodeType()==DOMNode::ELEMENT_NODE) {
-      dst->setUserData(MBXMLUtils::X()%evalValueKey,
+      dst->setUserData(evalValueKey.data(),
         new MBXMLUtils::Eval::Value(*static_cast<MBXMLUtils::Eval::Value*>(data)), &valueUserDataHandler);
       return;
     }
@@ -243,7 +243,7 @@ void Eval::addParamSet(const DOMElement *e) {
 }
 
 Eval::Value Eval::eval(const DOMElement *e) {
-  void *ud=e->getUserData(X()%evalValueKey);
+  void *ud=e->getUserData(evalValueKey.data());
   if(ud)
     return *static_cast<Value*>(ud);
 
@@ -724,7 +724,7 @@ void Eval::addStaticDependencies(const DOMElement *e) const {
 }
 
 void Eval::setValue(DOMElement *e, const Value &v) {
-  e->setUserData(X()%evalValueKey, new Value(v), &valueUserDataHandler);
+  e->setUserData(evalValueKey.data(), new Value(v), &valueUserDataHandler);
 }
 
 void Eval::printEvaluatorMsg(const std::ostringstream &str, MsgType msgType) {

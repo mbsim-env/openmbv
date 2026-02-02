@@ -12,8 +12,8 @@ mbxmlutilsvalidate.o: $(srcdir)/mbxmlutilsvalidate.rc $(srcdir)/mbxmlutilsvalida
 libmbxmlutilshelper_la_CPPFLAGS = $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LDFLAGS = $(UNWIND_LIB) $(FMATVEC_CFLAGS)
 libmbxmlutilshelper_la_LIBADD = $(LDFLAGS_NOUNDEF) $(XERCESC_LIBS) $(FMATVEC_LIBS) -l@BOOST_REGEX_LIB@ -l@BOOST_FILESYSTEM_LIB@ $(LIBDL)
-libmbxmlutilshelper_la_SOURCES = dom.cc utils.cc windows_signal_conversion.cc
-libmbxmlutilshelper_la_HEADERS = dom.h utils.h windows_signal_conversion.h shared_library.h last_write_time.h thislinelocation.h
+libmbxmlutilshelper_la_SOURCES = dom.cc simdutf.cpp utils.cc windows_signal_conversion.cc
+libmbxmlutilshelper_la_HEADERS = dom.h simdutf.h utils.h windows_signal_conversion.h shared_library.h last_write_time.h thislinelocation.h
 libmbxmlutilshelper_ladir = $(includedir)/mbxmlutilshelper
 
 w3cschemadir = @datadir@/@PACKAGE@/schema/http___www_w3_org

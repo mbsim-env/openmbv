@@ -161,10 +161,10 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   // adapt the evaluator in the dom (reset evaluator because it may change if the root element is a Embed)
   auto evaluator=E(mainxmlele)->getFirstElementChildNamed(PV%"evaluator");
   if(evaluator)
-    E(evaluator)->getFirstTextChild()->setData(X()%"xmlflat");
+    E(evaluator)->getFirstTextChild()->setData(u"xmlflat");
   else {
     evaluator=D(document)->createElement(PV%"evaluator");
-    evaluator->appendChild(document->createTextNode(X()%"xmlflat"));
+    evaluator->appendChild(document->createTextNode(u"xmlflat"));
     mainxmlele->insertBefore(evaluator, mainxmlele->getFirstChild());
   }
 

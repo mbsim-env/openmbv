@@ -84,7 +84,7 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   if(environmentStr=="true") E(e)->setAttribute("environment", environmentStr);
   if(!ID.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
-    DOMProcessingInstruction *id=doc->createProcessingInstruction(X()%"OPENMBV_ID", X()%ID);
+    DOMProcessingInstruction *id=doc->createProcessingInstruction(u"OPENMBV_ID", X()%ID);
     e->insertBefore(id, nullptr);
   }
   return e;

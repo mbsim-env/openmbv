@@ -133,10 +133,8 @@ namespace {
 
   InitXerces initXerces;
 
-  string domParserKeyStr("http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
-  const XMLCh *domParserKey(TranscodeFromStr(reinterpret_cast<const XMLByte*>(domParserKeyStr.c_str()), domParserKeyStr.length(), "UTF8").adopt());
-  string embedDataKeyStr("http://www.mbsim-env.de/dom/MBXMLUtils/embedData");
-  const XMLCh *embedDataKey(TranscodeFromStr(reinterpret_cast<const XMLByte*>(embedDataKeyStr.c_str()), embedDataKeyStr.length(), "UTF8").adopt());
+  const XMLCh *domParserKey(u"http://www.mbsim-env.de/dom/MBXMLUtils/domParser");
+  const XMLCh *embedDataKey(u"http://www.mbsim-env.de/dom/MBXMLUtils/embedData");
 
   // START: ugly hack to call a protected/private method from outside
   // (from http://bloglitb.blogspot.de/2010/07/access-to-private-members-thats-easy.html)
@@ -749,17 +747,24 @@ template string DOMAttrWrapper<const DOMAttr>::getRootXPathExpression() const; /
 // Explicit instantiate none const variante. Note the const variant should only be instantiate for const members.
 template class DOMAttrWrapper<DOMAttr>;
 
+
+namespace {
+  void releaseXMLCh(const XMLCh *s) {
+    xercesc::XMLPlatformUtils::fgMemoryManager->deallocate(const_cast<XMLCh*>(s));
+  }
+}
+
 template<typename DOMDocumentType>
 XercesUniquePtr<DOMElement> DOMDocumentWrapper<DOMDocumentType>::validate() {
   // serialize to memory
-  DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
+  DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(u"");
   shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
   ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
   ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTXercesPrettyPrint, false);
   shared_ptr<XMLCh> data;
   {
     TemporarilyConvertEmbedDataToEmbedPI addedPi(me);
-    data.reset(ser->writeToString(me), &X::releaseXMLCh); // serialize to data being UTF-16
+    data.reset(ser->writeToString(me), &releaseXMLCh); // serialize to data being UTF-16
   }
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
@@ -1215,7 +1220,7 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
 
 DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   // get DOM implementation and create parser
-  domImpl=DOMImplementationRegistry::getDOMImplementation(X()%"");
+  domImpl=DOMImplementationRegistry::getDOMImplementation(u"");
   parser.reset(domImpl->createLSParser(DOMImplementation::MODE_SYNCHRONOUS, XMLUni::fgDOMXMLSchemaType),
     [](auto && PH1) { if(PH1) PH1->release(); });
   // convert parser to AbstractDOMParser and store in parser filter
@@ -1422,7 +1427,7 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData) {
   shared_ptr<XMLCh> data;
   {
     TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
-    data.reset(ser->writeToString(n), &X::releaseXMLCh); // serialize to data being UTF-16
+    data.reset(ser->writeToString(n), &releaseXMLCh); // serialize to data being UTF-16
   }
   if(!data.get())
     throw runtime_error("Serializing the document to memory failed.");
@@ -1431,7 +1436,7 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData) {
 
 namespace {
   shared_ptr<DOMLSSerializer> serializeHelper() {
-    DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(X()%"");
+    DOMImplementation *impl=DOMImplementationRegistry::getDOMImplementation(u"");
     shared_ptr<DOMLSSerializer> ser(impl->createLSSerializer(), [](auto && PH1) { if(PH1) PH1->release(); });
     ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
     ser->getDomConfig()->setParameter(XMLUni::fgDOMWRTXercesPrettyPrint, false);
