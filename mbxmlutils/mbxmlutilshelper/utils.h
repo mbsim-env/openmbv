@@ -26,6 +26,7 @@
 #include <vector>
 #include <list>
 #include <xercesc/dom/DOMElement.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace MBXMLUtils {
 
@@ -50,6 +51,12 @@ void setupMessageStreams(std::list<std::string> &args, bool forcePlainOutput=fal
 
 // enable FPE trapping when MBXMLUTILS_FPE is set to 1
 void handleFPE();
+
+// some function being equal to the ones of boost::filesystem but faster (at least on a Windows SMB filesystem)
+boost::filesystem::path current_path();
+void current_path(const boost::filesystem::path &p);
+bool exists(const boost::filesystem::path &p);
+bool is_directory(const boost::filesystem::path &p);
 
 }
 

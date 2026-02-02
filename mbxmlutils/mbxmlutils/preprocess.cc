@@ -251,7 +251,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           dependencies->push_back(enewFilename);
 
         // validate/load if file is given and save in enew
-        fileExists = exists(enewFilename);
+        fileExists = MBXMLUtils::exists(enewFilename);
         if(fileExists) {
           shared_ptr<DOMDocument> newdoc;
           try {
@@ -320,7 +320,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         string subst;
         try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
         paramFile=E(e)->convertPath(subst);
-        if(exists(paramFile)) {
+        if(MBXMLUtils::exists(paramFile)) {
           // add local parameter file to dependencies
           if(dependencies)
             dependencies->push_back(paramFile);

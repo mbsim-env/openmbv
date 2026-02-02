@@ -146,4 +146,44 @@ namespace MBXMLUtils {
     printedMessages.clear();
   }
 
+  boost::filesystem::path current_path() {
+    constexpr size_t N = 10240;
+    char buf[N];
+    #ifdef _WIN32
+      if(GetCurrentDirectory(N-1, buf)==0)
+        throw std::runtime_error("Cannot get the current working directory.");
+    #else
+      if(getcwd(buf, N)==nullptr)
+        throw std::runtime_error("Cannot get the current working directory.");
+    #endif
+    return buf;
+  }
+
+  void current_path(const boost::filesystem::path &p) {
+    #ifdef _WIN32
+      if(SetCurrentDirectory(p.string().c_str())==0)
+        throw std::runtime_error("Changing the working directory to "+p.string()+" failed.");
+    #else
+      if(::chdir(p.string().c_str())!=0)
+        throw std::runtime_error("Changing the working directory to "+p.string()+" failed.");
+    #endif
+  }
+
+  bool exists(const boost::filesystem::path &p) {
+    #ifdef _WIN32
+      return GetFileAttributes(p.string().c_str()) != INVALID_FILE_ATTRIBUTES;
+    #else
+      return boost::filesystem::exists(p);
+    #endif
+  }
+
+  bool is_directory(const boost::filesystem::path &p) {
+    #ifdef _WIN32
+      auto attrib = GetFileAttributes(p.string().c_str());
+      return attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY);
+    #else
+      return boost::filesystem::is_directory(p);
+    #endif
+  }
+
 }

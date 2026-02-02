@@ -62,6 +62,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
+#include <Inventor/VRMLnodes/SoVRMLMaterial.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoAnnotation.h>
@@ -1174,6 +1175,8 @@ MainWindow::~MainWindow() {
   bboxDrawStyle->unref();
   highlightColor->unref();
   highlightDrawStyle->unref();
+  highlightItemsMatTransStoreM.clear();
+  highlightItemsMatTransStoreV.clear();
   delete offScreenRenderer;
   delete fpsTime;
   delete time;
@@ -2296,43 +2299,55 @@ void MainWindow::frameMinMaxSetValue(int min, int max) {
   frameMaxSB->setValue(max);
 }
 
-void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
-  static map<SoMaterial*, float> originalMatTrans;
-
-  // restore the original transparency setting of all materials
-  for(auto [mat, t] : originalMatTrans)
-    mat->transparency = t;
-  originalMatTrans.clear();
-
-  // if nothing is selected we are finished: all is shown with its original transperency
-  if(items.count()==0)
-    return;
-
-  // iterate all SoMaterial nodes
-  SoSearchAction sa;
-  sa.setInterest(SoSearchAction::ALL);
-  sa.setType(SoMaterial::getClassTypeId());
-  sa.apply(sceneRoot);
-  auto pl = sa.getPaths();
-  for(int i=0; i<pl.getLength(); ++i) {
-    auto path = pl[i];
-    // if the node is part of a Body get the selection state of the body (or use unselected)
-    bool selected = false;
-    for(int j=path->getLength()-1; j>=0; j--) {
-      auto it=Object::getObjectMap().find(path->getNode(j));
-      if(it!=Object::getObjectMap().end() && items.contains(it->second))
-        selected = true;
-    }
-    // if the material is not part of a selected Body store the original transparency and set it to be more transparent
-    if(!selected) {
-      auto *mat = static_cast<SoMaterial*>(path->getTail());
-      if(auto [it, created] = originalMatTrans.emplace(mat, 0); created) {
-        float t = mat->transparency[0];
-        it->second = t;
-        mat->transparency = t+(1-t)*highlightTransparencyFactor;
+namespace {
+  template<typename Material>
+  void highlightItemsT(const QList<QTreeWidgetItem*> &items,
+                       SoSeparator *sceneRoot, double highlightTransparencyFactor,
+                       map<unique_ptr<Material, MainWindow::SoNodeDeleter>, float> &highlightItemsMatTransStore) {
+    // restore the original transparency setting of all materials
+    for(auto &[mat, t] : highlightItemsMatTransStore)
+      mat->transparency = t;
+    highlightItemsMatTransStore.clear();
+  
+    // if nothing is selected we are finished: all is shown with its original transperency
+    if(items.count()==0)
+      return;
+  
+    // iterate all Material nodes
+    SoSearchAction sa;
+    sa.setInterest(SoSearchAction::ALL);
+    sa.setType(Material::getClassTypeId());
+    sa.apply(sceneRoot);
+    auto pl = sa.getPaths();
+    for(int i=0; i<pl.getLength(); ++i) {
+      auto path = pl[i];
+      // if the node is part of a Body get the selection state of the body (or use unselected)
+      bool selected = false;
+      for(int j=path->getLength()-1; j>=0; j--) {
+        auto it=Object::getObjectMap().find(path->getNode(j));
+        if(it!=Object::getObjectMap().end() && items.contains(it->second))
+          selected = true;
+      }
+      // if the material is not part of a selected Body store the original transparency and set it to be more transparent
+      if(!selected) {
+        auto *mat = static_cast<Material*>(path->getTail());
+        if(auto [it, created] = highlightItemsMatTransStore.emplace(mat, 0); created) {
+          mat->ref();
+          float t;
+          if constexpr(is_same_v<Material, SoMaterial>)
+            t = mat->transparency[0]; // SoMaterial uses SoMFFloat as transparency -> use the first value
+          else
+            t = mat->transparency.getValue(); // SoVRMLMaterial uses SoSFFloat as transparency -> just use the value
+          it->second = t;
+          mat->transparency = t+(1-t)*highlightTransparencyFactor;
+        }
       }
     }
   }
+}
+void MainWindow::highlightItems(const QList<QTreeWidgetItem*> &items) {
+  highlightItemsT<SoMaterial    >(items, sceneRoot, highlightTransparencyFactor, highlightItemsMatTransStoreM);
+  highlightItemsT<SoVRMLMaterial>(items, sceneRoot, highlightTransparencyFactor, highlightItemsMatTransStoreV);
 }
 
 void MainWindow::selectionChanged() {
