@@ -95,6 +95,27 @@ def diff(d, i, rotMat=False):
   else:
     raise RuntimeError("Unknonwn type: "+str(type(i)))
 
+def diffDir(d, i, di, rotMat=False):
+  """Calculate the directional derivative of d with respect to i in the direction of di, see also diff.
+  """
+  if not hasattr(i, "shape"):
+    # i is scalar
+    i = [i]
+    di = [di]
+  elif len(i.shape)==1:
+    # i is vector
+    pass
+  else:
+    raise RuntimeError("Unknonwn type: "+str(type(i)))
+  firstCall = True
+  for idx in range(0, len(i)):
+    if firstCall:
+      firstCall = False
+      ret = diff(d, i[idx], rotMat=rotMat) * di[idx]
+    else:
+      ret += diff(d, i[idx], rotMat=rotMat) * di[idx]
+  return ret
+
 def subs(x, *args):
   """Substitude all components of x"""
   def _subs(e, *args):
