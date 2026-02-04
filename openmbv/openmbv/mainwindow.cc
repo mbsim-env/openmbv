@@ -2303,7 +2303,7 @@ namespace {
   template<typename Material>
   void highlightItemsT(const QList<QTreeWidgetItem*> &items,
                        SoSeparator *sceneRoot, double highlightTransparencyFactor,
-                       map<unique_ptr<Material, MainWindow::SoNodeDeleter>, float> &highlightItemsMatTransStore) {
+                       map<SoSharedPtr<Material>, float> &highlightItemsMatTransStore) {
     // restore the original transparency setting of all materials
     for(auto &[mat, t] : highlightItemsMatTransStore)
       mat->transparency = t;
@@ -2330,9 +2330,8 @@ namespace {
       }
       // if the material is not part of a selected Body store the original transparency and set it to be more transparent
       if(!selected) {
-        auto *mat = static_cast<Material*>(path->getTail());
+        SoSharedPtr<Material> mat(static_cast<Material*>(path->getTail()));
         if(auto [it, created] = highlightItemsMatTransStore.emplace(mat, 0); created) {
-          mat->ref();
           float t;
           if constexpr(is_same_v<Material, SoMaterial>)
             t = mat->transparency[0]; // SoMaterial uses SoMFFloat as transparency -> use the first value

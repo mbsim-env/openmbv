@@ -96,6 +96,13 @@ class SoSharedPtr {
     T* get() const {
       return ptr;
     }
+    T* operator->() const {
+      return ptr;
+    }
+    T& operator*() const {
+      return *ptr;
+    }
+    bool operator<(const SoSharedPtr &o) const { return ptr < o.ptr; }
   private:
     T* ptr { nullptr };
 };
@@ -397,6 +404,15 @@ class SettingsDialog : public QDialog {
 
 std::string replaceKeys(const std::string &str, const std::map<std::string, std::string> &replace, char pre='@', char post='@');
 
+}
+
+namespace std {
+  template<typename T>
+  struct hash<OpenMBVGUI::SoSharedPtr<T>> {
+    size_t operator()(const OpenMBVGUI::SoSharedPtr<T> &o) const noexcept {
+      return std::hash<T*>{}(o.get());
+    }
+  };
 }
 
 #endif
