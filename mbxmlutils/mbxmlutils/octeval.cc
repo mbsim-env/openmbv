@@ -97,7 +97,7 @@ class OctInit {
 
 OctInit::OctInit() {
   try {
-    if(!getenv("OCTAVE_HOME")) {
+    if(!getenv("MBXMLUTILS_OCTAVE_HOME")) {
       std::string OCTAVE_HOME;
       if(bfs::exists(MBXMLUtils::Eval::installPath/"share"/"octave"))
         OCTAVE_HOME=MBXMLUtils::Eval::installPath.string();
@@ -107,11 +107,16 @@ OctInit::OctInit() {
         OCTAVE_HOME=MKOCTFILE_OCTAVE_HOME_UNIX;
       if(!OCTAVE_HOME.empty()) {
         // the string for putenv must have program life time
-        static char OCTAVE_HOME_ENV[2048] { 0 };
-        if(OCTAVE_HOME_ENV[0]==0)
-          strcpy(OCTAVE_HOME_ENV, (std::string("OCTAVE_HOME=")+OCTAVE_HOME).c_str());
+        static char OCTAVE_HOME_ENV[2048];
+        strcpy(OCTAVE_HOME_ENV, (std::string("OCTAVE_HOME=")+OCTAVE_HOME).c_str());
         putenv(OCTAVE_HOME_ENV);
       }
+    }
+    else {
+      // the string for putenv must have program life time
+      static char OCTAVE_HOME_ENV[2048];
+      strcpy(OCTAVE_HOME_ENV, (std::string("OCTAVE_HOME=")+getenv("MBXMLUTILS_OCTAVE_HOME")).c_str());
+      putenv(OCTAVE_HOME_ENV);
     }
 
     // interpreter->execute() installs it one signal handers -> save it an restore it after the call
