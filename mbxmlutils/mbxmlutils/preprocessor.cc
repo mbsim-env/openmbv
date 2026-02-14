@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
           <<"                    'error~<pre>~<post>' or 'depr~<pre>~<post>'."<<endl
           <<"                    Each message is prefixed/postfixed with <pre>/<post>."<<endl
           <<"                    If '~HTML' is appended than HTML escaping takes place."<<endl
+          <<"                    If '~OFF' is appended than the stream is set-up but not active."<<endl
           <<"                    --stdout may be specified multiple times."<<endl
           <<"  --stderr <msg>    Analog to --stdout but prints to stderr."<<endl
           <<""<<endl

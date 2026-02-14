@@ -119,6 +119,29 @@ shared_ptr<Eval> Eval::createEvaluator(const string &evalName, vector<bfs::path>
   if(it!=getEvaluators().end())
     return it->second(dependencies_);
 
+  static vector<set<string>> conflictingEvalNames {
+    {"octave", "python"},
+  };
+  static set<string> loadedEvalNames;
+  string conflictingEvalName;
+  for(auto &cen : conflictingEvalNames)
+    if(cen.find(evalName)!=cen.end())
+      for(auto &en : cen)
+        if(loadedEvalNames.find(en)!=loadedEvalNames.end())
+          conflictingEvalName = en;
+  loadedEvalNames.insert(evalName);
+  if(!conflictingEvalName.empty()) {
+    string msg("The evaluator '"+evalName+"' is about to be loaded, whereas the evaluator '"+conflictingEvalName+"' "
+               "got already loaded before by this process. Loading these both evaluators in a single process is "
+               "not supported by the used operating system.\n"
+               "You need to restart the process and load only one of these evaluators.");
+    static bool allowConflictingEvaluators = getenv("MBXMLUTILS_ALLOW_CONFLICTING_EVALUATORS")!=nullptr;
+    if(allowConflictingEvaluators)
+      msgStatic(Error)<<msg<<endl;
+    else
+      throw runtime_error(msg);
+  }
+
   // load the evaluator plugin named evalName
   msgStatic(Debug)<<"Loading evaluator '"<<evalName<<"'."<<endl;
 

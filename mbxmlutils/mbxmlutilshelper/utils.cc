@@ -78,13 +78,15 @@ namespace MBXMLUtils {
     if(find(args.begin(), args.end(), "--stdout")==args.end() &&
        find(args.begin(), args.end(), "--stderr")==args.end()) {
       if(  stdoutIsTTY && !forcePlainOutput ) { args.emplace_back("--stdout"); args.emplace_back(  "info~\x1b[KInfo: ~"); }
-      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back(  "warn~\x1b[KWarn: ~"); }
-      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back( "error~\x1b[K~"); }
-      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back(  "depr~\x1b[KDepr: ~"); }
+      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back(  "warn~\x1b[K\x1b[1;33mWarn: ~\x1b[0m"); } // yellow
+      if(  stdoutIsTTY && !forcePlainOutput ) { args.emplace_back("--stdout"); args.emplace_back( "debug~\x1b[K\x1b[0;34mDebug: ~\x1b[0m~OFF"); } // blue
+      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back( "error~\x1b[K\x1b[1;31m~\x1b[0m"); } // red
+      if(  stderrIsTTY && !forcePlainOutput ) { args.emplace_back("--stderr"); args.emplace_back(  "depr~\x1b[K\x1b[0;35mDepr: ~\x1b[0m"); } // purple
       if(  stdoutIsTTY && !forcePlainOutput ) { args.emplace_back("--stdout"); args.emplace_back("status~\x1b[K~\r"); }
 
       if(!(stdoutIsTTY && !forcePlainOutput)) { args.emplace_back("--stdout"); args.emplace_back(  "info~Info: ~"); }
       if(!(stderrIsTTY && !forcePlainOutput)) { args.emplace_back("--stderr"); args.emplace_back(  "warn~Warn: ~"); }
+      if(!(stdoutIsTTY && !forcePlainOutput)) { args.emplace_back("--stdout"); args.emplace_back( "debug~Debug: ~~OFF"); }
       if(!(stderrIsTTY && !forcePlainOutput)) { args.emplace_back("--stderr"); args.emplace_back( "error~~"); }
       if(!(stderrIsTTY && !forcePlainOutput)) { args.emplace_back("--stderr"); args.emplace_back(  "depr~Depr: ~"); }
       if(!(stdoutIsTTY && !forcePlainOutput)) { args.emplace_back("--stdout"); args.emplace_back("status~~\n"); }
@@ -116,14 +118,27 @@ namespace MBXMLUtils {
       static std::regex re(".*~(.*)~(.*)", std::regex::extended);
       std::smatch m;
       auto value=*itn;
+
       bool html=false;
-      if(value.substr(value.size()-5)=="~HTML") {
-        html=true;
-        value=value.substr(0, value.size()-5);
-      }
+      bool active=true;
+      bool repeat;
+      do {
+        repeat = false;
+        if(value.substr(value.size()-5)=="~HTML") {
+          html=true;
+          value=value.substr(0, value.size()-5);
+          repeat = true;
+        }
+        if(value.substr(value.size()-4)=="~OFF") {
+          active=false;
+          value=value.substr(0, value.size()-4);
+          repeat = true;
+        }
+      } while(repeat);
+
       if(!std::regex_match(value, m, re))
         throw runtime_error("Invalid argument: "+*it+" "+*itn);
-      Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(true),
+      Atom::setCurrentMessageStream(msgType, std::make_shared<bool>(active),
         std::make_shared<PrePostfixedStream>(m.str(1), m.str(2), ostr, html ? DOMEvalException::htmlEscaping : nullptr));
   
       args.erase(itn);
