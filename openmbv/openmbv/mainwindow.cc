@@ -63,6 +63,8 @@
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLMaterial.h>
+#include <Inventor/VRMLnodes/SoVRMLShape.h>
+#include <Inventor/VRMLnodes/SoVRMLAppearance.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoAnnotation.h>
@@ -2318,7 +2320,7 @@ namespace {
     sa.setInterest(SoSearchAction::ALL);
     sa.setType(Material::getClassTypeId());
     sa.apply(sceneRoot);
-    auto pl = sa.getPaths();
+    auto &pl = sa.getPaths();
     for(int i=0; i<pl.getLength(); ++i) {
       auto path = pl[i];
       // if the node is part of a Body get the selection state of the body (or use unselected)
@@ -2330,7 +2332,25 @@ namespace {
       }
       // if the material is not part of a selected Body store the original transparency and set it to be more transparent
       if(!selected) {
-        SoSharedPtr<Material> mat(static_cast<Material*>(path->getTail()));
+        auto *node = path->getTail();
+        SoSharedPtr<Material> mat;
+        if(node->getTypeId() == SoMaterial::getClassTypeId() || node->getTypeId() == SoVRMLMaterial::getClassTypeId())
+          // If the node is a SoMaterial or a SoVRMLMaterial this just use this node
+          mat.reset(static_cast<Material*>(node));
+        if constexpr(is_same_v<Material, SoVRMLMaterial>)
+          if(node->getTypeId() == SoVRMLShape::getClassTypeId()) {
+            // If the node is a SoVRMLShape than the searched SoVRMLMaterial node is inside a VRML2 structure.
+            // The search action return in this case the SoVRMLShape node which contains a SoVRMLAppearance node which contains the 
+            // SoVRMLMaterial node.
+            auto shapeNode      = static_cast<SoVRMLShape*     >(node);
+            auto appearanceNode = static_cast<SoVRMLAppearance*>(shapeNode     ->appearance.getValue());
+            auto materialNode   = static_cast<SoVRMLMaterial*  >(appearanceNode->material  .getValue());
+            mat.reset(materialNode);
+          }
+        if(!mat) {
+          assert(0 && "Internal error: got a invalid node type.");
+          continue;
+        }
         if(auto [it, created] = highlightItemsMatTransStore.emplace(mat, 0); created) {
           float t;
           if constexpr(is_same_v<Material, SoMaterial>)
