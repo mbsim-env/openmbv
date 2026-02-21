@@ -2340,7 +2340,7 @@ namespace {
         auto *node = path->getTail();
         SoSharedPtr<Material> mat;
         if(node->getTypeId() == SoMaterial::getClassTypeId() || node->getTypeId() == SoVRMLMaterial::getClassTypeId())
-          // If the node is a SoMaterial or a SoVRMLMaterial this just use this node
+          // If the node is a SoMaterial or a SoVRMLMaterial just use this node
           mat.reset(static_cast<Material*>(node));
         if constexpr(is_same_v<Material, SoVRMLMaterial>)
           if(node->getTypeId() == SoVRMLShape::getClassTypeId()) {

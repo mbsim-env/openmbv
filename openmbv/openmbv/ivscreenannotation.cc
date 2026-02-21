@@ -95,9 +95,9 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   sep->addChild(ivSep.get());
 
   // now search for the pathSep node without the number (only done one, not inside of the loop)
-  SoSeparator *pathSepNoNumber = nullptr, *pathSepInIv;
+  SoGroup *pathSepNoNumber = nullptr, *pathSepInIv;
   if(pathNode)
-    pathSepNoNumber=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSep.get(), "OpenMBVIvScreenAnnotationPathSep"));
+    pathSepNoNumber=dynamic_cast<SoGroup*>(Utils::getChildNodeByName(ivSep.get(), "OpenMBVIvScreenAnnotationPathSep"));
 
   // loop over all pathNode's
   int i=1;
@@ -106,7 +106,7 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     if(pathSepNoNumber)
       pathSepInIv=pathSepNoNumber;
     else
-      pathSepInIv=dynamic_cast<SoSeparator*>(Utils::getChildNodeByName(ivSep.get(), ("OpenMBVIvScreenAnnotationPathSep"+to_string(i)).c_str()));
+      pathSepInIv=dynamic_cast<SoGroup*>(Utils::getChildNodeByName(ivSep.get(), ("OpenMBVIvScreenAnnotationPathSep"+to_string(i)).c_str()));
     // stop if not such node was found
     if(!pathSepInIv) {
       cerr<<"A node named OpenMBVIvScreenAnnotationPathSep[<nr>] must exist and be of type Separator!"<<endl;
