@@ -52,6 +52,7 @@
 #include "QTripleSlider.h"
 #include <QDropEvent>
 #include <qwt_wheel.h>
+#include <fmatvec/fmatvec.h>
 
 // If Coin and SoQt is linked as a dll no symbols of this file are exported (for an unknown reason).
 // Hence we explicitly export ALL symbols.
@@ -279,7 +280,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoBaseColor *bboxColor;
     SoDrawStyle *highlightDrawStyle;
     SoBaseColor *highlightColor;
-    double highlightTransparencyFactor;
+    float highlightTransparencyFactor;
     bool highlightBBox;
     bool highlightTransparency;
     SoComplexity *complexity;
@@ -290,7 +291,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
     /** highlight ALL object with ID, de-highlight all others */
     void highlightItems(const QList<QTreeWidgetItem*> &items);
-    std::map<SoSharedPtr<SoMaterial>, float> highlightItemsMatTransStoreM;
+    std::map<SoSharedPtr<SoMaterial>, fmatvec::Vector<fmatvec::Var, float>> highlightItemsMatTransStoreM;
     std::map<SoSharedPtr<SoVRMLMaterial>, float> highlightItemsMatTransStoreV;
 
 

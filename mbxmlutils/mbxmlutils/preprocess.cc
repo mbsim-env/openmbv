@@ -28,7 +28,8 @@ Preprocess::Preprocess(const path &inputFile, // a filename of a XML file used a
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
     msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<enableEscaping;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
-  document = parseCached(parser, inputFile, "XML input file.");
+  msgStatic(Info)<<"Load, parse and validate file "<<inputFile<<": XML input file"<<endl;
+  document = parser->parse(inputFile);
   msgStatic(Debug)<<"Finished: XML input file"<<endl;
   extractEvaluator();
 }
@@ -44,8 +45,8 @@ Preprocess::Preprocess(istream &inputStream, // the input stream containing the 
   if(MBXMLUtils::DOMEvalException::isHTMLOutputEnabled())
     msgStatic(Info)<<disableEscaping<<"<a name=\"MBXMLUTILS_PREPROCESS_CTOR\"></a>"<<enableEscaping;
   auto parser = initDependenciesAndParser(std::move(parserVariant), trackDependencies);
-  msgStatic(Info)<<"Load, parse and validate input stream."<<endl;
-  document = parseCached(parser, inputStream, "XML input file.");
+  msgStatic(Info)<<"Parse and validate input stream: XML input file"<<endl;
+  document = parser->parse(inputStream);
   msgStatic(Debug)<<"Finished: XML input file"<<endl;
   extractEvaluator();
 }

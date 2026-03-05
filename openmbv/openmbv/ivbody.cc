@@ -26,6 +26,9 @@
 #include <Inventor/actions/SoWriteAction.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/VRMLnodes/SoVRMLMaterial.h>
+#include <Inventor/VRMLnodes/SoVRMLShape.h>
+#include <Inventor/VRMLnodes/SoVRMLAppearance.h>
 
 #include <vector>
 #include <boost/container_hash/hash.hpp>
@@ -98,10 +101,28 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   }
 
   // connect object OpenMBVIvBodyMaterial in file to hdf5 mat if it is of type SoMaterial
-  SoBase *ref=Utils::getChildNodeByName(soIv, "OpenMBVIvBodyMaterial");
-  if(ref && ref->getTypeId()==SoMaterial::getClassTypeId()) {
-    ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
-    ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
+  SoNode *ref=Utils::getChildNodeByName(soIv, "OpenMBVIvBodyMaterial");
+  if(ref) {
+    if(ref->getTypeId()==SoMaterial::getClassTypeId()) {
+      // If the node is a SoMaterial just use this node
+      ((SoMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
+      ((SoMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
+    }
+    else if(ref->getTypeId()==SoVRMLMaterial::getClassTypeId()) {
+      // If the node is a SoVRMLMaterial just use this node
+      ((SoVRMLMaterial*)ref)->diffuseColor.connectFrom(&mat->diffuseColor);
+      ((SoVRMLMaterial*)ref)->specularColor.connectFrom(&mat->specularColor);
+    }
+    else if(ref->getTypeId()==SoVRMLShape::getClassTypeId()) {
+      // If the node is a SoVRMLShape than the searched SoVRMLMaterial node is inside a VRML2 structure.
+      // The search action return in this case the SoVRMLShape node which contains a SoVRMLAppearance node which contains the 
+      // SoVRMLMaterial node.
+      auto shapeNode      = static_cast<SoVRMLShape*     >(ref);
+      auto appearanceNode = static_cast<SoVRMLAppearance*>(shapeNode     ->appearance.getValue());
+      auto materialNode   = static_cast<SoVRMLMaterial*  >(appearanceNode->material  .getValue());
+      materialNode->diffuseColor.connectFrom(&mat->diffuseColor);
+      materialNode->specularColor.connectFrom(&mat->specularColor);
+    }
     sep->renderCaching.setValue(SoSeparator::AUTO);
   }
 
