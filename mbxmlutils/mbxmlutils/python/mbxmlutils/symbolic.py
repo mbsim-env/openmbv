@@ -78,14 +78,17 @@ def diff(d, i, rotMat=False):
         raise RuntimeError("diff with rotMat=True can only be called with a 3x3 matrix")
       return mbxmlutils.tilde(der @ d.T)
   elif len(i.shape)==1:
-    if len(d.shape)==2 and not rotMat:
+    if hasattr(d, "shape") and len(d.shape)==2 and not rotMat:
       raise RuntimeError("diff with with a vector i can only be called with a scalar or vector for d")
     # i is vector
     der=[]
     for ii in i:
       der.append(diff(d, ii))
     if not rotMat:
-      return numpy.stack(der, axis=1)
+      if hasattr(d, "shape"):
+        return numpy.stack(der, axis=1)
+      else:
+        return numpy.stack(der, axis=0)
     else:
       import mbxmlutils
       ret=[]
@@ -144,7 +147,7 @@ def C(x, asVectorIfPossible=True):
   # no conversion needed for scalars
   return x
 
-def ccode(*xx, retName="ret", subsName="x", oneOutputPerLine=False, cse=True):
+def ccode(*xx, retName="ret", subsName="x", oneOutputPerLine=False, cse=True, skipZeroElementsInVecMat=False):
   """Generate c-code for all expressions *xx.
   If only one expression is provided use retName as output variable name.
   If more then one expression is provided and retName is a string use "{retName}[{idx}]" as output variable name.
@@ -173,8 +176,10 @@ def ccode(*xx, retName="ret", subsName="x", oneOutputPerLine=False, cse=True):
     subs=[]
     numpy_xx_cse=xx
 
-  def dumpScalar(x):
+  def dumpScalar(x, retNoneIfZero=False):
     x = x.evalf()
+    if retNoneIfZero and x.is_zero:
+      return None
     return sympy.ccode(x)
 
   fullRet=""
@@ -204,7 +209,9 @@ def ccode(*xx, retName="ret", subsName="x", oneOutputPerLine=False, cse=True):
       lr=len(str(x.shape[0]-1))
       ret=""
       for r in range(0, x.shape[0]):
-        ret+=f"{retNameFull}({r:{lr}}) = {dumpScalar(x[r])};\n"
+        v = dumpScalar(x[r], retNoneIfZero=skipZeroElementsInVecMat)
+        if v is not None:
+          ret+=f"{retNameFull}({r:{lr}}) = {v};\n"
       fullRet += ret
     elif len(x.shape)==2:
       # dump matrix
@@ -216,18 +223,21 @@ def ccode(*xx, retName="ret", subsName="x", oneOutputPerLine=False, cse=True):
       for r in range(0, x.shape[0]):
         row=[]
         for c in range(0, x.shape[1]):
-          code=dumpScalar(x[r,c])
+          code=dumpScalar(x[r,c], retNoneIfZero=skipZeroElementsInVecMat)
           row.append(code)
-          l[c]=max(l[c], len(code))
+          if code is not None:
+            l[c]=max(l[c], len(code))
         mat.append(row)
       ret=""
       # dump
       for r in range(0, x.shape[0]):
         for c in range(0, x.shape[1]):
           if oneOutputPerLine:
-            ret+=f"{retNameFull}({r:{lr}},{c:{lc}}) = {mat[r][c]};\n"
+            if mat[r][c] is not None:
+              ret+=f"{retNameFull}({r:{lr}},{c:{lc}}) = {mat[r][c]};\n"
           else:
-            ret+=f"{retNameFull}({r:{lr}},{c:{lc}}) = {mat[r][c].ljust(int(l[c]))};"+(" " if c<x.shape[1]-1 else "")
+            if mat[r][c] is not None:
+              ret+=f"{retNameFull}({r:{lr}},{c:{lc}}) = {mat[r][c].ljust(int(l[c]))};"+(" " if c<x.shape[1]-1 else "")
         if not oneOutputPerLine:
           ret+="\n"
       fullRet += ret
