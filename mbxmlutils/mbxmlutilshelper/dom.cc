@@ -1178,6 +1178,13 @@ void UserDataHandler::handle(DOMUserDataHandler::DOMOperationType operation, con
       dst->setUserData(embedDataKey, new map<string,string>(*srcData), &userDataHandler);
       return;
     }
+    if(operation==NODE_RENAMED) {
+      auto srcData = static_cast<map<string, string>*>(src->getUserData(key));
+      if(!srcData)
+        return;
+      dst->setUserData(embedDataKey, srcData, &userDataHandler);
+      return;
+    }
   }
   throw runtime_error("Internal error: Unknown user data handling: op="+fmatvec::toString(operation)+", key="+X()%key+
                       ", src="+fmatvec::toString(src!=nullptr)+", dst="+fmatvec::toString(dst!=nullptr)+
