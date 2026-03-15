@@ -631,11 +631,11 @@ string DOMElementWrapper<DOMElementType>::getRootXPathExpression() const {
     int count=1;
     for(const DOMElement* ee=e->getPreviousElementSibling(); ee; ee=ee->getPreviousElementSibling()) {
       int eeCount=E(ee)->getEmbedXPathCount();
-      if(eeCount>0) {
+      if(fqn==PV%"Embed" && eeCount>0) {
         count=eeCount+1;
         break;
       }
-      if(E(ee)->getTagName()==fqn && E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty())
+      if(E(ee)->getTagName()==fqn && E(e)->getEmbedData("MBXMLUtils_OriginalFilename").empty() && eeCount==0)
         count++;
     }
     // break or continue

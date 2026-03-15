@@ -438,6 +438,14 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
         BOOST_SCOPE_EXIT(&localParamEle, &p, &localParamEleInDOM) {
           localParamEle.reset(static_cast<DOMElement*>(p->removeChild(localParamEleInDOM)));
         } BOOST_SCOPE_EXIT_END
+        // when a root-level parameter-set is evaluated but has no original-filename we need to add
+        // the originalFilename of the root Embed element to the Parameter element
+        // to ensure that the current directory is set correctly. For other parameter-sets
+        // this is not required since a grand-(grand-)parent element exists which has set this already.
+        if(p->getNodeType()==DOMElement::DOCUMENT_NODE && E(localParamEleInDOM)->getOriginalFilename().empty()) {
+          if(auto ofn = E(embed)->getOriginalFilename(); !ofn.empty())
+            E(localParamEleInDOM)->setOriginalFilename(ofn);
+        }
         try { eval->addParamSet(localParamEleInDOM); } RETHROW_AS_DOMEVALEXCEPTION(e)
       }
 
