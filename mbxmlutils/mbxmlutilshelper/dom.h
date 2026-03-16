@@ -216,23 +216,25 @@ class DOMEvalException : public std::exception {
     /** Convert a error location and error message for outputting it to the console.
       The behaviour of this function can be adapted by the environment variable MBXMLUTILS_ERROROUTPUT.
       For each error the value of this variable is printed, where the value is interpreted as a
-      "Boost-Extended Format String Syntax", where the following named sub-expressions are recognized:
+      "Boost-Extended Format String Syntax", where the following "named sub-expressions" are recognized:
      
       named sub-expr  | value of the named sub-expression
       --------------- | -------------------------------------------
-      msg             | the error message
-      file            | the filename where the error occurred (may be relative to the current directory)
-      basefile        | same as file but only the basename without any path
-      absfile         | same as file but always absolute
-      urifile         | same as absfile but URI encoded
-      line            | the line number in the file where the error occurred
-      xpath           | the XPath expression from the root element of the file to the element in the file where the error occurred
-                      | the unique namespace URI of a element is {} encoded and prefixed to the local name
-      hrxpath         | more human readable variant of xpath
-                      | a short, unique but variable, default namespace prefix is prefixed to the local name separated by :
-      shorthrxpath    | same as hrxpath but only the last 3 path parts are returned
-      ecount          | the embed count number where the error occurred
-      sse             | undefined value but only defined if this is a subsequent error
+      msg             | The error message
+      file            | The filename where the error occurred (may be relative to the current directory)
+      basefile        | Same as file but only the basename without any path
+      absfile         | Same as file but always absolute
+      urifile         | Same as absfile but URI encoded
+      line            | The line number in the file where the error occurred
+      xpath           | The XML XPath expression from the root element of the file to the element in the file where the error occurred.
+                      | (the Clark-notation is used for full qualified element names)
+      hrxpath         | More human readable variant of xpath.
+                      | (strict XML-notation with namespace prefixes is used, where each prefix is short, unique and a human understandable abbreviation of the namespace URI.
+                      |  But no exact mapping from a prefix to the corresponding namespace URI exist)
+      shorthrxpath    | Same as hrxpath but only the last 3 path parts are returned
+                      | (if the path is longer it starts with '...', hence it not a valid XML- nor Clark-notation but should still be human readable)
+      ecount          | The embed count number where the error occurred
+      sse             | This sub-expression is only defined (with a unspecified value) if the error is a subsequent error
      
       All these named sub-expressions may not be defined (see "Boost-Extended Format Syntax Syntax" on how to handle this).
       If the environment variable MBXMLUTILS_ERROROUTPUT is not set then the default GCC is used.
