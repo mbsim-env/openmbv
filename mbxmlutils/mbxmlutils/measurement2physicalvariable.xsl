@@ -139,6 +139,21 @@
         <xs:attribute name="objName" type="varnamePartialEval" default="this"/>
       </xs:complexType>
 
+
+      <!-- A helper type to define a empty content element which allows pure whitespace content.
+        This is needed to allow e.g. adding processing instructions inside such a empty content element and pretty-print the element.
+        e.g.
+        <myEmptyContentElement>
+          <?myProcessingIstruction with some data?>
+        </myEmptyContentElement>
+        The linebreaks and spaces for indentation will contribute to the text content of myEmptyContentElement. Hence, we need to allow whitespaces.
+      -->
+      <xs:simpleType name="emptyContentType">
+        <xs:restriction base="xs:string">
+          <xs:pattern value="\s*"/>
+        </xs:restriction>
+      </xs:simpleType>
+
       <!-- add unit types -->
       <xsl:apply-templates mode="UNIT" select="mm:measure"/>
 
