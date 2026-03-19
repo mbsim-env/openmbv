@@ -1,14 +1,7 @@
-//#ifdef _WIN32
-//#  define WIN32_LEAN_AND_MEAN
-//#  include <windows.h>
-//#endif
-//#include <config.h>
-//#include <clocale>
-//#include <cassert>
-//#include <cfenv>
-//#include <iostream>
-//#include <boost/filesystem/path.hpp>
-//#include <boost/algorithm/string/predicate.hpp>
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#endif
 #include "dom.h"
 #include "windows_signal_conversion.h"
 #include "utils.h"
