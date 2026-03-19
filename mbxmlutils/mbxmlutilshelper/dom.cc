@@ -1417,23 +1417,63 @@ DOMElement* DOMParser::parseWithContext(const string &str, DOMNode *contextNode,
 
 namespace {
   shared_ptr<DOMLSSerializer> serializeHelper();
+
+  struct isU16space {
+    bool operator()(char16_t c) const {
+      return c == u' '  || // space
+             c == u'\f' || // form feed
+             c == u'\n' || // line feed
+             c == u'\r' || // carriage return
+             c == u'\t' || // horizontal tab
+             c == u'\v';   // vertical tab
+    }
+  };
+  void trimRightTextNodes(DOMNode* n) {
+    for(DOMNode* c = n->getFirstChild(); c; c = c->getNextSibling()) {
+      if(c->getNodeType() == DOMNode::TEXT_NODE) {
+        // A hack to improve the pretty print of xercesc,
+        // to make it look pretty and to generate binary identical results when multiple parse/serialize steps are done
+        // 1. right trim whitespaces
+        // 2. if a newline exits in a text node then append a newline and 2*depth spaces as indentation
+        u16string str(c->getNodeValue());
+        boost::algorithm::trim_right_if(str, isU16space{});
+        if(str.find(u'\n')!=string::npos) {
+          auto root = c->getOwnerDocument()->getDocumentElement();
+          int depth = 0;
+          for(auto p = c->getParentNode(); p!=root; p=p->getParentNode())
+            depth++;
+          str+=u"\n"+u16string(2*depth, u' ');
+        }
+        c->setNodeValue(str.data());
+      }
+      else
+        trimRightTextNodes(c);
+    }
+  }
 }
 
-void DOMParser::serialize(DOMNode *n, const path &outputSource) {
+void DOMParser::serialize(DOMNode *n, const path &outputSource, bool plain) {
+  if(plain)
+    trimRightTextNodes(n);
   shared_ptr<DOMLSSerializer> ser=serializeHelper();
 
-  TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
+  unique_ptr<TemporarilyConvertEmbedDataToEmbedPI> addedPi;
+  if(!plain)
+    addedPi = std::make_unique<TemporarilyConvertEmbedDataToEmbedPI>(n);
   if(!ser->writeToURI(n, X()%outputSource.string()))
     throw runtime_error("Serializing the document failed.");
 }
 
-void DOMParser::serializeToString(DOMNode *n, string &outputData) {
+void DOMParser::serializeToString(DOMNode *n, string &outputData, bool plain) {
+  if(plain)
+    trimRightTextNodes(n);
   shared_ptr<DOMLSSerializer> ser=serializeHelper();
   // disable the XML declaration which will be UTF-16 but we convert ti later to UTF-8
   ser->getDomConfig()->setParameter(XMLUni::fgDOMXMLDeclaration, false);
   shared_ptr<XMLCh> data;
   {
-    TemporarilyConvertEmbedDataToEmbedPI addedPi(n);
+    unique_ptr<TemporarilyConvertEmbedDataToEmbedPI> addedPi;
+    addedPi = std::make_unique<TemporarilyConvertEmbedDataToEmbedPI>(n);
     data.reset(ser->writeToString(n), &releaseXMLCh); // serialize to data being UTF-16
   }
   if(!data.get())

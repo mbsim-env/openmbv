@@ -577,12 +577,16 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     xercesc::DOMElement* parseWithContext(const std::string &str, xercesc::DOMNode *contextNode, xercesc::DOMLSParser::ActionType action,
                                           std::vector<boost::filesystem::path> *dependencies=nullptr,
                                           bool doXInclude=true);
-    //! Serialize a document to a file.
-    //! Helper function to write a node.
-    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource);
-    //! Serialize a document to a memory (std::string).
-    //! Helper function to write a node.
-    static void serializeToString(xercesc::DOMNode *n, std::string &outputData);
+    //! Serialize a node to a file.
+    //! If plain is false, than all MBXMLUtils meta-data is written to the file as processing instructions.
+    //! If plain is ture, than no MBXMLUtils meta-data is written to the file and all trailing whitespaces of text nodes are removed,
+    //! this is used to always generate a binary equal file when several parse/serialize cycles are done.
+    static void serialize(xercesc::DOMNode *n, const boost::filesystem::path &outputSource, bool plain=false);
+    //! Serialize a node to a std::string.
+    //! If plain is false, than all MBXMLUtils meta-data is written to the string as processing instructions.
+    //! If plain is ture, than no MBXMLUtils meta-data is written to the string and all trailing whitespaces of text nodes are removed,
+    //! this is used to always generate a binary equal string when several parse/serialize cycles are done.
+    static void serializeToString(xercesc::DOMNode *n, std::string &outputData, bool plain=false);
     //! reset all loaded grammars
     void resetCachedGrammarPool();
     //! create a empty document
