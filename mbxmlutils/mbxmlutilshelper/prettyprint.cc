@@ -44,15 +44,17 @@ int main(int argc, char *argv[]) {
   for(auto &arg : args) {
     path xml=arg;
     try {
-      Atom::msgStatic(Atom::Info)<<xml.string()<<": processing"<<endl;
-      auto startP = chrono::high_resolution_clock::now();
-      auto doc = parser->parse(xml);
-      auto endP = chrono::high_resolution_clock::now();
-      Atom::msgStatic(Atom::Info)<<"- parsed in "<<chrono::duration<double>(endP-startP).count()*1000<<"ms"<<endl;
-      auto startS = chrono::high_resolution_clock::now();
-      DOMParser::serialize(doc.get(), xml, true);
-      auto endS = chrono::high_resolution_clock::now();
-      Atom::msgStatic(Atom::Info)<<"- serialized (pretty-printed) in "<<chrono::duration<double>(endS-startS).count()*1000<<"ms"<<endl;
+      for(int pass : {1, 2}) {
+        Atom::msgStatic(Atom::Info)<<xml.string()<<": pass "<<pass<<endl;
+        auto startP = chrono::high_resolution_clock::now();
+        auto doc = parser->parse(xml);
+        auto endP = chrono::high_resolution_clock::now();
+        Atom::msgStatic(Atom::Info)<<"- parsed in "<<chrono::duration<double>(endP-startP).count()*1000<<"ms"<<endl;
+        auto startS = chrono::high_resolution_clock::now();
+        DOMParser::serialize(doc.get(), xml, true);
+        auto endS = chrono::high_resolution_clock::now();
+        Atom::msgStatic(Atom::Info)<<"- serialized (pretty-printed) in "<<chrono::duration<double>(endS-startS).count()*1000<<"ms"<<endl;
+      }
     }
     catch(const DOMEvalException &ex) {
       error++;
