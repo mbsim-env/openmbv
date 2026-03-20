@@ -21,7 +21,6 @@
 #include <openmbvcppinterface/grid.h>
 #include <iostream>
 #include <fstream>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace MBXMLUtils;
@@ -50,9 +49,9 @@ void Grid::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ySize");
   setYSize(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"nx");
-  setXNumber(boost::lexical_cast<unsigned int>(X()%E(e)->getFirstTextChild()->getData()));
+  setXNumber(E(e)->getText<unsigned int>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"ny");
-  setYNumber(boost::lexical_cast<unsigned int>(X()%E(e)->getFirstTextChild()->getData()));
+  setYNumber(E(e)->getText<unsigned int>());
 }
 
 }

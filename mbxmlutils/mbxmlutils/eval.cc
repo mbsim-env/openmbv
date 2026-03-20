@@ -559,19 +559,26 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
           throw DOMEvalException("Only the characters _, a-z, A-Z and 0-9 are allowed for variable names", a);
       ret=create(s);
     }
-    else if(A(a)->isDerivedFrom(PV%"floatPartialEval"))
+    else if(A(a)->isDerivedFrom(PV%"floatPartialEval")) {
+      boost::trim(s);
       try { ret=create(boost::lexical_cast<double>(s)); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar float", a); }
+    }
     else if(A(a)->isDerivedFrom(PV%"stringPartialEval")) // also filenamePartialEval
       try { ret=create(s); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar string", a); }
-    else if(A(a)->isDerivedFrom(PV%"integerPartialEval"))
+    else if(A(a)->isDerivedFrom(PV%"integerPartialEval")) {
+      boost::trim(s);
       try { ret=create<double>(boost::lexical_cast<int>(s)); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", a); }
-    else if(A(a)->isDerivedFrom(PV%"booleanPartialEval"))
+    }
+    else if(A(a)->isDerivedFrom(PV%"booleanPartialEval")) {
+      boost::trim(s);
       try { ret=create<double>(boost::lexical_cast<bool>(s)); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar boolean", a); }
+    }
     else if(A(a)->isDerivedFrom(PV%"indexPartialEval")) {
+      boost::trim(s);
       try { ret=create<double>(boost::lexical_cast<int>(s)); }
       catch(const boost::bad_lexical_cast &) { throw DOMEvalException("Value is not of type scalar integer", a); }
       convertIndex(ret, true);
