@@ -329,7 +329,8 @@ class DOMElementWrapper {
             throw std::runtime_error("There must be a single, none empty, text node but either, no text node exists at all, or the text node is split by a comment or processing-instruction node.");
         }
         auto text=X()%textEle->getData();
-        boost::trim(text);
+        if constexpr(!std::is_same_v<T, std::string>)
+          boost::trim(text); // do not trim whitespaces for a string but for anything else
         auto ret=boost::lexical_cast<T>(text);
         CheckSize<T>::check(me, ret, r, c);
         return ret;
