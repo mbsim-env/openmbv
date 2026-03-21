@@ -570,9 +570,9 @@ class DOMParser : public std::enable_shared_from_this<DOMParser> {
     //! Parse a XML document from a input stream.
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.
-    std::shared_ptr<xercesc::DOMDocument> parse( std::istream &inputStream,
+    std::shared_ptr<xercesc::DOMDocument> parse(std::istream &inputStream,
                                                 std::vector<boost::filesystem::path> *dependencies=nullptr,
-                                                bool doXInclude=true);
+                                                bool doXInclude=true, const boost::filesystem::path& filename={});
     //! Parse a XML document from a istream to a given context.
     //! Track file dependencies if dependencies is not null.
     //! Allow XML XInclude if doXInclude is true.

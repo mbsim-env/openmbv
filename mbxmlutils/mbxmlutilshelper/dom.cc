@@ -30,6 +30,8 @@
 #include <xercesc/framework/Wrapper4InputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/psvi/XSComplexTypeDefinition.hpp>
+#include <xercesc/framework/MemBufFormatTarget.hpp>
+#include <xercesc/dom/DOMLSOutput.hpp>
 #include "thislinelocation.h"
 #include <fmatvec/toString.h>
 #include "utils.h"
@@ -302,6 +304,18 @@ std::string EmbedDOMLocator::convertToRootHRXPathExpression(const string &xpath)
   return ret;
 }
 
+namespace {
+  string fixNonPrintableChar(const string &data) {
+    string ret;
+    for(char d : data)
+      if(d=='\x07' || d=='\x08' || d=='\x0E' || d=='\x0F') // bell, backspace, shift out, shift in
+        ret+="\\"+(boost::format("%02X")%static_cast<int>(d)).str();
+      else
+        ret+=d;
+    return ret;
+  }
+}
+
 bool DOMErrorPrinter::handleError(const DOMError& e)
 {
   string type;
@@ -314,9 +328,9 @@ bool DOMErrorPrinter::handleError(const DOMError& e)
   errorSet=true;
   auto* loc=e.getLocation();
   if(loc)
-    error=DOMEvalException(type+": "+X()%e.getMessage(), *loc);
+    error=DOMEvalException(type+": "+fixNonPrintableChar(X()%e.getMessage()), *loc);
   else
-    error=DOMEvalException(type+": "+X()%e.getMessage(), nullptr);
+    error=DOMEvalException(type+": "+fixNonPrintableChar(X()%e.getMessage()), nullptr);
   return false; // do not continue parsing
 }
 
@@ -1351,7 +1365,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   return doc;
 }
 
-shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dependencies, bool doXInclude) {
+shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dependencies, bool doXInclude, const path& filename) {
   // reset error handler and parser document and throw on errors
   errorHandler.resetError();
   locationFilter.setLineNumberOffset(0);
@@ -1363,6 +1377,8 @@ shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dep
     throw runtime_error("Got empty string to parse as XML.");
   X x;
   source->setStringData(x%inputString);
+  if(!filename.empty())
+    source->setSystemId(X()%("file://"+absolute(filename).string()));
   shared_ptr<DOMDocument> doc(parser->parse(source.get()), [](auto && PH1) { if(PH1) PH1->release(); });
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1468,17 +1484,19 @@ void DOMParser::serializeToString(DOMNode *n, string &outputData, bool plain) {
   if(plain)
     trimRightTextNodes(n);
   shared_ptr<DOMLSSerializer> ser=serializeHelper();
-  // disable the XML declaration which will be UTF-16 but we convert ti later to UTF-8
-  ser->getDomConfig()->setParameter(XMLUni::fgDOMXMLDeclaration, false);
-  shared_ptr<XMLCh> data;
+  ser->getDomConfig()->setParameter(XMLUni::fgDOMXMLDeclaration, true);
+  DOMImplementation* impl = DOMImplementationRegistry::getDOMImplementation(u"");
+  shared_ptr<DOMLSOutput> output(impl->createLSOutput(), [](auto && PH1) { if(PH1) PH1->release(); });
+  MemBufFormatTarget target;
+  output->setByteStream(&target);
+  output->setEncoding(u"UTF-8");
   {
     unique_ptr<TemporarilyConvertEmbedDataToEmbedPI> addedPi;
-    addedPi = std::make_unique<TemporarilyConvertEmbedDataToEmbedPI>(n);
-    data.reset(ser->writeToString(n), &releaseXMLCh); // serialize to data being UTF-16
+    if(!plain)
+      addedPi = std::make_unique<TemporarilyConvertEmbedDataToEmbedPI>(n);
+    ser->write(n, output.get());
   }
-  if(!data.get())
-    throw runtime_error("Serializing the document to memory failed.");
-  outputData=X()%data.get();
+  outputData = string(reinterpret_cast<const char*>(target.getRawBuffer()));
 }
 
 namespace {
