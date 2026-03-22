@@ -198,6 +198,8 @@ namespace {
     shared_ptr<DOMParser> parser=D(doc)->getParser();
     function<void(DOMElement*)> walk;
     walk=[&walk, &doc, &parser, this](DOMElement *e) {
+      if(!e)
+        return;
       auto pi=static_cast<map<string, string>*>(e->getUserData(embedDataKey));
       if(pi) {
         for(auto &[k,v] : *pi) {
