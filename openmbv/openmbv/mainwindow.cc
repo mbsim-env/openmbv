@@ -367,6 +367,11 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   });
   connect(objectList,&QTreeWidget::pressed, this, &MainWindow::objectListClicked);
   connect(objectList,&QTreeWidget::itemDoubleClicked,this, [this](QTreeWidgetItem *item){
+    // a double click action must select the object, independent weather is was selected before or not
+    auto *curObj=static_cast<Object*>(item);
+    objectList->setCurrentItem(item);
+    objectSelected(curObj ? curObj->object->getID() : "", curObj);
+
     if(!isSignalConnected(QMetaMethod::fromSignal(&MainWindow::objectDoubleClicked)))
       static_cast<Object*>(item)->getProperties()->openDialogSlot();
   });

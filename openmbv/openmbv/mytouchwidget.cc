@@ -260,6 +260,12 @@ void MyTouchWidget::mouseMidClick(Qt::KeyboardModifiers modifiers, const QPoint 
 
 void MyTouchWidget::mouseLeftDoubleClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG mouse leftDoubleclick abs="<<pos.x()<<" "<<pos.y()<<endl;)
+  // a double click action must select the object, independent weather is was selected before or not
+  auto picked=getObjectsByRay(pos);
+  if(picked.size()==0)
+    return;
+  MainWindow::getInstance()->objectSelected(picked[0].first->getObject()->getID(), picked[0].first);
+  MainWindow::getInstance()->objectList->setCurrentItem(picked[0].first,0, QItemSelectionModel::ClearAndSelect);
   openPropertyDialog(pos);
 }
 
@@ -487,6 +493,12 @@ void MyTouchWidget::touchTap(Qt::KeyboardModifiers modifiers, const QPoint &pos)
 
 void MyTouchWidget::touchDoubleTap(Qt::KeyboardModifiers modifiers, const QPoint &pos) {
   DEBUG(cout<<"DEBUG touch doubletap pos="<<pos.x()<<" "<<pos.y()<<endl;)
+  // a double click action must select the object, independent weather is was selected before or not
+  auto picked=getObjectsByRay(pos);
+  if(picked.size()==0)
+    return;
+  MainWindow::getInstance()->objectSelected(picked[0].first->getObject()->getID(), picked[0].first);
+  MainWindow::getInstance()->objectList->setCurrentItem(picked[0].first,0, QItemSelectionModel::ClearAndSelect);
   openPropertyDialog(pos);
 }
 
@@ -795,7 +807,7 @@ void MyTouchWidget::selectObject(const QPoint &pos, bool toggle, bool showMenuFo
     }
   }
 
-  // if toggle is and only 1 object is selected and this object is picked then toggle anyway
+  // if toggle is true and only 1 object is selected and this object is picked then toggle anyway
   if(!toggle &&
      MainWindow::getInstance()->objectList->selectedItems().size()==1 &&
      MainWindow::getInstance()->objectList->selectedItems()[0] == bodies[useObjIdx]) {
