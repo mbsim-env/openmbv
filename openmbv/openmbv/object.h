@@ -50,6 +50,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
   friend class Editor;
   friend class MainWindow;
   friend class RigidBody;
+  friend class DynamicAttributes;
   protected:
     std::shared_ptr<OpenMBV::Object> object;
     SoSwitch *soSwitch;

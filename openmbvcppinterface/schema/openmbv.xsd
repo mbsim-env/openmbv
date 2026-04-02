@@ -587,4 +587,17 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:element name="DynamicAttributes" substitutionGroup="Body" type="DynamicAttributesType"/>
+  <xs:complexType name="DynamicAttributesType">
+    <xs:complexContent>
+      <xs:extension base="BodyType">
+        <xs:sequence>
+          <xs:element name="objectEnable" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
+          <xs:element name="bodyDrawMethod" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
+          <xs:element name="dynamicColoredBodyTransparency" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
 </xs:schema>

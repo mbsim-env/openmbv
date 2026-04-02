@@ -43,6 +43,7 @@ namespace OpenMBVGUI {
 
 class Body : public Object {
   Q_OBJECT
+  friend class DynamicAttributes;
   private:
     SoDrawStyle *drawStyle;
     SoFieldSensor *shilouetteEdgeFrameSensor, *shilouetteEdgeOrientationSensor;

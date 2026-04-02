@@ -54,6 +54,7 @@
 #include "openmbvcppinterface/rack.h"
 #include "openmbvcppinterface/bevelgear.h"
 #include "openmbvcppinterface/planargear.h"
+#include "openmbvcppinterface/dynamicattributes.h"
 
 #include "arrow.h"
 #include "coilspring.h"
@@ -91,6 +92,7 @@
 #include "rack.h"
 #include "bevelgear.h"
 #include "planargear.h"
+#include "dynamicattributes.h"
 #include <string>
 #include <boost/core/demangle.hpp>
 
@@ -168,6 +170,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new BevelGear(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::PlanarGear))
     return new PlanarGear(obj, parentItem, soParent, ind);
+  else if(typeid(objRef)==typeid(OpenMBV::DynamicAttributes))
+    return new DynamicAttributes(obj, parentItem, soParent, ind);
   QString str("Unknown OpenMBV::Object: %1"); str=str.arg(boost::core::demangle(typeid(objRef).name()).c_str());
   MainWindow::getInstance()->statusBar()->showMessage(str, 10000);
   msgStatic(Warn)<<str.toStdString()<<endl;

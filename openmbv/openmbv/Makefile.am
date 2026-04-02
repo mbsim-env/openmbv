@@ -23,6 +23,7 @@ libopenmbv_la_CPPFLAGS = $(QT_CFLAGS) $(COIN_CFLAGS) $(OPENMBVCPPINTERFACE_CFLAG
 libopenmbv_la_LIBADD  = $(LIBGLU) $(COIN_LIBS) $(OPENMBVCPPINTERFACE_LIBS) $(QT_LIBS) $(SOQT_LIBS) $(HDF5SERIE_LIBS) $(QWT_LIBS) -l@BOOST_FILESYSTEM_LIB@
 libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   body.cc\
+  dynamicattributes.cc\
   dynamiccoloredbody.cc\
   cuboid.cc\
   cube.cc\
@@ -127,6 +128,7 @@ QT_BUILT_SOURCES = \
   grid.moc.cc\
   group.moc.cc\
   body.moc.cc\
+  dynamicattributes.moc.cc\
   dynamiccoloredbody.moc.cc \
   QTripleSlider.moc.cc
 BUILT_SOURCES = $(QT_BUILT_SOURCES) $(MAYBE_SIGWATCH_MOC)
@@ -169,6 +171,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   grid.h\
   group.h\
   body.h\
+  dynamicattributes.h\
   dynamiccoloredbody.h\
   SoQtMyViewer.h \
   touchwidget.h \

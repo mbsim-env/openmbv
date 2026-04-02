@@ -12,6 +12,7 @@ libopenmbvcppinterface_la_LIBADD = $(LDFLAGS_NOUNDEF)
 libopenmbvcppinterface_la_SOURCES = object.cc \
   objectfactory.cc\
   body.cc \
+  dynamicattributes.cc \
   dynamiccoloredbody.cc \
   group.cc \
   ivscreenannotation.cc \
@@ -54,6 +55,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
 libopenmbvcppinterface_la_HEADERS = object.h \
   objectfactory.h\
   body.h \
+  dynamicattributes.h \
   dynamiccoloredbody.h \
   group.h \
   ivscreenannotation.h \
