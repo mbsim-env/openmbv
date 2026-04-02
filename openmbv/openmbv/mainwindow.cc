@@ -362,6 +362,15 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   Utils::enableTouch(objectList);
   objectList->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(objectList,&QTreeWidget::customContextMenuRequested,this, [this](const QPoint &pos){
+    // if one or only one item is selected then
+    // a left click action must select the object, independent weather is was selected before or not
+    if(objectList->selectedItems().size()<2) {
+      auto item = objectList->itemAt(pos);
+      auto *curObj=static_cast<Object*>(item);
+      objectList->setCurrentItem(item);
+      objectSelected(curObj ? curObj->object->getID() : "", curObj);
+    }
+
     execPropertyMenu();
     frameNode->index.touch(); // force rendering the scene
   });
