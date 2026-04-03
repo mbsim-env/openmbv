@@ -30,6 +30,9 @@ namespace OpenMBV {
 OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(IvScreenAnnotation, OPENMBV%"IvScreenAnnotation")
 
 IvScreenAnnotation::IvScreenAnnotation() {
+  scale1To1Center.resize(2);
+  scale1To1Center[0]=0;
+  scale1To1Center[1]=0;
 }
 
 DOMElement* IvScreenAnnotation::writeXMLFile(DOMNode *parent) {
@@ -44,6 +47,10 @@ DOMElement* IvScreenAnnotation::writeXMLFile(DOMNode *parent) {
   // column labels
   for(auto &cl : columnLabels)
     E(e)->addElementText(OPENMBV%"columnLabel", "'"+cl+"'");
+  for(auto &cl : columnIntLabels)
+    E(e)->addElementText(OPENMBV%"columnIntLabel", "'"+cl+"'");
+  for(auto &cl : columnStrLabels)
+    E(e)->addElementText(OPENMBV%"columnStrLabel", "'"+cl+"'");
 
   return nullptr;
 }
@@ -78,6 +85,24 @@ void IvScreenAnnotation::initializeUsingXML(DOMElement *element) {
     e = E(e)->getNextElementSiblingNamed(OPENMBV%"columnLabel");
   }
   setColumnLabels(columnLabels);
+
+  vector<string> columnIntLabels;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"columnIntLabel");
+  while(e) {
+    auto str = E(e)->getText<string>();
+    columnIntLabels.emplace_back(str.substr(1,str.length()-2));
+    e = E(e)->getNextElementSiblingNamed(OPENMBV%"columnIntLabel");
+  }
+  setColumnIntLabels(columnIntLabels);
+
+  vector<string> columnStrLabels;
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"columnStrLabel");
+  while(e) {
+    auto str = E(e)->getText<string>();
+    columnStrLabels.emplace_back(str.substr(1,str.length()-2));
+    e = E(e)->getNextElementSiblingNamed(OPENMBV%"columnStrLabel");
+  }
+  setColumnStrLabels(columnStrLabels);
 }
 
 void IvScreenAnnotation::setScale1To1(bool scale1To1_) {
@@ -99,11 +124,44 @@ vector<double> IvScreenAnnotation::getScale1To1At() {
 
 void IvScreenAnnotation::setColumnLabels(const std::vector<std::string> &columnLabels_) {
   columnLabels = columnLabels_;
-  setEnvironment(columnLabels.size()==0);
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
+}
+
+void IvScreenAnnotation::addColumnLabel(const std::string &columnLabel) {
+  columnLabels.emplace_back(columnLabel);
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
+}
+
+void IvScreenAnnotation::setColumnIntLabels(const std::vector<std::string> &columnIntLabels_) {
+  columnIntLabels = columnIntLabels_;
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
+}
+
+void IvScreenAnnotation::addColumnIntLabel(const std::string &columnIntLabel) {
+  columnIntLabels.emplace_back(columnIntLabel);
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
+}
+
+void IvScreenAnnotation::setColumnStrLabels(const std::vector<std::string> &columnStrLabels_) {
+  columnStrLabels = columnStrLabels_;
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
+}
+
+void IvScreenAnnotation::addColumnStrLabel(const std::string &columnStrLabel) {
+  columnStrLabels.emplace_back(columnStrLabel);
+  setEnvironment(columnLabels.size()==0 && columnIntLabels.size()==0 && columnStrLabels.size()==0);
 }
 
 const std::vector<std::string>& IvScreenAnnotation::getColumnLabels() const {
   return columnLabels;
+}
+
+const std::vector<std::string>& IvScreenAnnotation::getColumnIntLabels() const {
+  return columnIntLabels;
+}
+
+const std::vector<std::string>& IvScreenAnnotation::getColumnStrLabels() const {
+  return columnStrLabels;
 }
 
 void IvScreenAnnotation::createHDF5File() {
@@ -115,12 +173,35 @@ void IvScreenAnnotation::createHDF5File() {
   for(size_t i=0; i<columnLabels.size(); ++i)
     colNames[i+1] = columnLabels[i];
   data->setColumnLabel(colNames);
+
+  try {
+    dataInt=hdf5Group->createChildObject<H5::VectorSerie<int> >("dataInt")(columnIntLabels.size());
+    vector<string> colIntNames(columnIntLabels.size());
+    for(size_t i=0; i<columnIntLabels.size(); ++i)
+      colIntNames[i] = columnIntLabels[i];
+    dataInt->setColumnLabel(colIntNames);
+  }
+  catch(...) {
+    dataInt = nullptr;
+  }
+
+  try {
+    dataStr=hdf5Group->createChildObject<H5::VectorSerie<string> >("dataStr")(columnStrLabels.size());
+    vector<string> colStrNames(columnStrLabels.size());
+    for(size_t i=0; i<columnStrLabels.size(); ++i)
+      colStrNames[i] = columnStrLabels[i];
+    dataStr->setColumnLabel(colStrNames);
+  }
+  catch(...) {
+    dataStr = nullptr;
+  }
 }
 
 void IvScreenAnnotation::openHDF5File() {
   Body::openHDF5File();
 
   if(!hdf5Group) return;
+
   try {
     data=hdf5Group->openChildObject<H5::VectorSerie<Float> >("data");
 
@@ -131,6 +212,20 @@ void IvScreenAnnotation::openHDF5File() {
   catch(...) {
     data=nullptr;
     msg(Debug)<<"Unable to open the HDF5 Dataset 'data'. Using 0 for all data."<<endl;
+  }
+
+  try {
+    dataInt=hdf5Group->openChildObject<H5::VectorSerie<int> >("dataInt");
+  }
+  catch(...) {
+    dataInt=nullptr;
+  }
+
+  try {
+    dataStr=hdf5Group->openChildObject<H5::VectorSerie<string> >("dataStr");
+  }
+  catch(...) {
+    dataStr=nullptr;
   }
 }
 

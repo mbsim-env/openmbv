@@ -97,7 +97,7 @@
             <xs:element name="ivFileName" type="pv:filenameFullEval"/>
             <xs:element name="ivContent" type="pv:stringFullEval"/>
           </xs:choice>
-          <xs:element name="dataSize" minOccurs="0" type="pv:integerFullEval"/>
+          <xs:element name="dataSize" type="pv:integerFullEval"/>
           <xs:element name="dataIntSize" minOccurs="0" type="pv:integerFullEval"/>
           <xs:element name="dataStrSize" minOccurs="0" type="pv:integerFullEval"/>
           <xs:element name="scalarData" type="pv:booleanFullEval" minOccurs="0"/>
@@ -231,6 +231,8 @@
           </xs:choice>
           <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="columnLabel" type="pv:stringFullEval"/>
+            <xs:element name="columnIntLabel" minOccurs="0" type="pv:stringFullEval"/>
+            <xs:element name="columnStrLabel" minOccurs="0" type="pv:stringFullEval"/>
             <xs:element ref="pv:Embed"/>
           </xs:choice> 
         </xs:sequence> 

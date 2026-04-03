@@ -30,4 +30,5 @@
 #include <openmbvcppinterface/dynamicindexedfaceset.h>
 #include <openmbvcppinterface/dynamicattributes.h>
 #include <openmbvcppinterface/dynamicivbody.h>
+#include <openmbvcppinterface/ivscreenannotation.h>
 %}

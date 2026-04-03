@@ -42,6 +42,7 @@
 %shared_ptr(OpenMBV::DynamicIndexedFaceSet)
 %shared_ptr(OpenMBV::DynamicAttributes)
 %shared_ptr(OpenMBV::DynamicIvBody)
+%shared_ptr(OpenMBV::IvScreenAnnotation)
 
 // handle exceptions
 %exception {
@@ -260,6 +261,7 @@
 %include <openmbvcppinterface/dynamicindexedfaceset.h>
 %include <openmbvcppinterface/dynamicattributes.h>
 %include <openmbvcppinterface/dynamicivbody.h>
+%include <openmbvcppinterface/ivscreenannotation.h>
 
 %extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<Float> >; };
 %extend OpenMBV::NurbsDisk             { %template(append) append<std::vector<Float> >; };
@@ -272,6 +274,9 @@
 %extend OpenMBV::DynamicIvBody         { %template(append) append<std::vector<Float> >; };
 %extend OpenMBV::DynamicIvBody         { %template(appendInt) appendInt<std::vector<int> >; };
 %extend OpenMBV::DynamicIvBody         { %template(appendStr) appendStr<std::vector<std::string> >; };
+%extend OpenMBV::IvScreenAnnotation    { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::IvScreenAnnotation    { %template(appendInt) appendInt<std::vector<int> >; };
+%extend OpenMBV::IvScreenAnnotation    { %template(appendStr) appendStr<std::vector<std::string> >; };
 #if defined SWIGJAVA
   // octave and python automatically convert from the vector type to std::vector<OpenMBV::Float> even if the vector type in double.
   // But java does not -> add manual converion function
@@ -281,15 +286,16 @@
       std::transform(data.begin(), data.end(), dataF.begin(), [](auto x) { return static_cast<OpenMBV::Float>(x); });
     };
   %enddef
-  %extend OpenMBV::SpineExtrusion    { APPEND };
-  %extend OpenMBV::NurbsDisk         { APPEND };
-  %extend OpenMBV::Arrow             { APPEND };
-  %extend OpenMBV::RigidBody         { APPEND };
-  %extend OpenMBV::CoilSpring        { APPEND };
-  %extend OpenMBV::Path              { APPEND };
-  %extend OpenMBV::FlexibleBody      { APPEND };
-  %extend OpenMBV::DynamicAttributes { APPEND };
-  %extend OpenMBV::DynamicIvBody     { APPEND };
+  %extend OpenMBV::SpineExtrusion     { APPEND };
+  %extend OpenMBV::NurbsDisk          { APPEND };
+  %extend OpenMBV::Arrow              { APPEND };
+  %extend OpenMBV::RigidBody          { APPEND };
+  %extend OpenMBV::CoilSpring         { APPEND };
+  %extend OpenMBV::Path               { APPEND };
+  %extend OpenMBV::FlexibleBody       { APPEND };
+  %extend OpenMBV::DynamicAttributes  { APPEND };
+  %extend OpenMBV::DynamicIvBody      { APPEND };
+  %extend OpenMBV::IvScreenAnnotation { APPEND };
 #endif
 
 %include <openmbvcppinterface/objectfactory.h>
@@ -316,6 +322,7 @@
 %template(create_DynamicIndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedFaceSet>;
 %template(create_DynamicAttributes) OpenMBV::ObjectFactory::create<OpenMBV::DynamicAttributes>;
 %template(create_DynamicIvBody) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIvBody>;
+%template(create_IvScreenAnnotation) OpenMBV::ObjectFactory::create<OpenMBV::IvScreenAnnotation>;
 
 
 // include these headers to the wraper c++ source code (required to compile)

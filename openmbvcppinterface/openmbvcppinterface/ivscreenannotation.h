@@ -80,7 +80,14 @@ namespace OpenMBV {
       void setIvContent(std::string ivContent_) { ivFileName=""; ivContent=std::move(ivContent_); }
       const std::string& getIvContent() { return ivContent; }
       void setColumnLabels(const std::vector<std::string> &columnLabels_);
+      void addColumnLabel(const std::string &columnLabel_);
       const std::vector<std::string>& getColumnLabels() const;
+      void setColumnIntLabels(const std::vector<std::string> &columnIntLabels_);
+      void addColumnIntLabel(const std::string &columnIntLabel_);
+      const std::vector<std::string>& getColumnIntLabels() const;
+      void setColumnStrLabels(const std::vector<std::string> &columnStrLabels_);
+      void addColumnStrLabel(const std::string &columnStrLabel_);
+      const std::vector<std::string>& getColumnStrLabels() const;
 
       void createHDF5File() override;
       void openHDF5File() override;
@@ -91,6 +98,22 @@ namespace OpenMBV {
         if(row.size()!=1+columnLabels.size()) throw std::runtime_error("IvScreenAnnotation: The dimension does not match (append: "+
                                                     std::to_string(row.size())+", columns: "+std::to_string(1+columnLabels.size())+")");
         data->append(&row[0], row.size());
+      }
+
+      template<typename T>
+      void appendInt(const T& row) {
+        if(dataInt==nullptr) throw std::runtime_error("IvScreenAnnotation: Cannot append dataInt to an environment object");
+        if(row.size()!=columnIntLabels.size()) throw std::runtime_error("IvScreenAnnotation: The dimension does not match (appendInt: "+
+                                                    std::to_string(row.size())+", columns: "+std::to_string(columnIntLabels.size())+")");
+        dataInt->append(&row[0], row.size());
+      }
+
+      template<typename T>
+      void appendStr(const T& row) {
+        if(dataStr==nullptr) throw std::runtime_error("IvScreenAnnotation: Cannot append dataStr to an environment object");
+        if(row.size()!=columnStrLabels.size()) throw std::runtime_error("IvScreenAnnotation: The dimension does not match (append: "+
+                                                    std::to_string(row.size())+", columns: "+std::to_string(columnStrLabels.size())+")");
+        dataStr->append(&row[0], row.size());
       }
 
       int getRows() override { return data?data->getRows():0; }
@@ -111,15 +134,31 @@ namespace OpenMBV {
 
         return row;
       }
+
+      std::vector<int> getRowInt(int i) {
+        if(!dataInt)
+          return std::vector<int>(columnIntLabels.size());
+        return  dataInt->getRow(i);
+      }
+
+      std::vector<std::string> getRowStr(int i) {
+        if(!dataStr)
+          return std::vector<std::string>(columnStrLabels.size());
+        return  dataStr->getRow(i);
+      }
     protected:
       IvScreenAnnotation();
       ~IvScreenAnnotation() override = default;
-      bool scale1To1;
+      bool scale1To1 { false };
       std::vector<double> scale1To1Center;
       std::string ivFileName;
       std::string ivContent;
       std::vector<std::string> columnLabels;
+      std::vector<std::string> columnIntLabels;
+      std::vector<std::string> columnStrLabels;
       H5::VectorSerie<Float>* data{nullptr};
+      H5::VectorSerie<int>* dataInt{nullptr};
+      H5::VectorSerie<std::string>* dataStr{nullptr};
   };
 
 }

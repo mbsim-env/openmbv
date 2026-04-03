@@ -23,6 +23,8 @@
 #include "body.h"
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
+#include <Inventor/nodes/SoInfo.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 
 namespace OpenMBV {
   class IvScreenAnnotation;
@@ -42,6 +44,8 @@ class IvScreenAnnotation : public Body {
   protected:
     std::shared_ptr<OpenMBV::IvScreenAnnotation> ivsa;
     std::vector<SoAlphaTest*> columnLabelFields;
+    std::vector<SoShaderParameter1i*> columnIntLabelFields;
+    std::vector<SoInfo*> columnStrLabelFields;
     SoSeparator *sep;
 
     std::vector<SoCoordinate3*> pathCoord;

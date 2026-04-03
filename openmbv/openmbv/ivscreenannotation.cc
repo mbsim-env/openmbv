@@ -66,6 +66,24 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     columnLabelFields[i]->setName(ivsa->getColumnLabels()[i].c_str());
   }
 
+  auto *columnIntLabelFieldSep = new SoSeparator;
+  columnIntLabelFields.resize(ivsa->getColumnIntLabels().size());
+  sep->addChild(columnIntLabelFieldSep);
+  for(size_t i=0; i<ivsa->getColumnIntLabels().size(); ++i) {
+    columnIntLabelFields[i] = new SoShaderParameter1i;
+    columnIntLabelFieldSep->addChild(columnIntLabelFields[i]);
+    columnIntLabelFields[i]->setName(ivsa->getColumnIntLabels()[i].c_str());
+  }
+
+  auto *columnStrLabelFieldSep = new SoSeparator;
+  columnStrLabelFields.resize(ivsa->getColumnStrLabels().size());
+  sep->addChild(columnStrLabelFieldSep);
+  for(size_t i=0; i<ivsa->getColumnStrLabels().size(); ++i) {
+    columnStrLabelFields[i] = new SoInfo;
+    columnStrLabelFieldSep->addChild(columnStrLabelFields[i]);
+    columnStrLabelFields[i]->setName(ivsa->getColumnStrLabels()[i].c_str());
+  }
+
   // load the IV content (without caching since element specific node references must be resolved)
   string fileName=ivsa->getIvFileName();
   SoSharedPtr<SoSeparator> ivSep;
@@ -73,11 +91,19 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     ivSep.reset(Utils::SoDBreadAllFileNameCached(fileName, {/*no cache*/}, [this](SoInput& in) {
       for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
         in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+      for(size_t i=0; i<ivsa->getColumnIntLabels().size(); ++i)
+        in.addReference(ivsa->getColumnIntLabels()[i].c_str(), columnIntLabelFields[i]);
+      for(size_t i=0; i<ivsa->getColumnStrLabels().size(); ++i)
+        in.addReference(ivsa->getColumnStrLabels()[i].c_str(), columnStrLabelFields[i]);
     }));
   else
     ivSep.reset(Utils::SoDBreadAllContentCached(ivsa->getIvContent(), {/*no cache*/}, [this](SoInput& in) {
       for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i)
         in.addReference(ivsa->getColumnLabels()[i].c_str(), columnLabelFields[i]);
+      for(size_t i=0; i<ivsa->getColumnIntLabels().size(); ++i)
+        in.addReference(ivsa->getColumnIntLabels()[i].c_str(), columnIntLabelFields[i]);
+      for(size_t i=0; i<ivsa->getColumnStrLabels().size(); ++i)
+        in.addReference(ivsa->getColumnStrLabels()[i].c_str(), columnStrLabelFields[i]);
     }));
   if(!ivSep)
     return;
@@ -148,17 +174,25 @@ double IvScreenAnnotation::update() {
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
   auto data=ivsa->getRow(frame);
+  auto dataInt=ivsa->getRowInt(frame);
+  auto dataStr=ivsa->getRowStr(frame);
   
-  auto setColumnLabelFields = [this](const auto &data) {
+  auto setColumnLabelFields = [this](const auto &data, const auto &dataInt, const auto &dataStr) {
     for(size_t i=1; i<data.size(); ++i)
       columnLabelFields[i-1]->value.setValue(data[i]);
+    for(size_t i=0; i<dataInt.size(); ++i)
+      columnIntLabelFields[i]->value.setValue(dataInt[i]);
+    for(size_t i=0; i<dataStr.size(); ++i)
+      columnStrLabelFields[i]->string.setValue(dataStr[i].c_str());
   };
-  setColumnLabelFields(data);
+  setColumnLabelFields(data, dataInt, dataStr);
 
   // path
   for(int i=pathMaxFrameRead+1; i<=frame; i++) {
     auto data=ivsa->getRow(i);
-    setColumnLabelFields(data);
+    auto dataInt=ivsa->getRowInt(i);
+    auto dataStr=ivsa->getRowStr(i);
+    setColumnLabelFields(data, dataInt, dataStr);
     for(size_t idx=0; idx<pathPath.size(); ++idx) {
       gma->setViewportRegion(MainWindow::getInstance()->glViewer->getViewportRegion());
       gma->apply(pathPath[idx]);

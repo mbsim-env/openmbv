@@ -40,8 +40,8 @@ namespace OpenMBV {
    * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order:
    *   - time
-   *   - enable-attribute of 1st,2nd,... objectEnable (round(0.0)=disabled, else enabled)
-   *   - draw-method-attribute of 1st,2nd,... bodyDrawMethod (round(0.0)=filled, round(1.0)=lines, round(2.0)=points)
+   *   - enable-attribute of 1st,2nd,... objectEnable (round(0.0)=disabled, else enabled; a float value is misused)
+   *   - draw-method-attribute of 1st,2nd,... bodyDrawMethod (round(0.0)=filled, round(1.0)=lines, round(2.0)=points; a float value is misused)
    *   - transparency-attribute of 1st,2nd,... dynamicColoredBodyTransparency (0.0=opaque to 1.0=full-transparent)
    * If skip is true for a entry than this entry does not count in the HDF5 data, it uses the same data as
    * the first skip=false entry before.
