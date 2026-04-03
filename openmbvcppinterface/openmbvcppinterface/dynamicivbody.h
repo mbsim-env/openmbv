@@ -40,6 +40,10 @@ namespace OpenMBV {
 
       void setDataSize(size_t s) { dataSize = s; }
       size_t getDataSize() { return dataSize; }
+      void setDataIntSize(size_t s) { dataIntSize = s; }
+      size_t getDataIntSize() { return dataIntSize; }
+      void setDataStrSize(size_t s) { dataStrSize = s; }
+      size_t getDataStrSize() { return dataStrSize; }
 
       void setScalarData(bool s) { scalarData = s; }
       bool getScalarData() { return scalarData; }
@@ -58,12 +62,35 @@ namespace OpenMBV {
       int getRows() override { return data?data->getRows():0; }
       std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(dataSize); }
 
-      void setStateOffSet(const std::vector<double>& stateOff)
-      {
-        stateOffSet = stateOff;
+      /** Append a dataInt vector the the h5 datsset */
+      template<typename T>
+      void appendInt(const T& row) {
+        dataInt->append(row);
       }
 
-      std::vector<double> getStateOffSet() { return stateOffSet; }
+      std::vector<int> getRowInt(int i) { return dataInt?dataInt->getRow(i):std::vector<int>(dataIntSize); }
+
+      /** Append a dataStr vector the the h5 datsset */
+      template<typename T>
+      void appendStr(const T& row) {
+        dataStr->append(row);
+      }
+
+      std::vector<std::string> getRowStr(int i) { return dataStr?dataStr->getRow(i):std::vector<std::string>(dataStrSize); }
+
+      template<typename T>
+      void setStateOffSet(const std::vector<T>& stateOff) {
+        stateOffSet.resize(stateOff.size());
+        for(size_t i=0; i<stateOff.size(); ++i)
+          stateOffSet[i] = stateOff[i];
+      }
+      std::vector<Float> getStateOffSet() { return stateOffSet; }
+
+      void setStateIntOffSet(const std::vector<int>& stateOff) { stateIntOffSet = stateOff; }
+      std::vector<int> getStateIntOffSet() { return stateIntOffSet; }
+
+      void setStateStrOffSet(const std::vector<std::string>& stateOff) { stateStrOffSet = stateOff; }
+      std::vector<std::string> getStateStrOffSet() { return stateStrOffSet; }
 
     protected:
       DynamicIvBody();
@@ -71,12 +98,18 @@ namespace OpenMBV {
       std::string ivFileName;
       std::string ivContent;
 
-      size_t dataSize;
+      size_t dataSize { 0 };
+      size_t dataIntSize { 0 };
+      size_t dataStrSize { 0 };
       H5::VectorSerie<Float>* data{nullptr};
+      H5::VectorSerie<int>* dataInt{nullptr};
+      H5::VectorSerie<std::string>* dataStr{nullptr};
       bool scalarData { false };
 
       /** optional offset for spine vector, may be used as inital position superposed by deflections or as static  */
-      std::vector<double> stateOffSet;
+      std::vector<Float> stateOffSet;
+      std::vector<int> stateIntOffSet;
+      std::vector<std::string> stateStrOffSet;
 
       void createHDF5File() override;
       void openHDF5File() override;

@@ -64,6 +64,7 @@ StringFormatEngine::StringFormatEngine() {
 void StringFormatEngine::evaluate() {
   std::string formatStr = format.getValue().getString();
   if(formatStr != currentFormat) {
+    currentFormat = formatStr;
     static const std::vector<std::string> keys {
       "i0", "i1", "i2", "i3", "i4", "i5", "i6", "i7", "i8", "i9",
       "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9",

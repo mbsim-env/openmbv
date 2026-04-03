@@ -27,7 +27,11 @@ namespace OpenMBV {
 }
 
 class SoShaderParameterArray1f;
+class SoShaderParameterArray1i;
+class SoGeoOrigin;
 class SoShaderParameter1f;
+class SoShaderParameter1i;
+class SoInfo;
 
 namespace OpenMBVGUI {
 
@@ -40,8 +44,14 @@ class DynamicIvBody : public Body {
     std::shared_ptr<OpenMBV::DynamicIvBody> divb;
     double update() override;
     SoShaderParameterArray1f *dataNodeVector;
+    SoShaderParameterArray1i *dataIntNodeVector;
+    SoGeoOrigin *dataStrNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;
+    std::vector<SoShaderParameter1i*> dataIntNodeScalar;
+    std::vector<SoInfo*> dataStrNodeScalar;
     std::vector<OpenMBV::Float> data;
+    std::vector<int> dataInt;
+    std::vector<std::string> dataStr;
   private:
     bool runtimeCheckDone { false };
 };

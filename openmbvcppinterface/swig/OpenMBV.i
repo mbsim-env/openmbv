@@ -41,6 +41,7 @@
 %shared_ptr(OpenMBV::DynamicIndexedLineSet)
 %shared_ptr(OpenMBV::DynamicIndexedFaceSet)
 %shared_ptr(OpenMBV::DynamicAttributes)
+%shared_ptr(OpenMBV::DynamicIvBody)
 
 // handle exceptions
 %exception {
@@ -62,6 +63,7 @@
   %template(VectorFloat) std::vector<float>;
   %template(VectorDouble) std::vector<double>;
   %template(VectorInt) std::vector<int>;
+  %template(VectorStr) std::vector<std::string>;
 #endif
 
 #ifdef SWIGOCTAVE
@@ -257,6 +259,7 @@
 %include <openmbvcppinterface/dynamicindexedlineset.h>
 %include <openmbvcppinterface/dynamicindexedfaceset.h>
 %include <openmbvcppinterface/dynamicattributes.h>
+%include <openmbvcppinterface/dynamicivbody.h>
 
 %extend OpenMBV::SpineExtrusion        { %template(append) append<std::vector<Float> >; };
 %extend OpenMBV::NurbsDisk             { %template(append) append<std::vector<Float> >; };
@@ -266,6 +269,9 @@
 %extend OpenMBV::Path                  { %template(append) append<std::vector<Float> >; };
 %extend OpenMBV::FlexibleBody          { %template(append) append<std::vector<Float> >; };
 %extend OpenMBV::DynamicAttributes     { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::DynamicIvBody         { %template(append) append<std::vector<Float> >; };
+%extend OpenMBV::DynamicIvBody         { %template(appendInt) appendInt<std::vector<int> >; };
+%extend OpenMBV::DynamicIvBody         { %template(appendStr) appendStr<std::vector<std::string> >; };
 #if defined SWIGJAVA
   // octave and python automatically convert from the vector type to std::vector<OpenMBV::Float> even if the vector type in double.
   // But java does not -> add manual converion function
@@ -283,6 +289,7 @@
   %extend OpenMBV::Path              { APPEND };
   %extend OpenMBV::FlexibleBody      { APPEND };
   %extend OpenMBV::DynamicAttributes { APPEND };
+  %extend OpenMBV::DynamicIvBody     { APPEND };
 #endif
 
 %include <openmbvcppinterface/objectfactory.h>
@@ -308,6 +315,7 @@
 %template(create_DynamicIndexedLineSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedLineSet>;
 %template(create_DynamicIndexedFaceSet) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIndexedFaceSet>;
 %template(create_DynamicAttributes) OpenMBV::ObjectFactory::create<OpenMBV::DynamicAttributes>;
+%template(create_DynamicIvBody) OpenMBV::ObjectFactory::create<OpenMBV::DynamicIvBody>;
 
 
 // include these headers to the wraper c++ source code (required to compile)

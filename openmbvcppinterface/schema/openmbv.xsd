@@ -97,7 +97,9 @@
             <xs:element name="ivFileName" type="pv:filenameFullEval"/>
             <xs:element name="ivContent" type="pv:stringFullEval"/>
           </xs:choice>
-          <xs:element name="dataSize" type="pv:integerFullEval"/>
+          <xs:element name="dataSize" minOccurs="0" type="pv:integerFullEval"/>
+          <xs:element name="dataIntSize" minOccurs="0" type="pv:integerFullEval"/>
+          <xs:element name="dataStrSize" minOccurs="0" type="pv:integerFullEval"/>
           <xs:element name="scalarData" type="pv:booleanFullEval" minOccurs="0"/>
           <xs:element name="stateOffSet" minOccurs="0" type="pv:nounitVector"/>
         </xs:sequence>

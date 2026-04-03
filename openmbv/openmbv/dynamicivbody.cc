@@ -21,6 +21,8 @@
 #include "dynamicivbody.h"
 
 #include <Inventor/nodes/SoShaderParameter.h>
+#include <Inventor/nodes/SoGeoOrigin.h>
+#include <Inventor/nodes/SoInfo.h>
 #include <boost/container_hash/hash.hpp>
 #include "mainwindow.h"
 #include "openmbvcppinterface/dynamicivbody.h"
@@ -39,15 +41,23 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   // read XML
   string fileName=divb->getIvFileName();
 
-  if( divb->getStateOffSet().size() > 0 ) {
-    data = std::vector<OpenMBV::Float>(divb->getStateOffSet().size()+1);
+  auto create = [](auto &data, const std::remove_reference_t<decltype(data)> &stateOffset,
+                               const std::remove_reference_t<decltype(data)> &row0){
+    if( stateOffset.size() > 0 ) {
+      using Type = std::remove_reference_t<decltype(data)>;
 
-    for( size_t i = 0; i < divb->getStateOffSet().size(); ++i )
-      data[i+1] = divb->getStateOffSet()[i];
-    data[0] = 0;
-  } else
-    //h5 dataset
-    data = divb->getRow(0);
+      data = Type(stateOffset.size()+1);
+
+      for( size_t i = 0; i < stateOffset.size(); ++i )
+        data[i+1] = stateOffset[i];
+      data[0] = typename Type::value_type();
+    } else
+      //h5 dataset
+      data = row0;
+  };
+  create(data   , divb->getStateOffSet()   , divb->getRow(0));
+  create(dataInt, divb->getStateIntOffSet(), divb->getRowInt(0));
+  create(dataStr, divb->getStateStrOffSet(), divb->getRowStr(0));
 
   int rows=divb->getRows();
   double dt;
@@ -60,13 +70,21 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   soOutLineSwitch->setName("openmbv_body_outline_switch");
 
   if(divb->getScalarData()) {
-    dataNodeScalar.resize(divb->getDataSize());
-    for(size_t i=0; i<divb->getDataSize(); ++i) {
-      dataNodeScalar[i] = new SoShaderParameter1f;
-      soSep->addChild(dataNodeScalar[i]);
-      dataNodeScalar[i]->setName(("openmbv_dynamicivbody_data_"+to_string(i)).c_str());
-      dataNodeScalar[i]->value.setValue(data[i]);
-    }
+    auto scalar = [this](auto &dataNodeScalar, size_t size, const auto &data, const string &name, const function<void(int)> &set) {
+      dataNodeScalar.resize(size);
+      for(size_t i=0; i<size; ++i) {
+        dataNodeScalar[i] = new std::remove_pointer_t<typename std::remove_reference_t<decltype(dataNodeScalar)>::value_type>;
+        soSep->addChild(dataNodeScalar[i]);
+        dataNodeScalar[i]->setName(("openmbv_dynamicivbody_"+name+"_"+to_string(i)).c_str());
+        set(i);
+      }
+    };
+    scalar(dataNodeScalar   , divb->getDataSize()   , data   , "data"   ,
+           [this](int i){ dataNodeScalar[i]->value.setValue(data[i]); });
+    scalar(dataIntNodeScalar, divb->getDataIntSize(), dataInt, "dataInt",
+           [this](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
+    scalar(dataStrNodeScalar, divb->getDataStrSize(), dataStr, "dataStr",
+           [this](int i){ dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str()); });
   }
   else {
     dataNodeVector = new SoShaderParameterArray1f;
@@ -74,16 +92,40 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     dataNodeVector->setName("openmbv_dynamicivbody_data");
     dataNodeVector->value.setNum(divb->getDataSize());
     dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
+
+    dataIntNodeVector = new SoShaderParameterArray1i;
+    soSep->addChild(dataIntNodeVector);
+    dataIntNodeVector->setName("openmbv_dynamicivbody_dataInt");
+    dataIntNodeVector->value.setNum(divb->getDataIntSize());
+    dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
+
+    auto dataStrNodeVectorSep = new SoSeparator;
+    soSep->addChild(dataStrNodeVectorSep);
+    dataStrNodeVector = new SoGeoOrigin;
+    dataStrNodeVectorSep->addChild(dataStrNodeVector);
+
+    dataStrNodeVector->setName("openmbv_dynamicivbody_dataStr");
+    dataStrNodeVector->geoSystem.setNum(divb->getDataStrSize());
+    for(size_t i=0; i<divb->getDataStrSize(); ++i)
+      dataStrNodeVector->geoSystem.set1Value(i, dataStr[i].c_str());
   }
 
   auto inFunc = [this](SoInput& in) {
     in.addReference("openmbv_body_outline_style", soOutLineStyle);
     in.addReference("openmbv_body_outline_switch", soOutLineSwitch);
-    if(divb->getScalarData())
+    if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataSize(); ++i)
         in.addReference(("openmbv_dynamicivbody_data_"+to_string(i)).c_str(), dataNodeScalar[i]);
-    else
-      in.addReference("openmbv_dynamicivbody_data", dataNodeVector);
+      for(size_t i=0; i<divb->getDataIntSize(); ++i)
+        in.addReference(("openmbv_dynamicivbody_dataInt_"+to_string(i)).c_str(), dataIntNodeScalar[i]);
+      for(size_t i=0; i<divb->getDataStrSize(); ++i)
+        in.addReference(("openmbv_dynamicivbody_dataStr_"+to_string(i)).c_str(), dataStrNodeScalar[i]);
+    }
+    else {
+      in.addReference("openmbv_dynamicivbody_data"   , dataNodeVector);
+      in.addReference("openmbv_dynamicivbody_dataInt", dataIntNodeVector);
+      in.addReference("openmbv_dynamicivbody_dataStr", dataStrNodeVector);
+    }
   };
   SoGroup *soIv;
   // load the IV content (without caching since element specific node references must be resolved)
@@ -128,16 +170,41 @@ double DynamicIvBody::update() {
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
-  data=divb->getRow(frame);
-  
-  // set scene values
-  if(divb->getScalarData())
-    for(size_t i=0; i<divb->getDataSize(); ++i)
-      dataNodeScalar[i]->value.setValue(data[i]);
-  else
-    dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
 
-  return data[0];
+  double ret = 0;
+
+  {
+    data=divb->getRow(frame);
+    // set scene values
+    if(divb->getScalarData())
+      for(size_t i=0; i<divb->getDataSize(); ++i)
+        dataNodeScalar[i]->value.setValue(data[i]);
+    else
+      dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
+    ret = data[0];
+  }
+  if(divb->getDataIntSize()>0) {
+    dataInt=divb->getRowInt(frame);
+    // set scene values
+    if(divb->getScalarData())
+      for(size_t i=0; i<divb->getDataIntSize(); ++i)
+        dataIntNodeScalar[i]->value.setValue(dataInt[i]);
+    else
+      dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
+  }
+  if(divb->getDataStrSize()>0) {
+    dataStr=divb->getRowStr(frame);
+    // set scene values
+    if(divb->getScalarData())
+      for(size_t i=0; i<divb->getDataStrSize(); ++i)
+        dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str());
+    else {
+      for(size_t i=0; i<divb->getDataStrSize(); ++i)
+        dataStrNodeVector->geoSystem.set1Value(i, dataStr[i].c_str());
+    }
+  }
+
+  return ret;
 }
 
 }

@@ -29,4 +29,5 @@
 #include <openmbvcppinterface/dynamicindexedlineset.h>
 #include <openmbvcppinterface/dynamicindexedfaceset.h>
 #include <openmbvcppinterface/dynamicattributes.h>
+#include <openmbvcppinterface/dynamicivbody.h>
 %}
