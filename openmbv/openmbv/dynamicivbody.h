@@ -28,7 +28,7 @@ namespace OpenMBV {
 
 class SoShaderParameterArray1f;
 class SoShaderParameterArray1i;
-class SoGeoOrigin;
+class SoAsciiText;
 class SoShaderParameter1f;
 class SoShaderParameter1i;
 class SoInfo;
@@ -45,7 +45,7 @@ class DynamicIvBody : public Body {
     double update() override;
     SoShaderParameterArray1f *dataNodeVector;
     SoShaderParameterArray1i *dataIntNodeVector;
-    SoGeoOrigin *dataStrNodeVector;
+    SoAsciiText *dataStrNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;
     std::vector<SoShaderParameter1i*> dataIntNodeScalar;
     std::vector<SoInfo*> dataStrNodeScalar;

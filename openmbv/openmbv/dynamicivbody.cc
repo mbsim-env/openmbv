@@ -99,15 +99,16 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     dataIntNodeVector->value.setNum(divb->getDataIntSize());
     dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
 
-    auto dataStrNodeVectorSep = new SoSeparator;
-    soSep->addChild(dataStrNodeVectorSep);
-    dataStrNodeVector = new SoGeoOrigin;
-    dataStrNodeVectorSep->addChild(dataStrNodeVector);
+    auto dataStrNodeVectorSW = new SoSwitch;
+    soSep->addChild(dataStrNodeVectorSW);
+    dataStrNodeVectorSW->whichChild = SO_SWITCH_NONE;
+    dataStrNodeVector = new SoAsciiText;
+    dataStrNodeVectorSW->addChild(dataStrNodeVector);
 
     dataStrNodeVector->setName("openmbv_dynamicivbody_dataStr");
-    dataStrNodeVector->geoSystem.setNum(divb->getDataStrSize());
+    dataStrNodeVector->string.setNum(divb->getDataStrSize());
     for(size_t i=0; i<divb->getDataStrSize(); ++i)
-      dataStrNodeVector->geoSystem.set1Value(i, dataStr[i].c_str());
+      dataStrNodeVector->string.set1Value(i, dataStr[i].c_str());
   }
 
   auto inFunc = [this](SoInput& in) {
@@ -200,7 +201,7 @@ double DynamicIvBody::update() {
         dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str());
     else {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
-        dataStrNodeVector->geoSystem.set1Value(i, dataStr[i].c_str());
+        dataStrNodeVector->string.set1Value(i, dataStr[i].c_str());
     }
   }
 
