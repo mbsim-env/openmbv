@@ -57,6 +57,7 @@ libopenmbv_la_SOURCES = $(MAYBE_SIGWATCH_SRC) \
   SoCardanRotationEngine.cc \
   SoStringFormatEngine.cc \
   spineextrusion.cc \
+  rigidspineextrusion.cc \
   coilspring.cc \
   nurbsdisk.cc \
   nurbscurve.cc \
@@ -93,6 +94,7 @@ QT_BUILT_SOURCES = \
   path.moc.cc\
   coilspring.moc.cc\
   spineextrusion.moc.cc \
+  rigidspineextrusion.moc.cc \
   nurbsdisk.moc.cc \
   nurbscurve.moc.cc \
   nurbssurface.moc.cc \
@@ -178,6 +180,7 @@ libopenmbv_la_HEADERS = mainwindow.h\
   mytouchwidget.h \
   touchtreewidget.h \
   spineextrusion.h \
+  rigidspineextrusion.h \
   coilspring.h \
   nurbsdisk.h \
   nurbscurve.h \

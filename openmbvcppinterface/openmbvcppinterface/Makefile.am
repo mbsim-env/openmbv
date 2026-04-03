@@ -34,6 +34,7 @@ libopenmbvcppinterface_la_SOURCES = object.cc \
   dynamicivbody.cc \
   cuboid.cc \
   spineextrusion.cc \
+  rigidspineextrusion.cc \
   nurbsdisk.cc \
   nurbscurve.cc \
   nurbssurface.cc \
@@ -78,6 +79,7 @@ libopenmbvcppinterface_la_HEADERS = object.h \
   dynamicivbody.h \
   cuboid.h \
   spineextrusion.h \
+  rigidspineextrusion.h \
   nurbsdisk.h \
   nurbscurve.h \
   nurbssurface.h \

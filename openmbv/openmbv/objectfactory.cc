@@ -49,6 +49,7 @@
 #include "openmbvcppinterface/path.h"
 #include "openmbvcppinterface/sphere.h"
 #include "openmbvcppinterface/spineextrusion.h"
+#include "openmbvcppinterface/rigidspineextrusion.h"
 #include "openmbvcppinterface/cylindricalgear.h"
 #include "openmbvcppinterface/cylinder.h"
 #include "openmbvcppinterface/rack.h"
@@ -87,6 +88,7 @@
 #include "path.h"
 #include "sphere.h"
 #include "spineextrusion.h"
+#include "rigidspineextrusion.h"
 #include "cylindricalgear.h"
 #include "cylinder.h"
 #include "rack.h"
@@ -160,6 +162,8 @@ Object *ObjectFactory::create(const std::shared_ptr<OpenMBV::Object> &obj, QTree
     return new Sphere(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::SpineExtrusion))
     return new SpineExtrusion(obj, parentItem, soParent, ind);
+  else if(typeid(objRef)==typeid(OpenMBV::RigidSpineExtrusion))
+    return new RigidSpineExtrusion(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::CylindricalGear))
     return new CylindricalGear(obj, parentItem, soParent, ind);
   else if(typeid(objRef)==typeid(OpenMBV::Cylinder))

@@ -624,4 +624,17 @@
     </xs:complexContent>
   </xs:complexType>   
 
+  <xs:element name="RigidSpineExtrusion" substitutionGroup="RigidBody" type="RigidSpineExtrusionType"/>
+  <xs:complexType name="RigidSpineExtrusionType">
+    <xs:complexContent>
+      <xs:extension base="RigidBodyType">
+        <xs:sequence>
+          <xs:element name="contour" type="pv:lengthMatrix"/>
+          <xs:element name="counterClockWise" type="pv:booleanFullEval" minOccurs="0"/>
+          <xs:element name="spine" type="pv:lengthMatrix"/>
+        </xs:sequence> 
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>   
+
 </xs:schema>
