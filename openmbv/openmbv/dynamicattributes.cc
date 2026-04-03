@@ -31,24 +31,22 @@ namespace OpenMBVGUI {
 DynamicAttributes::DynamicAttributes(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
   da=static_pointer_cast<OpenMBV::DynamicAttributes>(obj);
 
-  for(auto &p : da->getObjectEnable()) {
-    auto o = getByPath(p);
-    if(o && !dynamic_cast<Object*>(o))
-      msg(Error)<<"The object at path '"<<p<<"' is not of type Object."<<endl;
-    objectEnable.emplace_back(o);
-  }
-  for(auto &p : da->getBodyDrawMethod()) {
-    auto o = getByPath(p);
-    if(o && !dynamic_cast<Body*>(o))
-      msg(Error)<<"The object at path '"<<p<<"' is not of type Body."<<endl;
-    bodyDrawMethod.emplace_back(o);
-  }
-  for(auto &p : da->getDynamicColoredBodyTransparency()) {
-    auto o = getByPath(p);
-    if(o && !dynamic_cast<DynamicColoredBody*>(o))
-      msg(Error)<<"The object at path '"<<p<<"' is not of type DynamicColoredBody."<<endl;
-    dynamicColoredBodyTransparency.emplace_back(o);
-  }
+  auto convert = [this](auto &pd, const auto &dapd) {
+    if(!dapd.empty() && dapd[0].skip)
+      throw runtime_error("Illegal input: the first entry of a DynamicAttributes list cannot have skip=true.");
+
+    using Obj = typename std::remove_reference_t<decltype(pd)>::value_type::type;
+    for(auto &p : dapd) {
+      auto o = getByPath(p.path);
+      if(o && !dynamic_cast<Obj>(o))
+        msg(Error)<<"The object at path '"<<p.path<<"' is not of type Object."<<endl;
+      pd.emplace_back(Data<Obj>{static_cast<Obj>(o), p.skip});
+    }
+  };
+
+  convert(objectEnable, da->getObjectEnable());
+  convert(bodyDrawMethod, da->getBodyDrawMethod());
+  convert(dynamicColoredBodyTransparency, da->getDynamicColoredBodyTransparency());
 }
 
 DynamicAttributes::~DynamicAttributes() = default;
@@ -115,15 +113,19 @@ double DynamicAttributes::update() {
   auto data=da->getRow(frame);
 
   // set scene values
-  for(size_t i=0; i<objectEnable.size(); ++i)
-    if(objectEnable[i])
-      objectEnable[i]->soSwitch->whichChild.setValue(round(data[1+i])==0 ? SO_SWITCH_NONE : SO_SWITCH_ALL);
-  for(size_t i=0; i<bodyDrawMethod.size(); ++i)
-    if(bodyDrawMethod[i])
-      static_cast<Body*>(bodyDrawMethod[i])->drawStyle->style.setValue(round(data[1+i]));
-  for(size_t i=0; i<dynamicColoredBodyTransparency.size(); ++i)
-    if(dynamicColoredBodyTransparency[i])
-      static_cast<DynamicColoredBody*>(dynamicColoredBodyTransparency[i])->mat->transparency.setValue(data[1+i]);
+  size_t idxData = 0;
+  auto upd = [&data, &idxData](auto &pd, const function<void(typename std::remove_reference_t<decltype(pd)>::value_type::type, double)>& set) {
+    for(size_t idxPD=0; idxPD<pd.size(); ++idxPD) {
+      if(!pd[idxPD].skip)
+        idxData++;
+      if(pd[idxPD].obj)
+        set(pd[idxPD].obj, data[idxData]);
+    }
+  };
+
+  upd(objectEnable, [](Object* o, double d){ o->soSwitch->whichChild.setValue(round(d)==0 ? SO_SWITCH_NONE : SO_SWITCH_ALL); });
+  upd(bodyDrawMethod, [](Body *o, double d){ o->drawStyle->style.setValue(round(d)); });
+  upd(dynamicColoredBodyTransparency, [](DynamicColoredBody *o, double d){ o->mat->transparency.setValue(d); });
 
   return data[0];
 }

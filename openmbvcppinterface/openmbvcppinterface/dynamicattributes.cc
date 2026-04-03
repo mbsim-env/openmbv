@@ -30,65 +30,82 @@ OPENMBV_OBJECTFACTORY_REGISTERXMLNAME(DynamicAttributes, OPENMBV%"DynamicAttribu
 
 DynamicAttributes::DynamicAttributes() = default;
 
-void DynamicAttributes::setObjectEnable(const std::vector<std::string> &p) {
+void DynamicAttributes::setObjectEnable(const PathDataList &p) {
   objectEnable = p;
   updateDataSize();
 }
 
-void DynamicAttributes::addObjectEnable(const std::string &p) {
-  objectEnable.emplace_back(p);
+void DynamicAttributes::addObjectEnable(const std::string &p, bool skip) {
+  objectEnable.emplace_back(p,skip);
   updateDataSize();
 }
 
-void DynamicAttributes::setBodyDrawMethod(const std::vector<std::string> &p) {
+void DynamicAttributes::setBodyDrawMethod(const PathDataList &p) {
   bodyDrawMethod = p;
   updateDataSize();
 }
 
-void DynamicAttributes::addBodyDrawMethod(const std::string &p) {
-  bodyDrawMethod.emplace_back(p);
+void DynamicAttributes::addBodyDrawMethod(const std::string &p, bool skip) {
+  bodyDrawMethod.emplace_back(p,skip);
   updateDataSize();
 }
 
-void DynamicAttributes::setDynamicColoredBodyTransparency(const std::vector<std::string> &p) {
+void DynamicAttributes::setDynamicColoredBodyTransparency(const PathDataList &p) {
   dynamicColoredBodyTransparency = p;
   updateDataSize();
 }
 
-void DynamicAttributes::addDynamicColoredBodyTransparency(const std::string &p) {
-  dynamicColoredBodyTransparency.emplace_back(p);
+void DynamicAttributes::addDynamicColoredBodyTransparency(const std::string &p, bool skip) {
+  dynamicColoredBodyTransparency.emplace_back(p,skip);
   updateDataSize();
 }
 
 void DynamicAttributes::updateDataSize() {
-  dataSize = 1 + objectEnable.size() + bodyDrawMethod.size() + dynamicColoredBodyTransparency.size();
+  dataSize = 1;
+
+  auto count = [this](const auto &dl){
+    for(const auto &d : dl)
+      if(!d.skip)
+        dataSize++;
+  };
+
+  count(objectEnable);
+  count(bodyDrawMethod);
+  count(dynamicColoredBodyTransparency);
 }
 
 DOMElement* DynamicAttributes::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
-  for(auto &ep : objectEnable)
-    E(e)->addElementText(OPENMBV%"objectEnable", ep);
-  for(auto &ep : bodyDrawMethod)
-    E(e)->addElementText(OPENMBV%"bodyDrawMethod", ep);
-  for(auto &ep : dynamicColoredBodyTransparency)
-    E(e)->addElementText(OPENMBV%"dynamicColoredBodyTransparency", ep);
+
+  auto write = [&e](const PathDataList &pdl, const string &xmlName){
+    for(auto &pd : pdl) {
+      E(e)->addElementText(OPENMBV%xmlName, pd.path);
+      if(pd.skip)
+        E(e->getLastElementChild())->setAttribute("skip", pd.skip);
+    }
+  };
+
+  write(objectEnable, "objectEnable");
+  write(bodyDrawMethod, "bodyDrawMethod");
+  write(dynamicColoredBodyTransparency, "dynamicColoredBodyTransparency");
+
   return e;
 }
 
 void DynamicAttributes::initializeUsingXML(DOMElement *element) {
   Body::initializeUsingXML(element);
 
-  objectEnable.clear();
-  for(auto e=E(element)->getFirstElementChildNamed(OPENMBV%"objectEnable"); e; e=E(e)->getNextElementSiblingNamed(OPENMBV%"objectEnable"))
-    objectEnable.emplace_back(E(e)->getText<string>());
+  auto read = [&element](PathDataList& pdl, const string &xmlName){
+    pdl.clear();
+    for(auto e=E(element)->getFirstElementChildNamed(OPENMBV%xmlName); e; e=E(e)->getNextElementSiblingNamed(OPENMBV%xmlName)) {
+      auto skipStr = E(e)->getAttribute("skip");
+      pdl.emplace_back(E(e)->getText<string>(), skipStr=="1" || skipStr=="true" ? true : false);
+    }
+  };
 
-  bodyDrawMethod.clear();
-  for(auto e=E(element)->getFirstElementChildNamed(OPENMBV%"bodyDrawMethod"); e; e=E(e)->getNextElementSiblingNamed(OPENMBV%"bodyDrawMethod"))
-    bodyDrawMethod.emplace_back(E(e)->getText<string>());
-
-  dynamicColoredBodyTransparency.clear();
-  for(auto e=E(element)->getFirstElementChildNamed(OPENMBV%"dynamicColoredBodyTransparency"); e; e=E(e)->getNextElementSiblingNamed(OPENMBV%"dynamicColoredBodyTransparency"))
-    dynamicColoredBodyTransparency.emplace_back(E(e)->getText<string>());
+  read(objectEnable, "objectEnable");
+  read(bodyDrawMethod, "bodyDrawMethod");
+  read(dynamicColoredBodyTransparency, "dynamicColoredBodyTransparency");
 
   updateDataSize();
 }
@@ -98,12 +115,17 @@ void DynamicAttributes::createHDF5File() {
   data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(dataSize);
   vector<string> columns;
   columns.emplace_back("Time");
-  for(auto &p : objectEnable)
-    columns.emplace_back("Object enable: "+p);
-  for(auto &p : bodyDrawMethod)
-    columns.emplace_back("Body drawMethod: "+p);
-  for(auto &p : dynamicColoredBodyTransparency)
-    columns.emplace_back("DynamicColoredBody transparency: "+p);
+
+  auto create = [&columns](const PathDataList& pdl, const string &name){
+    for(auto &pd : pdl)
+      if(!pd.skip)
+        columns.emplace_back(name+": "+pd.path);
+  };
+
+  create(objectEnable, "Object enable");
+  create(bodyDrawMethod, "Body drawMethod");
+  create(dynamicColoredBodyTransparency, "DynamicColoredBody transparency");
+
   data->setColumnLabel(columns);
 }
 

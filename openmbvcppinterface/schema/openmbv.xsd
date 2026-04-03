@@ -592,9 +592,33 @@
     <xs:complexContent>
       <xs:extension base="BodyType">
         <xs:sequence>
-          <xs:element name="objectEnable" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
-          <xs:element name="bodyDrawMethod" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
-          <xs:element name="dynamicColoredBodyTransparency" minOccurs="0" maxOccurs="unbounded" type="pv:stringFullEval"/>
+          <xs:element name="objectEnable" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="pv:stringFullEval">
+                  <xs:attribute name="skip" type="pv:booleanFullEval"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="bodyDrawMethod" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="pv:stringFullEval">
+                  <xs:attribute name="skip" type="pv:booleanFullEval"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="dynamicColoredBodyTransparency" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="pv:stringFullEval">
+                  <xs:attribute name="skip" type="pv:booleanFullEval"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
         </xs:sequence> 
       </xs:extension>
     </xs:complexContent>

@@ -21,6 +21,8 @@
 #define _OPENMBV_DYNAMICATTRIBUTES_H_
 
 #include <openmbvcppinterface/body.h>
+
+#include <utility>
 #include "hdf5serie/vectorserie.h"
 
 namespace OpenMBV {
@@ -41,16 +43,27 @@ namespace OpenMBV {
    *   - enable-attribute of 1st,2nd,... objectEnable (round(0.0)=disabled, else enabled)
    *   - draw-method-attribute of 1st,2nd,... bodyDrawMethod (round(0.0)=filled, round(1.0)=lines, round(2.0)=points)
    *   - transparency-attribute of 1st,2nd,... dynamicColoredBodyTransparency (0.0=opaque to 1.0=full-transparent)
+   * If skip is true for a entry than this entry does not count in the HDF5 data, it uses the same data as
+   * the first skip=false entry before.
    */
   class DynamicAttributes : public Body {
     friend class ObjectFactory;
+    public:
+#ifndef SWIG
+      struct PathData {
+        PathData(std::string path_, bool skip_) : path(std::move(path_)), skip(skip_) {}
+        std::string path;
+        bool skip;
+      };
+      using PathDataList = std::vector<PathData>;
+#endif
     protected:
       DynamicAttributes();
       ~DynamicAttributes() override = default;
 
-      std::vector<std::string> objectEnable;
-      std::vector<std::string> bodyDrawMethod;
-      std::vector<std::string> dynamicColoredBodyTransparency;
+      PathDataList objectEnable;
+      PathDataList bodyDrawMethod;
+      PathDataList dynamicColoredBodyTransparency;
 
       void createHDF5File() override;
       void openHDF5File() override;
@@ -63,23 +76,31 @@ namespace OpenMBV {
       int getRows() override { return data?data->getRows():0; }
       std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(dataSize); }
 
+      int getDataSize() { return dataSize; }
+
+#ifndef SWIG
       /** Set the objects, by its path, for which the enable attribute should be controlled using HDF5 data. */
-      void setObjectEnable(const std::vector<std::string> &p);
+      void setObjectEnable(const PathDataList &p);
+      const PathDataList getObjectEnable() const { return objectEnable; }
+#endif
       /** Add a object, by its path, for which the enable attribute should be controlled using HDF5 data. */
-      void addObjectEnable(const std::string &p);
-      const std::vector<std::string>& getObjectEnable() const { return objectEnable; }
+      void addObjectEnable(const std::string &p, bool skip=false);
 
+#ifndef SWIG
       /** Set the bodies, by its path, for which the draw-method attribute should be controlled using HDF5 data. */
-      void setBodyDrawMethod(const std::vector<std::string> &p);
+      void setBodyDrawMethod(const PathDataList &p);
+      const PathDataList getBodyDrawMethod() const { return bodyDrawMethod; }
+#endif
       /** Add a body, by its path, for which the draw-method attribute should be controlled using HDF5 data. */
-      void addBodyDrawMethod(const std::string &p);
-      const std::vector<std::string>& getBodyDrawMethod() const { return bodyDrawMethod; }
+      void addBodyDrawMethod(const std::string &p, bool skip=false);
 
+#ifndef SWIG
       /** Set the dynamic-colored-bodies, by its path, for which the transparency attribute should be controlled using HDF5 data. */
-      void setDynamicColoredBodyTransparency(const std::vector<std::string> &p);
+      void setDynamicColoredBodyTransparency(const PathDataList &p);
+      const PathDataList getDynamicColoredBodyTransparency() const { return dynamicColoredBodyTransparency; }
+#endif
       /** Add a dynamic-colored-body, by its path, for which the transparency attribute should be controlled using HDF5 data. */
-      void addDynamicColoredBodyTransparency(const std::string &p);
-      const std::vector<std::string>& getDynamicColoredBodyTransparency() const { return dynamicColoredBodyTransparency; }
+      void addDynamicColoredBodyTransparency(const std::string &p, bool skip=false);
 
       void initializeUsingXML(xercesc::DOMElement *element) override;
       xercesc::DOMElement* writeXMLFile(xercesc::DOMNode *parent) override;

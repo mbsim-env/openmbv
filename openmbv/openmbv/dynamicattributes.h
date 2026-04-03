@@ -28,6 +28,8 @@ namespace OpenMBV {
 
 namespace OpenMBVGUI {
 
+class DynamicColoredBody;
+
 class DynamicAttributes : public Body {
   Q_OBJECT
   public:
@@ -38,9 +40,18 @@ class DynamicAttributes : public Body {
     std::shared_ptr<OpenMBV::DynamicAttributes> da;
     double update() override; 
 
-    std::vector<Object*> objectEnable;
-    std::vector<Object*> bodyDrawMethod;
-    std::vector<Object*> dynamicColoredBodyTransparency;
+    template<class T>
+    struct Data {
+      using type = T;
+      T obj;
+      bool skip;
+    };
+    template<class T>
+    using DataList = std::vector<Data<T>>;
+
+    DataList<Object*> objectEnable;
+    DataList<Body*> bodyDrawMethod;
+    DataList<DynamicColoredBody*> dynamicColoredBodyTransparency;
 
     Object* getByPath(const std::string &path);
 };
