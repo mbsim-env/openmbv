@@ -57,30 +57,28 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     sep->addChild(trans3);
   }
 
-  auto *columnLabelFieldSep = new SoSeparator;
+  auto *sw = new SoSwitch;
+  sep->addChild(sw);
+  sw->whichChild = SO_SWITCH_NONE;
+
   columnLabelFields.resize(ivsa->getColumnLabels().size());
-  sep->addChild(columnLabelFieldSep);
   for(size_t i=0; i<ivsa->getColumnLabels().size(); ++i) {
     columnLabelFields[i] = new SoAlphaTest;
-    columnLabelFieldSep->addChild(columnLabelFields[i]);
+    sw->addChild(columnLabelFields[i]);
     columnLabelFields[i]->setName(ivsa->getColumnLabels()[i].c_str());
   }
 
-  auto *columnIntLabelFieldSep = new SoSeparator;
   columnIntLabelFields.resize(ivsa->getColumnIntLabels().size());
-  sep->addChild(columnIntLabelFieldSep);
   for(size_t i=0; i<ivsa->getColumnIntLabels().size(); ++i) {
     columnIntLabelFields[i] = new SoShaderParameter1i;
-    columnIntLabelFieldSep->addChild(columnIntLabelFields[i]);
+    sw->addChild(columnIntLabelFields[i]);
     columnIntLabelFields[i]->setName(ivsa->getColumnIntLabels()[i].c_str());
   }
 
-  auto *columnStrLabelFieldSep = new SoSeparator;
   columnStrLabelFields.resize(ivsa->getColumnStrLabels().size());
-  sep->addChild(columnStrLabelFieldSep);
   for(size_t i=0; i<ivsa->getColumnStrLabels().size(); ++i) {
     columnStrLabelFields[i] = new SoInfo;
-    columnStrLabelFieldSep->addChild(columnStrLabelFields[i]);
+    sw->addChild(columnStrLabelFields[i]);
     columnStrLabelFields[i]->setName(ivsa->getColumnStrLabels()[i].c_str());
   }
 

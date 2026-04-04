@@ -69,12 +69,16 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   soOutLineStyle->setName("openmbv_body_outline_style");
   soOutLineSwitch->setName("openmbv_body_outline_switch");
 
+  auto sw = new SoSwitch;
+  soSep->addChild(sw);
+  sw->whichChild = SO_SWITCH_NONE;
+
   if(divb->getScalarData()) {
-    auto scalar = [this](auto &dataNodeScalar, size_t size, const auto &data, const string &name, const function<void(int)> &set) {
+    auto scalar = [sw](auto &dataNodeScalar, size_t size, const auto &data, const string &name, const function<void(int)> &set) {
       dataNodeScalar.resize(size);
       for(size_t i=0; i<size; ++i) {
         dataNodeScalar[i] = new std::remove_pointer_t<typename std::remove_reference_t<decltype(dataNodeScalar)>::value_type>;
-        soSep->addChild(dataNodeScalar[i]);
+        sw->addChild(dataNodeScalar[i]);
         dataNodeScalar[i]->setName(("openmbv_dynamicivbody_"+name+"_"+to_string(i)).c_str());
         set(i);
       }
@@ -88,23 +92,19 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   }
   else {
     dataNodeVector = new SoShaderParameterArray1f;
-    soSep->addChild(dataNodeVector);
+    sw->addChild(dataNodeVector);
     dataNodeVector->setName("openmbv_dynamicivbody_data");
     dataNodeVector->value.setNum(divb->getDataSize());
     dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
 
     dataIntNodeVector = new SoShaderParameterArray1i;
-    soSep->addChild(dataIntNodeVector);
+    sw->addChild(dataIntNodeVector);
     dataIntNodeVector->setName("openmbv_dynamicivbody_dataInt");
     dataIntNodeVector->value.setNum(divb->getDataIntSize());
     dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
 
-    auto dataStrNodeVectorSW = new SoSwitch;
-    soSep->addChild(dataStrNodeVectorSW);
-    dataStrNodeVectorSW->whichChild = SO_SWITCH_NONE;
     dataStrNodeVector = new SoAsciiText;
-    dataStrNodeVectorSW->addChild(dataStrNodeVector);
-
+    sw->addChild(dataStrNodeVector);
     dataStrNodeVector->setName("openmbv_dynamicivbody_dataStr");
     dataStrNodeVector->string.setNum(divb->getDataStrSize());
     for(size_t i=0; i<divb->getDataStrSize(); ++i)
