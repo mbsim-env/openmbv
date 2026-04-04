@@ -64,7 +64,7 @@
   %template(VectorFloat) std::vector<float>;
   %template(VectorDouble) std::vector<double>;
   %template(VectorInt) std::vector<int>;
-  %template(VectorStr) std::vector<std::string>;
+  %template(VectorString) std::vector<std::string>;
 #endif
 
 #ifdef SWIGOCTAVE

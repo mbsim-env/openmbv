@@ -75,10 +75,14 @@ namespace OpenMBV {
       void setScale1To1At(const std::vector<double> &scale1To1Center_);
 
       std::vector<double> getScale1To1At();
+
+      /** The file of the iv file to read */
       void setIvFileName(std::string ivFileName_) { ivContent=""; ivFileName=std::move(ivFileName_); }
       std::string getIvFileName() { return ivFileName; }
+
       void setIvContent(std::string ivContent_) { ivFileName=""; ivContent=std::move(ivContent_); }
       const std::string& getIvContent() { return ivContent; }
+
       void setColumnLabels(const std::vector<std::string> &columnLabels_);
       void addColumnLabel(const std::string &columnLabel_);
       const std::vector<std::string>& getColumnLabels() const;
