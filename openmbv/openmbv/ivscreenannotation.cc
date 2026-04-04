@@ -57,8 +57,10 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     sep->addChild(trans3);
   }
 
+  auto * swSep= new SoSeparator;
+  sep->addChild(swSep);
   auto *sw = new SoSwitch;
-  sep->addChild(sw);
+  swSep->addChild(sw);
   sw->whichChild = SO_SWITCH_NONE;
 
   columnLabelFields.resize(ivsa->getColumnLabels().size());

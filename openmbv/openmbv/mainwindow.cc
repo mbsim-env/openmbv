@@ -199,8 +199,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
 
+  auto swSep = new SoSeparator;
+  sceneRoot->addChild(swSep);
   auto sw = new SoSwitch;
-  sceneRoot->addChild(sw);
+  swSep->addChild(sw);
   sw->whichChild = SO_SWITCH_NONE;
   frameNode = new SoColorIndex;
   sceneRoot->addChild(sw);
