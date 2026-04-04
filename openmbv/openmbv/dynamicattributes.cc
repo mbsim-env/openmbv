@@ -53,7 +53,7 @@ DynamicAttributes::~DynamicAttributes() = default;
 
 Object* DynamicAttributes::getByPath(const std::string &path) {
   if(path[0]!='/' && path.substr(0,3)!="../") {
-    msg(Error)<<"Illegal path '"<<path<<"'. Must start with '/' or '../'."<<endl;
+    msg(Error)<<"Illegal path '"<<path<<"': must start with '/' or '../'."<<endl;
     return nullptr;
   }
 
@@ -70,10 +70,10 @@ Object* DynamicAttributes::getByPath(const std::string &path) {
       obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
     iStart = 2;
 
-    if(pathVec[1]!=obj->text(0).toStdString()) {
-      msg(Error)<<"Illegal path '"<<path<<"'. Not found."<<endl;
-      return nullptr;
-    }
+    if(pathVec[1]!=obj->text(0).toStdString())
+      // the root element is unique anyway, hence we to not check if its name matches
+      // this is even required since applications may temporarily change the root elements name to adapt the openmbv filename
+      msg(Debug)<<"Illegal path '"<<path<<"': root element does not match (but this is acceptable)."<<endl;
   }
   else {
     // search base
@@ -97,7 +97,7 @@ Object* DynamicAttributes::getByPath(const std::string &path) {
       }
     }
     if(!found) {
-      msg(Error)<<"Illegal path '"<<path<<"'. Not found."<<endl;
+      msg(Error)<<"Illegal path '"<<path<<"': not found."<<endl;
       return nullptr;
     }
   }
