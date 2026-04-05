@@ -205,7 +205,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   swSep->addChild(sw);
   sw->whichChild = SO_SWITCH_NONE;
   frameNode = new SoColorIndex;
-  sceneRoot->addChild(sw);
+  sw->addChild(frameNode);
   frameNode->index.setValue(0);
   frameNode->setName("openmbv_mainwindow_frame"); // needs also code in MainWindow::addReferences()
   timeNode = new SoAlphaTest;
