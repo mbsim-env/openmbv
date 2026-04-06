@@ -164,9 +164,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   StringFormatEngine::initClass();
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
-  // init realtime (note that no update happens for the scene if the realtime sensor is not used at all)
-  SoDB::enableRealTimeSensor(true);// enable the realtime clock (with updates of about 12fps)
-  SoSceneManager::enableRealTimeUpdate(false); // if false use about 12fps, see the line above; if true use unlimited fps (only limited by openmbv (usually 25fps))
+  // init realtime
+  SoDB::enableRealTimeSensor(true);// enable the realtime clock
+  SoSceneManager::enableRealTimeUpdate(false); // do not update the clock after a rendering to avoid auto-rerendering
+  SoDB::setRealTimeInterval(1.0/fpsMax); // update with the configured maximal number of frame per second
 
   engDrawingBGColorSaved=new SoMFColor();
   engDrawingFGColorBottomSaved=new SoMFColor();
