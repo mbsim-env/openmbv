@@ -201,6 +201,8 @@ void Object::deleteObjectSlot() {
   delete this;
   
   MainWindow::getInstance()->updateBackgroundNeeded();
+
+  MainWindow::getInstance()->updateRealTimeUsed();
 }
 
 void Object::replaceBBoxHighlight() {

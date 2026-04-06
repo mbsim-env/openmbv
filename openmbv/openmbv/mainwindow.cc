@@ -80,6 +80,7 @@
 #include <Inventor/engines/SoGate.h>
 #include <Inventor/engines/SoCalculator.h>
 #include <Inventor/fields/SoMFRotation.h>
+#include <Inventor/fields/SoSFTime.h>
 #include <Inventor/SoRenderManager.h>
 #include "SoDecomposeArray1fToVec3fEngine.h"
 #include "SoCardanRotationEngine.h"
@@ -165,10 +166,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
   maxFps = appSettings->get<double>(AppSettings::maxFps);
-  // init realtime
-  SoDB::enableRealTimeSensor(true);// enable the realtime clock
-  SoSceneManager::enableRealTimeUpdate(false); // do not update the clock after a rendering to avoid auto-rerendering
-  SoDB::setRealTimeInterval(1.0/maxFps); // update with the configured maximal number of frame per second
+  // disable realtime clock of coin (we do it by ourself)
+  SoDB::enableRealTimeSensor(false);
+  SoSceneManager::enableRealTimeUpdate(false);
+  realTime = static_cast<SoSFTime*>(SoDB::getGlobalField("realTime"));
 
   engDrawingBGColorSaved=new SoMFColor();
   engDrawingFGColorBottomSaved=new SoMFColor();
@@ -1224,6 +1225,12 @@ MainWindow::~MainWindow() {
   OpenMBVGUI::appSettings.reset();
 }
 
+void MainWindow::updateRealTimeUsed() {
+  SoFieldList dummyFieldList;
+  realTimeUsed = realTime->getForwardConnections(dummyFieldList) > 0;
+  restartPlay();
+}
+
 void MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentItem, SoGroup *soParent, int ind) {
   fmatvec::AdoptCurrentMessageStreamsUntilScopeExit dummy(this);
 
@@ -1267,6 +1274,8 @@ void MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
   objectListFilter->applyFilter();
 
   updateBackgroundNeeded();
+
+  updateRealTimeUsed();
 }
 
 void MainWindow::openFileDialog() {
@@ -1595,17 +1604,23 @@ void MainWindow::fpsCB() {
   count=1;
 }
 
+namespace {
+  void animTimerStart(QTimer *animTimer, double maxFps) {
+    if(maxFps<1e-15)
+      animTimer->start();
+    else
+      animTimer->start((int)(1000/maxFps));
+  }
+}
+
 void MainWindow::restartPlay() {
-  if(playAct->isChecked()) {
+  if(playAct->isChecked() || realTimeUsed) {
     // emulate anim stop click
     animTimer->stop();
     // emulate anim play click
     animStartFrame=frameNode->index[0];
     time->restart();
-    if(maxFps<1e-15)
-      animTimer->start();
-    else
-      animTimer->start((int)(1000/maxFps));
+    animTimerStart(animTimer, maxFps);
   }
 }
 
@@ -1614,6 +1629,8 @@ void MainWindow::restartPlay() {
 // for "play" the next frame to show is set
 // for "last frame" the flush is requested which will call refreshFileSlot if a flush was done
 void MainWindow::heavyWorkSlot() {
+  if(realTimeUsed)
+    *realTime = SbTime::getTimeOfDay();
   if(playAct->isChecked()) {
     double dT=time->elapsed()/1000.0*speedSB->value();// time since play click
     auto dframe=(int)(dT/deltaTime);// frame increment since play click
@@ -1988,7 +2005,10 @@ void MainWindow::exportSequenceAsPNG(bool video) {
 void MainWindow::stopSCSlot() {
   if(hdf5RefreshDelta>0)
     hdf5RefreshTimer->start(hdf5RefreshDelta);
-  animTimer->stop();
+  if(!realTimeUsed)
+    animTimer->stop();
+  else
+    animTimerStart(animTimer, maxFps);
   stopAct->setChecked(true);
   lastFrameAct->setChecked(false);
   playAct->setChecked(false);
@@ -2004,10 +2024,7 @@ void MainWindow::lastFrameSCSlot() {
 
   stopAct->setChecked(false);
   playAct->setChecked(false);
-  if(maxFps<1e-15)
-    animTimer->start();
-  else
-    animTimer->start((int)(1000/maxFps));
+  animTimerStart(animTimer, maxFps);
 
   // go to last frame
   frameNode->index.setValue(timeSlider->currentMaximum());
@@ -2026,10 +2043,7 @@ void MainWindow::playSCSlot() {
   lastFrameAct->setChecked(false);
   animStartFrame=frameNode->index[0];
   time->restart();
-  if(maxFps<1e-15)
-    animTimer->start();
-  else
-    animTimer->start((int)(1000/maxFps));
+  animTimerStart(animTimer, maxFps);
 }
 
 void MainWindow::speedUpSlot() {

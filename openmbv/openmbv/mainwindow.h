@@ -66,6 +66,7 @@
 
 class QListWidgetItem;
 class SoCalculator;
+class SoSFTime;
 
 namespace OpenMBVGUI {
  
@@ -161,6 +162,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     int hdf5RefreshDelta;
     QToolBar* sceneViewToolBar;
     QMenu* sceneViewMenu;
+    SoSFTime *realTime;
+    bool realTimeUsed;
   protected:
     void objectListClicked();
     void openFileDialog();
@@ -298,6 +301,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void highlightObject(const std::string &curID);
     MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
     ~MainWindow() override;
+    void updateRealTimeUsed();
     void openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
     void updateScene() { frameNode->index.touch(); }
     static MainWindow* const getInstance();
