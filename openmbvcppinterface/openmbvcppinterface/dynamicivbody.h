@@ -27,7 +27,11 @@
 
 namespace OpenMBV {
 
-  /** A object defined by a Open Inventor file or a VRML file with dynamic data from HDF5. */
+  /** A object defined by a Open Inventor file or a VRML file with dynamic data from HDF5.
+   * In the IV file two special named nodes are accessible:
+   * - "openmbv_body_outline_style": a node of type Group which can added to use the default outline style of OpenMBV.
+   * - "openmbv_body_outline_switch": a node of type Switch. Its whichChild field is the current outline enable/disable flag of OpenMBV.
+   */
   class DynamicIvBody : public Body {
     friend class ObjectFactory;
     public:
@@ -35,16 +39,30 @@ namespace OpenMBV {
       void setIvFileName(std::string ivFileName_) { ivContent=""; ivFileName=std::move(ivFileName_); }
       std::string getIvFileName() { return ivFileName; }
 
+      /** The content, as a string, of the iv data to read */
       void setIvContent(std::string ivContent_) { ivFileName=""; ivContent=std::move(ivContent_); }
       const std::string& getIvContent() { return ivContent; }
 
+      /** The number of float data in the HDF5 file including the first data which must be the OpenMBV time.
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_data" or
+       * "openmbv_dynamicivbody_data_0", "openmbv_dynamicivbody_data_1", see setScalarData. */
       void setDataSize(size_t s) { dataSize = s; }
       size_t getDataSize() { return dataSize; }
+
+      /** The number of integer data in the HDF5 file.
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataInt" or
+       * "openmbv_dynamicivbody_dataInt_0", "openmbv_dynamicivbody_dataInt_1", see setScalarData. */
       void setDataIntSize(size_t s) { dataIntSize = s; }
       size_t getDataIntSize() { return dataIntSize; }
+
+      /** The number of string data in the HDF5 file.
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataStr" or
+       * "openmbv_dynamicivbody_dataStr_0", "openmbv_dynamicivbody_dataStr_1", see setScalarData. */
       void setDataStrSize(size_t s) { dataStrSize = s; }
       size_t getDataStrSize() { return dataStrSize; }
 
+      /** If true each data can be accessed using a separate node/single-value-field "..._<number>" see above.
+       * If false each data can be accessed using a single node/multi-value-field "..." see above. */
       void setScalarData(bool s) { scalarData = s; }
       bool getScalarData() { return scalarData; }
 
