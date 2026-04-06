@@ -557,6 +557,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[filterType]={"mainwindow/filter/type", 0};
   setting[filterCaseSensitivity]={"mainwindow/filter/casesensitivity", 0};
   setting[transparency]={"mainwindow/sceneGraph/transparency", 2};
+  setting[maxFps]={"mainwindow/sceneGraph/maxFps", 25.0};
 
   for(auto &[str, value]: setting)
     if(qSettings.contains(str))
@@ -836,6 +837,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->glViewer->updateTransperencySetting();
     if(MainWindow::getInstance()->glViewerRight)
       MainWindow::getInstance()->glViewerRight->updateTransperencySetting();
+  });
+  new DoubleSetting(scene3D, AppSettings::maxFps, QIcon(), "Maximal number of frames per second:", "Hz", [](double value){
+    MainWindow::getInstance()->maxFps = value;
+    SoDB::setRealTimeInterval(1.0/value); // update with the configured maximal number of frame per second
+    MainWindow::getInstance()->shortAniTimer->setInterval(1000.0/value);
+    MainWindow::getInstance()->restartPlay();
   });
   addSpace(scene3D);
 

@@ -114,7 +114,7 @@ QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
   return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
 }
 
-MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), enableFullScreen(false),
+MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScreen(false),
   skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
 
@@ -164,17 +164,18 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : fpsMax(25), e
   StringFormatEngine::initClass();
   IndexedTesselationFace::initClass();
   SoVRMLBackground2::initClass(); // this overrides SoVRMLBackground instances with SoVRMLBackground2 instances
+  maxFps = appSettings->get<double>(AppSettings::maxFps);
   // init realtime
   SoDB::enableRealTimeSensor(true);// enable the realtime clock
   SoSceneManager::enableRealTimeUpdate(false); // do not update the clock after a rendering to avoid auto-rerendering
-  SoDB::setRealTimeInterval(1.0/fpsMax); // update with the configured maximal number of frame per second
+  SoDB::setRealTimeInterval(1.0/maxFps); // update with the configured maximal number of frame per second
 
   engDrawingBGColorSaved=new SoMFColor();
   engDrawingFGColorBottomSaved=new SoMFColor();
   engDrawingFGColorTopSaved=new SoMFColor();
 
   shortAniTimer=new QTimer(this);
-  shortAniTimer->setInterval(1000/25);
+  shortAniTimer->setInterval(1000.0/maxFps);
   shortAniElapsed=std::make_unique<QElapsedTimer>();
   connect(shortAniTimer, &QTimer::timeout, this, &MainWindow::shortAni );
 
@@ -1586,8 +1587,8 @@ void MainWindow::fpsCB() {
   float fps_=1000.0/dt*count; // current fps
   static float fpsOut=0;
   fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
-  if(fpsMax>1e-15 && fpsOut>0.9*fpsMax)
-    fps->setText(QString("FPS: >%1(max)").arg(fpsMax, 0, 'f', 1));
+  if(maxFps>1e-15 && fpsOut>0.9*maxFps)
+    fps->setText(QString("FPS: >%1(max)").arg(maxFps, 0, 'f', 1));
   else
     fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
 
@@ -1601,14 +1602,14 @@ void MainWindow::restartPlay() {
     // emulate anim play click
     animStartFrame=frameNode->index[0];
     time->restart();
-    if(fpsMax<1e-15)
+    if(maxFps<1e-15)
       animTimer->start();
     else
-      animTimer->start((int)(1000/fpsMax));
+      animTimer->start((int)(1000/maxFps));
   }
 }
 
-// is called with a maximum frequency of fpsMax if the "play" or "last frame" button is checked, if the "stop" button is checked
+// is called with a maximum frequency of maxFps if the "play" or "last frame" button is checked, if the "stop" button is checked
 // this function is not called since new hdf5 data is checked using refreshFileSlot which is (usually) called less frequently.
 // for "play" the next frame to show is set
 // for "last frame" the flush is requested which will call refreshFileSlot if a flush was done
@@ -2003,10 +2004,10 @@ void MainWindow::lastFrameSCSlot() {
 
   stopAct->setChecked(false);
   playAct->setChecked(false);
-  if(fpsMax<1e-15)
+  if(maxFps<1e-15)
     animTimer->start();
   else
-    animTimer->start((int)(1000/fpsMax));
+    animTimer->start((int)(1000/maxFps));
 
   // go to last frame
   frameNode->index.setValue(timeSlider->currentMaximum());
@@ -2025,10 +2026,10 @@ void MainWindow::playSCSlot() {
   lastFrameAct->setChecked(false);
   animStartFrame=frameNode->index[0];
   time->restart();
-  if(fpsMax<1e-15)
+  if(maxFps<1e-15)
     animTimer->start();
   else
-    animTimer->start((int)(1000/fpsMax));
+    animTimer->start((int)(1000/maxFps));
 }
 
 void MainWindow::speedUpSlot() {

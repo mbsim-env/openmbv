@@ -369,6 +369,7 @@ class AppSettings {
       filterType,
       filterCaseSensitivity,
       transparency,
+      maxFps,
       SIZE,
     };
     AppSettings();

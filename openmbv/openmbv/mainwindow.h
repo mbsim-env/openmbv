@@ -100,7 +100,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     SoAsciiText *timeString;
-    double fpsMax;
+    double maxFps;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
     SoTransposeEngine *cameraOrientation;
