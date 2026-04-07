@@ -44,12 +44,11 @@
     </ul>
     <p>The content of the datasets is also documented in the section Elements.</p>
     <p>The real-time clock is accessible as usual in IV files. If not other events trigger an update of the scene, then the real-time clock ticks at about 12fps.</p>
-    <p>The following named nodes are accessible as usual in IV files (using the USE statement):
-      <dl>
-        <dt>"openmbv_mainwindow_time"</dt><dd>Provides the current OpenMBV time by the field "value"</dd>
-        <dt>"openmbv_mainwindow_frame"</dt><dd>Provides the current OpenMBV frame by the field "index"</dd>
-      </dl>
-    </p>
+    <p>The following named nodes are accessible as usual in IV files (using the USE statement):</p>
+    <dl>
+      <dt>"openmbv_mainwindow_time"</dt><dd>Provides the current OpenMBV time by the field "value"</dd>
+      <dt>"openmbv_mainwindow_frame"</dt><dd>Provides the current OpenMBV frame by the field "index"</dd>
+    </dl>
   </xs:documentation></xs:annotation>
 
 

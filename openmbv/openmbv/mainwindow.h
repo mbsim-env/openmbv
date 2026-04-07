@@ -163,7 +163,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QToolBar* sceneViewToolBar;
     QMenu* sceneViewMenu;
     SoSFTime *realTime;
-    bool realTimeUsed;
+    bool realTimeUsed { false };
   protected:
     void objectListClicked();
     void openFileDialog();
