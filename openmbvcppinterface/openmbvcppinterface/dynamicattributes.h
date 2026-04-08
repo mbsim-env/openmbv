@@ -70,7 +70,7 @@ namespace OpenMBV {
       H5::VectorSerie<Float>* data{nullptr};
 
       void updateDataSize();
-      int dataSize;
+      int dataSize { 1 };
 
     public:
       int getRows() override { return data?data->getRows():0; }
