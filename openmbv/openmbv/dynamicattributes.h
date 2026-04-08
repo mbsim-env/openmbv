@@ -54,6 +54,7 @@ class DynamicAttributes : public Body {
     DataList<DynamicColoredBody*> dynamicColoredBodyTransparency;
 
     Object* getByPath(const std::string &path);
+    bool pathSearchDone { false };
 };
 
 }

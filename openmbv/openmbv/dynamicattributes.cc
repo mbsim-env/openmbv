@@ -30,23 +30,6 @@ namespace OpenMBVGUI {
 
 DynamicAttributes::DynamicAttributes(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind) : Body(obj, parentItem, soParent, ind) {
   da=static_pointer_cast<OpenMBV::DynamicAttributes>(obj);
-
-  auto convert = [this](auto &pd, const auto &dapd) {
-    if(!dapd.empty() && dapd[0].skip)
-      throw runtime_error("Illegal input: the first entry of a DynamicAttributes list cannot have skip=true.");
-
-    using Obj = typename std::remove_reference_t<decltype(pd)>::value_type::type;
-    for(auto &p : dapd) {
-      auto o = getByPath(p.path);
-      if(o && !dynamic_cast<Obj>(o))
-        msg(Error)<<"The object at path '"<<p.path<<"' is not of type Object."<<endl;
-      pd.emplace_back(Data<Obj>{static_cast<Obj>(o), p.skip});
-    }
-  };
-
-  convert(objectEnable, da->getObjectEnable());
-  convert(bodyDrawMethod, da->getBodyDrawMethod());
-  convert(dynamicColoredBodyTransparency, da->getDynamicColoredBodyTransparency());
 }
 
 DynamicAttributes::~DynamicAttributes() = default;
@@ -106,6 +89,28 @@ Object* DynamicAttributes::getByPath(const std::string &path) {
 
 double DynamicAttributes::update() {
   if(da->getRows()==0) return 0; // do nothing for environement objects
+
+  if(!pathSearchDone) {
+    pathSearchDone = true;
+
+    auto convert = [this](auto &pd, const auto &dapd) {
+      pd.clear();
+      if(!dapd.empty() && dapd[0].skip)
+        throw runtime_error("Illegal input: the first entry of a DynamicAttributes list cannot have skip=true.");
+  
+      using Obj = typename std::remove_reference_t<decltype(pd)>::value_type::type;
+      for(auto &p : dapd) {
+        auto o = getByPath(p.path);
+        if(o && !dynamic_cast<Obj>(o))
+          msg(Error)<<"The object at path '"<<p.path<<"' is not of type Object."<<endl;
+        pd.emplace_back(Data<Obj>{static_cast<Obj>(o), p.skip});
+      }
+    };
+  
+    convert(objectEnable, da->getObjectEnable());
+    convert(bodyDrawMethod, da->getBodyDrawMethod());
+    convert(dynamicColoredBodyTransparency, da->getDynamicColoredBodyTransparency());
+  }
 
   // read from hdf5
   int frame=MainWindow::getInstance()->getFrame()[0];
