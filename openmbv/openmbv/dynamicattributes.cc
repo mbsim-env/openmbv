@@ -61,21 +61,16 @@ Object* DynamicAttributes::getByPath(const std::string &path) {
   vector<string> pathVec;
   boost::split(pathVec, path, boost::is_any_of("/"));
 
-  size_t iStart;
-  Object* obj;
-  if(path[0]=='/') {
+  size_t iStart = 0;
+  Object* obj = nullptr;
+  if(path[0]=='/' && path[1]=='/') {
     // search root
     obj = this;
     while(obj->QTreeWidgetItem::parent())
       obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
     iStart = 2;
-
-    if(pathVec[1]!=obj->text(0).toStdString())
-      // the root element is unique anyway, hence we to not check if its name matches
-      // this is even required since applications may temporarily change the root elements name to adapt the openmbv filename
-      msg(Debug)<<"Illegal path '"<<path<<"': root element does not match (but this is acceptable)."<<endl;
   }
-  else {
+  else if(path[0]=='.' && path[1]=='.' && path[2]=='/') {
     // search base
     obj = this;
     for(iStart=0; iStart<pathVec.size(); ++iStart)
@@ -83,6 +78,10 @@ Object* DynamicAttributes::getByPath(const std::string &path) {
         obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
       else
         break;
+  }
+  else {
+    msg(Error)<<"Illegal path '"<<path<<"': must start with '../' or '//'."<<endl;
+    return nullptr;
   }
 
   // search path

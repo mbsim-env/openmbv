@@ -45,6 +45,11 @@ namespace OpenMBV {
    *   - transparency-attribute of 1st,2nd,... dynamicColoredBodyTransparency (0.0=opaque to 1.0=full-transparent)
    * If skip is true for a entry than this entry does not count in the HDF5 data, it uses the same data as
    * the first skip=false entry before.
+   * A path can start with
+   * - "../": Then the path is relative to the current object. More "../" items can follow to go to a further parent and the multiple "<objectName>/"
+   *          items can follow to walk down.
+   * - "//": Then the path is a absolute path and start which starts at the root element. Multiple "<objectName>/" items can be follow to walk down.
+   *         Note that the file name is not part of the absolute path, this is already meant by "//".
    */
   class DynamicAttributes : public Body {
     friend class ObjectFactory;
