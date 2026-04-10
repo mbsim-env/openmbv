@@ -42,7 +42,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   string fileName=divb->getIvFileName();
 
   auto create = [](auto &data, const std::remove_reference_t<decltype(data)> &stateOffset,
-                               const std::remove_reference_t<decltype(data)> &row0){
+                               std::remove_reference_t<decltype(data)> &&row0){
     if( stateOffset.size() > 0 ) {
       using Type = std::remove_reference_t<decltype(data)>;
 
@@ -53,8 +53,11 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
       data[0] = typename Type::value_type();
     } else
       //h5 dataset
-      data = row0;
+      data = std::move(row0);
   };
+  vector<OpenMBV::Float> data;
+  vector<int> dataInt;
+  vector<std::string> dataStr;
   create(data   , divb->getStateOffSet()   , divb->getRow(0));
   create(dataInt, divb->getStateIntOffSet(), divb->getRowInt(0));
   create(dataStr, divb->getStateStrOffSet(), divb->getRowStr(0));
@@ -86,11 +89,11 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
       }
     };
     scalar(dataNodeScalar   , divb->getDataSize()   , data   , "data"   ,
-           [this](int i){ dataNodeScalar[i]->value.setValue(data[i]); });
+           [this,&data](int i){ dataNodeScalar[i]->value.setValue(data[i]); });
     scalar(dataIntNodeScalar, divb->getDataIntSize(), dataInt, "dataInt",
-           [this](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
+           [this,&dataInt](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
     scalar(dataStrNodeScalar, divb->getDataStrSize(), dataStr, "dataStr",
-           [this](int i){ dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str()); });
+           [this,&dataStr](int i){ dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str()); });
   }
   else {
     dataNodeVector = new SoShaderParameterArray1f;
@@ -184,7 +187,7 @@ double DynamicIvBody::update() {
   double ret = 0;
 
   {
-    data=divb->getRow(frame);
+    auto data=divb->getRow(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataSize(); ++i)
@@ -198,7 +201,7 @@ double DynamicIvBody::update() {
     ret = data[0];
   }
   if(divb->getDataIntSize()>0) {
-    dataInt=divb->getRowInt(frame);
+    auto dataInt=divb->getRowInt(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataIntSize(); ++i)
@@ -211,7 +214,7 @@ double DynamicIvBody::update() {
       dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
   }
   if(divb->getDataStrSize()>0) {
-    dataStr=divb->getRowStr(frame);
+    auto dataStr=divb->getRowStr(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
