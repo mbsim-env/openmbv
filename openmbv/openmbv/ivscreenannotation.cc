@@ -160,6 +160,13 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     pathNode=Utils::getChildNodeByName(ivSep.get(), ("OpenMBVIvScreenAnnotationPathOrigin"+to_string(i)).c_str());
   }
   pathMaxFrameRead=-1;
+
+  oldData.clear();
+  oldData.resize(1+ivsa->getColumnLabels().size(), numeric_limits<OpenMBV::Float>::quiet_NaN());
+  oldDataInt.clear();
+  oldDataInt.resize(ivsa->getColumnIntLabels().size(), 379374569); //just a random dummy int
+  oldDataStr.clear();
+  oldDataStr.resize(ivsa->getColumnStrLabels().size(), "5IHXL5B4L6EEI2JA0MWVKGDICG874UR9"); //just a random dummy string
 }
 
 IvScreenAnnotation::~IvScreenAnnotation() {
@@ -179,11 +186,20 @@ double IvScreenAnnotation::update() {
   
   auto setColumnLabelFields = [this](const auto &data, const auto &dataInt, const auto &dataStr) {
     for(size_t i=1; i<data.size(); ++i)
-      columnLabelFields[i-1]->value.setValue(data[i]);
+      if(oldData[i]!=data[i]) {
+        columnLabelFields[i-1]->value.setValue(data[i]);
+        oldData[i]=data[i];
+      }
     for(size_t i=0; i<dataInt.size(); ++i)
-      columnIntLabelFields[i]->value.setValue(dataInt[i]);
+      if(oldDataInt[i]!=dataInt[i]) {
+        columnIntLabelFields[i]->value.setValue(dataInt[i]);
+        oldDataInt[i]=dataInt[i];
+      }
     for(size_t i=0; i<dataStr.size(); ++i)
-      columnStrLabelFields[i]->string.setValue(dataStr[i].c_str());
+      if(oldDataStr[i]!=dataStr[i]) {
+        columnStrLabelFields[i]->string.setValue(dataStr[i].c_str());
+        oldDataStr[i]=dataStr[i];
+      }
   };
   setColumnLabelFields(data, dataInt, dataStr);
 
@@ -208,7 +224,7 @@ double IvScreenAnnotation::update() {
     pathLine[idx]->numVertices.setValue(1+frame);
   pathMaxFrameRead=frame;
 
-  return std::numeric_limits<double>::quiet_NaN();
+  return data[0];
 }
 
 }

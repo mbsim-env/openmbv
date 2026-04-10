@@ -60,7 +60,6 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soSwitch->ref();
   soSep=new SoSeparator;
   objectMap.emplace(soSep, this);
-  soSep->renderCaching.setValue(SoSeparator::OFF); // a object at least moves (so disable caching)
   soSwitch->addChild(soSep);
 
   updateEnable();

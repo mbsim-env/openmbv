@@ -54,8 +54,6 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
 
   // create so
   auto *sep=new SoSeparator; // to enable caching
-  sep->renderCaching.setValue(SoSeparator::ON);
-  sep->boundingBoxCaching.setValue(SoSeparator::ON);
   soSepRigidBody->addChild(sep);
 
   auto hashData = make_tuple(
@@ -123,7 +121,6 @@ IvBody::IvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
       materialNode->diffuseColor.connectFrom(&mat->diffuseColor);
       materialNode->specularColor.connectFrom(&mat->specularColor);
     }
-    sep->renderCaching.setValue(SoSeparator::AUTO);
   }
 
   // scale ref/localFrame
@@ -199,8 +196,6 @@ void IvBody::calculateEdges(const string& fullName, double creaseEdges, bool bou
 
 void IvBody::addEdgesToScene() {
   std::shared_ptr<OpenMBV::IvBody> ivb=std::static_pointer_cast<OpenMBV::IvBody>(object);
-  soOutLineSep->renderCaching.setValue(SoSeparator::ON);
-  soOutLineSep->boundingBoxCaching.setValue(SoSeparator::ON);
   soOutLineSep->addChild(edgeCalc->getCoordinates());
   if(ivb->getCreaseEdges()>=0) soOutLineSep->addChild(edgeCalc->getCreaseEdges());
   if(ivb->getBoundaryEdges()) soOutLineSep->addChild(edgeCalc->getBoundaryEdges());

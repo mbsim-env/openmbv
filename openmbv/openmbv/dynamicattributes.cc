@@ -110,6 +110,9 @@ double DynamicAttributes::update() {
     convert(objectEnable, da->getObjectEnable());
     convert(bodyDrawMethod, da->getBodyDrawMethod());
     convert(dynamicColoredBodyTransparency, da->getDynamicColoredBodyTransparency());
+
+    oldData.clear();
+    oldData.resize(da->getDataSize(), numeric_limits<OpenMBV::Float>::quiet_NaN());
   }
 
   // read from hdf5
@@ -118,10 +121,17 @@ double DynamicAttributes::update() {
 
   // set scene values
   size_t idxData = 0;
-  auto upd = [&data, &idxData](auto &pd, const function<void(typename std::remove_reference_t<decltype(pd)>::value_type::type, double)>& set) {
+  auto upd = [this, &data, &idxData](auto &pd, const function<void(typename std::remove_reference_t<decltype(pd)>::value_type::type, double)>& set) {
+    bool dataChanged = false;
     for(size_t idxPD=0; idxPD<pd.size(); ++idxPD) {
-      if(!pd[idxPD].skip)
+      if(!pd[idxPD].skip) {
         idxData++;
+        dataChanged = oldData[idxData] != data[idxData];
+        if(dataChanged)
+          oldData[idxData] = data[idxData];
+      }
+      if(!dataChanged)
+        continue;
       if(pd[idxPD].obj)
         set(pd[idxPD].obj, data[idxData]);
     }

@@ -52,6 +52,9 @@ class DynamicIvBody : public Body {
     std::vector<OpenMBV::Float> data;
     std::vector<int> dataInt;
     std::vector<std::string> dataStr;
+    std::vector<OpenMBV::Float> oldData;
+    std::vector<int> oldDataInt;
+    std::vector<std::string> oldDataStr;
   private:
     bool runtimeCheckDone { false };
 };

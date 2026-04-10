@@ -55,6 +55,7 @@ class DynamicAttributes : public Body {
 
     Object* getByPath(const std::string &path);
     bool pathSearchDone { false };
+    std::vector<OpenMBV::Float> oldData;
 };
 
 }

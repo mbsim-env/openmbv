@@ -53,6 +53,10 @@ class IvScreenAnnotation : public Body {
     int pathMaxFrameRead;
     std::vector<SoPath*> pathPath;
     std::unique_ptr<SoGetMatrixAction> gma;
+
+    std::vector<OpenMBV::Float> oldData;
+    std::vector<int> oldDataInt;
+    std::vector<std::string> oldDataStr;
 };
 
 }

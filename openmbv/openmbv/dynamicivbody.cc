@@ -139,6 +139,13 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   if(!soIv)
     return;
   soSep->addChild(soIv);
+
+  oldData.clear();
+  oldData.resize(divb->getDataSize(), numeric_limits<OpenMBV::Float>::quiet_NaN());
+  oldDataInt.clear();
+  oldDataInt.resize(divb->getDataIntSize(), 379374569); // just a random dummy int
+  oldDataStr.clear();
+  oldDataStr.resize(divb->getDataStrSize(), "5IHXL5B4L6EEI2JA0MWVKGDICG874UR9"); //just a random dummy string
 }
 
 DynamicIvBody::~DynamicIvBody() = default;
@@ -179,9 +186,13 @@ double DynamicIvBody::update() {
   {
     data=divb->getRow(frame);
     // set scene values
-    if(divb->getScalarData())
+    if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataSize(); ++i)
-        dataNodeScalar[i]->value.setValue(data[i]);
+        if(data[i]!=oldData[i]) {
+          dataNodeScalar[i]->value.setValue(data[i]);
+          oldData[i]=data[i];
+        }
+    }
     else
       dataNodeVector->value.setValuesPointer(divb->getDataSize(), data.data());
     ret = data[0];
@@ -189,18 +200,26 @@ double DynamicIvBody::update() {
   if(divb->getDataIntSize()>0) {
     dataInt=divb->getRowInt(frame);
     // set scene values
-    if(divb->getScalarData())
+    if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataIntSize(); ++i)
-        dataIntNodeScalar[i]->value.setValue(dataInt[i]);
+        if(dataInt[i]!=oldDataInt[i]) {
+          dataIntNodeScalar[i]->value.setValue(dataInt[i]);
+          oldDataInt[i]=dataInt[i];
+        }
+    }
     else
       dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
   }
   if(divb->getDataStrSize()>0) {
     dataStr=divb->getRowStr(frame);
     // set scene values
-    if(divb->getScalarData())
+    if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
-        dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str());
+        if(dataStr[i]!=oldDataStr[i]) {
+          dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str());
+          oldDataStr[i]=dataStr[i];
+        }
+    }
     else {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
         dataStrNodeVector->string.set1Value(i, dataStr[i].c_str());
