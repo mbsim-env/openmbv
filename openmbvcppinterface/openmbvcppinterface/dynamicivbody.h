@@ -44,20 +44,24 @@ namespace OpenMBV {
       const std::string& getIvContent() { return ivContent; }
 
       /** The number of float data in the HDF5 file including the first data which must be the OpenMBV time.
-       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_data" or
-       * "openmbv_dynamicivbody_data_0", "openmbv_dynamicivbody_data_1", see setScalarData. */
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_data.value" or
+       * "openmbv_dynamicivbody_data_0.value", "openmbv_dynamicivbody_data_1.value", see setScalarData.
+       * The field is a single-value field. */
       void setDataSize(size_t s) { dataSize = s; }
       size_t getDataSize() { return dataSize; }
 
       /** The number of integer data in the HDF5 file.
-       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataInt" or
-       * "openmbv_dynamicivbody_dataInt_0", "openmbv_dynamicivbody_dataInt_1", see setScalarData. */
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataInt.value" or
+       * "openmbv_dynamicivbody_dataInt_0.value", "openmbv_dynamicivbody_dataInt_1.value", see setScalarData.
+       * The field is a single-value field. */
       void setDataIntSize(size_t s) { dataIntSize = s; }
       size_t getDataIntSize() { return dataIntSize; }
 
       /** The number of string data in the HDF5 file.
-       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataStr" or
-       * "openmbv_dynamicivbody_dataStr_0", "openmbv_dynamicivbody_dataStr_1", see setScalarData. */
+       * The data can be accessed in the IV file as a node/field named "openmbv_dynamicivbody_dataStr.string" or
+       * "openmbv_dynamicivbody_dataStr_0.string", "openmbv_dynamicivbody_dataStr_1.string", see setScalarData.
+       * For the scalar case the field is a multi-value field where the string from HDF5 is split by "\n"
+       * and each line is set as a item. */
       void setDataStrSize(size_t s) { dataStrSize = s; }
       size_t getDataStrSize() { return dataStrSize; }
 

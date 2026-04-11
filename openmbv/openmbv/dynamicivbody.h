@@ -48,7 +48,7 @@ class DynamicIvBody : public Body {
     SoAsciiText *dataStrNodeVector;
     std::vector<SoShaderParameter1f*> dataNodeScalar;
     std::vector<SoShaderParameter1i*> dataIntNodeScalar;
-    std::vector<SoInfo*> dataStrNodeScalar;
+    std::vector<SoAsciiText*> dataStrNodeScalar;
     std::vector<OpenMBV::Float> oldData;
     std::vector<int> oldDataInt;
     std::vector<std::string> oldDataStr;

@@ -28,6 +28,7 @@
 #include "openmbvcppinterface/dynamicivbody.h"
 #include <GL/glext.h>
 #include <QMessageBox>
+#include <boost/algorithm/string/split.hpp>
 
 using namespace std;
 
@@ -93,7 +94,13 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
     scalar(dataIntNodeScalar, divb->getDataIntSize(), dataInt, "dataInt",
            [this,&dataInt](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
     scalar(dataStrNodeScalar, divb->getDataStrSize(), dataStr, "dataStr",
-           [this,&dataStr](int i){ dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str()); });
+           [this,&dataStr](int i){
+             vector<string> dataStrSplit;
+             boost::split(dataStrSplit, dataStr[i], boost::is_any_of("\n"));
+             dataStrNodeScalar[i]->string.setNum(dataStrSplit.size());
+             for(size_t j=0; j<dataStrSplit.size(); ++j)
+               dataStrNodeScalar[i]->string.set1Value(j, dataStrSplit[j].c_str());
+           });
   }
   else {
     dataNodeVector = new SoShaderParameterArray1f;
@@ -219,7 +226,11 @@ double DynamicIvBody::update() {
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
         if(dataStr[i]!=oldDataStr[i]) {
-          dataStrNodeScalar[i]->string.setValue(dataStr[i].c_str());
+          vector<string> dataStrSplit;
+          boost::split(dataStrSplit, dataStr[i], boost::is_any_of("\n"));
+          dataStrNodeScalar[i]->string.setNum(dataStrSplit.size());
+          for(size_t j=0; j<dataStrSplit.size(); ++j)
+            dataStrNodeScalar[i]->string.set1Value(j, dataStrSplit[j].c_str());
           oldDataStr[i]=dataStr[i];
         }
     }

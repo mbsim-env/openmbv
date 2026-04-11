@@ -39,8 +39,10 @@ namespace OpenMBV {
    * to ensure that the aspect ratio is always 1:1, see setScale1To1At.
    *
    * The dynamic data of this object is defined by the user, see setColumnLabels. For each column a named node is created
-   * which can be accessed from the IV file. The node name is the column label and the field "value" of this node holds the dynamic
-   * data of the column.
+   * which can be accessed from the IV file. The node name is the column label and the field "value" for float and int
+   * and "string" for string of this node holds the dynamic data of the column.
+   * The float and int field is a single-value field.
+   * The string field is a multi-value field where the string from HDF5 is split by "\n" and each line is set as a item.
    *
    * As e.g. RigidBody this object also provides drawing a path. The path point for each frame is defined by the origin of the node
    * named "OpenMBVIvScreenAnnotationPathOrigin" in the IV file. If no such node exists, no path is drawn.

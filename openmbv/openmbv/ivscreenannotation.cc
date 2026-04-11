@@ -24,6 +24,7 @@
 #include "utils.h"
 #include <Inventor/nodes/SoAlphaTest.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <boost/algorithm/string/split.hpp>
 
 using namespace std;
 
@@ -79,7 +80,7 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
 
   columnStrLabelFields.resize(ivsa->getColumnStrLabels().size());
   for(size_t i=0; i<ivsa->getColumnStrLabels().size(); ++i) {
-    columnStrLabelFields[i] = new SoInfo;
+    columnStrLabelFields[i] = new SoAsciiText;
     sw->addChild(columnStrLabelFields[i]);
     columnStrLabelFields[i]->setName(ivsa->getColumnStrLabels()[i].c_str());
   }
@@ -197,7 +198,11 @@ double IvScreenAnnotation::update() {
       }
     for(size_t i=0; i<dataStr.size(); ++i)
       if(oldDataStr[i]!=dataStr[i]) {
-        columnStrLabelFields[i]->string.setValue(dataStr[i].c_str());
+        vector<string> dataStrSplit;
+        boost::split(dataStrSplit, dataStr[i], boost::is_any_of("\n"));
+        columnStrLabelFields[i]->string.setNum(dataStrSplit.size());
+        for(size_t j=0; j<dataStrSplit.size(); ++j)
+          columnStrLabelFields[i]->string.set1Value(j, dataStrSplit[j].c_str());
         oldDataStr[i]=dataStr[i];
       }
   };

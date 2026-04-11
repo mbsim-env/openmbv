@@ -25,8 +25,10 @@
 #include <Inventor/fields/SoSFInt32.h>
 #include <Inventor/fields/SoSFFloat.h>
 #include <Inventor/fields/SoSFString.h>
+#include <Inventor/fields/SoMFString.h>
 #include <Inventor/fields/SoSFBool.h>
 #include <string>
+#include <vector>
 
 namespace OpenMBVGUI {
 
@@ -54,7 +56,7 @@ class StringFormatEngine : public SoEngine {
     SoSFFloat   f0, f1, f2, f3, f4, f5, f6, f7, f8, f9;
     SoSFString  s0, s1, s2, s3, s4, s5, s6, s7, s8, s9;
     SoSFBool    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9;
-    SoSFString  format;
+    SoMFString  format;
     SoEngineOutput output;
  
     static void initClass();
@@ -64,8 +66,8 @@ class StringFormatEngine : public SoEngine {
     ~StringFormatEngine() override = default;
     void evaluate() override;
 
-    std::string currentFormat;
-    std::string convertedFormat;
+    std::vector<std::string> currentFormat;
+    std::vector<std::string> convertedFormat;
 };
 
 }
