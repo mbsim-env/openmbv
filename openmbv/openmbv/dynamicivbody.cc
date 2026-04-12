@@ -56,9 +56,6 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
       //h5 dataset
       data = std::move(row0);
   };
-  vector<OpenMBV::Float> data;
-  vector<int> dataInt;
-  vector<std::string> dataStr;
   create(data   , divb->getStateOffSet()   , divb->getRow(0));
   create(dataInt, divb->getStateIntOffSet(), divb->getRowInt(0));
   create(dataStr, divb->getStateStrOffSet(), divb->getRowStr(0));
@@ -80,7 +77,7 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
   sw->whichChild = SO_SWITCH_NONE;
 
   if(divb->getScalarData()) {
-    auto scalar = [sw](auto &dataNodeScalar, size_t size, const auto &data, const string &name, const function<void(int)> &set) {
+    auto scalar = [sw](auto &dataNodeScalar, size_t size, const string &name, const function<void(int)> &set) {
       dataNodeScalar.resize(size);
       for(size_t i=0; i<size; ++i) {
         dataNodeScalar[i] = new std::remove_pointer_t<typename std::remove_reference_t<decltype(dataNodeScalar)>::value_type>;
@@ -89,12 +86,12 @@ DynamicIvBody::DynamicIvBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeW
         set(i);
       }
     };
-    scalar(dataNodeScalar   , divb->getDataSize()   , data   , "data"   ,
-           [this,&data](int i){ dataNodeScalar[i]->value.setValue(data[i]); });
-    scalar(dataIntNodeScalar, divb->getDataIntSize(), dataInt, "dataInt",
-           [this,&dataInt](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
-    scalar(dataStrNodeScalar, divb->getDataStrSize(), dataStr, "dataStr",
-           [this,&dataStr](int i){
+    scalar(dataNodeScalar   , divb->getDataSize()   , "data"   ,
+           [this](int i){ dataNodeScalar[i]->value.setValue(data[i]); });
+    scalar(dataIntNodeScalar, divb->getDataIntSize(), "dataInt",
+           [this](int i){ dataIntNodeScalar[i]->value.setValue(dataInt[i]); });
+    scalar(dataStrNodeScalar, divb->getDataStrSize(), "dataStr",
+           [this](int i){
              vector<string> dataStrSplit;
              boost::split(dataStrSplit, dataStr[i], boost::is_any_of("\n"));
              dataStrNodeScalar[i]->string.setNum(dataStrSplit.size());
@@ -194,7 +191,7 @@ double DynamicIvBody::update() {
   double ret = 0;
 
   {
-    auto data=divb->getRow(frame);
+    data=divb->getRow(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataSize(); ++i)
@@ -208,7 +205,7 @@ double DynamicIvBody::update() {
     ret = data[0];
   }
   if(divb->getDataIntSize()>0) {
-    auto dataInt=divb->getRowInt(frame);
+    dataInt=divb->getRowInt(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataIntSize(); ++i)
@@ -221,7 +218,7 @@ double DynamicIvBody::update() {
       dataIntNodeVector->value.setValuesPointer(divb->getDataIntSize(), dataInt.data());
   }
   if(divb->getDataStrSize()>0) {
-    auto dataStr=divb->getRowStr(frame);
+    dataStr=divb->getRowStr(frame);
     // set scene values
     if(divb->getScalarData()) {
       for(size_t i=0; i<divb->getDataStrSize(); ++i)
