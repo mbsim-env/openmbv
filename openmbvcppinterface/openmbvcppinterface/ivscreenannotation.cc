@@ -51,6 +51,8 @@ DOMElement* IvScreenAnnotation::writeXMLFile(DOMNode *parent) {
     E(e)->addElementText(OPENMBV%"columnIntLabel", "'"+cl+"'");
   for(auto &cl : columnStrLabels)
     E(e)->addElementText(OPENMBV%"columnStrLabel", "'"+cl+"'");
+  if(fixedStrSize!=-1)
+    E(e)->addElementText(OPENMBV%"fixedStrSize", fixedStrSize);
 
   return nullptr;
 }
@@ -103,6 +105,10 @@ void IvScreenAnnotation::initializeUsingXML(DOMElement *element) {
     e = E(e)->getNextElementSiblingNamed(OPENMBV%"columnStrLabel");
   }
   setColumnStrLabels(columnStrLabels);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"fixedStrSize");
+  fixedStrSize = -1;
+  if(e)
+    fixedStrSize = E(e)->getText<int>();
 }
 
 void IvScreenAnnotation::setScale1To1(bool scale1To1_) {
@@ -186,7 +192,7 @@ void IvScreenAnnotation::createHDF5File() {
   }
 
   try {
-    dataStr=hdf5Group->createChildObject<H5::VectorSerie<string> >("dataStr")(columnStrLabels.size());
+    dataStr=hdf5Group->createChildObject<H5::VectorSerie<string> >("dataStr")(columnStrLabels.size(), H5::Options{}._fixedStrSize(fixedStrSize));
     vector<string> colStrNames(columnStrLabels.size());
     for(size_t i=0; i<columnStrLabels.size(); ++i)
       colStrNames[i] = columnStrLabels[i];

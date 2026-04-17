@@ -40,8 +40,11 @@ DOMElement* DynamicIvBody::writeXMLFile(DOMNode *parent) {
     E(e)->addElementText(OPENMBV%"dataSize", dataSize);
   if(dataIntSize>0)
     E(e)->addElementText(OPENMBV%"dataIntSize", dataIntSize);
-  if(dataStrSize>0)
+  if(dataStrSize>0) {
     E(e)->addElementText(OPENMBV%"dataStrSize", dataStrSize);
+    if(fixedStrSize!=-1)
+      E(E(e)->getFirstElementChildNamed(OPENMBV%"dataStrSize"))->setAttribute("fixedStrSize", fixedStrSize);
+  }
   E(e)->addElementText(OPENMBV%"scalarData", scalarData);
   if( stateOffSet.size() > 0 )
     E(e)->addElementText(OPENMBV%"stateOffSet", vector<Float>(stateOffSet));
@@ -71,8 +74,12 @@ void DynamicIvBody::initializeUsingXML(DOMElement *element) {
     dataIntSize = E(e)->getText<int>();
   e=E(element)->getFirstElementChildNamed(OPENMBV%"dataStrSize");
   dataStrSize = 0;
-  if(e)
+  if(e) {
     dataStrSize = E(e)->getText<int>();
+    fixedStrSize = -1;
+    if(E(e)->hasAttribute("fixedStrSize"))
+      fixedStrSize = boost::lexical_cast<int>(E(e)->getAttribute("fixedStrSize"));
+  }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scalarData");
   if(e)
     scalarData = E(e)->getText<bool>();
@@ -86,7 +93,7 @@ void DynamicIvBody::createHDF5File() {
 
   auto create = [this](int size, auto &data, const string &name){
     if(size>0) {
-      data=hdf5Group->createChildObject<std::remove_pointer_t<std::remove_reference_t<decltype(data)>>>(name)(size);
+      data=hdf5Group->createChildObject<std::remove_pointer_t<std::remove_reference_t<decltype(data)>>>(name)(size, H5::Options{}._fixedStrSize(fixedStrSize));
       vector<string> columns;
       columns.reserve(size);
       for(int i=0; i<size; ++i)

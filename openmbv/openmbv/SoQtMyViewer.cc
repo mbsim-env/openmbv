@@ -104,7 +104,7 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
     timeSep->addChild(trans);
     auto *fontStyle=new SoFontStyle;
     fontStyle->size.setValue(textHeight);
-    fontStyle->family=SoFontStyle::SANS;
+    fontStyle->family=SoFontStyle::TYPEWRITER;
     timeSep->addChild(fontStyle);
     timeSep->addChild(MainWindow::getInstance()->getTimeString());
   }

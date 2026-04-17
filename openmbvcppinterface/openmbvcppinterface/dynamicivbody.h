@@ -62,7 +62,7 @@ namespace OpenMBV {
        * "openmbv_dynamicivbody_dataStr_0.string", "openmbv_dynamicivbody_dataStr_1.string", see setScalarData.
        * For the scalar case the field is a multi-value field where the string from HDF5 is split by "\n"
        * and each line is set as a item. */
-      void setDataStrSize(size_t s) { dataStrSize = s; }
+      void setDataStrSize(size_t s, int fss = -1) { dataStrSize = s; fixedStrSize = fss; }
       size_t getDataStrSize() { return dataStrSize; }
 
       /** If true each data can be accessed using a separate node/single-value-field "..._<number>" see above.
@@ -120,6 +120,7 @@ namespace OpenMBV {
       std::string ivFileName;
       std::string ivContent;
 
+      int fixedStrSize { -1 };
       size_t dataSize { 0 };
       size_t dataIntSize { 0 };
       size_t dataStrSize { 0 };

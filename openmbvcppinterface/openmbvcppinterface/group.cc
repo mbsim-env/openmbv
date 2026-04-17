@@ -182,10 +182,10 @@ void Group::write(bool writeXMLFile, bool writeH5File, bool embedXMLInH5) {
     string ombvx;
     DOMParser::serializeToString(writeXMLDoc().get(), ombvx);
     if(writeH5File)
-      hdf5File->createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, ombvx.length())->write({ombvx});
+      hdf5File->createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, H5::Options{}._fixedStrSize(ombvx.length()))->write({ombvx});
     else {
       H5::File file(h5FileName, H5::File::write);
-      file.createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, ombvx.length())->write({ombvx});
+      file.createChildObject<H5::SimpleDataset<vector<string>>>(ombvxContentPath)(1, H5::Options{}._fixedStrSize(ombvx.length()))->write({ombvx});
     }
   }
   // now walk all objects and createw the corresponding groups/datasets in the H5 file
