@@ -95,6 +95,7 @@ namespace OpenMBV {
       void addColumnStrLabel(const std::string &columnStrLabel_);
       const std::vector<std::string>& getColumnStrLabels() const;
       void setFixedStrSize(int fss) { fixedStrSize = fss; }
+      int getFixedStrSize() { return fixedStrSize; }
 
       void createHDF5File() override;
       void openHDF5File() override;
