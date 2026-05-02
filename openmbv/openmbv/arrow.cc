@@ -298,13 +298,13 @@ double Arrow::update() {
     data[1] = dataHDF5;
     data[2] = dataHDF5;
     SbVec3f W_F(dataHDF5[4], dataHDF5[5], dataHDF5[6]);
-    auto T_LW = Utils::cardan2Rotation(SbVec3f(dataHDF5[8], dataHDF5[9], dataHDF5[10]));
+    auto T_WL = Utils::cardan2Rotation(SbVec3f(dataHDF5[8], dataHDF5[9], dataHDF5[10]));
     SbVec3f L_F;
-    T_LW.multVec(W_F, L_F);
-    T_LW.invert(); // T_LW is now T_WL
-    { SbVec3f x; T_LW.multVec(SbVec3f(L_F[0],0     ,0)     , x); x.getValue(data[0][4], data[0][5], data[0][6]); }
-    { SbVec3f x; T_LW.multVec(SbVec3f(0     ,L_F[1],0)     , x); x.getValue(data[1][4], data[1][5], data[1][6]); }
-    { SbVec3f x; T_LW.multVec(SbVec3f(0     ,0     ,L_F[2]), x); x.getValue(data[2][4], data[2][5], data[2][6]); }
+    T_WL.multVec(W_F, L_F); // multVec does v*M (not M*v)
+    T_WL.invert(); // T_WL is now T_LW
+    { SbVec3f x; T_WL.multVec(SbVec3f(L_F[0],0     ,0)     , x); x.getValue(data[0][4], data[0][5], data[0][6]); }
+    { SbVec3f x; T_WL.multVec(SbVec3f(0     ,L_F[1],0)     , x); x.getValue(data[1][4], data[1][5], data[1][6]); }
+    { SbVec3f x; T_WL.multVec(SbVec3f(0     ,0     ,L_F[2]), x); x.getValue(data[2][4], data[2][5], data[2][6]); }
   }
 
   // path

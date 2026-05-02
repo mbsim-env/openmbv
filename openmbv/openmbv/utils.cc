@@ -222,20 +222,26 @@ SoSeparator* Utils::soFrame(double size, double offset, bool pickBBoxAble, SoSca
 SbRotation Utils::cardan2Rotation(const SbVec3f &c) {
   float a, b, g;
   c.getValue(a,b,g);
+  float sina = sin(a);
+  float cosa = cos(a);
+  float sinb = sin(b);
+  float cosb = cos(b);
+  float sing = sin(g);
+  float cosg = cos(g);
   return SbMatrix(
-    cos(b)*cos(g),
-    -cos(b)*sin(g),
-    sin(b),
+    cosb*cosg,
+    -cosb*sing,
+    sinb,
     0.0,
 
-    cos(a)*sin(g)+sin(a)*sin(b)*cos(g),
-    cos(a)*cos(g)-sin(a)*sin(b)*sin(g),
-    -sin(a)*cos(b),
+    cosa*sing+sina*sinb*cosg,
+    cosa*cosg-sina*sinb*sing,
+    -sina*cosb,
     0.0,
 
-    sin(a)*sin(g)-cos(a)*sin(b)*cos(g),
-    sin(a)*cos(g)+cos(a)*sin(b)*sin(g),
-    cos(a)*cos(b),
+    sina*sing-cosa*sinb*cosg,
+    sina*cosg+cosa*sinb*sing,
+    cosa*cosb,
     0.0,
 
     0.0,
