@@ -30,6 +30,7 @@
 #include <QMenu>
 #include <hdf5serie/vectorserie.h>
 #include "editors.h"
+#include "openmbvcppinterface/arrow.h"
 
 namespace OpenMBV {
   class Arrow;
@@ -41,19 +42,27 @@ class Arrow : public DynamicColoredBody {
   Q_OBJECT
   protected:
     std::shared_ptr<OpenMBV::Arrow> arrow;
-    SoSwitch *soPathSwitch, *soArrowSwitch;
-    SoCoordinate3 *pathCoord, *lineCoord;
+    SoSwitch *soPathSwitch;
+    std::array<SoSwitch*,3> soArrowSwitch { nullptr, nullptr, nullptr };
+    std::array<SoSwitch*,3> soOutLineSwitch { nullptr, nullptr, nullptr };
+    std::array<SoSeparator*,3> soOutLineSep { nullptr, nullptr, nullptr };
+    SoCoordinate3 *pathCoord;
+    std::array<SoCoordinate3*,3> lineCoord { nullptr, nullptr, nullptr };
     SoLineSet *pathLine;
-    SoTranslation *toPoint, *bTrans;
-    SoRotation *rotation1, *rotation2;
+    std::array<SoTranslation*,3> toPoint, bTrans;
+    std::array<SoRotation*,3> rotation1, rotation2;
     int pathMaxFrameRead;
     bool pathNewLine;
     double update() override;
-    SoScale *scale1, *scale2;
+    double updateComponents(int c);
+    std::array<SoScale*,3> scale1, scale2;
     double headLength;
-    std::vector<OpenMBV::Float> data;
-    double length, scaleLength;
+    OpenMBV::Arrow::Components components;
+    std::array<std::vector<OpenMBV::Float>,3> data;
+    std::array<double,3> length;
+    double scaleLength;
     void createProperties() override;
+    void ctorComponents(int c);
   public:
     Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem, SoGroup *soParent, int ind);
     QString getInfo() override;

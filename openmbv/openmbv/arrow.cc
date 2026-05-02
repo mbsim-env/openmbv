@@ -26,7 +26,6 @@
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include "utils.h"
-#include "openmbvcppinterface/arrow.h"
 #include <cfloat>
 
 using namespace std;
@@ -47,8 +46,6 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   // read XML
   headLength=arrow->getHeadLength();
   scaleLength=arrow->getScaleLength();
-  double headDiameter=arrow->getHeadDiameter();
-  double diameter=arrow->getDiameter();
 
   // create so
   // path
@@ -69,49 +66,70 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
   pathMaxFrameRead=-1;
   pathNewLine=true;
 
+  components = arrow->getComponents();
+  if(components==OpenMBV::Arrow::vectorForm)
+    ctorComponents(0);
+  else {
+    ctorComponents(0);
+    ctorComponents(1);
+    ctorComponents(2);
+  }
+}
+
+void Arrow::ctorComponents(int c) {
+  double headDiameter=arrow->getHeadDiameter();
+  double diameter=arrow->getDiameter();
+
   // separator for the arrow
-  soArrowSwitch=new SoSwitch;
-  soSep->addChild(soArrowSwitch);
-  soArrowSwitch->whichChild.setValue(SO_SWITCH_ALL);
+  auto soArrowSep=new SoSeparator;
+  soSep->addChild(soArrowSep);
+  soArrowSwitch[c]=new SoSwitch;
+  soArrowSep->addChild(soArrowSwitch[c]);
+  soArrowSwitch[c]->whichChild.setValue(SO_SWITCH_ALL);
 
   if(arrow->getType()==OpenMBV::Arrow::line) {
     // Line
  
     // line
-    lineCoord=new SoCoordinate3;
-    soArrowSwitch->addChild(lineCoord);
+    lineCoord[c]=new SoCoordinate3;
+    soArrowSwitch[c]->addChild(lineCoord[c]);
     auto *ls=new SoLineSet;
-    soArrowSwitch->addChild(ls);
+    soArrowSwitch[c]->addChild(ls);
     ls->numVertices.set1Value(0, 2);
   }
   else {
     // Arrow
     // translate to To-Point
-    toPoint=new SoTranslation;
-    soArrowSwitch->addChild(toPoint);
+    toPoint[c]=new SoTranslation;
+    soArrowSwitch[c]->addChild(toPoint[c]);
     // rotation to dx,dy,dz
-    rotation1=new SoRotation;
-    soArrowSwitch->addChild(rotation1);
-    rotation2=new SoRotation;
-    soArrowSwitch->addChild(rotation2);
+    rotation1[c]=new SoRotation;
+    soArrowSwitch[c]->addChild(rotation1[c]);
+    rotation2[c]=new SoRotation;
+    soArrowSwitch[c]->addChild(rotation2[c]);
     // arrow separator
     auto *arrowSep=new SoSeparator;
-    soArrowSwitch->addChild(arrowSep);
+    soArrowSwitch[c]->addChild(arrowSep);
     // add arrow twice for type==bothHeads with half length: mirrored by x-z-plane and moved
     if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       auto *bScale=new SoScale;
-      soArrowSwitch->addChild(bScale);
+      soArrowSwitch[c]->addChild(bScale);
       // scale y by -1 to get the mirrored arrow and scale x by -1 to get the same vertex ordering without changing the geometry
       bScale->scaleFactor.setValue(-1,-1,1);
-      bTrans=new SoTranslation;
-      soArrowSwitch->addChild(bTrans);
-      soArrowSwitch->addChild(arrowSep);
+      bTrans[c]=new SoTranslation;
+      soArrowSwitch[c]->addChild(bTrans[c]);
+      soArrowSwitch[c]->addChild(arrowSep);
     }
     // full scale (l<2*headLength)
-    scale1=new SoScale;
-    arrowSep->addChild(scale1);
+    scale1[c]=new SoScale;
+    arrowSep->addChild(scale1[c]);
     // outline
-    arrowSep->addChild(soOutLineSwitch);
+    soOutLineSwitch[c] = new SoSwitch;
+    soOutLineSwitch[c]->whichChild.connectFrom(&DynamicColoredBody::soOutLineSwitch->whichChild);
+    soOutLineSep[c] = new SoSeparator;
+    soOutLineSwitch[c]->addChild(soOutLineSep[c]);
+    soOutLineSep[c]->addChild(DynamicColoredBody::soOutLineSep->getChild(0));
+    arrowSep->addChild(soOutLineSwitch[c]);
     // trans1
     auto *trans1=new SoTranslation;
     arrowSep->addChild(trans1);
@@ -141,8 +159,8 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     arrowSep->addChild(trans2);
     trans2->translation.setValue(0, -headLength/2, 0);
     // scale only arrow not head (l>2*headLength)
-    scale2=new SoScale;
-    arrowSep->addChild(scale2);
+    scale2[c]=new SoScale;
+    arrowSep->addChild(scale2[c]);
     // trans2
     auto *trans3=new SoTranslation;
     arrowSep->addChild(trans3);
@@ -154,8 +172,10 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
     cylinder->height.setValue(headLength);
 
     // outline
+    auto *olSep=new SoSeparator;
+    soOutLineSep[c]->addChild(olSep);
     auto *transLO1=new SoTranslation;
-    soOutLineSep->addChild(transLO1);
+    olSep->addChild(transLO1);
     transLO1->translation.setValue(0, -headLength, 0);
 
     auto outlineCircle = [](double diameter) {
@@ -178,33 +198,33 @@ Arrow::Arrow(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *paren
       return cylOL;
     };
     auto cylOL1 = outlineCircle(headDiameter);
-    soOutLineSep->addChild(cylOL1);
+    olSep->addChild(cylOL1);
     auto *cylOL2 = outlineCircle(diameter);
-    soOutLineSep->addChild(cylOL2);
+    olSep->addChild(cylOL2);
     // add the head outline twice for double heads
     if(arrow->getType()==OpenMBV::Arrow::fromDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::toDoubleHead ||
        arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
       dTrans=new SoTranslation;
-      soOutLineSep->addChild(dTrans);
+      olSep->addChild(dTrans);
       dTrans->translation.setValue(0, -dTranslate, 0);
-      soOutLineSep->addChild(cylOL1);
-      soOutLineSep->addChild(cylOL2);
+      olSep->addChild(cylOL1);
+      olSep->addChild(cylOL2);
       dTrans=new SoTranslation;
-      soOutLineSep->addChild(dTrans);
+      olSep->addChild(dTrans);
       dTrans->translation.setValue(0, dTranslate, 0);
     }
     // for type==bothHeads do not draw the middle outline circle
     if(arrow->getType()!=OpenMBV::Arrow::bothHeads && arrow->getType()!=OpenMBV::Arrow::bothDoubleHeads) {
-      soOutLineSep->addChild(scale2);
+      olSep->addChild(scale2[c]);
       auto *transLO2=new SoTranslation;
-      soOutLineSep->addChild(transLO2);
+      olSep->addChild(transLO2);
       transLO2->translation.setValue(0, -headLength, 0);
-      soOutLineSep->addChild(cylOL2);
+      olSep->addChild(cylOL2);
     }
   }
 }
- 
+
 void Arrow::createProperties() {
   DynamicColoredBody::createProperties();
 
@@ -238,6 +258,15 @@ void Arrow::createProperties() {
     });
     typeEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getType, &OpenMBV::Arrow::setType);
 
+    vector<tuple<int, string, QIcon, string>> list {
+      make_tuple(OpenMBV::Arrow::vectorForm,        "Vector form",         QIcon(), "Arrow::components::vectorForm"),
+      make_tuple(OpenMBV::Arrow::componentsInWorld, "Components in World", QIcon(), "Arrow::components::componentsInWorld"),
+    };
+    if(arrow->getRow(0).size()==11)
+      list.emplace_back(OpenMBV::Arrow::componentsInLocal, "Components in Local", QIcon(), "Arrow::components::componentsInLocal");
+    auto *componentsEditor=new ComboBoxEditor(properties, QIcon(), "Components", list);
+    componentsEditor->setOpenMBVParameter(arrow, &OpenMBV::Arrow::getComponents, &OpenMBV::Arrow::setComponents);
+
     auto *referencePointEditor=new ComboBoxEditor(properties, QIcon(), "Reference Point", {
       make_tuple(OpenMBV::Arrow::toPoint,   "To point",   QIcon(), "Arrow::referencePoint::toPoint"),
       make_tuple(OpenMBV::Arrow::fromPoint, "From point", QIcon(), "Arrow::referencePoint::fromPoint"),
@@ -251,47 +280,35 @@ void Arrow::createProperties() {
 }
 
 double Arrow::update() {
-  int frame=MainWindow::getInstance()->getFrame()[0];
   // read from hdf5
-  data=arrow->getRow(frame);
+  auto dataHDF5=arrow->getRow(MainWindow::getInstance()->getFrame()[0]);
 
-  // convert data from referencePoint to toPoint reference
-  if(arrow->getReferencePoint()==OpenMBV::Arrow::fromPoint) {
-    data[1]+=data[4]*arrow->getScaleLength();
-    data[2]+=data[5]*arrow->getScaleLength();
-    data[3]+=data[6]*arrow->getScaleLength();
+  if(components==OpenMBV::Arrow::vectorForm)
+    data[0] = dataHDF5;
+  else if(components==OpenMBV::Arrow::componentsInWorld) {
+    data[0] = dataHDF5;
+    data[1] = dataHDF5;
+    data[2] = dataHDF5;
+                    data[0][5] = 0; data[0][6] = 0;
+    data[1][4] = 0;                 data[1][6] = 0;
+    data[2][4] = 0; data[2][5] = 0;
   }
-  else if(arrow->getReferencePoint()==OpenMBV::Arrow::midPoint) {
-    data[1]+=data[4]*arrow->getScaleLength()/2;
-    data[2]+=data[5]*arrow->getScaleLength()/2;
-    data[3]+=data[6]*arrow->getScaleLength()/2;
+  else if(components==OpenMBV::Arrow::componentsInLocal) {
+    data[0] = dataHDF5;
+    data[1] = dataHDF5;
+    data[2] = dataHDF5;
+    SbVec3f W_F(dataHDF5[4], dataHDF5[5], dataHDF5[6]);
+    auto T_LW = Utils::cardan2Rotation(SbVec3f(dataHDF5[8], dataHDF5[9], dataHDF5[10]));
+    SbVec3f L_F;
+    T_LW.multVec(W_F, L_F);
+    T_LW.invert(); // T_LW is now T_WL
+    { SbVec3f x; T_LW.multVec(SbVec3f(L_F[0],0     ,0)     , x); x.getValue(data[0][4], data[0][5], data[0][6]); }
+    { SbVec3f x; T_LW.multVec(SbVec3f(0     ,L_F[1],0)     , x); x.getValue(data[1][4], data[1][5], data[1][6]); }
+    { SbVec3f x; T_LW.multVec(SbVec3f(0     ,0     ,L_F[2]), x); x.getValue(data[2][4], data[2][5], data[2][6]); }
   }
- 
-  // convert data from fromHead representation to toHead representation
-  if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
-  {
-    // to-point_new=to-point_old-dv_old; dv_new=-dv_old
-    data[1]-=data[4]*arrow->getScaleLength();
-    data[2]-=data[5]*arrow->getScaleLength();
-    data[3]-=data[6]*arrow->getScaleLength();
-    data[4]*=-1.0;
-    data[5]*=-1.0;
-    data[6]*=-1.0;
-  }
-
-  // set scene values
-  double dx=data[4], dy=data[5], dz=data[6];
-  // handle negative scaleLength
-  double sl=scaleLength;
-  if(scaleLength<0) {
-    sl*=-1;
-    dx*=-1;
-    dy*=-1;
-    dz*=-1;
-  }
-  length=sqrt(dx*dx+dy*dy+dz*dz)*sl;
 
   // path
+  int frame=MainWindow::getInstance()->getFrame()[0];
   if(arrow->getPath()) {
     for(int i=pathMaxFrameRead+1; i<=frame; i++) {
       auto localData=arrow->getRow(i);
@@ -308,59 +325,106 @@ double Arrow::update() {
     pathMaxFrameRead=max(pathMaxFrameRead, frame);
   }
 
-  // if length is 0 do not draw
-  if(length<1e-10) {
-    soArrowSwitch->whichChild.setValue(SO_SWITCH_NONE);
-    soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
-    return data[0];
+  if(components==OpenMBV::Arrow::vectorForm) {
+    return updateComponents(0);
   }
   else {
-    soArrowSwitch->whichChild.setValue(SO_SWITCH_ALL);
+           updateComponents(0);
+           updateComponents(1);
+    return updateComponents(2);
+  }
+}
+
+double Arrow::updateComponents(int c) {
+  // convert data from referencePoint to toPoint reference
+  if(arrow->getReferencePoint()==OpenMBV::Arrow::fromPoint) {
+    data[c][1]+=data[c][4]*arrow->getScaleLength();
+    data[c][2]+=data[c][5]*arrow->getScaleLength();
+    data[c][3]+=data[c][6]*arrow->getScaleLength();
+  }
+  else if(arrow->getReferencePoint()==OpenMBV::Arrow::midPoint) {
+    data[c][1]+=data[c][4]*arrow->getScaleLength()/2;
+    data[c][2]+=data[c][5]*arrow->getScaleLength()/2;
+    data[c][3]+=data[c][6]*arrow->getScaleLength()/2;
+  }
+ 
+  // convert data from fromHead representation to toHead representation
+  if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
+  {
+    // to-point_new=to-point_old-dv_old; dv_new=-dv_old
+    data[c][1]-=data[c][4]*arrow->getScaleLength();
+    data[c][2]-=data[c][5]*arrow->getScaleLength();
+    data[c][3]-=data[c][6]*arrow->getScaleLength();
+    data[c][4]*=-1.0;
+    data[c][5]*=-1.0;
+    data[c][6]*=-1.0;
+  }
+
+  // set scene values
+  double dx=data[c][4], dy=data[c][5], dz=data[c][6];
+  // handle negative scaleLength
+  double sl=scaleLength;
+  if(scaleLength<0) {
+    sl*=-1;
+    dx*=-1;
+    dy*=-1;
+    dz*=-1;
+  }
+  length[c]=sqrt(dx*dx+dy*dy+dz*dz)*sl;
+
+  // if length is 0 do not draw
+  if(length[c]<1e-10) {
+    soArrowSwitch[c]->whichChild.setValue(SO_SWITCH_NONE);
+    soBBoxSwitch->whichChild.setValue(SO_SWITCH_NONE);
+    return data[c][0];
+  }
+  else {
+    soArrowSwitch[c]->whichChild.setValue(SO_SWITCH_ALL);
     if(drawBoundingBox()) soBBoxSwitch->whichChild.setValue(SO_SWITCH_ALL);
   }
 
   // if type==line: draw update line and exit
   if(arrow->getType()==OpenMBV::Arrow::line) {
-    if(diffuseColor[0]<0) setColor(data[7]);
-    lineCoord->point.set1Value(0, data[1], data[2], data[3]); // to point
-    lineCoord->point.set1Value(1, data[1]-dx*sl, data[2]-dy*sl, data[3]-dz*sl); // from point
-    return data[0];
+    if(diffuseColor[0]<0) setColor(data[c][7]);
+    lineCoord[c]->point.set1Value(0, data[c][1], data[c][2], data[c][3]); // to point
+    lineCoord[c]->point.set1Value(1, data[c][1]-dx*sl, data[c][2]-dy*sl, data[c][3]-dz*sl); // from point
+    return data[c][0];
   }
 
   // type!=line: draw arrow
 
   // for type==bothHeads: set translation of second arrow and draw two arrows with half length
   if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads) {
-    bTrans->translation.setValue(0, length, 0);
-    length/=2.0;
+    bTrans[c]->translation.setValue(0, length[c], 0);
+    length[c]/=2.0;
   }
 
   // scale factors
-  if(length<2*headLength)
-    scale1->scaleFactor.setValue(length/2/headLength,length/2/headLength,length/2/headLength);
+  if(length[c]<2*headLength)
+    scale1[c]->scaleFactor.setValue(length[c]/2/headLength,length[c]/2/headLength,length[c]/2/headLength);
   else
-    scale1->scaleFactor.setValue(1,1,1);
-  if(length>2*headLength)
-    scale2->scaleFactor.setValue(1,(length-headLength)/headLength,1);
+    scale1[c]->scaleFactor.setValue(1,1,1);
+  if(length[c]>2*headLength)
+    scale2[c]->scaleFactor.setValue(1,(length[c]-headLength)/headLength,1);
   else
-    scale2->scaleFactor.setValue(1,1,1);
+    scale2[c]->scaleFactor.setValue(1,1,1);
   // trans to To-Point
-  toPoint->translation.setValue(data[1], data[2], data[3]);
+  toPoint[c]->translation.setValue(data[c][1], data[c][2], data[c][3]);
   // rotation to dx,dy,dz
-  rotation1->rotation.setValue(SbVec3f(0, 0, 1), -atan2(dx,dy));
-  rotation2->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
+  rotation1[c]->rotation.setValue(SbVec3f(0, 0, 1), -atan2(dx,dy));
+  rotation2[c]->rotation.setValue(SbVec3f(1, 0, 0), atan2(dz,sqrt(dx*dx+dy*dy)));
   // mat
-  if(diffuseColor[0]<0) setColor(data[7]);
+  if(diffuseColor[0]<0) setColor(data[c][7]);
 
   // for type==bothHeads: reset half length
   if(arrow->getType()==OpenMBV::Arrow::bothHeads || arrow->getType()==OpenMBV::Arrow::bothDoubleHeads)
-    length*=2.0;
+    length[c]*=2.0;
 
-  return data[0];
+  return data[c][0];
 }
 
 QString Arrow::getInfo() {
-  if(data.empty()) update();
+  if(data[0].empty()) update();
 
   // convert data back from toHead to fromHead if type==fromHead or fromDoubleHead
   double drFactor=1;
@@ -368,16 +432,25 @@ QString Arrow::getInfo() {
   if(arrow->getType()==OpenMBV::Arrow::fromHead || arrow->getType()==OpenMBV::Arrow::fromDoubleHead)
   {
     drFactor=-1;
-    toMove[0]=-data[4]*arrow->getScaleLength();
-    toMove[1]=-data[5]*arrow->getScaleLength();
-    toMove[2]=-data[6]*arrow->getScaleLength();
+    toMove[0]=-data[0][4]*arrow->getScaleLength();
+    toMove[1]=-data[0][5]*arrow->getScaleLength();
+    toMove[2]=-data[0][6]*arrow->getScaleLength();
   }
 
-  return DynamicColoredBody::getInfo()+
-         QString("<hr width=\"10000\"/>")+
-         QString("<b>To-point:</b> %1, %2, %3<br/>").arg(data[1]+toMove[0]).arg(data[2]+toMove[1]).arg(data[3]+toMove[2])+
-         QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[4]*drFactor).arg(data[5]*drFactor).arg(data[6]*drFactor)+
-         QString("<b>Length:</b> %1").arg(length/abs(scaleLength));
+  QString ret(DynamicColoredBody::getInfo()+
+              QString("<hr width=\"10000\"/>")+
+              QString("<b>To-point:</b> %1, %2, %3<br/>").arg(data[0][1]+toMove[0]).arg(data[0][2]+toMove[1]).arg(data[0][3]+toMove[2])
+             );
+  if(components==OpenMBV::Arrow::vectorForm)
+    ret+=QString("<b>Vector:</b> %1, %2, %3<br/>").arg(data[0][4]*drFactor).arg(data[0][5]*drFactor).arg(data[0][6]*drFactor)+
+         QString("<b>Length:</b> %1").arg(length[0]/abs(scaleLength));
+  else {
+    QString frame(components==OpenMBV::Arrow::componentsInWorld ? "W" : "L");
+    ret+=QString("<b>Length %2_x:</b> %1<br/>").arg(length[0]/abs(scaleLength)).arg(frame)+
+         QString("<b>Length %2_y:</b> %1<br/>").arg(length[1]/abs(scaleLength)).arg(frame)+
+         QString("<b>Length %2_z:</b> %1").arg(length[2]/abs(scaleLength)).arg(frame);
+  }
+  return ret;
 }
 
 }

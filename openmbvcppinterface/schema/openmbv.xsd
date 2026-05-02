@@ -339,6 +339,7 @@
           <xs:element name="headDiameter" type="pv:lengthScalar"/>
           <xs:element name="headLength" type="pv:lengthScalar"/>
           <xs:element name="type" type="pv:stringFullEval"/>
+          <xs:element name="components" type="pv:stringFullEval" minOccurs="0"/>
           <xs:element name="referencePoint" minOccurs="0" type="pv:stringFullEval"/>
           <xs:element name="scaleLength" type="pv:nounitScalar"/>
         </xs:sequence> 

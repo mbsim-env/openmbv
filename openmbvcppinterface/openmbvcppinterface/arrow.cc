@@ -53,6 +53,13 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
     case bothDoubleHeads: typeStr="bothDoubleHeads"; break;
   }
   E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
+  string componentsStr;
+  switch(components) {
+    case vectorForm:        componentsStr="vectorForm";        break;
+    case componentsInWorld: componentsStr="componentsInWorld"; break;
+    case componentsInLocal: componentsStr="componentsInLocal"; break;
+  }
+  E(e)->addElementText(OPENMBV%"components", "'"+componentsStr+"'");
   string referencePointStr;
   switch(referencePoint) {
     case toPoint:   referencePointStr="toPoint";   break;
@@ -66,7 +73,7 @@ DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
 
 void Arrow::createHDF5File() {
   DynamicColoredBody::createHDF5File();
-  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(8);
+  data=hdf5Group->createChildObject<H5::VectorSerie<Float> >("data")(createLocalFrame ? 11 : 8);
   vector<string> columns;
   columns.emplace_back("Time");
   columns.emplace_back("toPoint x");
@@ -76,6 +83,11 @@ void Arrow::createHDF5File() {
   columns.emplace_back("delta y");
   columns.emplace_back("delta z");
   columns.emplace_back("color");
+  if(createLocalFrame) {
+    columns.emplace_back("alpha");
+    columns.emplace_back("beta");
+    columns.emplace_back("gamma");
+  }
   data->setColumnLabel(columns);
 }
 
@@ -113,6 +125,14 @@ void Arrow::initializeUsingXML(DOMElement *element) {
   if(typeStr=="fromDoubleHead")  setType(fromDoubleHead);
   if(typeStr=="toDoubleHead")    setType(toDoubleHead);
   if(typeStr=="bothDoubleHeads") setType(bothDoubleHeads);
+  e=E(element)->getFirstElementChildNamed(OPENMBV%"components");
+  if(e) {
+    auto name = X()%E(e)->getFirstTextChild()->getData();
+    string componentsStr=name.substr(1,name.length()-2);
+    if(componentsStr=="vectorForm")        setComponents(vectorForm);
+    if(componentsStr=="componentsInWorld") setComponents(componentsInWorld);
+    if(componentsStr=="componentsInLocal") setComponents(componentsInLocal);
+  }
   e=E(element)->getFirstElementChildNamed(OPENMBV%"referencePoint");
   if(e) {
     string name = X()%E(e)->getFirstTextChild()->getData();

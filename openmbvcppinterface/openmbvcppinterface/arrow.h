@@ -28,12 +28,24 @@ namespace OpenMBV {
 
   /** A arrow with zero, one or two heads
    *
+   * If the HDF5-Dataset also contains the optional values alpha, beta and gamma, then "components" = "componentsInLocal" is
+   * possible.
+   *
    * HDF5-Dataset: The HDF5 dataset of this object is a 2D array of
    * single or double precision values. Each row represents one dataset in time.
    * A row consists of the following columns in order given in
-   * world frame: time,
-   * "to" point x, "to" point y,
-   * "to" point z, delta x, delta y, delta z, color */
+   * world frame:
+   * time,
+   * "to" point x,
+   * "to" point y,
+   * "to" point z,
+   * delta x in world frame,
+   * delta y in world frame,
+   * delta z in world frame,
+   * color,
+   * (optional) cardan angle alpha of T_WL,
+   * (optional) cardan angle beta of T_WL,
+   * (optional) cardan angle gamma of T_WL */
   class Arrow : public DynamicColoredBody {
     friend class ObjectFactory;
     public:
@@ -45,6 +57,11 @@ namespace OpenMBV {
         fromDoubleHead,
         toDoubleHead,
         bothDoubleHeads
+      };
+      enum Components {
+        vectorForm,
+        componentsInWorld,
+        componentsInLocal,
       };
       enum ReferencePoint {
         toPoint,
@@ -60,7 +77,10 @@ namespace OpenMBV {
       double headLength{0.75};
       double diameter{0.25};
       double scaleLength{1};
+      bool createLocalFrame {false};
       Type type{toHead};
+      Components components{vectorForm};
+      int hdf5Size { -1 };
       ReferencePoint referencePoint{toPoint};
 
       Arrow();
@@ -75,11 +95,21 @@ namespace OpenMBV {
       template<typename T>
       void append(const T& row) {
         if(data==nullptr) throw std::runtime_error("can not append data to an environment object");
-        if(row.size()!=8) throw std::runtime_error("the dimension does not match");
+
+        if(hdf5Size==-1) {
+          if( createLocalFrame && row.size()!=11)
+            throw std::runtime_error("Need the columns t,x,y,z,dx,dy,dz,c,alpha,beta,gamma, but got "+std::to_string(row.size())+" columns");
+          if(!createLocalFrame && row.size()!= 8)
+            throw std::runtime_error("Need the columns t,x,y,z,dx,dy,dz,c, but got "+std::to_string(row.size())+" columns");
+          hdf5Size = row.size();
+        }
+        else if(static_cast<int>(row.size())!=hdf5Size)
+          throw std::runtime_error("The dimension does not match: need "+std::to_string(hdf5Size)+" but got "+std::to_string(row.size()));
+
         if(!std::isnan(dynamicColor))
         {
-          std::vector<Float> tmprow(8);
-          std::copy(&row[0], &row[8], tmprow.begin());
+          std::vector<Float> tmprow(hdf5Size);
+          std::copy(&row[0], &row[hdf5Size], tmprow.begin());
           tmprow[7]=dynamicColor;
           data->append(tmprow);
         }
@@ -88,7 +118,7 @@ namespace OpenMBV {
       }
 
       int getRows() override { return data?data->getRows():0; }
-      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(8); }
+      std::vector<Float> getRow(int i) override { return data?data->getRow(i):std::vector<Float>(11); }
 
       /** Convenience; see setHeadDiameter and setHeadLength */
       void setArrowHead(double diameter, double length) {
@@ -132,6 +162,21 @@ namespace OpenMBV {
       
       Type getType() { return type; }
       
+      
+      /** Set the components of the arrow.
+       * Use "vectorForm" to draw a single arrow;
+       * Use "componentsInWorld" to draw three arrows for the three components in world coordinate system;
+       * Use "componentsInLocal" to draw three arrows for the three components in local coordinate system
+       * (this is only possible if the data in the hdf5 file contains also the values alpha,beta and gamma);
+       *
+       * Default: "vectorForm".
+       */
+      void setComponents(Components components_) {
+        components=components_;
+      }
+      
+      Components getComponents() { return components; }
+
       /** Set the reference point of the arrow.
        * The reference point is the point being stored in the HDF5 file.
        * Use "toPoint" (the default) if the 'to' point is store in the HDF5 file;
@@ -150,6 +195,13 @@ namespace OpenMBV {
       }
 
       double getScaleLength() { return scaleLength; }
+
+      /** When the HDF5 file is created, create also the alpha,beta and gamma columns. */
+      void setCreateLocalFrame(bool l) {
+        createLocalFrame=l;
+      }
+
+      double getCreateLocalFrame() { return createLocalFrame; }
 
       /** Initializes the time invariant part of the object using a XML node */
       void initializeUsingXML(xercesc::DOMElement *element) override;
