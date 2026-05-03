@@ -250,24 +250,33 @@ Eval::Value PyEval::createFunctionIndep(int dim) const {
 }
 
 namespace {
-  string fixPythonIndentation(const string &str, const DOMElement *e) {
-    // fix python indentation
-    vector<string> lines;
-    boost::split(lines, str, boost::is_any_of("\n")); // split to a vector of lines
-    size_t indent=string::npos;
-    size_t lineNr=0;
-    for(auto it=lines.begin(); it!=lines.end(); ++it, ++lineNr) {
-      size_t pos=it->find_first_not_of(' '); // get first none space character
-      if(pos==string::npos) continue; // not found -> pure empty line -> do not modify
-      if(pos!=string::npos && (*it)[pos]=='#') continue; // found and first char is '#' -> pure comment line -> do not modify
-      // now we have a line with a python statement
-      if(indent==string::npos) indent=pos; // at the first python statement line use the current indent as indent for all others
-      if(it->substr(0, indent)!=string(indent, ' ')) // check if line starts with at least indent spaces ...
-        // ... if not its an indentation error
-        throw DOMEvalException("Unexpected indentation at line "+fmatvec::toString(lineNr)+": "+str, e);
-      *it=it->substr(indent); // remove the first indent spaces from the line
+  string preparePythonCode(const string &str, const DOMElement *e) {
+    // search the first meaningful character [iRealCh] (=none whitespace char, while skipping comments)
+    size_t iRealCh = 0;
+    while(iRealCh < str.size()) {
+      // skip whitespace
+      while(iRealCh < str.size() && std::isspace(static_cast<unsigned char>(str[iRealCh])))
+        ++iRealCh;
+      // skip comments starting with '#'
+      if(iRealCh < str.size() && str[iRealCh] == '#') {
+        while(iRealCh < str.size() && str[iRealCh] != '\n')
+          ++iRealCh;
+        continue; // after newline, continue skipping
+      }
+      // found a meaningful character
+      break;
     }
-    return boost::join(lines, "\n"); // join the lines to a single string
+    // search last newline
+    int iLastNL = iRealCh-1;
+    while(iLastNL >= 0 && str[iLastNL]!='\n')
+      --iLastNL;
+
+    if(static_cast<int>(iRealCh)-iLastNL==1)
+      // if no indent exists just use "str" and pretend empty lines to match line numbers of xml
+      return string(e?E(e)->getLineNumber()-1:0, '\n')+str;
+    else
+      // if indent exists pretend empty lines to match line numbers of xml and pretend "if True:" to enable proper python indentation
+      return string(e?max(E(e)->getLineNumber()-2,0):0, '\n')+"if True:\n"+str;
   }
 }
 
@@ -317,14 +326,14 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
     ostringstream err;
     try {
-      auto codetrim=fixPythonIndentation(code, e);
+      auto codePrepared=preparePythonCode(code, e);
       mbxmlutilsStaticDependencies.clear();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(uuidGen(codetrim), make_pair(Py_file_input, PyO()));
+        auto [it, created] = byteCodeMap.emplace(uuidGen(codePrepared), make_pair(Py_file_input, PyO()));
         if(created) {
-          it->second.second = PyO(Py_CompileStringExFlags(codetrim.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
+          it->second.second = PyO(Py_CompileStringExFlags(codePrepared.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
           if(!it->second.second) {
             byteCodeMap.erase(it);
             throw PythonException(__FILE__, __LINE__);
@@ -532,10 +541,11 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   {
     MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
     MBXMLUTILS_REDIR_STDERR(err);
-    auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_eval_input, PyO()));
+    auto strExpr = string(e?E(e)->getLineNumber()-1:0, '\n')+strtrim;
+    auto [it, created] = byteCodeMap.emplace(uuidGen(strExpr), make_pair(Py_eval_input, PyO()));
     bool error=false;
     if(created) {
-      it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<inline Python code>", Py_eval_input, &flags, 2));
+      it->second.second = PyO(Py_CompileStringExFlags(strExpr.c_str(), "<inline Python code>", Py_eval_input, &flags, 2));
       if(!it->second.second) {
         byteCodeMap.erase(it);
         PythonException dummy("", 0); // clear the python error
@@ -562,16 +572,16 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
     try {
       // ... evaluate as statement
 
-      strtrim=fixPythonIndentation(str, e);
+      auto strPrepared=preparePythonCode(str, e);
 
       // evaluate as statement
       mbxmlutilsStaticDependencies.clear();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
         MBXMLUTILS_REDIR_STDERR(err);
-        auto [it, created] = byteCodeMap.emplace(uuidGen(strtrim), make_pair(Py_file_input, PyO()));
+        auto [it, created] = byteCodeMap.emplace(uuidGen(strPrepared), make_pair(Py_file_input, PyO()));
         if(created) {
-          it->second.second = PyO(Py_CompileStringExFlags(strtrim.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
+          it->second.second = PyO(Py_CompileStringExFlags(strPrepared.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
           if(!it->second.second) {
             byteCodeMap.erase(it);
             throw PythonException(__FILE__, __LINE__);
