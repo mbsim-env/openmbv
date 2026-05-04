@@ -271,8 +271,8 @@ namespace {
     while(iLastNL >= 0 && str[iLastNL]!='\n')
       --iLastNL;
 
-    if(static_cast<int>(iRealCh)-iLastNL==1)
-      // if no indent exists just use "str" and pretend empty lines to match line numbers of xml
+    if(static_cast<int>(iRealCh)-iLastNL==1 || iRealCh==str.size())
+      // if no indent exists (this may also happen when not meaningful character was found at all) just use "str" and pretend empty lines to match line numbers of xml
       return string(e?E(e)->getLineNumber()-1:0, '\n')+str;
     else
       // if indent exists pretend empty lines to match line numbers of xml and pretend "if True:" to enable proper python indentation
