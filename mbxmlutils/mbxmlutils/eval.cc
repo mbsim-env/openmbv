@@ -394,7 +394,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     checkIfValueMatchesElement(ret, e);
 
     // handle 1 based index vectors and matrices
-    if(E(e)->isDerivedFrom(PV%"indexVector") or E(e)->isDerivedFrom(PV%"indexMatrix"))
+    if(E(e)->isDerivedFrom(PV%"indexVector") or E(e)->isDerivedFrom(PV%"indexMatrix") or E(e)->isDerivedFrom(PV%"indexFullEval")) {
       convertIndex(ret, true);
 
     // add filenames to dependencies
