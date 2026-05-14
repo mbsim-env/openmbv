@@ -1054,6 +1054,13 @@ void MyTouchWidget::zoom(int relPixel, float relAngle) {
 void MyTouchWidget::zoomPerspectiveCameraAngle(int relPixel) {
   float fac = pow(zoomFacPerPixel, relPixel);
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
+
+  // if called for a SoOrthographicCamera just call zoom since no camera angle exists
+  if(camera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
+    zoom(-relPixel, NOf);
+    return;
+  }
+
   auto* persCamera=static_cast<SoPerspectiveCamera*>(camera);
   float angle=initialZoomCameraHeightAngle/fac;
   persCamera->heightAngle.setValue(angle>M_PI ? M_PI : angle);
