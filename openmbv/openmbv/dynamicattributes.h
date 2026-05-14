@@ -53,7 +53,6 @@ class DynamicAttributes : public Body {
     DataList<Body*> bodyDrawMethod;
     DataList<DynamicColoredBody*> dynamicColoredBodyTransparency;
 
-    Object* getByPath(const std::string &path);
     bool pathSearchDone { false };
     std::vector<OpenMBV::Float> oldData;
 };

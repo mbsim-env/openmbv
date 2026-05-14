@@ -21,7 +21,6 @@
 #include "dynamiccoloredbody.h"
 #include "mainwindow.h"
 #include "dynamicattributes.h"
-#include <boost/algorithm/string/split.hpp>
 #include <openmbvcppinterface/dynamicattributes.h>
 
 using namespace std;
@@ -33,59 +32,6 @@ DynamicAttributes::DynamicAttributes(const std::shared_ptr<OpenMBV::Object> &obj
 }
 
 DynamicAttributes::~DynamicAttributes() = default;
-
-Object* DynamicAttributes::getByPath(const std::string &path) {
-  if(path[0]!='/' && path.substr(0,3)!="../") {
-    msg(Error)<<"Illegal path '"<<path<<"': must start with '/' or '../'."<<endl;
-    return nullptr;
-  }
-
-  // split path
-  vector<string> pathVec;
-  boost::split(pathVec, path, boost::is_any_of("/"));
-
-  size_t iStart = 0;
-  Object* obj = nullptr;
-  if(path[0]=='/' && path[1]=='/') {
-    // search root
-    obj = this;
-    while(obj->QTreeWidgetItem::parent())
-      obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
-    iStart = 2;
-  }
-  else if(path[0]=='.' && path[1]=='.' && path[2]=='/') {
-    // search base
-    obj = this;
-    for(iStart=0; iStart<pathVec.size(); ++iStart)
-      if(pathVec[iStart]=="..")
-        obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
-      else
-        break;
-  }
-  else {
-    msg(Error)<<"Illegal path '"<<path<<"': must start with '../' or '//'."<<endl;
-    return nullptr;
-  }
-
-  // search path
-
-  for(size_t i=iStart; i<pathVec.size(); ++i) {
-    bool found=false;
-    for(int c=0; c<obj->childCount(); ++c) {
-      if(obj->child(c)->text(0).toStdString()==pathVec[i]) {
-        obj = static_cast<Object*>(obj->child(c));
-        found=true;
-        break;
-      }
-    }
-    if(!found) {
-      msg(Error)<<"Illegal path '"<<path<<"': not found."<<endl;
-      return nullptr;
-    }
-  }
-
-  return obj;
-}
 
 double DynamicAttributes::update() {
   if(da->getRows()==0) return 0; // do nothing for environement objects
@@ -100,7 +46,7 @@ double DynamicAttributes::update() {
   
       using Obj = typename std::remove_reference_t<decltype(pd)>::value_type::type;
       for(auto &p : dapd) {
-        auto o = getByPath(p.path);
+        auto o = getObjectByPath(p.path, this);
         if(o && !dynamic_cast<Obj>(o))
           msg(Error)<<"The object at path '"<<p.path<<"' is not of type Object."<<endl;
         pd.emplace_back(Data<Obj>{static_cast<Obj>(o), p.skip});

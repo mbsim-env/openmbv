@@ -114,7 +114,7 @@ class NurbsDisk : public DynamicColoredBody {
     void createProperties() override;
 
     public:
-      void moveCameraWithSlot();
+      void moveCameraWith() override;
 };
 
 }

@@ -182,7 +182,7 @@ void NurbsDisk::createProperties() {
   //Add option to move camera with body
   auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,&QAction::triggered,this,[this](){
-    static_cast<NurbsDisk*>(properties->getParentObject())->moveCameraWithSlot();
+    static_cast<NurbsDisk*>(properties->getParentObject())->moveCameraWith();
   });
   properties->addContextAction(moveCameraWith);
 
@@ -242,8 +242,8 @@ QString NurbsDisk::getInfo() {
   return DynamicColoredBody::getInfo();
 }
 
-void NurbsDisk::moveCameraWithSlot() {
-  MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
+void NurbsDisk::moveCameraWith() {
+  MainWindow::getInstance()->moveCameraWith(this, &translation->translation, &rotation->rotation);
 }
 
 double NurbsDisk::update() {

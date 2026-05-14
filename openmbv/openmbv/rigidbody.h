@@ -58,7 +58,7 @@ class RigidBody : public DynamicColoredBody {
     RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentItem_, SoGroup *soParent, int ind);
     ~RigidBody() override;
     QString getInfo() override;
-    void moveCameraWithSlot();
+    void moveCameraWith() override;
 };
 
 }

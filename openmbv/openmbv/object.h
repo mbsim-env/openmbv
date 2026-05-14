@@ -82,6 +82,9 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     void deleteObjectSlot();
     void setBoundingBox(bool value);
     static std::map<SoNode*,Object*>& getObjectMap() { return objectMap; }
+    static Object* getObjectByPath(const std::string &path, Object *relTo);
+    std::string getAbsPath() const;
+    virtual void moveCameraWith() {}
   private:
     void replaceBBoxHighlight();
     bool isCloneToBeDeleted { false };

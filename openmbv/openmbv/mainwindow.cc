@@ -2108,14 +2108,38 @@ void MainWindow::saveWindowState() {
 void MainWindow::loadCamera() {
   loadCamera("");
 }
+
+const string moveCameraWithBodyKey("moveCameraWithBody=");
+
 void MainWindow::loadCamera(string filename) {
   if(filename.empty()) {
     QString fn=QFileDialog::getOpenFileName(nullptr, "Load camera", ".", "*.camera.iv");
     if(fn.isNull()) return;
     filename=fn.toStdString();
   }
+  ifstream f(filename);
+  string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+
+  if(content.substr(0, moveCameraWithBodyKey.size())==moveCameraWithBodyKey) {
+    auto posNL = content.find('\n');
+    auto path = content.substr(moveCameraWithBodyKey.size(), posNL-moveCameraWithBodyKey.size());
+    content = content.substr(posNL+1);
+    if(path.empty())
+      MainWindow::releaseCameraFromBodySlot();
+    else {
+      if(objectList->invisibleRootItem()->childCount()!=1)
+        msg(Info)<<"None or more then one file is loaded. Cannot apply move camera with body."<<endl;
+      auto relTo = static_cast<Object*>(objectList->invisibleRootItem()->child(0));
+      auto obj = Object::getObjectByPath(path, relTo);
+      if(obj)
+        obj->moveCameraWith();
+      else
+        msg(Info)<<"Path of move camera with object not found. Cannot apply move camera with body."<<endl;
+    }
+  }
+
   SoInput input;
-  input.openFile(filename.c_str());
+  input.setBuffer(content.data(), content.size());
   SoBase *newCamera;
   SoBase::read(&input, newCamera, SoCamera::getClassTypeId());
   if(newCamera->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
@@ -2135,15 +2159,35 @@ void MainWindow::loadCamera(string filename) {
   }
 }
 
+namespace {
+  const size_t bufInitSize = 10000;
+  string buf(bufInitSize, 0);
+  void * bufRealloc(void *, size_t size) {
+    buf.resize(size);
+    return buf.data();
+  }
+}
 void MainWindow::saveCamera() {
   QString filename=QFileDialog::getSaveFileName(nullptr, "Save camera", "openmbv.camera.iv", "*.camera.iv");
   if(filename.isNull()) return;
   if(!filename.endsWith(".camera.iv",Qt::CaseInsensitive))
     filename=filename+".camera.iv";
   SoOutput output;
-  output.openFile(filename.toStdString().c_str());
+  output.setBuffer(buf.data(), buf.size(), &bufRealloc);
   SoWriteAction wa(&output);
   wa.apply(glViewer->getCamera());
+  auto end = buf.find('\0');
+  if(end != std::string::npos)
+    buf.resize(end);
+
+  ofstream f(filename.toStdString());
+  f<<moveCameraWithBodyKey;
+  if(moveCameraWithBody)
+    f<<moveCameraWithBody->getAbsPath();
+  f<<endl;
+
+  f<<buf;
+  buf = string(bufInitSize, 0);
 }
 
 void MainWindow::exportCurrentAsIV() {
@@ -2244,10 +2288,11 @@ void MainWindow::releaseCameraFromBodySlot() {
   cameraPosition->vector.setValue(0,0,0);
   cameraOrientation->inRotation.disconnect();
   cameraOrientation->inRotation.setValue(0,0,0,1);
+  moveCameraWithBody = nullptr;
   frameNode->index.touch(); // enforce update
 }
 
-void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
+void MainWindow::moveCameraWith(const Object* obj, SoSFVec3f *pos, SoSFRotation *rot) {
   releaseCameraFromBodySlot();
   glViewer->getCamera()->orientation.setValue(glViewer->getCamera()->orientation.getValue()*rot->getValue().inverse());
   SbVec3f x=glViewer->getCamera()->position.getValue();
@@ -2257,6 +2302,7 @@ void MainWindow::moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot) {
   glViewer->getCamera()->position.setValue(yy);
   cameraPosition->vector.connectFrom(pos);
   cameraOrientation->inRotation.connectFrom(rot);
+  moveCameraWithBody = obj;
   frameNode->index.touch(); // enforce update
 }
 

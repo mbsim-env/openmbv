@@ -29,6 +29,7 @@
 #include "compoundrigidbody.h"
 #include "openmbvcppinterface/group.h"
 #include "utils.h"
+#include <boost/algorithm/string/split.hpp>
 
 using namespace std;
 
@@ -270,6 +271,69 @@ void Object::updateEnable() {
   walk(this, drawThisPath);
 
   soSwitch->whichChild.setValue(object->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+}
+
+Object* Object::getObjectByPath(const std::string &path, Object *relTo) {
+  if(path[0]!='/' && path.substr(0,3)!="../") {
+    msgStatic(Error)<<"Illegal path '"<<path<<"': must start with '/' or '../'."<<endl;
+    return nullptr;
+  }
+
+  // split path
+  vector<string> pathVec;
+  boost::split(pathVec, path, boost::is_any_of("/"));
+
+  size_t iStart = 0;
+  Object* obj = nullptr;
+  if(path[0]=='/' && path[1]=='/') {
+    // search root
+    obj = relTo;
+    while(obj->QTreeWidgetItem::parent())
+      obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
+    iStart = 2;
+  }
+  else if(path[0]=='.' && path[1]=='.' && path[2]=='/') {
+    // search base
+    obj = relTo;
+    for(iStart=0; iStart<pathVec.size(); ++iStart)
+      if(pathVec[iStart]=="..")
+        obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
+      else
+        break;
+  }
+  else {
+    msgStatic(Error)<<"Illegal path '"<<path<<"': must start with '../' or '//'."<<endl;
+    return nullptr;
+  }
+
+  // search path
+
+  for(size_t i=iStart; i<pathVec.size(); ++i) {
+    bool found=false;
+    for(int c=0; c<obj->childCount(); ++c) {
+      if(obj->child(c)->text(0).toStdString()==pathVec[i]) {
+        obj = static_cast<Object*>(obj->child(c));
+        found=true;
+        break;
+      }
+    }
+    if(!found) {
+      msgStatic(Error)<<"Illegal path '"<<path<<"': not found."<<endl;
+      return nullptr;
+    }
+  }
+
+  return obj;
+}
+
+string Object::getAbsPath() const {
+  string path;
+  auto obj = this;
+  while(obj->QTreeWidgetItem::parent()) {
+    path = obj->text(0).toStdString() + "/" + path;
+    obj = static_cast<Object*>(obj->QTreeWidgetItem::parent());
+  }
+  return "//"+path.substr(0, path.size()-1);
 }
 
 }

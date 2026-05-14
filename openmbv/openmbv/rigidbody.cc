@@ -130,7 +130,7 @@ void RigidBody::createProperties() {
     while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(rigidBody->QTreeWidgetItem::parent()))!=nullptr) {
       rigidBody=compoundRigidBodyParent;
     }
-    rigidBody->moveCameraWithSlot();
+    rigidBody->moveCameraWith();
   });
   properties->addContextAction(moveCameraWith);
 
@@ -178,8 +178,8 @@ RigidBody::~RigidBody() {
   localFrameScale->unref();
 }
 
-void RigidBody::moveCameraWithSlot() {
-  MainWindow::getInstance()->moveCameraWith(&translation->translation, &rotation->rotation);
+void RigidBody::moveCameraWith() {
+  MainWindow::getInstance()->moveCameraWith(this, &translation->translation, &rotation->rotation);
 }
 
 double RigidBody::update() {

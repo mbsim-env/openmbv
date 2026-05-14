@@ -269,6 +269,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     float nearPlaneValue;
     bool backgroundNeeded { true };
     std::set<Body*> pickUpdateSet;
+    const Object* moveCameraWithBody { nullptr };
   public:
 
     // coin uses a int (which consumes with padding 4 units) uniform for
@@ -321,7 +322,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
     bool getEnableFullScreen() { return enableFullScreen; }
-    void moveCameraWith(SoSFVec3f *pos, SoSFRotation *rot);
+    void moveCameraWith(const Object* obj, SoSFVec3f *pos, SoSFRotation *rot);
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
     BaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }
