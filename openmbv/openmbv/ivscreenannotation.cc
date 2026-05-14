@@ -40,6 +40,11 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
     MainWindow::getInstance()->getScreenAnnotationList()->addChild(sep);
   else
     MainWindow::getInstance()->getScreenAnnotationList()->replaceChild(static_cast<IvScreenAnnotation*>(clone)->sep, sep);
+  // IvScreenAnnotation SoNode's are childs of another parent, not the usual parent like for all other type.
+  // To enable the enable/disable switch of Object we create here a SoSwitch node which is connected to the value of Object::soSwitch.
+  auto *saSW = new SoSwitch;
+  sep->addChild(saSW);
+  saSW->whichChild.connectFrom(&soSwitch->whichChild);
 
   if(!ivsa->getEnable())
     return;
@@ -49,17 +54,17 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
 
     auto trans1 = new SoTranslation;
     trans1->translation.setValue(center[0],center[1],0);
-    sep->addChild(trans1);
+    saSW->addChild(trans1);
 
-    sep->addChild(MainWindow::getInstance()->getScreenAnnotationScale1To1());
+    saSW->addChild(MainWindow::getInstance()->getScreenAnnotationScale1To1());
 
     auto trans3 = new SoTranslation;
     trans3->translation.setValue(-center[0],-center[1],0);
-    sep->addChild(trans3);
+    saSW->addChild(trans3);
   }
 
   auto * swSep= new SoSeparator;
-  sep->addChild(swSep);
+  saSW->addChild(swSep);
   auto *sw = new SoSwitch;
   swSep->addChild(sw);
   sw->whichChild = SO_SWITCH_NONE;
@@ -119,7 +124,7 @@ IvScreenAnnotation::IvScreenAnnotation(const std::shared_ptr<OpenMBV::Object> &o
   auto pathNode = getPathNode(ivSep.get());
 
   // add the cached IV content or the copied content to the scene graph
-  sep->addChild(ivSep.get());
+  saSW->addChild(ivSep.get());
 
   // now search for the pathSep node without the number (only done one, not inside of the loop)
   SoGroup *pathSepNoNumber = nullptr, *pathSepInIv;
