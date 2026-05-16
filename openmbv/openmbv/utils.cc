@@ -457,7 +457,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftLeftMoveAction]=       {"mainwindow/manipulate3d/mouseShiftLeftMoveAction", static_cast<int>(MA::Zoom)};
   setting[mouseCtrlLeftMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlLeftMoveAction", static_cast<int>(MA::RotateAboutSz)};
   setting[mouseAltLeftMoveAction]=         {"mainwindow/manipulate3d/mouseAltLeftMoveAction", static_cast<int>(MA::ChangeFrame)};
-  setting[mouseShiftCtrlLeftMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlLeftMoveAction", static_cast<int>(MA::CameraAngle)};
+  setting[mouseShiftCtrlLeftMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlLeftMoveAction", static_cast<int>(MA::CameraPointSz)};
   setting[mouseShiftAltLeftMoveAction]=    {"mainwindow/manipulate3d/mouseShiftAltLeftMoveAction", static_cast<int>(MA::CameraAndRotationPointSz)};
   setting[mouseCtrlAltLeftMoveAction]=     {"mainwindow/manipulate3d/mouseCtrlAltLeftMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftCtrlAltLeftMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltLeftMoveAction", static_cast<int>(MA::None)};
@@ -471,7 +471,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[mouseShiftCtrlAltRightMoveAction]={"mainwindow/manipulate3d/mouseShiftCtrlAltRightMoveAction", static_cast<int>(MA::None)};
   setting[mouseNoneMidMoveAction]=        {"mainwindow/manipulate3d/mouseNoneMidMoveAction", static_cast<int>(MA::Zoom)};
   setting[mouseShiftMidMoveAction]=       {"mainwindow/manipulate3d/mouseShiftMidMoveAction", static_cast<int>(MA::CameraNearPlane)};
-  setting[mouseCtrlMidMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlMidMoveAction", static_cast<int>(MA::CameraAngle)};
+  setting[mouseCtrlMidMoveAction]=        {"mainwindow/manipulate3d/mouseCtrlMidMoveAction", static_cast<int>(MA::CameraPointSz)};
   setting[mouseAltMidMoveAction]=         {"mainwindow/manipulate3d/mouseAltMidMoveAction", static_cast<int>(MA::CameraAndRotationPointSz)};
   setting[mouseShiftCtrlMidMoveAction]=   {"mainwindow/manipulate3d/mouseShiftCtrlMidMoveAction", static_cast<int>(MA::None)};
   setting[mouseShiftAltMidMoveAction]=    {"mainwindow/manipulate3d/mouseShiftAltMidMoveAction", static_cast<int>(MA::None)};
@@ -532,7 +532,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchShiftMove1Action]=       {"mainwindow/manipulate3d/touchShiftMove1Action", static_cast<int>(MA::None)};
   setting[touchCtrlMove1Action]=        {"mainwindow/manipulate3d/touchCtrlMove1Action", static_cast<int>(MA::None)};//mfmf not working pan and pinch is connected!!!!!!!!!!!!!
   setting[touchAltMove1Action]=         {"mainwindow/manipulate3d/touchAltMove1Action", static_cast<int>(MA::ChangeFrame)};
-  setting[touchShiftCtrlMove1Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove1Action", static_cast<int>(MA::CameraAngle)};
+  setting[touchShiftCtrlMove1Action]=   {"mainwindow/manipulate3d/touchShiftCtrlMove1Action", static_cast<int>(MA::CameraPointSz)};
   setting[touchShiftAltMove1Action]=    {"mainwindow/manipulate3d/touchShiftAltMove1Action", static_cast<int>(MA::CameraAndRotationPointSz)};
   setting[touchCtrlAltMove1Action]=     {"mainwindow/manipulate3d/touchCtrlAltMove1Action", static_cast<int>(MA::CameraNearPlane)};
   setting[touchShiftCtrlAltMove1Action]={"mainwindow/manipulate3d/touchShiftCtrlAltMove1Action", static_cast<int>(MA::None)};
@@ -548,7 +548,7 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[touchShiftMove2ZoomAction]=       {"mainwindow/manipulate3d/touchShiftMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchCtrlMove2ZoomAction]=        {"mainwindow/manipulate3d/touchCtrlMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchAltMove2ZoomAction]=         {"mainwindow/manipulate3d/touchAltMove2ZoomAction", static_cast<int>(MA::None)};
-  setting[touchShiftCtrlMove2ZoomAction]=   {"mainwindow/manipulate3d/touchShiftCtrlMove2ZoomAction", static_cast<int>(MA::CameraAngle)};
+  setting[touchShiftCtrlMove2ZoomAction]=   {"mainwindow/manipulate3d/touchShiftCtrlMove2ZoomAction", static_cast<int>(MA::CameraPointSz)};
   setting[touchShiftAltMove2ZoomAction]=    {"mainwindow/manipulate3d/touchShiftAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchCtrlAltMove2ZoomAction]=     {"mainwindow/manipulate3d/touchCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
   setting[touchShiftCtrlAltMove2ZoomAction]={"mainwindow/manipulate3d/touchShiftCtrlAltMove2ZoomAction", static_cast<int>(MA::None)};
@@ -981,7 +981,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"No"                , "No action."}, \
         {"Change frame"      , "Change the frame number."}, \
         {"Zoom"              , "Zoom in/out."}, \
-        {"Camera angle"      , "Change the camera angle (only for perspective camera)."}, \
+        {"Camera S_z  "      , "Change the camera screen z position (only for perspective camera)."}, \
         {"Cursor S_z"        , "Change the cursor screen z position."}, \
         {"Rotate S_z"        , "Rotate about the screen z axis."}, \
         {"Translate"         , "Translate in screen x and y direction."}, \
@@ -1039,7 +1039,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"No"          , "No action."}, \
         {"Change frame", "Change the frame number."}, \
         {"Zoom"        , "Zoom in/out."}, \
-        {"<N/A>"       , "Not available."}, \
+        {"Camera S_z"  , "Change the camera screen z position."}, \
         {"Cursor S_z"  , "Change the cursor screen z position."}, \
         {"Rotate S_z"  , "Rotate about the screen z axis."}, \
         {"<N/A>"       , "Not available."}, \
@@ -1156,7 +1156,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"No"                , "No action."}, \
         {"Change frame"      , "Change the frame number."}, \
         {"<N/A>"             , "Not available."}, \
-        {"Camera angle"      , "Change the camera angle (only for perspective camera)"}, \
+        {"Camera S_z"        , "Change the camera screen z position (only for perspective camera)"}, \
         {"Cursor S_z"        , "Change the cursor screen z position."}, \
         {"<N/A>"             , "Not available."}, \
         {"Translate"         , "Translate in screen x and y direction."}, \
@@ -1205,7 +1205,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
         {"No"                , "No action."}, \
         {"<N/A>"             , "Not available."}, \
         {"Zoom"              , "Zoom in/out."}, \
-        {"Camera angle"      , "Change the camera angle (only for perspective camera)"}, \
+        {"Camera S_z"        , "Change the camera screen z position (only for perspective camera)"}, \
         {"<N/A>"             , "Not available."}, \
         {"<N/A>"             , "Not available."}, \
         {"<N/A>"             , "Not available."}, \

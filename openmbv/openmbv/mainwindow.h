@@ -123,7 +123,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     AbstractViewFilter *objectListFilter;
     QTextEdit *objectInfo;
     QSpinBox *frameSB, *frameMinSB, *frameMaxSB;
-    SoQtMyViewer *glViewer;
+    SoQtMyViewer *glViewer { nullptr };
     SoQtMyViewer *glViewerRight { nullptr };
     DialogStereo *dialogStereo { nullptr };
     void viewChange(ViewSide side);

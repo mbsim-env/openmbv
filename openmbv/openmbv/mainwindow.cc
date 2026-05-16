@@ -275,6 +275,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   fgColorBottom->set1Value(0, 1,1,1);
   glViewer=new SoQtMyViewer(glViewerWG);
 
+  // view interaction is done via MyTouchWidget hence we pass all SoEvent's to the scene graph
+  // but only if SoQtMyViewer::processSoEvent decides to do so
+  glViewer->setViewing(false);
+
   auto *offset=new SoPolygonOffset; // move lines/points to front
   sceneRoot->addChild(offset);
   offset->styles=SoPolygonOffset::LINES | SoPolygonOffset::POINTS;
@@ -930,9 +934,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   // arg commands after load all files
   
   // camera
-  if(!cameraFile.empty()) {
-    loadCamera(cameraFile);
-  }
+  if(!cameraFile.empty())
+    QTimer::singleShot(0, [this, cameraFile](){ // load file from args is done delayed -> need to to camera load also delayed
+      loadCamera(cameraFile);
+    });
 
   // play
   if(playArg) playAct->trigger();
@@ -2129,12 +2134,14 @@ void MainWindow::loadCamera(string filename) {
     else {
       if(objectList->invisibleRootItem()->childCount()!=1)
         msg(Info)<<"None or more then one file is loaded. Cannot apply move camera with body."<<endl;
-      auto relTo = static_cast<Object*>(objectList->invisibleRootItem()->child(0));
-      auto obj = Object::getObjectByPath(path, relTo);
-      if(obj)
-        obj->moveCameraWith();
-      else
-        msg(Info)<<"Path of move camera with object not found. Cannot apply move camera with body."<<endl;
+      else {
+        auto relTo = static_cast<Object*>(objectList->invisibleRootItem()->child(0));
+        auto obj = Object::getObjectByPath(path, relTo);
+        if(obj)
+          obj->moveCameraWith();
+        else
+          msg(Info)<<"Path of move camera with object not found. Cannot apply move camera with body."<<endl;
+      }
     }
   }
 

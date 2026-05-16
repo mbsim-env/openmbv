@@ -43,8 +43,10 @@ class SoQtMyViewer : public SoQtViewer {
     void setAspectRatio(double r);
     void changeCameraValues(SoCamera *cam) override { SoQtViewer::changeCameraValues(cam); } // is protected
     void updateTransperencySetting();
+    bool isDraggerActive() { return draggerActive; };
   protected:
-    SbBool processSoEvent(const SoEvent *event) override { return true; } // disable So events
+    void processEvent(QEvent *event) override;
+    SbBool processSoEvent(const SoEvent *event) override;
     void actualRedraw() override;
 
     // for text in viewport
@@ -52,6 +54,11 @@ class SoQtMyViewer : public SoQtViewer {
     SoSeparator *screenAnnotationSep, *bgSep;
     float aspectRatio { 1.0 };
     SoFontStyle *fontStyle;
+
+    bool draggerKeyDown { false };
+    bool draggerActive { false };
+    bool draggerActiveLast { false };
+    bool draggerActiveReset { false };
 
     friend class MainWindow;
 };

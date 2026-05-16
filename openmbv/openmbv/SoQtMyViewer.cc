@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "SoQtMyViewer.h"
+#include "mytouchwidget.h"
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/events/SoMouseButtonEvent.h>
@@ -228,6 +229,72 @@ void SoQtMyViewer::updateTransperencySetting() {
       setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
       break;
   }
+}
+
+void SoQtMyViewer::processEvent(QEvent *event) {
+  auto type = event->type();
+  if(type==QEvent::KeyPress || type==QEvent::KeyRelease) {
+    auto keyEvent = static_cast<QKeyEvent*>(event);
+    if(keyEvent->key()==Qt::Key_D) {
+      if(keyEvent->isAutoRepeat()) // do not propagate auto repeat keys for the dragger key to coin3d
+        return;
+      draggerKeyDown = type==QEvent::KeyPress; // save the the dragger key is currently down (coin3d has only wasShiftDown/...)
+    }
+  }
+  SoQtViewer::processEvent(event);
+}
+
+SbBool SoQtMyViewer::processSoEvent(const SoEvent *event) {
+  // if the last call has set draggerActiveReset then we reset draggerActive to draggerActiveLast before continouing
+  if(draggerActiveReset) {
+    draggerActive = draggerActiveLast;
+    draggerActiveReset = false;
+  }
+
+  // update dragger active state
+  if(event->getTypeId()==SoMouseButtonEvent::getClassTypeId()) {
+    // the dragger state keeps the same from the beginning of a mouse button 1-3 down event
+    // up to the corresponding mouse button 1-3 up event
+    auto mouseEvent = static_cast<const SoMouseButtonEvent*>(event);
+    if(mouseEvent->getButton()==SoMouseButtonEvent::BUTTON1 ||
+       mouseEvent->getButton()==SoMouseButtonEvent::BUTTON2 ||
+       mouseEvent->getButton()==SoMouseButtonEvent::BUTTON3) {
+      if(mouseEvent->getState()==SoMouseButtonEvent::DOWN) {
+        // on mouse button down -> save current draggerActive and set new draggerActive according the modifier state
+        draggerActiveLast = draggerActive;
+        draggerActive = draggerKeyDown;
+      }
+      else if(mouseEvent->getState()==SoMouseButtonEvent::UP)
+        // on mouse button up -> set the draggerActiveReset flag to reset the dragger on the next call
+        draggerActiveReset = true;
+    }
+    // for a mouse button 4,5 (wheel) only the down event is emitted (no start end range for dragger state)
+    if(mouseEvent->getButton()==SoMouseButtonEvent::BUTTON4 ||
+       mouseEvent->getButton()==SoMouseButtonEvent::BUTTON5) {
+      draggerActiveLast = draggerActive;
+      draggerActive = draggerKeyDown;
+      draggerActiveReset = true;
+    }
+  }
+  // touch events are not propagated to SoQt (for now) -> so we cannot handle dragger with touch for now
+
+  // disable/enable 3D cursor during dragger movement
+  if(appSettings->get<bool>(AppSettings::mouseCursor3D))
+    MainWindow::getInstance()->glViewerWG->setCursor3D(!draggerActive);
+
+  // pass Ctrl key events to coin since Ctrl may be used by draggers
+  if(event->getTypeId()==SoKeyboardEvent::getClassTypeId()) {
+    auto keyEvent = static_cast<const SoKeyboardEvent*>(event);
+    if(keyEvent->getKey()==SoKeyboardEvent::LEFT_CONTROL || keyEvent->getKey()==SoKeyboardEvent::RIGHT_CONTROL)
+      return SoQtViewer::processSoEvent(event);
+  }
+
+  if(draggerActive)
+    // if dragger is active -> pass event to the scene graph
+    return SoQtViewer::processSoEvent(event);
+  else
+    // if dragger is not active -> do not pass the event to the scene graph
+    return true;
 }
 
 }

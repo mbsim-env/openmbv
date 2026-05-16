@@ -60,7 +60,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
       None,
       ChangeFrame, // 1D
       Zoom, // 1D
-      CameraAngle, // 1D
+      CameraPointSz, // 1D
       CursorSz, // 1D
       RotateAboutSz, // 1D
       Translate, // 2D
@@ -186,7 +186,6 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void zoomInit();
     void zoomReset();
     void zoom(int relPixel, float relAngle); // set one of the parameters to NOi/NOf
-    void zoomPerspectiveCameraAngle(int relPixel);
     void zoomPerspectiveCameraDistance(int relPixel, float relAngle);
     void cameraAndRotationPointSz(const QPoint &rel, const QPoint &pos);
     void cameraNearPlane(const QPoint &rel, const QPoint &pos);
