@@ -67,6 +67,7 @@
 class QListWidgetItem;
 class SoCalculator;
 class SoSFTime;
+class SoSpotLightDragger;
 
 namespace OpenMBVGUI {
  
@@ -322,7 +323,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
     bool getEnableFullScreen() { return enableFullScreen; }
-    void moveCameraWith(const Object* obj, SoSFVec3f *pos, SoSFRotation *rot);
+    void moveCameraWith(const Object* obj, SoSpotLightDragger *dragger, SoSFVec3f *pos, SoSFRotation *rot);
     SoDrawStyle* getOlseDrawStyle() { return olseDrawStyle; }
     BaseColorHeavyOverride* getOlseColor() { return olseColor; }
     SoSeparator* getSceneRoot() { return sceneRoot; }

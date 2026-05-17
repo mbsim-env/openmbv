@@ -27,6 +27,7 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
+#include <Inventor/draggers/SoSpotLightDragger.h>
 #include <QMenu>
 #include "utils.h"
 #include "openmbvcppinterface/rigidbody.h"
@@ -82,6 +83,9 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soSepRigidBody=new SoSeparator;
   soSep->addChild(soSepRigidBody);
 
+  soCameraDraggerSep = new SoSeparator;
+  soSepRigidBody->addChild(soCameraDraggerSep);
+
   // reference frame
   soReferenceFrameSwitch=new SoSwitch;
   soSepRigidBody->addChild(soReferenceFrameSwitch);
@@ -123,6 +127,25 @@ void RigidBody::createProperties() {
   DynamicColoredBody::createProperties();
 
   // GUI
+  auto *cameraDragger=new QAction(Utils::QIconCached("camerabody.svg"),"Create/remove camera-dragger on this body", properties);
+  connect(cameraDragger,&QAction::triggered,this,[this](){
+    auto *rigidBody=static_cast<RigidBody*>(properties->getParentObject());
+    CompoundRigidBody *compoundRigidBodyParent;
+    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(rigidBody->QTreeWidgetItem::parent()))!=nullptr) {
+      rigidBody=compoundRigidBodyParent;
+    }
+    if(soCameraDraggerSep->getNumChildren()>0)
+      soCameraDraggerSep->removeAllChildren();
+    else {
+      auto dragger = new SoSpotLightDragger;
+      soCameraDraggerSep->addChild(dragger);
+      auto mat = static_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("xzTranslator.translator", false))->getChild(0));
+      mat->diffuseColor.setValue(0,1,1);
+      mat->transparency = 0.5;
+    }
+  });
+  properties->addContextAction(cameraDragger);
+
   auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
   connect(moveCameraWith,&QAction::triggered,this,[this](){
     auto *rigidBody=static_cast<RigidBody*>(properties->getParentObject());
@@ -179,7 +202,9 @@ RigidBody::~RigidBody() {
 }
 
 void RigidBody::moveCameraWith() {
-  MainWindow::getInstance()->moveCameraWith(this, &translation->translation, &rotation->rotation);
+  MainWindow::getInstance()->moveCameraWith(this,
+    soCameraDraggerSep->getNumChildren()==0 ? nullptr : static_cast<SoSpotLightDragger*>(soCameraDraggerSep->getChild(soCameraDraggerSep->getNumChildren()-1)),
+    &translation->translation, &rotation->rotation);
 }
 
 double RigidBody::update() {

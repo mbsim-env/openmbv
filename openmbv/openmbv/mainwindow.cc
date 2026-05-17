@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/draggers/SoSpotLightDragger.h>
 #include <openmbvcppinterface/group.h>
 #include <openmbvcppinterface/cube.h>
 #include <openmbvcppinterface/compoundrigidbody.h>
@@ -2299,14 +2300,74 @@ void MainWindow::releaseCameraFromBodySlot() {
   frameNode->index.touch(); // enforce update
 }
 
-void MainWindow::moveCameraWith(const Object* obj, SoSFVec3f *pos, SoSFRotation *rot) {
+void MainWindow::moveCameraWith(const Object* obj, SoSpotLightDragger *dragger, SoSFVec3f *pos, SoSFRotation *rot) {
   releaseCameraFromBodySlot();
-  glViewer->getCamera()->orientation.setValue(glViewer->getCamera()->orientation.getValue()*rot->getValue().inverse());
-  SbVec3f x=glViewer->getCamera()->position.getValue();
-  SbVec3f xx=(x-pos->getValue());
-  SbVec3f yy;
-  rot->getValue().inverse().multVec(xx,yy);
-  glViewer->getCamera()->position.setValue(yy);
+
+  if(dragger) {
+    // orientation
+    // a heuristic to get the prevered vertical axis
+    using MA = MyTouchWidget::MoveAction;
+    auto getMouseMoveAction = [](AppSettings::AS setting) {
+      auto ma = static_cast<MyTouchWidget::MoveAction>(appSettings->get<int>(setting));
+      if(ma == MA::RotateAboutWxSx || ma == MA::RotateAboutWySx || ma == MA::RotateAboutWzSx)
+        return ma;
+      return MA::None;
+    };
+    MA ma = MA::None;
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseNoneLeftMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseNoneRightMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseNoneMidMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseCtrlLeftMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseCtrlRightMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseCtrlMidMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseShiftLeftMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseShiftRightMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseShiftMidMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseAltLeftMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseAltRightMoveAction);
+    if(ma == MA::None) ma = getMouseMoveAction(AppSettings::mouseAltMidMoveAction);
+    SbVec3f L_v(0,0,0);
+    if     (ma == MA::None           ) L_v[2]=1;
+    else if(ma == MA::RotateAboutWxSx) L_v[0]=1;
+    else if(ma == MA::RotateAboutWySx) L_v[1]=1;
+    else if(ma == MA::RotateAboutWzSx) L_v[2]=1;
+    // calculate orientation such that this axis is vertical
+    SbVec3f C_v;
+    dragger->rotation.getValue().inverse().multVec(L_v, C_v);
+    auto g = abs(C_v[1])>1e-8 ? atan2(-C_v[0], C_v[1]) : 0;
+    SbRotation Tg(SbVec3f(0,0,1), g);
+    glViewer->getCamera()->orientation = Tg * dragger->rotation.getValue();
+
+    // position
+    glViewer->getCamera()->position = dragger->translation;
+
+    // zoom
+    if(glViewer->getCamera()->getTypeId()==SoPerspectiveCamera::getClassTypeId())
+      static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle = dragger->angle;
+    else if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId())
+      static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height = tan(dragger->angle.getValue());
+
+    // rotate about camera position
+    glViewer->getCamera()->focalDistance = 0;
+
+    // remove dragger from scene (search parent and remove the child)
+    SoSearchAction sa;
+    sa.setNode(dragger);
+    sa.setInterest(SoSearchAction::FIRST);
+    sa.apply(sceneRoot);
+    auto path = sa.getPath();
+    auto parent = static_cast<SoGroup*>(path->getNodeFromTail(1));
+    parent->removeChild(dragger);
+  }
+  else {
+    glViewer->getCamera()->orientation.setValue(glViewer->getCamera()->orientation.getValue()*rot->getValue().inverse());
+    SbVec3f x=glViewer->getCamera()->position.getValue();
+    SbVec3f xx=(x-pos->getValue());
+    SbVec3f yy;
+    rot->getValue().inverse().multVec(xx,yy);
+    glViewer->getCamera()->position.setValue(yy);
+  }
+
   cameraPosition->vector.connectFrom(pos);
   cameraOrientation->inRotation.connectFrom(rot);
   moveCameraWithBody = obj;

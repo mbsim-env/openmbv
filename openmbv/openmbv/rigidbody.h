@@ -50,7 +50,7 @@ class RigidBody : public DynamicColoredBody {
     SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
     SoTranslation *translation;
     SoScale *refFrameScale, *localFrameScale, *scale;
-    SoSeparator *soSepRigidBody;
+    SoSeparator *soSepRigidBody, *soCameraDraggerSep;
     TransRotEditor *initialTransRotEditor;
     SoGroup *initTransRotGroup;
     void createProperties() override;

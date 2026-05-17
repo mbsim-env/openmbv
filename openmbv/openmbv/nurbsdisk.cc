@@ -243,7 +243,7 @@ QString NurbsDisk::getInfo() {
 }
 
 void NurbsDisk::moveCameraWith() {
-  MainWindow::getInstance()->moveCameraWith(this, &translation->translation, &rotation->rotation);
+  MainWindow::getInstance()->moveCameraWith(this, nullptr, &translation->translation, &rotation->rotation);
 }
 
 double NurbsDisk::update() {
