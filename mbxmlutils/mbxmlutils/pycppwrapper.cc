@@ -61,6 +61,7 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
                       const std::vector<boost::filesystem::path> &sysPathAppend,
                       const std::vector<boost::filesystem::path> &possiblePrefix,
                       const std::vector<boost::filesystem::path> &PATHAppend) {
+  DisableFPE disableFPE;
 #ifdef _WIN32
   boost::filesystem::path dllDir("bin");
   std::string pathsep(";");
@@ -180,6 +181,7 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
 
 // c++ PythonException exception with the content of a python exception
 PythonException::PythonException(const char *file_, int line_) : file(file_), line(line_) {
+  DisableFPE disableFPE;
   // fetch if error has occured
   if(!PyErr_Occurred())
     throw std::runtime_error("Internal error: PythonException object created but no python error occured.");
@@ -195,6 +197,7 @@ const char* PythonException::what() const noexcept {
   if(!msg.empty())
     return msg.c_str();
 
+  DisableFPE disableFPE;
   GilState gil;
 
   PyObject *savedstderr=nullptr;
