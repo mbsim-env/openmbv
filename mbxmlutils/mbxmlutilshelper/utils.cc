@@ -147,8 +147,8 @@ namespace MBXMLUtils {
   }
 
   void handleFPE() {
-    auto mbxmlutils_fpe=getenv("MBXMLUTILS_FPE");
-    if(mbxmlutils_fpe && string(mbxmlutils_fpe)=="1") {
+    static bool mbxmlutils_fpe = getenv("MBXMLUTILS_FPE") ? getenv("MBXMLUTILS_FPE")!="0"s : false;
+    if(mbxmlutils_fpe) {
       #ifdef _WIN32
         _controlfp(~(_EM_ZERODIVIDE | _EM_INVALID | _EM_OVERFLOW), _MCW_EM);
       #else
