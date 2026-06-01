@@ -890,7 +890,7 @@ void MyTouchWidget::setRotationPointAndCursorSz(const QPoint &pos, Body *body) {
   auto d = (camera->position.getValue()-midPoint).normalize();
   auto nd = camera->nearDistance.getValue();
   auto fd = camera->farDistance.getValue();
-  MainWindow::getInstance()->relCursorZ->setValue((d - nd)/(fd - nd));
+  MainWindow::getInstance()->relCursorZ->setValue(std::fmin(std::fmax((d - nd)/(fd - nd), 0.001), 0.999));
 }
 
 void MyTouchWidget::openPropertyDialog(const QPoint &pos) {

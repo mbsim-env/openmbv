@@ -2349,6 +2349,7 @@ void MainWindow::moveCameraWith(const Object* obj, SoSpotLightDragger *dragger, 
 
     // rotate about camera position
     glViewer->getCamera()->focalDistance = 0;
+    relCursorZ->setValue(0.001);
 
     // remove dragger from scene (search parent and remove the child)
     SoSearchAction sa;
