@@ -105,6 +105,8 @@
 #include "touchtreewidget.h"
 #include <boost/dll.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using namespace std;
 
@@ -2125,11 +2127,16 @@ void MainWindow::loadCamera(string filename) {
   }
   ifstream f(filename);
   string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+  list<string> lines;
+  boost::split(lines, content, boost::is_any_of("\n"));
 
-  if(content.substr(0, moveCameraWithBodyKey.size())==moveCameraWithBodyKey) {
-    auto posNL = content.find('\n');
-    auto path = content.substr(moveCameraWithBodyKey.size(), posNL-moveCameraWithBodyKey.size());
-    content = content.substr(posNL+1);
+  // skip comment lines
+  while(boost::trim_left_copy(lines.front())[0]=='#')
+    lines.pop_front();
+
+  if(boost::trim_left_copy(lines.front()).substr(0, moveCameraWithBodyKey.size())==moveCameraWithBodyKey) {
+    auto path = lines.front().substr(moveCameraWithBodyKey.size(), lines.front().size()-moveCameraWithBodyKey.size());
+    lines.pop_front();
     if(path.empty())
       MainWindow::releaseCameraFromBodySlot();
     else {
@@ -2146,6 +2153,7 @@ void MainWindow::loadCamera(string filename) {
     }
   }
 
+  content = boost::join(lines, "\n");
   SoInput input;
   input.setBuffer(content.data(), content.size());
   SoBase *newCamera;
@@ -2189,9 +2197,11 @@ void MainWindow::saveCamera() {
     buf.resize(end);
 
   ofstream f(filename.toStdString());
+  f<<"# OpenMBV path of the body the camera is connected to, or empty for a static camera"<<endl;
   f<<moveCameraWithBodyKey;
   if(moveCameraWithBody)
     f<<moveCameraWithBody->getAbsPath();
+  f<<endl;
   f<<endl;
 
   f<<buf;
