@@ -128,32 +128,47 @@ void RigidBody::createProperties() {
 
   // GUI
   auto *cameraDragger=new QAction(Utils::QIconCached("camerabody.svg"),"Create/remove camera-dragger on this body", properties);
-  connect(cameraDragger,&QAction::triggered,this,[this](){
-    auto *rigidBody=static_cast<RigidBody*>(properties->getParentObject());
+  auto _properties_ = this->properties; // to not capture "this" in the line below to avoid to used the wrong methods
+  connect(cameraDragger,&QAction::triggered,this,[_properties_](){
+    auto *thisBase=static_cast<RigidBody*>(_properties_->getParentObject());
     CompoundRigidBody *compoundRigidBodyParent;
-    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(rigidBody->QTreeWidgetItem::parent()))!=nullptr) {
-      rigidBody=compoundRigidBodyParent;
-    }
-    if(soCameraDraggerSep->getNumChildren()>0)
-      soCameraDraggerSep->removeAllChildren();
+    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(thisBase->QTreeWidgetItem::parent()))!=nullptr)
+      thisBase=compoundRigidBodyParent;
+    if(thisBase->soCameraDraggerSep->getNumChildren()>0)
+      thisBase->soCameraDraggerSep->removeAllChildren();
     else {
       auto dragger = new SoSpotLightDragger;
-      soCameraDraggerSep->addChild(dragger);
-      auto mat = static_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("xzTranslator.translator", false))->getChild(0));
-      mat->diffuseColor.setValue(0,1,1);
-      mat->transparency = 0.5;
+      thisBase->soCameraDraggerSep->addChild(dragger);
+      assert(dynamic_cast<SoSeparator*>(dragger->getPart("beam", false)));
+      assert(dynamic_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("beam", false))->getChild(0)));
+      auto inactiveMat = static_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("beam", false))->getChild(0));
+      inactiveMat->diffuseColor.setValue(1,1,1);
+      inactiveMat->emissiveColor.setValue(0,0,0);
+      inactiveMat->transparency = 0.5;
+      assert(dynamic_cast<SoSeparator*>(dragger->getPart("beamActive", false)));
+      assert(dynamic_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("beamActive", false))->getChild(0)));
+      auto activeMat = static_cast<SoMaterial*>(static_cast<SoSeparator*>(dragger->getPart("beamActive", false))->getChild(0));
+      activeMat->diffuseColor.setValue(0,1,1);
+      activeMat->emissiveColor.setValue(0,0,0);
+      activeMat->transparency = 0.5;
+      assert(dynamic_cast<SoDragger*>(dragger->getPart("translator", false)));
+      assert(dynamic_cast<SoSeparator*>(static_cast<SoDragger*>(dragger->getPart("translator", false))->getPart("xFeedback", false))->getChild(0));
+      assert(dynamic_cast<SoMaterial*>(static_cast<SoSeparator*>(static_cast<SoDragger*>(dragger->getPart("translator", false))->getPart("xFeedback", false))->getChild(0)));
+      auto feedbackMat = static_cast<SoMaterial*>(static_cast<SoSeparator*>(static_cast<SoDragger*>(dragger->getPart("translator", false))->getPart("xFeedback", false))->getChild(0));
+      feedbackMat->diffuseColor.setValue(1,1,1);
+      feedbackMat->emissiveColor.setValue(0,0,0);
+      feedbackMat->transparency = 0.5;
     }
   });
   properties->addContextAction(cameraDragger);
 
   auto *moveCameraWith=new QAction(Utils::QIconCached("camerabody.svg"),"Move camera with this body", properties);
-  connect(moveCameraWith,&QAction::triggered,this,[this](){
-    auto *rigidBody=static_cast<RigidBody*>(properties->getParentObject());
+  connect(moveCameraWith,&QAction::triggered,this,[_properties_](){ // do also not capture "this" here, see above
+    auto *thisBase=static_cast<RigidBody*>(_properties_->getParentObject());
     CompoundRigidBody *compoundRigidBodyParent;
-    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(rigidBody->QTreeWidgetItem::parent()))!=nullptr) {
-      rigidBody=compoundRigidBodyParent;
-    }
-    rigidBody->moveCameraWith();
+    while((compoundRigidBodyParent=dynamic_cast<CompoundRigidBody*>(thisBase->QTreeWidgetItem::parent()))!=nullptr)
+      thisBase=compoundRigidBodyParent;
+    thisBase->moveCameraWith();
   });
   properties->addContextAction(moveCameraWith);
 
