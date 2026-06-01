@@ -396,7 +396,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           }
           catch(exception &ex) {
             if(E(p)->getTagName()!=PV%"import")
-              eval->msg(Warn)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
+              eval->msg(Info)<<"The 'pv:"<<E(p)->getTagName().second<<"' parameter named '"
                              <<name<<"' is not provided as overwritable parameter. Cannot evaluate this parameter."<<endl;
             continue;
           }

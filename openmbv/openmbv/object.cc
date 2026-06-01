@@ -261,7 +261,8 @@ void Object::updateEnable() {
   walk = [&walk](QTreeWidgetItem *item, bool enable) {
     for(int i=0; i<item->childCount(); ++i) {
       auto c = static_cast<Object*>(item->child(i));
-      c->drawThisPath = enable;
+      c->drawThisPath = enable; // set drawThisPath of this element
+      c->soSwitch->whichChild.setValue(c->drawThisPath?SO_SWITCH_ALL:SO_SWITCH_NONE); // set also the switch of this element (some elements (e.g. IvScreenAnnotation) do not honor its parent soSwitch state)
       QPalette palette;
       c->setData(0, Qt::UserRole, enable); // UserRole is used by AbstractViewFilter for normal/grayed items
       c->setData(0, Qt::ForegroundRole, palette.brush(enable ? QPalette::Active : QPalette::Disabled, QPalette::Text));
@@ -270,7 +271,7 @@ void Object::updateEnable() {
   };
   walk(this, drawThisPath);
 
-  soSwitch->whichChild.setValue(object->getEnable()?SO_SWITCH_ALL:SO_SWITCH_NONE);
+  soSwitch->whichChild.setValue(drawThisPath?SO_SWITCH_ALL:SO_SWITCH_NONE); // set the switch state of this element
 }
 
 Object* Object::getObjectByPath(const std::string &path, Object *relTo) {
