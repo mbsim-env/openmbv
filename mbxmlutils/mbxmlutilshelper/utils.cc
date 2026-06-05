@@ -147,10 +147,13 @@ namespace MBXMLUtils {
   }
 
   void handleFPE() {
+    static bool mbxmlutils_fpe = getenv("MBXMLUTILS_FPE") ? getenv("MBXMLUTILS_FPE")!="0"s : // use envvar
 #ifdef NDEBUG
-    static bool mbxmlutils_fpe = getenv("MBXMLUTILS_FPE") ? getenv("MBXMLUTILS_FPE")!="0"s : false;
-    if(mbxmlutils_fpe)
+      false; // for release builds and no envvar -> not FPE handlign
+#else
+      true; // for debug builds and no envvar -> enable FPE handlign
 #endif
+    if(mbxmlutils_fpe)
     {
       #ifdef _WIN32
         _controlfp(~(_EM_ZERODIVIDE | _EM_INVALID | _EM_OVERFLOW), _MCW_EM);
