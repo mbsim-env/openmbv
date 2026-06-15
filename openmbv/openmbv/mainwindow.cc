@@ -2735,10 +2735,7 @@ void MainWindow::repackFile() {
       else if(ombvxID>=0 && !embed->isChecked()) {
         // read ombvx from H5 file
         H5::ScopedHID memDataSpaceID(H5Dget_space(ombvxID), &H5Sclose);
-        H5::ScopedHID stringTypeID(H5Dget_type(ombvxID), &H5Tclose);
-        H5::ScopedHID fixedStringTypeID(H5Tcopy(H5T_C_S1), &H5Tclose);
-        if(H5Tset_size(fixedStringTypeID, H5Tget_size(stringTypeID))<0)
-          throw runtime_error("Internal error: Can not create variable length string datatype.");
+        H5::ScopedHID fixedStringTypeID(H5Dget_type(ombvxID), &H5Tclose);
         auto fixedStrSize=H5Tget_size(fixedStringTypeID);
         vector<char> buf(fixedStrSize);
         H5::checkCall(H5Dread(ombvxID, fixedStringTypeID, memDataSpaceID, memDataSpaceID, H5P_DEFAULT, &buf[0]));
