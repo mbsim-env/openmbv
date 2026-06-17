@@ -12,6 +12,7 @@
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif
+#include <charconv>
 #include <utility>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
@@ -592,8 +593,11 @@ void DOMElementWrapper<DOMElementType>::setAttribute(const FQN &name, const FQN 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getLineNumber() const {
   auto pi=getEmbedData("MBXMLUtils_LineNr");
-  if(!pi.empty())
-    return boost::lexical_cast<int>(pi);
+  if(!pi.empty()) {
+    int nr;
+    std::from_chars(pi.data(), pi.data()+pi.size(), nr);
+    return nr;
+  }
   return 0;
 }
 template int DOMElementWrapper<const DOMElement>::getLineNumber() const; // explicit instantiate const variant
@@ -602,6 +606,19 @@ template<typename DOMElementType>
 void DOMElementWrapper<DOMElementType>::removeAttribute(const FQN &name) {
   me->removeAttributeNS(X()%name.first, X()%name.second);
 }
+
+template<typename DOMElementType>
+int DOMElementWrapper<DOMElementType>::getTextLineNumber() const {
+  auto pi=getEmbedData("MBXMLUtils_LineNr");
+  if(!pi.empty()) {
+    int nr, offset=0;
+    auto [ptr, ec] = std::from_chars(pi.data(), pi.data()+pi.size(), nr);
+    std::from_chars(ptr+2, pi.data()+pi.size(), offset);
+    return nr+offset;
+  }
+  return 0;
+}
+template int DOMElementWrapper<const DOMElement>::getTextLineNumber() const; // explicit instantiate const variant
 
 template<typename DOMElementType>
 int DOMElementWrapper<DOMElementType>::getEmbedCountNumber() const {
@@ -1127,18 +1144,31 @@ namespace { template struct rob<GETSCANNER, &AbstractDOMParser::getScanner>; }
 // END: call protected AbstractDOMParser::getScanner from outside, see above
 DOMLSParserFilter::FilterAction LocationInfoFilter::startElement(DOMElement *e) {
   // store the line number of the element start as user data
-  auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser->parser.get());
-  int lineNr=(abstractParser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber()+lineNumberOffset;
+  int lineNr=(parser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber()+lineNumberOffset;
   E(e)->addEmbedData("MBXMLUtils_LineNr", to_string(lineNr));
   return FILTER_ACCEPT;
 }
 
 DOMLSParserFilter::FilterAction LocationInfoFilter::acceptNode(DOMNode *n) {
+  if(n->getNodeType()==DOMNode::TEXT_NODE) {
+    auto text = X()%static_cast<DOMText*>(n)->getData();
+    if(!boost::trim_copy(text).empty()) {
+      // store the line number offset of the first, none empty, text node in MBXMLUtils_LineNr of the parent element as a second argument
+      int lineNr=(parser->*result<GETSCANNER>::ptr)()->getLocator()->getLineNumber()+lineNumberOffset;
+      lineNr -= std::count(text.begin(), text.end(), '\n');
+      auto pi = E(static_cast<DOMElement*>(n->getParentNode()))->getEmbedData("MBXMLUtils_LineNr");
+      int nr;
+      std::from_chars(pi.data(), pi.data()+pi.size(), nr);
+      lineNr -= nr;
+      pi += " +" + to_string(lineNr);
+      E(static_cast<DOMElement*>(n->getParentNode()))->addEmbedData("MBXMLUtils_LineNr", pi);
+    }
+  }
   return FILTER_ACCEPT;
 }
 
 DOMNodeFilter::ShowType LocationInfoFilter::getWhatToShow() const {
-  return DOMNodeFilter::SHOW_ELEMENT;
+  return DOMNodeFilter::SHOW_ELEMENT | DOMNodeFilter::SHOW_TEXT;
 }
 
 void TypeDerivativeHandler::handleElementPSVI(const XMLCh *const localName, const XMLCh *const uri, PSVIElement *info) {
@@ -1250,7 +1280,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
   auto *abstractParser=dynamic_cast<AbstractDOMParser*>(parser.get());
   if(!abstractParser)
     throw runtime_error("Internal error: Parser is not of type AbstractDOMParser.");
-  locationFilter.setParser(this);
+  locationFilter.setParser(abstractParser);
   parser->setFilter(&locationFilter);
   // entity resolver (do never load entities using network)
   abstractParser->setDisableDefaultEntityResolution(true);

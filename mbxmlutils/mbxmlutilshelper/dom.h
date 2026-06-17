@@ -367,8 +367,9 @@ class DOMElementWrapper {
     //! If relPath is a absolute path it is returned as it. (see also getOriginalFilename)
     boost::filesystem::path convertPath(const boost::filesystem::path &relPath) const;
     //! Get the line number.
-    //! If a LineNr processing instruction child node exist this number is returned. If not the XML line number is returned.
     int getLineNumber() const;
+    //! Get the line number of the first, none empty, text node.
+    int getTextLineNumber() const;
     //! Get the embed count.
     //! If a EmbedCount processing instruction child node exist this number is returned. If not 0 is returned.
     int getEmbedCountNumber() const;
@@ -513,13 +514,13 @@ DOMDocumentWrapper<DOMDocumentType> D(const XercesUniquePtr<DOMDocumentType> &me
 
 class LocationInfoFilter : public xercesc::DOMLSParserFilter {
   public:
-    void setParser(DOMParser *parser_) { parser=parser_; }
+    void setParser(xercesc::AbstractDOMParser *parser_) { parser=parser_; }
     xercesc::DOMLSParserFilter::FilterAction acceptNode(xercesc::DOMNode *n) override;
     xercesc::DOMLSParserFilter::FilterAction startElement(xercesc::DOMElement *e) override;
     xercesc::DOMNodeFilter::ShowType getWhatToShow() const override;
     void setLineNumberOffset(int offset) { lineNumberOffset=offset; }
   private:
-    DOMParser *parser;
+    xercesc::AbstractDOMParser *parser;
     int lineNumberOffset { 0 };
 };
 
