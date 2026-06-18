@@ -613,7 +613,8 @@ int DOMElementWrapper<DOMElementType>::getTextLineNumber() const {
   if(!pi.empty()) {
     int nr, offset=0;
     auto [ptr, ec] = std::from_chars(pi.data(), pi.data()+pi.size(), nr);
-    std::from_chars(ptr+2, pi.data()+pi.size(), offset);
+    if(ptr+2 < pi.data()+pi.size())
+      std::from_chars(ptr+2, pi.data()+pi.size(), offset);
     return nr+offset;
   }
   return 0;
