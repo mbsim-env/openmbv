@@ -23,7 +23,7 @@
 #include "dynamiccoloredbody.h"
 #include <Inventor/C/errors/debugerror.h> // workaround a include order bug in Coin-3.1.3
 #include <Inventor/nodes/SoSwitch.h>
-#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoRotationXYZ.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
@@ -46,9 +46,8 @@ class RigidBody : public DynamicColoredBody {
     SoLineSet *pathLine;
     int pathMaxFrameRead;
     double update() override;
-    SoRotationXYZ *rotationAlpha, *rotationBeta, *rotationGamma;
-    SoRotation *rotation; // accumulated rotationAlpha, rotationBeta and rotationGamma
-    SoTranslation *translation;
+    SoTransform *transform;
+    float infoX, infoY, infoZ, infoAlpha, infoBeta, infoGamma;
     SoScale *refFrameScale, *localFrameScale, *scale;
     SoSeparator *soSepRigidBody, *soCameraDraggerSep;
     TransRotEditor *initialTransRotEditor;

@@ -177,6 +177,7 @@ SoQtMyViewer::~SoQtMyViewer() {
 }
  
 void SoQtMyViewer::actualRedraw() {
+  auto mw = MainWindow::getInstance();
   short x, y;
   getViewportRegion().getWindowSize().getValue(x, y);
   if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
@@ -184,7 +185,7 @@ void SoQtMyViewer::actualRedraw() {
   else
     getCamera()->aspectRatio.setValue(1.0);
 
-  if(MainWindow::getInstance()->getBackgroundNeeded()) {
+  if(mw->getBackgroundNeeded()) {
     glClear(GL_DEPTH_BUFFER_BIT);
     // background
     getGLRenderAction()->apply(bgSep);
@@ -197,13 +198,13 @@ void SoQtMyViewer::actualRedraw() {
   auto ombvLogoScaleX=x>y?(float)y/x:1;
   auto ombvLogoScaleY=y>x?(float)x/y:1;
   if(aspectRatio>1)
-    MainWindow::getInstance()->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
+    mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
   else
-    MainWindow::getInstance()->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
+    mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
   getGLRenderAction()->apply(screenAnnotationSep);
 
   // update fps
-  MainWindow::getInstance()->fpsCB();
+  mw->fpsCB();
 }
 
 void SoQtMyViewer::setAspectRatio(double r) {
@@ -227,6 +228,9 @@ void SoQtMyViewer::updateTransperencySetting() {
     case 4:
       setAlphaChannel(true);
       setTransparencyType(SoGLRenderAction::SORTED_LAYERS_BLEND);
+      break;
+    case 5:
+      setTransparencyType(SoGLRenderAction::NONE);
       break;
   }
 }

@@ -838,7 +838,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     {"Delayed blend"                      , ""},
     {"Sorted object blend"                , ""},
     {"Sorted object sorted triangle blend", ""},
-    {"Sorted layers blend"                , ""}
+    {"Sorted layers blend"                , ""},
+    {"None"                               , ""},
   }, [](int value){
     MainWindow::getInstance()->glViewer->updateTransperencySetting();
     if(MainWindow::getInstance()->glViewerRight)

@@ -62,23 +62,10 @@ RigidBody::RigidBody(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetIte
   soPathSwitch->whichChild.setValue(rigidBody->getPath()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   pathMaxFrameRead=-1;
   
-  // translation (from hdf5)
-  translation=new SoTranslation;
-  soSep->addChild(translation);
+  // translation and rotation (from hdf5)
+  transform=new SoTransform;
+  soSep->addChild(transform);
   
-  // rotation (from hdf5)
-  rotationAlpha=new SoRotationXYZ;
-  rotationAlpha->axis=SoRotationXYZ::X;
-  soSep->addChild(rotationAlpha);
-  rotationBeta=new SoRotationXYZ;
-  rotationBeta->axis=SoRotationXYZ::Y;
-  soSep->addChild(rotationBeta);
-  rotationGamma=new SoRotationXYZ;
-  rotationGamma->axis=SoRotationXYZ::Z;
-  soSep->addChild(rotationGamma);
-  rotation=new SoRotation;
-  rotation->ref(); // do not add to scene graph (only for convinience)
-
   // till now the scene graph should be static (except color). So add a SoSeparator for caching
   soSepRigidBody=new SoSeparator;
   soSep->addChild(soSepRigidBody);
@@ -211,7 +198,6 @@ void RigidBody::createProperties() {
 }
 
 RigidBody::~RigidBody() {
-  rotation->unref();
   refFrameScale->unref();
   localFrameScale->unref();
 }
@@ -219,7 +205,7 @@ RigidBody::~RigidBody() {
 void RigidBody::moveCameraWith() {
   MainWindow::getInstance()->moveCameraWith(this,
     soCameraDraggerSep->getNumChildren()==0 ? nullptr : static_cast<SoSpotLightDragger*>(soCameraDraggerSep->getChild(soCameraDraggerSep->getNumChildren()-1)),
-    &translation->translation, &rotation->rotation);
+    &transform->translation, &transform->rotation);
 }
 
 double RigidBody::update() {
@@ -230,11 +216,14 @@ double RigidBody::update() {
   auto data=rigidBody->getRow(frame);
   
   // set scene values
-  translation->translation.setValue(data[1], data[2], data[3]);
-  rotationAlpha->angle.setValue(data[4]);
-  rotationBeta->angle.setValue(data[5]);
-  rotationGamma->angle.setValue(data[6]);
-  rotation->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse()); // set rotation matrix (needed for move camera with body)
+  infoX = data[1];
+  infoY = data[2];
+  infoZ = data[3];
+  infoAlpha = data[4];
+  infoBeta = data[5];
+  infoGamma = data[6];
+  transform->translation.setValue(data[1], data[2], data[3]);
+  transform->rotation.setValue(Utils::cardan2Rotation(SbVec3f(data[4],data[5],data[6])).inverse());
 
   // do not change "mat" if color has not changed to prevent
   // invalidating the render cache of the geometry.
@@ -254,17 +243,15 @@ double RigidBody::update() {
 }
 
 QString RigidBody::getInfo() {
-  float x, y, z;
-  translation->translation.getValue().getValue(x,y,z);
   return DynamicColoredBody::getInfo()+
          QString("<hr width=\"10000\"/>")+
-         QString("<b>Position:</b> %1, %2, %3<br/>").arg(x).arg(y).arg(z)+
-         QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(rotationAlpha->angle.getValue())
-                                                    .arg(rotationBeta->angle.getValue())
-                                                    .arg(rotationGamma->angle.getValue())+
-         QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;").arg(rotationAlpha->angle.getValue()*180/M_PI)
-                                                    .arg(rotationBeta->angle.getValue()*180/M_PI)
-                                                    .arg(rotationGamma->angle.getValue()*180/M_PI);
+         QString("<b>Position:</b> %1, %2, %3<br/>").arg(infoX).arg(infoY).arg(infoZ)+
+         QString("<b>Rotation:</b> %1, %2, %3<br/>").arg(infoAlpha)
+                                                    .arg(infoBeta)
+                                                    .arg(infoGamma)+
+         QString("<b>Rotation:</b> %1&deg;, %2&deg;, %3&deg;").arg(infoAlpha*180/M_PI)
+                                                    .arg(infoBeta*180/M_PI)
+                                                    .arg(infoGamma*180/M_PI);
 }
 
 }

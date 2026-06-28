@@ -79,11 +79,7 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   soBBoxSep->addChild(soBBox);
   // register callback function on node change
   nodeSensor=new SoNodeSensor(nodeSensorCB, this);
-  auto *crb=dynamic_cast<CompoundRigidBody*>(parentItem);
-  if(!crb)
-    nodeSensor->attach(soSep);
-  else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
-    nodeSensor->attach(crb->soSep);
+  nodeSensorAttach(drawBoundingBox());
 
   setText(0, obj->getName().c_str());
 
@@ -101,6 +97,20 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
     properties->setParentObject(this);
     boundingBoxEditor=clone->boundingBoxEditor;
   }
+}
+
+void Object::nodeSensorAttach(bool attach) {
+  if(!attach) {
+    nodeSensor->detach();
+    return;
+  }
+
+  QTreeWidgetItem *parentItem = QTreeWidgetItem::parent();
+  auto *crb=dynamic_cast<CompoundRigidBody*>(parentItem);
+  if(!crb)
+    nodeSensor->attach(soSep);
+  else // for a Object in a CompoundRigidBody also the CompoundRigidBody must be honored on node changes
+    nodeSensor->attach(crb->soSep);
 }
 
 Object::~Object() {
@@ -157,6 +167,7 @@ void Object::createProperties() {
     boundingBoxEditor->setOpenMBVParameter(object, &OpenMBV::Object::getBoundingBox, &OpenMBV::Object::setBoundingBox);
     properties->addPropertyAction(boundingBoxEditor->getAction()); // add this editor also to the context menu for convinience
     connect(boundingBoxEditor, &BoolEditor::stateChanged, this, [this](bool b){
+      nodeSensorAttach(b);
       static_cast<Object*>(properties->getParentObject())->setBoundingBox(b);
     });
   }
@@ -172,14 +183,8 @@ QString Object::getInfo() {
 void Object::nodeSensorCB(void *data, SoSensor*) {
   auto *object=(Object*)data;
   if(object->drawBoundingBox()) {
-    SoSearchAction sa;
-    sa.setInterest(SoSearchAction::FIRST);
-    sa.setNode(object->soSep);
-    sa.setSearchingAll(true);
-    sa.apply(MainWindow::getInstance()->getSceneRoot());
-    SoPath *p=sa.getPath();
     static auto *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
-    bboxAction->apply(p);
+    bboxAction->apply(object->soSep);
     auto bbox=bboxAction->getXfBoundingBox();
     float x,y,z;
     bbox.getSize(x,y,z);
@@ -206,6 +211,7 @@ void Object::deleteObjectSlot() {
 }
 
 void Object::replaceBBoxHighlight() {
+  nodeSensorAttach(drawBoundingBox());
   soBBoxSwitch->whichChild.setValue(drawBoundingBox()?SO_SWITCH_ALL:SO_SWITCH_NONE);
   if(highlight) {
     int idx = soBBoxSep->findChild(MainWindow::getInstance()->bboxColor);
@@ -222,6 +228,7 @@ void Object::replaceBBoxHighlight() {
 }
 
 void Object::setBoundingBox(bool value) {
+  nodeSensorAttach(value);
   if(properties) {
     boundingBoxEditor->blockSignals(true);
     boundingBoxEditor->getAction()->setChecked(value);

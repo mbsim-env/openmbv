@@ -1586,6 +1586,8 @@ void MainWindow::viewChange(ViewSide side) {
 
 void MainWindow::frameSensorCB(void *data, SoSensor*) {
   auto *me=(MainWindow*)data;
+  if(!me->frameSB->isEnabled())
+    return;
   me->setObjectInfo(me->objectList->currentItem());
   me->timeSlider->setValue(MainWindow::instance->getFrame()[0]);
   me->frameSB->setValue(MainWindow::instance->getFrame()[0]);
@@ -1604,12 +1606,19 @@ void MainWindow::fpsCB() {
   float fps_=1000.0/dt*count; // current fps
   static float fpsOut=0;
   fpsOut=(1/T+fpsOut)/(1+1.0/T/fps_); // PT1 filtered fps
+  count=1;
+
+  static QElapsedTimer time;
+  if(!time.isValid())
+    time.start();
+  if(time.elapsed()<250)
+    return;
+  time.restart();
+
   if(maxFps>1e-15 && fpsOut>0.9*maxFps)
     fps->setText(QString("FPS: >%1(max)").arg(maxFps, 0, 'f', 1));
   else
     fps->setText(QString("FPS: %1").arg(fpsOut, 0, 'f', 1));
-
-  count=1;
 }
 
 namespace {
@@ -1632,6 +1641,18 @@ void MainWindow::restartPlay() {
   }
 }
 
+void MainWindow::setObjectInfo(QTreeWidgetItem* current) {
+  if(playAct->isChecked()) {
+    objectInfo->setHtml(R"(<span style="color:#808080;">No data shown during 'play'</span>)");
+    return;
+  }
+  if(!current) {
+    objectInfo->setHtml("");
+    return;
+  }
+  objectInfo->setHtml(((Object*)current)->getInfo());
+}
+
 // is called with a maximum frequency of maxFps if the "play" or "last frame" button is checked, if the "stop" button is checked
 // this function is not called since new hdf5 data is checked using refreshFileSlot which is (usually) called less frequently.
 // for "play" the next frame to show is set
@@ -1645,7 +1666,10 @@ void MainWindow::heavyWorkSlot() {
     unsigned int frame_=(animStartFrame+dframe-timeSlider->currentMinimum()) %
                         (timeSlider->currentMaximum()-timeSlider->currentMinimum()+1) + timeSlider->currentMinimum(); // frame number
     if(static_cast<unsigned int>(frameNode->index[0])!=frame_) frameNode->index.setValue(frame_); // set frame => update scene
-    //glViewer->render(); // force rendering
+    SoDB::getSensorManager()->processImmediateQueue();
+    SoDB::getSensorManager()->processDelayQueue(true);
+    SoDB::getSensorManager()->processTimerQueue();
+    glViewer->render(); // force rendering
   }
   else if(lastFrameAct->isChecked())
     requestHDF5Flush();
@@ -1742,7 +1766,7 @@ bool MainWindow::exportAsPNG(short width, short height, const std::string& fileN
     // directly use the drawing on the screen as PNG export
 
     //glViewer->render();
-    glViewer->redraw();//mfmf
+    glViewer->redraw();
     // get the image from OpenGL
     std::vector<unsigned char> pixels(width*height*4);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
@@ -2010,6 +2034,18 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   }
 }
 
+void MainWindow::stopPlay() {
+  // revert the QtWidgets actions from start-play
+  timeSlider->setValue(frameNode->index[0]);
+  frameSB->setValue(frameNode->index[0]);
+  frameSB->setSpecialValueText("");
+  setObjectInfo(objectList->currentItem());
+  timeSlider->setDisabled(false);
+  frameSB->setDisabled(false);
+  glViewer->setAutoRedraw(true);
+  if(glViewerRight) glViewerRight->setAutoRedraw(true);
+}
+
 void MainWindow::stopSCSlot() {
   if(hdf5RefreshDelta>0)
     hdf5RefreshTimer->start(hdf5RefreshDelta);
@@ -2020,6 +2056,8 @@ void MainWindow::stopSCSlot() {
   stopAct->setChecked(true);
   lastFrameAct->setChecked(false);
   playAct->setChecked(false);
+
+  stopPlay();
 }
 
 void MainWindow::lastFrameSCSlot() {
@@ -2036,6 +2074,8 @@ void MainWindow::lastFrameSCSlot() {
 
   // go to last frame
   frameNode->index.setValue(timeSlider->currentMaximum());
+
+  stopPlay();
 }
 
 void MainWindow::playSCSlot() {
@@ -2052,6 +2092,16 @@ void MainWindow::playSCSlot() {
   animStartFrame=frameNode->index[0];
   time->restart();
   animTimerStart(animTimer, maxFps);
+
+  // updating the time-slider and frame number QtWidgets reduces the FPS -> avoid it during play
+  timeSlider->setValue(timeSlider->totalMinimum());
+  frameSB->setValue(frameSB->minimum());
+  frameSB->setSpecialValueText(" ");
+  setObjectInfo(nullptr);
+  timeSlider->setDisabled(true);
+  frameSB->setDisabled(true);
+  glViewer->setAutoRedraw(false);
+  if(glViewerRight) glViewerRight->setAutoRedraw(false);
 }
 
 void MainWindow::speedUpSlot() {

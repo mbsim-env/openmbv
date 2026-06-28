@@ -62,6 +62,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
     SoCube *soBBox;
     std::string iconFile;
     SoNodeSensor *nodeSensor;
+    void nodeSensorAttach(bool attach);
     PropertyDialog *properties;
     Object *clone;
     static std::map<SoNode*,Object*> objectMap;

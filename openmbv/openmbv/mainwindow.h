@@ -165,6 +165,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QMenu* sceneViewMenu;
     SoSFTime *realTime;
     bool realTimeUsed { false };
+    void stopPlay();
   protected:
     void objectListClicked();
     void openFileDialog();
@@ -196,8 +197,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void viewRotateYmScreen() { viewChange(rotateYmScreen); }
     void viewRotateZpScreen() { viewChange(rotateZpScreen); }
     void viewRotateZmScreen() { viewChange(rotateZmScreen); }
-
-    void setObjectInfo(QTreeWidgetItem* current) { if(current) objectInfo->setHtml(((Object*)current)->getInfo()); }
+    void setObjectInfo(QTreeWidgetItem* current);
     void frameSBSetRange(int min, int max) { frameSB->setRange(min, max); } // because QAbstractSlider::setRange is not a slot
     void heavyWorkSlot();
     void refreshFileSlot(Group *grp);
