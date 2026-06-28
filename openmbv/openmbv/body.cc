@@ -61,7 +61,6 @@ Body::Body(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *parentI
     // register callback function on frame change
     frameSensor=new SoFieldSensor(frameSensorCB, this);
     frameSensor->attach(&MainWindow::getInstance()->getFrame());
-    frameSensor->setPriority(0); // is needed for png export
   }
 
   // switch for outline
