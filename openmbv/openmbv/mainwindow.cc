@@ -245,10 +245,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   cursorSwitch->addChild(cursorDrawStyle);
   cursorDrawStyle->lineWidth.setValue(3);
   SoScale *cursorScale, *cursorScale2;
-  mouseCursorSizeField=new SoSFFloat;
-  mouseCursorSizeField->setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
-  relCursorZ=new SoSFFloat;
-  relCursorZ->setValue(0.01);
+  mouseCursorSizeField=new SoAlphaTest;
+  mouseCursorSizeField->ref();
+  mouseCursorSizeField->value.setValue(appSettings->get<double>(AppSettings::mouseCursorSize));
+  relCursorZ=new SoAlphaTest;
+  relCursorZ->ref();
+  relCursorZ->value.setValue(0.01);
   cursorScaleE=new SoCalculator;
   cursorSwitch->addChild(Utils::soFrame(0.5, 0.5, false, cursorScale, SbColor(1,1,1), SbColor(1,1,1), SbColor(1,1,1)));
   cursorScale->scaleFactor.connectFrom(&cursorScaleE->oA);
@@ -1226,8 +1228,8 @@ MainWindow::~MainWindow() {
   delete engDrawingFGColorBottomSaved;
   delete engDrawingFGColorTopSaved;
   delete frameSensor;
-  delete mouseCursorSizeField;
-  delete relCursorZ;
+  mouseCursorSizeField->unref();
+  relCursorZ->unref();
 
   // delete all globally stored Coin data before deinit Coin/SoQt
   EdgeCalculation::edgeCache.clear();
@@ -2414,7 +2416,7 @@ void MainWindow::moveCameraWith(const Object* obj, SoSpotLightDragger *dragger, 
 
     // rotate about camera position
     glViewer->getCamera()->focalDistance = 0;
-    relCursorZ->setValue(0.001);
+    relCursorZ->value.setValue(0.001);
 
     // remove dragger from scene (search parent and remove the child)
     SoSearchAction sa;
@@ -2686,7 +2688,7 @@ void MainWindow::setCameraType(SoType type) {
   // 3D cursor scale
   if(glViewer->getCamera()->getTypeId()==SoOrthographicCamera::getClassTypeId()) {
     cursorScaleE->a.connectFrom(&static_cast<SoOrthographicCamera*>(glViewer->getCamera())->height);
-    cursorScaleE->b.connectFrom(mouseCursorSizeField);
+    cursorScaleE->b.connectFrom(&mouseCursorSizeField->value);
     cursorScaleE->c.disconnect();
     cursorScaleE->d.disconnect();
     cursorScaleE->e.disconnect();
@@ -2697,10 +2699,10 @@ void MainWindow::setCameraType(SoType type) {
   }
   else {
     cursorScaleE->a.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->heightAngle);
-    cursorScaleE->b.connectFrom(mouseCursorSizeField);
+    cursorScaleE->b.connectFrom(&mouseCursorSizeField->value);
     cursorScaleE->c.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->nearDistance);
     cursorScaleE->d.connectFrom(&static_cast<SoPerspectiveCamera*>(glViewer->getCamera())->farDistance);
-    cursorScaleE->e.connectFrom(relCursorZ);
+    cursorScaleE->e.connectFrom(&relCursorZ->value);
     // a = camera->heightAngle
     // b = cursorSize [in %]
     // c = camera->nearDistance

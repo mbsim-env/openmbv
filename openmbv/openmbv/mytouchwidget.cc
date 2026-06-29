@@ -746,7 +746,7 @@ int MyTouchWidget::createObjectListMenu(const vector<Body*>& pickedObject) {
 }
 
 SbVec3f MyTouchWidget::convertToRel3D(const QPoint &rel) {
-  auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
+  auto relCursorZ = MainWindow::getInstance()->relCursorZ->value.getValue();
 
   auto *camera=MainWindow::getInstance()->glViewer->getCamera();
   const auto &cameraOri=camera->orientation.getValue();
@@ -890,7 +890,7 @@ void MyTouchWidget::setRotationPointAndCursorSz(const QPoint &pos, Body *body) {
   auto d = (camera->position.getValue()-midPoint).normalize();
   auto nd = camera->nearDistance.getValue();
   auto fd = camera->farDistance.getValue();
-  MainWindow::getInstance()->relCursorZ->setValue(std::fmin(std::fmax((d - nd)/(fd - nd), 0.001), 0.999));
+  MainWindow::getInstance()->relCursorZ->value.setValue(std::fmin(std::fmax((d - nd)/(fd - nd), 0.001), 0.999));
 }
 
 void MyTouchWidget::openPropertyDialog(const QPoint &pos) {
@@ -1025,7 +1025,7 @@ void MyTouchWidget::zoomInit() {
   }
   initialZoomCameraPos=camera->position.getValue();;
   initialZoomCameraNearPlaneValue=MainWindow::getInstance()->getNearPlaneValue();
-  initialZoomRelCursorZ=MainWindow::getInstance()->relCursorZ->getValue();
+  initialZoomRelCursorZ=MainWindow::getInstance()->relCursorZ->value.getValue();
   initialZoomCameraFocalDistance=camera->focalDistance.getValue();
 }
 
@@ -1041,7 +1041,7 @@ void MyTouchWidget::zoomReset() {
   }
   camera->position.setValue(initialZoomCameraPos);
   MainWindow::getInstance()->setNearPlaneValue(initialZoomCameraNearPlaneValue);
-  MainWindow::getInstance()->relCursorZ->setValue(initialZoomRelCursorZ);
+  MainWindow::getInstance()->relCursorZ->value.setValue(initialZoomRelCursorZ);
   camera->focalDistance.setValue(initialZoomCameraFocalDistance);
 }
 
@@ -1136,7 +1136,7 @@ void MyTouchWidget::cursorSz(int relPixel, float relAngle, const QPoint &pos) {
     relCursorZ=0.001;
   if(relCursorZ>0.999)
     relCursorZ=0.999;
-  MainWindow::getInstance()->relCursorZ->setValue(relCursorZ);
+  MainWindow::getInstance()->relCursorZ->value.setValue(relCursorZ);
   MainWindow::getInstance()->statusBar()->showMessage(QString("Cursor screen-z = %1 (0.0/1.0=near/far clipping plane)").
     arg(relCursorZ, 0, 'f', 3), 1000);
   updateCursorPos(pos);
@@ -1154,7 +1154,7 @@ void MyTouchWidget::updateCursorPos(const QPoint &mousePos) {
   if(!cursor3D)
     return;
 
-  auto relCursorZ = MainWindow::getInstance()->relCursorZ->getValue();
+  auto relCursorZ = MainWindow::getInstance()->relCursorZ->value.getValue();
 
   int x=mousePos.x();
   int y=mousePos.y();

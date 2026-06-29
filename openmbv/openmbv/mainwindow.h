@@ -117,7 +117,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSwitch *cursorSwitch;
     SoTranslation *cursorPos;
     SoCalculator *cursorScaleE;
-    SoSFFloat *mouseCursorSizeField;
+    SoAlphaTest *mouseCursorSizeField;
     QPushButton *disableStereo;
   protected:
     SepNoPick *sceneRootBBox;
@@ -352,7 +352,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     std::set<std::string> waitForAutoExit;
     void setNearPlaneValue(float value);
     float getNearPlaneValue() { return nearPlaneValue; }
-    SoSFFloat *relCursorZ;
+    SoAlphaTest *relCursorZ;
 
     QToolBar* getSceneViewToolBar() { return sceneViewToolBar; }
     QMenu* getSceneViewMenu() { return sceneViewMenu; }

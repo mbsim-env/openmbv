@@ -1266,7 +1266,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
     MainWindow::getInstance()->glViewerWG->setCursor3D(value);
   });
   new DoubleSetting(mouseTouchSettings, AppSettings::mouseCursorSize, Utils::QIconCached("mouse.svg"), "Mouse cursor size:", "%", [](double value){
-    MainWindow::getInstance()->mouseCursorSizeField->setValue(value);
+    MainWindow::getInstance()->mouseCursorSizeField->value.setValue(value);
   }, 0, 100, 1);
   new DoubleSetting(mouseTouchSettings, AppSettings::rotAnglePerPixel, Utils::QIconCached("angle.svg"), "Rotation angle:", "deg/px", [](double value){
     MainWindow::getInstance()->glViewerWG->setRotAnglePerPixel(value);
