@@ -46,8 +46,9 @@
     <p>The real-time clock is accessible as usual in IV files. If not other events trigger an update of the scene, then the real-time clock ticks at about 12fps.</p>
     <p>The following named nodes are accessible as usual in IV files (using the USE statement):</p>
     <dl>
-      <dt>"openmbv_mainwindow_time"</dt><dd>Provides the current OpenMBV time by the field "value"</dd>
-      <dt>"openmbv_mainwindow_frame"</dt><dd>Provides the current OpenMBV frame by the field "index"</dd>
+      <dt>"openmbv_mainwindow_time"</dt><dd>Provides the current OpenMBV time by the Float field "value"</dd>
+      <dt>"openmbv_mainwindow_frame"</dt><dd>Provides the current OpenMBV frame by the Int32 field "index"</dd>
+      <dt>"openmbv_mainwindow_screensize"</dt><dd>Provides the current OpenMBV screen-size by the Vec3f field "value" (index 0 and 1, 2 is not used)</dd>
     </dl>
   </xs:documentation></xs:annotation>
 

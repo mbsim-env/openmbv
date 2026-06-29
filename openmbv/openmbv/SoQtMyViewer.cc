@@ -32,6 +32,7 @@
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoAsciiText.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QSvgRenderer>
@@ -40,6 +41,10 @@
 #include <boost/dll.hpp>
 
 using namespace std;
+
+namespace {
+  const float textHeight=0.03;
+}
 
 namespace OpenMBVGUI {
 
@@ -84,8 +89,6 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
 
   screenAnnotationSep->addChild(MainWindow::getInstance()->getScreenAnnotationList());
 
-  const float textHeight=0.03;
-
   // time (top left)
   {
     auto timeSep = new SoSeparator;
@@ -103,10 +106,10 @@ SoQtMyViewer::SoQtMyViewer(QWidget *parent) : SoQtViewer(parent, nullptr, true, 
     auto trans = new SoTranslation;
     trans->translation.setValue(-0.99,1-textHeight,0);
     timeSep->addChild(trans);
-    auto *fontStyle=new SoFontStyle;
-    fontStyle->size.setValue(textHeight);
-    fontStyle->family=SoFontStyle::TYPEWRITER;
-    timeSep->addChild(fontStyle);
+    timeStringFontStyle=new SoFontStyle;
+    timeStringFontStyle->family=SoFontStyle::TYPEWRITER;
+    //timeStringFontStyle->size is set dynamically in actualRedraw
+    timeSep->addChild(timeStringFontStyle);
     timeSep->addChild(MainWindow::getInstance()->getTimeString());
   }
 
@@ -179,11 +182,21 @@ SoQtMyViewer::~SoQtMyViewer() {
 void SoQtMyViewer::actualRedraw() {
   auto mw = MainWindow::getInstance();
   short x, y;
+  static short xOld=-1, yOld=-1;
   getViewportRegion().getWindowSize().getValue(x, y);
-  if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
-    getCamera()->aspectRatio.setValue(static_cast<float>(x)/y*aspectRatio);
-  else
-    getCamera()->aspectRatio.setValue(1.0);
+  bool newScreenSize = false;
+  if(x!=xOld || y!=yOld) {
+    xOld=x;
+    yOld=y;
+    newScreenSize = true;
+
+    mw->getScreenSize()->value.setValue(x,y,0);
+    timeStringFontStyle->size.setValue(min(x,y)*0.5*textHeight);
+    if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
+      getCamera()->aspectRatio.setValue(static_cast<float>(x)/y*aspectRatio);
+    else
+      getCamera()->aspectRatio.setValue(1.0);
+  }
 
   if(mw->getBackgroundNeeded()) {
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -195,12 +208,14 @@ void SoQtMyViewer::actualRedraw() {
   SoQtViewer::actualRedraw();
 
   // foreground (time and OpenMBV)
-  auto ombvLogoScaleX=x>y?(float)y/x:1;
-  auto ombvLogoScaleY=y>x?(float)x/y:1;
-  if(aspectRatio>1)
-    mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
-  else
-    mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
+  if(newScreenSize) {
+    auto ombvLogoScaleX=x>y?(float)y/x:1;
+    auto ombvLogoScaleY=y>x?(float)x/y:1;
+    if(aspectRatio>1)
+      mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX/aspectRatio,ombvLogoScaleY,1);
+    else
+      mw->getScreenAnnotationScale1To1()->scaleFactor.setValue(ombvLogoScaleX,ombvLogoScaleY*aspectRatio,1);
+  }
   getGLRenderAction()->apply(screenAnnotationSep);
 
   // update fps

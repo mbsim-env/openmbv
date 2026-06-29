@@ -23,6 +23,7 @@
 #include <Inventor/nodes/SoShaderParameter.h>
 #include <Inventor/nodes/SoGeoOrigin.h>
 #include <Inventor/nodes/SoInfo.h>
+#include <Inventor/nodes/SoAsciiText.h>
 #include <boost/container_hash/hash.hpp>
 #include "mainwindow.h"
 #include "openmbvcppinterface/dynamicivbody.h"

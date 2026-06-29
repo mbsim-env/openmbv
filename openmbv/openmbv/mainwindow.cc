@@ -62,6 +62,7 @@
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoShaderParameter.h>
 #include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
 #include <Inventor/VRMLnodes/SoVRMLMaterial.h>
 #include <Inventor/VRMLnodes/SoVRMLShape.h>
@@ -202,6 +203,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   screenAnnotationList->ref();
   screenAnnotationScale1To1=new SoScale;
   screenAnnotationScale1To1->ref();
+  screenSize=new SoShaderParameter3f;
+  screenSize->ref();
+  screenSize->setName("openmbv_mainwindow_screensize");
 
   sceneRoot=new SoSeparator;
   sceneRoot->ref();
@@ -265,7 +269,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
 
   // gl viewer
   glViewerWG=new MyTouchWidget(this);
-  timeString=new SoAsciiText;
+  timeString=new SoText2;
   timeString->ref();
   bgColor=new SoMFColor;
   bgColor->set1Value(0, 0.35,0.35,0.6);
@@ -1198,6 +1202,7 @@ MainWindow::~MainWindow() {
     ((Group*)(objectList->invisibleRootItem()->child(i)))->unloadFileSlot();
   cameraPosition->unref();
   screenAnnotationScale1To1->unref();
+  screenSize->unref();
   screenAnnotationList->unref();
   sceneRoot->unref();
   timeString->unref();
@@ -2868,6 +2873,7 @@ void MainWindow::updateBackgroundNeeded() {
 }
 
 void MainWindow::addReferences(SoInput &in) const {
+  in.addReference("openmbv_mainwindow_screensize", screenSize);
   in.addReference("openmbv_mainwindow_frame", frameNode);
   in.addReference("openmbv_mainwindow_time", timeNode);
 }

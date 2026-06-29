@@ -54,6 +54,7 @@ class SoQtMyViewer : public SoQtViewer {
     SoSeparator *screenAnnotationSep, *bgSep;
     float aspectRatio { 1.0 };
     SoFontStyle *fontStyle;
+    SoFontStyle *timeStringFontStyle;
 
     bool draggerKeyDown { false };
     bool draggerActive { false };

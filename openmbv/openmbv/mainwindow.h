@@ -47,7 +47,7 @@
 #include <Inventor/fields/SoSFRotation.h>
 #include <Inventor/fields/SoSFUInt32.h>
 #include <Inventor/SoOffscreenRenderer.h>
-#include <Inventor/nodes/SoAsciiText.h>
+#include <Inventor/nodes/SoText2.h>
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
 #include <QDropEvent>
@@ -68,6 +68,7 @@ class QListWidgetItem;
 class SoCalculator;
 class SoSFTime;
 class SoSpotLightDragger;
+class SoShaderParameter3f;
 
 namespace OpenMBVGUI {
  
@@ -101,7 +102,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
                     rotateXpScreen, rotateXmScreen, rotateYpScreen, rotateYmScreen, rotateZpScreen, rotateZmScreen };
     enum Animation { stop, play, lastFrame };
     struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
-    SoAsciiText *timeString;
+    SoText2 *timeString;
     double maxFps;
     bool enableFullScreen;
     SoTransformVec3f *cameraPosition;
@@ -131,6 +132,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator *sceneRoot;
     SoSeparator *screenAnnotationList;
     SoScale *screenAnnotationScale1To1;
+    SoShaderParameter3f *screenSize;
     QTimer *animTimer;
     QTimer *hdf5RefreshTimer;
     QElapsedTimer *time;
@@ -318,7 +320,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
       timeString->string.setValue(QString("Time: %2").arg(t,0,'f',5).toStdString().c_str());
       timeNode->value.setValue(t);
     }
-    SoAsciiText *getTimeString() { return timeString; }
+    SoText2 *getTimeString() { return timeString; }
     SoMFColor *getBgColor() { return bgColor; }
     SoMFColor *getFgColorTop() { return fgColorTop; }
     SoMFColor *getFgColorBottom() { return fgColorBottom; }
@@ -329,6 +331,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator* getSceneRoot() { return sceneRoot; }
     SoSeparator* getScreenAnnotationList() { return screenAnnotationList; }
     SoScale* getScreenAnnotationScale1To1() { return screenAnnotationScale1To1; }
+    SoShaderParameter3f* getScreenSize() { return screenSize; }
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     void startShortAni(const std::function<void(double)> &func, bool noAni=false);
     void setHDF5RefreshDelta(int d) { hdf5RefreshDelta=d; }
