@@ -901,17 +901,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   dir.setFilter(QDir::Files);
   i=arg.begin();
 
-  // We delay all openFile calls to ensure that a OpenGL context is already created before the open happens.
-  // This allows e.g. to check OpenGL features already in the ctor of Object's
-  auto delayedOpenFile = [this](const string &fn) {
-    waitForAutoExit.insert("MainWindow::openFile::"+fn); // only needed for --autoExit
-    QTimer::singleShot(0, [this, fn](){
-      openFile(fn);
-      viewAllSlot();
-      waitForAutoExit.erase("MainWindow::openFile::"+fn); // only needed for --autoExit
-    });
-  };
-
+  vector<string> filesToOpen;
   while(i!=arg.end()) {
     dir.setPath(i->c_str());
     if(dir.exists()) { // if directory
@@ -920,25 +910,39 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
       QList<QString> alreadyOpened;
       for(const auto & f : file)
         if(filterRE1.exactMatch(f)) {
-          delayedOpenFile(dir.path().toStdString()+"/"+f.toStdString());
+          filesToOpen.emplace_back(dir.path().toStdString()+"/"+f.toStdString());
           alreadyOpened.push_back(f.mid(0, f.length()-6));
         }
       for(const auto & f : file)
         if(filterRE2.exactMatch(f)) {
           if(alreadyOpened.contains(f.mid(0, f.length()-7)))
             continue;
-          delayedOpenFile(dir.path().toStdString()+"/"+f.toStdString());
+          filesToOpen.emplace_back(dir.path().toStdString()+"/"+f.toStdString());
         }
       i2=i; i++; arg.erase(i2);
       continue;
     }
     if(QFile::exists(i->c_str())) {
-      delayedOpenFile(*i);
+      filesToOpen.emplace_back(*i);
       i2=i; i++; arg.erase(i2);
       continue;
     }
     i++;
   }
+  // We delay all openFile calls to ensure that a OpenGL context is already created before the open happens.
+  // This allows e.g. to check OpenGL features already in the ctor of Object's
+  for(auto &fn : filesToOpen)
+    waitForAutoExit.insert("MainWindow::openFile::"+fn); // only needed for --autoExit
+  QTimer::singleShot(0, [this, filesToOpen](){
+    for(auto &fn : filesToOpen) {
+      openFile(fn);
+      waitForAutoExit.erase("MainWindow::openFile::"+fn); // only needed for --autoExit
+    }
+    // viewAllSlot is further delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
+    QTimer::singleShot(0, [this](){
+      viewAllSlot();
+    });
+  });
 
   // arg commands after load all files
   
@@ -1296,9 +1300,17 @@ void MainWindow::openFile(const std::string& fileName, QTreeWidgetItem* parentIt
 void MainWindow::openFileDialog() {
   QStringList files=QFileDialog::getOpenFileNames(nullptr, "Add OpenMBV Files", ".",
     "OpenMBV files (*.ombvx *.ombvh5)");
+  bool firstFile = objectList->invisibleRootItem()->childCount() == 0;
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
-  viewAllSlot();
+  // if the first file is loaded -> call viewAllSlot, but delayed
+  if(firstFile)
+    // viewAllSlot is delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
+    QTimer::singleShot(0, [this](){
+      QTimer::singleShot(0, [this](){
+        viewAllSlot();
+      });
+    });
 }
 
 void MainWindow::newFileDialog() {
@@ -2638,7 +2650,10 @@ void MainWindow::dropEvent(QDropEvent *event) {
         openFile(Fout.fileName().toStdString());
     }
   }
-  viewAllSlot();
+  // viewAllSlot is delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
+  QTimer::singleShot(0, [this](){
+    viewAllSlot();
+  });
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
