@@ -511,7 +511,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
 
   // scene view menu
   sceneViewMenu=new QMenu("Scene View", menuBar());
-  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A"));
+  QAction *viewAllAct=sceneViewMenu->addAction(Utils::QIconCached("viewall.svg"),"View all", this, &MainWindow::viewAllSlot, QKeySequence("A")); // no delay of viewAllSlot needed
   addAction(viewAllAct); // must work also if menu bar is invisible
   QMenu *axialView=sceneViewMenu->addMenu(Utils::QIconCached("axialview.svg"),"Axial view");
   QAction *topViewAct=axialView->addAction(Utils::QIconCached("topview.svg"),"Top", this, &MainWindow::viewTopSlot, QKeySequence("T"));
@@ -1305,7 +1305,7 @@ void MainWindow::openFileDialog() {
     openFile(files[i].toStdString());
   // if the first file is loaded -> call viewAllSlot, but delayed
   if(firstFile)
-    // viewAllSlot is delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
+    // viewAllSlot is delayed (two times, since openFileDialog is a slot itself) to ensure that the scence graph if fully build and update before viewAllSlot is called
     QTimer::singleShot(0, [this](){
       QTimer::singleShot(0, [this](){
         viewAllSlot();
@@ -2650,9 +2650,11 @@ void MainWindow::dropEvent(QDropEvent *event) {
         openFile(Fout.fileName().toStdString());
     }
   }
-  // viewAllSlot is delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
+  // viewAllSlot is delayed (two times, since openFileDialog is a slot itself) to ensure that the scence graph if fully build and update before viewAllSlot is called
   QTimer::singleShot(0, [this](){
-    viewAllSlot();
+    QTimer::singleShot(0, [this](){
+      viewAllSlot();
+    });
   });
 }
 
