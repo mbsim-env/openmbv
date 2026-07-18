@@ -1210,4 +1210,9 @@ void MyTouchWidget::setCursor3D(bool value) {
     MainWindow::getInstance()->setCursorPos();
 }
 
+void MyTouchWidget::resizeEvent(QResizeEvent *event) {
+  auto mw = MainWindow::getInstance();
+  mw->updateScreenSize(event->size().width(), event->size().height());
+}
+
 }

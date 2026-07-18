@@ -94,6 +94,7 @@ class MyTouchWidget : public TouchWidget<QWidget> {
     void setRelCursorZPerPixel(double value) { relCursorZPerPixel=value; }
     void setPixelPerFrame(int value) { pixelPerFrame=value; }
     void setCursor3D(bool value);
+    void resizeEvent(QResizeEvent *event) override;
   protected:
     // functions for mouse events
     void mouseLeftClick(Qt::KeyboardModifiers modifiers, const QPoint &pos) override;

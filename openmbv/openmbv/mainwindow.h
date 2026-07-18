@@ -331,7 +331,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoSeparator* getSceneRoot() { return sceneRoot; }
     SoSeparator* getScreenAnnotationList() { return screenAnnotationList; }
     SoScale* getScreenAnnotationScale1To1() { return screenAnnotationScale1To1; }
-    SoShaderParameter3f* getScreenSize() { return screenSize; }
+    void updateScreenSize(int w, int h);
     int getRootItemIndexOfChild(Group *grp) { return objectList->invisibleRootItem()->indexOfChild(grp); }
     void startShortAni(const std::function<void(double)> &func, bool noAni=false);
     void setHDF5RefreshDelta(int d) { hdf5RefreshDelta=d; }

@@ -181,16 +181,15 @@ SoQtMyViewer::~SoQtMyViewer() {
  
 void SoQtMyViewer::actualRedraw() {
   auto mw = MainWindow::getInstance();
-  short x, y;
   static short xOld=-1, yOld=-1;
-  getViewportRegion().getWindowSize().getValue(x, y);
+  auto size = mw->glViewerWG->size();
+  short x = size.width(), y = size.height();
   bool newScreenSize = false;
   if(x!=xOld || y!=yOld) {
     xOld=x;
     yOld=y;
     newScreenSize = true;
 
-    mw->getScreenSize()->value.setValue(x,y,0);
     timeStringFontStyle->size.setValue(min(x,y)*0.5*textHeight);
     if(getCamera()->getStereoMode()!=SoCamera::MONOSCOPIC)
       getCamera()->aspectRatio.setValue(static_cast<float>(x)/y*aspectRatio);

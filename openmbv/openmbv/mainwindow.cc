@@ -2912,4 +2912,8 @@ void MainWindow::removePickUpdate(Body *b) {
   pickUpdateSet.erase(b);
 }
 
+void MainWindow::updateScreenSize(int w, int h) {
+  screenSize->value.setValue(w,h,0);
+}
+
 }
