@@ -50,6 +50,8 @@
 #include <Inventor/nodes/SoText2.h>
 #include "SoQtMyViewer.h"
 #include "QTripleSlider.h"
+#include "qsemaphore.h"
+#include <QFuture>
 #include <QDropEvent>
 #include <qwt_wheel.h>
 #include <fmatvec/fmatvec.h>
@@ -218,7 +220,8 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     void speedWheelReleased();
   protected:
     SoOffscreenRenderer *offScreenRenderer;
-    bool exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
+    std::unique_ptr<QSemaphore> exportAsPNGSem;
+    QFuture<bool> exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG(bool video);
     void exportCurrentAsIV();

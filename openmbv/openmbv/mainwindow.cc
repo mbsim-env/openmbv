@@ -54,6 +54,7 @@
 #include <QListView>
 #include <QStringListModel>
 #include <QGroupBox>
+#include <QtConcurrent>
 #include "utils.h"
 #include <QMetaMethod>
 #include <Inventor/nodes/SoBaseColor.h>
@@ -1777,26 +1778,33 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-bool MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
-  SbVec2s guiSize=glViewer->getSceneManager()->getViewportRegion().getWindowSize();
-  short guiWidth, guiHeight;
-  guiSize.getValue(guiWidth, guiHeight);
+QFuture<bool> MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
+  if(realTimeUsed)
+    *realTime = SbTime::getTimeOfDay();
+  auto size = glViewerWG->size();
+  short guiWidth = size.width(), guiHeight = size.height();
   if(width==guiWidth && height==guiHeight && transparent==false) {
     // directly use the drawing on the screen as PNG export
 
-    //glViewer->render();
-    glViewer->redraw();
+    SoDB::getSensorManager()->processImmediateQueue();
+    SoDB::getSensorManager()->processDelayQueue(true);
+    SoDB::getSensorManager()->processTimerQueue();
+    glViewer->render(); // force rendering
     // get the image from OpenGL
     std::vector<unsigned char> pixels(width*height*4);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-    // flip the image vertically (OpenGL and PNG use a flipped y-coordinate)
-    for(int y = 0; y < height / 2; ++y)
-      for(int x = 0; x < width * 4; ++x)
-        swap(pixels[y*width*4+x], pixels[(height-1-y)*width*4+x]);
-    // save as PNG image
-    QImage image(pixels.data(), width, height, QImage::Format_RGBA8888);
-    image.save(fileName.c_str(), "png");
-    return true;
+    if(exportAsPNGSem) exportAsPNGSem->acquire();
+    return QtConcurrent::run([this, pixels = std::move(pixels), height, width, fileName]() mutable {
+      // flip the image vertically (OpenGL and PNG use a flipped y-coordinate)
+      for(int y = 0; y < height / 2; ++y)
+        for(int x = 0; x < width * 4; ++x)
+          swap(pixels[y*width*4+x], pixels[(height-1-y)*width*4+x]);
+      // save as PNG image
+      QImage image(pixels.data(), width, height, QImage::Format_RGBA8888);
+      image.save(fileName.c_str(), "png");
+      if(exportAsPNGSem) exportAsPNGSem->release();
+      return true;
+    });
   }
   else {
     // use a offscreen renderer
@@ -1844,7 +1852,10 @@ bool MainWindow::exportAsPNG(short width, short height, const std::string& fileN
     // (SoOffscreenRenderer does not update the clipping planes but SoQtViewer does so!)
     // (it gives the side effect, that the user sees the current exported frame)
     // (the double rendering does not lead to permormance problems)
-    glViewer->redraw();
+    SoDB::getSensorManager()->processImmediateQueue();
+    SoDB::getSensorManager()->processDelayQueue(true);
+    SoDB::getSensorManager()->processTimerQueue();
+    glViewer->render(); // force rendering
     // render offscreen
     SbBool ok=offScreenRenderer->render(root);
     if(!ok) {
@@ -1865,7 +1876,7 @@ Alternatively you can export without a offscreen renderer. But this is only
 used when 'Resoluation factor'=1.0 and 'Background'='Use scene color' is set.
 )_");
       root->unref();
-      return false;
+      return QtConcurrent::run([] { return false; });
     }
 
     // set set text color
@@ -1874,7 +1885,7 @@ used when 'Resoluation factor'=1.0 and 'Background'='Use scene color' is set.
       fgColorBottom->set1Value(0, fgColorBottomSaved);
     }
 
-    auto *buf=new unsigned char[width*height*4];
+    vector<unsigned char> buf(width*height*4);
     for(int y=0; y<height; y++)
       for(int x=0; x<width; x++) {
         int i=(y*width+x)* (transparent?4:3);
@@ -1884,11 +1895,13 @@ used when 'Resoluation factor'=1.0 and 'Background'='Use scene color' is set.
         buf[o+2]=offScreenRenderer->getBuffer()[i+0]; // red
         buf[o+3]=(transparent?offScreenRenderer->getBuffer()[i+3]:255); // alpha
       }
-    QImage image(buf, width, height, QImage::Format_ARGB32);
-    image.save(fileName.c_str(), "png");
-    delete[]buf;
+    auto ret = QtConcurrent::run([buf = std::move(buf), height, width, fileName]() {
+      QImage image(buf.data(), width, height, QImage::Format_ARGB32);
+      image.save(fileName.c_str(), "png");
+      return true;
+    });
     root->unref();
-    return true;
+    return ret;
   }
 }
 
@@ -1907,7 +1920,7 @@ void MainWindow::exportCurrentAsPNG() {
   SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
   short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
-  exportAsPNG(width, height, filename.toStdString(), dialog.getTransparent());
+  exportAsPNG(width, height, filename.toStdString(), dialog.getTransparent()).result();
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
   statusBar()->showMessage("Done", 10000);
   if(QFile::exists(filename))
@@ -1960,8 +1973,17 @@ void MainWindow::exportSequenceAsPNG(bool video) {
     removePNGs(pngBaseName);
     progress.setWindowTitle(video ? "Export Video" : "Export PNGs");
     progress.setWindowModality(Qt::WindowModal);
+    progress.show();
+    vector<QFuture<bool>> future;
+    auto savedAutoRedraw = glViewer->isAutoRedraw();
+    glViewer->setAutoRedraw(false);
+    if(glViewerRight) glViewerRight->setAutoRedraw(false);
+    exportAsPNGSem = make_unique<QSemaphore>(QThreadPool::globalInstance()->maxThreadCount());
     for(int frame_=startFrame; frame_<=endFrame; frame_=(int)(speed/deltaTime/fps*++videoFrame+startFrame)) {
-      progress.setValue(videoFrame);
+      if(videoFrame % (lastVideoFrame/100+1)==0) {
+        progress.setValue(videoFrame);
+        QCoreApplication::processEvents();
+      }
       if(progress.wasCanceled())
         break;
       QString str("Exporting frame sequence to %1_<nr>.png, please wait! (%2\%)");
@@ -1969,9 +1991,14 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       statusBar()->showMessage(str);
       msg(Status)<<str.toStdString()<<endl;
       frameNode->index.setValue(frame_);
-      if(!exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent))
-        break;
+      future.emplace_back(exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent));
     }
+    exportAsPNGSem.reset();
+    glViewer->setAutoRedraw(savedAutoRedraw);
+    if(glViewerRight) glViewerRight->setAutoRedraw(savedAutoRedraw);
+    bool ret = true;
+    for(auto &f : future)
+      ret = ret && f.result();
     if(progress.wasCanceled())
       return;
     progress.setValue(lastVideoFrame);
