@@ -121,6 +121,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoCalculator *cursorScaleE;
     SoAlphaTest *mouseCursorSizeField;
     QPushButton *disableStereo;
+    bool cameraLoaded { false };
   protected:
     SepNoPick *sceneRootBBox;
     QTreeWidget *objectList;

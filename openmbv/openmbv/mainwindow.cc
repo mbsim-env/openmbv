@@ -874,6 +874,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
     i2=i; i2++;
     cameraFile=*i2;
     arg.erase(i); arg.erase(i2);
+    cameraLoaded = true;
   }
 
   // head light
@@ -940,9 +941,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
       waitForAutoExit.erase("MainWindow::openFile::"+fn); // only needed for --autoExit
     }
     // viewAllSlot is further delayed to ensure that the scence graph if fully build and update before viewAllSlot is called
-    QTimer::singleShot(0, [this](){
-      viewAllSlot();
-    });
+    if(!cameraLoaded)
+      QTimer::singleShot(0, [this](){
+        viewAllSlot();
+      });
   });
 
   // arg commands after load all files
@@ -1305,7 +1307,7 @@ void MainWindow::openFileDialog() {
   for(int i=0; i<files.size(); i++)
     openFile(files[i].toStdString());
   // if the first file is loaded -> call viewAllSlot, but delayed
-  if(firstFile)
+  if(firstFile && !cameraLoaded)
     // viewAllSlot is delayed (two times, since openFileDialog is a slot itself) to ensure that the scence graph if fully build and update before viewAllSlot is called
     QTimer::singleShot(0, [this](){
       QTimer::singleShot(0, [this](){
@@ -2678,11 +2680,12 @@ void MainWindow::dropEvent(QDropEvent *event) {
     }
   }
   // viewAllSlot is delayed (two times, since openFileDialog is a slot itself) to ensure that the scence graph if fully build and update before viewAllSlot is called
-  QTimer::singleShot(0, [this](){
+  if(!cameraLoaded)
     QTimer::singleShot(0, [this](){
-      viewAllSlot();
+      QTimer::singleShot(0, [this](){
+        viewAllSlot();
+      });
     });
-  });
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
