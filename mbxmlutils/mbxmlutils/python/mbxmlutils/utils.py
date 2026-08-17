@@ -14,12 +14,14 @@ def getDefaultOpenExeForExt(ext):
       ctypes.POINTER(ctypes.wintypes.DWORD), # pcchOut
     ]
     shlwapi.AssocQueryStringW.restype = ctypes.c_long
+    ASSOCF_NONE = 0
+    ASSOCSTR_EXECUTABLE = 2
     
     size = ctypes.wintypes.DWORD(0)
-    if shlwapi.AssocQueryStringW(0, 1, ext, None, None, ctypes.byref(size)) != 1:
+    if shlwapi.AssocQueryStringW(ASSOCF_NONE, ASSOCSTR_EXECUTABLE, ext, None, None, ctypes.byref(size)) != 1:
       raise RuntimeError("AssocQueryStringW failed")
     buf = ctypes.create_unicode_buffer(size.value)
-    if shlwapi.AssocQueryStringW(0, 1, ext, None, buf, ctypes.byref(size)) != 0:
+    if shlwapi.AssocQueryStringW(ASSOCF_NONE, ASSOCSTR_EXECUTABLE, ext, None, buf, ctypes.byref(size)) != 0:
       raise RuntimeError("AssocQueryStringW failed")
     if len(buf.value)>=2 and buf.value[0]=='"' and buf.value[-1]=='"':
       return buf.value[1:-1]
