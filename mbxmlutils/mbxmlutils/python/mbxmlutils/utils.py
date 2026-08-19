@@ -1,5 +1,7 @@
 def getDefaultOpenExeForExt(ext):
   import platform
+  if ext[0]!=".":
+    ext="."+ext
   if platform.system() == "Windows":
     import ctypes
     import ctypes.wintypes
@@ -28,7 +30,7 @@ def getDefaultOpenExeForExt(ext):
     return buf.value
   elif platform.system() == "Linux":
     import os
-    if ext=="txt" or ext==".txt":
+    if ext==".txt":
       EDITOR = os.environ.get("EDITOR", None)
       if EDITOR is not None:
         return EDITOR
