@@ -132,7 +132,7 @@ namespace MBXMLUtils {
 ThisLineLocation domLoc;
 
 namespace {
-  static const string mbxmlutilsfileSchema="mbxmlutilsfile://";
+  static const string mbxmlutilsfileScheme="mbxmlutilsfile";
 
   InitXerces initXerces;
 
@@ -843,12 +843,15 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
   // handle in-memory-files
   if(uri.empty())
     return {};
-  // return the URI, if it already begins with "/", "//" or "\\"
-  if(uri[0]=='/' or uri.substr(0,2)=="\\\\")
-    return uri;
+  // get scheme
+  static const boost::regex re(R"q(([a-zA-Z][a-zA-Z0-9.+-]+):.*)q");
+  boost::smatch m;
+  if(!boost::regex_match(uri, m, re))
+    return uri; // no scheme -> URI reference -> return it
+  auto scheme = m.str(1);
   // handle (the original xerces) schema for local files
   static const string fileScheme="file://";
-  if(uri.substr(0, fileScheme.length())==fileScheme) {
+  if(scheme=="file") {
 #ifdef _WIN32
     int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
 #else
@@ -857,8 +860,8 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
     return uri.substr(fileScheme.length() + addChars);
   }
   // handle mbxmlutilsfile schema
-  if(uri.substr(0, mbxmlutilsfileSchema.length())==mbxmlutilsfileSchema)
-    return uri.substr(mbxmlutilsfileSchema.length());
+  if(scheme==mbxmlutilsfileScheme)
+    return uri.substr(mbxmlutilsfileScheme.length()+3);
   // all other schemas are errors
   throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
 }
@@ -947,11 +950,14 @@ DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::
                             static_cast<const DOMDocument*>(n)->getDocumentElement() :
                             n->getOwnerDocument()->getDocumentElement());
 
-  if(n->getNodeType()==DOMNode::ELEMENT_NODE)
+  if(n->getNodeType()==DOMNode::ELEMENT_NODE ||
+     n->getNodeType()==DOMNode::ATTRIBUTE_NODE ||
+     n->getNodeType()==DOMNode::DOCUMENT_NODE ||
+     n->getNodeType()==DOMNode::DOCUMENT_FRAGMENT_NODE)
     appendContext(n, loc.getLineNumber());
-  else if(n->getNodeType()==DOMNode::ATTRIBUTE_NODE)
-    appendContext(n, loc.getLineNumber());
-  else if(n->getNodeType()==DOMNode::TEXT_NODE) {
+  else if(n->getNodeType()==DOMNode::TEXT_NODE ||
+          n->getNodeType()==DOMNode::PROCESSING_INSTRUCTION_NODE ||
+          n->getNodeType()==DOMNode::COMMENT_NODE) {
     // use the first previous element n as appendContext ...
     auto nn=n->getPreviousSibling();
     while(nn) {
@@ -965,12 +971,8 @@ DOMEvalException::DOMEvalException(const std::string &errorMsg_, const xercesc::
     if(!nn)
       appendContext(n->getParentNode(), loc.getLineNumber());
   }
-  else if(n->getNodeType()==DOMNode::DOCUMENT_NODE)
-    appendContext(n, loc.getLineNumber());
-  else if(n->getNodeType()==DOMNode::DOCUMENT_FRAGMENT_NODE)
-    appendContext(n, loc.getLineNumber());
   else
-    assert(false && "DOMEvalException can only be called with a DOMLocator of node type element, attribute or text.");
+    assert(false && "DOMEvalException cannot be called with a DOMLocator of this node type.");
 }
 
 void DOMEvalException::appendContext(const DOMNode *n, int externLineNr) {
@@ -1381,7 +1383,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     }
     throw ex;
   }
-  string docURI = mbxmlutilsfileSchema;
+  string docURI = mbxmlutilsfileScheme+"://";
   docURI.append(inputSource.string());
   doc->setDocumentURI(X()%docURI);
   convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
