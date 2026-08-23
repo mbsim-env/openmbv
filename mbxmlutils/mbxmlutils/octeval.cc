@@ -588,7 +588,7 @@ void OctEval::addImport(const std::string &code, const DOMElement *e, const std:
     for(bfs::directory_iterator it=bfs::directory_iterator(dir); it!=bfs::directory_iterator(); it++)
       if(it->path().extension()==".m")
         dependencies->push_back(it->path());
-  } RETHROW_AS_DOMEVALEXCEPTION(e)
+  } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
 }
 
 Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement *e, bool skipRet) const {
@@ -647,14 +647,14 @@ Eval::Value OctEval::fullStringToValue(const std::string &str, const DOMElement 
   // change the octave serach path only if required (for performance reasons; addpath/path(...) is very time consuming, but not path())
   static octave_function *path=octInit.interpreter->get_symbol_table().find_function("path").function_value(); // get ones a pointer for performance reasons
   std::string curPath;
-  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } RETHROW_AS_DOMEVALEXCEPTION(e)
+  try { curPath=fevalThrow(path, octave_value_list(), 1)(0).string_value(); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
   auto ci=std::static_pointer_cast<Import>(currentImport.at(""));
   std::string &currentPath=ci->path;
   if(curPath!=currentPath)
   {
     // set path
     try { fevalThrow(path, octave_value_list(octave_value(currentPath)), 0,
-      "Unable to set the octave search path "+currentPath); } RETHROW_AS_DOMEVALEXCEPTION(e)
+      "Unable to set the octave search path "+currentPath); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
   }
 
   // restore variables from import

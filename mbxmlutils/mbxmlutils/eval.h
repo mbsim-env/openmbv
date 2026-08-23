@@ -22,6 +22,16 @@
     } MBXMLUTILS_EVAL_APPENDLINE(regDummy); \
   }
 
+// Exception wrapping for DOMEvalException.
+// Rethrow a exception as DOMEvalException with context e, a DOMEvalException is just rethrown unchanged.
+#define MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e) \
+  catch(MBXMLUtils::DOMEvalException &ex) { \
+    throw; \
+  } \
+  catch(const std::exception &ex) { \
+    throw DOMEvalException(ex.what(), e); \
+  }
+
 namespace XERCES_CPP_NAMESPACE {
   class DOMElement;
   class DOMAttr;

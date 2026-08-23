@@ -134,13 +134,14 @@ inline bool operator>=(const PyO& l, const PyO& r) { return l.get()>=r.get(); }
 class PythonException : public std::exception {
   public:
     PythonException(const char *file_, int line_);
-    virtual ~PythonException() noexcept override = default;
-    std::string getFile() { return file; }
-    int getLine() { return line; }
-    PyO getType() { return type; }
-    PyO getValue() { return value; }
-    PyO getTraceback() { return traceback; }
+    ~PythonException() noexcept override = default;
+    std::string getFile() const { return file; }
+    int getLine() const { return line; }
+    PyO getType() const { return type; }
+    PyO getValue() const { return value; }
+    PyO getTraceback() const { return traceback; }
     const char* what() const noexcept override;
+    std::string getMsg() const;
   private:
     std::string file;
     int line;

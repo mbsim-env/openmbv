@@ -227,7 +227,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     // evaluate count using parameters
     long count=1;
     if(E(e)->hasAttribute("count"))
-      try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
+      try { count=eval->cast<int>(eval->eval(E(e)->getAttributeNode("count"))); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
   
     // counter name
     string counterName="MBXMLUtilsDummyCounterName";
@@ -246,7 +246,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(E(e)->hasAttribute("href")) {
         // evaluate href
         string subst;
-        try { subst=eval->cast<string>(eval->eval(E(e)->getAttributeNode("href"))); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        try { subst=eval->cast<string>(eval->eval(E(e)->getAttributeNode("href"))); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
         enewFilename=E(e)->convertPath(subst);
         if(dependencies)
           dependencies->push_back(enewFilename);
@@ -317,9 +317,9 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(E(e)->hasAttribute("parameterHref")) {
         // parameter from parameterHref attribute
         Eval::Value ret;
-        try { ret=eval->eval(E(e)->getAttributeNode("parameterHref")); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        try { ret=eval->eval(E(e)->getAttributeNode("parameterHref")); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
         string subst;
-        try { subst=eval->cast<string>(ret); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        try { subst=eval->cast<string>(ret); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
         paramFile=E(e)->convertPath(subst);
         if(MBXMLUtils::exists(paramFile)) {
           // add local parameter file to dependencies
@@ -446,7 +446,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           if(auto ofn = E(embed)->getOriginalFilename(); !ofn.empty())
             E(localParamEleInDOM)->setOriginalFilename(ofn);
         }
-        try { eval->addParamSet(localParamEleInDOM); } RETHROW_AS_DOMEVALEXCEPTION(e)
+        try { eval->addParamSet(localParamEleInDOM); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
       }
 
       // embed only if 'onlyif' attribute is true
@@ -550,7 +550,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       if(!A(a)->isDerivedFrom(PV%"fullEval") && !A(a)->isDerivedFrom(PV%"partialEval"))
         continue;
       Eval::Value value;
-      try { value=eval->eval(a); } RETHROW_AS_DOMEVALEXCEPTION(e)
+      try { value=eval->eval(a); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
       string s;
       try {
         if(eval->valueIsOfType(value, Eval::ScalarType)) {
@@ -565,7 +565,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
           s=eval->cast<string>(value);
         else
           throw DOMEvalException("Attribute evaluations can only be of type scalar or string.", a);
-      } RETHROW_AS_DOMEVALEXCEPTION(e)
+      } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
 
       // attributes of type qnamePartialEval need special handling
       if(A(a)->isDerivedFrom(PV%"qnamePartialEval")) {
@@ -594,7 +594,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
        E(e)->isDerivedFrom(PV%"indexMatrix") ||
        function) {
       Eval::Value value;
-      try { value=eval->eval(e); } RETHROW_AS_DOMEVALEXCEPTION(e)
+      try { value=eval->eval(e); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
       E(e)->removeAttribute("unit");
       E(e)->removeAttribute("convertUnit");
       // remove all child elements and child text nodes (since we add the evaluated value as the data = text node)
@@ -608,7 +608,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
       DOMDocument *doc=e->getOwnerDocument();
       try {
         node=doc->createTextNode(X()%eval->cast<CodeString>(value));
-      } RETHROW_AS_DOMEVALEXCEPTION(e)
+      } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
       e->appendChild(node);
     }
 
@@ -616,7 +616,7 @@ bool Preprocess::preprocess(DOMElement *&e, int &nrElementsEmbeded, const shared
     if(E(e)->isDerivedFrom(PV%"script")) {
       // eval element: for PV%"script" a string containing all parameters in xmlflateval notation is returned.
       Eval::Value value;
-      try { value=eval->eval(e); } RETHROW_AS_DOMEVALEXCEPTION(e)
+      try { value=eval->eval(e); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e)
       // add processing instruction <?ScriptParameter ...?>
       // add processing instruction <?ScriptParameter ...?>
       E(e)->addProcessingInstructionChildNamed("ScriptParameter", eval->cast<string>(value));

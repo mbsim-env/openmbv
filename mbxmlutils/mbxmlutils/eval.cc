@@ -426,7 +426,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       vector<Value> args(1);
       args[0]=angle;
       Value ret;
-      try { ret=callFunction(string("rotateAbout")+ch, args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
+      try { ret=callFunction(string("rotateAbout")+ch, args); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(ec)
       return ret;
     }
   }
@@ -450,7 +450,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
       ele=ele->getNextElementSibling();
       angles[2]=handleUnit(ec, eval(ele));
       Value ret;
-      try { ret=callFunction(rotFuncName[i], angles); } RETHROW_AS_DOMEVALEXCEPTION(ec)
+      try { ret=callFunction(rotFuncName[i], angles); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(ec)
       return ret;
     }
   }
@@ -471,7 +471,7 @@ Eval::Value Eval::eval(const DOMElement *e) {
     Value ret;
     vector<Value> args(1);
     args[0]=fileName;
-    try { ret=callFunction("mbxmlutils_load", args); } RETHROW_AS_DOMEVALEXCEPTION(ec)
+    try { ret=callFunction("mbxmlutils_load", args); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(ec)
     handleUnit(e, ret);
     return ret;
   }
@@ -524,16 +524,16 @@ Eval::Value Eval::eval(const xercesc::DOMAttr *a) {
         throw DOMEvalException("Value is not of type scalar string", a);
     }
     else if(A(a)->isDerivedFrom(PV%"integerFullEval")) {
-      try { cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
+      try { cast<int>(ret); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(a);
     }
     else if(A(a)->isDerivedFrom(PV%"booleanFullEval")) {
       int value;
-      try { value=cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
+      try { value=cast<int>(ret); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(a);
       if(value!=0 && value!=1)
         throw DOMEvalException("Value is not of type scalar boolean", a);
     }
     else if(A(a)->isDerivedFrom(PV%"indexFullEval")) {
-      try { cast<int>(ret); } RETHROW_AS_DOMEVALEXCEPTION(a);
+      try { cast<int>(ret); } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(a);
       convertIndex(ret, true);
     }
     else
@@ -676,7 +676,7 @@ string Eval::partialStringToString(const string &str, const DOMElement *e) const
         subst=cast<string>(ret);
       else
         throw runtime_error("Partial evaluations can only be of type scalar or string.");
-    } RETHROW_AS_DOMEVALEXCEPTION(e);
+    } MBXMLUTILS_RETHROW_AS_DOMEVALEXCEPTION(e);
     s+=subst;
     // append text after expression^
     s+=string(exprName.second.begin(), exprName.second.end());

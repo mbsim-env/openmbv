@@ -263,6 +263,10 @@ const char* PythonException::what() const noexcept {
   RETURN(msg.c_str());
 }
 
+std::string PythonException::getMsg() const {
+  return PyUnicode_AsUTF8(PyObject_Str(value.get()));
+}
+
 DisableFPE::DisableFPE() {
 #ifdef _WIN32
   savedFPE=_controlfp(0, 0);
