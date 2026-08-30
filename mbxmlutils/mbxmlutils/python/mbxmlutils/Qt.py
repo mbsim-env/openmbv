@@ -2,6 +2,7 @@
 
 import os
 import matplotlib
+import matplotlib.backends.backend_qt
 import PySide2.QtWidgets
 import PySide2.QtCore
 
@@ -28,6 +29,23 @@ if PySide2.QtCore.QCoreApplication.instance() is None:
 else:
   # if a QApplication is already instantiated then we are running a GUI program (mbsimgui) and need not to start a QApplication
   _isGUI=True
+
+# disable layout engines during pan zoom mouse drag events (to improve interactive performance)
+# this is even the documented behaviour of matplotlib but is not implemented -> implement it here using a monkey patch
+# Note that for maximal interactive performance you should also NOT use legend(loc="best")
+_org_navigationtoolbar_press_pan = matplotlib.backends.backend_qt.NavigationToolbar2QT.press_pan
+def _new_navigationtoolbar_press_pan(self, event):
+  # when a pan move event starts save the current layout and set it to none
+  self._mbxmlutils_saved_layout_engine = self.canvas.figure.get_layout_engine()
+  self.canvas.figure.set_layout_engine('none')
+  _org_navigationtoolbar_press_pan(self, event)
+matplotlib.backends.backend_qt.NavigationToolbar2QT.press_pan = _new_navigationtoolbar_press_pan
+_org_navigationtoolbar_release_pan = matplotlib.backends.backend_qt.NavigationToolbar2QT.release_pan
+def _new_navigationtoolbar_release_pan(self, event):
+  # when a pan move event ends restore the saved layout
+  _org_navigationtoolbar_release_pan(self, event)
+  self.canvas.figure.set_layout_engine(self._mbxmlutils_saved_layout_engine)
+matplotlib.backends.backend_qt.NavigationToolbar2QT.release_pan = _new_navigationtoolbar_release_pan
 
 # enforce matplotlib to use PySide2
 os.environ["QT_API"]="PySide2"
