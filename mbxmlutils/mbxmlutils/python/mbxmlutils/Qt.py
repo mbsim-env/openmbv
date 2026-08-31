@@ -2,9 +2,14 @@
 
 import os
 import matplotlib
-import matplotlib.backends.backend_qt
+
+# enforce matplotlib to use PySide2
+os.environ["QT_API"]="PySide2"
+matplotlib.use('Qt5Agg')
+
 import PySide2.QtWidgets
 import PySide2.QtCore
+import matplotlib.backends.backend_qt
 
 
 
@@ -46,10 +51,6 @@ def _new_navigationtoolbar_release_pan(self, event):
   _org_navigationtoolbar_release_pan(self, event)
   self.canvas.figure.set_layout_engine(self._mbxmlutils_saved_layout_engine)
 matplotlib.backends.backend_qt.NavigationToolbar2QT.release_pan = _new_navigationtoolbar_release_pan
-
-# enforce matplotlib to use PySide2
-os.environ["QT_API"]="PySide2"
-matplotlib.use('Qt5Agg')
 
 
 
