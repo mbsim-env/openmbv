@@ -593,7 +593,7 @@ def embedIvImage(filename):
 
 
 
-def testDummyIvSphere(R, color1=namedColor("#505050"), color2=namedColor("yellow"), N=5):
+def testDummyIvSphere(R, color1=namedColor("#505050"), color2=namedColor("yellow"), trans=0, N=5):
   """Create a IV content to visualize a test dummy sphere:
   a sphere devided into 8 sections each with color1 or color2"""
   import colorsys
@@ -618,6 +618,7 @@ Transform {{
       appearance Appearance {{
         material Material {{
           diffuseColor {" ".join(map(lambda x: str(x), colorsys.hsv_to_rgb(*color)))}
+          transparency {trans}
         }}
       }}
       geometry USE mbxmlutils_comIVSphere
