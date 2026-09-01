@@ -20,6 +20,7 @@ class PyEval : public Eval {
   public:
     //! Destructor.
     ~PyEval() override;
+    void garbageCollect() override;
     static std::string getNameStatic() { return "python"; }
     std::string getName() const override { return getNameStatic(); }
     void addImport(const std::string &code, const xercesc::DOMElement *e, const std::string &action="") override;

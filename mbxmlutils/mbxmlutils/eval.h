@@ -115,6 +115,12 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     Eval& operator=(const Eval& other) = delete; // copy assignment
     Eval& operator=(Eval&& other) = delete; // move assignment
 
+    //! Call the GC of the evaluator, if any.
+    //! Do not call this function often, since it may be time consuming, dependent on the evaluator.
+    //! e.g. Preprocess::processAndGetDocument() calls this to free resources when a full preprocess is finished
+    //! (preprocess is a long action so calling GC ones at the end is fine)
+    virtual void garbageCollect() {};
+
     //! Create a evaluator.
     static std::shared_ptr<Eval> createEvaluator(const std::string &evalName, std::vector<boost::filesystem::path> *dependencies_=nullptr);
 

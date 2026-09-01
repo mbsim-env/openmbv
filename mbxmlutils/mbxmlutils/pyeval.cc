@@ -233,6 +233,11 @@ PyEval::~PyEval() {
   byteCodeMap.clear();
 }
 
+void PyEval::garbageCollect() {
+  GilState gil;
+  PyGC_Collect();
+}
+
 Eval::Value PyEval::createFunctionIndep(int dim) const {
   GilState gil;
   PyO indep;

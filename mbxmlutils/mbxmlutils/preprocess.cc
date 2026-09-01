@@ -154,6 +154,9 @@ shared_ptr<DOMDocument> Preprocess::processAndGetDocument() {
   if(!param)
     param = make_shared<ParamSet>();
   int dummy;
+  BOOST_SCOPE_EXIT(&eval) {
+    eval->garbageCollect();
+  } BOOST_SCOPE_EXIT_END
   Preprocess::preprocess(mainxmlele, dummy, param);
   // preprocess(...) may invalidate all DOMNode's except DOMDocument (due to revalidation by serialize/reparse).
   // Hence, get the mainxmlele (root DOMElement) again from the DOMDocument aver preprocess(...).
