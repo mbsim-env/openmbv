@@ -180,6 +180,24 @@ def euler(*argv):
 
 
 
+def cardanToAxisAngle(*argv):
+  """Convert cardan angle to axis/angle [ax0,ax1,ax2,angle]."""
+  import scipy.spatial.transform
+  if len(argv)==3:
+    angles=[ argv[0], argv[1], argv[2] ]
+  elif len(argv)==1 and len(argv[0])==3:
+    angles=argv
+  else:
+    raise RuntimeError('Must be called with a three scalar arguments or one vector argument of length 3.')
+  ax = scipy.spatial.transform.Rotation.from_euler('xyz', angles).as_rotvec()
+  angle = numpy.linalg.norm(ax)
+  if angle<1e-10:
+    return [1, 0, 0, angle]
+  ax /= angle
+  return [ax[0], ax[1], ax[2], angle]
+
+
+
 def rotateAboutX(phi):
   """create a transformation matrix from a rotation about x-axis"""
   ms=_MathOrSympy(phi)
@@ -572,6 +590,77 @@ def embedIvImage(filename):
         n = p[0]*256**2+p[1]*256+p[2]
       out.append(hex(n))
   return f"image {im.size[0]} {im.size[1]} {l} "+" ".join(out)
+
+
+
+def testDummyIvSphere(R, color1=namedColor("#505050"), color2=namedColor("yellow"), N=5):
+  """Create a IV content to visualize a test dummy sphere:
+  a sphere devided into 8 sections each with color1 or color2"""
+  import colorsys
+  import math
+  normal = []
+  for a in numpy.linspace(0,90*math.pi/180,N):
+    for b in numpy.linspace(0,90*math.pi/180,N):
+      r = math.cos(b)
+      normal.extend([r*math.sin(a),r*math.cos(a),math.sin(b)])
+  normal=numpy.array(normal)
+  point = R*normal
+  coordOrNormalIndex = []
+  for a in range(0,N-1):
+    for b in range(0,N-1):
+      coordOrNormalIndex.extend([a*N+b,a*N+b+1,(a+1)*N+b+1,(a+1)*N+b,-1])
+  def eighthSphere(color, a,b,g):
+    return f'''
+Transform {{
+  rotation {" ".join(map(lambda x: str(x), cardanToAxisAngle(a,b,g)))}
+  children [
+    Shape {{
+      appearance Appearance {{
+        material Material {{
+          diffuseColor {" ".join(map(lambda x: str(x), colorsys.hsv_to_rgb(*color)))}
+        }}
+      }}
+      geometry USE mbxmlutils_comIVSphere
+    }}
+  ]
+}}
+'''
+  ret = f'''#VRML V2.0 utf8
+Shape {{
+  appearance Appearance {{
+    material Material {{
+      diffuseColor {" ".join(map(lambda x: str(x), colorsys.hsv_to_rgb(*color1)))}
+    }}
+  }}
+  geometry DEF mbxmlutils_comIVSphere IndexedFaceSet {{
+    coord Coordinate {{
+      point [
+        {" ".join(map(lambda x: str(x), point))}
+      ]
+    }}
+    normal Normal {{
+      vector [
+        {" ".join(map(lambda x: str(x), normal))}
+      ]
+    }}
+    coordIndex [
+      {" ".join(map(lambda x: str(x), coordOrNormalIndex))}
+    ]
+    normalIndex [
+      {" ".join(map(lambda x: str(x), coordOrNormalIndex))}
+    ]
+    solid TRUE
+  }}
+}}
+{eighthSphere(color2,       0,0, 90*math.pi/180)}
+{eighthSphere(color1,       0,0,180*math.pi/180)}
+{eighthSphere(color2,       0,0,270*math.pi/180)}
+{eighthSphere(color1, math.pi,0,  0*math.pi/180)}
+{eighthSphere(color2, math.pi,0, 90*math.pi/180)}
+{eighthSphere(color1, math.pi,0,180*math.pi/180)}
+{eighthSphere(color2, math.pi,0,270*math.pi/180)}
+'''
+  return ret
 
 
 
