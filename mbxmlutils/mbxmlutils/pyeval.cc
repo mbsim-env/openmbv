@@ -329,13 +329,12 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
 
     PyCompilerFlags flags;
     flags.cf_flags=CO_FUTURE_DIVISION; // we evaluate the code in python 3 mode (future python 2 mode)
-    ostringstream err;
     try {
       auto codePrepared=preparePythonCode(code, e);
       mbxmlutilsStaticDependencies.clear();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
-        MBXMLUTILS_REDIR_STDERR(err);
+        MBXMLUTILS_REDIR_STDERR(fmatvec::Atom::msgStatic(fmatvec::Atom::Warn));
         auto [it, created] = byteCodeMap.emplace(uuidGen(codePrepared), make_pair(Py_file_input, PyO()));
         if(created) {
           it->second.second = PyO(Py_CompileStringExFlags(codePrepared.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
@@ -352,9 +351,8 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
         addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
+      throw DOMEvalException(ex.what(), e);
     }
-    printEvaluatorMsg(err, fmatvec::Atom::Warn);
   }
 
   if(action=="" || action=="addNewVarsToInstance") { // deprecated
@@ -542,10 +540,9 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   // evaluate as expression (using the trimmed str) and save result in ret
   mbxmlutilsStaticDependencies.clear();
   PyO exprResult;
-  ostringstream err;
   {
     MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
-    MBXMLUTILS_REDIR_STDERR(err);
+    MBXMLUTILS_REDIR_STDERR(fmatvec::Atom::msgStatic(fmatvec::Atom::Warn));
     auto strExpr = string(e?E(e)->getLineNumber()-1:0, '\n')+strtrim;
     auto [it, created] = byteCodeMap.emplace(uuidGen(strExpr), make_pair(Py_eval_input, PyO()));
     bool error=false;
@@ -564,16 +561,14 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
         exprResult=CALLPY(PyEval_EvalCode, it->second.second, globalsLocals, globalsLocals);
       }
       catch(const exception& ex) { // on failure -> report error
-        throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
+        throw DOMEvalException(ex.what(), e);
       }
   }
   if(exprResult) { // on success ...
-    printEvaluatorMsg(err, fmatvec::Atom::Warn);
     ret=exprResult;
     addStaticDependencies(e);
   }
   else { // on failure ...
-    ostringstream err;
     try {
       // ... evaluate as statement
 
@@ -583,7 +578,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       mbxmlutilsStaticDependencies.clear();
       {
         MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
-        MBXMLUTILS_REDIR_STDERR(err);
+        MBXMLUTILS_REDIR_STDERR(fmatvec::Atom::msgStatic(fmatvec::Atom::Warn));
         auto [it, created] = byteCodeMap.emplace(uuidGen(strPrepared), make_pair(Py_file_input, PyO()));
         if(created) {
           it->second.second = PyO(Py_CompileStringExFlags(strPrepared.c_str(), "<inline Python code>", Py_file_input, &flags, 2));
@@ -599,9 +594,8 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
       addStaticDependencies(e);
     }
     catch(const exception& ex) { // on failure -> report error
-      throw DOMEvalException(string(ex.what())+(err.str().empty()?"":"Python stderr:\n"+err.str()), e);
+      throw DOMEvalException(ex.what(), e);
     }
-    printEvaluatorMsg(err, fmatvec::Atom::Warn);
     if(!skipRet) {
       try {
         // get 'ret' variable from statement
