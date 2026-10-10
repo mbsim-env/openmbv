@@ -114,6 +114,7 @@ void Object::nodeSensorAttach(bool attach) {
 }
 
 Object::~Object() {
+  if(sceneRootToSoSepPath) sceneRootToSoSepPath->unref();
   // delete scene graph
   SoSearchAction sa;
   sa.setInterest(SoSearchAction::FIRST);
@@ -183,8 +184,17 @@ QString Object::getInfo() {
 void Object::nodeSensorCB(void *data, SoSensor*) {
   auto *object=(Object*)data;
   if(object->drawBoundingBox()) {
+    if(!object->sceneRootToSoSepPath) {
+      SoSearchAction sa;
+      sa.setInterest(SoSearchAction::FIRST);
+      sa.setNode(object->soSep);
+      sa.setSearchingAll(true);
+      sa.apply(MainWindow::getInstance()->getSceneRoot());
+      object->sceneRootToSoSepPath=sa.getPath();
+      object->sceneRootToSoSepPath->ref();
+    }
     static auto *bboxAction=new SoGetBoundingBoxAction(SbViewportRegion(0,0));
-    bboxAction->apply(object->soSep);
+    bboxAction->apply(object->sceneRootToSoSepPath);
     auto bbox=bboxAction->getXfBoundingBox();
     float x,y,z;
     bbox.getSize(x,y,z);
