@@ -89,6 +89,7 @@ class Object : public QObject, public QTreeWidgetItem, virtual public fmatvec::A
   private:
     void replaceBBoxHighlight();
     bool isCloneToBeDeleted { false };
+    SoPath *sceneRootToSoSepPath { nullptr };
 };
 
 }
