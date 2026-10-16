@@ -1372,12 +1372,8 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
   errorHandler.resetError();
   locationFilter.setLineNumberOffset(0);
   shared_ptr<DOMDocument> doc;
-  auto inputSourceStr = inputSource.string();
-#ifdef _WIN32
-  // on windows convert forward-slash to backward-slash (this enables UNC-path in parseURI)
-  std::replace(inputSourceStr.begin(), inputSourceStr.end(), '/', '\\');
-#endif
-  doc.reset(parser->parseURI(X()%inputSourceStr), [](auto && PH1) { if(PH1) PH1->release(); });
+  // parseURI needs backslash not forwardslash, at least for UNC path: make_preferred convert on Windows to backslash
+  doc.reset(parser->parseURI(X()%path(inputSource).make_preferred().string()), [](auto && PH1) { if(PH1) PH1->release(); });
   if(errorHandler.hasError()) {
     // fix the filename
     DOMEvalException ex(errorHandler.getError());
