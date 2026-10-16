@@ -79,6 +79,7 @@ const QIcon& Utils::QIconCached(const string &basefilename) {
 
 SoSeparator* Utils::SoDBreadAllFileNameCached(const string &filename, const optional<size_t> &hash, const function<void(SoInput&)> &inFunc) {
   boost::filesystem::path fn(filename);
+  fn.make_preferred();
   if(!boost::filesystem::exists(fn)) {
     QString str("IV file %1 does not exist."); str=str.arg(filename.c_str());
     MainWindow::getInstance()->statusBar()->showMessage(str);

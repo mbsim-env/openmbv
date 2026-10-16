@@ -111,8 +111,10 @@ int main(int argc, char *argv[]) {
     // output dependencies?
     if(!depFileName.empty()) {
       boost::filesystem::ofstream dependenciesFile(depFileName);
-      for(auto & dependencie : dependencies)
+      for(auto & dependencie : dependencies) {
+        dependencie.make_preferred();
         dependenciesFile<<dependencie.string()<<endl;
+      }
     }
   }
   catch(const DOMEvalException &ex) {

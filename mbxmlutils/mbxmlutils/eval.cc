@@ -784,6 +784,7 @@ int mbxmlutils_Eval_registerPath(const char *path) noexcept {
 const char* mbxmlutils_DOMElement_getOriginalFilename() noexcept {
   try {
     static string originalFilenameStr;
+    originalFilename.make_preferred();
     originalFilenameStr = originalFilename.string();
     return originalFilenameStr.c_str();
   }

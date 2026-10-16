@@ -275,6 +275,36 @@ namespace {
     walk(ee);
   }
 
+  string abspath2FileURI(const boost::filesystem::path &abspath) {
+    #ifdef _WIN32 // WINDOWS
+      auto str = abspath.generic_string();
+      if(str.size()>=2 && str[0]=='/' && str[1]=='/')
+        // UNC file://server/share/folder/report.txt (forward slash)
+        return "file:"+str;
+      else
+        // ABSFILE file:///C:/Users/Alice/Documents/report.txt (forward slash)
+        return "file:///"+str;
+    #else // LINUX
+      // ABSFILE file:///home/alice/documents/report.txt (forward slash)
+      return "file://"+abspath.generic_string();
+    #endif
+  }
+
+  boost::filesystem::path fileURI2abspath(const string &fileURI) {
+    #ifdef _WIN32 // WINDOWS
+      static const boost::regex re(R"q(^file:///[a-zA-Z]:)q");
+      if(boost::regex_search(fileURI, re))
+        // ABSFILE file:///C:/Users/Alice/Documents/report.txt (forward slash)
+        return fileURI.substr(8);
+      else
+        // UNC file://server/share/folder/report.txt (forward slash)
+        return fileURI.substr(5);
+    #else // LINUX
+      // ABSFILE file:///home/alice/documents/report.txt (forward slash)
+      return fileURI.substr(7);
+    #endif
+  }
+
 }
 
 map<string, string>& EmbedDOMLocator::nsURIPrefix() {
@@ -850,15 +880,8 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
     return uri; // no scheme -> URI reference -> return it
   auto scheme = m.str(1);
   // handle (the original xerces) schema for local files
-  static const string fileScheme="file://";
-  if(scheme=="file") {
-#ifdef _WIN32
-    int addChars = 1; // Windows uses e.g. file:///c:/path/to/file.txt -> file:/// must be removed
-#else
-    int addChars = 0; // Linux uses e.g. file:///path/to/file.txt -> file:// must be removed
-#endif
-    return uri.substr(fileScheme.length() + addChars);
-  }
+  if(scheme=="file")
+    return fileURI2abspath(uri);
   // handle mbxmlutilsfile schema
   if(scheme==mbxmlutilsfileScheme)
     return uri.substr(mbxmlutilsfileScheme.length()+3);
@@ -1076,7 +1099,7 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
     bool stderrIsTTY=isatty(2)==1;
 #endif
     if((format=="GCC" && (stdoutIsTTY || stderrIsTTY)) || format=="GCCTTY")
-      format=R"|(\x1b]8;;file://$+{urifile}\x1b\\\x1b[0m\x1b[1m$+{file}\x1b[0m\x1b]8;;\x1b\\\x1b[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\x1b[0m (?{sse}:\x1b[1;31m)$+{msg}\x1b[0m)|";
+      format=R"|(\x1b]8;;$+{urifile}\x1b\\\x1b[0m\x1b[1m$+{file}\x1b[0m\x1b]8;;\x1b\\\x1b[1m:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:)\x1b[0m (?{sse}:\x1b[1;31m)$+{msg}\x1b[0m)|";
     else
       format=R"|($+{file}:(?{line}$+{line}\::)(?{ecount} [ecount=$+{ecount}]:) $+{msg})|";
   }
@@ -1111,8 +1134,8 @@ string DOMEvalException::convertToString(const EmbedDOMLocator &loc, const std::
   str.append("@msg").append(htmlOutput ? messageConverted : message); // @msg includes a new line at the end
   str.append("@file").append(X()%loc.getURI());
   str.append("@basefile").append(path(X()%loc.getURI()).filename().string());
-  str.append("@absfile").append(absolute(X()%loc.getURI()).string());
-  str.append("@urifile").append(absolute(X()%loc.getURI()).string());//mfmf uriencode
+  str.append("@absfile").append(absolute(X()%loc.getURI()).make_preferred().string());
+  str.append("@urifile").append(abspath2FileURI(absolute(X()%loc.getURI())));
   str.append("@line").append((loc.getLineNumber()>0?to_string(loc.getLineNumber()):""));
   str.append("@xpath").append(loc.getRootXPathExpression());
   str.append("@hrxpath").append(hrxpath);
@@ -1271,7 +1294,7 @@ InputSource* EntityResolver::resolveEntity(XMLResourceIdentifier *resourceIdenti
     // return registered schema file
     file=it->second;
   }
-  return new LocalFileInputSource(X()%file.string());
+  return new LocalFileInputSource(X()%file.make_preferred().string());
 }
 
 DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
@@ -1339,7 +1362,7 @@ DOMParser::DOMParser(const variant<path, DOMElement*> &xmlCatalog) {
       std::ignore = ns;
       // load grammar
       errorHandler.resetError();
-      parser->loadGrammar(X()%schemaFilename.string(), Grammar::SchemaGrammarType, true);
+      parser->loadGrammar(X()%schemaFilename.make_preferred().string(), Grammar::SchemaGrammarType, true);
       if(errorHandler.hasError())
         throw errorHandler.getError();
     }
@@ -1384,8 +1407,8 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     }
     throw ex;
   }
-  string docURI = mbxmlutilsfileScheme+"://";
-  docURI.append(inputSource.string());
+  auto docURI = abspath2FileURI(inputSource);
+  docURI = mbxmlutilsfileScheme+docURI.substr(4);
   doc->setDocumentURI(X()%docURI);
   convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
   // add a new shared_ptr<DOMParser> to document user data to extend the lifetime to the lifetime of all documents
@@ -1414,7 +1437,7 @@ shared_ptr<DOMDocument> DOMParser::parse(istream &inputStream, vector<path> *dep
   X x;
   source->setStringData(x%inputString);
   if(!filename.empty())
-    source->setSystemId(X()%("file://"+absolute(filename).string()));
+    source->setSystemId(X()%abspath2FileURI(absolute(filename)));
   shared_ptr<DOMDocument> doc(parser->parse(source.get()), [](auto && PH1) { if(PH1) PH1->release(); });
   if(errorHandler.hasError()) {
     // fix the filename
@@ -1512,7 +1535,7 @@ void DOMParser::serialize(DOMNode *n, const path &outputSource, bool plain) {
   unique_ptr<TemporarilyConvertEmbedDataToEmbedPI> addedPi;
   if(!plain)
     addedPi = std::make_unique<TemporarilyConvertEmbedDataToEmbedPI>(n);
-  if(!ser->writeToURI(n, X()%outputSource.string()))
+  if(!ser->writeToURI(n, X()%path(outputSource).make_preferred().string()))
     throw runtime_error("Serializing the document failed.");
 }
 

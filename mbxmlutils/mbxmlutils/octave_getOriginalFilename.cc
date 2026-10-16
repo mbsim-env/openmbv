@@ -30,5 +30,6 @@ DEFUN_DLD(getOriginalFilename, args, nargout, "Get the (original) filename of th
     error("Must be called without arguments and one return value.");
     return {};
   }
+  originalFilename.make_preferred();
   return octave_value(originalFilename.string());
 }
