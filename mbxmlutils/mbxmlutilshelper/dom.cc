@@ -884,7 +884,7 @@ path DOMDocumentWrapper<DOMDocumentType>::getDocumentFilename() const {
     return fileURI2abspath(uri);
   // handle mbxmlutilsfile schema
   if(scheme==mbxmlutilsfileScheme)
-    return uri.substr(mbxmlutilsfileScheme.length()+3);
+    return fileURI2abspath("file"+uri.substr(mbxmlutilsfileScheme.length()));
   // all other schemas are errors
   throw runtime_error("Only local filename schemas and the special mbxmlutilsfile schema is allowed.");
 }
@@ -1407,7 +1407,7 @@ shared_ptr<DOMDocument> DOMParser::parse(const path &inputSource, vector<path> *
     }
     throw ex;
   }
-  auto docURI = abspath2FileURI(inputSource);
+  auto docURI = abspath2FileURI(absolute(inputSource));
   docURI = mbxmlutilsfileScheme+docURI.substr(4);
   doc->setDocumentURI(X()%docURI);
   convertEmbedPIToEmbedData(doc->getDocumentElement()); // if a error occurs convertEmbedPIToEmbedData is already called
