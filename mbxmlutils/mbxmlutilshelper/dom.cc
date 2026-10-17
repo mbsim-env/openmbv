@@ -280,12 +280,18 @@ namespace {
       auto str = abspath.generic_string();
       if(str.size()>=2 && str[0]=='/' && str[1]=='/')
         // UNC file://server/share/folder/report.txt (forward slash)
+        //  OR file:////server/share/folder/report.txt (forward slash) NOT USED HERE
         return "file:"+str;
       else
         // ABSFILE file:///C:/Users/Alice/Documents/report.txt (forward slash)
+        //      OR file:/C:/Users/Alice/Documents/report.txt (forward slash) NOT USED HERE
+        //      OR file://localhost/C:/Users/Alice/Documents/report.txt (forward slash) NOT USED HERE
+        //      OR file://./C:/Users/Alice/Documents/report.txt (forward slash) NOT USED HERE
         return "file:///"+str;
     #else // LINUX
       // ABSFILE file:///home/alice/documents/report.txt (forward slash)
+      //      OR file:/home/alice/documents/report.txt (forward slash) NOT USED HERE
+      //      OR file://./home/alice/documents/report.txt (forward slash) NOT USED HERE
       return "file://"+abspath.generic_string();
     #endif
   }
@@ -294,13 +300,13 @@ namespace {
     #ifdef _WIN32 // WINDOWS
       static const boost::regex re(R"q(^file:///[a-zA-Z]:)q");
       if(boost::regex_search(fileURI, re))
-        // ABSFILE file:///C:/Users/Alice/Documents/report.txt (forward slash)
+        // ABSFILE file:///C:/Users/Alice/Documents/report.txt (forward slash) other variants are not supported
         return fileURI.substr(8);
       else
-        // UNC file://server/share/folder/report.txt (forward slash)
+        // UNC file://server/share/folder/report.txt (forward slash) other variants are not supported
         return fileURI.substr(5);
     #else // LINUX
-      // ABSFILE file:///home/alice/documents/report.txt (forward slash)
+      // ABSFILE file:///home/alice/documents/report.txt (forward slash) other variants are not supported
       return fileURI.substr(7);
     #endif
   }
