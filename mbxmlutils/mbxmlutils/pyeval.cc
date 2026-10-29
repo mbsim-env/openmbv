@@ -278,10 +278,10 @@ namespace {
 
     if(static_cast<int>(iRealCh)-iLastNL==1 || iRealCh==str.size())
       // if no indent exists (this may also happen when not meaningful character was found at all) just use "str" and pretend empty lines to match line numbers of xml
-      return string(e?E(e)->getTextLineNumber()-1:0, '\n')+str;
+      return string(e?max(0,E(e)->getTextLineNumber()-1):0, '\n')+str;
     else
       // if indent exists pretend empty lines to match line numbers of xml and pretend "if True:" to enable proper python indentation
-      return string(e?max(E(e)->getTextLineNumber()-2,0):0, '\n')+"if True:\n"+str;
+      return string(e?max(0,E(e)->getTextLineNumber()-2):0, '\n')+"if True:\n"+str;
   }
 }
 
@@ -543,7 +543,7 @@ Eval::Value PyEval::fullStringToValue(const string &str, const DOMElement *e, bo
   {
     MBXMLUTILS_REDIR_STDOUT(fmatvec::Atom::msgStatic(fmatvec::Atom::Info));
     MBXMLUTILS_REDIR_STDERR(fmatvec::Atom::msgStatic(fmatvec::Atom::Warn));
-    auto strExpr = string(e?E(e)->getLineNumber()-1:0, '\n')+strtrim;
+    auto strExpr = string(e?max(0,E(e)->getLineNumber()-1):0, '\n')+strtrim;
     auto [it, created] = byteCodeMap.emplace(uuidGen(strExpr), make_pair(Py_eval_input, PyO()));
     bool error=false;
     if(created) {
