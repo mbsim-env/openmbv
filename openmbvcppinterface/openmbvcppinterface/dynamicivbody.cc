@@ -118,6 +118,7 @@ void DynamicIvBody::openHDF5File() {
     catch(...) {
       data=nullptr;
       size = 0;
+      return;
     }
     size = data->getColumns();
   };
