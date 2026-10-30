@@ -87,7 +87,7 @@ libpycppwrapper_la_HEADERS = pycppwrapper.h pycppwrapper_mainlib.h
 
 # python part of the utility library (the main python evaluator)
 libmbxmlutils_eval_python_runtime_ladir = $(includedir)/mbxmlutils
-libmbxmlutils_eval_python_runtime_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
+libmbxmlutils_eval_python_runtime_la_CPPFLAGS = -I$(top_srcdir) $(PYTHON_CFLAGS) -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/core/include -I$(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/_core/include $(XERCESC_CFLAGS) $(FMATVEC_CFLAGS) -D_hypot=hypot # -D_hypot is a MSVS/python bug workaround
 libmbxmlutils_eval_python_runtime_la_LIBADD = $(PYTHON_LIBS_OPT) libmbxmlutils.la ./libpycppwrapper.la ../mbxmlutilshelper/libmbxmlutilshelper.la $(FMATVEC_LIBS) $(XERCESC_LIBS) -l@BOOST_FILESYSTEM_LIB@ # do not link with PYTHON_LIBS and do not add LDFLAGS_NOUNDEF
 libmbxmlutils_eval_python_runtime_la_LDFLAGS = -avoid-version
 libmbxmlutils_eval_python_runtime_la_SOURCES = pyeval.cc
@@ -121,7 +121,7 @@ fmatvec_symbolic_swig_octave_la_LDFLAGS = -module -shrext .oct -avoid-version
 if !COND_WIN32
 fmatvec_symbolic_swig_octave_la_LDFLAGS += -Wl,-rpath,$(MKOCTFILE_LIBDIR)
 endif
-fmatvec_symbolic_swig_octave_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(FMATVEC_CFLAGS) -Wno-deprecated-declarations -Wno-error=unused-function $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES
+fmatvec_symbolic_swig_octave_la_CPPFLAGS = $(MKOCTFILE_CFLAGS) $(FMATVEC_CFLAGS) -Wno-deprecated-declarations -Wno-error=unused-function $(NOWARNING) -DSWIG_OCTAVE_NO_SEGFAULT_HACK -D_USE_MATH_DEFINES -Wno-error=misleading-indentation
 fmatvec_symbolic_swig_octave_la_LIBADD = $(LDFLAGS_NOUNDEF) $(MKOCTFILE_LIBS) $(FMATVEC_LIBS)
 
 
