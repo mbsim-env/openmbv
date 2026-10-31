@@ -217,7 +217,7 @@ if test "$cross_compiling" == "yes"; then
 fi
 if test "_$host_os" != "_mingw32"; then
   PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
-  PYTHON_MAINLIB="$(pkg-config --variable=libdir python-$pythonversion-embed)/libpython$pythonversion.so"
+  PYTHON_MAINLIB="$(readlink -f $(pkg-config --variable=libdir python-$pythonversion-embed)/libpython$pythonversion.so)"
 else
   PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
   PYTHON_MAINLIB=""
