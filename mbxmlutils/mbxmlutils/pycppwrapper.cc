@@ -154,15 +154,17 @@ void initializePython(const boost::filesystem::path &main, const std::string &py
     }
     putenv(PATH_ENV);
 #else
-    // the string for putenv must have program life time
-    static char LD_LIBRARY_PATH_ENV[2048] { 0 };
-    if(LD_LIBRARY_PATH_ENV[0]==0) {
-      auto *llp=getenv("LD_LIBRARY_PATH");
-      std::string LD_LIBRARY_PATH_OLD(llp ? llp : "");
-      LD_LIBRARY_PATH_OLD += (LD_LIBRARY_PATH_OLD.empty() ? "" : pathsep)+path.string();
-      strcpy(LD_LIBRARY_PATH_ENV, ("LD_LIBRARY_PATH="+LD_LIBRARY_PATH_OLD).c_str());
-    }
-    putenv(LD_LIBRARY_PATH_ENV);
+    // ADDING TO 'LD_LIBRARY_PATH' IS USELESS AFTER PROGRAM START
+    //
+    //// the string for putenv must have program life time
+    //static char LD_LIBRARY_PATH_ENV[2048] { 0 };
+    //if(LD_LIBRARY_PATH_ENV[0]==0) {
+    //  auto *llp=getenv("LD_LIBRARY_PATH");
+    //  std::string LD_LIBRARY_PATH_OLD(llp ? llp : "");
+    //  LD_LIBRARY_PATH_OLD += (LD_LIBRARY_PATH_OLD.empty() ? "" : pathsep)+path.string();
+    //  strcpy(LD_LIBRARY_PATH_ENV, ("LD_LIBRARY_PATH="+LD_LIBRARY_PATH_OLD).c_str());
+    //}
+    //putenv(LD_LIBRARY_PATH_ENV);
 #endif
   };
   if(!PYTHONHOME.empty())
