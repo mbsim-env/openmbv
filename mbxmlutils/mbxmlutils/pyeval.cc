@@ -430,6 +430,8 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   vector<path> dirToCheck;
   if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
     dirToCheck = {installPath/PYTHON_SUBDIR};
+  else if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"dist-packages"))
+    dirToCheck = {installPath/PYTHON_SUBDIR};
   else
     dirToCheck = {PYTHON_LIBDIR, PYTHON_LIBDIR2};
   for(path PYTHONSRC : dirToCheck) {
