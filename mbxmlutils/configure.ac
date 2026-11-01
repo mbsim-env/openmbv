@@ -216,39 +216,47 @@ if test "$cross_compiling" == "yes"; then
   PYTHON_LIBDIR=$(readlink -f $(winepath -u $PYTHON_LIBDIR))
 fi
 if test "_$host_os" != "_mingw32"; then
-  PYTHON_LIBDIR2=$PYTHON_LIBDIR/lib-dynload
+  PYTHON_LIBDYN=$PYTHON_LIBDIR/lib-dynload
   PYTHON_MAINLIB="$(readlink -f $(pkg-config --variable=libdir python-$pythonversion-embed)/libpython$pythonversion.so)"
 else
-  PYTHON_LIBDIR2=$PYTHON_LIBDIR/../DLLs
+  PYTHON_LIBDYN=$PYTHON_LIBDIR/../DLLs
   PYTHON_MAINLIB=""
 fi
 AC_SUBST([PYTHON_MAINLIB])
 if test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include; then
   PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
+  PYTHON_LIBDIR2=""
   PYTHON_PACKAGES=site-packages
 elif test -d $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/_core/include; then
   PYTHON_LIBDIR=$PYTHON_LIBDIR/python$pythonversion
+  PYTHON_LIBDIR2=""
   PYTHON_PACKAGES=site-packages
 elif test -d $PYTHON_LIBDIR/site-packages/numpy/core/include; then
   PYTHON_LIBDIR=$PYTHON_LIBDIR
+  PYTHON_LIBDIR2=""
   PYTHON_PACKAGES=site-packages
 elif test -d $PYTHON_LIBDIR/site-packages/numpy/_core/include; then
   PYTHON_LIBDIR=$PYTHON_LIBDIR
+  PYTHON_LIBDIR2=""
   PYTHON_PACKAGES=site-packages
 elif test -d /usr/lib/python3/dist-packages/numpy/core/include; then # debian special handling
   PYTHON_LIBDIR=/usr/lib/python3
+  PYTHON_LIBDIR2=/usr/lib/python$pythonversion
   PYTHON_PACKAGES=dist-packages
 elif test -d /usr/lib/python3/dist-packages/numpy/_core/include; then # debian special handling
   PYTHON_LIBDIR=/usr/lib/python3
+  PYTHON_LIBDIR2=/usr/lib/python$pythonversion
   PYTHON_PACKAGES=dist-packages
 else
   AC_MSG_ERROR([Numpy header not found in directory $PYTHON_LIBDIR/python$pythonversion/site-packages/numpy/core/include or $PYTHON_LIBDIR/site-packages/numpy/core/include])
 fi
 AC_DEFINE_UNQUOTED([PYTHON_LIBDIR], ["$PYTHON_LIBDIR"], [Python library dir])
+AC_DEFINE_UNQUOTED([PYTHON_LIBDIR2], ["$PYTHON_LIBDIR2"], [Python library dir])
 AC_DEFINE_UNQUOTED([PYTHON_PREFIX], ["$PYTHON_PREFIX"], [Python prefix])
 AC_SUBST([PYTHON_BIN], [$PYTHON_BIN])
 AC_SUBST([PYTHON_LIBDIR])
 AC_SUBST([PYTHON_LIBDIR2])
+AC_SUBST([PYTHON_LIBDYN])
 AC_SUBST([PYTHON_PACKAGES])
 PYTHON_SUBDIR=$(echo $($XC_EXEC_PREFIX $PYTHON_BIN -c 'import sysconfig; print(sysconfig.get_config_var("LIBDEST")[[len(sysconfig.get_config_var("exec_prefix"))+1:]])' | dos2unix) | sed -re 's|\\|/|g')
 AC_DEFINE_UNQUOTED([PYTHON_SUBDIR], ["$PYTHON_SUBDIR"], [Python library subdir])

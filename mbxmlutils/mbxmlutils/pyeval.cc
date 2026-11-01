@@ -427,53 +427,54 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   }
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
-  path PYTHONSRC(PYTHON_LIBDIR);
-  if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
-    PYTHONSRC=installPath/PYTHON_SUBDIR;
+  for(path PYTHONSRC : {PYTHON_LIBDIR, PYTHON_LIBDIR2}) {
+    if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
+      PYTHONSRC=installPath/PYTHON_SUBDIR;
 
-  auto addFile = [&PYTHONSRC, &PYTHONDST](auto &srcIt) {
-    if(MBXMLUtils::is_directory(*srcIt)) // skip directories
-      return;
-    if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
-      return;
-    path subDir=toRelativePath(*srcIt, PYTHONSRC).parent_path();
-    bool bin=false;
-    static const regex so(".*\\.so(\\..*)*");
-    if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
-       regex_match(srcIt->path().filename().string(), so))
-      bin=true;
-    files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
-  };
+    auto addFile = [&PYTHONSRC, &PYTHONDST](auto &srcIt) {
+      if(MBXMLUtils::is_directory(*srcIt)) // skip directories
+        return;
+      if(*(++srcIt->path().rbegin())=="__pycache__") // skip python cache
+        return;
+      path subDir=toRelativePath(*srcIt, PYTHONSRC).parent_path();
+      bool bin=false;
+      static const regex so(".*\\.so(\\..*)*");
+      if(srcIt->path().extension()==".dll" || srcIt->path().extension()==".pyd" ||
+         regex_match(srcIt->path().filename().string(), so))
+        bin=true;
+      files[*srcIt]=make_pair(PYTHONDST/subDir, bin);
+    };
 
-  // libmbxmlutils-eval-python.so loads at runtime libmbxmlutils-eval-python-runtime.so 
-  files[installPath/binLib/("libmbxmlutils-eval-python-runtime"+soDll)]=make_pair(binLib, true);
+    // libmbxmlutils-eval-python.so loads at runtime libmbxmlutils-eval-python-runtime.so 
+    files[installPath/binLib/("libmbxmlutils-eval-python-runtime"+soDll)]=make_pair(binLib, true);
 
-  for(auto srcIt=directory_iterator(PYTHONSRC); srcIt!=directory_iterator(); ++srcIt) {
-    if(*srcIt->path().rbegin()=="config") // skip config dir
-      continue;
-    bool cont=false;
-    for(auto sitePackages : {"site-packages", "dist-packages"})
-      if(*srcIt->path().rbegin()==sitePackages) { // in site-packages ..
-        cont=true;
-        for(auto mod : {"numpy", "sympy", "mpmath"}) // .. only these subdirs
-          if(MBXMLUtils::exists(srcIt->path()/mod))
-            for(auto srcRecIt=recursive_directory_iterator(srcIt->path()/mod); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
-              addFile(srcRecIt);
-      }
-    if(cont)
-      continue;
-    if(MBXMLUtils::is_directory(*srcIt)) // directory -> recursive
-      for(auto srcRecIt=recursive_directory_iterator(*srcIt); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
-        addFile(srcRecIt);
-    else
-      addFile(srcIt);
-  }
+    for(auto srcIt=directory_iterator(PYTHONSRC); srcIt!=directory_iterator(); ++srcIt) {
+      if(*srcIt->path().rbegin()=="config") // skip config dir
+        continue;
+      bool cont=false;
+      for(auto sitePackages : {"site-packages", "dist-packages"})
+        if(*srcIt->path().rbegin()==sitePackages) { // in site-packages ..
+          cont=true;
+          for(auto mod : {"numpy", "sympy", "mpmath"}) // .. only these subdirs
+            if(MBXMLUtils::exists(srcIt->path()/mod))
+              for(auto srcRecIt=recursive_directory_iterator(srcIt->path()/mod); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
+                addFile(srcRecIt);
+        }
+      if(cont)
+        continue;
+      if(MBXMLUtils::is_directory(*srcIt)) // directory -> recursive
+        for(auto srcRecIt=recursive_directory_iterator(*srcIt); srcRecIt!=recursive_directory_iterator(); ++srcRecIt)
+          addFile(srcRecIt);
+      else
+        addFile(srcIt);
+    }
 #if _WIN32
-  // on Windows include the PYTHONSRC/../DLLs directory, if existing
-  if(MBXMLUtils::exists(PYTHONSRC/".."/"DLLs"))
-    for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
-      files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
+    // on Windows include the PYTHONSRC/../DLLs directory, if existing
+    if(MBXMLUtils::exists(PYTHONSRC/".."/"DLLs"))
+      for(auto srcIt=directory_iterator(PYTHONSRC/".."/"DLLs"); srcIt!=directory_iterator(); ++srcIt)
+        files[srcIt->path()]=make_pair("DLLs", false); // just copy these files, dependencies are handled by python
 #endif
+  }
 
   return files;
 }

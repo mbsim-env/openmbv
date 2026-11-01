@@ -138,9 +138,9 @@ install-exec-local: install-moduleLTLIBRARIES
 	shopt -s nullglob; \
 	python3 $(prefix)/share/mbxmlutils/python/deplibs.py -o $(prefix)/share/deplibs --skip __init_gnuplot__.oct \
 	  $(MKOCTFILE_LIBDIR)/oct/*/*.oct \
-	  $(PYTHON_LIBDIR2)/*.so \
-	  $(PYTHON_LIBDIR2)/*.dll \
-	  $(PYTHON_LIBDIR2)/*.pyd \
+	  $(PYTHON_LIBDYN)/*.so \
+	  $(PYTHON_LIBDYN)/*.dll \
+	  $(PYTHON_LIBDYN)/*.pyd \
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.so* \
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/*/*.pyd \
 	  $(PYTHON_LIBDIR)/$(PYTHON_PACKAGES)/numpy/.libs/*.dll;
