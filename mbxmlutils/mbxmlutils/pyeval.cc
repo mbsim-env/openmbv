@@ -427,9 +427,14 @@ map<path, pair<path, bool> >& PyEval::requiredFiles() const {
   }
 
   fmatvec::Atom::msgStatic(fmatvec::Atom::Info)<<"Generate file list for Python files."<<endl;
-  for(path PYTHONSRC : {PYTHON_LIBDIR, PYTHON_LIBDIR2}) {
-    if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
-      PYTHONSRC=installPath/PYTHON_SUBDIR;
+  vector<path> dirToCheck;
+  if(MBXMLUtils::exists(installPath/PYTHON_SUBDIR/"site-packages"))
+    dirToCheck = {installPath/PYTHON_SUBDIR};
+  else
+    dirToCheck = {PYTHON_LIBDIR, PYTHON_LIBDIR2};
+  for(path PYTHONSRC : dirToCheck) {
+    if(!MBXMLUtils::is_directory(PYTHONSRC))
+      continue;
 
     auto addFile = [&PYTHONSRC, &PYTHONDST](auto &srcIt) {
       if(MBXMLUtils::is_directory(*srcIt)) // skip directories
