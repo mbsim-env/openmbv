@@ -225,6 +225,10 @@ boost::uuids::name_generator PyEval::uuidGen(boost::uuids::random_generator{}())
 PyEval::PyEval(vector<path> *dependencies_) : Eval(dependencies_) {
   GilState gil;
   globalImportDict=CALLPY(PyDict_New); // only needed for the deprecated "addNewVarsToInstance" import action
+
+  // update units (python does not use "power" but "pow" for the power-function)
+  for(auto &[u,equ] : units)
+    boost::replace_all(equ, "power", "pow"); // we can do this since only very basic expressions are supported for units, see measurement.xml
 }
 
 PyEval::~PyEval() {

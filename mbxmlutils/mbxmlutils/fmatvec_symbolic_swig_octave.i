@@ -318,7 +318,6 @@ typedef fmatvec::SymbolicExpression SS;
     SS                 power(const SS &a, const double &b) { return pow(a,SS(b)); }
     octave_value       power(const octave_value a, const octave_value b) { return callBuiltin("power", octave_value_list(a).append(b))(0); }
     SS                 power(const SS &a, const int &b) { return pow(a,SS(b)); }
-    SS                 power(const double &a, const int &b) { return pow(a,SS(b)); }
     octave_value       log(const octave_value a) { return callBuiltin("log", a)(0); }
     octave_value       sqrt(const octave_value a) { return callBuiltin("sqrt", a)(0); }
     octave_value       sin(const octave_value a) { return callBuiltin("sin", a)(0); }

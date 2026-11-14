@@ -334,6 +334,8 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
 
     static void printEvaluatorMsg(const std::ostringstream &str, MsgType msgType);
 
+    static std::map<std::string, std::string> units;
+
   private:
     // virtual spezialization of cast(const Value &value)
     virtual double                            cast_double              (const Value &value) const=0;
@@ -359,8 +361,6 @@ class Eval : public std::enable_shared_from_this<Eval>, virtual public fmatvec::
     virtual std::string serializeFunction(const Value &x) const = 0;
 
     Value handleUnit(const xercesc::DOMElement *e, const Value &ret);
-
-    static std::map<std::string, std::string> units;
 
     static std::map<std::string, std::function<std::shared_ptr<Eval>(std::vector<boost::filesystem::path>*)> >& getEvaluators();
 
