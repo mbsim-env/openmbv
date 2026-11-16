@@ -360,7 +360,7 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
   }
 
   if(action=="" || action=="addNewVarsToInstance") { // deprecated
-    Deprecated::message(nullptr, R"(A Python <import action="addNewVarsToInstance"> element is deprecated, use action="addAllVarsAsParams".)", e);
+    Deprecated::message(nullptr, R"(A Python <import action="addNewVarsToInstance"> element is deprecated, use action="addAllVarsAsParams" or action="addNothing".)", e);
     // remove all already existing keys from globalsLocals (addImport should only add newly created variables to the global import list)
     auto size = CALLPY(PyList_Size, orgKeyList);
     for(decltype(size) idx = 0; idx < size; ++idx)
@@ -384,8 +384,11 @@ void PyEval::addImport(const string &code, const DOMElement *e, const string &ac
       currentParam[CALLPY(PyUnicode_AsUTF8, key)]=C(value);
     }
   }
+  else if(action=="addNothing") {
+    // nothing to do: 'addNothing' just executes the code but do not add anything
+  }
   else
-    throw DOMEvalException("Python 'import' is only possible with action='' == action='addNewVarsToInstance' or action='addAllVarsAsParams' (action='"+action+"')!", e);
+    throw DOMEvalException("Python 'import' is only possible with action='' == action='addNewVarsToInstance' or action='addAllVarsAsParams' or action='addNothing' (action='"+action+"')!", e);
 
   if(dependencies && e) {
     // get current python sys.path
