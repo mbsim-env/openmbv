@@ -130,7 +130,7 @@ void AbstractViewFilter::updateTooltip() {
   }
   else if(typeCol==-1) {
     filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
-                           "Or on the type by :&lt;filter&gt; or on a derived type by ::&lt;filter&gt;."
+                           "Or on the item type by :&lt;filter&gt; (using case/filter-type below) or on a derived item type by ::&lt;filter&gt; (case-sensitive, full-name)."
                            "<dl><dt>Case sensitivity:</dt><dd>%2</dd>"
                            "<dt>Filter type:</dt><dd>%3</dd></dl>").arg(nameCol+1)
                                              .arg(caseSensitive?"case sensitive":"case insensitive")
