@@ -138,13 +138,29 @@ void AbstractViewFilter::updateTooltip() {
     filterLE->setStatusTip("Filter by name column, or by type :&lt;filter&gt;, or by derived type ::&lt;filter&gt;");
   }
   else {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
-                           "Or on the item type (column %2) if the filter starts with ':'."
-                           "<dl><dt>Case sensitivity:</dt><dd>%3</dd>"
-                           "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(nameCol+1).arg(typeCol+1)
-                                             .arg(caseSensitive?"case sensitive":"case insensitive")
-                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
-    filterLE->setStatusTip("Filter by name column, or by type column (if the filter starts with ':')");
+    QString toolTip = tr("Filter the tree<ul>");
+    QString statusTip = tr("Filter by ");
+    size_t i=0;
+    QString sep;
+    for (const auto& col : colMap) {
+      if(i<colMap.size()-2)
+        sep = ", ";
+      else if(i<colMap.size()-1)
+        sep = " or ";
+      else
+        sep = ".";
+      i++;
+      toolTip += tr("<li>by %1").arg(col.second.second);
+      statusTip += col.second.second+sep;
+      if(not col.first.isEmpty())
+        toolTip += tr(" if the filter starts with \"%1\"").arg(col.first);
+      toolTip += sep+tr("</li>");
+    }
+    toolTip += tr("</ul><dl><dt>Case sensitivity:</dt><dd>%3</dd>"
+              "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(caseSensitive?"case sensitive":"case insensitive")
+                                                      .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern");
+      filterLE->setToolTip(toolTip);
+      filterLE->setStatusTip(statusTip);
   }
 }
 
@@ -214,16 +230,24 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
           m.me=true;
       }
     }
-    else {
-      if(filter.pattern().startsWith(":")) { // starting with : => direct type search
-        const QModelIndex &colIndex=view->model()->index(index.row(), typeCol, index.parent());
-        QRegExp filter2(filter);
-        filter2.setPattern(filter.pattern().mid(1));
-        if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
-          m.me=true;
+    else { // starting with a key defined in column map => search in the column associated with the key
+      auto col0 = colMap.find("");
+      for (auto col = colMap.begin(); col != colMap.end(); col++) {
+        if(col != col0 and filter.pattern().startsWith(col->first)) { // First apply the filter for all non-empty keys 
+          const QModelIndex &colIndex=view->model()->index(index.row(), col->second.first, index.parent());
+          QRegExp filter2(filter);
+          filter2.setPattern(filter.pattern().mid(col->first.size()));
+          if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
+            m.me=true;
+          col0 = colMap.end();
+          break;
+        }
       }
-      else { // not starting with : => regex search on the string of column nameCol
-        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
+      if(col0 != colMap.end()) { // Now apply the filter for the empty key if present
+        const QModelIndex &colIndex=view->model()->index(index.row(), col0->second.first, index.parent());
+        QRegExp filter2(filter);
+        filter2.setPattern(filter.pattern().mid(col0->first.size()));
+        if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
       }
     }
@@ -298,6 +322,11 @@ void AbstractViewFilter::updateItem(const QModelIndex &index, bool recursive) {
     for(int i=0; i<view->model()->rowCount(index); i++)
       updateItem(view->model()->index(i, nameCol, index),recursive);
   }
+}
+
+void AbstractViewFilter::setColumnMap(const std::unordered_map<QString,std::pair<int,QString>> &colMap_) {
+  colMap = colMap_;
+  updateTooltip();
 }
 
 }

@@ -77,6 +77,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     static bool getCaseSensitive() { return caseSensitive; }
     static AbstractViewFilterStatic* staticObject();
     void updateItem(const QModelIndex &index, bool recursive=false);
+    void setColumnMap(const std::unordered_map<QString,std::pair<int,QString>> &colMap_);
 
   protected:
     void updateTooltip();
@@ -101,6 +102,7 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     QString typePrefix;
     std::function<QObject*(const QModelIndex&)> indexToQObject;
     int enableRole;
+    std::unordered_map<QString,std::pair<int,QString>> colMap;
 
     struct Match {
       Match()  = default;
