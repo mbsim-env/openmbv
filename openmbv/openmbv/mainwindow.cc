@@ -116,10 +116,6 @@ namespace OpenMBVGUI {
 
 MainWindow *MainWindow::instance=nullptr;
 
-QObject* qTreeWidgetItemToQObject(const QModelIndex &index) {
-  return dynamic_cast<QObject*>(static_cast<QTreeWidgetItem*>(index.internalPointer()));
-}
-
 MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScreen(false),
   skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
@@ -376,9 +372,15 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   objectListDW->setWidget(objectListWG);
   addDockWidget(Qt::LeftDockWidgetArea,objectListDW);
   objectList = new TouchTreeWidget(objectListDW);
-  objectListFilter=new AbstractViewFilter(objectList, 0, -1, "OpenMBVGUI::", &qTreeWidgetItemToQObject);
+  objectListFilter=new AbstractViewFilter(objectList);
+  objectListFilter->setColumnMap({
+    {"" , {0, "the object's name"}},
+    {":", {1, "the object's type"}},
+  });
   objectListLO->addWidget(objectListFilter, 0,0);
   objectListLO->addWidget(objectList, 1,0);
+  objectList->setColumnCount(2);
+  objectList->setColumnHidden(1, true);
   objectList->setHeaderHidden(true);
   objectList->setSelectionMode(QAbstractItemView::ExtendedSelection);
   objectList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);

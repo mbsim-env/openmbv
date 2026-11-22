@@ -46,21 +46,14 @@ class DLL_PUBLIC AbstractViewFilterStatic : public QObject {
 class DLL_PUBLIC AbstractViewFilter : public QWidget {
   public:
     /*! Creates a filter for QTreeView.
-     * \p nameCol_ defines the column against normal regex searches (<regex>) are made (Qt::DisplayRole).
-     * If \p typeCol_ >= 0 it is the column against type searches (:<typename>) are made (Qt::DisplayRole).
-     * If \p typeCol_ = -1 type searches (:<typename> or ::<typename>) are made against the qt-metaobject type of the items.
-     * In this case \a indexToQObject_ must be provided and convert a given model index to the corresponding QObject
-     * (normally using internalPointer of the index).
-     * If \p typeCol_ = -2 type searches are disabled, everything is treated as a normal regex serach on nameCol_.
-     * The typename of a type search (:<typename> or ::<typename>) is prefixes with \p typePrefix_. Usually
-     * this is a namespace e.g. 'OpenMBVGUI::'.
+     * To column to which the filter is applied is defined by a string prefix of the filter and
+     * setColumnMap which maps prefixes to column number.
+     * The filter can use glob or regex matches and can be case sensitive or insensitive.
      * Coloring of matching items is done using the setData function of the view-model using the Qt::ForegroundRole. Hence,
      * to enable filtered coloring the data function of the view-model should directly return the QBrush set using setData.
      * The boolean view-model flag enableRole_ is honored when coloring is done be the filter:
      * If this flag is true normal coloring is done if false "disabled" coloring is done. */
-    AbstractViewFilter(QAbstractItemView *view_, int nameCol_=0, int typeCol_=-2, QString typePrefix_="",
-                       std::function<QObject*(const QModelIndex&)> indexToQObject_=std::function<QObject*(const QModelIndex&)>(),
-                       int enableRole_=Qt::UserRole);
+    AbstractViewFilter(QAbstractItemView *view_, int enableRole_=Qt::UserRole);
 
     //! Set the filter programatically.
     //! Setting the filter applies the filter on the view.
@@ -97,10 +90,6 @@ class DLL_PUBLIC AbstractViewFilter : public QWidget {
     QString oldFilterValue;
     QAbstractItemView *view;
     bool matchAll { true };
-    int nameCol;
-    int typeCol;
-    QString typePrefix;
-    std::function<QObject*(const QModelIndex&)> indexToQObject;
     int enableRole;
     std::unordered_map<QString,std::pair<int,QString>> colMap;
 

@@ -27,9 +27,9 @@
 #include <Inventor/actions/SoSearchAction.h>
 #include "mainwindow.h"
 #include "compoundrigidbody.h"
-#include "openmbvcppinterface/group.h"
 #include "utils.h"
 #include <boost/algorithm/string/split.hpp>
+#include <boost/core/demangle.hpp>
 
 using namespace std;
 
@@ -82,6 +82,8 @@ Object::Object(const std::shared_ptr<OpenMBV::Object> &obj, QTreeWidgetItem *par
   nodeSensorAttach(drawBoundingBox());
 
   setText(0, obj->getName().c_str());
+  auto &objRef = *obj.get();
+  setText(1, boost::core::demangle(typeid(objRef).name()).substr(9).c_str());
 
   clone=nullptr;
   if(isClone) { // the below code is quite expensive, that's why we do it only if we know that this object is a clone

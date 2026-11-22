@@ -50,9 +50,8 @@ AbstractViewFilterStatic* AbstractViewFilter::staticObject() {
   return so;
 }
 
-AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, int typeCol_, QString typePrefix_,
-                                       std::function<QObject*(const QModelIndex&)> indexToQObject_, int enableRole_) :
-  QWidget(view_), view(view_), nameCol(nameCol_), typeCol(typeCol_), typePrefix(std::move(typePrefix_)), indexToQObject(std::move(indexToQObject_)),
+AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int enableRole_) :
+  QWidget(view_), view(view_),
   enableRole(enableRole_) {
   connect(staticObject(), &AbstractViewFilterStatic::optionsChanged, this, [this](){
     updateTooltip();
@@ -120,48 +119,29 @@ AbstractViewFilter::AbstractViewFilter(QAbstractItemView *view_, int nameCol_, i
 }
 
 void AbstractViewFilter::updateTooltip() {
-  if(typeCol==-2) {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
-                           "<dl><dt>Case sensitivity:</dt><dd>%2</dd>"
-                           "<dt>Filter type:</dt><dd>%3</dd></dl>").arg(nameCol+1)
-                                             .arg(caseSensitive?"case sensitive":"case insensitive")
-                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
-    filterLE->setStatusTip("Filter by name column.");
+  QString toolTip = tr("Filter the tree<ul>");
+  QString statusTip = tr("Filter by ");
+  size_t i=0;
+  QString sep;
+  for (const auto& col : colMap) {
+    if(i<colMap.size()-2)
+      sep = ", ";
+    else if(i<colMap.size()-1)
+      sep = " or ";
+    else
+      sep = ".";
+    i++;
+    toolTip += tr("<li>by %1").arg(col.second.second);
+    statusTip += col.second.second+sep;
+    if(not col.first.isEmpty())
+      toolTip += tr(" if the filter starts with \"%1\"").arg(col.first);
+    toolTip += sep+tr("</li>");
   }
-  else if(typeCol==-1) {
-    filterLE->setToolTip(tr("Filter the tree, by applying the given filter on the item names (column %1)."
-                           "Or on the item type by :&lt;filter&gt; (using case/filter-type below) or on a derived item type by ::&lt;filter&gt; (case-sensitive, full-name)."
-                           "<dl><dt>Case sensitivity:</dt><dd>%2</dd>"
-                           "<dt>Filter type:</dt><dd>%3</dd></dl>").arg(nameCol+1)
-                                             .arg(caseSensitive?"case sensitive":"case insensitive")
-                                             .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern"));
-    filterLE->setStatusTip("Filter by name column, or by type :&lt;filter&gt;, or by derived type ::&lt;filter&gt;");
-  }
-  else {
-    QString toolTip = tr("Filter the tree<ul>");
-    QString statusTip = tr("Filter by ");
-    size_t i=0;
-    QString sep;
-    for (const auto& col : colMap) {
-      if(i<colMap.size()-2)
-        sep = ", ";
-      else if(i<colMap.size()-1)
-        sep = " or ";
-      else
-        sep = ".";
-      i++;
-      toolTip += tr("<li>by %1").arg(col.second.second);
-      statusTip += col.second.second+sep;
-      if(not col.first.isEmpty())
-        toolTip += tr(" if the filter starts with \"%1\"").arg(col.first);
-      toolTip += sep+tr("</li>");
-    }
-    toolTip += tr("</ul><dl><dt>Case sensitivity:</dt><dd>%3</dd>"
-              "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(caseSensitive?"case sensitive":"case insensitive")
-                                                      .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern");
-      filterLE->setToolTip(toolTip);
-      filterLE->setStatusTip(statusTip);
-  }
+  toolTip += tr("</ul><dl><dt>Case sensitivity:</dt><dd>%3</dd>"
+            "<dt>Filter type:</dt><dd>%4</dd></dl>").arg(caseSensitive?"case sensitive":"case insensitive")
+                                                    .arg(filterType==FilterType::RegEx?"regular expression":"glob pattern");
+  filterLE->setToolTip(toolTip);
+  filterLE->setStatusTip(statusTip);
 }
 
 void AbstractViewFilter::setFilter(const QString &filter) {
@@ -203,53 +183,24 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
   if(index!=view->rootIndex()) {
     Match &m=match[index];
     // check for matching items
-    if(typeCol==-2) {
-      // regex search on string on column nameCol
-      if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
-        m.me=true;
-    }
-    else if(typeCol==-1) {
-      if(filter.pattern().startsWith("::")) { // starting with :: => inherited type search
-        QObject *obj=indexToQObject(index);
-        if(obj && obj->inherits((typePrefix+filter.pattern().mid(2)).toStdString().c_str()))
-          m.me=true;
-      }
-      else if(filter.pattern().startsWith(":")) { // starting with : => direct type search
-        QObject *obj=indexToQObject(index);
-        if(obj) {
-          QString str=obj->metaObject()->className();
-          str=str.replace(typePrefix, "");
-          QRegExp filter2(filter);
-          filter2.setPattern(filter.pattern().mid(1));
-          if(filter2.indexIn(str)>=0)
-            m.me=true;
-        }
-      }
-      else { // not starting with : or :: => regex search on the string of column nameCol
-        if(filter.indexIn(view->model()->data(index, Qt::DisplayRole).value<QString>())>=0)
-          m.me=true;
-      }
-    }
-    else { // starting with a key defined in column map => search in the column associated with the key
-      auto col0 = colMap.find("");
-      for (auto col = colMap.begin(); col != colMap.end(); col++) {
-        if(col != col0 and filter.pattern().startsWith(col->first)) { // First apply the filter for all non-empty keys 
-          const QModelIndex &colIndex=view->model()->index(index.row(), col->second.first, index.parent());
-          QRegExp filter2(filter);
-          filter2.setPattern(filter.pattern().mid(col->first.size()));
-          if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
-            m.me=true;
-          col0 = colMap.end();
-          break;
-        }
-      }
-      if(col0 != colMap.end()) { // Now apply the filter for the empty key if present
-        const QModelIndex &colIndex=view->model()->index(index.row(), col0->second.first, index.parent());
+    auto col0 = colMap.find("");
+    for (auto col = colMap.begin(); col != colMap.end(); col++) {
+      if(col != col0 and filter.pattern().startsWith(col->first)) { // First apply the filter for all non-empty keys 
+        const QModelIndex &colIndex=view->model()->index(index.row(), col->second.first, index.parent());
         QRegExp filter2(filter);
-        filter2.setPattern(filter.pattern().mid(col0->first.size()));
+        filter2.setPattern(filter.pattern().mid(col->first.size()));
         if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
           m.me=true;
+        col0 = colMap.end();
+        break;
       }
+    }
+    if(col0 != colMap.end()) { // Now apply the filter for the empty key if present
+      const QModelIndex &colIndex=view->model()->index(index.row(), col0->second.first, index.parent());
+      QRegExp filter2(filter);
+      filter2.setPattern(filter.pattern().mid(col0->first.size()));
+      if(filter2.indexIn(view->model()->data(colIndex, Qt::DisplayRole).value<QString>())>=0)
+        m.me=true;
     }
     
     if(m.me) {
@@ -259,7 +210,7 @@ void AbstractViewFilter::updateMatch(const QModelIndex &index, const QRegExp &fi
   }
   // recursively walk the view
   for(int i=0; i<view->model()->rowCount(index); i++)
-    updateMatch(view->model()->index(i, nameCol, index), filter);
+    updateMatch(view->model()->index(i, 0, index), filter);
 }
 
 void AbstractViewFilter::setChildMatchOfParent(const QModelIndex &index) {
@@ -273,7 +224,7 @@ void AbstractViewFilter::setChildMatchOfParent(const QModelIndex &index) {
 
 void AbstractViewFilter::setParentMatchOfChild(const QModelIndex &index) {
   for(int i=0; i<view->model()->rowCount(index); i++) {
-    const QModelIndex &c=view->model()->index(i, nameCol, index);
+    const QModelIndex &c=view->model()->index(i, 0, index);
     Match &m=match[c];
     m.parent=true;
     setParentMatchOfChild(c);
@@ -297,7 +248,7 @@ void AbstractViewFilter::updateView(const QModelIndex &index) {
   }
   // recursively walk the view
   for(int i=0; i<view->model()->rowCount(index); i++)
-    updateView(view->model()->index(i, nameCol, index));
+    updateView(view->model()->index(i, 0, index));
 }
 
 void AbstractViewFilter::updateItem(const QModelIndex &index, bool recursive) {
@@ -320,7 +271,7 @@ void AbstractViewFilter::updateItem(const QModelIndex &index, bool recursive) {
   }
   if(recursive) {
     for(int i=0; i<view->model()->rowCount(index); i++)
-      updateItem(view->model()->index(i, nameCol, index),recursive);
+      updateItem(view->model()->index(i, 0, index),recursive);
   }
 }
 
