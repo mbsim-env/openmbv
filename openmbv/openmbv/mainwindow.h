@@ -114,7 +114,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoMFColor *engDrawingBGColorSaved, *engDrawingFGColorBottomSaved, *engDrawingFGColorTopSaved;
     SoFieldSensor *frameSensor;
     std::mutex mutex; // this mutex is temporarily locked during openFile calls
-    bool skipWindowState{false};
     QGridLayout *mainLO;
     SoSwitch *cursorSwitch;
     SoTranslation *cursorPos;
@@ -122,6 +121,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     SoAlphaTest *mouseCursorSizeField;
     QPushButton *disableStereo;
     bool cameraLoaded { false };
+    bool autoExit;
   protected:
     SepNoPick *sceneRootBBox;
     QTreeWidget *objectList;
@@ -222,7 +222,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
   protected:
     SoOffscreenRenderer *offScreenRenderer;
     std::unique_ptr<QSemaphore> exportAsPNGSem;
-    QFuture<bool> exportAsPNG(short width, short height, const std::string& fileName, bool transparent);
+    QFuture<bool> exportAsPNG(double scale, const std::string& fileName, bool transparent);
     void exportCurrentAsPNG();
     void exportSequenceAsPNG(bool video);
     void exportCurrentAsIV();

@@ -116,8 +116,7 @@ namespace OpenMBVGUI {
 
 MainWindow *MainWindow::instance=nullptr;
 
-MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScreen(false),
-  skipWindowState(_skipWindowState), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
 
   // environment variables
@@ -967,13 +966,13 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   setAcceptDrops(true);
 
   // auto exit if everything is finished
-  if(std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end()) {
+  autoExit = std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end();
+  if(autoExit) {
     auto timer=new QTimer(this);
     connect(timer, &QTimer::timeout,this, [this, timer](){
       if(waitForAutoExit.empty()) {
         timer->stop();
-        if(!close())
-          timer->start(100);
+        assert(close());
       }
     });
     timer->start(100);
@@ -1782,12 +1781,13 @@ void MainWindow::speedWheelReleased() {
   speedWheel->setValue(0);
 }
 
-QFuture<bool> MainWindow::exportAsPNG(short width, short height, const std::string& fileName, bool transparent) {
+QFuture<bool> MainWindow::exportAsPNG(double scale, const std::string& fileName, bool transparent) {
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*scale);
   if(realTimeUsed)
     *realTime = SbTime::getTimeOfDay();
   auto size = glViewerWG->size();
-  short guiWidth = size.width(), guiHeight = size.height();
-  if(width==guiWidth && height==guiHeight && transparent==false) {
+  short width = size.width(), height = size.height();
+  if(scale==1.0 && transparent==false) {
     // directly use the drawing on the screen as PNG export
 
     SoDB::getSensorManager()->processImmediateQueue();
@@ -1907,6 +1907,7 @@ used when 'Resoluation factor'=1.0 and 'Background'='Use scene color' is set.
     root->unref();
     return ret;
   }
+  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/scale);
 }
 
 void MainWindow::exportCurrentAsPNG() {
@@ -1921,11 +1922,7 @@ void MainWindow::exportCurrentAsPNG() {
   msg(Status)<<str.toStdString()<<endl;
   QFile::remove(filename);
   QDir().mkpath(QFileInfo(filename).dir().path());
-  SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*dialog.getScale();
-  short width, height; size.getValue(width, height);
-  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*dialog.getScale());
-  exportAsPNG(width, height, filename.toStdString(), dialog.getTransparent()).result();
-  glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()/dialog.getScale());
+  exportAsPNG(dialog.getScale(), filename.toStdString(), dialog.getTransparent()).result();
   statusBar()->showMessage("Done", 10000);
   if(QFile::exists(filename))
     QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
@@ -1968,8 +1965,6 @@ void MainWindow::exportSequenceAsPNG(bool video) {
   }
   int videoFrame=0;
   auto lastVideoFrame=(int)(deltaTime*fps/speed*(endFrame-startFrame));
-  SbVec2s size=glViewer->getSceneManager()->getViewportRegion().getWindowSize()*scale;
-  short width, height; size.getValue(width, height);
   glViewer->fontStyle->size.setValue(glViewer->fontStyle->size.getValue()*scale);
 
   if(!dialog.skipPNGGeneration()) {
@@ -1995,7 +1990,7 @@ void MainWindow::exportSequenceAsPNG(bool video) {
       statusBar()->showMessage(str);
       msg(Status)<<str.toStdString()<<endl;
       frameNode->index.setValue(frame_);
-      future.emplace_back(exportAsPNG(width, height, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent));
+      future.emplace_back(exportAsPNG(scale, QString("%1_%2.png").arg(pngBaseName).arg(videoFrame, 6, 10, QChar('0')).toStdString(), transparent));
     }
     exportAsPNGSem.reset();
     glViewer->setAutoRedraw(savedAutoRedraw);
@@ -2692,8 +2687,7 @@ void MainWindow::dropEvent(QDropEvent *event) {
 
 void MainWindow::closeEvent(QCloseEvent *event) {
   appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
-  if(!skipWindowState)
-    appSettings->set(AppSettings::mainwindow_state, saveState());
+  appSettings->set(AppSettings::mainwindow_state, saveState());
   if(dialogStereo)
     dialogStereo->close();
   QMainWindow::closeEvent(event);
@@ -2701,8 +2695,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::showEvent(QShowEvent *event) {
   restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
-  if(!skipWindowState)
-    restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
+  restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
+  if(autoExit)
+    setWindowState(Qt::WindowMinimized);
   QMainWindow::showEvent(event);
 }
 
