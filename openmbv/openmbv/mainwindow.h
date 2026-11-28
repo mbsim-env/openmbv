@@ -122,6 +122,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
     QPushButton *disableStereo;
     bool cameraLoaded { false };
     bool autoExit;
+    std::string exportandexit;
     std::string winst;
   protected:
     SepNoPick *sceneRootBBox;

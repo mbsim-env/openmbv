@@ -879,6 +879,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
     arg.erase(i); arg.erase(i2);
   }
 
+  if((i=std::find(arg.begin(), arg.end(), "--exportandexit"))!=arg.end()) {
+    i2=i; i2++;
+    exportandexit = *i2;
+    arg.erase(i); arg.erase(i2);
+  }
+
   // read XML files
   QDir dir;
   QRegExp filterRE1(".+\\.ombvx");
@@ -949,11 +955,15 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
 
   // auto exit if everything is finished
   autoExit = std::find(arg.begin(), arg.end(), "--autoExit")!=arg.end();
-  if(autoExit) {
+  if(autoExit || !exportandexit.empty()) {
     auto timer=new QTimer(this);
     connect(timer, &QTimer::timeout,this, [this, timer](){
       if(waitForAutoExit.empty()) {
         timer->stop();
+
+        if(!exportandexit.empty())
+          exportAsPNG(1, exportandexit, false);
+
         auto ret=close();
         (void)ret;
         assert(ret);
@@ -2690,7 +2700,7 @@ void MainWindow::showEvent(QShowEvent *event) {
     if(!winst.empty())
       loadWindowState(winst);
 
-    if(autoExit)
+    if(autoExit || !exportandexit.empty())
       setWindowState(Qt::WindowMinimized);
   }
   QMainWindow::showEvent(event);

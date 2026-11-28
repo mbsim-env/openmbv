@@ -122,6 +122,7 @@ int main(int argc, char *argv[]) {
         <<"Usage: openmbv [-h|--help] [-v|--verbose] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--closeall]"<<endl
         <<"               [--winst <file>] [--camera <file>] [--fullscreen]"<<endl
+        <<"               [--exportandexit <file>]"<<endl
         <<"               [--nodecoration]"<<endl
         <<"               [--headlight <file>]"<<endl
         <<"               [-C <dir/file>|--CC]"<<endl
@@ -136,6 +137,7 @@ int main(int argc, char *argv[]) {
         <<"--closeall         Start with all widgets closed except scene widget"<<endl
         <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
         <<"--winst            Load the given (main)window state file (disables save to config file)"<<endl
+        <<"--exportandexit    Export the current 3D scene as PNG and exit"<<endl
         <<"--camera           Load the given camera file (*.iv)"<<endl
         <<"                   (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890
