@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     arg.erase(i2);
   }
   SetCurrentPath currentPath(newCurrentPath);
-  for(auto a : {"--wst", "--camera", "--headlight"})
+  for(auto a : {"--winst", "--camera", "--headlight"})
     if(auto i=std::find(arg.begin(), arg.end(), a); i!=arg.end()) {
       auto i2=i; i2++;
       *i2=currentPath.adaptPath(*i2).string();
@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [-v|--verbose] [--play|--lastframe] [--speed <factor>]"<<endl
         <<"               [--closeall]"<<endl
-        <<"               [--wst <file>] [--camera <file>] [--fullscreen]"<<endl
-        <<"               [--geometry WIDTHxHEIGHT+X+Y] [--nodecoration]"<<endl
+        <<"               [--winst <file>] [--camera <file>] [--fullscreen]"<<endl
+        <<"               [--nodecoration]"<<endl
         <<"               [--headlight <file>]"<<endl
         <<"               [-C <dir/file>|--CC]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
@@ -135,8 +135,7 @@ int main(int argc, char *argv[]) {
         <<"--lastframe        View last frame after loading"<<endl
         <<"--closeall         Start with all widgets closed except scene widget"<<endl
         <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
-        <<"--geometry         Set the main(window) geometry"<<endl
-        <<"--wst              Load the given (main)window state file"<<endl
+        <<"--winst            Load the given (main)window state file (disables save to config file)"<<endl
         <<"--camera           Load the given camera file (*.iv)"<<endl
         <<"                   (Must be of type OrthographicCamera or PerspectiveCamera)"<<endl
         // 12345678901234567890123456789012345678901234567890123456789012345678901234567890

@@ -828,31 +828,7 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
     arg.erase(i);
   }
 
-  // load the window state file
-  if((i=std::find(arg.begin(), arg.end(), "--wst"))!=arg.end()) {
-    i2=i; i2++;
-    loadWindowState(*i2);
-    arg.erase(i); arg.erase(i2);
-  }
-
-  // resize if no --wst and no --geometry option is given
-  if(std::find(arg.begin(), arg.end(), "--wst")==arg.end() &&
-     std::find(arg.begin(), arg.end(), "--geometry")==arg.end())
-    resize(830,560);
-  
-  // geometry
-  if((i=std::find(arg.begin(), arg.end(), "--geometry"))!=arg.end()) {
-    i2=i; i2++;
-    QRegExp re("^([0-9]+)x([0-9]+)(?:\\+([0-9]+))?(?:\\+([0-9]+))?$");
-    re.indexIn(i2->c_str());
-    resize(re.cap(1).toInt(), re.cap(2).toInt());
-    bool xok, yok;
-    int x=re.cap(3).toInt(&xok);
-    int y=re.cap(4).toInt(&yok);
-    if(xok) move(x, pos().y());
-    if(xok && yok) move(x, y);
-    arg.erase(i); arg.erase(i2);
-  }
+  resize(830,560);
 
   // play/lastframe
   bool playArg=false, lastframeArg=false;
@@ -896,6 +872,12 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   // maximized
   if((i=std::find(arg.begin(), arg.end(), "--maximized"))!=arg.end())
     showMaximized();
+
+  if((i=std::find(arg.begin(), arg.end(), "--winst"))!=arg.end()) {
+    i2=i; i2++;
+    winst = *i2;
+    arg.erase(i); arg.erase(i2);
+  }
 
   // read XML files
   QDir dir;
@@ -2160,50 +2142,51 @@ void MainWindow::speedDownSlot() {
 }
 
 void MainWindow::loadWindowState() {
-  loadWindowState("");
+  QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombvwinst");
+  if(fn.isNull()) return;
+  loadWindowState(fn.toStdString());
 }
+
 void MainWindow::loadWindowState(string filename) {
-  if(filename.empty()) {
-    QString fn=QFileDialog::getOpenFileName(nullptr, "Load window state", ".", "*.ombvwst");
-    if(fn.isNull()) return;
-    filename=fn.toStdString();
+  QFile file(filename.c_str());
+  if(!file.exists()) {
+    string str = "Window state file "+filename+" not found";
+    statusBar()->showMessage(str.c_str(), 10000);
+    msg(Warn)<<str<<endl;
+    return;
   }
-  // load
-  QFile stateFile(filename.c_str());
-  stateFile.open(QIODevice::ReadOnly);
-  WindowState windowState;
-  stateFile.read((char*)&windowState, sizeof(WindowState));
-  QByteArray wst=stateFile.readAll();
-  stateFile.close();
-  // geometry
-  if(!windowState.hasMenuBar) toggleMenuBar->trigger();
-  if(!windowState.hasStatusBar) toggleStatusBar->trigger();
-  if(!windowState.hasFrameSlider) toggleFrameSlider->trigger();
-  // window state
-  restoreState(wst);
+
+  file.open(QIODevice::ReadOnly);
+
+  int geoSize;
+  file.read(reinterpret_cast<char*>(&geoSize), sizeof(int));
+  auto geo = file.read(geoSize);
+  restoreGeometry(geo);
+
+  int stSize;
+  file.read(reinterpret_cast<char*>(&stSize), sizeof(int));
+  auto st = file.read(stSize);
+  restoreState(st);
 }
 
 void MainWindow::saveWindowState() {
-  QString str("--geometry %1x%2+%3+%4");
-  str=str.arg(size().width()).arg(size().height()).
-          arg(pos().x()).arg(pos().y());
-  statusBar()->showMessage(str, 10000);
-  msg(Status)<<str.toStdString()<<endl;
-
-  QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombvwst", "*.ombvwst");
+  QString filename=QFileDialog::getSaveFileName(nullptr, "Save window state", "openmbv.ombvwinst", "*.ombvwinst");
   if(filename.isNull()) return;
-  if(!filename.endsWith(".ombvwst",Qt::CaseInsensitive))
-    filename=filename+".ombvwst";
-  // geometry
-  WindowState windowState;
-  windowState.hasMenuBar=toggleMenuBar->isChecked();
-  windowState.hasStatusBar=toggleStatusBar->isChecked();
-  windowState.hasFrameSlider=toggleFrameSlider->isChecked();
-  QByteArray data((char*)&windowState, sizeof(WindowState));
-  // window state
-  QByteArray wst=saveState();
-  data.append(wst);
-  // save
+  if(!filename.endsWith(".ombvwinst",Qt::CaseInsensitive))
+    filename=filename+".ombvwinst";
+
+  QByteArray data;
+
+  auto geo = saveGeometry();
+  int geoSize = geo.size();
+  data.append(reinterpret_cast<char*>(&geoSize), sizeof(int));
+  data.append(geo);
+
+  auto st = saveState();
+  int stSize = st.size();
+  data.append(reinterpret_cast<char*>(&stSize), sizeof(int));
+  data.append(st);
+
   QFile stateFile(filename);
   stateFile.open(QIODevice::WriteOnly);
   stateFile.write(data);
@@ -2688,8 +2671,10 @@ void MainWindow::dropEvent(QDropEvent *event) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-  appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
-  appSettings->set(AppSettings::mainwindow_state, saveState());
+  if(winst.empty()) {
+    appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
+    appSettings->set(AppSettings::mainwindow_state, saveState());
+  }
   if(dialogStereo)
     dialogStereo->close();
   QMainWindow::closeEvent(event);
@@ -2699,9 +2684,14 @@ void MainWindow::showEvent(QShowEvent *event) {
   restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
   restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
   static bool firstCall = true;
-  if(autoExit && firstCall) {
+  if(firstCall) {
     firstCall = false;
-    setWindowState(Qt::WindowMinimized);
+
+    if(!winst.empty())
+      loadWindowState(winst);
+
+    if(autoExit)
+      setWindowState(Qt::WindowMinimized);
   }
   QMainWindow::showEvent(event);
 }
