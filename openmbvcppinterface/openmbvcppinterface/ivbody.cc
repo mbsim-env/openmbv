@@ -38,8 +38,10 @@ DOMElement* IvBody::writeXMLFile(DOMNode *parent) {
     E(e)->addElementText(OPENMBV%"ivFileName", "'"+ivFileName+"'");
   else
     E(e)->addElementText(OPENMBV%"ivContent", "'"+ivContent+"'");
-  E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
-  E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
+  if(creaseAngle!=1)
+    E(e)->addElementText(OPENMBV%"creaseEdges", creaseAngle);
+  if(boundaryEdges!=false)
+    E(e)->addElementText(OPENMBV%"boundaryEdges", boundaryEdges);
   for(auto &name : removeNodesByName)
     E(e)->addElementText(OPENMBV%"removeNodesByName", "'"+name+"'");
   for(auto &type : removeNodesByType)

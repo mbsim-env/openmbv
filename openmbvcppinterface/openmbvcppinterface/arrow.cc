@@ -38,7 +38,8 @@ Arrow::~Arrow() = default;
 
 DOMElement *Arrow::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
-  E(e)->setAttribute("path", pathStr);
+  if(pathStr!="false")
+    E(e)->setAttribute("path", pathStr);
   E(e)->addElementText(OPENMBV%"diameter", diameter);
   E(e)->addElementText(OPENMBV%"headDiameter", headDiameter);
   E(e)->addElementText(OPENMBV%"headLength", headLength);

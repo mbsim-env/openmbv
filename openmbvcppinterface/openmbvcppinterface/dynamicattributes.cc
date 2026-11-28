@@ -98,7 +98,9 @@ void DynamicAttributes::initializeUsingXML(DOMElement *element) {
   auto read = [&element](PathDataList& pdl, const string &xmlName){
     pdl.clear();
     for(auto e=E(element)->getFirstElementChildNamed(OPENMBV%xmlName); e; e=E(e)->getNextElementSiblingNamed(OPENMBV%xmlName)) {
-      auto skipStr = E(e)->getAttribute("skip");
+      string skipStr;
+      if(E(e)->hasAttribute("skip"))
+        skipStr = E(e)->getAttribute("skip");
       pdl.emplace_back(E(e)->getText<string>(), skipStr=="1" || skipStr=="true" ? true : false);
     }
   };

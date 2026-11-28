@@ -44,12 +44,16 @@ DOMElement *CoilSpring::writeXMLFile(DOMNode *parent) {
     case tubeShader: typeStr="tubeShader"; break;
   }
   E(e)->addElementText(OPENMBV%"type", "'"+typeStr+"'");
-  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
+  if(updateNormals!=true)
+    E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
   E(e)->addElementText(OPENMBV%"numberOfCoils", numberOfCoils);
   E(e)->addElementText(OPENMBV%"springRadius", springRadius);
-  E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
-  E(e)->addElementText(OPENMBV%"nominalLength", nominalLength);
-  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
+  if(crossSectionRadius!=-1)
+    E(e)->addElementText(OPENMBV%"crossSectionRadius", crossSectionRadius);
+  if(nominalLength!=-1)
+    E(e)->addElementText(OPENMBV%"nominalLength", nominalLength);
+  if(scaleFactor!=1)
+    E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   return nullptr;
 }
 

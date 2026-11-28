@@ -37,7 +37,8 @@ DOMElement* RigidSpineExtrusion::writeXMLFile(DOMNode *parent) {
 
   if(contour) PolygonPoint::serializePolygonPointContour(e, contour);
 
-  E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
+  if(ccw!=true)
+    E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
 
   vector<vector<double>> m;
   m.reserve(spine.size());

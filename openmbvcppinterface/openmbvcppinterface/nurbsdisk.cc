@@ -59,7 +59,8 @@ DOMElement *NurbsDisk::writeXMLFile(DOMNode *parent) {
   for(int i=0;i<getElementNumberRadial()+1+getInterpolationDegreeRadial();i++) str+=fmatvec::toString(KnotVecRadial[i])+";";
   E(e)->addElementText(OPENMBV%"knotVecRadial", str+fmatvec::toString(KnotVecRadial[getElementNumberRadial()+1+getInterpolationDegreeRadial()])+"]");
 
-  E(e)->setAttribute("localFrame", localFrameStr);
+  if(localFrameStr!="false")
+    E(e)->setAttribute("localFrame", localFrameStr);
   return nullptr;
 }
 

@@ -45,11 +45,14 @@ DynamicColoredBody::~DynamicColoredBody() = default;
 
 DOMElement* DynamicColoredBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Body::writeXMLFile(parent);
-  E(e)->addElementText(OPENMBV%"minimalColorValue", minimalColorValue);
-  E(e)->addElementText(OPENMBV%"maximalColorValue", maximalColorValue);
+  if(minimalColorValue!=0)
+    E(e)->addElementText(OPENMBV%"minimalColorValue", minimalColorValue);
+  if(maximalColorValue!=1)
+    E(e)->addElementText(OPENMBV%"maximalColorValue", maximalColorValue);
   if(diffuseColor[0]>=0 || diffuseColor[1]!=1 || diffuseColor[2]!=1)
     E(e)->addElementText(OPENMBV%"diffuseColor", diffuseColor);
-  E(e)->addElementText(OPENMBV%"transparency", transparency);
+  if(transparency!=0)
+    E(e)->addElementText(OPENMBV%"transparency", transparency);
   return e;
 }
 

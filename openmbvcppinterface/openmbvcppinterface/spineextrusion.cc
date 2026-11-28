@@ -51,10 +51,14 @@ DOMElement* SpineExtrusion::writeXMLFile(DOMNode *parent) {
       E(e)->addElementText(OPENMBV%"crossSectionOrientation", "'cardanWrtWorldShader'");
       break;
   }
-  E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
-  E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
-  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
-  E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
+  if(ccw!=true)
+    E(e)->addElementText(OPENMBV%"counterClockWise", ccw);
+  if(updateNormals!=true)
+    E(e)->addElementText(OPENMBV%"updateNormals", updateNormals);
+  if(scaleFactor!=1)
+    E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
+  if(initialRotation[0]!=0 || initialRotation[1]!=0 || initialRotation[2]!=0)
+    E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
   if( stateOffSet.size() > 0 )
     E(e)->addElementText(OPENMBV%"stateOffSet", vector<double>(stateOffSet));
   return nullptr;
@@ -125,9 +129,9 @@ void SpineExtrusion::initializeUsingXML(DOMElement *element) {
   e=E(element)->getFirstElementChildNamed(OPENMBV%"updateNormals");
   if(e) setUpdateNormals(E(e)->getText<bool>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"scaleFactor");
-  setScaleFactor(E(e)->getText<double>());
+  if(e) setScaleFactor(E(e)->getText<double>());
   e=E(element)->getFirstElementChildNamed(OPENMBV%"initialRotation");
-  setInitialRotation(E(e)->getText<vector<double>>(3));
+  if(e) setInitialRotation(E(e)->getText<vector<double>>(3));
   e=E(element)->getFirstElementChildNamed(OPENMBV%"stateOffSet");
   if( e )
     setStateOffSet(E(e)->getText<vector<double>>());

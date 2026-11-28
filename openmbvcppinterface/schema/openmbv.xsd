@@ -296,8 +296,8 @@
           <xs:element name="crossSectionOrientation" type="pv:stringFullEval" minOccurs="0"/>
           <xs:element name="counterClockWise" type="pv:booleanFullEval" minOccurs="0"/>
           <xs:element name="updateNormals" type="pv:booleanFullEval" minOccurs="0"/>
-          <xs:element name="scaleFactor" type="pv:nounitScalar"/>
-          <xs:element name="initialRotation" type="pv:angleVector"/>
+          <xs:element name="scaleFactor" type="pv:nounitScalar" minOccurs="0"/>
+          <xs:element name="initialRotation" type="pv:angleVector" minOccurs="0"/>
           <xs:element name="stateOffSet" minOccurs="0" type="pv:nounitVector"/>
         </xs:sequence> 
       </xs:extension>

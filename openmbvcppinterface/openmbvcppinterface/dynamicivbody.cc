@@ -45,7 +45,8 @@ DOMElement* DynamicIvBody::writeXMLFile(DOMNode *parent) {
     if(fixedStrSize!=-1)
       E(E(e)->getFirstElementChildNamed(OPENMBV%"dataStrSize"))->setAttribute("fixedStrSize", fixedStrSize);
   }
-  E(e)->addElementText(OPENMBV%"scalarData", scalarData);
+  if(scalarData)
+    E(e)->addElementText(OPENMBV%"scalarData", scalarData);
   if( stateOffSet.size() > 0 )
     E(e)->addElementText(OPENMBV%"stateOffSet", vector<Float>(stateOffSet));
   return nullptr;

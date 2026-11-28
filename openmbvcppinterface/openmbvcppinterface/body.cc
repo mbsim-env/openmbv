@@ -34,17 +34,22 @@ Body::Body() :  outLineStr("true"), shilouetteEdgeStr("false") {
 
 DOMElement* Body::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Object::writeXMLFile(parent);
-  E(e)->setAttribute("outLine", outLineStr);
-  E(e)->setAttribute("shilouetteEdge", shilouetteEdgeStr);
+  if(outLineStr!="true")
+    E(e)->setAttribute("outLine", outLineStr);
+  if(shilouetteEdgeStr!="false")
+    E(e)->setAttribute("shilouetteEdge", shilouetteEdgeStr);
   string dm;
   switch(drawMethod) {
     case filled: dm="filled"; break;
     case lines: dm="lines"; break;
     case points: dm="points"; break;
   }
-  E(e)->setAttribute("drawMethod", dm);
-  E(e)->setAttribute("pointSize", pointSize);
-  E(e)->setAttribute("lineWidth", lineWidth);
+  if(drawMethod!=filled)
+    E(e)->setAttribute("drawMethod", dm);
+  if(pointSize!=0)
+    E(e)->setAttribute("pointSize", pointSize);
+  if(pointSize!=0)
+    E(e)->setAttribute("lineWidth", lineWidth);
   return e;
 }
 

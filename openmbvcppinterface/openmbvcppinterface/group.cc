@@ -69,7 +69,8 @@ string Group::getFullName() {
 
 DOMElement *Group::writeXMLFile(DOMNode *parent) {
   DOMElement *e=Object::writeXMLFile(parent);
-  E(e)->setAttribute("expand", expandStr);
+  if(expandStr!="true")
+    E(e)->setAttribute("expand", expandStr);
   for(auto & i : object)
     i->writeXMLFile(e);
   return nullptr;

@@ -79,9 +79,12 @@ DOMElement *Object::writeXMLFile(DOMNode *parent) {
   DOMElement *e=D(doc)->createElement(OPENMBV%typeName);
   parent->insertBefore(e, nullptr);
   E(e)->setAttribute("name", name);
-  E(e)->setAttribute("enable", enableStr);
-  E(e)->setAttribute("boundingBox", boundingBoxStr);
-  if(environmentStr=="true") E(e)->setAttribute("environment", environmentStr);
+  if(enableStr!="true")
+    E(e)->setAttribute("enable", enableStr);
+  if(boundingBoxStr!="false")
+    E(e)->setAttribute("boundingBox", boundingBoxStr);
+  if(environmentStr!="false")
+    E(e)->setAttribute("environment", environmentStr);
   if(!ID.empty()) {
     DOMDocument *doc=parent->getOwnerDocument();
     DOMProcessingInstruction *id=doc->createProcessingInstruction(u"OPENMBV_ID", X()%ID);

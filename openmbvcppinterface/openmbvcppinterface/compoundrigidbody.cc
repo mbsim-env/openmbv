@@ -38,7 +38,8 @@ CompoundRigidBody::~CompoundRigidBody() = default;
 
 DOMElement* CompoundRigidBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=RigidBody::writeXMLFile(parent);
-  E(e)->setAttribute("expand", expandStr);
+  if(expandStr!="false")
+    E(e)->setAttribute("expand", expandStr);
   for(auto & i : rigidBody)
     i->writeXMLFile(e);
   return nullptr;

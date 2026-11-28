@@ -40,13 +40,20 @@ RigidBody::~RigidBody() = default;
 
 DOMElement* RigidBody::writeXMLFile(DOMNode *parent) {
   DOMElement *e=DynamicColoredBody::writeXMLFile(parent);
-  E(e)->setAttribute("localFrame", localFrameStr);
-  E(e)->setAttribute("referenceFrame", referenceFrameStr);
-  E(e)->setAttribute("path", pathStr);
-  E(e)->setAttribute("dragger", draggerStr);
-  E(e)->addElementText(OPENMBV%"initialTranslation", initialTranslation);
-  E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
-  E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
+  if(localFrameStr!="false")
+    E(e)->setAttribute("localFrame", localFrameStr);
+  if(referenceFrameStr!="false")
+    E(e)->setAttribute("referenceFrame", referenceFrameStr);
+  if(pathStr!="false")
+    E(e)->setAttribute("path", pathStr);
+  if(draggerStr!="false")
+    E(e)->setAttribute("dragger", draggerStr);
+  if(initialTranslation[0]!=0 || initialTranslation[1]!=0 || initialTranslation[2]!=0)
+    E(e)->addElementText(OPENMBV%"initialTranslation", initialTranslation);
+  if(initialRotation[0]!=0 || initialRotation[1]!=0 || initialRotation[2]!=0)
+    E(e)->addElementText(OPENMBV%"initialRotation", initialRotation);
+  if(scaleFactor!=1)
+    E(e)->addElementText(OPENMBV%"scaleFactor", scaleFactor);
   return e;
 }
 
