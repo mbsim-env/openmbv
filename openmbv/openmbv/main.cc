@@ -120,10 +120,8 @@ int main(int argc, char *argv[]) {
         <<"Licensed under the GNU Lesser General Public License (LGPL)"<<endl
         <<""<<endl
         <<"Usage: openmbv [-h|--help] [-v|--verbose] [--play|--lastframe] [--speed <factor>]"<<endl
-        <<"               [--closeall]"<<endl
         <<"               [--winst <file>] [--camera <file>] [--fullscreen]"<<endl
         <<"               [--exportandexit <file>]"<<endl
-        <<"               [--nodecoration]"<<endl
         <<"               [--headlight <file>]"<<endl
         <<"               [-C <dir/file>|--CC]"<<endl
         <<"               [--maximized] [<dir>|<file>] [<dir>|<file>] ..."<<endl
@@ -134,8 +132,6 @@ int main(int argc, char *argv[]) {
         <<"--play             Start animation after loading"<<endl
         <<"--speed            Set the animation speed"<<endl
         <<"--lastframe        View last frame after loading"<<endl
-        <<"--closeall         Start with all widgets closed except scene widget"<<endl
-        <<"--nodecoration     Disable the window decoration (Titel/Border/...)"<<endl
         <<"--winst            Load the given (main)window state file (disables save to config file)"<<endl
         <<"--exportandexit    Export the current 3D scene as PNG and exit"<<endl
         <<"--camera           Load the given camera file (*.iv)"<<endl

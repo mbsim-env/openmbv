@@ -565,6 +565,9 @@ AppSettings::AppSettings() : qSettings(format, scope, organization, application)
   setting[filterCaseSensitivity]={"mainwindow/filter/casesensitivity", 0};
   setting[transparency]={"mainwindow/sceneGraph/transparency", 2};
   setting[maxFps]={"mainwindow/sceneGraph/maxFps", 25.0};
+  setting[menuBar]={"mainwindow/menuBar", true};
+  setting[statusBar]={"mainwindow/statusBar", true};
+  setting[frameSlider]={"mainwindow/frameSlider", true};
 
   for(auto &[str, value]: setting)
     if(qSettings.contains(str))

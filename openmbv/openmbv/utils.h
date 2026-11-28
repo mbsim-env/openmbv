@@ -370,6 +370,9 @@ class AppSettings {
       filterCaseSensitivity,
       transparency,
       maxFps,
+      menuBar,
+      statusBar,
+      frameSlider,
       SIZE,
     };
     AppSettings();

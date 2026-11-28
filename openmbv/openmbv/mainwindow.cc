@@ -116,7 +116,7 @@ namespace OpenMBVGUI {
 
 MainWindow *MainWindow::instance=nullptr;
 
-MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScreen(false), deltaTime(0), oldSpeed(1) {
+MainWindow::MainWindow(list<string>& arg) : enableFullScreen(false), deltaTime(0), oldSpeed(1) {
   OpenMBVGUI::appSettings=std::make_unique<OpenMBVGUI::AppSettings>();
 
   // environment variables
@@ -799,18 +799,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
 
   // close all docks and toolbars
   if((i=std::find(arg.begin(), arg.end(), "--closeall"))!=arg.end()) {
-    objectListDW->close();
-    objectInfoDW->close();
-    fileTB->close();
-    sceneViewToolBar->close();
-    animationTB->close();
-    menuBar()->setVisible(false);
-    statusBar()->setVisible(false);
-    timeSlider->setVisible(false);
-    toggleMenuBar->setChecked(false);
-    toggleStatusBar->setChecked(false);
-    toggleFrameSlider->setChecked(false);
     arg.erase(i);
+    string str = "The command line option --closeall is no longer available. Please use --winst.";
+    statusBar()->showMessage(str.c_str(), 10000);
+    msg(Warn)<<str<<endl;
   }
 
   // fullscreen
@@ -822,10 +814,10 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
 
   // decoratoin
   if((i=std::find(arg.begin(), arg.end(), "--nodecoration"))!=arg.end()) {
-    toggleDecoration->setChecked(false);
-    setWindowFlags(Qt::FramelessWindowHint);
-    show();
     arg.erase(i);
+    string str = "The command line option --nodecoration is no longer available. Please use --winst.";
+    statusBar()->showMessage(str.c_str(), 10000);
+    msg(Warn)<<str<<endl;
   }
 
   resize(830,560);
@@ -872,6 +864,14 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
   // maximized
   if((i=std::find(arg.begin(), arg.end(), "--maximized"))!=arg.end())
     showMaximized();
+
+  if((i=std::find(arg.begin(), arg.end(), "--wst"))!=arg.end()) {
+    i2=i; i2++;
+    arg.erase(i); arg.erase(i2);
+    string str = "The command line option --wst is no longer available. Please use --winst but note that the file format of both differ.";
+    statusBar()->showMessage(str.c_str(), 10000);
+    msg(Warn)<<str<<endl;
+  }
 
   if((i=std::find(arg.begin(), arg.end(), "--winst"))!=arg.end()) {
     i2=i; i2++;
@@ -2168,6 +2168,17 @@ void MainWindow::loadWindowState(string filename) {
 
   file.open(QIODevice::ReadOnly);
 
+  bool b;
+  file.read(reinterpret_cast<char*>(&b), sizeof(bool));
+  toggleMenuBar->setChecked(b);
+  toggleMenuBarSlot();
+  file.read(reinterpret_cast<char*>(&b), sizeof(bool));
+  toggleStatusBar->setChecked(b);
+  toggleStatusBarSlot();
+  file.read(reinterpret_cast<char*>(&b), sizeof(bool));
+  toggleFrameSlider->setChecked(b);
+  toggleFrameSliderSlot();
+
   int geoSize;
   file.read(reinterpret_cast<char*>(&geoSize), sizeof(int));
   auto geo = file.read(geoSize);
@@ -2186,6 +2197,13 @@ void MainWindow::saveWindowState() {
     filename=filename+".ombvwinst";
 
   QByteArray data;
+
+  bool b = toggleMenuBar->isChecked();
+  data.append(reinterpret_cast<char*>(&b), sizeof(bool));
+  b = toggleStatusBar->isChecked();
+  data.append(reinterpret_cast<char*>(&b), sizeof(bool));
+  b = toggleFrameSlider->isChecked();
+  data.append(reinterpret_cast<char*>(&b), sizeof(bool));
 
   auto geo = saveGeometry();
   int geoSize = geo.size();
@@ -2684,6 +2702,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   if(winst.empty()) {
     appSettings->set(AppSettings::mainwindow_geometry, saveGeometry());
     appSettings->set(AppSettings::mainwindow_state, saveState());
+    appSettings->set(AppSettings::menuBar, toggleMenuBar->isChecked());
+    appSettings->set(AppSettings::statusBar, toggleStatusBar->isChecked());
+    appSettings->set(AppSettings::frameSlider, toggleFrameSlider->isChecked());
   }
   if(dialogStereo)
     dialogStereo->close();
@@ -2693,6 +2714,12 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 void MainWindow::showEvent(QShowEvent *event) {
   restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
   restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
+  toggleMenuBar->setChecked(appSettings->get<bool>(AppSettings::menuBar));
+  toggleMenuBarSlot();
+  toggleStatusBar->setChecked(appSettings->get<bool>(AppSettings::statusBar));
+  toggleStatusBarSlot();
+  toggleFrameSlider->setChecked(appSettings->get<bool>(AppSettings::frameSlider));
+  toggleFrameSliderSlot();
   static bool firstCall = true;
   if(firstCall) {
     firstCall = false;

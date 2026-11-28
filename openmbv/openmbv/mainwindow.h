@@ -103,7 +103,6 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
                     rotateXpWorld, rotateXmWorld, rotateYpWorld, rotateYmWorld, rotateZpWorld, rotateZmWorld,
                     rotateXpScreen, rotateXmScreen, rotateYpScreen, rotateYmScreen, rotateZpScreen, rotateZmScreen };
     enum Animation { stop, play, lastFrame };
-    struct WindowState { bool hasMenuBar, hasStatusBar, hasFrameSlider; };
     SoText2 *timeString;
     double maxFps;
     bool enableFullScreen;
@@ -309,7 +308,7 @@ class DLL_PUBLIC MainWindow : public QMainWindow, virtual public fmatvec::Atom {
 
 
     void highlightObject(const std::string &curID);
-    MainWindow(std::list<std::string>& arg, bool _skipWindowState=false);
+    MainWindow(std::list<std::string>& arg);
     ~MainWindow() override;
     void updateRealTimeUsed();
     void openFile(const std::string& fileName, QTreeWidgetItem* parentItem=nullptr, SoGroup *soParent=nullptr, int ind=-1);
