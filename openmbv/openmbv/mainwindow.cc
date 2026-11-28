@@ -972,7 +972,9 @@ MainWindow::MainWindow(list<string>& arg, bool _skipWindowState) : enableFullScr
     connect(timer, &QTimer::timeout,this, [this, timer](){
       if(waitForAutoExit.empty()) {
         timer->stop();
-        assert(close());
+        auto ret=close();
+        (void)ret;
+        assert(ret);
       }
     });
     timer->start(100);
@@ -2696,8 +2698,11 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 void MainWindow::showEvent(QShowEvent *event) {
   restoreGeometry(appSettings->get<QByteArray>(AppSettings::mainwindow_geometry));
   restoreState(appSettings->get<QByteArray>(AppSettings::mainwindow_state));
-  if(autoExit)
+  static bool firstCall = true;
+  if(autoExit && firstCall) {
+    firstCall = false;
     setWindowState(Qt::WindowMinimized);
+  }
   QMainWindow::showEvent(event);
 }
 
